@@ -1,11 +1,20 @@
 from JumpScale import j
-from xml.etree import ElementTree as Et 
-from jinja2 import Environment, PackageLoader, FileSystemLoader
+from xml.etree import ElementTree as Et
 import random
 
+
 class Network:
+    """Network object representation of xml and actual Network."""
 
     def __init__(self, controller, name, bridge,  interfaces):
+        """
+        Instance of network object representation of open vstorage network.
+
+        @param controller object: connection to libvirt controller
+        @param name string: name of network
+        @param bridge
+        @param interfaces
+        """
         self.name = name
         self.bridge = bridge
         self._interfaces = interfaces
@@ -14,16 +23,16 @@ class Network:
     @property
     def interfaces(self):
         if self._interfaces is None:
-            self._interfaces = j.sal.openvswitch.netcl.listBridgePorts(self.bridge)
+            self._interfaces = j.sal.openvswitch.netcl.listBridgePorts(
+                self.bridge)
         return self._interfaces
-        
 
     def create(self, autostart=True, start=True):
         '''
         @param autostart true will autostart Network on host boot
         create and start network
         '''
-        nics = [interface.name for interface in self.interfaces]
+        nics = [interface for interface in self.interfaces]
         j.sal.openvswitch.newBridge(self.name, nics)
         self.controller.connection.networkDefineXML(self.to_xml())
         nw = self.controller.connection.networkLookupByName(self.name)
@@ -36,7 +45,7 @@ class Network:
         networkxml = self.controller.env.get_template(
             'network.xml').render(networkname=self.name, bridge=self.bridge)
         return networkxml
-    
+
     @classmethod
     def from_xml(cls, controller, source):
         network = ElementTreefromstring(source)
@@ -44,12 +53,10 @@ class Network:
         bridge = netwrok.findall('bridge')[0].get('name')
         return cls(controller, name, bridge, None)
 
-
     def from_xml(self, source):
         network = Et.fromstring(source)
         self.name = network.findtext('name')
         self.bridge = netwrok.findall('bridge')[0].get('name')
-
 
     def destroy(self):
         j.sal.openvswitch.netcl.destroyBridge(self.name)
@@ -65,25 +72,27 @@ class Interface:
                    random.randint(0x00, 0xff),
                    random.randint(0x00, 0xff)]
             return ':'.join(map(lambda x: '%02x' % x, mac))
-        
+
         self.controller = controller
         self.name = name
         self.bridge = bridge
         self.qos = not (interface_rate is None)
-        self.interface_rate = interface_rate
-        self.burst = None if interface_rate is None else interface_rate*0.1 
+        self.interface_rate = str(interface_rate)
+        self.burst = None
+        if not (interface_rate is None):
+            self.burst = str(int(interface_rate * 0.1))
         self._source = source
         self.mac = generate_mac()
 
     def from_xml(self, source):
 
-        interface =  ElementTreefromstring(source)
+        interface = ElementTreefromstring(source)
         self.name = interface.findall('paramaters')[0].get('profileid')
         self.bridge = interface.findall('source')[0].get('bridge')
         bandwidth = interface.findall('bandwidth')
         if bandwidth:
             self.interface_rate = bandwidth[0].find('inbound').get('average')
-            self.burst =  bandwidth[0].find('inbound').get('burst')
+            self.burst = bandwidth[0].find('inbound').get('burst')
         self.mac = interface.findall('mac')[0].get('address')
 
     def to_xml(self):

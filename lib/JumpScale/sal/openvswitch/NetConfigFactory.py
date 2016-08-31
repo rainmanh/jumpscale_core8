@@ -87,6 +87,7 @@ class NetConfigFactory:
         br.create()
         if interface is not None:
             br.connect(interface)
+
     def vnicQOS(self, limit, interface, burst_limit=None):
         """
         @param limit apply Qos policing to limit the rate throught a

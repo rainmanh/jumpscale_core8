@@ -23,10 +23,18 @@ class Machine:
             'nics': self.nics, 'disks': self.disks})
         return machinexml
 
-    # @classmethod
-    # def from_xml(cls, xml):
-    #   ElementTree.from_string(xml)
-    #   return Machine(*args)
+    @classmethod
+    def from_xml(cls, controller, source):
+        machine =  ElementTree.fromstring(source)
+        name = interface.findtext('name')
+        memory = int(interface.findtext('memory'))
+        nrcpu = int(interface.findtext('vcpu'))
+        bandwidth = interface.findall('bandwidth')burst')
+        interfaces = map(lambda interface:Interface.from_xml(controller, ElementTree.tostring(interface)),
+            machine.findall('interface'))
+        disks = map(lambda disk:Disk.from_xml(controller, ElementTree.tostring(disk)),
+            machine.findall('disk'))
+        return cls(controller, name, disks, interfaces, memory, nrcpu)
 
     @property
     def domain(self):
@@ -46,13 +54,35 @@ class Machine:
         if not self._uuid:
             self._uuid = self.domain.UUIDString()
         return self._uuid
-    
 
     def create(self):
         self.domain = self.controller.connection.defineXML(self.to_xml())
 
+    def delete(self):
+        return domain.destroy() == 0
+
     def start(self):
-        self.domain.create()
+        return self.domain.create() == 0
+
+    def shuldown(self):
+        return self.domain.shutdown() == 0
+
+    def suspend(self):
+        return self.domain.suspend() == 0
+
+    def resume(self):
+        return self.domain.resume() == 0
+
+class MachineHelper:
+
+    def create(self, machine):
+        [disk.create() for disk in machine.disks]
+        [nic.create() for nic in machine.nics]
+        return machine.create()
+
+    def start(self, machine):
+        pass
+
 
 class KVMController:
 
@@ -80,11 +110,6 @@ class KVMController:
                     pass
         close(self.connection)
         close(self.readonly)
-
-    def create(machine):
-        [disk.create() for disk in machine.disks]
-        [nic.create() for nic in machine.nics]
-        machine.create()
 
 class MIE_kvm:
     def __init__(self):

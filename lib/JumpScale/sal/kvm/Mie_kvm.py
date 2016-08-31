@@ -29,7 +29,6 @@ class Machine:
         name = interface.findtext('name')
         memory = int(interface.findtext('memory'))
         nrcpu = int(interface.findtext('vcpu'))
-        bandwidth = interface.findall('bandwidth')burst')
         interfaces = map(lambda interface:Interface.from_xml(controller, ElementTree.tostring(interface)),
             machine.findall('interface'))
         disks = map(lambda disk:Disk.from_xml(controller, ElementTree.tostring(disk)),

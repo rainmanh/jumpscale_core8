@@ -12,9 +12,16 @@ class Disk():
         self.controller = controller
         self.name = vm_id + '-' + self.role + '.qcow2'
 
-    def from_xml(self, diskxml):
-
-        pass
+    @classmethod
+    def from_xml(cls, controller, diskxml):
+        disk = ElementTree.fromstring(diskxml)
+        name = disk.findtext('name')
+        vm_id = name.split('-')[0]
+        role = name.split('-')[0].split('.')[0]
+        size = disk.findtext('size')
+        path = disk.find('backingStore').findtext('path')
+        image_name = path.split("/")[0].split('.')[0]
+        return cls(controller, vm_id, role, size,image_name)
 
     def to_xml(self):
         disktemplate = self.controller.evn.get_template('disk.xml')

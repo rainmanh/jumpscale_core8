@@ -13,34 +13,22 @@ class MonitorClient:
         lua = j.sal.fs.fileGetContents(luapath)
         self._sha = self.redis.script_load(lua)
 
-    def measure(self, key, measurement, tags, value, type="A", aggrkey=""):
+    def measure(self, key, measurement, tags, value, type="A"):
         """
+        #TODO: *1 do we need measurement, I think it can go away
+        @param type: A=Absolute, C=Counter?, D=Differential
         @param tags node:kds dim:iops location:elgouna
         """
         now = int(time.time() * 1000)
 
         res = self.redis.evalsha(self._sha, 1, key, measurement, value, str(now), type, tags, self.nodename)
 
-        # LETS NOT DO TOTAL FOR NOW
-        # if aggrkey!="":
-        #     tags=j.data.tags.getObject(tags)
-        #     try:
-        #         tags.tagDelete("node")
-        #     except:
-        #         pass
-        #     try:
-        #         tags.tagDelete("disk")
-        #     except:
-        #         pass
-        #     tags.tagSet("node","total")
-        #     res= self.redis.evalsha(self._sha,1,aggrkey,measurement,value,str(now),type,tags,"total")
-
         print("%s %s" % (key, res))
 
         return res
 
     def measureDiff(self, key, measurement, tags, value, aggrkey=""):
-        return self.measure(key, measurement, tags, value, type="D", aggrkey=aggrkey)
+        return self.measure(key, measurement, tags, value, type="D")
 
 
 class MonitorTools(MonitorClient):

@@ -2,12 +2,13 @@ from JumpScale import j
 
 app = j.tools.cuisine._getBaseAppClass()
 
+
 class CuisineBrotli(app):
 
     NAME = 'bro'
 
     def build(self, reset=False):
-        if reset == False and self.isInstalled():
+        if reset is False and self.isInstalled():
             return
         C = """
         cd /tmp
@@ -19,7 +20,6 @@ class CuisineBrotli(app):
         """
         C = self._cuisine.core.args_replace(C)
         self._cuisine.core.execute_bash(C)
-
 
     def install(self):
         C = """

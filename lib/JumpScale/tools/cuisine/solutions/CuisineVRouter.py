@@ -43,8 +43,9 @@ class CuisineVRouter(base):
         self.proxy()
 
     def prepare(self):
-        self.check()
+        self.cuisine.package.install('inetutils-ping')
         self.cuisine.package.install('nftables')
+        self.check()
         self.cuisine.systemservices.fw.flush(permanent=True)
 
         # will make sure jumpscale has been installed (&base)

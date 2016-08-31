@@ -7,9 +7,9 @@ base = j.tools.cuisine._getBaseClass()
 class CuisinePyFTPServer(base):
 
     def install(self, root="/storage/ftpserver", config="", port=2121):
-
-        self._cuisine.ufw.ufw_enable()
-        self._cuisine.ufw.allowIncoming(port)
+        self._cuisine.development.js8.install()
+        self._cuisine.systemservices.ufw.ufw_enable()
+        self._cuisine.systemservices.ufw.allowIncoming(port)
 
         cmd = "sudo ufw allow 50000:65535/tcp"
         self._cuisine.core.run(cmd)
@@ -62,7 +62,7 @@ class CuisinePyFTPServer(base):
         #   anonymous: []
         # '''
 
-        self._cuisine.installer.base()
+        self._cuisine.systemservices.base.install()
         self._cuisine.development.pip.install("pyftpdlib")
 
         self._cuisine.btrfs.subvolumeCreate(root)

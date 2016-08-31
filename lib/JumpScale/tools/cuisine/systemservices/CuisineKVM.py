@@ -34,10 +34,6 @@ class CuisineKVMMachineObj():
         # get from reality
         raise NotImplemented()
 
-    @property
-    def path(self):
-        return self.kvm.vmGetPath(self.name)
-
     def start(self):
         # TODO:
         raise NotImplemented()
@@ -112,12 +108,12 @@ class CuisineKVM(base):
     def _libvirt(self):
         """
         """
-        # TODO: need to check and exit if required are met *1
+        # TODO: *1 need to check and exit if required are met 
         self._cuisine.package.install('libvirt-dev')
         self._cuisine.development.pip.install("libvirt-python==1.3.2", upgrade=False)
 
     def vdiskBootCreate(self, name, image='http://fs.aydo.com/kvm/ub_small.img'):
-        path=j.sal.fs.joinPaths(self.diskStorPath, name)
+        path = j.sal.fs.joinPaths(self.diskStorPath, name)
         # create qcow2 image disk on the right path
 
     def vdiskCreate(self, name, size=100):
@@ -143,7 +139,6 @@ class CuisineKVM(base):
 
     def vnicsList(**kwargs):
         raise NotImplemented()
-
 
     def machineCreate(self, name, disks, nics, mem, pubkey=None):
         """

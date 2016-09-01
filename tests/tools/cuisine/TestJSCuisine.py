@@ -6,7 +6,8 @@ from unittest import mock
 
 from JumpScale import j
 from JumpScale.tools.cuisine.JSCuisine import JSCuisine
-
+import JumpScale
+from JumpScale.tools.cuisine.ProcessManagerFactory import ProcessManagerFactory
 
 class TestJSCuisine(unittest.TestCase):
     def setUp(self):
@@ -153,8 +154,11 @@ class TestJSCuisine(unittest.TestCase):
         """
         self.assertIsNotNone(self.JSCuisine.development.git)
 
-    def test_create_cuisine2_processmanager(self):
+
+    @mock.patch('JumpScale.tools.cuisine.ProcessManagerFactory.ProcessManagerFactory')
+    def test_create_cuisine2_processmanager(self, processmanager_mock):
         """
         Test accessing processmanager property
         """
+        processmanager_mock.get.return_value = ProcessManagerFactory(self.JSCuisine)
         self.assertIsNotNone(self.JSCuisine.processmanager)

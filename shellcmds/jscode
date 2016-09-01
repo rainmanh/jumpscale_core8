@@ -4,18 +4,10 @@ import sys
 import click
 
 from JumpScale import j
-from JumpScale.tools import cmdutils
-
-# TODO: *1 rewrite this using click
 
 j.application.start("jscode2")
 
-
 ACTIONS = ('get', 'commit', 'push', 'update', 'status', 'list', 'init')
-
-
-
-# if opts.accounts is None and opts.name is None:
 
 def _repo_info(name, accounts):
     if j.sal.fs.exists("%s/%s" % (j.sal.fs.getcwd(), ".git")):

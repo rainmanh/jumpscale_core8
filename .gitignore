@@ -62,3 +62,6 @@ lib/JumpScale/libext/
 # Vagrant files
 Vagrantfile
 .vagrant
+
+#legacy
+apps/jsagent/jumpscripts/

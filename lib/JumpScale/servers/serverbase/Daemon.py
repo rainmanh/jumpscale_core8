@@ -1,6 +1,6 @@
 from JumpScale import j
-from servers.serverbase import returnCodes
-from JumpScale.core.errorhandling.ErrorConditionHandler import BaseException
+from JumpScale.servers.serverbase import returnCodes
+from JumpScale.core.errorhandling.OurExceptions import BaseJSException
 import inspect
 import time
 
@@ -232,7 +232,7 @@ class Daemon:
             else:
                 result = ffunction(data, session=session)
         except Exception as e:
-            if isinstance(e, BaseException):
+            if isinstance(e, BaseJSException):
                 return returnCodes.ERROR, returnformat, e.eco
             eco = j.errorconditionhandler.parsePythonExceptionObject(e)
             eco.level = 2

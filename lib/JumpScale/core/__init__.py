@@ -1,6 +1,3 @@
-
-from JumpScale import j
-
 import os
 
 
@@ -62,8 +59,6 @@ def _setup_stacktrace_hook():
         not available, the given frame will be returned using the string
         '<unknown>' as thread ID.
         '''
-        if j.application.skipTraceback:
-            return None
         import sys
 
         # Using sys._current_frames for now

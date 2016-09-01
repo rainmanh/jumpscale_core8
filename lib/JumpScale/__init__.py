@@ -14,6 +14,8 @@ except:
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
+from JumpScale.core.redis import Redis
+
 if sys.platform.startswith("darwin") or sys.platform.startswith("cygwin"):
 
     base = "%s/opt/jumpscale8" % os.environ["HOME"]
@@ -107,7 +109,7 @@ if not all(x for x in range(10)):
     j.servers = Loader("j.servers")
     j.portal = Loader('j.portal')
     j.portal.tools = Loader('j.portal.tools')
-    
+    j.legacy = Loader("j.legacy")
     
     from .InstallTools import InstallTools, do, Installer
     j.do = do
@@ -125,9 +127,9 @@ if not all(x for x in range(10)):
         import redis
     
         if j.do.TYPE.startswith("WIN"):
-            j.core.db = redis.Redis()
+            j.core.db = Redis()
         else:
-            j.core.db = redis.Redis(unix_socket_path='/tmp/redis.sock')
+            j.core.db = Redis(unix_socket_path='/tmp/redis.sock')
     
         try:
             j.core.db.set("internal.last", 0)

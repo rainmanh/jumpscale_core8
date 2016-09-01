@@ -86,13 +86,17 @@ class MachineHelper:
 
 class KVMController:
 
-    def __init__(self, host='localhost'):
+    def __init__(self, host='localhost', executor=None):
+        self.executor = executor
         self._host = host
         self.open()
         atexit.register(self.close)
+        if executor is None:
+            self.executor = j.tools.executor.getLocal()
+        self.env = Environment(loader=FileSystemLoader(
+            j.sal.fs.joinPaths(j.sal.fs.getParent(__file__), 'templates')))
         self.template_path = j.sal.fs.joinPaths(j.sal.fs.getParent(__file__), 'templates')
         self.base_path = j.sal.fs.joinPaths(j.sal.fs.getParent(__file__), 'base')
-        self.env = Environment(loader=FileSystemLoader(self.template_path))
         # self.env = Environment(loader=FileSystemLoader('/'.join(file.split('/')[:-1]) + '/templates'))
 
     def open(self):

@@ -1,12 +1,12 @@
 from JumpScale import j
-from xml.etree import ElementTree as Et
+from xml.etree import ElementTree
 import random
 
 
 class Network:
     """Network object representation of xml and actual Network."""
 
-    def __init__(self, controller, name, bridge,  interfaces):
+    def __init__(self, controller, name, bridge, interfaces):
         """
         Instance of network object representation of open vstorage network.
 
@@ -33,7 +33,16 @@ class Network:
         create and start network
         '''
         nics = [interface for interface in self.interfaces]
-        j.sal.openvswitch.newBridge(self.name, nics)
+
+        self.controller.executor.execute(
+            "ovs-vsctl --may-exist add-br %s" % self.name)
+        self.controller.executor.execute(
+            "ovs-vsctl set Bridge %s stp_enable=true" % self.name)
+        if nics:
+            for nic in nics:
+                self.controller.executor.execute(
+                    "ovs-vsctl --may-exist add-port %s %s" % (self.name, nic))
+
         self.controller.connection.networkDefineXML(self.to_xml())
         nw = self.controller.connection.networkLookupByName(self.name)
         if autostart:
@@ -48,18 +57,14 @@ class Network:
 
     @classmethod
     def from_xml(cls, controller, source):
-        network = ElementTreefromstring(source)
+        network = ElementTree.fromstring(source)
         name = network.findtext('name')
-        bridge = netwrok.findall('bridge')[0].get('name')
+        bridge = network.findall('bridge')[0].get('name')
         return cls(controller, name, bridge, None)
 
-    def from_xml(self, source):
-        network = Et.fromstring(source)
-        self.name = network.findtext('name')
-        self.bridge = netwrok.findall('bridge')[0].get('name')
-
     def destroy(self):
-        j.sal.openvswitch.netcl.destroyBridge(self.name)
+        self.controller.executor.execute(
+            'ovs-ovstl --if-exists del-br %s' % self.name)
 
 
 class Interface:
@@ -86,7 +91,7 @@ class Interface:
 
     def from_xml(self, source):
 
-        interface = ElementTreefromstring(source)
+        interface = ElementTree.fromstring(source)
         self.name = interface.findall('paramaters')[0].get('profileid')
         self.bridge = interface.findall('source')[0].get('bridge')
         bandwidth = interface.findall('bandwidth')

@@ -81,7 +81,7 @@ class List:
 
     def check(self, value):
         '''Check whether provided value is a list'''
-        return isinstance(value, list) or isinstance(value, tuple)
+        return isinstance(value, (list, tuple))
 
     def get_default(self):
         return list()

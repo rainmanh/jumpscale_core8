@@ -42,12 +42,11 @@ class CuisineGrafana(app):
 
     def start(self, influx_addr='127.0.0.1', influx_port=8086, port=3000):
 
-        cmd = "cd $appDir/grafana && $binDir/grafana-server --config=$cfgDir/grafana/grafana.ini\n"
+        cmd = "$binDir/grafana-server --config=$cfgDir/grafana/grafana.ini\n"
         cmd = self._cuisine.core.args_replace(cmd)
         self._cuisine.core.file_write("/opt/jumpscale8/bin/start_grafana.sh", cmd, 777, replaceArgs=True)
         self._cuisine.process.kill("grafana-server")
-        self._cuisine.processmanager.ensure(
-            "grafana-server", cmd=cmd, env={})
+        self._cuisine.processmanager.ensure("grafana-server", cmd=cmd, env={}, path='$appDir/grafana')
         grafanaclient = j.clients.grafana.get(
             url='http://%s:%d' % (self._cuisine.core._executor.addr, port), username='admin', password='admin')
         data = {

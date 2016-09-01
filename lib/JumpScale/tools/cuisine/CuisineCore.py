@@ -1077,7 +1077,7 @@ class CuisineCore(base):
                 content = ". %s\n%s\n" % (ppath, content)
 
         if interpreter == "bash":
-            content += "\necho **OK**\n"
+            content += "\necho '**OK**'\n"
         elif interpreter.startswith("python") or interpreter.startswith("jspython"):
             content += "\nprint('**OK**\\n')\n"
 

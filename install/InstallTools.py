@@ -2476,6 +2476,7 @@ exec python3 -q "$@"
             pip3 install colorlog
             pip3 install msgpack-python
             pip3 install pyblake2
+            pip3 install click
             """
             do.executeCmds(cmds)
 

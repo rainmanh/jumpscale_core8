@@ -5,6 +5,7 @@ import libvirt
 import atexit
 from JumpScale import j
 from vnic import *
+from disk import *
 
 class Machine:
 
@@ -89,8 +90,9 @@ class KVMController:
         self._host = host
         self.open()
         atexit.register(self.close)
-        self.env = Environment(loader=FileSystemLoader(
-            j.sal.fs.joinPaths(j.sal.fs.getParent(__file__), 'templates')))
+        self.template_path = j.sal.fs.joinPaths(j.sal.fs.getParent(__file__), 'templates')
+        self.base_path = j.sal.fs.joinPaths(j.sal.fs.getParent(__file__), 'base')
+        self.env = Environment(loader=FileSystemLoader(self.template_path))
         # self.env = Environment(loader=FileSystemLoader('/'.join(file.split('/')[:-1]) + '/templates'))
 
     def open(self):
@@ -117,4 +119,7 @@ class MIE_kvm:
         self.KVMController = KVMController
         self.Network = Network
         self.Interface = Interface
+        self.Disk = Disk
+        self.Pool = Pool
+        self.StorageController = StorageController
 

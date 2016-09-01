@@ -11,7 +11,6 @@ class CuisineArakoon(base):
         self.logger = j.logger.get("j.tools.cuisine.arakoon")
 
     def _build(self):
-        # self._cuisine.installer.base()
         exists = self._cuisine.core.command_check("arakoon")
 
         if exists:
@@ -20,14 +19,11 @@ class CuisineArakoon(base):
             if j.sal.fs.pathClean(cmd) != j.sal.fs.pathClean(dest):
                 self._cuisine.core.file_copy(cmd, dest)
         else:
-            dest = self._cuisine.development.git.pullRepo('https://github.com/openvstorage/arakoon.git')
+            arakoon_url = 'https://github.com/openvstorage/arakoon.git'
+            dest = self._cuisine.development.git.pullRepo(arakoon_url)
             self._cuisine.core.run('cd %s && git pull && git fetch --tags && git checkout tags/1.9.7' % dest)
 
-            opam_root = self._cuisine.core.args_replace('$tmpDir/OPAM')
-            cmd = "opam config env --root=%s --dot-profile %s" % (opam_root, self._cuisine.bash.profilePath)
-            _, out, _ = self._cuisine.core.run(cmd, profile=True)
-
-            cmd = 'cd %s && eval `%s` && make' % (dest, out)
+            cmd = 'cd %s && make' % (dest)
             self._cuisine.core.run(cmd, profile=True)
 
             self._cuisine.core.file_copy('%s/arakoon.native' % dest, "$binDir/arakoon", overwrite=True)
@@ -36,8 +32,8 @@ class CuisineArakoon(base):
 
     def _install_ocaml(self):
         self.logger.info("download opam installer")
-        self._cuisine.core.file_download(
-            'https://raw.github.com/ocaml/opam/master/shell/opam_installer.sh', to='$tmpDir/opam_installer.sh')
+        ocaml_url = 'https://raw.github.com/ocaml/opam/master/shell/opam_installer.sh'
+        self._cuisine.core.file_download(ocaml_url, to='$tmpDir/opam_installer.sh')
         self.logger.info("install opam")
         self._cuisine.core.run('chmod +x $tmpDir/opam_installer.sh')
         ocaml_version = '4.02.3'
@@ -65,7 +61,6 @@ class CuisineArakoon(base):
             'camltc',
             'cstruct',
             'ctypes-foreign',
-            'uuidm',
             'zarith',
             'mirage-no-xen.1',
             'quickcheck.1.0.2',
@@ -76,7 +71,6 @@ class CuisineArakoon(base):
             'ppx_deriving.3.1',
             'ppx_deriving_yojson',
             'core.113.00.00',
-            'redis',
             'uri.1.9.1',
             'result',
             'ocplib-endian'
@@ -84,11 +78,36 @@ class CuisineArakoon(base):
 
         self.logger.info("start installation of ocaml pacakges")
         cmd = 'opam update && opam install -y {}'.format(' '.join(opam_deps))
-        self._cuisine.core.run(cmd, profile=True, die=False)
+        self._cuisine.core.run(cmd, profile=True)
+        # For some reason redis failed when added to the others but success on its own
+        self._cuisine.core.run('opam update && opam install -y redis', profile=True)
 
     def _install_deps(self):
-        # apt_deps = "curl libev-dev libssl-dev libsnappy-dev libgmp3-dev ocaml ocaml-native-compilers camlp4-extra aspcud libbz2-dev protobuf-compiler m4 pkg-config"
-        apt_deps = 'curl make m4 gcc patch unzip git pkg-config libprotobuf9v5 libprotoc9v5 protobuf-compiler libsnappy-dev libssl-dev libssl-doc zlib1g-dev bzip2-doc libbz2-dev libncurses5-dev libtinfo-dev libgmp-dev libgmpxx4ldbl libev-dev libev4'
+        apt_deps = (
+            'curl',
+            'make',
+            'm4',
+            'gcc',
+            'patch',
+            'unzip',
+            'git',
+            'pkg-config',
+            'libprotobuf9v5',
+            'libprotoc9v5',
+            'protobuf-compiler',
+            'libsnappy-dev',
+            'libssl-dev',
+            'libssl-doc',
+            'zlib1g-dev',
+            'bzip2-doc',
+            'libbz2-dev',
+            'libncurses5-dev',
+            'libtinfo-dev',
+            'libgmp-dev',
+            'libgmpxx4ldbl',
+            'libev-dev',
+            'libev4'
+        )
         self._cuisine.package.multiInstall(apt_deps)
 
     def build(self, start=True):
@@ -96,9 +115,9 @@ class CuisineArakoon(base):
         self._install_ocaml()
         self._build()
         if start:
-            self.start("arakoon")
+            self.start()
 
-    def start(self, name="arakoon"):
+    def start(self):
         which = self._cuisine.core.command_location("arakoon")
         self._cuisine.core.dir_ensure('$varDir/data/arakoon')
         cmd = "%s --config $cfgDir/arakoon/arakoon.ini" % which
@@ -143,11 +162,11 @@ class ArakoonCluster(object):
         f = j.tools.inifile.new(tmp)
 
         f.addSection('global')
-        cluster = ''
+        _cluster = ''
         for node in self.nodes:
-            cluster += '%s, ' % node.id
-        cluster = cluster[:-2]
-        f.addParam('global', 'cluster', cluster)
+            _cluster += '%s, ' % node.id
+        _cluster = _cluster[:-2]
+        f.addParam('global', 'cluster', _cluster)
         f.addParam('global', 'cluster_id', self.id)
         if len(self.plugins) > 0:
             plugins = ', '.join(self.plugins)

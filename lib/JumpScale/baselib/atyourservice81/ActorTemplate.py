@@ -2,7 +2,7 @@
 
 from JumpScale import j
 
-from JumpScale.baselib.atyourservice.Service import *
+from JumpScale.baselib.atyourservice81.Service import *
 
 
 class ActorBase:
@@ -126,7 +126,7 @@ class ActorTemplate(ActorBase):
         return self._mongoModel
 
     def actorGet(self, aysrepo):
-        from JumpScale.baselib.atyourservice.Actor import Actor
+        from JumpScale.baselib.atyourservice81.Actor import Actor
         return Actor(aysrepo, template=self)
 
     def __repr__(self):

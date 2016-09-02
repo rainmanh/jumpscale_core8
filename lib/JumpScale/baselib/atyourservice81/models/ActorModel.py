@@ -1,6 +1,6 @@
 from JumpScale import j
 
-from JumpScale.baselib.atyourservice.models.ModelBase import ModelBase
+from JumpScale.baselib.atyourservice81.models.ModelBase import ModelBase
 
 
 class ActorModel(ModelBase):

@@ -5,9 +5,9 @@ import inspect
 import imp
 import sys
 
-from JumpScale.baselib.atyourservice.models.ActorModel import ActorModel
-from JumpScale.baselib.atyourservice.ActorTemplate import ActorTemplate, ActorBase
-from JumpScale.baselib.atyourservice.Service import Service
+from JumpScale.baselib.atyourservice81.models.ActorModel import ActorModel
+from JumpScale.baselib.atyourservice81.ActorTemplate import ActorTemplate, ActorBase
+from JumpScale.baselib.atyourservice81.Service import Service
 
 DECORATORCODE = """
 ActionsBase=j.atyourservice.getActionsBaseClass()

@@ -1,16 +1,16 @@
 from JumpScale import j
 
-# from JumpScale.baselib.atyourservice.actor import actor
-# from JumpScale.baselib.atyourservice.Service import Service, loadmodule
-from JumpScale.baselib.atyourservice.ActorTemplate import ActorTemplate
+# from JumpScale.baselib.atyourservice81.actor import actor
+# from JumpScale.baselib.atyourservice81.Service import Service, loadmodule
+from JumpScale.baselib.atyourservice81.ActorTemplate import ActorTemplate
 
-from JumpScale.baselib.atyourservice.ActionsBase import ActionsBase
-from JumpScale.baselib.atyourservice.ActionMethodDecorator import ActionMethodDecorator
+from JumpScale.baselib.atyourservice81.ActionsBase import ActionsBase
+from JumpScale.baselib.atyourservice81.ActionMethodDecorator import ActionMethodDecorator
 
-from JumpScale.baselib.atyourservice.AtYourServiceRepo import AtYourServiceRepo
+from JumpScale.baselib.atyourservice81.AtYourServiceRepo import AtYourServiceRepo
 
-from JumpScale.baselib.atyourservice.AtYourServiceTester import AtYourServiceTester
-from JumpScale.baselib.atyourservice.AtYourServiceDB import AtYourServiceDBFactory
+from JumpScale.baselib.atyourservice81.AtYourServiceTester import AtYourServiceTester
+from JumpScale.baselib.atyourservice81.AtYourServiceDB import AtYourServiceDBFactory
 
 
 import colored_traceback
@@ -319,7 +319,7 @@ class AtYourServiceFactory:
         return ActionMethodDecorator
 
     # def telegramBot(self, token, start=True):
-    #     from JumpScale.baselib.atyourservice.telegrambot.TelegramAYS import TelegramAYS
+    #     from JumpScale.baselib.atyourservice81.telegrambot.TelegramAYS import TelegramAYS
     #     bot = TelegramAYS(token)
     #     if start:
     #         bot.run()

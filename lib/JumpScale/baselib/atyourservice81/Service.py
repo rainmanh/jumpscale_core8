@@ -6,7 +6,7 @@ import imp
 import sys
 import inspect
 import capnp
-from JumpScale.baselib.atyourservice.models.ServiceModel import ServiceModel
+from JumpScale.baselib.atyourservice81.models.ServiceModel import ServiceModel
 
 
 def getProcessDicts(service, args={}):

@@ -1,5 +1,5 @@
 from JumpScale import j
-from JumpScale.baselib.atyourservice.models.ModelBase import ModelBase
+from JumpScale.baselib.atyourservice81.models.ModelBase import ModelBase
 from collections import OrderedDict
 
 VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']

@@ -18,9 +18,9 @@ class TestAtYourServiceFactory(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.baselib.atyourservice.AtYourServiceFactory
-            JumpScale.baselib.atyourservice.AtYourServiceFactory.j = j
-            from JumpScale.baselib.atyourservice.AtYourServiceFactory import AtYourServiceFactory
+            import JumpScale.baselib.atyourservice81.AtYourServiceFactory
+            JumpScale.baselib.atyourservice81.AtYourServiceFactory.j = j
+            from JumpScale.baselib.atyourservice81.AtYourServiceFactory import AtYourServiceFactory
             ays_factory = AtYourServiceFactory()
             self.assertTrue(j.core.db.get.called)
             self.assertTrue(j.logger.get.called)
@@ -33,9 +33,9 @@ class TestAtYourServiceFactory(unittest.TestCase):
         with mock.patch("JumpScale.j") as j_mock:
             with mock.patch("os.walk") as walk_mock:
                 from JumpScale import j
-                import JumpScale.baselib.atyourservice.AtYourServiceFactory
-                JumpScale.baselib.atyourservice.AtYourServiceFactory.j = j
-                from JumpScale.baselib.atyourservice.AtYourServiceFactory import AtYourServiceFactory
+                import JumpScale.baselib.atyourservice81.AtYourServiceFactory
+                JumpScale.baselib.atyourservice81.AtYourServiceFactory.j = j
+                from JumpScale.baselib.atyourservice81.AtYourServiceFactory import AtYourServiceFactory
                 ays_factory = AtYourServiceFactory()
                 walk_mock.return_value = (('/opt/code/test1/test', [], ['.ays']), ('/opt/code/test2/test', [], ['.ays']), ('/opt/code/test3/test', [], []))
                 actual_result = ays_factory.findAYSRepos()
@@ -46,14 +46,14 @@ class TestAtYourServiceFactory(unittest.TestCase):
         Test getting repo by name while multiple repos with the same name exists
         """
         with mock.patch("JumpScale.j") as j_mock:
-            with mock.patch("JumpScale.baselib.atyourservice.AtYourServiceRepo.AtYourServiceRepo") as ays_repo_mock:
+            with mock.patch("JumpScale.baselib.atyourservice81.AtYourServiceRepo.AtYourServiceRepo") as ays_repo_mock:
                 from JumpScale import j
-                from JumpScale.baselib.atyourservice.AtYourServiceRepo import AtYourServiceRepo
-                import JumpScale.baselib.atyourservice.AtYourServiceFactory
+                from JumpScale.baselib.atyourservice81.AtYourServiceRepo import AtYourServiceRepo
+                import JumpScale.baselib.atyourservice81.AtYourServiceFactory
                 from JumpScale.core.errorhandling import JSExceptions
-                JumpScale.baselib.atyourservice.AtYourServiceFactory.j = j
-                JumpScale.baselib.atyourservice.AtYourServiceFactory.AtYourServiceRepo = AtYourServiceRepo
-                from JumpScale.baselib.atyourservice.AtYourServiceFactory import AtYourServiceFactory
+                JumpScale.baselib.atyourservice81.AtYourServiceFactory.j = j
+                JumpScale.baselib.atyourservice81.AtYourServiceFactory.AtYourServiceRepo = AtYourServiceRepo
+                from JumpScale.baselib.atyourservice81.AtYourServiceFactory import AtYourServiceFactory
                 ays_factory = AtYourServiceFactory()
                 repo1 = AtYourServiceRepo()
                 repo1.name = 'test'
@@ -70,14 +70,14 @@ class TestAtYourServiceFactory(unittest.TestCase):
         Test getting repo by name while multiple repos with no name provided
         """
         with mock.patch("JumpScale.j") as j_mock:
-            with mock.patch("JumpScale.baselib.atyourservice.AtYourServiceRepo.AtYourServiceRepo") as ays_repo_mock:
+            with mock.patch("JumpScale.baselib.atyourservice81.AtYourServiceRepo.AtYourServiceRepo") as ays_repo_mock:
                 from JumpScale import j
-                from JumpScale.baselib.atyourservice.AtYourServiceRepo import AtYourServiceRepo
-                import JumpScale.baselib.atyourservice.AtYourServiceFactory
+                from JumpScale.baselib.atyourservice81.AtYourServiceRepo import AtYourServiceRepo
+                import JumpScale.baselib.atyourservice81.AtYourServiceFactory
                 from JumpScale.core.errorhandling import JSExceptions
-                JumpScale.baselib.atyourservice.AtYourServiceFactory.j = j
-                JumpScale.baselib.atyourservice.AtYourServiceFactory.AtYourServiceRepo = AtYourServiceRepo
-                from JumpScale.baselib.atyourservice.AtYourServiceFactory import AtYourServiceFactory
+                JumpScale.baselib.atyourservice81.AtYourServiceFactory.j = j
+                JumpScale.baselib.atyourservice81.AtYourServiceFactory.AtYourServiceRepo = AtYourServiceRepo
+                from JumpScale.baselib.atyourservice81.AtYourServiceFactory import AtYourServiceFactory
                 ays_factory = AtYourServiceFactory()
                 repo1 = AtYourServiceRepo()
                 repo1.name = 'test'

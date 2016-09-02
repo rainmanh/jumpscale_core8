@@ -20,10 +20,10 @@ class CuisineUFW(base):
                 if self._cuisine.bash.cmdGetPath("nft", die=False) is not False:
                     self._ufw_enabled = False
                     print("cannot use ufw, nft installed")
-                if self._cuisine.bash.cmdGetPath("ufw", die=False) == False:
+                if self._cuisine.bash.cmdGetPath("ufw", die=False) is False:
                     self._cuisine.package.install("ufw")
                     self._cuisine.bash.cmdGetPath("ufw")
-                self._ufw_enabled = not "inactive" in self._cuisine.core.run("ufw status")[1]
+                self._ufw_enabled = "inactive" not in self._cuisine.core.run("ufw status")[1]
         return self._ufw_enabled
 
     def ufw_enable(self):

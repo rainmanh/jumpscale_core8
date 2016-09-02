@@ -10,7 +10,7 @@ class CuisineCockpit(base):
         self._executor = executor
         self._cuisine = cuisine
 
-    def install(self, start=True, bot_token='', jwt_key='', organization='', client_secret='', client_id='', redirect_uri='', itsyouonlinehost='https://itsyou.online'):
+    def install(self, start=True, bot_token='', jwt_key='', organization='', client_secret='', client_id='', redirect_uri='', itsyouonlinehost='https://itsyou.online', grafana_scriptedagent=True):
         """
         Install cockpit
         If start is True, bot_token, jwt_key, organization should be specified
@@ -22,7 +22,7 @@ class CuisineCockpit(base):
 
         self.install_deps()
         self._cuisine.development.git.pullRepo('https://github.com/Jumpscale/jscockpit.git')
-        self.link_code()
+        self.link_code(grafana_scriptedagent=grafana_scriptedagent)
 
         if start:
             self.start(bot_token, jwt_key, organization, client_secret, client_id, redirect_uri, itsyouonlinehost)
@@ -45,9 +45,12 @@ class CuisineCockpit(base):
         """
         self._cuisine.development.pip.multiInstall(deps, upgrade=True)
 
-    def link_code(self):
+    def link_code(self, grafana_scriptedagent=True):
         self._cuisine.core.dir_ensure('$appDir')
         self._cuisine.core.file_link('$codeDir/github/jumpscale/jscockpit/jscockpit/', '$appDir/cockpit')
+        if grafana_scriptedagent:
+            self._cuisine.core.file_copy('$codeDir/github/jumpscale/jscockpit/apps/Cockpit/.files/scriptedagent.js',
+                '$tmplsDir/cfg/grafana/public/dashboards/scriptedagent.js')
 
     def create_config(self, bot_token, jwt_key, organization, client_secret, client_id, redirect_uri, itsyouonlinehost='https://itsyou.online'):
         cfg = {

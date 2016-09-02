@@ -14,7 +14,7 @@ class MethodNotFoundException(BaseJSException):
 class RemoteException(BaseJSException):
 
     def __init__(self, message="", eco=None):
-        self.message = message
+        super().__init__(message=message)
         backtrace = traceback.format_stack()[:-1]
         eco['backtrace'] = """
 Remote Backtrace

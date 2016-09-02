@@ -108,7 +108,7 @@ class CuisineKVM(base):
     def _libvirt(self):
         """
         """
-        # TODO: need to check and exit if required are met *1
+        # TODO: *1 need to check and exit if required are met 
         self._cuisine.package.install('libvirt-dev')
         self._cuisine.development.pip.install("libvirt-python==1.3.2", upgrade=False)
 

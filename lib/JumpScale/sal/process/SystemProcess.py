@@ -1384,19 +1384,12 @@ class SystemProcess:
         try:
             import errno
             if j.core.platformtype.myplatform.isUnix():
-                import subprocess
-                import signal
-                try:
-                    signal.signal(signal.SIGCHLD, signal.SIG_DFL)
-                except Exception as ex:
-                    self.logger.error('failed to set child signal, error %s' % ex)
                 childprocess = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                                 stderr=subprocess.PIPE, close_fds=True, shell=True, env=os.environ)
                 (output, error) = childprocess.communicate()
                 exitcode = childprocess.returncode
 
             elif j.core.platformtype.myplatform.isWindows():
-                import subprocess
                 import win32pipe
                 import msvcrt
                 import pywintypes

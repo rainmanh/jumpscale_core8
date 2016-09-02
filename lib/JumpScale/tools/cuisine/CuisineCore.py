@@ -24,19 +24,10 @@ import re
 import copy
 import base64
 import hashlib
-import os
-import string
-import tempfile
-import subprocess
-import types
-import threading
 import sys
-import functools
-import platform
 
 from JumpScale import j
-import pygments.lexers
-from pygments.formatters import get_formatter_by_name
+import pygments
 
 NOTHING = base64
 
@@ -213,7 +204,8 @@ class CuisineCore(base):
     def getenv(self, refresh=False):
         def get():
             res = {}
-            for line in self._cuisine.core.run("printenv", profile=False, showout=False, replaceArgs=False)[1].splitlines():
+            rc, out, err = self._cuisine.core.run("printenv", profile=False, showout=False, replaceArgs=False)
+            for line in out.splitlines():
                 if '=' in line:
                     name, val = line.split("=", 1)
                     name = name.strip()
@@ -417,7 +409,7 @@ class CuisineCore(base):
                         url, to, user, minsp, retry, timeout)
                     rc, out, err = self.run(cmd, die=False)
                 if rc > 0:
-                    raise j.exceptions.RuntimeError("Could not download:{}.\nErrorcode: {}".format(url, rc))
+                    raise j.exceptions.RuntimeError("Could not download:{}.\nErrorcode: {}.\n".format(url, rc))
                 else:
                     self.touch("%s.downloadok" % to)
             else:
@@ -455,7 +447,7 @@ class CuisineCore(base):
         location = self.args_replace(location)
         cmd += ' %s' % location
         rc, out, err = self.run(cmd, showout=False, die=False)
-        return not rc
+        return not rc and not err
 
     def file_exists(self, location):
         """Tests if there is a *remote* file at the given location."""
@@ -811,7 +803,9 @@ class CuisineCore(base):
     def file_base64(self, location):
         """Returns the base64 - encoded content of the file at the given location."""
         location = self.args_replace(location)
-        return self.run("cat {0} | base64".format(self.shell_safe((location))), debug=False, checkok=False, showout=False)[1]
+        cmd = "cat {0} | base64".format(self.shell_safe((location)))
+        rc, out, err = self.run(cmd, debug=False, checkok=False, showout=False)
+        return out
 
     def file_sha256(self, location):
         """Returns the SHA - 256 sum (as a hex string) for the remote file at the given location."""
@@ -836,11 +830,10 @@ class CuisineCore(base):
         # if cuisine_env[OPTION_HASH] == "python":
         location = self.args_replace(location)
         if self.file_exists(location):
-            return self.run("md5sum {0} | cut -f 1 -d ' '".format(self.shell_safe((location))), debug=False, checkok=False, showout=False)[1]
-        else:
-            return None
-        # else:
-        #     return self.run('openssl dgst -md5 %s' % (location)).split("\n")[-1].split(")= ",1)[-1].strip()
+            cmd = "md5sum {0} | cut -f 1 -d ' '".format(self.shell_safe((location)))
+            rc, out, err = self.run(cmd, debug=False, checkok=False, showout=False)
+            return out
+        # return self.run('openssl dgst -md5 %s' % (location)).split("\n")[-1].split(")= ",1)[-1].strip()
 
     # =============================================================================
     #
@@ -953,7 +946,7 @@ class CuisineCore(base):
         self.logger.debug(cmd)
 
         paths = [item.strip() for item in out.split("\n") if item.strip() != ""]
-        paths = [item for item in paths if item.startswith("+ find") == False]
+        paths = [item for item in paths if item.startswith("+ find") is False]
 
         # print cmd
 
@@ -1034,7 +1027,6 @@ class CuisineCore(base):
 
         out = self._clean(out)
 
-        # If command fails and die is true, raise error
         if rc and die:
             raise j.exceptions.RuntimeError('%s, %s' % (cmd, err))
 
@@ -1049,7 +1041,7 @@ class CuisineCore(base):
         passwd = self._executor.passwd if hasattr(self._executor, "passwd") else ''
         # Install sudo if sudo not installed
         rc, out, err = self._executor.execute("which sudo", die=False, showout=False)
-        if rc:
+        if rc or out.strip() == '**OK**':  # Work around: SSH executor adds **OK** for some reason
             cmd = 'apt-get install sudo && echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, command)
         else:
             cmd = 'echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, command)
@@ -1085,7 +1077,7 @@ class CuisineCore(base):
                 content = ". %s\n%s\n" % (ppath, content)
 
         if interpreter == "bash":
-            content += "\necho **OK**\n"
+            content += "\necho '**OK**'\n"
         elif interpreter.startswith("python") or interpreter.startswith("jspython"):
             content += "\nprint('**OK**\\n')\n"
 
@@ -1108,7 +1100,6 @@ class CuisineCore(base):
 
         cmd = "cd $tmpDir;%s %s" % (interpreter, path)
         cmd = self.args_replace(cmd)
-
         if tmux:
             rc, out = self._cuisine.tmux.executeInScreen("cmd", "cmd", cmd, wait=True, die=False)
             if showout:

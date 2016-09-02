@@ -156,7 +156,9 @@ class Application:
         when in grid:
             is gid,nid,pid
         """
-        self._whoAmi = WhoAmI(gid=0, nid=0, pid=0)
+        if reload:
+            self._config = None
+
         if self.config is not None and self.config.exists('grid.node.id'):
             nodeid = self.config.getInt("grid.node.id")
             gridid = self.config.getInt("grid.id")

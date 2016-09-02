@@ -1377,13 +1377,16 @@ class InstallTools():
 
         keysloaded = [self.getBaseName(item) for item in self.listSSHKeyFromAgent()]
 
-        keysinfs = [self.getBaseName(item).replace(".pub", "") for item in self.listFilesInDir(
-            path, filter="*.pub") if self.exists(item.replace(".pub", ""))]
+        if self.isDir(path):
+            keysinfs = [self.getBaseName(item).replace(".pub", "") for item in self.listFilesInDir(
+                path, filter="*.pub") if self.exists(item.replace(".pub", ""))]
+            keysinfs = [item for item in keysinfs if item not in keysloaded]
 
-        keysinfs = [item for item in keysinfs if item not in keysloaded]
-
-        res = self.askItemsFromList(
-            keysinfs, "select ssh keys to load, use comma separated list e.g. 1,4,3 and press enter.")
+            res = self.askItemsFromList(
+                keysinfs, "select ssh keys to load, use comma separated list e.g. 1,4,3 and press enter.")
+        else:
+            res = [self.getBaseName(path).replace(".pub", "")]
+            path = self.getParent(path)
 
         for item in res:
             pathkey = "%s/%s" % (path, item)

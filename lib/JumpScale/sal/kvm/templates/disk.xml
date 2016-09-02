@@ -7,7 +7,7 @@
                 <capacity unit='GB'>{{disksize}}</capacity>
                 <allocation unit='GB'>{{disksize}}</allocation>
                 <target>
-                    <path>{{diskname}}</path>
+                    <path>{{diskpath}}</path>
                     <format type='qcow2'/>
                     <permissions>
                         <mode>0660</mode>

@@ -24,7 +24,7 @@ def processLogin(parser):
 
     opts = parser.parse_args()
 
-    if opts.login == None:
+    if opts.login is None:
         opts.login = "root"
 
     # if opts.passwd==None and opts.login=="root":

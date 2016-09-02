@@ -16,13 +16,13 @@
     <on_reboot>restart</on_reboot>
     <on_crash>restart</on_crash>
     <devices>
-        <emulator>/opt/jumpscale8/apps/kvm/bin/qemu-system-x86_64</emulator>
-        <disk type='block' device='disk'>
-            <driver name='qemu' type='qcow2' cache='none' io='native'/>
-            <source dev='{{poolpath}}/{{diskname}}'/>
-            <target dev='vda' bus='virtio'/>
-            <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
-        </disk>
+        <emulator>/usr/bin/qemu-system-x86_64</emulator>
+        {% for disk in disks %}
+            {{disk.to_xml()}}
+        {% endfor %}
+        {% for nic in nics %}
+            {{nic.to_xml()}}
+        {% endfor %}
         <graphics type='vnc' autoport='yes' listen='0.0.0.0'>
             <listen type='address' address='0.0.0.0'/>
         </graphics>
@@ -37,13 +37,4 @@
             <alias name='serial0'/>
         </console>
     </devices>
-    <qemu:commandline>
-        <qemu:arg value="-hda"/>
-        <qemu:arg value="/home/ledis/img/alice.img"/>
-    </qemu:commandline>
-    <qemu:commandline>
-        <qemu:arg value="-hdb"/>
-        <qemu:arg value="ldb://1"/>
-    </qemu:commandline>
-</domain> 
-
+</domain>

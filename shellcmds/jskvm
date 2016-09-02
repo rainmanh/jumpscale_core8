@@ -1,142 +1,141 @@
 #!/usr/bin/env jspython
 from JumpScale import j
-from JumpScale.tools import cmdutils
+import click
 
 j.application.start("jskvm")
 
-parser = cmdutils.ArgumentParser()
-#'mountdisks','unmountdisks'
-parser.add_argument("action", choices=['create', 'list', 'list_images', 'init_network', 'list_snapshots', 'info', 'destroy', 'destroy_all', 'start', 'stop', 'restart', 'snapshot', 'delete_snapshot', 'execute'], help='Command to perform')
-parser.add_argument("-n", '--name', help='machine name')
-parser.add_argument("-b", '--base', help='base to clone from')
-parser.add_argument("-r", '--replace', help='will replace the vm if exists', default=True, action='store_true')
-parser.add_argument('-m', '--mem', help='max mem in MB', default=512)
-parser.add_argument('-s', '--size', help='disk size in GB', default=10)
-parser.add_argument('-d', '--description', help='vmachine description')
-parser.add_argument('-p', '--vcpu', help='cpu count', default=1)
-parser.add_argument("-c", '--cmd', help='cmd to execute')
-parser.add_argument("-a", '--pubip', help='set pub ip addr of machine (192.168.1.207/24)', default='')
-parser.add_argument("-g", '--gw', help='set ip gateway of machine (192.168.1.1)', default='')
-parser.add_argument("-i", '--pubiface', help='public interface', default='eth0')
-parser.add_argument("-t", '--snapshotname', help='snapshot name')
-parser.add_argument("-u", '--sudo', help='execute with sudo', default=False, action='store_true')
+ACTIONS = ('create', 'list', 'list_images', 'init_network', 'list_snapshots', 'info', 'destroy', 'destroy_all', 'start', 'stop', 'restart', 'snapshot', 'delete_snapshot', 'execute')
 
+@click.command()
+@click.argument('action', type=click.Choice(ACTIONS))
+@click.option('--name', '-n', help='machine name')
+@click.option('--base', '-b', help='base to clone from')
+@click.option('--replace', '-r', help='will replace the vm if exists', default=True)
+@click.option('--mem', '-m', help='max mem in MB', default=512)
+@click.option('--size', '-s', help='disk size in GB', default=10)
+@click.option('--description', '-d', help='vmachine description')
+@click.option('--vcpu', '-p', help='cpu count', default=1)
+@click.option('--cmd', '-c', help='cmd to execute')
+@click.option('--pubip', '-a', help='set pub ip addr of machine (192.168.1.207/24)', default='')
+@click.option('--gw', '-g', help='set ip gateway of machine (192.168.1.1)', default='')
+@click.option('--pubiface', '-i', help='public interface', default='eth0')
+@click.option('--snapshotname', '-t', help='snapshot name')
+@click.option('--sudo', '-u', help='execute with sudo', default=False)
+def jskvm(action, name, base, replace, mem, size, description, vcpu, cmd, pubip, gw, pubiface, snapshotname, sudo):
+    kvm = j.sal.kvm
 
-opts = parser.parse_args()
+    ############create
+    if action == 'create':
+        if not name:
+            raise j.exceptions.RuntimeError("specify machine name")
+        if not base:
+            raise j.exceptions.RuntimeError("specify image name")
+        if base not in kvm.images:
+            raise j.exceptions.RuntimeError("image does not exist")
+        kvm.create(name, base, replace, description, size, mem, vcpu)
 
-kvm = j.sal.kvm
+    ##########list
+    if action == 'list':
+        running, stopped = kvm.list()
+        print("## running:")
+        for item in running:
+            print("  machine: %-25s %s" % (item['name'], kvm.getIp(item['name'])))
+        print("## stopped:")
+        for item in stopped:
+            configpath = j.sal.fs.joinPaths(kvm.vmpath, item['name'])
+            if j.sal.fs.exists(path=configpath):
+                print("  machine: %-25s" % item['name'])
 
-############create
-if opts.action == 'create':
-    if not opts.name:
-        raise j.exceptions.RuntimeError("specify machine name")
-    if not opts.base:
-        raise j.exceptions.RuntimeError("specify image name")
-    if opts.base not in kvm.images:
-        raise j.exceptions.RuntimeError("image does not exist")
-    kvm.create(opts.name, opts.base, opts.replace, opts.description, opts.size, opts.mem, opts.vcpu)
+    ##########init_network
+    if action == 'init_network':
+        if not pubiface:
+            raise j.exceptions.RuntimeError('public iface must be specified')
+        kvm.initPhysicalBridges(pubiface)
+        kvm.initLibvirtNetwork()
+        kvm.initNattingRules()
 
-##########list
-if opts.action == 'list':
-    running, stopped = kvm.list()
-    print("## running:")
-    for item in running:
-        print("  machine: %-25s %s" % (item['name'], kvm.getIp(item['name'])))
-    print("## stopped:")
-    for item in stopped:
-        configpath = j.sal.fs.joinPaths(kvm.vmpath, item['name'])
-        if j.sal.fs.exists(path=configpath):
-            print("  machine: %-25s" % item['name'])
+    ##########list_images
+    if action == 'list_images':
+        print("## images:")
+        for image_name, image_hrd in kvm.images.items():
+            print("  image: %-25s %s" % (image_name, image_hrd.get('ostype')))
 
-##########init_network
-if opts.action == 'init_network':
-    if not opts.pubiface:
-        raise j.exceptions.RuntimeError('public iface must be specified')
-    kvm.initPhysicalBridges(opts.pubiface)
-    kvm.initLibvirtNetwork()
-    kvm.initNattingRules()
+    ##########list_snapshots
+    if action == 'list_snapshots':
+        if not name:
+            raise j.exceptions.RuntimeError("specify machine name")
+        for snapshot in kvm.listSnapshots(name):
+            print(snapshot)
 
-##########list_images
-if opts.action == 'list_images':
-    print("## images:")
-    for image_name, image_hrd in kvm.images.items():
-        print("  image: %-25s %s" % (image_name, image_hrd.get('ostype')))
+    ##########info
+    if action == 'info':
+        if not name:
+            raise j.exceptions.RuntimeError("specify machine name")
+        config = kvm.getConfig(name)
+        if config:
+            print('Name: %s\nBase image: %s\nID: %s\nIP address: %s\nMemory: %s MB\nDisk size: %s GB\n' % (name,
+                  config.get('image'), config.get('id'), config.get('bootstrap.ip'),
+                  config.get('memory'), config.get('disk_size')))
 
-##########list_snapshots
-if opts.action == 'list_snapshots':
-    if not opts.name:
-        raise j.exceptions.RuntimeError("specify machine name")
-    for snapshot in kvm.listSnapshots(opts.name):
-        print(snapshot)
+    ##########execute
+    if action == 'execute':
+        if not name:
+            raise j.exceptions.RuntimeError("specify machine name")
+        if not cmd:
+            raise j.exceptions.RuntimeError("specify command to execute")
+        kvm.execute(name, cmd, sudo)
 
-##########info
-if opts.action == 'info':
-    if not opts.name:
-        raise j.exceptions.RuntimeError("specify machine name")
-    config = kvm.getConfig(opts.name)
-    if config:
-        print('Name: %s\nBase image: %s\nID: %s\nIP address: %s\nMemory: %s MB\nDisk size: %s GB\n' % (opts.name, 
-              config.get('image'), config.get('id'), config.get('bootstrap.ip'), 
-              config.get('memory'), config.get('disk_size')))
+    ##########snapshot
+    if action == 'snapshot':
+        if not name:
+            raise j.exceptions.RuntimeError("specify machine name")
+        if not snapshotname:
+            raise j.exceptions.RuntimeError("specify snapshot name")
+        kvm.snapshot(name, snapshotname)
 
-##########execute
-if opts.action == 'execute':
-    if not opts.name:
-        raise j.exceptions.RuntimeError("specify machine name")
-    if not opts.cmd:
-        raise j.exceptions.RuntimeError("specify command to execute")
-    kvm.execute(opts.name, opts.cmd, opts.sudo)
+    ##########delete_snapshot
+    if action == 'delete_snapshot':
+        if not name:
+            raise j.exceptions.RuntimeError("specify machine name")
+        if not snapshotname:
+            raise j.exceptions.RuntimeError("specify snapshot name")
+        kvm.deleteSnapshot(name, snapshotname)
 
-##########snapshot
-if opts.action == 'snapshot':
-    if not opts.name:
-        raise j.exceptions.RuntimeError("specify machine name")
-    if not opts.snapshotname:
-        raise j.exceptions.RuntimeError("specify snapshot name")
-    kvm.snapshot(opts.name, opts.snapshotname)
+    # if action =='rdp':
+    #     if name==None:
+    #         raise j.exceptions.RuntimeError("specify machine name")
+    #     if ip=="":
+    #         ip=getip(nr)
+    #     time.sleep(2)
+    #     j.sal.nettools.waitConnectionTest(ip,3389,2)
+    #     j.system.installtools.execute("rmachine %s -g 1600x900 -e & 2>&1 > /dev/null"%ip)
 
-##########delete_snapshot
-if opts.action == 'delete_snapshot':
-    if not opts.name:
-        raise j.exceptions.RuntimeError("specify machine name")
-    if not opts.snapshotname:
-        raise j.exceptions.RuntimeError("specify snapshot name")
-    kvm.deleteSnapshot(opts.name, opts.snapshotname)
+    if action == 'destroy_all':
+        if j.tools.console.askYesNo('Are you sure you want to destroy all vmachines?'):
+            kvm.destroyAll()
+        else:
+            print('Rolled back')
 
-# if opts.action =='rdp':
-#     if opts.name==None:
-#         raise j.exceptions.RuntimeError("specify machine name")    
-#     if ip=="":
-#         ip=getip(opts.nr)
-#     time.sleep(2)    
-#     j.sal.nettools.waitConnectionTest(ip,3389,2)
-#     j.system.installtools.execute("rmachine %s -g 1600x900 -e & 2>&1 > /dev/null"%ip)
+    if action == 'destroy':
+        if not name:
+            raise j.exceptions.RuntimeError("specify machine name")
+        kvm.destroy(name)
 
-if opts.action == 'destroy_all':
-    if j.tools.console.askYesNo('Are you sure you want to destroy all vmachines?'):
-        kvm.destroyAll()
-    else:
-        print('Rolled back')
+    if action == 'stop':
+        if not name:
+            raise j.exceptions.RuntimeError("specify machine name")
+        kvm.stop(name)
 
-if opts.action == 'destroy':
-    if not opts.name:
-        raise j.exceptions.RuntimeError("specify machine name")
-    kvm.destroy(opts.name)
+    if action == 'start':
+        if not name:
+            raise j.exceptions.RuntimeError("specify machine name")
+        kvm.start(name)
 
-if opts.action == 'stop':
-    if not opts.name:
-        raise j.exceptions.RuntimeError("specify machine name")
-    kvm.stop(opts.name)
+    if action == 'restart':
+        if not name:
+            raise j.exceptions.RuntimeError("specify machine name")
+        kvm.stop(name)
+        kvm.start(name)
 
-if opts.action == 'start':
-    if not opts.name:
-        raise j.exceptions.RuntimeError("specify machine name")
-    kvm.start(opts.name)
-
-if opts.action == 'restart':
-    if not opts.name:
-        raise j.exceptions.RuntimeError("specify machine name")
-    kvm.stop(opts.name)
-    kvm.start(opts.name)
-
+jskvm()
 j.application.stop()

@@ -1,202 +1,178 @@
 #!/usr/bin/env jspython
 import os
 import sys
+import click
+
 from JumpScale import j
-
-from JumpScale.tools import cmdutils
-
-# TODO: *1 rewrite this using click
-
-# import sys
-# import time
 
 j.application.start("jscode2")
 
-parser = cmdutils.ArgumentParser()
-parser.add_argument(
-    "action", choices=['get', 'commit', 'push', 'update', 'status', 'list', 'init'], help='Command to perform')
+ACTIONS = ('get', 'commit', 'push', 'update', 'status', 'list', 'init')
 
-parser.add_argument(
-    '-n', '--name',
-    help='name or partial name of repo, can also be comma separated, if not specified then will ask, if \'*\' then all.'
-)
-parser.add_argument('--url', help='url')
-
-parser.add_argument('-m', '--message', help='commit message', default="new")
-parser.add_argument('-b', '--branch', help='branch')
-
-parser.add_argument(
-    '-a', '--accounts', help='comma separated list of accounts, if not specified then will ask, if \'*\' then all.')
-
-parser.add_argument('-u', '--update', required=False, action='store_true',
-                    help='update merge before doing push or commit')
-
-parser.add_argument('-f', '--force', required=False, action='store_true', help='auto answer yes on every question')
-parser.add_argument('-d', '--deletechanges', required=False, action='store_true',
-                    help='will delete all changes when doing update')
-
-parser.add_argument('-o', '--onlychanges', required=False, action='store_true',
-                    help='will only do an action where modified files are found')
-
-
-opts = parser.parse_args()
-
-if opts.accounts is None and opts.name is None:
+def _repo_info(name, accounts):
     if j.sal.fs.exists("%s/%s" % (j.sal.fs.getcwd(), ".git")):
         # we are in repo
-        opts.name = j.sal.fs.getBaseName(j.sal.fs.getcwd())
-        opts.accounts = j.sal.fs.getBaseName(j.sal.fs.getParent(j.sal.fs.getcwd()))
+        _name = j.sal.fs.getBaseName(j.sal.fs.getcwd())
+        _accounts = j.sal.fs.getBaseName(j.sal.fs.getParent(j.sal.fs.getcwd()))
+        return _name, _accounts
+    return name, accounts
 
-
-if opts.branch is not None and opts.action in ['status']:
-    raise j.exceptions.RuntimeError("Cannot specify branch when asking status")
-
-
-if opts.action == 'init':
-    # key_path = os.path.join(os.environ['HOME'], '.ssh', 'id_rsa')
-    # if not os.path.exists(key_path):
-    #     os.system('ssh-keygen -f %s' % key_path)
-
+def _init_action():
     username = input('Git Username: ')
     email = input('Git Email: ')
     j.do._.loadSSHAgent(createkeys=False, keyname=username)
     os.system('git config --global user.name "%s"' % username)
     os.system('git config --global user.email "%s"' % email)
-
-    # with open('/etc/profile.d/ssh-agent.sh', 'w') as script:
-    #     script.write(SSH_AGENT_SCRIPT)
     print('Please logout and relogin for your ssh keys to be loaded')
-
     sys.exit(0)
 
-# from IPython import embed;embed()
-repos = j.clients.git.find(opts.accounts, opts.name, interactive=True, returnGitClient=True)
 
-repos = [(r.type, r.account, r.name, r.branchName, r, r.baseDir) for r in repos]
+def _search_repos(accounts, name):
+    repos = j.clients.git.find(accounts, name, interactive=True, returnGitClient=True)
+    _repos = [(r.type, r.account, r.name, r.branchName, r, r.baseDir) for r in repos]
+    if j.core.platformtype.myplatform.isLinux():
+        C = """
+        Host *
+           StrictHostKeyChecking no
+           UserKnownHostsFile=/dev/null
+        """
+        path = j.sal.fs.joinPaths(os.environ["HOME"], ".ssh", "config")
+        if not j.sal.fs.exists(path):
+            j.sal.fs.writeFile(path, C)
+    return _repos
 
-
-C = """
-Host *
-   StrictHostKeyChecking no
-   UserKnownHostsFile=/dev/null
-"""
-
-if j.core.platformtype.myplatform.isLinux():
-    path = j.sal.fs.joinPaths(os.environ["HOME"], ".ssh", "config")
-    if not j.sal.fs.exists(path):
-        j.sal.fs.writeFile(path, C)
-
-if opts.action == "status":
+def _status_action():
     print("\n\nSTATUS: account reponame                  " +
           "branch added:modified:deleted   insyncwithremote?   localrev       remoterev")
     print("==============================================" +
           "===========================================================================")
 
+@click.command()
+@click.argument('action', type=click.Choice(ACTIONS))
+@click.option('--name', '-n', help='name or partial name of repo, can also be comma separated, if not specified then will ask, if \'*\' then all.')
+@click.option('--url', help='url')
+@click.option('--message', '-m', help='commit message', default="new")
+@click.option('--branch', '-b', help='branch')
+@click.option('--accounts', '-a', help='comma separated list of accounts, if not specified then will ask, if \'*\' then all.')
+@click.option('--update', '-u', help='update merge before doing push or commit')
+@click.option('--force', '-f', help='auto answer yes on every question')
+@click.option('--deletechanges', '-d', help='will delete all changes when doing update')
+@click.option('--onlychanges', '-o',  help='will only do an action where modified files are found')
+def jscode(action, name, url, message, branch, accounts, update, force, deletechanges, onlychanges):
+    """Wrapper to git to do operations on multiple repositories"""
+    if branch is not None and action in ['status']:
+        raise j.exceptions.RuntimeError("Cannot specify branch when asking status")
 
-for provider, account, reponame, branch, client, path in repos:
+    if name is None and accounts is None:
+        _name, _accounts = _repo_info(name, accounts)
 
-    # from IPython import embed;embed()
-    if (j.application.config.exists("whoami.git.passwd") is False or
-            j.application.config.exists("whoami.git.login") is False):
-        raise j.exceptions.RuntimeError(
-            "git configuration not found, please install github_client service (ays install -n github_client)")
-    else:
-        # from ipdb import set_trace;set_trace()
-        _, url = j.sal.process.execute("cd %s;git config --get remote.origin.url" % path)
-        if str(url).find("@") == -1:
-            login = j.application.config.get("whoami.git.login")
-            passwd = j.application.config.get("whoami.git.passwd")
-            _, _, _, _, repository_url = j.do.rewriteGitRepoUrl(url=str(url), login=login, passwd=passwd)
-            j.sal.process.executeWithoutPipe("cd %s;git remote set-url origin '%s'" % (path, repository_url))
+    if action == 'init':
+        _init_action()
 
-    if opts.action == "update" and opts.deletechanges:
-        print(("force update %s/%s/%s" % (provider, account, reponame)))
-        cmd = 'cd %s; git checkout .' % path
-        j.sal.process.execute(cmd)
-        j.do.pullGitRepo(url=client.remoteUrl)
-        # client.update(force=True)
-        continue
+    if action == 'status':
+        _status_action()
+    repos = _search_repos(accounts, name)
 
-    if opts.action == "get":
-        # cmd = "git config --global push.default matching"
-        # j.sal.process.execute(cmd)
-        j.do.pullGitRepo(client.remoteUrl, dest=None, depth=None,
-                         ignorelocalchanges=opts.deletechanges, reset=False, branch=opts.branch)
-        continue
+    for provider, account, reponame, branch, client, path in repos:
 
-    # TODO: is dirty hack, am sure there are better ways
-    if opts.action == "push":
-        print(("push git repo:%s" % path))
-        j.do.pushGitRepos(message=opts.message, name=reponame, update=True, provider=provider, account=account)
+        # from IPython import embed;embed()
+        if (j.application.config.exists("whoami.git.passwd") is False or
+                j.application.config.exists("whoami.git.login") is False):
+            raise j.exceptions.RuntimeError(
+                "git configuration not found, please install github_client service (ays install -n github_client)")
+        else:
+            # from ipdb import set_trace;set_trace()
+            _, url = j.sal.process.execute("cd %s;git config --get remote.origin.url" % path)
+            if str(url).find("@") == -1:
+                login = j.application.config.get("whoami.git.login")
+                passwd = j.application.config.get("whoami.git.passwd")
+                _, _, _, _, repository_url = j.do.rewriteGitRepoUrl(url=str(url), login=login, passwd=passwd)
+                j.sal.process.executeWithoutPipe("cd %s;git remote set-url origin '%s'" % (path, repository_url))
 
-    nrmods = 0
-    if opts.action in ['status', 'commit', 'update']:
-
-        mods = client.getModifiedFiles()
-
-        nrmods = len(mods["D"]) + len(mods["M"]) + len(mods["N"]) + len(mods["R"])
-
-        if opts.onlychanges and nrmods == 0:
+        if action == "update" and deletechanges:
+            print(("force update %s/%s/%s" % (provider, account, reponame)))
+            cmd = 'cd %s; git checkout .' % path
+            j.sal.process.execute(cmd)
+            j.do.pullGitRepo(url=client.remoteUrl)
+            # client.update(force=True)
             continue
 
-        # lrev,lid,provider,branch,user,msg,ddate=client.client.tip()
-        branch = client.branchName
+        if action == "get":
+            # cmd = "git config --global push.default matching"
+            # j.sal.process.execute(cmd)
+            j.do.pullGitRepo(client.remoteUrl, dest=None, depth=None,
+                             ignorelocalchanges=deletechanges, reset=False, branch=branch)
+            continue
 
-        if opts.branch is not None:
-            if branch != opts.branch:
-                print(("set branch:%s" % opts.branch))
-                client.switchBranch(opts.branch, create=True)
+        # TODO: is dirty hack, am sure there are better ways
+        if action == "push":
+            print(("push git repo:%s" % path))
+            j.do.pushGitRepos(message=message, name=reponame, update=True, provider=provider, account=account)
 
-        lrev = client.repo.head.commit.hexsha
-        branch = client.branchName
+        nrmods = 0
+        if action in ['status', 'commit', 'update']:
 
-        reposync = "?"
-        remotelastrevision = "?"
+            mods = client.getModifiedFiles()
+
+            nrmods = len(mods["D"]) + len(mods["M"]) + len(mods["N"]) + len(mods["R"])
+
+            if onlychanges and nrmods == 0:
+                continue
+
+            # lrev,lid,provider,branch,user,msg,ddate=client.client.tip()
+            branch = client.branchName
+
+            if branch is not None:
+                if branch != branch:
+                    print(("set branch:%s" % branch))
+                    client.switchBranch(branch, create=True)
+
+            lrev = client.repo.head.commit.hexsha
+            branch = client.branchName
+
+            reposync = "?"
+            remotelastrevision = "?"
+
+            if nrmods > 0:
+                reposync = "N"
+
+            print("%-15s %-25s %-10s n%-3s:m%-3s:d%-3s:r%-6s reposync:%-9s  lrev:%-9s rrev:%-5s" %
+                  (account, reponame, client.branchName, len(mods["N"]), len(mods["M"]), len(mods["D"]),
+                   len(mods["R"]), reposync, lrev, remotelastrevision))
+
+        if action in ['commit']:
+            if nrmods == 0:
+                print("no need to commit is in sync")
+                continue
+
+        if action in ['commit']:
+            if nrmods == 0:
+                print("no need to commit, no mods")
+                continue
 
         if nrmods > 0:
-            reposync = "N"
+            print("MODS:")
+            for key, item in list(mods.items()):
+                if len(item) > 0:
+                    print((" %s" % key))
+                    for subitem in item:
+                        print(("    - %s" % (subitem)))
 
-        print("%-15s %-25s %-10s n%-3s:m%-3s:d%-3s:r%-6s reposync:%-9s  lrev:%-9s rrev:%-5s" %
-              (account, reponame, client.branchName, len(mods["N"]), len(mods["M"]), len(mods["D"]),
-               len(mods["R"]), reposync, lrev, remotelastrevision))
+        if action in ['commit', 'update']:
+            if nrmods > 0:
+                if message is None:
+                    message = j.tools.console.askString("commit message")
+                else:
+                    message = message
 
-    if opts.action in ['commit']:
-        if nrmods == 0:
-            print("no need to commit is in sync")
-            continue
+                print("ADD/REMOVE/COMMIT")
+                client.commit(message=message, addremove=True)
 
-    # if opts.action in ['update']:
-    #     if nrmods==0 and reposync=="Y":
-    #         print "no need to update, repo is in sync"
-    #         continue
+        if update or action == 'update':
+            print("PULL")
+            j.do.pullGitRepo(url=client.remoteUrl)
 
-    if opts.action in ['commit']:
-        if nrmods == 0:
-            print("no need to commit, no mods")
-            continue
 
-    if nrmods > 0:
-        print("MODS:")
-        for key, item in list(mods.items()):
-            if len(item) > 0:
-                print((" %s" % key))
-                for subitem in item:
-                    print(("    - %s" % (subitem)))
-
-    if opts.action in ['commit', 'update']:
-        if nrmods > 0:
-            if opts.message is None:
-                message = j.tools.console.askString("commit message")
-            else:
-                message = opts.message
-
-            print("ADD/REMOVE/COMMIT")
-            client.commit(message=message, addremove=True)
-
-    if opts.update or opts.action == 'update':
-        print("PULL")
-        j.do.pullGitRepo(url=client.remoteUrl)
-        # client.pull()
-
+jscode()
 
 j.application.stop()

@@ -169,7 +169,6 @@ class DevelopToolsFactory:
 
     def help(self):
         H = """
-        example to use TODO: change python3... to js... (but not working on osx yet)
         js 'j.tools.develop.init("ovh4,ovh3:2222")'
         js 'j.tools.develop.jumpscale8(rw=True)' #will install overlay sandbox wich can be editted
         js 'j.tools.develop.jumpscale8develop()'

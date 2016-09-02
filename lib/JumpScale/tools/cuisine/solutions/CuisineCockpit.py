@@ -10,18 +10,18 @@ class CuisineCockpit(base):
         self._executor = executor
         self._cuisine = cuisine
 
-    def build(self, start=True, bot_token='', jwt_key='', organization='', client_secret='', client_id='', redirect_uri='', itsyouonlinehost='https://itsyou.online'):
+    def install(self, start=True, bot_token='', jwt_key='', organization='', client_secret='', client_id='', redirect_uri='', itsyouonlinehost='https://itsyou.online'):
         """
-        Build and Install cockpit
+        Install cockpit
         If start is True, bot_token, jwt_key, organization should be specified
         """
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
         # if not self._cuisine.core.isMac and not self._cuisine.core.isCygwin:
-        #     self._cuisine.installerdevelop.jumpscale8()
-        #     self._cuisine.pip.upgrade("pip")
+        #     self._cuisine.development.js8.install()
+        #     self._cuisine.development.pip.packageUpgrade("pip")
 
         self.install_deps()
-        self._cuisine.git.pullRepo('https://github.com/Jumpscale/jscockpit.git')
+        self._cuisine.development.git.pullRepo('https://github.com/Jumpscale/jscockpit.git')
         self.link_code()
 
         if start:
@@ -43,9 +43,10 @@ class CuisineCockpit(base):
         flask_wtf
         python-telegram-bot
         """
-        self._cuisine.pip.multiInstall(deps, upgrade=True)
+        self._cuisine.development.pip.multiInstall(deps, upgrade=True)
 
     def link_code(self):
+        self._cuisine.core.dir_ensure('$appDir')
         self._cuisine.core.file_link('$codeDir/github/jumpscale/jscockpit/jscockpit/', '$appDir/cockpit')
 
     def create_config(self, bot_token, jwt_key, organization, client_secret, client_id, redirect_uri, itsyouonlinehost='https://itsyou.online'):

@@ -31,7 +31,7 @@ class Container:
     def sshclient(self):
         if self._sshclient is None:
             self.executor.sshclient.get(
-                addr=self.host, port=self.ssh_port, login='root', passwd="gig1234", timeout=10)
+                addr=self.host, port=self.ssh_port, login='root', passwd="gig1234", timeout=10, usecache=False)
             self._sshclient = self.executor.sshclient
         return self._sshclient
 
@@ -45,7 +45,7 @@ class Container:
     @property
     def cuisine(self):
         if self._cuisine is None:
-            self._cuisine = j.tools.cuisine.get(self.executor)
+            self._cuisine = j.tools.cuisine.get(self.executor, usecache=False)
         return self._cuisine
 
     def run(self, cmd):
@@ -146,12 +146,15 @@ class Container:
         keys = set()
 
         home = j.tools.cuisine.local.bash.home
+        user_info = [j.tools.cuisine.local.user.check(user) for user in j.tools.cuisine.local.user.list()]
+        user = [i['name'] for i in user_info if i['home'] == home]
+        user = user[0] if user else 'root'
 
         if sshpubkey != "" and sshpubkey != None:
             key = sshpubkey
         else:
             if not j.do.checkSSHAgentAvailable():
-                j.do.loadSSHAgent()
+                j.do._loadSSHAgent()
 
             if keyname != "":
                 key = j.do.getSSHKeyFromAgentPub(keyname)
@@ -161,7 +164,7 @@ class Container:
                     dir = j.tools.path.get('%s/.ssh' % home)
                     if dir.listdir("docker_default.pub") == []:
                         # key does not exist, lets create one
-                        j.tools.cuisine.local.ssh.keygen(name="docker_default")
+                        j.tools.cuisine.local.ssh.keygen(user=user, name="docker_default")
                     key = j.sal.fs.readFile(
                         filename="%s/.ssh/docker_default.pub" % home)
                     # load the key
@@ -173,7 +176,7 @@ class Container:
         if key == None or key.strip() == "":
             raise j.exceptions.Input("ssh key cannot be empty (None)")
 
-        self._cuisine.ssh.authorize("root", key)
+        self.cuisine.ssh.authorize("root", key)
 
         return list(keys)
 

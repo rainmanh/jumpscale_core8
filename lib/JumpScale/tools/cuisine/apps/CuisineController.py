@@ -1,21 +1,25 @@
 from JumpScale import j
 
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineController(base):
+class CuisineController(app):
+    NAME = "controller"
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
-    def build(self, start=True, listen_addr=[]):
+    def build(self, start=True, listen_addr=[], install=True, reset=False):
         """
         config: https://github.com/g8os/controller.git
         """
+        if reset is False and self.isInstalled():
+            return
         # deps
-        self._cuisine.apps.redis.build(start=False)
+        self._cuisine.apps.redis.install()
+        self._cuisine.apps.redis.start()
         self._cuisine.apps.mongodb.build(start=False)
         self._cuisine.apps.syncthing.build(start=False)
 
@@ -27,14 +31,20 @@ class CuisineController(base):
 
         # get repo
         url = "github.com/g8os/controller"
-        self._cuisine.golang.clean_src_path()
-        self._cuisine.golang.godep(url)
+        self._cuisine.development.golang.clean_src_path()
+        self._cuisine.development.golang.godep(url)
 
+        # Do the actual building
+        self._cuisine.core.run("cd $goDir/src/github.com/g8os/controller && go build .", profile=True)
+
+        if install:
+            self.install(start, listen_addr)
+
+    def install(self, start=True, listen_addr=[]):
+        """
+        download, install, move files to appropriate places, and create relavent configs
+        """
         sourcepath = "$goDir/src/github.com/g8os/controller"
-
-        # do the actual building
-        self._cuisine.core.run("cd %s && go build ." % sourcepath, profile=True)
-
         # move binary
         self._cuisine.core.file_move("%s/controller" % sourcepath, "$binDir/controller")
 

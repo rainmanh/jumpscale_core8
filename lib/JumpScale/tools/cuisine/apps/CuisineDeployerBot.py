@@ -1,22 +1,29 @@
 from JumpScale import j
 
-base = j.tools.cuisine._getBaseClass()
 
 
-class CuisineDeployerBot(base):
+app =j.tools.cuisine._getBaseAppClass()
+class CuisineDeployerBot(app):
+    NAME =''
 
-    def build(self, start=True, token=None, g8_addresses=None, dns=None, oauth=None):
+    def isInstalled(self):
+        return self._cuisine.core.file_exists("$appDir/deployer_bot/telegram-bot") and  self._cuisine.core.file_exists('$cfgDir/deployerbot/config.toml')
+
+    def install(self, start=True, token=None, g8_addresses=None, dns=None, oauth=None):
         """
-        Build and Install deployerbot
+        Install deployerbot
         If start is True, token g8_addresses, dns and oauth should be specified
         """
+        if self.isInstalled():
+            return
+
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
         if not self._cuisine.core.isMac and not self._cuisine.core.isCygwin:
-            self._cuisine.installerdevelop.jumpscale8()
-            self._cuisine.pip.upgrade("pip")
+            self._cuisine.development.js8.install()
+            self._cuisine.development.pip.packageUpgrade("pip")
 
         self.install_deps()
-        self._cuisine.git.pullRepo('https://github.com/Jumpscale/jscockpit.git')
+        self._cuisine.development.git.pullRepo('https://github.com/Jumpscale/jscockpit.git')
         self.link_code()
 
         if start:
@@ -46,9 +53,10 @@ class CuisineDeployerBot(base):
         flask
         python-telegram-bot
         """
-        self._cuisine.pip.multiInstall(deps, upgrade=True)
+        self._cuisine.development.pip.multiInstall(deps, upgrade=True)
 
     def link_code(self):
+        self._cuisine.core.dir_ensure("$appDir")
         self._cuisine.core.file_link('$codeDir/github/jumpscale/jscockpit/deploy_bot/', '$appDir/deployer_bot')
 
     def create_config(self, token=None, g8_addresses=None, dns=None, oauth=None):

@@ -10,8 +10,6 @@ class CuisineBase(base):
     """
 
     def install(self):
-        self.clean()
-
         self._cuisine.bash.fixlocale()
 
         if self._cuisine.core.isMac:
@@ -35,7 +33,7 @@ class CuisineBase(base):
         # make sure all dirs exist
         for key, item in self._cuisine.core.dir_paths.items():
             out += "mkdir -p %s\n" % item
-        self._cuisine.core.run_script(out)
+        self._cuisine.core.execute_bash(out)
 
         self._cuisine.package.mdupdate()
 

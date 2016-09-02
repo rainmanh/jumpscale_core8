@@ -174,7 +174,7 @@ class CuisinePackage(base):
 
     def start(self, package):
         if self._cuisine.core.isArch or self._cuisine.core.isUbuntu or self._cuisine.core.isMac:
-            self._cuisine.processmanager.start(package)
+            self._cuisine.processmanager.ensure(package)
         else:
             raise j.exceptions.RuntimeError("could not install/ensure:%s, platform not supported" % package)
 
@@ -236,7 +236,7 @@ class CuisinePackage(base):
             mkdir -p /var/tmp
 
             """
-            self._cuisine.core.run_script(C)
+            self._cuisine.core.execute_bash(C)
 
         elif self._cuisine.core.isArch:
             cmd = "pacman -Sc"
@@ -268,7 +268,7 @@ class CuisinePackage(base):
             if autoclean:
                 self._apt_get("autoclean")
         elif self.isMac:
-            self._cuisine.core.run("pacman -Rs %s" % package)
+            self._cuisine.core.run("brew remove %s" % package)
 
     def __repr__(self):
         return "cuisine.package:%s:%s" % (self._executor.addr, self._executor.port)

@@ -2,14 +2,6 @@ from JumpScale import j
 import re
 from io import StringIO
 import os
-from JumpScale.tools.cuisine.ActionDecorator import ActionDecorator
-
-
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.bash"
 
 
 class Profile:
@@ -109,13 +101,13 @@ class Bash:
         self._profilePath = ""
         self._profile = None
         self._cuisine = j.tools.cuisine.get()
-        self.executor = self._cuisine._executor
+        self._executor = self._cuisine._executor
         self.reset()
 
     def get(self, cuisine, executor):
         b = Bash()
-        b.cuisine = cuisine
-        b.executor = executor
+        b._cuisine = cuisine
+        b._executor = executor
         return b
 
     def reset(self):
@@ -203,8 +195,7 @@ class Bash:
         """
         checks cmd Exists and returns the path
         """
-        rc, out, err = self._cuisine.core.run("which %s" % cmd, die=False, showout=False,
-                                              action=False, profile=True)
+        rc, out, err = self._cuisine.core.run("which %s" % cmd, die=False, showout=False, profile=True)
         if rc > 0:
             if die:
                 raise j.exceptions.RuntimeError("Did not find command: %s" % cmd)
@@ -228,6 +219,8 @@ class Bash:
             content = ""
             if self._profilePath == "" and self._cuisine.core.file_exists(self.profilePath):
                 content = self._cuisine.core.file_read(self.profilePath)
+            elif self._profilePath and self._cuisine.core.file_exists(self._profilePath):
+                content = self._cuisine.core.file_read(self._profilePath)
             self._profile = Profile(content, self._cuisine.core.dir_paths["binDir"])
 
         return self._profile

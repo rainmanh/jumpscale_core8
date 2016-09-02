@@ -55,7 +55,7 @@ class CuisineAlba(base):
         ppx_deriving_yojson core.113.00.00 redis uri.1.9.1 result ordma
         """
 
-        self._cuisine.core.run_script(
+        self._cuisine.core.execute_bash(
             'source $tmpDir/opam.env && opam update && opam install -y %s' % opam_deps, profile=True)
 
     def _install_deps_intel_storage(self):
@@ -90,7 +90,7 @@ class CuisineAlba(base):
         return
 
     def _install_deps_arakoon(self):
-        aradest = self._cuisine.git.pullRepo(
+        aradest = self._cuisine.development.git.pullRepo(
             'https://github.com/openvstorage/arakoon.git', branch="1.9", depth=None, ssh=False)
         pfx = 'cd %s && source $tmpDir/opam.env' % aradest
 
@@ -101,7 +101,7 @@ class CuisineAlba(base):
         libdir = 'ocamlfind printconf destdir'
         cmd = '%s && export PREFIX=%s && export OCAML_LIBDIR=`%s` && make install' % (pfx, prefix, libdir)
 
-        self._cuisine.core.run_script(cmd, profile=True)
+        self._cuisine.core.execute_bash(cmd, profile=True)
         self._cuisine.core.file_copy(j.sal.fs.joinPaths(aradest, 'arakoon.native'), "$binDir/arakoon")
 
         """
@@ -121,7 +121,7 @@ class CuisineAlba(base):
             return
 
         commit = '8bc61d8a451a2724399247abf76643aa7b2a07e9'
-        orodest = self._cuisine.git.pullRepo('https://github.com/domsj/orocksdb.git', depth=None, ssh=False)
+        orodest = self._cuisine.development.git.pullRepo('https://github.com/domsj/orocksdb.git', depth=None, ssh=False)
         pfx = 'cd %s && source $tmpDir/opam.env' % orodest
 
         self._cuisine.core.run('%s && git pull && git checkout %s' % (pfx, commit))
@@ -163,9 +163,9 @@ class CuisineAlba(base):
         self._install_deps_etcd()
 
     def _build(self):
-        repo = self._cuisine.git.pullRepo('https://github.com/openvstorage/alba',
+        repo = self._cuisine.development.git.pullRepo('https://github.com/openvstorage/alba',
                                           branch="ubuntu-16.04", depth=None, ssh=False)
-        self._cuisine.core.run_script('source $tmpDir/opam.env && cd %s; make' % repo, profile=True)
+        self._cuisine.core.execute_bash('source $tmpDir/opam.env && cd %s; make' % repo, profile=True)
         self._cuisine.core.file_copy('%s/ocaml/alba.native' % repo, '$binDir/alba')
         self._cuisine.core.file_copy('%s/ocaml/albamgr_plugin.cmxs' % repo, '$binDir/albamgr_plugin.cmxs')
         self._cuisine.core.file_copy('%s/ocaml/nsm_host_plugin.cmxs' % repo, '$binDir/nsm_host_plugin.cmxs')

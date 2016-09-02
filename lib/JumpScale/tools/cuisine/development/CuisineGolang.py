@@ -3,31 +3,37 @@ from JumpScale import j
 # import os
 
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineGolang(base):
+class CuisineGolang(app):
+    
+    NAME = 'go'
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
-    def install(self, dependencies=False):
-        if dependencies:
-            self._cuisine.installer.base()
-        rc, out, err = self._cuisine.core.run("go version", die=False, showout=False)
+    def isInstalled(self):
+        rc, out, err = self._cuisine.core.run("go version", die=False, showout=False, profile=True)
         if rc > 0 or "1.6" not in out:
-            if self._cuisine.core.isMac or self._cuisine.core.isArch:
-                self._cuisine.core.run(cmd="rm -rf /usr/local/go", die=False)
-                # if self._cuisine.core.isMac:
-                #     self._cuisine.core.run("brew uninstall --force go")
-                self._cuisine.package.install("go")
-            elif "ubuntu" in self._cuisine.platformtype.platformtypes:
-                # self._cuisine.core.run("apt-get install golang -y --force-yes")
-                downl = "https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz"
-                self._cuisine.core.file_download(downl, "/usr/local", overwrite=False, retry=3, timeout=0, expand=True)
-            else:
-                raise j.exceptions.RuntimeError("platform not supported")
+            return False
+        return True
+
+    def install(self, reset=False):
+        if reset==False and  self.isInstalled():
+            return 
+        if self._cuisine.core.isMac or self._cuisine.core.isArch:
+            self._cuisine.core.run(cmd="rm -rf /usr/local/go", die=False)
+            # if self._cuisine.core.isMac:
+            #     self._cuisine.core.run("brew uninstall --force go")
+            self._cuisine.package.install("go")
+        elif "ubuntu" in self._cuisine.platformtype.platformtypes:
+            # self._cuisine.core.run("apt-get install golang -y --force-yes")
+            downl = "https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz"
+            self._cuisine.core.file_download(downl, "/usr/local", overwrite=False, retry=3, timeout=0, expand=True)
+        else:
+            raise j.exceptions.RuntimeError("platform not supported")
 
         # optdir = self._cuisine.core.dir_paths["optDir"]
         goDir = self._cuisine.core.dir_paths['goDir']
@@ -62,7 +68,7 @@ class CuisineGolang(base):
         cd $GOPATH/src/github.com/Jumpscale/go-raml
         sh build.sh
         '''
-        self._cuisine.core.run_script(C, profile=True)
+        self._cuisine.core.execute_bash(C, profile=True)
 
     @property
     def GOPATH(self):
@@ -82,16 +88,18 @@ class CuisineGolang(base):
         """
         e.g. url=github.com/tools/godep
         """
+        self.clean_src_path()
         self._cuisine.core.run('go get -v -u %s' % url, profile=True)
 
     def godep(self, url, branch=None, depth=1):
         """
         e.g. url=github.com/tools/godep
         """
+        self.clean_src_path()
         GOPATH = self._cuisine.bash.environ['GOPATH']
 
         pullurl = "git@%s.git" % url.replace('/', ':', 1)
 
-        dest = self._cuisine.git.pullRepo(pullurl, branch=branch, depth=depth,
+        dest = self._cuisine.development.git.pullRepo(pullurl, branch=branch, depth=depth,
                                           dest='%s/src/%s' % (GOPATH, url), ssh=False)
         self._cuisine.core.run('cd %s && godep restore' % dest, profile=True)

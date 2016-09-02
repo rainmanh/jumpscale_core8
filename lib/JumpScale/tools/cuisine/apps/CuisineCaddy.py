@@ -1,26 +1,28 @@
 from JumpScale import j
 
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineCaddy(base):
+class CuisineCaddy(app):
+    NAME = "caddy"
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
-    def install(self, ssl=False, start=True, dns=None):
-        self._cuisine.core.file_download(
-            'https://github.com/mholt/caddy/releases/download/v0.8.2/caddy_linux_amd64.tar.gz', '$tmpDir/caddy_linux_amd64.tar.gz')
+    def install(self, ssl=False, start=True, dns=None, reset=False):
+
+        if reset is False and self.isInstalled():
+            return
+        caddy_url = 'https://github.com/mholt/caddy/releases/download/v0.8.2/caddy_linux_amd64.tar.gz'
+        dest = '$tmpDir/caddy_linux_amd64.tar.gz'
+        self._cuisine.core.file_download(caddy_url, dest)
         self._cuisine.core.run('cd $tmpDir; tar xvf $tmpDir/caddy_linux_amd64.tar.gz')
         self._cuisine.core.file_copy('$tmpDir/caddy', '$binDir')
         self._cuisine.bash.addPath(self._cuisine.core.args_replace("$binDir"))
 
-        if ssl and dns:
-            addr = dns
-        else:
-            addr = ':80'
+        addr = dns if ssl and dns else ':80'
 
         C = """
         $addr

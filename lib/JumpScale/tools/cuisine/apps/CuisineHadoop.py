@@ -7,8 +7,7 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisineHadoop(base):
 
-    def _build(self):
-        self._cuisine.installer.base()
+    def _install(self):
 
         if self._cuisine.core.isUbuntu:
             C = """\
@@ -19,7 +18,7 @@ class CuisineHadoop(base):
             """
             C = self._cuisine.bash.replaceEnvironInText(C)
             C = self._cuisine.core.args_replace(C)
-            self._cuisine.core.run_script(C, profile=True)
+            self._cuisine.core.execute_bash(C, profile=True)
             self._cuisine.bash.addPath("/opt/hadoop-2.7.2/bin")
             self._cuisine.bash.addPath("/opt/hadoop-2.7.2/sbin")
             self._cuisine.bash.environSet("JAVA_HOME", "/usr/lib/jvm/java-7-openjdk-amd64")
@@ -27,5 +26,5 @@ class CuisineHadoop(base):
         else:
             raise NotImplementedError("unsupported platform")
 
-    def build(self):
-        self._build()
+    def install(self):
+        self._install()

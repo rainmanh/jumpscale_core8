@@ -1046,12 +1046,14 @@ class InstallTools():
         if executor:
             return executor.execute(command, die=die, checkok=False, async=async,  showout=True, timeout=timeout)
 
+        executable = '/bin/bash' if useShell else None
+
         if async:
             os.environ["PYTHONUNBUFFERED"] = "1"
             ON_POSIX = 'posix' in sys.builtin_module_names
 
             proc = Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX,
-                         shell=useShell, env=os.environ, universal_newlines=True, cwd=cwd, bufsize=0)
+                         shell=useShell, env=os.environ, universal_newlines=True, cwd=cwd, bufsize=0, executable=executable)
             return proc
 
         @asyncio.coroutine
@@ -1063,7 +1065,7 @@ class InstallTools():
                 if not line:
                     break
 
-                _line = line.decode('UTF-8').strip()
+                _line = line.decode('UTF-8', errors='replace').strip()
                 if _showout:
                     print(_line)
                 if captureout:
@@ -1076,7 +1078,8 @@ class InstallTools():
             proc = yield from asyncio.create_subprocess_shell(cmd,
                                                               stdout=asyncio.subprocess.PIPE,
                                                               stderr=asyncio.subprocess.PIPE,
-                                                              close_fds=True)
+                                                              close_fds=True,
+                                                              executable=executable)
 
             out = yield from _read_stream(showout, proc.stdout)
             err = yield from _read_stream(outputStderr, proc.stderr)
@@ -1301,7 +1304,12 @@ class InstallTools():
 
             out += "%s\n" % line
 
-        # out += "\njs 'j.do.loadSSHAgent()' #JSSSHAGENT\n"
+        if "SSH_AUTH_SOCK" in os.environ:
+            print("NO NEED TO ADD SSH_AUTH_SOCK to env")
+            self.writeFile(bashprofile_path, out)
+            return
+
+        # out += "\njs 'j.do._.loadSSHAgent()' #JSSSHAGENT\n"
         out += "export SSH_AUTH_SOCK=%s" % self._getSSHSocketpath()
         out = out.replace("\n\n\n", "\n\n")
         out = out.replace("\n\n\n", "\n\n")
@@ -1313,6 +1321,9 @@ class InstallTools():
             os.environ["SSH_AUTH_SOCK"] = self._getSSHSocketpath()
 
     def _getSSHSocketpath(self):
+
+        if "SSH_AUTH_SOCK" in os.environ:
+            return(os.environ["SSH_AUTH_SOCK"])
 
         # if "root"==self.whoami():
         #     socketpath="/root/sshagent_socket"
@@ -1441,22 +1452,25 @@ class InstallTools():
         else:
             return list(map(lambda key: key[2], keys))
 
-    def authorizeSSHKey(self, remoteipaddr, keyname=None, login="root", passwd=None, sshport=22, removeothers=False, keypathpub=None, allow_agent=True):
+    def authorizeSSHKey(self, remoteipaddr, keyname=None, login="root", passwd=None, sshport=22, removeothers=False):
         """
         this required ssh-agent to be loaded !!!
         the keyname is the name of the key as loaded in ssh-agent
-
-        or keypathpub needs to be used
-
-        if keyname==None and keypathpub==None:
-            keypathpub="/root/.ssh/id_rsa"
-
 
         if remoteothers==True: then other keys will be removed
         """
 
         # cmd="scp %s %s@%s:~/%s"%(keypath,login,remoteipaddr,self.getBaseName(keypath))
         # j.do.executeInteractive(cmd)
+
+        if not self.exists(keyname):
+            if login == "root":
+                rootpath = "/root/.ssh/"
+            else:
+                rootpath = "/home/%s/.ssh/"
+            fullpath = self.joinPaths(rootpath, keyname)
+            if self.exists(fullpath):
+                keyname = fullpath
 
         import paramiko
         paramiko.util.log_to_file("/tmp/paramiko.log")
@@ -1466,35 +1480,23 @@ class InstallTools():
         print("ssh connect:%s %s" % (remoteipaddr, login))
         #
         # env.no_keys = True
-        ssh.connect(remoteipaddr, username=login, password=passwd, allow_agent=allow_agent, look_for_keys=False)
+        if not self.listSSHKeyFromAgent(self.getBaseName(keyname)):
+            self.loadSSHKeys(self.getParent(keyname))
+        ssh.connect(remoteipaddr, username=login, password=passwd, allow_agent=True, look_for_keys=False)
         print("ok")
-
-        if keypathpub == None:
-            if keyname == None:
-                keypathpub = "/root/.ssh/id_rsa"
-            else:
-                # get from ssh-agent
-                rc, out, err = self.execute("ssh-add -L")
-                for line in out.split("\n"):
-                    if line.endswith(".ssh/%s" % keyname):
-                        keypathpub = self.getTmpPath(keyname)
-                        self.writeFile(keypathpub, line)
 
         if login == "root":
             authkeypath = "/root/.ssh/authorized_keys"
         else:
             authkeypath = "/home/%s/.ssh/authorized_keys" % (login)
 
-        if not self.exists(keypathpub):
-            raise RuntimeError("Cannot find keypath:%s" % keypathpub)
-
         ftp = ssh.open_sftp()
 
         if login != "root":
-            basename = self.getBaseName(keypathpub)
+            basename = self.getBaseName(keyname)
             tmpfile = "/home/%s/.ssh/%s" % (login, basename)
             print("push key to /home/%s/.ssh/%s" % (login, basename))
-            ftp.put(keypathpub, tmpfile)
+            ftp.put(keyname, tmpfile)
 
             # cannot upload directly to root dir
             cmd = "ssh %s@%s 'cat %s | sudo tee -a %s '" % (login, remoteipaddr, tmpfile, authkeypath)
@@ -1521,7 +1523,7 @@ class InstallTools():
 
             C = self.readFile(tmppath)
             out = ""
-            Cnew = self.readFile(keypathpub)
+            Cnew = self.readFile(keyname)
             key = Cnew.split(" ")[1]
             if C.find(key) == -1:
                 C2 = "%s\n%s\n" % (C.strip(), Cnew)
@@ -1577,6 +1579,7 @@ class InstallTools():
         #         raise RuntimeError("Cannot find ssh key on %s" % path)
 
         if not self.exists(socketpath):
+            self.createDir(self.getParent(socketpath))
             # ssh-agent not loaded
             print("load ssh agent")
             rc, result, err = self.execute("ssh-agent -a %s" % socketpath, die=False, showout=False, outputStderr=False)

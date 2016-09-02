@@ -110,25 +110,27 @@ class Domain:
         self._cuisine.core.file_write("$cfgDir/geodns/dns/%s.json" % self.name, config)
         return config
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineGeoDns(base):
-
+class CuisineGeoDns(app):
+    NAME = "geodns"
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
-    def install(self):
+    def install(self, reset=False):
         """
         installs and builds geodns from github.com/abh/geodns
         """
+        if reset == False and self.isInstalled():
+            return
         # deps
-        # self._cuisine.golang.install(force=False)
+        # self._cuisine.development.golang.install(force=False)
         self._cuisine.package.install("libgeoip-dev")
 
         # build
-        self._cuisine.golang.get("github.com/abh/geodns")
+        self._cuisine.development.golang.get("github.com/abh/geodns")
 
         # moving files and creating config
         self._cuisine.core.file_copy("$goDir/bin/geodns", "$binDir")

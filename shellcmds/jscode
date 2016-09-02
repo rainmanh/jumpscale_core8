@@ -59,7 +59,7 @@ if opts.action == 'init':
 
     username = input('Git Username: ')
     email = input('Git Email: ')
-    j.do.loadSSHAgent(createkeys=False, keyname=username)
+    j.do._.loadSSHAgent(createkeys=False, keyname=username)
     os.system('git config --global user.name "%s"' % username)
     os.system('git config --global user.email "%s"' % email)
 

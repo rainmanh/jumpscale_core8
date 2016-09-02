@@ -13,15 +13,23 @@ class CuisineNet(base):
         self._cuisine = cuisine
 
     def netconfig(self, interface, ipaddr, cidr=24, gateway=None, dns="8.8.8.8", masquerading=False):
-        raise j.exceptions.RuntimeError("please implement using systemd")  # TODO: *2
+        conf = """
+[Match]
+Name={interface}
 
-    def netconfig(self, interface):
-        raise j.exceptions.RuntimeError("please implement using systemd")  # TODO: *2
+[Network]
+DNS={dns}
+Address={ipaddr}/{cidr}
+Gateway={gateway}
+        """.format(ipaddr=ipaddr, dns=dns, cidr=cidr, gateway=gateway)
+
+        targetfile='/etc/systemd/network/{interface}.network'.format(interface=interface)
+        self._cuisine.core.write_file(targetfile, content=conf)
 
     @property
     def nics(self):
         res = []
-        for item in self.get_info():
+        for item in self.getInfo():
             if item["name"] not in ["lo"]:
                 res.append(item["name"])
         return res
@@ -29,7 +37,7 @@ class CuisineNet(base):
     @property
     def ips(self):
         res = []
-        for item in self.get_info():
+        for item in self.getInfo():
             if item["name"] not in ["lo"]:
                 for ip in item["ip"]:
                     if ip not in res:
@@ -38,20 +46,40 @@ class CuisineNet(base):
 
     @property
     def defaultgw(self):
-        return self._cuisine.core.run("ip r | grep 'default' | awk {'print $3'}")
+        out = self._cuisine.core.run("ip r | grep 'default'")[1]
+        return out.split(" ")[2]
+
+    @property
+    def defaultgwInterface(self):
+        """
+        returns device over which default gateway goes
+        """
+        out = self._cuisine.core.run("ip r | grep 'default'", showout=False)[1]
+        return out.split(" ")[4]
 
     @defaultgw.setter
     def defaultgw(self, val):
         raise j.exceptions.RuntimeError("not implemented")
 
-    def findnodes(self, range=None, ips=[]):
+    @property
+    def wirelessLanInterfaces(self):
+        """
+        find which wireless interfaces exist
+        """
+        cmd = "for i in /sys/class/net/*; do ls $i/wireless 2> /dev/null && basename $i; done"
+        out = self._cuisine.core.run(cmd, showout=False)[1]
+        return out.split("\n")
+
+    def findNodesSSH(self, range=None, ips=[]):
         """
         @param range in format 192.168.0.0/24
+
         if range not specified then will take all ranges of local ip addresses (nics)
-        find nodes which are active around
+        find nodes which are active around (answer on SSH)
+
         """
         if range == None:
-            res = self._cuisine.net.get_info()
+            res = self._cuisine.net.getInfo()
             for item in res:
                 cidr = item['cidr']
 
@@ -78,7 +106,7 @@ class CuisineNet(base):
                     ips.append(ip)
             return ips
 
-    def get_info(self, device=None):
+    def getInfo(self, device=None):
         """
         returns network info like
 
@@ -97,7 +125,7 @@ class CuisineNet(base):
 
         IPBLOCKS = re.compile("(^|\n)(?P<block>\d+:.*?)(?=(\n\d+)|$)", re.S)
         IPMAC = re.compile("^\s+link/\w+\s+(?P<mac>(\w+:){5}\w{2})", re.M)
-        IPIP = re.compile("^\s+inet\s(?P<ip>(\d+\.){3}\d+)/(?P<cidr>\d+)", re.M)
+        IPIP = re.compile(r"\s+?inet\s(?P<ip>(\d+\.){3}\d+)/(?P<cidr>\d+)", re.M)
         IPNAME = re.compile("^\d+: (?P<name>.*?)(?=:)", re.M)
 
         def parseBlock(block):
@@ -135,7 +163,7 @@ class CuisineNet(base):
         return res
 
     def getNetObject(self, device):
-        n = self.get_info(device)
+        n = self.getInfo(device)
         net = netaddr.IPNetwork(n["ip"][0] + "/" + str(n["cidr"]))
         return net.cidr
 
@@ -145,3 +173,60 @@ class CuisineNet(base):
         """
         n = self.getNetObject(device)
         return(str(netaddr.IPAddress(n.first + skipBegin)), str(netaddr.IPAddress(n.last - skipEnd)))
+
+    def ping(self, host):
+        rc, out, err = self._cuisine.core.run("ping -c 1 %s" % host, die=False, showout=False)
+        if rc != 0:
+            return False
+        return True
+
+    def setInterfaceFile(self, ifacefile, pinghost="www.google.com"):
+        """
+        will set interface file, if network access goes away then will restore previous one
+        """
+
+        if not self.ping(pinghost):
+            raise j.exceptions.Input(
+                message="Cannot set interface if we cannot ping to the host we have to check against.", level=1, source="", tags="", msgpub="")
+
+        pscript = """
+        C='''
+        $ifacefile
+        '''
+        import os
+
+        rc=os.system("cp /etc/network/interfaces /etc/network/interfaces_old")
+        if rc>0:
+            raise RuntimeError("Cannot make copy of interfaces file")
+
+        f = open('/etc/network/interfaces', 'w')
+        f.write(C)
+
+        # now applying
+        print ("restart network")
+        rc=os.system("/etc/init.d/networking restart")
+        rc=os.system("/etc/init.d/networking restart")
+        print ("restart network done")
+
+        rc=os.system("ping -c 1 $pinghost")
+        rc2=0
+
+        if rc!=0:
+            # could not ping need to restore
+            os.system("cp /etc/network/interfaces_old /etc/network/interfaces")
+
+            print ("restart network to recover")
+            rc2=os.system("/etc/init.d/networking restart")
+            rc2=os.system("/etc/init.d/networking restart")
+            print("restart done to recover")
+
+        if rc>0 or rc2>0:
+            raise RuntimeError("Could not set interface file, something went wrong, previous situation restored.")
+        """
+        pscript = j.data.text.strip(pscript)
+        pscript = pscript.replace("$ifacefile", ifacefile)
+        pscript = pscript.replace("$pinghost", pinghost)
+
+        print(pscript)
+
+        self._cuisine.core.execute_bash(content=pscript, die=True, interpreter="python3", tmux=True)

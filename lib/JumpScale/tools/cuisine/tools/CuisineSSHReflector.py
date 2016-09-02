@@ -38,11 +38,11 @@ class CuisineSSHReflector(base):
         self._cuisine.core.dir_ensure("/home/sshreflector/.ssh", recursive=True, mode=None,
                                       owner="sshreflector", group="sshreflector")
 
-        j.application.break_into_jshell("DEBUG NOW reflector")
+        #j.application.break_into_jshell("DEBUG NOW reflector")
 
         lpath = os.environ["HOME"] + "/.ssh/reflector"
         path = "/home/sshreflector/.ssh/reflector"
-        ftp = self._cuisine.core.executor.sshclient.getSFTP()
+        ftp = self._cuisine.core._executor.sshclient.getSFTP()
         if j.sal.fs.exists(lpath) and j.sal.fs.exists(lpath + ".pub"):
             print("UPLOAD EXISTING SSH KEYS")
             ftp.put(lpath, path)
@@ -69,6 +69,7 @@ class CuisineSSHReflector(base):
         _, cpath, _ = self._cuisine.core.run("which dropbear")
 
         cmd = "%s -R -F -E -p 9222 -w -s -g -K 20 -I 60" % cpath
+        #self._cuisine.processmanager.e
         self._cuisine.processmanager.ensure("reflector", cmd, descr='')
 
         # self._cuisine.package.start(package)
@@ -95,7 +96,7 @@ class CuisineSSHReflector(base):
 
         if remoteids.find(",") != -1:
             for item in remoteids.split(","):
-                self.sshreflector_client(item.strip())
+                self._cuisine.sshreflector.client(item.strip())
         else:
 
             self.client_delete()
@@ -112,35 +113,35 @@ class CuisineSSHReflector(base):
             if reset or not j.sal.fs.exists(lpath) or not j.sal.fs.exists(lpath_pub):
                 print("DOWNLOAD SSH KEYS")
                 # get private key from reflector
-                ftp = remotecuisine.core.executor.sshclient.getSFTP()
+                ftp = remotecuisine.core._executor.sshclient.getSFTP()
                 path = "/home/sshreflector/.ssh/reflector"
                 ftp.get(path, lpath)
                 ftp.get(path + ".pub", lpath + ".pub")
                 ftp.close()
 
             # upload to reflector client
-            ftp = self._cuisine.core.executor.sshclient.getSFTP()
+            ftp = self._cuisine.core._executor.sshclient.getSFTP()
             rpath = "/root/.ssh/reflector"
             ftp.put(lpath, rpath)
             ftp.put(lpath + ".pub", rpath + ".pub")
             self._cuisine.core.run("chmod 0600 /root/.ssh/reflector")
             self._cuisine.core.run("chmod 0600 /root/.ssh/reflector.pub")
 
-            if(remotecuisine.core.executor.addr.find(".") != -1):
+            if(remotecuisine.core._executor.addr.find(".") != -1):
                 # is real ipaddress, will put in hostfile as reflector
-                addr = remotecuisine.core.executor.addr
+                addr = remotecuisine.core._executor.addr
             else:
-                a = socket.gethostbyaddr(remotecuisine.core.executor.addr)
+                a = socket.gethostbyaddr(remotecuisine.core._executor.addr)
                 addr = a[2][0]
 
-            port = remotecuisine.core.executor.port
+            port = remotecuisine.core._executor.port
 
             # test if we can reach the port
             if j.sal.nettools.tcpPortConnectionTest(addr, port) == False:
                 raise j.exceptions.RuntimeError("Cannot not connect to %s:%s" % (addr, port))
 
-            rname = "refl_%s" % remotecuisine.core.executor.addr.replace(".", "_")
-            rname_short = remotecuisine.core.executor.addr.replace(".", "_")
+            rname = "refl_%s" % remotecuisine.core._executor.addr.replace(".", "_")
+            rname_short = remotecuisine.core._executor.addr.replace(".", "_")
 
             self._cuisine.ns.hostfile_set(rname, addr)
 
@@ -185,7 +186,7 @@ class CuisineSSHReflector(base):
                 cpath, newport, rname, reflport)
             self._cuisine.processmanager.ensure("autossh_%s" % rname_short, cmd, descr='')
 
-            print("On %s:%s remote SSH port:%s" % (remotecuisine.core.executor.addr, port, newport))
+            print("On %s:%s remote SSH port:%s" % (remotecuisine.core._executor.addr, port, newport))
 
     def createconnection(self, remoteids):
         """
@@ -208,12 +209,12 @@ class CuisineSSHReflector(base):
 
         rpath = "/home/sshreflector/reflectorclients"
         lpath = os.environ["HOME"] + "/.ssh/reflectorclients"
-        ftp = cuisine.core.executor.sshclient.getSFTP()
+        ftp = cuisine.core._executor.sshclient.getSFTP()
         ftp.get(rpath, lpath)
 
         out = self._cuisine.core.file_read(lpath)
 
-        addr = cuisine.core.executor.addr
+        addr = cuisine.core._executor.addr
 
         keypath = os.environ["HOME"] + "/.ssh/reflector"
 

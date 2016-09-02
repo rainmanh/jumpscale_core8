@@ -1,15 +1,17 @@
 from JumpScale import j
 
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineInfluxdb(base):
+class CuisineInfluxdb(app):
+    NAME = "influxd"
 
-    def install(self, dependencies=False, start=False):
+    def install(self, dependencies=False, start=False, reset=False):
+        if reset == False and self.isInstalled():
+            return
 
         if dependencies:
-            self._cuisine.installer.base()
             self._cuisine.package.mdupdate()
 
         if self._cuisine.core.isMac:
@@ -26,7 +28,7 @@ class CuisineInfluxdb(base):
             tar xvfz influxdb-0.13.0_linux_amd64.tar.gz
             cp influxdb-0.13.0-1/usr/bin/influxd $binDir
             cp influxdb-0.13.0-1/etc/influxdb/influxdb.conf $tmplsDir/cfg/influxdb/influxdb.conf"""
-            self._cuisine.core.run_script(C, profile=True)
+            self._cuisine.core.execute_bash(C, profile=True)
             self._cuisine.bash.addPath(self._cuisine.core.args_replace("$binDir"))
         else:
             raise RuntimeError("cannot install, unsuported platform")

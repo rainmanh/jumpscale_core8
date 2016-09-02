@@ -7,7 +7,6 @@ import socket
 
 import threading
 import queue
-import inspect
 
 
 class SSHClientFactory:
@@ -23,8 +22,7 @@ class SSHClientFactory:
         self.cache = {}
 
     def get(self, addr='', port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True,
-            look_for_keys=True,
-            timeout=5, key_filename=None, passphrase=None, die=True, usecache=True):
+            look_for_keys=True, timeout=5, key_filename=None, passphrase=None, die=True, usecache=True):
         """
         gets an ssh client.
         @param addr: the server to connect to
@@ -150,15 +148,6 @@ class SSHClient:
     @property
     def transport(self):
         if self.client is None:
-            curframe = inspect.currentframe()
-            calframes = inspect.getouterframes(curframe, 8)
-            stack = ['FILE:%s, LINE:%s, NAME: %s' % (calframe[1], calframe[2], calframe[
-                                                     3]) for calframe in calframes]
-            self.logger.error(
-                '''\t ERROR WAS:
-            %s
-            ''' % '\n\t'.join(stack))
-
             raise j.exceptions.RuntimeError(
                 "Could not connect to %s:%s" % (self.addr, self.port))
         return self.client.get_transport()
@@ -189,7 +178,7 @@ class SSHClient:
                         self.pkey = paramiko.RSAKey.from_private_key_file(
                             self.key_filename, password=self.passphrase)
                         if not j.do.checkSSHAgentAvailable():
-                            j.do.loadSSHAgent()
+                            j.do._.loadSSHAgent()
                         if not j.do.getSSHKeyPathFromAgent(self.key_filename, die=False):
                             j.do.loadSSHKeys(self.key_filename)
 
@@ -198,28 +187,12 @@ class SSHClient:
                                          timeout=2.0, banner_timeout=3.0)
                     break
                 except (BadHostKeyException, AuthenticationException) as e:
-                    curframe = inspect.currentframe()
-                    calframes = inspect.getouterframes(curframe, 8)
-                    stack = ['FILE:%s, LINE:%s, NAME: %s' % (calframe[1], calframe[2], calframe[
-                                                             3]) for calframe in calframes]
-                    self.logger.error(
-                        '''\t ERROR WAS:
-                    %s
-                    ''' % '\n\t'.join(stack))
                     self.logger.error(
                         "Authentification error. Aborting connection")
                     self.logger.error(e)
                     raise j.exceptions.RuntimeError(str(e))
 
                 except (SSHException, socket.error) as e:
-                    curframe = inspect.currentframe()
-                    calframes = inspect.getouterframes(curframe, 8)
-                    stack = ['FILE:%s, LINE:%s, NAME: %s' % (calframe[1], calframe[2], calframe[
-                                                             3]) for calframe in calframes]
-                    self.logger.error(
-                        '''\t ERROR WAS:
-                    %s
-                    ''' % '\n\t'.join(stack))
                     self.logger.error(
                         "Unexpected error in socket connection for ssh. Aborting connection and try again.")
                     self.logger.error(e)
@@ -256,7 +229,6 @@ class SSHClient:
 
         if self.forward_agent:
             paramiko.agent.AgentRequestHandler(ch)
-
         class StreamReader(threading.Thread):
 
             def __init__(self, stream, queue, flag):
@@ -351,8 +323,8 @@ class SSHClient:
             raise j.exceptions.RuntimeError(
                 "Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, out, err))
 
-        if err:
-            self.logger.error(err)
+        # if err:
+        #     self.logger.error(err)
         return rc, out, err
 
     def close(self):
@@ -382,7 +354,7 @@ class SSHClient:
     def cuisine(self):
         if self._cuisine is None:
             executor = j.tools.executor.getSSHBased(self.addr, self.port, self.login, self.passwd, allow_agent=self.allow_agent,
-                                                    look_for_keys=self.look_for_keys, pushkey=self.key_filename, timeout=self.timeout,
+                                                    look_for_keys=self.look_for_keys, timeout=self.timeout,
                                                     usecache=False)
             self._cuisine = executor.cuisine
         return self._cuisine

@@ -121,12 +121,12 @@ class GCC_Mgmt():
             self._installDockerApps(node, force=force)
 
     def _installHostApp(self, node, weave_peer, force=False):
-        node.cuisine.installerdevelop.jumpscale8(force=force)
+        node.cuisine.development.js8.install()
         node.cuisine.installer.docker(force=force)
         node.cuisine.apps.weave.build(start=True, peer=weave_peer, force=force)
 
     def _installDockerApps(self, node, force=False):
-        node.cuisine.installerdevelop.jumpscale8(force=force)
+        node.cuisine.development.js8.install()
 
         peers = ["http://%s" % node.addr for node in self.docker_nodes]
         node.cuisine.apps.etcd.build(start=True, host="http://%s" % node.addr, peers=peers, force=force)
@@ -152,7 +152,7 @@ class GCC_Mgmt():
         if self._basicAuth:
             cfg += "\nbasicauth /etcd %s %s\n" % (self._basicAuth['login'], self._basicAuth['passwd'])
         cfg = node.cuisine.core.file_write("$cfgDir/caddy/caddyfile.conf", cfg)
-        node.cuisine.processmanager.start('caddy')
+        node.cuisine.processmanager.ensure('caddy')
 
     def _configSkydns(self, node):
         if self._basicAuth:
@@ -160,7 +160,7 @@ class GCC_Mgmt():
         else:
             skydnsCl = j.clients.skydns.get(node.addr)
         print(skydnsCl.setConfig({'dns_addr': '0.0.0.0:53', 'domain': self.domain}))
-        node.cuisine.processmanager.start('skydns')
+        node.cuisine.processmanager.ensure('skydns')
 
     def healthcheck(self):
         """

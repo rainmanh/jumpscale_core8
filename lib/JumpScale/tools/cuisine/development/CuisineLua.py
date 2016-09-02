@@ -1,33 +1,37 @@
 from JumpScale import j
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
+class CuisineLua(app):
 
-class CuisineLua(base):
+    NAME = "tarantool"
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
-    # TODO: *4 once we should finish this
-    # def installLua51(self):
-    #     """
-    #     """
-    #     # deps
-    #     self._cuisine.package.install("lua5.1")
-    #     self._cuisine.package.install("luarocks")
-    #
-    #     url = "https://raw.githubusercontent.com/zserge/luash/master/sh.lua"
-    #     # check http://zserge.com/blog/luash.html
-    #     # curl -L https://github.com/luvit/lit/raw/master/get-lit.sh | sh
-    #     # luasec
-    #     # curl
-    #     # https://raw.githubusercontent.com/slembcke/debugger.lua/master/debugger.lua
-    #     # > /usr/local/share/lua/5.1/debugger.lua
-    #
-    #     self.package("luasocket")
 
-    def installLuajitTarantool(self):
+    def installLua51(self):
+        
+        self._cuisine.package.install("lua5.1")
+        self._cuisine.package.install("luarocks")
+
+        url = "https://raw.githubusercontent.com/zserge/luash/master/sh.lua"
+
+        C = """
+        curl https://raw.githubusercontent.com/slembcke/debugger.lua/master/debugger.lua > /usr/local/share/lua/5.1/debugger.lua
+        curl -L https://github.com/luvit/lit/raw/master/get-lit.sh | sh
+
+        """
+        self._cuisine.core.execute_bash(C, profile=True)
+        self.package("luash")
+        self.package("luasocket")
+        self.package("luasec")
+
+    def installLuaTarantool(self, reset=False):
+        if reset == False and self.isInstalled():
+            return
+
         C = """
         set -ex
 
@@ -104,7 +108,7 @@ class CuisineLua(base):
 
         sudo luarocks install lightningmdb
         """
-        self._cuisine.core.run_script(C)
+        self._cuisine.core.execute_bash(C)
 
         # REQUIRED IN BASH
         # export LUA_PATH=$JSBASE/lib/lua/?.lua;./?.lua;$JSBASE/lib/lua/?/?.lua;$JSBASE/lib/lua/?/init.lua

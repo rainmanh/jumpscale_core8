@@ -27,7 +27,7 @@ def singleLocalNodeTest():
 #     """
 #     if you want to work from the monitoring vm: (remote option)
 #     on monitoring vm do, to make sure there are keys & ssh-agent is loaded
-#         js 'j.do.loadSSHAgent(createkeys=True)'
+#         js 'j.do._.loadSSHAgent(createkeys=True)'
 #         #now logout & back login into that node, this only needs to happen once
 
 #     """

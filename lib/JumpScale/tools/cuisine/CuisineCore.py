@@ -1,12 +1,3 @@
-from __future__ import with_statement
-import re
-from JumpScale import j
-import copy
-
-import pygments.lexers
-from pygments.formatters import get_formatter_by_name
-
-
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Many ideas & lines of code have been taken from:
@@ -28,21 +19,24 @@ from pygments.formatters import get_formatter_by_name
 #
 # modified by Jumpscale authors & repackaged, also lots of new modules in this directory & different approach
 
-
+from __future__ import with_statement
+import re
+import copy
 import base64
 import hashlib
 import os
-import re
 import string
 import tempfile
 import subprocess
 import types
 import threading
 import sys
-import tempfile
 import functools
 import platform
 
+from JumpScale import j
+import pygments.lexers
+from pygments.formatters import get_formatter_by_name
 
 NOTHING = base64
 
@@ -64,31 +58,27 @@ STRINGIFY_MAXLISTSTRING = 20
 
 def stringify(value):
     """Turns the given value in a user-friendly string that can be displayed"""
-    if type(value) in (str, unicode, bytes) and len(value) > STRINGIFY_MAXSTRING:
-        return "{0}...".format(value[0:STRINGIFY_MAXSTRING])
-    elif type(value) in (list, tuple) and len(value) > 10:
-        return"[{0},...]".format(", ".join([stringify(_) for _ in value[0:STRINGIFY_MAXLISTSTRING]]))
-    else:
-        return str(value)
+    if isinstance(value, (str, bytes)) and len(value) > STRINGIFY_MAXSTRING:
+        return '{0}...'.format(value[0:STRINGIFY_MAXSTRING])
 
+    if isinstance(value, (list, tuple)) and len(value) > 10:
+        return '[{0},...]'.format(', '.join([stringify(_) for _ in value[0:STRINGIFY_MAXLISTSTRING]]))
+    return str(value)
 
-# def is_ok( text ):
-#     """Tells if the given text ends with "OK", swallowing trailing blanks."""
-#     return text.find("**OK**")!=-1
 
 def text_detect_eol(text):
     MAC_EOL = "\n"
     UNIX_EOL = "\n"
     WINDOWS_EOL = "\r\n"
-    # FIXME: Should look at the first line
+
+    # TODO: Should look at the first line
     if text.find("\r\n") != -1:
         return WINDOWS_EOL
-    elif text.find("\n") != -1:
+    if text.find("\n") != -1:
         return UNIX_EOL
-    elif text.find("\r") != -1:
+    if text.find("\r") != -1:
         return MAC_EOL
-    else:
-        return "\n"
+    return "\n"
 
 
 def text_get_line(text, predicate):
@@ -209,7 +199,7 @@ class CuisineCore(base):
 
     def __init__(self, executor, cuisine):
         base.__init__(self, executor, cuisine)
-        self.logger = j.logger.get("j.tools.cuisine.core", enable_only_me=True)
+        self.logger = j.logger.get("j.tools.cuisine.core")
         # print ("***NEW CORE***")
         self.cd = "/"
         self.sudomode = False
@@ -403,7 +393,7 @@ class CuisineCore(base):
 
             self.createDir(j.sal.fs.getDirName(to))
 
-            if multithread == False:
+            if multithread is False:
                 minspeed = 0
                 if minspeed != 0:
                     minsp = "-y %s -Y 600" % (minspeed * 1024)
@@ -444,12 +434,10 @@ class CuisineCore(base):
             self.run(cmd)
         else:
             raise j.exceptions.RuntimeError("not supported yet")
-        self.reset_actions()
 
     def touch(self, path):
         path = self.args_replace(path)
         self.file_write(path, "")
-        self.reset_actions()
 
     def file_read(self, location, default=None):
         import base64
@@ -461,13 +449,12 @@ class CuisineCore(base):
         elif not self.file_exists(location):
             return default
         frame = self.file_base64(location)
-        return base64.decodebytes(frame.encode()).decode()
+        return base64.decodebytes(frame.encode(errors='replace')).decode()
 
     def _check_is_ok(self, cmd, location):
         location = self.args_replace(location)
         cmd += ' %s' % location
         rc, out, err = self.run(cmd, showout=False, die=False)
-        self.reset_actions()
         return not rc
 
     def file_exists(self, location):
@@ -509,8 +496,8 @@ class CuisineCore(base):
                 hostname = self.run("hostname")[1]
             else:
                 hostfile = "/etc/hostname"
-                hostname = self.run("cat %s" % hostfile, showout=False, replaceArgs=False,
-                                    force=False)[1].strip().split(".", 1)[0]
+                rc, out, err = self.run("cat %s" % hostfile, showout=False, replaceArgs=False)
+                hostname = out.strip().split(".", 1)[0]
             return hostname
         return self._cache.get("hostname", get)
 
@@ -597,42 +584,94 @@ class CuisineCore(base):
             hostfile = "/etc/hosts"
             self.file_write(hostfile, val)
 
-    def file_write(self, location, content, mode=None, owner=None, group=None, check=False, sudo=False, replaceArgs=False, strip=True, showout=True):
+    def upload(self, source, dest=""):
+        """
+        @param source is on local (where we run the cuisine)
+        @param dest is on remote host (on the ssh node)
 
-        self.logger.info("write content in %s" % location)
-        if strip:
+        will replace $varDir, $codeDir, ... in source using j.dirs.replaceTxtDirVars (is for local cuisine)
+        will also replace in dest but then using cuisine.core.args_replace(dest) (so for cuisine host)
+
+        @param dest, if empty then will be same as source very usefull when using e.g. $codeDir
+
+        upload happens using rsync
+
+        """
+        if dest == "":
+            dest = source
+        source = j.dirs.replaceTxtDirVars(source)
+        dest = self._cuisine.core.args_replace(dest)
+        print("upload local:%s to remote:%s" % (source, dest))
+        self._executor.sshclient.rsync_up(source, dest)
+
+    def download(self, source, dest=""):
+        """
+        @param source is on remote host (on the ssh node)
+        @param dest is on local (where we run the cuisine)
+        will replace $varDir, $codeDir, ...
+        - in source but then using cuisine.core.args_replace(dest) (so for cuisine host)
+        - in dest using j.dirs.replaceTxtDirVars (is for local cuisine)
+
+        @param dest, if empty then will be same as source very usefull when using e.g. $codeDir
+
+        """
+        if dest == "":
+            dest = source
+        dest = j.dirs.replaceTxtDirVars(dest)
+        source = self._cuisine.core.args_replace(source)
+        print("download remote:%s to local:%s" % (source, dest))
+        self._executor.sshclient.rsync_down(source, dest)
+
+    def file_write(self, location, content, mode=None, owner=None, group=None, check=False,
+                   sudo=False, replaceArgs=False, strip=True, showout=True, append=False):
+        """
+        @param append if append then will add to file and check if each line exists, if not will remove
+        """
+        if append:
             content = j.data.text.strip(content)
+            C = self.file_read(location)
+            tocheck = [item.strip() for item in content.split("\n") if item.strip() != ""]
+            C2 = ""
+            for line in C.split("\n"):
+                if line.strip() in tocheck:
+                    continue
+                C2 += "%s\n" % line
+            C2 = C2.rstrip() + "\n"
+            C2 += content
+            self.file_write(location, C, mode, owner, group, check, sudo, replaceArgs, strip, showout)
 
-        location = self.args_replace(location)
-        if replaceArgs:
-            content = self.args_replace(content)
+        else:
+            if showout:
+                self.logger.info("write content in %s" % location)
+            if strip:
+                content = j.data.text.strip(content)
 
-        # if showout:
-        #     print ("filewrite: %s"%location)
+            location = self.args_replace(location)
+            if replaceArgs:
+                content = self.args_replace(content)
 
-        self.dir_ensure(j.sal.fs.getParent(location))
+            # if showout:
+            #     print ("filewrite: %s"%location)
 
-        content2 = content.encode('utf-8')
+            self.dir_ensure(j.sal.fs.getParent(location))
 
-        sig = hashlib.md5(content2).hexdigest()
+            content2 = content.encode('utf-8')
 
-        content_base64 = base64.b64encode(content2).decode()
+            sig = hashlib.md5(content2).hexdigest()
+            # if sig != self.file_md5(location):
+            # cmd = 'set -ex && echo "%s" | openssl base64 -A -d > %s' % (content_base64, location)
 
-        # if sig != self.file_md5(location):
-        cmd = 'echo "%s" | openssl base64 -A -d > %s' % (content_base64, location)
-        if sudo:
-            cmd = "sudo %s" % cmd
+            content_base64 = base64.b64encode(content2).decode()
 
-        self.run(cmd, showout=False)
+            # if sig != self.file_md5(location):
+            cmd = 'bash -c \'echo "%s" | openssl base64 -A -d > %s\'\n' % (content_base64, location)
+            res = self._executor.executeRaw(cmd, showout=False)
+            if check:
+                file_sig = self.file_md5(location)
+                assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (
+                    location, repr(file_sig), repr(sig))
 
-        if check:
-            file_sig = self.file_md5(location)
-            assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (
-                location, repr(file_sig), repr(sig))
-
-        self.file_attribs(location, mode=mode, owner=owner, group=group)
-
-        self.reset_actions()
+            self.file_attribs(location, mode=mode, owner=owner, group=group)
 
     def file_ensure(self, location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
@@ -642,8 +681,6 @@ class CuisineCore(base):
             self.file_attribs(location, mode=mode, owner=owner, group=group)
         else:
             self.file_write(location, "", mode=mode, owner=owner, group=group)
-
-        self.reset_actions()
 
     def _file_stream(self, input, output):
         while True:
@@ -657,60 +694,33 @@ class CuisineCore(base):
         input.close()
 
     def file_upload_binary(self, local, remote):
-        """Uploads (stream) the local file to the remote location"""
-        local = self.args_replace(local)
-        if self._executor.type == "local":
-            if local == remote:
-                return
-            self.file_copy(local, remote)
-        else:
-            sftp = self._executor.sshclient.getSFTP()
-            output = sftp.open(remote, mode='w+')
-            input = open(local, "rb")
-            self._file_stream(input, output)
-
-        self.reset_actions()
+        raise NotImplemented("please use upload")
 
     def file_upload_local(self, local, remote):
-        """Uploads the local file to the remote location only if the remote location does not
-        exists or the content are different."""
-        local = self.args_replace(local)
-        remote_md5 = self.file_md5(remote)
-        local_md5 = j.data.hash.md5(local)
-        if remote_md5 == local_md5:
-            return
+        raise NotImplemented("please use download")
 
-        ftp = self._executor.sshclient.getSFTP()
-        content = j.tools.path.get(local).text()
-        with ftp.open(remote, mode='w+') as f:
-            f.write(content)
-
-        self.reset_actions()
+    def upload_from_local(self, local, remote):
+        raise NotImplemented("please use upload")
 
     def file_download_binary(self, local, remote):
-        """Downloads (stream) the remote file to the local location"""
-        local = self.args_replace(local)
-
-        sftp = self._executor.sshclient.getSFTP()
-
-        output = open(local, "w+b")
-        input = sftp.open(remote, mode='r')
-
-        self._file_stream(input, output)
+        raise NotImplemented("please use download")
 
     def file_download_local(self, remote, local):
-        """Downloads the remote file to localy only if the local location does not
-        exists or the content are different."""
-        local = self.args_replace(local)
-        f = j.tools.path.get(local)
-        if f.exists():
-            remote_md5 = self.file_md5(remote)
-            local_md5 = j.data.hash.md5(local)
-            if remote_md5 == local_md5:
-                return
+        raise NotImplemented("please use download")
 
-        content = self.file_read(remote)
-        f.write_text(content)
+    def file_remove_prefix(self, location, prefix, strip=True):
+        # look for each line which starts with prefix & remove
+        content = self.file_read(location)
+        out = ""
+        for l in content.split("\n"):
+            if strip:
+                l2 = l.strip()
+            else:
+                l2 = l
+            if l2.startswith(prefix):
+                continue
+            out += "%s\n" % l
+        self.file_write(location, out)
 
     def file_update(self, location, updater=lambda x: x):
         """Updates the content of the given by passing the existing
@@ -720,45 +730,42 @@ class CuisineCore(base):
         For instance, if you'd like to convert an existing file to all
         uppercase, simply do:
 
-        >   file_update("/etc/myfile", lambda _:_.upper())
+        >   file_update("/etc/myfile", lambda _: _.upper())
 
         Or restart service on config change:
 
-        >   if file_update("/etc/myfile.cfg", lambda _: text_ensure_line(_, line)): self.run("service restart")
+        > if file_update("/etc/myfile.cfg", lambda _: text_ensure_line(_, line)): self.run("service restart")
         """
         location = self.args_replace(location)
         assert self.file_exists(location), "File does not exists: " + location
         old_content = self.file_read(location)
         new_content = updater(old_content)
-        if (old_content == new_content):
+        if old_content == new_content:
             return False
-        # assert type(new_content) in (str, unicode, fabric.operations._AttributeString), "Updater must be like (string)->string, got: %s() = %s" %  (updater, type(new_content))
+        # assert type(new_content) in (str, unicode,
+        # fabric.operations._AttributeString), "Updater must be like
+        # (string)->string, got: %s() = %s" %  (updater, type(new_content))
         self.file_write(location, new_content)
-
-        self.reset_actions()
 
         return True
 
     def file_append(self, location, content, mode=None, owner=None, group=None):
         """Appends the given content to the remote file at the given
-        location, optionally updating its mode/owner/group."""
+        location, optionally updating its mode / owner / group."""
         location = self.args_replace(location)
         content2 = content.encode('utf-8')
         content_base64 = base64.b64encode(content2).decode()
         self.run('echo "%s" | openssl base64 -A -d >> %s' % (content_base64, location), showout=False)
         self.file_attribs(location, mode=mode, owner=owner, group=group)
 
-        self.reset_actions()
-
     def file_unlink(self, path):
         path = self.args_replace(path)
         if self.file_exists(path):
             self.run("unlink %s" % (self.shell_safe(path)), showout=False)
-            self.reset_actions()
 
     def file_link(self, source, destination, symbolic=True, mode=None, owner=None, group=None):
         """Creates a (symbolic) link between source and destination on the remote host,
-        optionally setting its mode/owner/group."""
+        optionally setting its mode / owner / group."""
         source = self.args_replace(source)
         destination = self.args_replace(destination)
         if self.file_exists(destination) and (not self.file_is_link(destination)):
@@ -768,10 +775,10 @@ class CuisineCore(base):
             self.file_unlink(destination)
         if symbolic:
             self.run('ln -sf %s %s' % (self.shell_safe(source), self.shell_safe(destination)))
-            self.reset_actions()
+
         else:
             self.run('ln -f %s %s' % (self.shell_safe(source), self.shell_safe(destination)))
-            self.reset_actions()
+
         self.file_attribs(destination, mode, owner, group)
 
     def file_copy(self, source, dest, recursive=False, overwrite=True):
@@ -793,24 +800,21 @@ class CuisineCore(base):
 
         self.run(cmd)
 
-        self.reset_actions()
-
     def file_move(self, source, dest, recursive=False):
         self.file_copy(source, dest, recursive)
         self.file_unlink(source)
-        self.reset_actions()
 
     # SHA256/MD5 sums with openssl are tricky to get working cross-platform
     # SEE: https://github.com/sebastien/cuisine/pull/184#issuecomment-102336443
     # SEE: http://stackoverflow.com/questions/22982673/is-there-any-function-to-get-the-md5sum-value-of-file-in-linux
 
     def file_base64(self, location):
-        """Returns the base64-encoded content of the file at the given location."""
+        """Returns the base64 - encoded content of the file at the given location."""
         location = self.args_replace(location)
         return self.run("cat {0} | base64".format(self.shell_safe((location))), debug=False, checkok=False, showout=False)[1]
 
     def file_sha256(self, location):
-        """Returns the SHA-256 sum (as a hex string) for the remote file at the given location."""
+        """Returns the SHA - 256 sum (as a hex string) for the remote file at the given location."""
         # NOTE: In some cases, self.sudo can output errors in here -- but the errors will
         # appear before the result, so we simply split and get the last line to
         # be on the safe side.
@@ -854,7 +858,7 @@ class CuisineCore(base):
         return path
 
     def dir_attribs(self, location, mode=None, owner=None, group=None, recursive=False, showout=False):
-        """Updates the mode/owner/group for the given remote directory."""
+        """Updates the mode / owner / group for the given remote directory."""
         location = self.args_replace(location)
         if showout:
             # print ("set dir attributes:%s"%location)
@@ -874,7 +878,6 @@ class CuisineCore(base):
 
     def dir_remove(self, location, recursive=True):
         """ Removes a directory """
-        self.reset_actions(prefix="")
         location = self.args_replace(location)
         # print("dir remove:%s"%location)
         self.logger.debug("dir remove:%s" % location)
@@ -882,15 +885,14 @@ class CuisineCore(base):
         if recursive:
             flag = 'r'
         if self.dir_exists(location):
-            self.reset_actions()
             return self.run('rm -%sf %s && echo **OK** ; true' % (flag, location), showout=False)[1]
 
     def dir_ensure(self, location, recursive=True, mode=None, owner=None, group=None):
         """Ensures that there is a remote directory at the given location,
-        optionally updating its mode/owner/group.
+        optionally updating its mode / owner / group.
 
-        If we are not updating the owner/group then this can be done as a single
-        ssh call, so use that method, otherwise set owner/group after creation."""
+        If we are not updating the owner / group then this can be done as a single
+        ssh call, so use that method, otherwise set owner / group after creation."""
 
         location = self.args_replace(location)
         if not self.dir_exists(location):
@@ -899,40 +901,36 @@ class CuisineCore(base):
             self.dir_attribs(location, owner=owner, group=group, mode=mode, recursive=recursive)
 
         # make sure we redo these actions
-        self.reset_actions(prefix="dir")
-        self.reset_actions(prefix="fs")
 
     createDir = dir_ensure
 
     def fs_find(self, path, recursive=True, pattern="", findstatement="", type="", contentsearch="", extendinfo=False):
         """
+
         @param findstatement can be used if you want to use your own find arguments
-        for help on find see http://www.gnu.org/software/findutils/manual/html_mono/find.html
+        for help on find see http: // www.gnu.org / software / findutils / manual / html_mono / find.html
 
-        @param pattern e.g. */config/j*
-
+        @param pattern e.g. * / config / j*
             *   Matches any zero or more characters.
             ?   Matches any one character.
             [string] Matches exactly one character that is a member of the string string.
 
         @param type
-
-            b    block (buffered) special
-            c    character (unbuffered) special
+            b    block(buffered) special
+            c    character(unbuffered) special
             d    directory
-            p    named pipe (FIFO)
+            p    named pipe(FIFO)
             f    regular file
             l    symbolic link
 
         @param contentsearch
             looks for this content inside the files
 
-        @param extendinfo   : this will return [[$path,$sizeinkb,$epochmod]]
-
+        @param extendinfo: this will return [[$path, $sizeinkb, $epochmod]]
         """
         path = self.args_replace(path)
         cmd = "find %s" % path
-        if recursive == False:
+        if recursive is False:
             cmd += " -maxdepth 1"
         # if contentsearch=="" and extendinfo==False:
         #     cmd+=" -print"
@@ -994,7 +992,8 @@ class CuisineCore(base):
         finally:
             self.sudomode = sudomode
 
-    def run(self, cmd, die=True, debug=None, checkok=False, showout=True, profile=False, replaceArgs=True):
+    def run(self, cmd, die=True, debug=None, checkok=False, showout=True, profile=False, replaceArgs=True,
+            shell=False):
         """
         @param profile, execute the bash profile first
         """
@@ -1017,16 +1016,15 @@ class CuisineCore(base):
             else:
                 self.logger.debug("PROFILECMD:%s" % cmd)
 
-        if '"' in cmd:
+        if shell and '"' in cmd:
             cmd = cmd.replace('"', '\\"')
 
         if "cygwin" in self._executor.execute("uname -a", showout=False)[1].lower():
             self.sudomode = False
 
         if self.sudomode:
-            passwd = self._executor.passwd if hasattr(self._executor, "passwd") else ''
-            cmd = 'echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, cmd)
-        else:
+            cmd = self.sudo_cmd(cmd)
+        elif shell:  # only when shell is asked for
             cmd = 'bash -c "%s"' % cmd
 
         path = self._executor.execute("echo $PATH", showout=False)[1]
@@ -1047,6 +1045,16 @@ class CuisineCore(base):
 
         return rc, out, err
 
+    def sudo_cmd(self, command):
+        passwd = self._executor.passwd if hasattr(self._executor, "passwd") else ''
+        # Install sudo if sudo not installed
+        rc, out, err = self._executor.execute("which sudo", die=False, showout=False)
+        if rc:
+            cmd = 'apt-get install sudo && echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, command)
+        else:
+            cmd = 'echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, command)
+        return cmd
+
     def cd(self, path):
         path = self.args_replace(path)
         self.cd = path
@@ -1054,28 +1062,43 @@ class CuisineCore(base):
     def pwd(self):
         return self.cd
 
-    def run_script(self, content, die=True, profile=False, interpreter="bash", tmux=False):
+    def execute_script(self, content, die=True, profile=False, interpreter="bash", tmux=True,
+                       args_replace=True, showout=True):
+        """
+        generic exection of script, default interpreter is bash
+
+        """
         self.logger.info("RUN SCRIPT:")
 
-        if print:
-            self._cuisine.core.pprint(content)
+        self._cuisine.core.pprint(content)
 
-        content = self.args_replace(content)
+        if args_replace:
+            content = self.args_replace(content)
         content = j.data.text.strip(content)
-        self.logger.info(content)
 
         if content[-1] != "\n":
             content += "\n"
+
         if profile:
             ppath = self._cuisine.bash.profilePath
             if ppath:
                 content = ". %s\n%s\n" % (ppath, content)
-        if interpreter == "bash":
-            content += "\necho **DONE**\n"
-        elif interpreter.startswith("python"):
-            content += "\nprint('**DONE**\\n')\n"
 
-        path = "$tmpDir/%s.sh" % j.data.idgenerator.generateRandomInt(0, 10000)
+        if interpreter == "bash":
+            content += "\necho **OK**\n"
+        elif interpreter.startswith("python") or interpreter.startswith("jspython"):
+            content += "\nprint('**OK**\\n')\n"
+
+        ext = "sh"
+        if interpreter.startswith("python"):
+            ext = "py"
+        elif interpreter.startswith("lua"):
+            ext = "lua"
+
+        rnr = j.data.idgenerator.generateRandomInt(0, 10000)
+        path = "$tmpDir/%s.%s" % (rnr, ext)
+        path = self.args_replace(path)
+
         if self.isMac:
             self.file_write(location=path, content=content, mode=0o770, showout=False)
         elif self.isCygwin:
@@ -1085,30 +1108,66 @@ class CuisineCore(base):
 
         cmd = "cd $tmpDir;%s %s" % (interpreter, path)
         cmd = self.args_replace(cmd)
+
         if tmux:
-            self._cuisine.tmux.executeInScreen("cmd", "cmd", cmd + " > /tmp/cmdout 2>&1",
-                                               wait=True, reset=True)
-            out = self.file_read("/tmp/cmdout")
-            print(out)
-            rc = 0
-            err = ""
+            rc, out = self._cuisine.tmux.executeInScreen("cmd", "cmd", cmd, wait=True, die=False)
+            if showout:
+                print(out)
         else:
-            rc, out, err = self.run(cmd, showout=True, die=False)
+            # outfile = "$tmpDir/%s.out" % (rnr)
+            # outfile = self.cuisine.core.args_replace(outfile)
+            # cmd = cmd + " 2>&1 || echo **ERROR** | tee %s" % outfile
+            cmd = cmd + " 2>&1 || echo **ERROR**"
+            rc, out, err = self._executor.executeRaw(cmd, showout=showout, die=False)
+            out = out.rstrip().rstrip("\t")
+            lastline = out.split("\n")[-1]
+            if lastline.find("**ERROR**") != -1:
+                if rc == 0:
+                    rc = 1
+            elif lastline.find("**OK**") != -1:
+                rc = 0
+            else:
+                print(out)
+                raise RuntimeError("wrong output of cmd")
+            # out = self.file_read(outfile)
             out = self._clean(out)
+            # self.file_unlink(outfile)
+            out = out.replace("**OK**", "")
+            out = out.replace("**ERROR**", "")
+            out = out.strip()
 
         self.file_unlink(path)
 
-        # print ("SCRIPT")
-        # print (path)
-        # print(content)
+        if rc > 0:
+            msg = "Could not execute script:\n%s\n" % content
+            msg += "Out/Err:\n%s\n" % out
+            out = msg
 
-        lastline = out.split("\n")[-1]
-        if (rc > 0 or out.find("**DONE**") == -1) and die:
-            raise Exception("Could not execute bash script **NOSTACK** .\n%s\n" % (content))
+            if die:
+                raise j.exceptions.RuntimeError(out)
 
-        return "\n".join(out.split("\n")[:-1])
+        return rc, out
 
-        self.reset_actions()
+    def execute_bash(self, script, die=True, profile=False, tmux=False, args_replace=True, showout=True):
+        return self.execute_script(script, die=die, profile=profile, interpreter="bash", tmux=tmux,
+                                   args_replace=args_replace, showout=showout)
+
+    def execute_python(self, script, die=True, profile=False, tmux=False, args_replace=True, showout=True):
+        return self.execute_script(script, die=die, profile=profile, interpreter="python3", tmux=tmux,
+                                   args_replace=args_replace, showout=showout)
+
+    def execute_jumpscript(self, script, die=True, profile=False, tmux=False, args_replace=True, showout=True):
+        """
+        execute a jumpscript(script as content) in a remote tmux command, the stdout will be returned
+        """
+        script = self.args_replace(script)
+        script = j.data.text.strip(script)
+
+        if script.find("from JumpScale import j") == -1:
+            script = "from JumpScale import j\n\n%s" % script
+
+        return self.execute_script(script, die=die, profile=profile, interpreter="jspython", tmux=tmux,
+                                   args_replace=args_replace, showout=showout)
 
     # =============================================================================
     #
@@ -1140,69 +1199,6 @@ class CuisineCore(base):
             self._cuisine.package.install(package)
         assert self.command_check(command), \
             "Command was not installed, check for errors: %s" % (command)
-
-    # =============================================================================
-    #
-    # TMUX
-    #
-    # =============================================================================
-
-    def tmux_execute_jumpscript(self, script, sessionname="ssh", screenname="js"):
-        """
-        execute a jumpscript (script as content) in a remote tmux command, the stdout will be returned
-        """
-        script = self.args_replace(script)
-        script = j.data.text.strip(script)
-        if script.find("from JumpScale import j") == -1:
-            script = "from JumpScale import j\n\n%s" % script
-        path = "$tmpDir/jumpscript_temp_%s.py" % j.data.idgenerator.generateRandomInt(1, 10000)
-        self.file_write(path, script)
-        cmd = "jspython %s" % path
-        self.tmux.executeInScreen(sessionname, screenname, cmd)
-        self.file_unlink(path)
-        self.reset_actions()
-        return out
-
-    def execute_jumpscript(self, script, print=True):
-        """
-        execute a jumpscript (script as content) in a remote tmux command, the stdout will be returned
-        """
-        script = self.args_replace(script)
-        script = j.data.text.strip(script)
-
-        if print:
-            self._cuisine.core.pprint(script)
-
-        if script.find("from JumpScale import j") == -1:
-            script = "from JumpScale import j\n\n%s" % script
-        path = "$tmpDir/jumpscript_temp_%s.py" % j.data.idgenerator.generateRandomInt(1, 10000)
-        self.file_write(path, script)
-        out = self.run("jspython %s" % path)[1]
-        self.file_unlink(path)
-        self.reset_actions()
-        return out
-
-    def execute_python(self, script):
-        """
-        execute a python script (script as content) in a remote tmux command, the stdout will be returned
-        """
-        script = self.args_replace(script)
-        script = j.data.text.strip(script)
-
-        path = "$tmpDir/pyscript_temp_%s.py" % j.data.idgenerator.generateRandomInt(1, 10000)
-        path = self.args_replace(path)
-
-        # saving locally, uploading, removing locally
-        j.sal.fs.writeFile(path, script)
-        self.file_upload_binary(path, path)
-
-        out = self.run("python %s" % path)[1]
-
-        j.sal.fs.remove(path)
-        self.file_unlink(path)
-        self.reset_actions()
-
-        return out
 
     # SYSTEM IDENTIFICATION
     @property

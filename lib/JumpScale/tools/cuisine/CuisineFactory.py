@@ -10,6 +10,8 @@ class CuisineBase:
         self.__classname = None
         self._executor = executor
         self._cuisine = cuisine
+        # maybe best to still show the cuisine, is easier
+        self.cuisine = cuisine
 
     @property
     def _classname(self):
@@ -36,6 +38,23 @@ class CuisineBase:
     __repr__ = __str__
 
 
+class CuisineApp(CuisineBase):
+
+    NAME = None
+    VERSION = None
+
+    def isInstalled(self):
+        """
+        Checks if a package is installed or not
+        You can ovveride it to use another way for checking
+        """
+        return self._cuisine.core.command_check(self.NAME)
+
+    def install(self):
+        if not self.isInstalled():
+            raise NotImplementedError()
+
+
 class CuisineBaseLoader:
 
     def __init__(self, executor, cuisine):
@@ -59,9 +78,13 @@ class JSCuisineFactory:
         self.__jslocation__ = "j.tools.cuisine"
         self._local = None
         self._cuisines_instance = {}
+        self.logger = j.logger.get("j.tools.cuisine")
 
     def _getBaseClass(self):
         return CuisineBase
+
+    def _getBaseAppClass(self):
+        return CuisineApp
 
     def _getBaseClassLoader(self):
         return CuisineBaseLoader
@@ -76,17 +99,21 @@ class JSCuisineFactory:
     @property
     def local(self):
         if self._local is None:
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             self._local = JSCuisine(j.tools.executor.getLocal())
         return self._local
 
-    def getPushKey(self, addr='localhost:22', login="root", passwd="", keyname="", pubkey="", passphrase=None):
+    def authorizeKey(self, addr='localhost:22', login="root", passwd="", keyname="", pubkey="", passphrase=None):
         """
         will try to login if not ok then will try to push key with passwd
         will push local key to remote, if not specified will list & you can select
+
         if passwd not specified will ask
-        @param pubkey is the pub key to use (is content of key)
+
+        @param pubkey is the pub key to use (is content of key), if this is specified then keyname not used & ssh-agent neither
         """
+        from JumpScale.tools.cuisine.JSCuisine import JSCuisine
+
         if addr.find(":") != -1:
             addr, port = addr.split(":", 1)
             addr = addr.strip()
@@ -94,18 +121,8 @@ class JSCuisineFactory:
         else:
             port = 22
 
-        executor = None
-        if not passwd:
-            # TODO: fix *1,goal is to test if ssh works, get some weird paramiko issues or timeout is too long
-            res = j.clients.ssh.get(addr, port=port, login=login, passwd="", allow_agent=True,
-                                    look_for_keys=True, timeout=0.5, key_filename=keyname, passphrase=passphrase, die=False)
-            if res is not False:
-                executor = j.tools.executor.getSSHBased(
-                    addr=addr, port=port, login=login, pushkey=keyname, passphrase=passphrase)
-            else:
-                passwd = j.tools.console.askPassword("please specify root passwd", False)
-
-        if pubkey == "" and executor is None:
+        # Generate pubkey
+        if pubkey == "":
             if keyname == "":
                 rc, out = j.sal.process.execute("ssh-add -l")
                 keys = []
@@ -118,24 +135,30 @@ class JSCuisineFactory:
                     except:
                         pass
                 key = j.tools.console.askChoice(keys, "please select key")
+                # key = j.sal.fs.getBaseName(key)
+                pubkey = j.sal.fs.fileGetContents(key + ".pub")
             else:
-                key = keyname
-        else:
-            key = None
-
-        if executor is None:
-            executor = j.tools.executor.getSSHBased(
-                addr=addr, port=port, login=login, passwd=passwd, pushkey=key, pubkey=pubkey)
+                key = j.do.getSSHKeyPathFromAgent(keyname)
+                pubkey = j.sal.fs.fileGetContents(key + ".pub")
 
         j.clients.ssh.cache = {}
-        executor = j.tools.executor.getSSHBased(addr=addr, port=port, login=login,
-                                                pushkey=key)  # should now work with key only
 
-        cuisine = JSCuisine(executor)
-        self._cuisines_instance[executor.id] = cuisine
-        return self._cuisines_instance[executor.id]
+        if not passwd and passphrase is not None:
+            executor = j.tools.executor.getSSHBased(addr=addr,
+                                                    port=port,
+                                                    login=login,
+                                                    passphrase=passphrase)
+        else:
+            passwd = passwd if passwd else j.tools.console.askPassword("please specify root passwd", False)
+            executor = j.tools.executor.getSSHBased(addr=addr,
+                                                    port=port,
+                                                    login=login,
+                                                    passwd=passwd)
 
-    def get(self, executor=None):
+        executor.cuisine.ssh.authorize(login, pubkey)
+        executor.cuisine.core.run("chmod -R 700 /root/.ssh")
+
+    def get(self, executor=None, usecache=True):
         """
         example:
         executor=j.tools.executor.getSSHBased(addr='localhost', port=22,login="root",passwd="1234",pushkey="ovh_install")
@@ -145,9 +168,10 @@ class JSCuisineFactory:
 
         or if used without executor then will be the local one
         """
-        from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+        from JumpScale.tools.cuisine.JSCuisine import JSCuisine
         executor = j.tools.executor.get(executor)
-        if executor.id in self._cuisines_instance:
+
+        if usecache and executor.id in self._cuisines_instance:
             return self._cuisines_instance[executor.id]
 
         cuisine = JSCuisine(executor)

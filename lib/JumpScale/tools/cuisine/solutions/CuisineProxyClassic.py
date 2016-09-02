@@ -345,8 +345,8 @@ class CuisineProxyClassic(base):
 
         print("INSTALL OK")
         print("to see status: point webbrowser to")
-        print("http://%s:%s/polipo/status?" % (self._cuisine.core.executor.addr, port))
-        print("configure your webproxy client to use %s on tcp port %s" % (self._cuisine.core.executor.addr, port))
+        print("http://%s:%s/polipo/status?" % (self._cuisine.core._executor.addr, port))
+        print("configure your webproxy client to use %s on tcp port %s" % (self._cuisine.core._executor.addr, port))
 
         self.removeFromSystemD(force=False)
 
@@ -360,7 +360,6 @@ class CuisineProxyClassic(base):
             self._cuisine.core.file_write("/etc/apt/apt.conf", f)
         else:
             raise RuntimeError("not implemented yet")
-        j.application.break_into_jshell("DEBUG NOW configure client")
 
     def __str__(self):
         return "cuisine.proxy:%s:%s" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))

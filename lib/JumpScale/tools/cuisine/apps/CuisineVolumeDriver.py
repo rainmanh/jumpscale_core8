@@ -2,23 +2,28 @@ from JumpScale import j
 from time import sleep
 
 
-base = j.tools.cuisine._getBaseClass()
+
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineVolumeDriver(base):
+class CuisineVolumeDriver(app):
+    NAME = "volumedriver"
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
         self.logger = j.logger.get("j.tools.cuisine.volumedriver")
 
-    def build(self, start=True):
+    def build(self, reset=False):
+        if reset == False and self.isInstalled():
+            return
         self._install_deps()
         self._build()
 
     def _install_deps(self):
         self._cuisine.core.file_write('/etc/apt/sources.list.d/ovsaptrepo.list',
                                       'deb http://apt.openvstorage.org unstable main')
+        self._cuisine.core.run('echo "deb http://us.archive.ubuntu.com/ubuntu xenial main universe" >> /etc/apt/sources.list')
         self._cuisine.package.update()
         self._cuisine.package.upgrade(distupgrade=True)
 
@@ -54,9 +59,9 @@ class CuisineVolumeDriver(base):
             'version': version,
         }
 
-        str_repl['volumedriver'] = self._cuisine.git.pullRepo(
+        str_repl['volumedriver'] = self._cuisine.development.git.pullRepo(
             'https://github.com/openvstorage/volumedriver', depth=None)
-        str_repl['buildtools'] = self._cuisine.git.pullRepo(
+        str_repl['buildtools'] = self._cuisine.development.git.pullRepo(
             'https://github.com/openvstorage/volumedriver-buildtools', depth=None)
         self._cuisine.core.run('cd %(volumedriver)s;git checkout tags/%(version)s' % str_repl)
 
@@ -75,5 +80,5 @@ class CuisineVolumeDriver(base):
         ./volumedriver/src/buildscripts/jenkins-release-dev.sh ${WORKSPACE}/volumedriver
         """ % str_repl
 
-        self._cuisine.core.run_script(build_script)
+        self._cuisine.core.execute_bash(build_script)
         self._cuisine.core.file_copy('$tmpDir/volumedriver-workspace/volumedriver/build/bin/*', '$binDir')

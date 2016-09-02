@@ -1,16 +1,19 @@
 from JumpScale import j
 
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineVulcand(base):
+class CuisineVulcand(app):
+    NAME = "vulcand"
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
-    def build(self):
+    def build(self, reset=False):
+        if reset == False and self.isInstalled():
+            return
         C = '''
         #!/bin/bash
         set -e
@@ -40,5 +43,5 @@ class CuisineVulcand(base):
 
         '''
         C = self._cuisine.bash.replaceEnvironInText(C)
-        self._cuisine.core.run_script(C, profile=True)
+        self._cuisine.core.execute_bash(C, profile=True)
         self._cuisine.bash.addPath("$base/bin")

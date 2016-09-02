@@ -102,4 +102,5 @@ class ExecutorBase:
         return self._cuisine
 
     def exists(self, path):
+        cuisine = self._cuisine or self.cuisine
         return self._cuisine.core.file_exists(path)

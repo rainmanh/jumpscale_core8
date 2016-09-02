@@ -24,7 +24,6 @@ class CuisineJS8_G8OS(base):
         import time
         if self.jumpscale_installed() and not reset:
             return
-        self.clean()
         self.base()
 
         C = """
@@ -38,7 +37,7 @@ class CuisineJS8_G8OS(base):
             rm -f /usr/local/bin/js
             rm -fr /opt/*
             """
-        self._cuisine.core.run_script(C)
+        self._cuisine.core.execute_bash(C)
 
         if not self._cuisine.core.isUbuntu:
             raise j.exceptions.RuntimeError("not supported yet")
@@ -49,7 +48,7 @@ class CuisineJS8_G8OS(base):
                 rm -rf /opt
                 rm -rf /optrw
                 """
-            self._cuisine.core.run_script(C)
+            self._cuisine.core.execute_bash(C)
 
         C = """
             wget https://stor.jumpscale.org/storx/static/js8 -O /usr/local/bin/js8
@@ -57,7 +56,7 @@ class CuisineJS8_G8OS(base):
             cd /
             mkdir -p $base
             """
-        self._cuisine.core.run_script(C)
+        self._cuisine.core.execute_bash(C)
 
         """
         install jumpscale8 sandbox in read or readwrite mode
@@ -71,7 +70,7 @@ class CuisineJS8_G8OS(base):
             C += "./js8 -rw init"
         else:
             C += "./js8 init"
-        self._cuisine.core.run_script(C)
+        self._cuisine.core.execute_bash(C)
 
         start = j.data.time.epoch
         timeout = 30
@@ -87,8 +86,6 @@ class CuisineJS8_G8OS(base):
         print("* re-login into your shell to have access to js, because otherwise the env arguments are not set properly.")
 
     def base(self):
-        self.clean()
-
         self._cuisine.bash.fixlocale()
 
         if self._cuisine.core.isMac:
@@ -112,7 +109,7 @@ class CuisineJS8_G8OS(base):
         # make sure all dirs exist
         for key, item in self._cuisine.core.dir_paths.items():
             out += "mkdir -p %s\n" % item
-        self._cuisine.core.run_script(out)
+        self._cuisine.core.execute_bash(out)
 
         self._cuisine.package.mdupdate()
 

@@ -201,7 +201,7 @@ class TestCuisineCore(unittest.TestCase):
             import JumpScale.tools.cuisine.CuisineCore
             JumpScale.tools.cuisine.CuisineCore.j = j
             from JumpScale.tools.cuisine.CuisineCore import CuisineCore
-            from JumpScale.core.errorhandling import OurExceptions
+            from JumpScale.core.errorhandling import JSExceptions
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             executor = j.tools.executor.getLocal()
@@ -216,8 +216,8 @@ class TestCuisineCore(unittest.TestCase):
             cuisine_core.run = mock.MagicMock()
             cuisine_core.run.side_effect = [(32, '', 'err'),(0, 'Ok', '')]
             cuisine_core.touch = mock.MagicMock()
-            j.exceptions.RuntimeError = OurExceptions.RuntimeError
-            self.assertRaises(OurExceptions.RuntimeError, cuisine_core.file_download, url, to)
+            j.exceptions.RuntimeError = JSExceptions.RuntimeError
+            self.assertRaises(JSExceptions.RuntimeError, cuisine_core.file_download, url, to)
 
     def test_file_expand(self):
         """
@@ -248,7 +248,7 @@ class TestCuisineCore(unittest.TestCase):
             import JumpScale.tools.cuisine.CuisineCore
             JumpScale.tools.cuisine.CuisineCore.j = j
             from JumpScale.tools.cuisine.CuisineCore import CuisineCore
-            from JumpScale.core.errorhandling import OurExceptions
+            from JumpScale.core.errorhandling import JSExceptions
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             executor = j.tools.executor.getLocal()
@@ -259,8 +259,8 @@ class TestCuisineCore(unittest.TestCase):
             cuisine_core.run = mock.MagicMock()
             cuisine_core.args_replace = mock.MagicMock()
             cuisine_core.args_replace.side_effect = (path, to)
-            j.exceptions.RuntimeError = OurExceptions.RuntimeError
-            self.assertRaises(OurExceptions.RuntimeError, cuisine_core.file_expand, path, to)
+            j.exceptions.RuntimeError = JSExceptions.RuntimeError
+            self.assertRaises(JSExceptions.RuntimeError, cuisine_core.file_expand, path, to)
 
     def test_touch(self):
         """

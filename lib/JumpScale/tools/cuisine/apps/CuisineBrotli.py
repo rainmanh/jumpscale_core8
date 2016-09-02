@@ -1,19 +1,14 @@
 from JumpScale import j
 
+app = j.tools.cuisine._getBaseAppClass()
 
-base = j.tools.cuisine._getBaseClass()
 
+class CuisineBrotli(app):
 
-class CuisineBrotli(base):
-
-    def isInstalled(self, die=False):
-        rc1, out1, err = self._cuisine.core.run('which bro', die=False)
-        if (rc1 == 0 and out1):
-            return True
-        return False
+    NAME = 'bro'
 
     def build(self, reset=False):
-        if reset == False and self.isInstalled():
+        if reset is False and self.isInstalled():
             return
         C = """
         cd /tmp
@@ -22,8 +17,13 @@ class CuisineBrotli(base):
         cd /tmp/brotli/
         ./configure
         make bro
+        """
+        C = self._cuisine.core.args_replace(C)
+        self._cuisine.core.execute_bash(C)
+
+    def install(self):
+        C = """
         cp /tmp/brotli/bin/bro /usr/local/bin/
         rm -rf /tmp/brotli
         """
-        C = self._cuisine.core.args_replace(C)
-        self._cuisine.core.run_script(C)
+        self._cuisine.core.execute_bash(C)

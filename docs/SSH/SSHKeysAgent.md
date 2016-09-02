@@ -2,7 +2,7 @@
 
 ```bash
 #load ssh-agent & all known keys
-js 'j.do.loadSSHAgent()'
+js 'j.do._.loadSSHAgent()'
 
 #if it's the first time you need to tell current session path to ssh-agent
 export SSH_AUTH_SOCK=~/sshagent_socket

@@ -1,18 +1,21 @@
 from JumpScale import j
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineWeave(base):
+class CuisineWeave(app):
     """
     virtual network services for docker
     """
+    NAME = "weave"
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
-    def install(self, start=True, peer=None, jumpscalePath=True):
+    def install(self, start=True, peer=None, jumpscalePath=True, reset=False):
+        if reset == False and self.isInstalled():
+            return
         if jumpscalePath:
             binPath = self._cuisine.core.joinpaths(
                 self._cuisine.core.dir_paths['binDir'], 'weave')
@@ -26,7 +29,7 @@ class CuisineWeave(base):
         C = self._cuisine.core.args_replace(C)
         self._cuisine.docker.install()
         self._cuisine.package.ensure('curl')
-        self._cuisine.core.run_script(C, profile=True)
+        self._cuisine.core.execute_bash(C, profile=True)
         self._cuisine.bash.addPath(j.sal.fs.getParent(binPath))
         if start:
             self.start(peer)

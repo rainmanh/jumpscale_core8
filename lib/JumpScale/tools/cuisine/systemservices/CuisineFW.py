@@ -30,17 +30,18 @@ class CuisineFW(base):
         """as alternative on ufw"""
         if self._cuisine.core.isMac:
             return
-        raise NotImplemented()
-        # TODO: *1 implement
+        self._cuisine.core.run("nft add rule filter input {protocol} dport {port} log accept".format(protocol=protocl, port=port))
 
     def denyIncoming(self, port):
         if self._cuisine.core.isMac:
             return
-        # TODO: *1 implement
-        raise NotImplemented()
+        self._cuisine.core.run("nft add rule filter input {protocol} dport {port} log reject".format(protocol=protocl, port=port))
 
-    def flush(self):
+
+    def flush(self, permanent=False):
         self._cuisine.core.run("nft flush ruleset")
+        if permanent:
+            self.setRuleset("")
 
     def show(self):
         rc, out = self._cuisine.core.run("nft list ruleset")
@@ -49,36 +50,49 @@ class CuisineFW(base):
         rc, out, err = self._cuisine.core.run("nft list ruleset", showout=False)
         return out
 
-    def setRuleset(self, ruleset, pinghost="www.google.com"):
+    def setRuleset(self, ruleset, pinghost="8.8.8.8"):
+        if not self._cuisine.net.ping(pinghost):
+            raise j.exceptions.Input(
+                message="Cannot set firewall ruleset if we cannot ping to the host we have to check against.", level=1, source="", tags="", msgpub="")
+        rc, currentruleset, err = self._cuisine.core.run("nft list ruleset")
+        if ruleset in currentruleset:
+            return
+
+
         pscript = """
         C='''
         $ruleset
         '''
         import os
+        import time
 
         rc=os.system("nft list ruleset > /tmp/firelwallruleset_old")
         if rc>0:
             raise RuntimeError("Cannot export firelwall ruleset")
 
-        #TODO: *1 check old ruleset exists
-
-        f = open('/tmp/firewallruleset', 'w')
+        f = open('/etc/nftables.conf', 'w')
         f.write(C)
 
         #now applying
-        rc=os.system("nft -f /tmp/firewallruleset")
-        if rc>0:
-            raise RuntimeError("Cannot apply firelwall ruleset")
+        print("applied ruleset")
+        rc=os.system("nft -f /etc/nftables.conf")
+        time.sleep(1)
 
-        rc=os.system("ping -c 1 $pinghost")
+        rc2=os.system("ping -c 1 $pinghost")
 
-        if rc!=0:
+        if rc2!=0:
+            print ("could not apply, restore")
             #could not ping need to restore
-            os.system("nft -f /tmp/firelwallruleset_old")
+            os.system("cp /tmp/firelwallruleset_old /etc/nftables.conf")
+            rc=os.system("nft -f /etc/nftables.conf")
+
+        if rc>0 or rc2>0:
+            raise RuntimeError("Could not set interface file, something went wrong, previous situation restored.")
+
 
         """
         pscript = j.data.text.strip(pscript)
         pscript = pscript.replace("$ruleset", ruleset)
         pscript = pscript.replace("$pinghost", pinghost)
 
-        self._cuisine.core.run_script(content=pscript, die=True, interpreter="python3", tmux=True)
+        self._cuisine.core.execute_script(content=pscript, die=True, interpreter="python3", tmux=True)

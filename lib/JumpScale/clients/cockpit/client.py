@@ -1,7 +1,28 @@
 import requests
-from client_utils import build_query_string
-import client_lower
+from JumpScale.clients.cockpit.client_utils import build_query_string
+from JumpScale.clients.cockpit import client_lower
 from JumpScale import j
+
+
+class ApiError(Exception):
+
+    def __init__(self, response):
+        msg = '%s %s' % (response.status_code, response.reason)
+        try:
+            message = response.json()['error']
+        except:
+            message = response.content
+        if isinstance(message, (str, bytes)):
+            msg += '\n%s' % message
+        elif isinstance(message, dict) and 'errormessage' in message:
+            msg += '\n%s' % message['errormessage']
+
+        super(ApiError, self).__init__(msg)
+        self._response = response
+
+    @property
+    def response(self):
+        return self._response
 
 
 class Client:
@@ -28,14 +49,16 @@ class Client:
 
     def _assert_response(self, resp, code=200):
         if resp.status_code != code:
-            try:
-                errormsg = resp.json()['error']
-            except:
-                errormsg = resp.text
-            raise j.exceptions.RuntimeError(errormsg)
+            raise ApiError(resp)
+
+        # 204 no-content, don't try to return anything
         if code == 204:
             return
-        return resp.json()
+
+        if resp.headers.get('content-type', 'text/html') == 'application/json':
+            return resp.json()
+
+        return resp.content
 
     def updateCockpit(self, headers=None, query_params=None):
         """
@@ -385,8 +408,7 @@ class Client:
         Get an aysrun
         It is method for GET /ays/repository/{repository}/aysrun/{aysrun}
         """
-        resp = self._client.getRun(
-            aysrun=aysrun, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.getRun(aysrun=aysrun, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 

@@ -3,7 +3,11 @@ from JumpScale import j
 # import ExtraTools
 
 import hashlib
-# from pyblake2 import blake2b
+import binascii
+try:
+    from pyblake2 import blake2b
+except:
+    rc, out = j.sal.process.execute("pip3 install pyblake2", die=True, outputToStdout=False, ignoreErrorOutput=False)
 
 
 class HashTool:
@@ -39,6 +43,17 @@ class HashTool:
         impl = hashlib.md5(out)
         return impl.hexdigest(), out
 
+    def hex2bin(self, hex):
+        """
+        output of the hash functions are string representation, when you need a smaller representation you can go to binary
+        """
+        return binascii.unhexlify(hex)
+
+    def bin2hex(self, bin):
+        """
+        output of the hash functions are string representation, when you need a smaller representation you can go to binary
+        """
+        return binascii.hexlify(bin)
 
 import zlib
 
@@ -60,6 +75,20 @@ def _hash_funcs(alg):
             s = s.encode('utf-8')
         impl = hashlib.new(alg, s)
         return impl.hexdigest()
+
+    # def _bin(s):
+    #     '''Calculate %(alg)s hash of input string (can be binary)
+    #
+    #     @param s: String value to hash
+    #     @type s: string
+    #
+    #     @returns: %(alg)s hash digest of the input value
+    #     @rtype: bin
+    #     '''
+    #     if isinstance(s, str):
+    #         s = s.encode('utf-8')
+    #     impl = hashlib.new(alg, s)
+    #     return impl.digest()
 
     # _string.__doc__ = _string.__doc__ % template_data
 
@@ -113,26 +142,9 @@ def _hash_funcs(alg):
 
     return _string, _fd, _file
 
-__all__ = list()
-
-# List of all supported algoritms
-SUPPORTED_ALGORITHMS = ['md5', 'sha1', 'sha256', 'sha512', ]
-
-# For every supported algorithm, create the associated hash functions and add
-# them to the module globals
-_glob = globals()
-for _alg in SUPPORTED_ALGORITHMS:
-    _string, _fd, _file = _hash_funcs(_alg)
-    _glob[_alg] = _string
-    _glob['%s_fd' % _alg] = _fd
-    _glob['%s_file' % _alg] = _file
-
-    __all__.append(_alg)
-    __all__.append('%s_fd' % _alg)
-    __all__.append('%s_file' % _alg)
-
-
 # CRC32 is not supported by hashlib
+
+
 def crc32(s):
     '''Calculate CRC32 hash of input string
 
@@ -235,12 +247,32 @@ def blake2_file(path):
 #     impl = hashlib.md5(s)
 #     return impl.hexdigest()
 
+__all__ = list()
+
+# List of all supported algoritms
+SUPPORTED_ALGORITHMS = ['md5', 'sha1', 'sha256', 'sha512', ]
+
+# For every supported algorithm, create the associated hash functions and add
+# them to the module globals
+_glob = globals()
+for _alg in SUPPORTED_ALGORITHMS:
+    _string, _fd, _file = _hash_funcs(_alg)
+    _glob[_alg] = _string
+    _glob['%s_fd' % _alg] = _fd
+    _glob['%s_file' % _alg] = _file
+
+    __all__.append('%s' % _alg)
+    __all__.append('%s_fd' % _alg)
+    __all__.append('%s_file' % _alg)
+
+
 SUPPORTED_ALGORITHMS.append('crc32')
 SUPPORTED_ALGORITHMS.append('blake2')
 __all__.extend(('crc32', 'crc32_fd', 'crc32_file', ))
 __all__.extend(('blake2', 'blake2_fd', 'blake2_file', ))
 
 SUPPORTED_ALGORITHMS = tuple(SUPPORTED_ALGORITHMS)
+
 
 for alg in SUPPORTED_ALGORITHMS:
     setattr(HashTool, '%s_string' % alg, staticmethod(_glob[alg]))

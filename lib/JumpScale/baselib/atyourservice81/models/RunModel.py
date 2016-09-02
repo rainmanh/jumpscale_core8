@@ -8,9 +8,38 @@ class RunModel(ModelBase):
     is state object for Run
     """
 
-    def __init__(self, category, db, key=""):
+    def __init__(self, category, db, index, key=""):
         self._capnp = j.atyourservice.db.AYSModel.Run
-        ModelBase.__init__(self, category, db, key)
+        ModelBase.__init__(self, category, db, index, key)
+
+    @classmethod
+    def list(self, state="", fromEpoch=0, toEpoch=999999999, returnIndex=False):
+        if state == "":
+            state = ".*"
+        epoch = ".*"
+        regex = "%s:%s" % (state, epoch)
+        res0 = j.atyourservice.db.job._index.list(regex, returnIndex=True)
+        res1 = []
+        for index, key in res0:
+            epoch = int(index.split(":")[-1])
+            if fromEpoch < epoch and epoch < toEpoch:
+                if returnIndex:
+                    res1.append((index, key))
+                else:
+                    res1.append(key)
+        return res1
+
+    def index(self):
+        # put indexes in db as specified
+        ind = "%s:%s" % (self.dbobj.state,  self.dbobj.lastModDate)
+        j.atyourservice.db.run._index.index({ind: self.dbobj._get_key()})
+
+    @classmethod
+    def find(self, state="", fromEpoch=0, toEpoch=999999999):
+        res = []
+        for key in self.list(state, fromEpoch, toEpoch):
+            res.append(j.atyourservice.db.run.get(key))
+        return res
 
     def stepNew(self, **kwargs):
         olditems = [item.to_dict() for item in self.dbobj.steps]

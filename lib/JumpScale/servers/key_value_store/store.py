@@ -1,29 +1,29 @@
 
-#import JSModel
+# import JSModel
 import time
 from abc import ABCMeta, abstractmethod
 from JumpScale import j
 import collections
 
-
-class KeyValueStoreType(str):
-
-    def __init__(self, value=None):
-        self.value = value
-        self.ARAKOON = 'arakoon'
-        self.FS = 'fs'
-        self.MEMORY = 'memory'
-        self.REDIS = 'redis'
+try:
+    import snappy
+except:
+    rc, out = j.sal.process.execute("pip3 install python-snappy", die=True,
+                                    outputToStdout=False, ignoreErrorOutput=False)
+    import snappy
 
 
 class KeyValueStoreBase:  # , metaclass=ABCMeta):
     '''KeyValueStoreBase defines a store interface.'''
 
-    def __init__(self, serializers=[]):
+    def __init__(self, name="", serializers=[], masterdb=None, cache=None, changelog=None):
+        self.name = name
         self.logger = j.logger.get('j.servers.kvs')
-        #self.id = j.application.getUniqueMachineId()
         self.serializers = serializers or list()
         self.unserializers = list(reversed(self.serializers))
+        self.cache = cache
+        self.changelog = changelog
+        self.masterdb = masterdb
 
     def __new__(cls, *args, **kwargs):
         '''
@@ -43,8 +43,104 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
         return object.__new__(cls)
 
-    @abstractmethod
-    def get(self, category, key):
+    def _encode(self, val, owner=None, expire=0, acl={}, schema=""):
+        """
+        @param expire is time in sec from now when object will expire
+        @param is link to schema used to decode this object, is md5
+        @param acl is dict of {secret:"rwd"}
+        """
+        # data = $type + $owner + $schema + $expire + $lengthsecretslist +
+        # [secretslist] + snappyencoded(val) + $crcOfAllPrevious
+
+        # type of this encoding, to make sure we have backwards compatibility
+        # type = 4bits:  $schemaYesNo,$expireYesNo,0,0 + 4 bit version of format now 0
+        ttype = 0
+
+        ls = len(schema)
+        if schema == None or schema = "":
+            schema2 = b""
+        elif ls == 32:
+            schema2 = j.data.hash.hex2bin(schema)
+            ttype += 0b1000000
+        elif ls == 16:
+            schema2 = schema
+            ttype += 0b1000000
+        else:
+            raise j.exceptions.Input(message="schema needs to be md5 in string or bin format",
+                                     level=1, source="", tags="", msgpub="")
+
+        if expire != 0:
+            expire = j.data.time.getTimeEpoch() + expire
+            ttype += 0b0100000
+        else:
+            expire = "b"
+
+        if owner is None:
+            owner = j.application.owner
+            if len(owner) != 16:
+                raise j.exceptions.Input(message="owner needs to be 16 bytes", level=1, source="", tags="", msgpub="")
+
+        ttype2 = ttype.to_bytes(1, byteorder='big', signed=False)
+
+        nrsecrets = 0
+        secrets2 = b""
+        for secret, aclitem in acl.items():
+            acl2 = 0
+            if "r" in aclitem:
+                acl2 += 0b10000000
+            if "w" in aclitem:
+                acl2 += 0b01000000
+            if "d" in aclitem:
+                acl2 += 0b00100000
+            acl3 = acl2.to_bytes(1, byteorder='big', signed=False)
+            if len(secret) == 32:
+                secret = j.data.hash.hex2bin(secret)
+            elif len(secret) != 16:
+                raise j.exceptions.Input(message="secret needs to be 16 bytes", level=1, source="", tags="", msgpub="")
+            nrsecrets += 1
+            secrets2 += secret + acl3
+
+        secrets3 = nrsecrets.to_bytes(2, byteorder='big', signed=False) + secrets2
+
+        out2 = ttype + owner + schema2 + expire + secrets3 + snappy.compress(val)
+
+        crc = j.data.hash.crc32_string(out2)
+        crc2 = crc.to_bytes(4, byteorder='big', signed=False)
+        out3 = out2 + crc2
+        return out3
+
+    def _decode(self, val):
+        # TODO: *1 implement & test
+        raise NotImplemented("")
+
+    def set(self, key, value, category="", expire=0, secret="", acl={}, owner=None):
+
+        value0 = self.get(key, secret=secret, category=category, decode=False)
+        # verify will make sure that crc is checked
+        owner, schema, expire, acl, value1 = self._decode(value0, verify=True)
+
+        msg = "user with secret %s has no write permission on object:%s" % (secret, key)
+        if secret in acl:
+            if "w" not in acl[secret]:
+                raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
+        elif owner != secret"
+            raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
+
+        # now we know that secret has right to modify the object
+
+        if schema != self.schemaId:
+            raise j.exceptions.Input(
+                message="schema of this db instance should be same as what is found in db", level=1, source="", tags="", msgpub="")
+
+        # update acl with new one
+        acl1 = acl.update(acl)
+
+        value1 = self._encode(value, owner=owner, expire=expire, acl=acl1, schema=self.schemaId)
+
+        if self.cache != None:
+            self.cache._set(key=key, category=category, value=value1)
+
+    def get(self, key, secret="", category="", verify=False, decode=True):
         '''
         Gets a key value pair from the store.
 
@@ -57,7 +153,42 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         @return: value of the key value pair
         @rtype: Objects
         '''
-        pass
+        if self.cache != None:
+            res = self.cache._get(key=key, category=category)  # get raw data
+            if res != None:
+                return self.unserialize(self._decode(res))
+        value1 = self._get(key=key, category=category)
+        if value1 == None:
+            return None
+        if decode:
+            value2 = self._decode(value1)
+            value3 = self.unserialize(value2)
+        else:
+            value3 = value1
+
+        if self.cache != None:
+            self.cache._set(key=key, category=category, value=value1)
+
+        return value3
+
+        return self._get(key, secret, category)
+
+    def delete(self, key, category="", secret=""):
+
+        value0 = self.get(key, secret=secret, category=category, decode=False)
+        # verify will make sure that crc is checked
+        owner, schema, expire, acl, value1 = self._decode(value0, verify=False)
+
+        msg = "user with secret %s has no write permission on object:%s" % (secret, key)
+        if secret in acl:
+            if "d" not in acl[secret]:
+                raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
+        elif owner != secret"
+            raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
+
+        self._delete(key=key, category=category)
+
+# DO NOT LOOK AT BELOW RIGHT NOW IS FOR FUTURE
 
     def checkChangeLog(self):
         pass
@@ -73,22 +204,13 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
                 value = serializer.loads(value)
         return value
 
-    def cacheSet(self, key, value, expirationInSecondsFromNow=60):
-        # time in minutes for expiration
+    def cacheSet(self, key, value, expirationInSecondsFromNow=120):
         ttime = j.data.time.getTimeEpoch()
         value = [ttime + expirationInSecondsFromNow, value]
         if key == "":
             key = j.data.idgenerator.generateGUID()
-        self.set("cache", key, value)
+        self.set(category="cache", key=key, value=value)
         return key
-        # if nrMinutesExpiration>0:
-        #     self.set("cache", key, value)
-        #     tt=j.data.time.getMinuteId()
-        #     actor.dbmem.set("mcache_%s"%tt, key, "")
-        # elif nrHoursExpiration>0:
-        #     self.set("cache", key, value)
-        #     tt=j.data.time.getHourId()
-        #     actor.dbmem.set("hcache_%s"%tt, key, "")
 
     def cacheGet(self, key, deleteAfterGet=False):
         r = self.get("cache", key)
@@ -117,30 +239,6 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
                 self.delete("cache", key)
 
     @abstractmethod
-    def set(self, category, key, value):
-        '''
-        Sets a key value pair in the store.
-
-        @param: category of the key value pair
-        @type: String
-
-        @param: key of the key value pair
-        @type: String
-        '''
-
-    @abstractmethod
-    def delete(self, category, key):
-        '''
-        Deletes a key value pair from the store.
-
-        @param: category of the key value pair
-        @type: String
-
-        @param: key of the key value pair
-        @type: String
-        '''
-
-    @abstractmethod
     def exists(self, category, key):
         '''
         Checks if a key value pair exists in the store.
@@ -167,6 +265,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         @return: keys that match `prefix` in `category`.
         @rtype: List(String)
         '''
+        raise j.exceptions.NotImplemented("list is only supported on selected db's")
 
     @abstractmethod
     def listCategories(self):
@@ -308,7 +407,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
     def _assertExists(self, category, key):
         if not self.exists(category, key):
             errorMessage = 'Key value store doesnt have a value for key '\
-                           '"%s" in category "%s"' % (key, category)
+                '"%s" in category "%s"' % (key, category)
             self.logger.error(errorMessage)
             raise KeyError(errorMessage)
 
@@ -395,7 +494,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         self.getModifySet("subscribers", category, modfunction, subscriberid=subscriberid,
                           db=self, lastProcessedId=lastProcessedId)
 
-    def set_dedupe(self, category, data):
+    def setDedupe(self, category, data):
         """
         will return unique key which references the data, if it exists or not
         """
@@ -408,7 +507,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
             self.set(category, md5, data)
         return md5
 
-    def get_dedupe(self, category, key):
+    def getDedupe(self, category, key):
         if len(key) < 32:
             return key.encode()
         return self.get(category, key)

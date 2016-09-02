@@ -8,16 +8,32 @@ class ActorModel(ModelBase):
     Model Class for an Actor object
     """
 
-    def __init__(self, category="", db=None, key=""):
+    def __init__(self, category, db, index, key=""):
         self._capnp = j.atyourservice.db.AYSModel.Actor
-        ModelBase.__init__(self, category, db, key)
+        ModelBase.__init__(self, category, db, index, key)
 
-    def index(self, db):
+    @classmethod
+    def list(self, name="", role="", state="", returnIndex=False):
+        if name == "":
+            name = ".*"
+        if role == "":
+            role = ".*"
+        if state == "":
+            state = ".*"
+        regex = "%s:%s:%s" % (name, role, state)
+        return j.atyourservice.db.actor._index.list(regex, returnIndex=returnIndex)
+
+    def index(self):
         # put indexes in db as specified
-        from IPython import embed
-        print("DEBUG NOW cache actor")
-        embed()
-        raise RuntimeError("stop debug here")
+        ind = "%s:%s:%s" % (self.dbobj.name, self.dbobj.role, self.dbobj.state)
+        j.atyourservice.db.actor._index.index({ind: self.dbobj._get_key()})
+
+    @classmethod
+    def find(self, name="", role="", state=""):
+        res = []
+        for key in self.list(name, role, state):
+            res.append(j.atyourservice.db.actor.get(key))
+        return res
 
     @property
     def actionsSortedList(self):

@@ -1,5 +1,6 @@
 
 # import struct
+from JumpScale import j
 
 
 class SerializerCRC:

@@ -21,10 +21,6 @@ class AtYourServiceRepo():
 
         self._init = False
 
-        self._actors = {}
-
-        self._templates = {}
-
         self.indocker = j.atyourservice.indocker
         self.debug = j.atyourservice.debug
         self.logger = j.atyourservice.logger
@@ -41,14 +37,9 @@ class AtYourServiceRepo():
 
         self._blueprints = {}
 
-        # self._roletemplates = dict()
+        # self.indexdb = j.atyourservice.db.getIndexDB(self.name)
+        self.db = j.atyourservice.db.getDB('ays')
 
-        self._services = {}
-
-        self.indexdb = j.atyourservice.db.getIndexDB(self.name)
-
-
-# INIT
 
     def _doinit(self):
         pass
@@ -72,12 +63,6 @@ class AtYourServiceRepo():
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "services"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "recipes"))  # for old time sake
         self.db.destroy()
-
-    @property
-    def db(self):
-        if not self._db:
-            self._db = j.atyourservice.db.getDB('ays')
-        return self._db
 
 # ACTORS
 
@@ -251,7 +236,7 @@ class AtYourServiceRepo():
                 service.state.set(action, state)
                 service.state.save()
 
-    def servicesFind(self, instance="", parent=None, first=False, role="", hasAction="", include_disabled=False, templatename=""):
+    def servicesFind(self, instance="", parent=None, first=False, role="", hasAction="", include_disabled=False, actorName=""):
         res = []
 
         for key, service in self.services.items():
@@ -261,7 +246,7 @@ class AtYourServiceRepo():
                 continue
             if not(parent is None or service.parent == parent):
                 continue
-            if not(templatename is "" or service.templatename == templatename):
+            if not(actorName is "" or service.actorName == actorName):
                 continue
             if not(role == "" or role == service.role):
                 continue

@@ -31,44 +31,66 @@ class StoreFactory:
     #         self._cache[key] = MongoDBKeyValueStore(namespace)
     #     return self._cache[key]
 
-    def getFSStore(self, namespace='', baseDir=None, serializers=[]):
-        '''
-        Gets a file system key value store.
+    def test(self):
+        cache = j.servers.kvs.getRedisCacheLocal()
+        serializer = j.data.serializer.json
+        db = j.servers.kvs.getRedisStore(namespace="testdb", serializers=[serializer], cache=cache)
+        obj = [1, 2, 3, 4]
+        db.set("mykey", obj)
+        assert db.get("mykey") == obj
 
-        @param namespace: namespace of the store, defaults to an empty string
-        @type namespace: String
+        # TODO: do same with category and some other args
 
-        @param baseDir: base directory of the store, defaults to j.dirs.db
-        @type namespace: String
+    def getRedisCacheLocal(self):
+        """
+        example:
+        cache=j.servers.kvs.getRedisCacheLocal()
+        serializer=j.data.serializer.json
+        db=j.servers.kvs.getRedisStore(namespace="testdb",serializers=[serializer],cache=cache)
 
-        @param defaultJSModelSerializer: default JSModel serializer
-        @type defaultJSModelSerializer: Object
+        """
+        # for now just local to test
+        cache = self.getRedisStore(namespace='cache', host='localhost', port=6379, db=0,
+                                   password='', serializers=[])
+        return cache
 
-        @return: key value store
-        @rtype: FileSystemKeyValueStore
-        '''
-
-        if serializers == []:
-            serializers = [j.data.serializer.serializers.getMessagePack()]
-
-        key = '%s_%s' % ("fs", namespace)
-        if key not in self._cache:
-            if namespace == "":
-                namespace = "main"
-            self._cache[key] = FileSystemKeyValueStore(namespace, baseDir=baseDir, serializers=serializers)
-        return self._cache[key]
-
-    def getMemoryStore(self, namespace=None):
-        '''
-        Gets a memory key value store.
-
-        @return: key value store
-        @rtype: MemoryKeyValueStore
-        '''
-        from servers.key_value_store.memory_store import MemoryKeyValueStore
-        return MemoryKeyValueStore(namespace)
-
-    def getRedisStore(self, namespace='', host='localhost', port=6379, db=0, password='', serializers=None, masterdb=None, changelog=True):
+    # def getFSStore(self, name, namespace='', baseDir=None, serializers=[], cache=None, changelog=None, masterdb=None):
+    #     '''
+    #     Gets a file system key value store.
+    #
+    #     @param namespace: namespace of the store, defaults to an empty string
+    #     @type namespace: String
+    #
+    #     @param baseDir: base directory of the store, defaults to j.dirs.db
+    #     @type namespace: String
+    #
+    #     @param defaultJSModelSerializer: default JSModel serializer
+    #     @type defaultJSModelSerializer: Object
+    #
+    #     @return: key value store
+    #     @rtype: FileSystemKeyValueStore
+    #     '''
+    #
+    #     if serializers == []:
+    #         serializers = [j.data.serializer.serializers.getMessagePack()]
+    #
+    #     if name not in self._cache:
+    #         self._cache[name] = FileSystemKeyValueStore(
+    #             name, namespace=namespace, baseDir=baseDir, serializers=serializers, cache=cache, masterdb=masterdb, changelog=changelog)
+    #     return self._cache[name]
+    #
+    # def getMemoryStore(self, name, namespace=None, changelog=None):
+    #     '''
+    #     Gets a memory key value store.
+    #
+    #     @return: key value store
+    #     @rtype: MemoryKeyValueStore
+    #     '''
+    #     from servers.key_value_store.memory_store import MemoryKeyValueStore
+    #     return MemoryKeyValueStore(name=name, namespace=namespace, changelog=changelog)
+    #
+    def getRedisStore(self, name, namespace='', host='localhost', port=6379, db=0, password='',
+                      serializers=None, masterdb=None, cache=None, changelog=None):
         '''
         Gets a memory key value store.
 
@@ -82,45 +104,43 @@ class StoreFactory:
         @rtype: MemoryKeyValueStore
         '''
         from servers.key_value_store.redis_store import RedisKeyValueStore
-        key = '%s_%s_%s' % ("redis", port, namespace)
-        if key not in self._cache:
-            self._cache[key] = RedisKeyValueStore(namespace=namespace, host=host, port=port, db=db,
-                                                  password=password, serializers=serializers, masterdb=masterdb, changelog=changelog)
-        return self._cache[key]
+        if name not in self._cache:
+            self._cache[name] = RedisKeyValueStore(namespace=namespace, host=host, port=port, db=db,
+                                                   password=password, serializers=serializers, masterdb=masterdb, changelog=changelog, cache=cache)
+        return self._cache[name]
 
-    def getLevelDBStore(self, namespace='', basedir=None, serializers=[]):
-        '''
-        Gets a leveldb key value store.
+    # def getLevelDBStore(self, name, namespace='', basedir=None, serializers=[], cache=None, changelog=None, masterdb=None):
+    #     '''
+    #     Gets a leveldb key value store.
+    #
+    #     @param name: name of the store
+    #     @type name: String
+    #
+    #     @param namespace: namespace of the store, defaults to ''
+    #     @type namespace: String
+    #
+    #     @return: key value store
+    #     '''
+    #     from servers.key_value_store.leveldb_store import LevelDBKeyValueStore
+    #     if name not in self._cache:
+    #         self._cache[name] = LevelDBKeyValueStore(
+    #             name=name, namespace=namespace, basedir=basedir, serializers=serializers, cache=cache, masterdb=masterdb, changelog=changelog)
+    #     return self._cache[name]
 
-        @param name: name of the store
-        @type name: String
-
-        @param namespace: namespace of the store, defaults to ''
-        @type namespace: String
-
-        @return: key value store
-        '''
-        from servers.key_value_store.leveldb_store import LevelDBKeyValueStore
-        key = '%s_%s' % ("leveldb", namespace)
-        if key not in self._cache:
-            self._cache[key] = LevelDBKeyValueStore(namespace=namespace, basedir=basedir, serializers=serializers)
-        return self._cache[key]
-
-    def getTarantoolDBStore(self, namespace='', host='localhost', port=6379, db=0, password='', serializers=[]):
-        '''
-        Gets a leveldb key value store.
-
-        @param name: name of the store
-        @type name: String
-
-        @param namespace: namespace of the store, defaults to ''
-        @type namespace: String
-
-        @return: key value store
-        '''
-        from servers.key_value_store.tarantool_store import TarantoolStore
-        key = '%s_%s' % ("tarantooldb", namespace)
-        if key not in self._cache:
-            self._cache[key] = TarantoolStore(namespace=namespace, host='localhost',
-                                              port=6379, db=0, password='', serializers=serializers)
-        return self._cache[key]
+    # def getTarantoolDBStore(self, name, namespace='', host='localhost', port=6379, db=0, password='', serializers=[], cache=None, changelog=None, masterdb=None):
+    #     '''
+    #     Gets a leveldb key value store.
+    #
+    #     @param name: name of the store
+    #     @type name: String
+    #
+    #     @param namespace: namespace of the store, defaults to ''
+    #     @type namespace: String
+    #
+    #     @return: key value store
+    #     '''
+    #     from servers.key_value_store.tarantool_store import TarantoolStore
+    #     if name not in self._cache:
+    #         self._cache[name] = TarantoolStore(namespace=namespace, host='localhost',
+    #                                            port=6379, db=0, password='', serializers=serializers, cache=cache, masterdb=masterdb, changelog=changelog)
+    #     return self._cache[name]

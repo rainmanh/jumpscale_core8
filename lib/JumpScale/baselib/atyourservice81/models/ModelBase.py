@@ -3,12 +3,11 @@ from JumpScale import j
 
 class ModelBase():
 
-    def __init__(self, category, db=None, key=""):
+    def __init__(self, category, db, index, key=""):
         self.logger = j.atyourservice.logger
         self._category = category
-        if db is None:
-            db = j.atyourservice.db.getDB(category)
         self._db = db
+        self._index = index
         if key != "" and self._db.exists(key):
             # will get from db
             self.load(key=key)
@@ -27,9 +26,17 @@ class ModelBase():
         # return a unique key to be used in db (std the key but can be overriden)
         return self.dbobj.key
 
-    def index(self, db):
+    @classmethod
+    def list(**args):
+        raise NotImplemented
+
+    @classmethod
+    def find(**args):
+        raise NotImplemented
+
+    def index(self):
         # put indexes in db as specified
-        pass
+        raise NotImplemented
 
     def load(self, key=""):
         """
@@ -47,6 +54,7 @@ class ModelBase():
         key = self._get_key()
         buff = self.dbobj.to_bytes()
         self._db.set(key, buff)
+        self.index()
 
     def __repr__(self):
         ddict = self.dbobj.to_dict()

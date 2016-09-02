@@ -136,9 +136,8 @@ struct Service {
   capnpSchema @9 :Text;
 
   key @10 :Text;
-  role @11 :Text;
 
-  gitRepos @12 :List(GitRepo);
+  gitRepos @11 :List(GitRepo);
   struct GitRepo {
     #git url
     url @0 :Text;
@@ -213,7 +212,7 @@ struct Run {
         error @3;
     }
 
-    lastMoDdate @4: UInt32;
+    lastModDate @4: UInt32;
 
     #which step is running right now, can only move to net one if previous one was completed
     currentStep @5: UInt16;

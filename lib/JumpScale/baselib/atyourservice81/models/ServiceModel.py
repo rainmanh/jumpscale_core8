@@ -7,9 +7,51 @@ VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 class ServiceModel(ModelBase):
 
-    def __init__(self, category='', db=None, key=''):
+    def __init__(self, category, db, index, key=''):
         self._capnp = j.atyourservice.db.AYSModel.Service
-        super(ServiceModel, self).__init__(category=category, db=db, key=key)
+        ModelBase.__init__(self, category, db, index, key)
+
+    @classmethod
+    def list(self, name="", role="", actor="", parent="", producer="", returnIndex=False):
+        """
+        @parent is in form $actorName!$instance
+        @producer is in form $actorName!$instance
+
+        """
+        if name == "":
+            name = ".*"
+        if role == "":
+            role = ".*"
+        if actor == "":
+            actor = ".*"
+        if parent == "":
+            parent = ".*"
+        elif parent.find("!") == -1:
+            raise j.exceptions.Input(message="parent needs to be in format: $actorName!$instance",
+                                     level=1, source="", tags="", msgpub="")
+        if producer == "":
+            producer = ".*"
+        elif producer.find("!") == -1:
+            raise j.exceptions.Input(message="producer needs to be in format: $actorName!$instance",
+                                     level=1, source="", tags="", msgpub="")
+        regex = "%s:%s:%s:%s:%s" % (name, role, actor, parent, producer)
+        return j.atyourservice.db.actor._index.list(regex, returnIndex=returnIndex)
+
+    def index(self):
+        # put indexes in db as specified
+        from IPython import embed
+        print("DEBUG NOW index service")
+        embed()
+        raise RuntimeError("stop debug here")
+        ind = "%s:%s:%s:%s:%s" % (self.dbobj.name, self.dbobj.role, self.dbobj.state, parent, producer)
+        j.atyourservice.db.actor._index.index({ind: self.dbobj._get_key()})
+
+    @classmethod
+    def find(self, name="", role="", state=""):
+        res = []
+        for key in self.list(name, role, state):
+            res.append(j.atyourservice.db.actor.get(key))
+        return res
 
     def _post_init(self):
         self.dbobj.key = j.data.idgenerator.generateGUID()

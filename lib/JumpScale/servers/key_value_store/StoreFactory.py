@@ -52,7 +52,7 @@ class StoreFactory:
         """
         # for now just local to test
         cache = self.getRedisStore(
-            name='kvs',
+            name='kvs-cache',
             namespace='cache',
             host='localhost',
             port=6379,

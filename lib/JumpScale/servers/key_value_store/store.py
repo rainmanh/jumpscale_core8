@@ -1,17 +1,18 @@
+from JumpScale import j
 
 # import JSModel
 import time
 from abc import ABCMeta, abstractmethod
-from JumpScale import j
 import collections
 
+"""
 try:
     import snappy
 except:
     rc, out = j.sal.process.execute("pip3 install python-snappy", die=True,
                                     outputToStdout=False, ignoreErrorOutput=False)
     import snappy
-
+"""
 
 class KeyValueStoreBase:  # , metaclass=ABCMeta):
     '''KeyValueStoreBase defines a store interface.'''
@@ -24,6 +25,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         self.cache = cache
         self.changelog = changelog
         self.masterdb = masterdb
+        self.schemaId = ""
 
     def __new__(cls, *args, **kwargs):
         '''
@@ -57,14 +59,17 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         ttype = 0
 
         ls = len(schema)
-        if schema == None or schema = "":
+        if schema == None or schema == "":
             schema2 = b""
+
         elif ls == 32:
             schema2 = j.data.hash.hex2bin(schema)
             ttype += 0b1000000
+
         elif ls == 16:
             schema2 = schema
             ttype += 0b1000000
+
         else:
             raise j.exceptions.Input(message="schema needs to be md5 in string or bin format",
                                      level=1, source="", tags="", msgpub="")
@@ -72,6 +77,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         if expire != 0:
             expire = j.data.time.getTimeEpoch() + expire
             ttype += 0b0100000
+
         else:
             expire = "b"
 
@@ -114,16 +120,20 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         raise NotImplemented("")
 
     def set(self, key, value, category="", expire=0, secret="", acl={}, owner=None):
-
         value0 = self.get(key, secret=secret, category=category, decode=False)
+
         # verify will make sure that crc is checked
-        owner, schema, expire, acl, value1 = self._decode(value0, verify=True)
+        # owner, schema, expire, acl, value1 = self._decode(value0, verify=True)
+        oacl = {}
+        schema = ""
+        acl[secret] = "w"
 
         msg = "user with secret %s has no write permission on object:%s" % (secret, key)
         if secret in acl:
             if "w" not in acl[secret]:
                 raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
-        elif owner != secret"
+
+        elif owner != "secret":
             raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
 
         # now we know that secret has right to modify the object
@@ -133,11 +143,11 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
                 message="schema of this db instance should be same as what is found in db", level=1, source="", tags="", msgpub="")
 
         # update acl with new one
-        acl1 = acl.update(acl)
+        acl.update(oacl)
 
         value = self.serialize(value)
 
-        value1 = self._encode(value, owner=owner, expire=expire, acl=acl1, schema=self.schemaId)
+        value1 = self._encode(value, owner=owner, expire=expire, acl=acl, schema=self.schemaId)
 
         if self.cache != None:
             self.cache._set(key=key, category=category, value=value1)
@@ -159,6 +169,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
             res = self.cache._get(key=key, category=category)  # get raw data
             if res != None:
                 return self.unserialize(self._decode(res))
+
         value1 = self._get(key=key, category=category)
         if value1 == None:
             return None
@@ -185,7 +196,8 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         if secret in acl:
             if "d" not in acl[secret]:
                 raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
-        elif owner != secret"
+
+        elif owner != "secret":
             raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
 
         self._delete(key=key, category=category)

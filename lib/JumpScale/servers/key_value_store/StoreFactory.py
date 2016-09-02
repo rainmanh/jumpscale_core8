@@ -1,6 +1,6 @@
 from JumpScale import j
 
-from servers.key_value_store.fs_store import FileSystemKeyValueStore
+from servers.key_value_store.store import KeyValueStoreBase
 
 
 class StoreFactory:
@@ -34,7 +34,8 @@ class StoreFactory:
     def test(self):
         cache = j.servers.kvs.getRedisCacheLocal()
         serializer = j.data.serializer.json
-        db = j.servers.kvs.getRedisStore(namespace="testdb", serializers=[serializer], cache=cache)
+        db = j.servers.kvs.getRedisStore(name="kvs", namespace="testdb", serializers=[serializer], cache=cache)
+
         obj = [1, 2, 3, 4]
         db.set("mykey", obj)
         assert db.get("mykey") == obj
@@ -50,8 +51,16 @@ class StoreFactory:
 
         """
         # for now just local to test
-        cache = self.getRedisStore(namespace='cache', host='localhost', port=6379, db=0,
-                                   password='', serializers=[])
+        cache = self.getRedisStore(
+            name='kvs',
+            namespace='cache',
+            host='localhost',
+            port=6379,
+            db=0,
+            password='',
+            serializers=[]
+        )
+
         return cache
 
     # def getFSStore(self, name, namespace='', baseDir=None, serializers=[], cache=None, changelog=None, masterdb=None):
@@ -105,8 +114,19 @@ class StoreFactory:
         '''
         from servers.key_value_store.redis_store import RedisKeyValueStore
         if name not in self._cache:
-            self._cache[name] = RedisKeyValueStore(namespace=namespace, host=host, port=port, db=db,
-                                                   password=password, serializers=serializers, masterdb=masterdb, changelog=changelog, cache=cache)
+            self._cache[name] = RedisKeyValueStore(
+                name=name,
+                namespace=namespace,
+                host=host,
+                port=port,
+                db=db,
+                password=password,
+                serializers=serializers,
+                masterdb=masterdb,
+                changelog=changelog,
+                cache=cache
+            )
+
         return self._cache[name]
 
     # def getLevelDBStore(self, name, namespace='', basedir=None, serializers=[], cache=None, changelog=None, masterdb=None):

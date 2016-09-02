@@ -20,6 +20,14 @@ class RedisKeyValueStore(KeyValueStoreBase):
         KeyValueStoreBase.__init__(self, name=name, serializers=serializers,
                                    masterdb=masterdb, cache=cache, changelog=changelog)
 
+    def _getCategoryKey(self, category, key):
+        if category != "":
+            return '%s:%s:%s' % (self.namespace, category, key)
+        # elif self.namespace != "":
+        #    return '%s:%s' % (self.namespace, key)
+        else:
+                return key
+
     def _get(self, key, category=""):
         categoryKey = self._getCategoryKey(category, key)
         return self.redisclient.get(categoryKey)

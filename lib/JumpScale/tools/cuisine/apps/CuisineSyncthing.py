@@ -23,12 +23,11 @@ class CuisineSyncthing(app):
         # build
         url = "https://github.com/syncthing/syncthing.git"
         self._cuisine.core.dir_remove('$goDir/src/github.com/syncthing/syncthing')
-        self._cuisine.development.golang.get("github.com/golang/lint/golint")
         dest = self._cuisine.development.git.pullRepo(url,
                                                       dest='$goDir/src/github.com/syncthing/syncthing',
                                                       ssh=False,
                                                       depth=1)
-        self._cuisine.core.run("cd %s && go run build.go" % dest, profile=True)
+        self._cuisine.core.run("cd %s && go run build.go -version v0.14.5 -no-upgrade" % dest, profile=True)
 
         if install:
             self.install(start)

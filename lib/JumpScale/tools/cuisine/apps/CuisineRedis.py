@@ -11,7 +11,8 @@ class CuisineRedis(app):
         raise NotImplementedError()
 
     def install(self, reset=False):
-        if reset == False and self.isInstalled():
+        """Building and installing redis"""
+        if reset is False and self.isInstalled():
             print('Redis is already installed, pass reset=True to reinstall.')
             return
         if self._cuisine.core.isUbuntu:
@@ -56,11 +57,24 @@ class CuisineRedis(app):
                 message="only ubuntu supported for building redis", level=1, source="", tags="", msgpub="")
 
     def start(self, name="main", ip="localhost", port=6379, maxram=200, appendonly=True,
-              snapshot=False, slave=(), ismaster=False, passwd=None, unixsocket=True, start=True):
+              snapshot=False, slave=(), ismaster=False, passwd=None):
         redis_cli = j.clients.redis.getInstance(self._cuisine)
-        redis_cli.configureInstance(name, ip, port, maxram=maxram, appendonly=appendonly,
-                                    snapshot=snapshot, slave=slave, ismaster=ismaster, passwd=passwd, unixsocket=False)
-        dpath, cpath = j.clients.redis._getPaths(name)
+        redis_cli.configureInstance(name,
+                                    ip,
+                                    port,
+                                    maxram=maxram,
+                                    appendonly=appendonly,
+                                    snapshot=snapshot,
+                                    slave=slave,
+                                    ismaster=ismaster,
+                                    passwd=passwd,
+                                    unixsocket=False)
+        # return if redis is already running
+        if redis_cli.isRunning(ip_address=ip, port=port, path='$binDir'):
+            print('Redis is already running!')
+            return
+
+        _, cpath = j.clients.redis._getPaths(name)
         cmd = "$binDir/redis-server %s" % cpath
         self._cuisine.processmanager.ensure(name="redis_%s" % name, cmd=cmd, env={}, path='$binDir')
 

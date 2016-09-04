@@ -18,10 +18,9 @@ class CuisineG8OSCore(app):
         """
         # deps
         self._cuisine.development.js8.installDeps()
-        self._cuisine.apps.redis.install()
+        self._cuisine.apps.redis.install(reset=True)
         self._cuisine.apps.redis.start()
         self._cuisine.apps.mongodb.build(start=False)
-        # self._cuisine.installer.jumpscale8()
 
         self._cuisine.apps.syncthing.build(start=False)
 

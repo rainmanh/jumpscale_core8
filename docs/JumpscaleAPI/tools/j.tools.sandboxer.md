@@ -3,9 +3,9 @@
 
 - /opt/jumpscale8/lib/JumpScale/tools/sandboxer/Sandboxer.py
 - Properties
-    - original_size
-    - exclude
     - new_size
+    - exclude
+    - original_size
 
 ### Methods
 
@@ -25,5 +25,5 @@ default dest = '%s/bin/'%j.dirs.base
 
 ```
 
-#### sandbox_python3(**) 
+#### sandbox_python3() 
 

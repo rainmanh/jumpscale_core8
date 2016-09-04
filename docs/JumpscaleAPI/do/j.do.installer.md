@@ -5,9 +5,9 @@
 
 ### Methods
 
-#### cleanSystem(**) 
+#### cleanSystem() 
 
-#### develtools(**) 
+#### develtools() 
 
 #### gitConfig(*name, email*) 
 
@@ -30,15 +30,15 @@ IMPORTANT: if env var's are set they get priority
 
 #### installJSDocs(*ssh=True*) 
 
-#### installpip(**) 
+#### installpip() 
 
 #### prepare(*SANDBOX, base=''*) 
 
-#### replacesitecustomize(**) 
+#### replacesitecustomize() 
 
-#### updateOS(**) 
+#### updateOS() 
 
-#### updateUpgradeUbuntu(**) 
+#### updateUpgradeUbuntu() 
 
 #### writeenv(*basedir='', insystem, CODEDIR='', vardir='', die=True, SANDBOX*) 
 

@@ -3,16 +3,16 @@
 
 - /opt/jumpscale8/lib/JumpScale/data/serializers/SerializersFactory.py
 - Properties
-    - yaml
-    - hrd
-    - types
     - toml
-    - int
-    - blowfish
-    - time
-    - base64
     - dict
+    - base64
+    - blowfish
+    - int
     - json
+    - hrd
+    - time
+    - types
+    - yaml
 
 ### Methods
 
@@ -40,9 +40,9 @@ this method returns
 
 ```
 
-#### getBlosc(**) 
+#### getBlosc() 
 
-#### getMessagePack(**) 
+#### getMessagePack() 
 
 #### getSerializerType(*type, key=''*) 
 

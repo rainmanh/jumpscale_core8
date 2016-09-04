@@ -24,7 +24,7 @@ Ensure apt packages are installed
 
 #### install(*package, allow_unauthenticated*) 
 
-#### mdupdate(**) 
+#### mdupdate() 
 
 ```
 update metadata of system

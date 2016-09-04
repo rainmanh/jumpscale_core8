@@ -11,7 +11,7 @@
 
 #### install(*start=True*) 
 
-#### isInstalled(**) 
+#### isInstalled() 
 
 ```
 Checks if a package is installed or not
@@ -19,5 +19,5 @@ You can ovveride it to use another way for checking
 
 ```
 
-#### start(**) 
+#### start() 
 

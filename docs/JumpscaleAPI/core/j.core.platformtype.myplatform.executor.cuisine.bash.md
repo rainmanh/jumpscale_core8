@@ -30,7 +30,7 @@ Set environ
 
 ```
 
-#### fixlocale(**) 
+#### fixlocale() 
 
 #### get(*cuisine, executor*) 
 
@@ -45,9 +45,9 @@ will look for $ENVIRONNAME 's and replace them in text
 
 ```
 
-#### reset(**) 
+#### reset() 
 
-#### setOurProfile(**) 
+#### setOurProfile() 
 
-#### write(**) 
+#### write() 
 

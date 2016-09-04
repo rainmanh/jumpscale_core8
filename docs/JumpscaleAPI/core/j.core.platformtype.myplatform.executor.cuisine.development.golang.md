@@ -5,7 +5,7 @@
 
 ### Methods
 
-#### clean_src_path(**) 
+#### clean_src_path() 
 
 #### get(*url*) 
 
@@ -21,11 +21,11 @@ e.g. url=github.com/tools/godep
 
 ```
 
-#### goraml(**) 
+#### goraml() 
 
 #### install(*reset*) 
 
-#### isInstalled(**) 
+#### isInstalled() 
 
 ```
 Checks if a package is installed or not

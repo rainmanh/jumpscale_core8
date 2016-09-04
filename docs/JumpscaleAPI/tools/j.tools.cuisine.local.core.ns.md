@@ -5,11 +5,11 @@
 
 ### Methods
 
-#### hostfile_get(**) 
+#### hostfile_get() 
 
 #### hostfile_set(*name, ipaddr*) 
 
-#### hostfile_set_fromlocal(**) 
+#### hostfile_set_fromlocal() 
 
 ```
 read local hostnames & transfer them to current cuisine

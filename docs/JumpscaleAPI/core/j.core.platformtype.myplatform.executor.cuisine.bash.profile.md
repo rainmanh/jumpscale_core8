@@ -9,7 +9,7 @@
 
 #### addPath(*path*) 
 
-#### dump(**) 
+#### dump() 
 
 #### remove(*key*) 
 

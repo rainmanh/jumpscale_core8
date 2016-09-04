@@ -3,14 +3,14 @@
 
 - /opt/jumpscale8/lib/JumpScale/data/hrd/HRDTree.py
 - Properties
-    - commentblock
+    - changed
     - name
+    - commentblock
+    - hrds
+    - prefixWithName
     - path
     - keepformat
-    - prefixWithName
-    - hrds
     - items
-    - changed
 
 ### Methods
 
@@ -66,7 +66,7 @@ returns values from prefix return as list
 
 #### getFloat(*key*) 
 
-#### getHRDAsDict(**) 
+#### getHRDAsDict() 
 
 #### getHrd(*key*) 
 
@@ -107,7 +107,7 @@ each value represents a dict
 
 #### prefixexists(*key*) 
 
-#### processall(**) 
+#### processall() 
 
 #### set(*key, val, persistent=True*) 
 

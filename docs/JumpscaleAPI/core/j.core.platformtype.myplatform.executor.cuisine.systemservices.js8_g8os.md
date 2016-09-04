@@ -7,7 +7,7 @@
 
 ### Methods
 
-#### base(**) 
+#### base() 
 
 #### jumpscale8(*rw, reset*) 
 

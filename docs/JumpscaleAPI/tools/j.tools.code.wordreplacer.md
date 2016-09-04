@@ -24,7 +24,7 @@ TODO: 2  (id:19)
 
 ```
 
-#### reset(**) 
+#### reset() 
 
 #### synonymAdd(*name='', simpleSearch='', regexFind='', regexFindForReplace='', replaceWith='', replaceExclude='', addConfluenceLinkTags*) 
 
@@ -63,5 +63,5 @@ application?server:ApplicationServer
 
 ```
 
-#### synonymsPrint(**) 
+#### synonymsPrint() 
 

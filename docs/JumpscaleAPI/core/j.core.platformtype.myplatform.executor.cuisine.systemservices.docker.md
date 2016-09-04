@@ -24,7 +24,7 @@ will return dockerCuisineObj: is again a cuisine obj on which all kinds of actio
 
 #### install(*reset*) 
 
-#### isInstalled(**) 
+#### isInstalled() 
 
 ```
 Checks if a package is installed or not

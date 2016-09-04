@@ -19,9 +19,9 @@ Build and start etcd
 
 ```
 
-#### install(**) 
+#### install() 
 
-#### isInstalled(**) 
+#### isInstalled() 
 
 ```
 Checks if a package is installed or not

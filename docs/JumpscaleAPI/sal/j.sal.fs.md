@@ -220,7 +220,7 @@ Generates a temp file for the directory specified
 
 ```
 
-#### getTmpDirPath(**) 
+#### getTmpDirPath() 
 
 ```
 create a tmp dir name and makes sure the dir exists
@@ -236,7 +236,7 @@ Located in temp dir of qbase
 
 ```
 
-#### getcwd(**) 
+#### getcwd() 
 
 ```
 get current working directory

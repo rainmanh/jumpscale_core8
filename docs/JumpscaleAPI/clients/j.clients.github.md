@@ -7,5 +7,5 @@
 
 #### getClient(*secret*) 
 
-#### getIssueClass(**) 
+#### getIssueClass() 
 

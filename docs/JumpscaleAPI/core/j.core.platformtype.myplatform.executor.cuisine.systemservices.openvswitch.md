@@ -14,9 +14,9 @@ c=j.tools.cuisine.get("ovh4")
 c.systemservices.openvswitch.install()
 ```
 
-#### install(**) 
+#### install() 
 
-#### prepare(**) 
+#### prepare() 
 
 #### vnicCreate(*name*) 
 

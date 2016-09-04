@@ -21,7 +21,7 @@ download, install, move files to appropriate places, and create relavent configs
 
 ```
 
-#### isInstalled(**) 
+#### isInstalled() 
 
 ```
 Checks if a package is installed or not

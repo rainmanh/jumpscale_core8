@@ -17,9 +17,9 @@
 
 #### appNrInstancesActive(*appname*) 
 
-#### appsGet(**) 
+#### appsGet() 
 
-#### appsGetNames(**) 
+#### appsGetNames() 
 
 #### checkProcessForPid(*pid, process*) 
 
@@ -141,11 +141,11 @@ if exitcode is not zero then the executed command returned with errors
 
 ```
 
-#### getDefunctProcesses(**) 
+#### getDefunctProcesses() 
 
 #### getEnviron(*pid*) 
 
-#### getMyProcessObject(**) 
+#### getMyProcessObject() 
 
 #### getPidsByFilter(*filterstr*) 
 
@@ -174,7 +174,7 @@ Returns the full name of the process that is listening on the given port
 
 #### getProcessPidsFromUser(*user*) 
 
-#### getSimularProcesses(**) 
+#### getSimularProcesses() 
 
 #### isPidAlive(*pid*) 
 

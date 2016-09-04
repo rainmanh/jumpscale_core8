@@ -7,43 +7,43 @@
 
 #### generateJumpscaleAutocompletion(*dest='/usr/local/lib/python3.5/dist-packages/jscompl.py'*) 
 
-#### installAll(**) 
+#### installAll() 
 
-#### installConfig(**) 
+#### installConfig() 
 
 #### installPackage(*name, upgrade*) 
 
-#### installPackagesAll(**) 
+#### installPackagesAll() 
 
-#### installPackagesMarkdown(**) 
+#### installPackagesMarkdown() 
 
 ```
 Installs packages for markdown
 
 ```
 
-#### installPackagesPython(**) 
+#### installPackagesPython() 
 
 ```
 Installs main python packages.
 
 ```
 
-#### installPackagesRaml(**) 
+#### installPackagesRaml() 
 
 ```
 Installs RAML api-workbench package.
 
 ```
 
-#### installPythonExtensions(**) 
+#### installPythonExtensions() 
 
 ```
 pip installs flake8, autopep8.
 
 ```
 
-#### installSnippets(**) 
+#### installSnippets() 
 
 ```
 Adds Jumpscale snippets to your atom snippets file.

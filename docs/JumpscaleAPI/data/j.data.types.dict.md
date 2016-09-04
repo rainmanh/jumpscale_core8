@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/data/types/CollectionTypes.py
 - Properties
-    - BASETYPE
     - NAME
+    - BASETYPE
 
 ### Methods
 
@@ -24,7 +24,7 @@ return string from a dict
 
 ```
 
-#### get_default(**) 
+#### get_default() 
 
 #### toString(*v*) 
 

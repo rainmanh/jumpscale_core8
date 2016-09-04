@@ -14,9 +14,9 @@ builds a full xrdp, this can take a while
 
 ```
 
-#### install(**) 
+#### install() 
 
-#### isInstalled(**) 
+#### isInstalled() 
 
 ```
 Checks if a package is installed or not

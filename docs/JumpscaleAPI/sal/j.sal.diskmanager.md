@@ -12,7 +12,7 @@ Get a filtered list of free regions, excluding the gaps due to partition alignme
 
 ```
 
-#### mirrorsFind(**) 
+#### mirrorsFind() 
 
 #### partitionAdd(*disk, free, align, length, fs_type, type*) 
 
@@ -25,7 +25,7 @@ return [[$partpath,$size,$free,$ssd]]
 
 ```
 
-#### partitionsFind_Ext4Data(**) 
+#### partitionsFind_Ext4Data() 
 
 ```
 looks for disks which are know to be data disks & are formatted ext4
@@ -33,7 +33,7 @@ return [[$partpath,$gid,$partid,$size,$free]]
 
 ```
 
-#### partitionsGetMounted_Ext4Data(**) 
+#### partitionsGetMounted_Ext4Data() 
 
 ```
 find disks which are mounted
@@ -41,7 +41,7 @@ find disks which are mounted
 
 ```
 
-#### partitionsMount_Ext4Data(**) 
+#### partitionsMount_Ext4Data() 
 
-#### partitionsUnmount_Ext4Data(**) 
+#### partitionsUnmount_Ext4Data() 
 

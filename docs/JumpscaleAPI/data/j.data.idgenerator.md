@@ -8,14 +8,14 @@
 generic provider of id's
 lives at j.data.idgenerator
 
-#### generateCapnpID(**) 
+#### generateCapnpID() 
 
 ```
 Generates a valid id for a capnp schema.
 
 ```
 
-#### generateGUID(**) 
+#### generateGUID() 
 
 ```
 generate unique guid

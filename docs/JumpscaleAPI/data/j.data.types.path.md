@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/data/types/CustomTypes.py
 - Properties
-    - BASETYPE
     - NAME
+    - BASETYPE
 
 ### Methods
 
@@ -31,7 +31,7 @@ return string from a string (is basically no more than a check)
 
 ```
 
-#### get_default(**) 
+#### get_default() 
 
 #### toString(*v*) 
 

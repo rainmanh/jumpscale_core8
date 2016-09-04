@@ -16,9 +16,9 @@ as alternative on ufw
 
 #### flush(*permanent*) 
 
-#### getRuleset(**) 
+#### getRuleset() 
 
 #### setRuleset(*ruleset, pinghost='8.8.8.8'*) 
 
-#### show(**) 
+#### show() 
 

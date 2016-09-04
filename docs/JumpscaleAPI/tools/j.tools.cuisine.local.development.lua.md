@@ -5,13 +5,13 @@
 
 ### Methods
 
-#### install(**) 
+#### install() 
 
-#### installLua51(**) 
+#### installLua51() 
 
 #### installLuaTarantool(*reset*) 
 
-#### isInstalled(**) 
+#### isInstalled() 
 
 ```
 Checks if a package is installed or not

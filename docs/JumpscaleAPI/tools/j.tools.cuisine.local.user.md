@@ -33,7 +33,7 @@ passwd/home/uid/gid/shell.
 
 ```
 
-#### list(**) 
+#### list() 
 
 #### passwd(*name, passwd, encrypted_passwd*) 
 

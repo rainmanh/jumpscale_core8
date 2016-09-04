@@ -8,7 +8,7 @@
 
 ### Methods
 
-#### close(**) 
+#### close() 
 
 #### get(*addr='', port=22, login='root', passwd, stdout=True, forward_agent=True, allow_agent=True, look_for_keys=True, timeout=5, key_filename, passphrase, die=True, usecache=True*) 
 
@@ -39,5 +39,5 @@ If key_filename is passed, it will override look_for_keys and allow_agent and tr
 
 #### removeFromCache(*client*) 
 
-#### reset(**) 
+#### reset() 
 

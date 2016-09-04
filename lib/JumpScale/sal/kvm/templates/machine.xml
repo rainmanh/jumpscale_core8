@@ -18,7 +18,12 @@
     <devices>
         <emulator>/usr/bin/qemu-system-x86_64</emulator>
         {% for disk in disks %}
-            {{disk.to_xml()}}
+          <disk type='volume' device='disk'>
+            <driver name='qemu' type='qcow2'/>
+            <source pool='{{disk.pool.name}}' volume='{{disk.name}}'/>
+            <target dev='hdk' bus='virtio'/>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
+          </disk>
         {% endfor %}
         {% for nic in nics %}
             {{nic.to_xml()}}

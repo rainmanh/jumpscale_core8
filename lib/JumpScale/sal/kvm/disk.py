@@ -27,7 +27,7 @@ class Disk():
 
     def to_xml(self):
         disktemplate = self.controller.env.get_template('disk.xml')
-        diskbasevolume = j.sal.fs.joinPaths(self.controller.template_path, '%s' % self.image_name)
+        diskbasevolume = j.sal.fs.joinPaths(self.controller.base_path, 'images', '%s.qcow2' % self.image_name)
         diskpath = j.sal.fs.joinPaths(self.pool.poolpath, '%s.qcow2' % self.name)
         diskxml = disktemplate.render({'diskname':self.name, 'diskpath': diskpath, 'disksize':self.size, 'diskbasevolume':diskbasevolume})
         return diskxml

@@ -44,7 +44,7 @@ class Machine:
             else:
                 self._domain = self.controller.connection.lookupByName(self.name)
         return self._domain
-    
+
     @domain.setter
     def domain(self, val):
         self._domain = val
@@ -93,10 +93,9 @@ class KVMController:
         atexit.register(self.close)
         if executor is None:
             self.executor = j.tools.executor.getLocal()
-        self.env = Environment(loader=FileSystemLoader(
-            j.sal.fs.joinPaths(j.sal.fs.getParent(__file__), 'templates')))
         self.template_path = j.sal.fs.joinPaths(j.sal.fs.getParent(__file__), 'templates')
-        self.base_path = j.sal.fs.joinPaths(j.sal.fs.getParent(__file__), 'base')
+        self.base_path = "/tmp/base"
+        self.env = Environment(loader=FileSystemLoader(self.template_path))
         # self.env = Environment(loader=FileSystemLoader('/'.join(file.split('/')[:-1]) + '/templates'))
 
     def open(self):
@@ -126,4 +125,3 @@ class MIE_kvm:
         self.Disk = Disk
         self.Pool = Pool
         self.StorageController = StorageController
-

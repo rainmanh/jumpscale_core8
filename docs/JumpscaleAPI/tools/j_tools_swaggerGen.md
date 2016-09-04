@@ -5,8 +5,8 @@
 - Properties
     - jinjaEnv
     - spec
-    - client
     - server
+    - client
 
 ### Methods
 

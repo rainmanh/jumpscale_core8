@@ -4,9 +4,9 @@
 - /opt/jumpscale8/lib/JumpScale/core/logging/LoggerFactory.py
 - Properties
     - handlers
-    - root_logger_name
     - PRODUCTION
     - DEV
+    - root_logger_name
 
 ### Methods
 

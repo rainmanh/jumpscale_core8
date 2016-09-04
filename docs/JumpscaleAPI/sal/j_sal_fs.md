@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/sal/fs/SystemFS.py
 - Properties
-    - logger
     - walker
+    - logger
 
 ### Methods
 

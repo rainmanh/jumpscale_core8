@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/servers/geventws/GeventWSFactory.py
 - Properties
-    - cache
     - cachecat
+    - cache
 
 ### Methods
 

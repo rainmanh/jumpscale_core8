@@ -4,8 +4,8 @@
 - /opt/jumpscale8/lib/JumpScale/data/cache/Cache.py
 - Properties
     - keepInMem
-    - runid
     - cat
+    - runid
 
 ### Methods
 

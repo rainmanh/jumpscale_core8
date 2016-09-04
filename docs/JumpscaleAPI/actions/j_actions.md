@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/tools/actions/ActionController.py
 - Properties
-    - rememberDone
     - last
+    - rememberDone
     - lastOnes
     - logger
 

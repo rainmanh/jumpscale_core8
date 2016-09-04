@@ -3,11 +3,11 @@
 
 - /opt/jumpscale8/lib/JumpScale/data/models/BaseModelFactory.py
 - Properties
-    - Email
-    - Generic
+    - Alarm
     - EmbeddedDocument
     - Telegram
-    - Alarm
+    - Generic
+    - Email
 
 ### Methods
 

@@ -3,12 +3,12 @@
 
 - /opt/jumpscale8/lib/JumpScale/core/errorhandling/ErrorConditionHandler.py
 - Properties
-    - lastEco
-    - lastAction
-    - escalateToRedis
     - exceptions
+    - lastAction
     - haltOnError
+    - escalateToRedis
     - inException
+    - lastEco
 
 ### Methods
 

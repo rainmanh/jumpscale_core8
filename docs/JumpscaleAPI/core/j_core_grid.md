@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/core/grid/GridFactory.py
 - Properties
-    - brokerClient
     - config
+    - brokerClient
     - id
     - nid
     - roles

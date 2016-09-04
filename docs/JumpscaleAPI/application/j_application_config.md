@@ -3,14 +3,14 @@
 
 - /opt/jumpscale8/lib/JumpScale/data/hrd/HRDTree.py
 - Properties
-    - keepformat
     - commentblock
-    - prefixWithName
-    - name
     - items
-    - path
+    - name
     - hrds
     - changed
+    - prefixWithName
+    - keepformat
+    - path
 
 ### Methods
 

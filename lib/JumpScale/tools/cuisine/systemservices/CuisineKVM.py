@@ -74,6 +74,8 @@ class CuisineKVM(base):
         self._executor = executor
         self._cuisine = cuisine
         self._path = None
+        self._controller = j.sal.our_kvm.KVMController(
+            host=self._cuisine.id, executor=self._cuisine._executor)
 
     def prepare(self):
         self.install()
@@ -108,7 +110,7 @@ class CuisineKVM(base):
     def _libvirt(self):
         """
         """
-        # TODO: *1 need to check and exit if required are met 
+        # TODO: *1 need to check and exit if required are met
         self._cuisine.package.install('libvirt-dev')
         self._cuisine.development.pip.install("libvirt-python==1.3.2", upgrade=False)
 
@@ -172,3 +174,15 @@ class CuisineKVM(base):
         set vdisk QOS settings at runtime
         """
         raise NotImplemented()
+
+    def vpoolCreate(self, name):
+        pool = j.sal.our_kvm.StorageController(self._controller).get_or_create_pool(name)
+        return pool
+
+    def vpoolDestroy(self, name):
+        j.sal.our_kvm.StorageController(self._controller).delete(name)
+        return True
+
+    def vmachinesList(self):
+        machines = j.sal.our_kvm.controller.list_machines()
+        return machines

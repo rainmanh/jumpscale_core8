@@ -27,9 +27,9 @@ class Machine:
     @classmethod
     def from_xml(cls, controller, source):
         machine =  ElementTree.fromstring(source)
-        name = interface.findtext('name')
-        memory = int(interface.findtext('memory'))
-        nrcpu = int(interface.findtext('vcpu'))
+        name = machine.findtext('name')
+        memory = int(machine.findtext('memory'))
+        nrcpu = int(machine.findtext('vcpu'))
         interfaces = map(lambda interface:Interface.from_xml(controller, ElementTree.tostring(interface)),
             machine.findall('interface'))
         disks = map(lambda disk:Disk.from_xml(controller, ElementTree.tostring(disk)),
@@ -114,6 +114,15 @@ class KVMController:
                     pass
         close(self.connection)
         close(self.readonly)
+
+    def list_machines(self):
+        machines = list()
+        domains = self.connection.listAllDomains()
+        for domain in domains:
+            machine = Machine.from_xml(self. domain.XMLDesc())
+            machine.append(machine)
+        return machines
+
 
 class MIE_kvm:
     def __init__(self):

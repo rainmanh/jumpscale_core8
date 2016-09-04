@@ -3,11 +3,11 @@
 
 - /opt/jumpscale8/lib/JumpScale/tools/cuisine/apps/CuisineAlba.py
 - Properties
+    - alba_version
     - opam_root
     - arakoon_version
-    - alba_version
-    - ocaml_version
     - logger
+    - ocaml_version
 
 ### Methods
 

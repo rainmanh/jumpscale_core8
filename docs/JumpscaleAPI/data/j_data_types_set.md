@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/data/types/CollectionTypes.py
 - Properties
-    - BASETYPE
     - NAME
+    - BASETYPE
 
 ### Methods
 

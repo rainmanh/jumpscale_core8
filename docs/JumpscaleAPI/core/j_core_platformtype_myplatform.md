@@ -3,9 +3,9 @@
 
 - /opt/jumpscale8/lib/JumpScale/core/main/PlatformTypes.py
 - Properties
-    - myplatform
     - executor
     - cache
+    - myplatform
 
 ### Methods
 

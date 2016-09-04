@@ -3,17 +3,17 @@
 
 - /opt/jumpscale8/lib/JumpScale/tools/executor/ExecutorLocal.py
 - Properties
-    - platformtype
-    - debug
-    - jumpscale
-    - logger
     - id
-    - type
-    - curpath
-    - checkok
-    - env
     - addr
+    - env
+    - curpath
+    - type
     - dest_prefixes
+    - logger
+    - platformtype
+    - jumpscale
+    - checkok
+    - debug
 
 ### Methods
 

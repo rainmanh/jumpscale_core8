@@ -5,8 +5,8 @@
 - Properties
     - generated
     - classes
-    - codepath
     - appdir
+    - codepath
 
 ### Methods
 

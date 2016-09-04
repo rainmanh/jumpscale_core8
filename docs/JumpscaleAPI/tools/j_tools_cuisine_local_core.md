@@ -245,7 +245,7 @@ Returns the SHA - 256 sum (as a hex string) for the remote file at the given loc
 
 #### file_unlink(*path*) 
 
-#### file_update(*location, updater=<function CuisineCore.<lambda> at 0x7f02680e7268>*) 
+#### file_update(*location, updater=<function CuisineCore.<lambda> at 0x7fc8f9e2b2f0>*) 
 
 ```
 Updates the content of the given by passing the existing

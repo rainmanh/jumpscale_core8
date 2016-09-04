@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/clients/gitlab/GitlabFactory.py
 - Properties
-    - logger
     - connections
+    - logger
 
 ### Methods
 

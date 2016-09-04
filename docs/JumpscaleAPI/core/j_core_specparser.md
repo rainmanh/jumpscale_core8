@@ -3,12 +3,12 @@
 
 - /opt/jumpscale8/lib/JumpScale/core/specparser/SpecParser.py
 - Properties
-    - childspecs
-    - roles
     - actornames
     - appnames
     - app_actornames
     - modelnames
+    - childspecs
+    - roles
     - specs
 
 ### Methods

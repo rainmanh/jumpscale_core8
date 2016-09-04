@@ -3,9 +3,9 @@
 
 - /opt/jumpscale8/lib/JumpScale/tools/cuisine/tools/CuisineStor.py
 - Properties
-    - storagespaces
     - scripts
     - root
+    - storagespaces
 
 ### Methods
 

@@ -5,7 +5,7 @@ import os
 
 class Disk():
 
-    def __init__(self, controller, pool, vm_id, role, size, image_name=""):
+    def __init__(self, controller, pool, vm_id, role, size, image_name):
         self.vm_id = vm_id
         self.role = role
         self.size = size
@@ -27,8 +27,8 @@ class Disk():
 
     def to_xml(self):
         disktemplate = self.controller.env.get_template('disk.xml')
-        diskbasevolume = j.sal.fs.joinPaths(self.controller.base_path, 'images', '%s.qcow2' % self.image_name)
-        diskpath = j.sal.fs.joinPaths(self.pool.poolpath, '%s.qcow2' % self.name)
+        diskbasevolume = self.controller.executor.cuisine.core.joinpaths(self.controller.base_path, "images", '%s.qcow2' % self.image_name)
+        diskpath = self.controller.executor.cuisine.core.joinpaths(self.pool.poolpath, '%s.qcow2' % self.name)
         diskxml = disktemplate.render({'diskname':self.name, 'diskpath': diskpath, 'disksize':self.size, 'diskbasevolume':diskbasevolume})
         return diskxml
 
@@ -68,10 +68,9 @@ class Pool:
 
 
     def create(self):
-        os.makedirs(self.poolpath)
+        self.controller.executor.cuisine.core.dir_ensure (self.poolpath)
         cmd = 'chattr +C %s ' % self.poolpath
-        j.sal.process.execute(
-            cmd, die=False, outputToStdout=False, useShell=False, ignoreErrorOutput=False)
+        self.controller.executor.execute(cmd)
         self.controller.connection.storagePoolCreateXML(self.to_xml(), 0)
 
     def to_xml(self):
@@ -84,7 +83,7 @@ class Pool:
         if not self._lvpool:
             self._lvpool = self.controller.connection.storagePoolLookupByName(self.name)
         return self._lvpool
-    
+
 
 
 class StorageController:
@@ -108,11 +107,10 @@ class StorageController:
     def get_or_create_pool(self, pool_name):
         if pool_name not in self.controller.connection.listStoragePools():
             poolpath = os.path.join(self.controller.base_path, pool_name)
-            if not os.path.exists(poolpath):
-                os.makedirs(poolpath)
+            if not self.controller.executor.cuisine.core.dir_exists(poolpath):
+                self.executor.cuisine.core.dir_ensure(poolpath)
                 cmd = 'chattr +C %s ' % poolpath
-                j.sal.process.execute(
-                    cmd, die=False, outputToStdout=False, useShell=False, ignoreErrorOutput=False)
+                self.controller.executor.execute(cmd)
             pool = self.controller.env.get_template('pool.xml').render(
                 pool_name=pool_name, basepath=self.controller.base_path)
             print(pool)

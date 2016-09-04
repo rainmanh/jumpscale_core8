@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/data/serializers/SerializerBlowfish.py
 - Properties
-    - c
     - encrkey
+    - c
 
 ### Methods
 

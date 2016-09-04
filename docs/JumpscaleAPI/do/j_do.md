@@ -3,13 +3,13 @@
 
 - /opt/jumpscale8/lib/JumpScale/InstallTools.py
 - Properties
+    - CODEDIR
     - installer
     - BASE
-    - CODEDIR
-    - VARDIR
+    - debug
     - TMP
     - TYPE
-    - debug
+    - VARDIR
 
 ### Methods
 

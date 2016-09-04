@@ -3,21 +3,21 @@
 
 - /opt/jumpscale8/lib/JumpScale/core/main/Dirs.py
 - Properties
-    - varDir
-    - tmpDir
-    - hrd
-    - homeDir
-    - appDir
     - tmplsDir
-    - libDir
-    - logDir
+    - tmpDir
+    - homeDir
     - codeDir
-    - binDir
     - jsLibDir
-    - cfgDir
-    - base
-    - pidDir
+    - logDir
+    - varDir
+    - hrd
+    - binDir
     - libExtDir
+    - pidDir
+    - base
+    - cfgDir
+    - libDir
+    - appDir
 
 ### Methods
 

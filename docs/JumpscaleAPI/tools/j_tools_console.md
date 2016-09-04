@@ -3,9 +3,9 @@
 
 - /opt/jumpscale8/lib/JumpScale/tools/console/Console.py
 - Properties
-    - width
     - indent
     - logger
+    - width
 
 ### Methods
 

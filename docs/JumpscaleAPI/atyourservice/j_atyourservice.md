@@ -3,9 +3,9 @@
 
 - /opt/jumpscale8/lib/JumpScale/baselib/atyourservice/AtYourServiceFactory.py
 - Properties
-    - indocker
     - debug
     - logger
+    - indocker
 
 ### Methods
 

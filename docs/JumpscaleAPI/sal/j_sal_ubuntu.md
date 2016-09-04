@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/sal/ubuntu/Ubuntu.py
 - Properties
-    - logger
     - installedPackageNames
+    - logger
 
 ### Methods
 

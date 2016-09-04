@@ -4,8 +4,8 @@
 - /opt/jumpscale8/lib/JumpScale/tools/swaggergen/SwaggerGen.py
 - Properties
     - jinjaEnv
-    - spec
     - server
+    - spec
     - client
 
 ### Methods

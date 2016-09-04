@@ -4,15 +4,15 @@
 - /opt/jumpscale8/lib/JumpScale/data/serializers/SerializersFactory.py
 - Properties
     - yaml
-    - int
-    - dict
-    - hrd
-    - toml
-    - types
-    - base64
-    - time
-    - blowfish
     - json
+    - base64
+    - int
+    - types
+    - dict
+    - time
+    - toml
+    - hrd
+    - blowfish
 
 ### Methods
 

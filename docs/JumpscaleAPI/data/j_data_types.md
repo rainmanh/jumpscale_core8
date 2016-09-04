@@ -3,26 +3,26 @@
 
 - /opt/jumpscale8/lib/JumpScale/data/types/Types.py
 - Properties
-    - iprange
-    - int
-    - dict
-    - bool
-    - set
-    - date
-    - multiline
-    - ipaddr
-    - json
-    - path
     - yaml
-    - tel
-    - duration
-    - email
+    - path
+    - json
     - guid
-    - bytes
-    - ipport
-    - list
+    - date
     - string
     - float
+    - duration
+    - tel
+    - ipaddr
+    - ipport
+    - list
+    - email
+    - iprange
+    - dict
+    - multiline
+    - bytes
+    - set
+    - bool
+    - int
 
 ### Methods
 

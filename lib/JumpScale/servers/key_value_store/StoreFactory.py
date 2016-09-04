@@ -47,7 +47,7 @@ class StoreFactory:
         example:
         cache=j.servers.kvs.getRedisCacheLocal()
         serializer=j.data.serializer.json
-        db=j.servers.kvs.getRedisStore(namespace="testdb",serializers=[serializer],cache=cache)
+        db=j.servers.kvs.getRedisStore(namespace="cache",serializers=[serializer],cache=cache)
 
         """
         # for now just local to test
@@ -98,7 +98,7 @@ class StoreFactory:
     #     from servers.key_value_store.memory_store import MemoryKeyValueStore
     #     return MemoryKeyValueStore(name=name, namespace=namespace, changelog=changelog)
     #
-    def getRedisStore(self, name, namespace='', host='localhost', port=6379, db=0, password='',
+    def getRedisStore(self, name, namespace='db', host='localhost', port=6379, db=0, password='',
                       serializers=None, masterdb=None, cache=None, changelog=None):
         '''
         Gets a memory key value store.

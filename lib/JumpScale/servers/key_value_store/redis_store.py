@@ -12,31 +12,32 @@ from JumpScale import j
 
 class RedisKeyValueStore(KeyValueStoreBase):
 
-    def __init__(self, name, namespace="", host='localhost', port=6379, db=0, password='', serializers=[], masterdb=None, cache=None, changelog=None):
+    def __init__(self, name, namespace="db", host='localhost', port=6379, db=0, password='', serializers=[], masterdb=None, cache=None, changelog=None):
 
         self.redisclient = j.clients.redis.get(host, port, password=password)
         # self.redisclient.port = port
         # self.redisclient.host = host
-        KeyValueStoreBase.__init__(self, name=name, serializers=serializers,
+        KeyValueStoreBase.__init__(self, namespace=namespace, name=name, serializers=serializers,
                                    masterdb=masterdb, cache=cache, changelog=changelog)
 
-    # def _getCategoryKey(self, category, key):
-    #     if category != "":
-    #         return '%s:%s:%s' % (self.namespace, category, key)
-    #     # elif self.namespace != "":
-    #     #    return '%s:%s' % (self.namespace, key)
-    #     else:
-    #             return key
+    def _getKey(self, key):
+        return '%s:%s' % (self.namespace, key)
 
     def _get(self, key):
-        return self.redisclient.get(key)
+        return self.redisclient.get(self._getKey(key))
 
     def _set(self, key, val):
-        return self.redisclient.set(key, val)
+        return self.redisclient.set(self._getKey(key), val)
 
     def _delete(self, key, val):
-        return self.redisclient.delete(key)
+        return self.redisclient.delete(self._getKey(key))
 
+    def _exists(self, key):
+        return self.redisclient.exists(self._getKey(key))
+
+    def increment(self, key):
+        # only overrule if supporting DB has better ways
+        return self.redisclient.incr(self._getKey(key))
 
 #
 #     def set(self, category, key, value, expire=0, secret=""):

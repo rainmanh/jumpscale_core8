@@ -31,7 +31,7 @@ class Application:
         self.gridInitialized = False
         self.noremote = False
         # just to get started for keyvalue store, needs to become unique per owner (user)
-        self.owner = j.data.hash.hex2bin('b9aac92c78cb1d664eed21e8445f2e56')
+        self.owner = 'b9aac92c78cb1d664eed21e8445f2e56'
 
         self.jid = 0
 

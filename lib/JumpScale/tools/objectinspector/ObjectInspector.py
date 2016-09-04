@@ -10,6 +10,7 @@ from JumpScale import j
 # 7 ???
 # 8 property
 
+
 class Arg:
     """
         Wrapper for argument
@@ -20,7 +21,7 @@ class Arg:
 
     def __str__(self):
         out = ""
-        if self.defaultvalue != None:
+        if self.defaultvalue is not None:
             out += "- %s = %s\n" % (self.name, self.defaultvalue)
         else:
             out += "- %s\n" % (self.name)
@@ -36,6 +37,7 @@ def attrib(name, type, doc=None, objectpath=None, filepath=None, extra=None):
     """
     return (name, type, doc, objectpath, filepath, extra)
 
+
 class MethodDoc:
     """
     Method documentation
@@ -46,14 +48,13 @@ class MethodDoc:
         self.params = []
 
         inspected = inspect.getargspec(method)
-        params = ""
-        if inspected.defaults != None:
+        if inspected.defaults is not None:
             counter = len(inspected.defaults) - len(inspected.args)
         else:
             counter = -99999
 
         for param in inspected.args:
-            if inspected.defaults != None and counter > -1:
+            if inspected.defaults is not None and counter > -1:
                 defval = inspected.defaults[counter]
                 if j.data.types.string.check(defval):
                     defval = "'%s'" % defval
@@ -63,14 +64,14 @@ class MethodDoc:
             if param != "self":
                 self.params.append(Arg(param, defval))
 
-        if inspected.varargs != None:
+        if inspected.varargs is not None:
             self.params.append(Arg("*%s" % inspected.varargs, None))
 
-        if inspected.keywords != None:
+        if inspected.keywords is not None:
             self.params.append(Arg("**%s" % inspected.keywords, None))
 
         self.comments = inspect.getdoc(method)
-        if self.comments == None:
+        if self.comments is None:
             self.comments = ""
         self.comments = j.data.text.strip(self.comments)
         self.comments = j.data.text.wrap(self.comments, 90)
@@ -85,18 +86,13 @@ class MethodDoc:
         Markdown representation of the method and its arguments
         """
         out = ""
-        param_s = ", ".join([str(arg.name) + "=" + str(arg.defaultvalue) if arg.defaultvalue else arg.name for  arg in self.params])
-        param_s = "*%s*"%param_s
+        param_s = ""
+        if len(self.params) > 0:
+            param_s = ", ".join([str(arg.name) + "=" + str(arg.defaultvalue) if arg.defaultvalue else arg.name for arg in self.params])
+            param_s = "*%s*" % param_s
         out += "#### %s(%s) \n\n" % (self.name, param_s)
-        # out += "##### arguments\n\n"
-        #
-        # if self.params != []:
-        #     for param in self.params:
-        #         out += str(param)
-        #     out += "\n"
 
-        if self.comments != None and self.comments.strip() != "":
-            #out += "##### comments\n\n"
+        if self.comments is not None and self.comments.strip() != "":
             out += "```\n" + self.comments + "\n```\n\n"
 
         return out
@@ -118,7 +114,6 @@ class ClassDoc:
         for key, val in classobj.__dict__.items():
             if key.startswith("_"):
                 continue
-            # self.properties[key]=val
             self.properties.append(key)
 
     def getPath(self):
@@ -167,7 +162,7 @@ class ClassDoc:
         C += "\n### Methods\n"
         C += "\n"
 
-        if self.comments != None:
+        if self.comments is not None:
             C += "\n%s\n\n" % self.comments
 
         keys = list(self.methods.keys())
@@ -198,7 +193,7 @@ class ObjectInspector:
         self.manager = None
         self.logger = j.logger.get('j.tools.objectinspector')
 
-        self.jstree = OrderedDict() # jstree['j.sal']={'unix': unixobject, 'fs': fsobject}
+        self.jstree = OrderedDict()  # jstree['j.sal']={'unix': unixobject, 'fs': fsobject}
 
     def importAllLibs(self, ignore=[], base="%s/lib/JumpScale/" % j.dirs.base):
         self.base = os.path.normpath(base)
@@ -261,17 +256,18 @@ class ObjectInspector:
                 filepath = inspect.getfile(obj.__class__)
                 if not filepath.startswith(self.base):
                     return
-        except: pass
+        except:
+            pass
 
         #add the root object to the tree (self.jstree) as its first element (order maintained by ordereddict/pickle)
-        self.jstree[objectLocationPath]=attrib(objname, "class", 'emptydocs', objectLocationPath)
+        self.jstree[objectLocationPath] = attrib(objname, "class", 'emptydocs', objectLocationPath)
         self.inspect(objectLocationPath)
         j.sal.fs.createDir(dest)
         j.sal.fs.writeFile(filename="%s/errors.md" % dest, contents=self.errors, append=True)
         self.writeDocs(dest)
 
     def _processMethod(self, name, method, path, classobj):
-        if classobj == None:
+        if classobj is None:
             raise j.exceptions.RuntimeError("cannot be None")
 
         classpath = ".".join(path.split(".")[:-1])
@@ -294,7 +290,7 @@ class ObjectInspector:
         @param objectLocationPath is full location name in object tree e.g. j.sal.fs , no need to fill in
         """
         self.logger.debug(objectLocationPath)
-        if obj == None:
+        if obj is None:
             try:
                 obj = eval(objectLocationPath)
             except:
@@ -304,13 +300,14 @@ class ObjectInspector:
         try:
             if "__file__" in dir(obj):
                 filepath = inspect.getabsfile(obj.__file__)
-                filepath = os.path.normpath(filepath) #normalize path
+                filepath = os.path.normpath(filepath)  # normalize path
                 if not filepath.startswith(self.base):
                     return
             else:
                 clsfile = inspect.getfile(obj.__class__)
                 clsfile = os.path.normpath(clsfile)
-                if not clsfile.startswith(self.base): return
+                if not clsfile.startswith(self.base):
+                    return
         except Exception as e:
             # print "COULD NOT DEFINE FILE OF:%s"%objectLocationPath
             pass
@@ -352,7 +349,7 @@ class ObjectInspector:
                 # is special type or constant
                 self.logger.debug("special type: %s" % objectLocationPath2)
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?7\n" % objectLocationPath2, True)
-                self.jstree[objectLocationPath2]=attrib(objattributename, "const", '', objectLocationPath2, filepath)
+                self.jstree[objectLocationPath2] = attrib(objattributename, "const", '', objectLocationPath2, filepath)
 
             elif objattributename == "_getFactoryEnabledClasses":
                 try:
@@ -389,8 +386,7 @@ class ObjectInspector:
             elif isinstance(objattribute, (str, bool, int, float, list, tuple, dict, property)) or objattribute is None:
                 self.logger.debug("property: %s" % objectLocationPath2)
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
-                self.jstree[objectLocationPath2]=attrib(objattributename, "property",
-                                                               objattribute.__doc__, objectLocationPath2)
+                self.jstree[objectLocationPath2]=attrib(objattributename, "property", objattribute.__doc__, objectLocationPath2)
 
             elif type(objattribute.__class__) == type :
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
@@ -398,8 +394,7 @@ class ObjectInspector:
                 try:
                     filepath = inspect.getfile(objattribute.__class__)
                 except: pass
-                self.jstree[objectLocationPath2]=attrib(objattributename, "class",
-                                                                            objattribute.__doc__, objectLocationPath2, filepath)
+                self.jstree[objectLocationPath2]=attrib(objattributename, "class", objattribute.__doc__, objectLocationPath2, filepath)
                 try:
                     if not isinstance(objattribute, (str, bool, int, float, dict, list, tuple)) or objattribute is not None:
                         self.inspect(objectLocationPath2, parent=objattribute)
@@ -422,7 +417,6 @@ class ObjectInspector:
             # remember gitbook info
             summary[key2][key] = j.sal.fs.pathRemoveDirPart(dest, self.dest)
 
-
         summarytxt = ""
         keys1 = list(summary.keys())
         keys1.sort()
@@ -435,8 +429,7 @@ class ObjectInspector:
 
         j.sal.fs.writeFile(filename="%s/SUMMARY.md" % (self.dest), contents=summarytxt)
 
-
-        with open("%s/out.pickled"%self.dest, 'wb') as f:
+        with open("%s/out.pickled" % self.dest, 'wb') as f:
             import pickle
             pickle.dump(self.jstree, f)
             #json.dump(self.jstree,  f, indent=4, sort_keys=True)

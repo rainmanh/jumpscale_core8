@@ -2,7 +2,7 @@ from JumpScale import j
 
 # import JSModel
 import time
-from abc import ABCMeta, abstractmethod
+# from abc import ABCMeta, abstractmethod
 import collections
 
 
@@ -14,308 +14,10 @@ except:
     import snappy
 
 
-class KeyValueItem:
-
-    def __init__(self, key, data=None):
-        self._key = key
-        if data != None:
-            self._decode(data)
-        else:
-            self._value = ""
-            self._owner = b""
-            self._expire = b""
-            self._acl = {}
-            self._schema = ""
-
-    def init(self, value, owner, expire=0, acl={}, schema=""):
-        """
-        @param expire is time in sec from now when object will expire
-        @param is link to schema used to decode this object, is md5
-        @param acl is dict of {$secret: "rwd"}
-        """
-        self.value = value
-        self.owner = owner
-        self.expire = expire
-        self.acl = acl
-        self.schema = schema
-
-        return self.serialize()
-
-    def serialize(self):
-        # data = $type + $owner + $schema + $expire + $lengthacllist +
-        # [acllist] + snappyencoded(val) + $crcOfAllPrevious
-
-        #
-        # serialize type
-        #
-
-        # type of this encoding, to make sure we have backwards compatibility
-        # type = 4bits:  $schemaYesNo,$expireYesNo,0,0 + 4 bit version of format now 0
-        ttype = 0
-
-        ls = len(self._schema)
-        if self._schema == None or self._schema == "":
-            schema = b""
-
-        elif ls == 32:
-            schema = j.data.hash.hex2bin(self._schema)
-            ttype += 0b1000000
-
-        elif ls == 16:
-            schema = self._schema
-            ttype += 0b1000000
-
-        else:
-            raise j.exceptions.Input(message="schema needs to be md5 in string or bin format",
-                                     level=1, source="", tags="", msgpub="")
-
-        if self._expire != 0:
-            expire = j.data.time.getTimeEpoch() + self._expire
-            ttype += 0b0100000
-
-        else:
-            expire = b""
-
-        typeb = ttype.to_bytes(1, byteorder='big', signed=False)
-
-        #
-        # owner
-        #
-        if self._owner is None:
-            self.owner = j.application.owner
-
-        if len(self._owner) != 16:
-            raise j.exceptions.Input(message="owner needs to be 16 bytes", level=1, source="", tags="", msgpub="")
-
-        #
-        # access list
-        #
-        nrsecrets = 0
-        secrets2 = b""
-        for secret, aclitem in self._acl.items():
-            acl = 0
-
-            if "r" in aclitem:
-                acl += 0b10000000
-
-            if "w" in aclitem:
-                acl += 0b01000000
-
-            if "d" in aclitem:
-                acl += 0b00100000
-
-            finalacl = acl.to_bytes(1, byteorder='big', signed=False)
-
-            if len(secret) == 32:
-                secret = j.data.hash.hex2bin(secret)
-
-            elif len(secret) != 16:
-                raise j.exceptions.Input(message="secret needs to be 16 bytes", level=1, source="", tags="", msgpub="")
-
-            nrsecrets += 1
-            secrets2 += secret + finalacl
-
-        acls = nrsecrets.to_bytes(2, byteorder='big', signed=False) + secrets2
-
-        val = self._value
-        # TODO: *1 not sure this is ok, why str encode, what if its binary?
-        # val = str.encode(val)
-        val = snappy.compress(val)
-
-        serialized = typeb + self._owner + schema + expire + acls + val
-
-        # checksum
-        crc = j.data.hash.crc32_string(serialized)
-        crc = crc.to_bytes(4, byteorder='big', signed=False)
-
-        return serialized + crc
-
-    def _decode(self, input):
-        if not self._isValid(input):
-            raise j.exceptions.Input(message="Invalid checksum (CRC), is this a valid object ?")
-
-        #
-        # parsing header
-        #
-        header = input[0]
-        #
-        # extracting owner
-        #
-
-        counter = 1
-        self._owner = input[counter:counter + 16]
-
-        counter += 16
-
-        if header & 0b1000000:
-            # schema defined
-            self._schema = input[counter:counter + 16]
-            counter += 16
-        else:
-            # no schema
-            self._schema = b""
-
-        if header & 0b0100000:
-            # expire is set
-            self._expire = input[counter:counter + 4]
-            counter += 4
-        else:
-            self._expire = b""
-
-        #
-        # extracting acl
-        #
-        nrsecrets = input[counter]
-        counter += 1
-        for i in range(nrsecrets):
-
-            secret = input[offset:offset + 16]
-            secret = j.data.hash.bin2hex(secret)
-
-            access = input[offset + 16:offset + 17]
-
-            counter += counter + 17
-
-            astr = ""
-
-            if access[0] & 0b10000000:
-                astr += "r"
-
-            if access[0] & 0b01000000:
-                astr += "w"
-
-            if access[0] & 0b00100000:
-                astr += "d"
-
-            self._acl[secret] = astr
-
-        #
-        # extracting value
-        #
-        offset = 19 + (nrsecrets * 16) + nrsecrets
-
-        val = input[offset:-4]
-        val = snappy.decompress(val)
-
-        self._value = val
-
-        # crc = input[-4]
-
-        return True
-
-    def isAllowed(self, secret, mode):
-        """
-        Check if user is allowed to do mode ("r", "w", "d")
-        """
-        # owner got full right
-        if len(secret) == 16:
-            secret = j.data.hash.bin2hex(secret)
-
-        if self.owner == secret:
-            return True
-
-        from IPython import embed
-        print("DEBUG NOW sd8")
-        embed()
-        raise RuntimeError("stop debug here")
-
-        # if there is no acl, skipping
-        if len(self._acl) == 0:
-            # need to deny access if no acl list & is not owner
-            return False
-
-        #* means everyone
-        if "*" in self._acl:
-            if mode in self._acl["*"]:
-                return True
-
-        # user not found on acl
-        if not self._acl.get(secret):
-            return False
-
-        # checking mode
-        if mode in self._acl[secret]:
-            return True
-
-        return False
-
-    def _isValid(self, input):
-        """
-        Check the CRC validity
-        """
-        data = j.data.hash.crc32_string(input[:-4])
-        crc = data.to_bytes(4, byteorder='big', signed=False)
-
-        return crc == input[-4:]
-
-    def setExpiration(self, timeout):
-        self._expire = timeout
-
-    def updateAccessList(self, acl):
-        self._acl.update(acl)
-
-    @property
-    def owner(self):
-        if self._owner == "" or self._owner == b"" or self._owner == None:
-            return ""
-        if len(self._owner) != 16:
-            raise j.exceptions.Input(message="owner needs to be 16 bytes", level=1, source="", tags="", msgpub="")
-        return j.data.hash.bin2hex(self._owner).decode()
-
-    @owner.setter
-    def owner(self, owner):
-        if len(owner) == 32:
-            owner = j.data.hash.hex2bin(owner)
-        elif len(owner) != 16:
-            raise j.exceptions.Input(message="owner needs to be 32 or 16 bytes", level=1, source="", tags="", msgpub="")
-        self._owner = owner
-
-    @property
-    def schema(self):
-        if self._schema == "" or self._schema == b"" or self._schema == None:
-            return ""
-        if len(self._schema) != 16:
-            raise j.exceptions.Input(message="schema needs to be 16 bytes", level=1, source="", tags="", msgpub="")
-        return j.data.hash.bin2hex(self._schema).decode()
-
-    @schema.setter
-    def schema(self, schema):
-        if len(schema) == 32:
-            schema = j.data.hash.hex2bin(schema)
-        elif len(schema) != 16:
-            raise j.exceptions.Input(message="schema needs to be 32 or 16 bytes",
-                                     level=1, source="", tags="", msgpub="")
-        self._schema = schema
-
-    @property
-    def data(self):
-        return self._value
-
-    @property
-    def acl(self):
-        res = {}
-        for secret, aclitem in self._acl.items():
-            if len(secret) == 16:
-                secret = j.data.hash.bin2hex(secret)
-            res[secret] = aclitem
-        return res
-
-    def __str__(self):
-        out = ">> Key:%s\n" % self._key
-        out += ">> Data: %s bytes\n" % len(self.data)
-        out += "\n>> Owner:"
-        out += self.owner.rstrip()
-        out += "\n>> Expire: %d" % self._expire
-        out += "\n>> ACL:\n"
-        out += str(self.acl)
-        out += "\n>> Schema:"
-        out += self.schema
-        out += "\n"
-        return out
-
-    def __repr__(self):
-        return self.__str__()
-
+# IMPORTANT: had to remove class for manipulating kvs object, class was more clear but 2 issues
+# - this needs to be converted to a functional C module which can be reused in many languages, doing this in OO is much more complex
+# - its slower, python is not very efficient with objects
+# - if its too slow now we can go to cython module quite easily because is just a method
 
 class KeyValueStoreBase:  # , metaclass=ABCMeta):
     '''KeyValueStoreBase defines a store interface.'''
@@ -329,7 +31,8 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         self.cache = cache
         self.changelog = changelog
         self.masterdb = masterdb
-        self.schemaId = ""
+        self._schema = b""
+        self.owner = j.application.owner
 
     def __new__(cls, *args, **kwargs):
         '''
@@ -349,59 +52,178 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
         return object.__new__(cls)
 
-    def set(self, key, value, expire=0, acl={}, owner=None, secret=None):
+    @property
+    def schema(self):
+        return j.data.hash.bin2hex(self._schema).decode()
+
+    @schema.setter
+    def schema(self, val):
+        if len(val) == 32:
+            val = j.data.hash.hex2bin(val)
+        elif len(val) != 16:
+            raise j.exceptions.Input(message="schema needs to be 32 or 16 bytes",
+                                     level=1, source="", tags="", msgpub="")
+        if not j.data.types.bytes.check(val):
+            raise j.exceptions.Input(message="schema needs to be in bytes", level=1, source="", tags="", msgpub="")
+        self._schema = val
+
+    @property
+    def owner(self):
+        return j.data.hash.bin2hex(self._owner).decode()
+
+    @owner.setter
+    def owner(self, val):
+        if len(val) == 32:
+            val = j.data.hash.hex2bin(val)
+        elif len(val) != 16:
+            raise j.exceptions.Input(message="owner needs to be 32 or 16 bytes",
+                                     level=1, source="", tags="", msgpub="")
+        if not j.data.types.bytes.check(val):
+            raise j.exceptions.Input(message="owner needs to be in bytes", level=1, source="", tags="", msgpub="")
+
+        self._owner = val
+
+    def _encode(self, val, expire=0, acl={}):
+
+        # data = $type + $owner + $schema + $expire + $lengthacllist +
+        # [acllist] + snappyencoded(val) + $crcOfAllPrevious
+
+        #
+        # serialize type
+        #
+
+        # type of this encoding, to make sure we have backwards compatibility
+        # type = 4bits:  $schemaYesNo,$expireYesNo,0,0 + 4 bit version of format now 0
+        ttype = 0
+
+        if self._schema != b"":
+            ttype += 0b1000000
+
+        if expire != 0:
+            expire = j.data.time.getTimeEpoch() + expire
+            ttype += 0b0100000
+            expireb = expire.to_bytes(4, byteorder='big', signed=False)
+        else:
+            expireb = b""
+
+        # data should be binary if not lets msgpack
+        if j.data.types.bytes.check(val) == False:
+            val = j.data.serializer.msgpack.dumps(val)
+            ttype += 0b0010000
+
+        typeb = ttype.to_bytes(1, byteorder='big', signed=False)
+
+        aclb = j.servers.kvs._aclSerialze(acl)
+
+        # TODO: *1 not sure this is ok, why str encode, what if its binary?
+        # val = str.encode(val)
+        val = snappy.compress(val)
+
+        serialized = typeb + self._owner + self._schema + expireb + aclb + val
+
+        # checksum
+        crc = j.data.hash.crc32_string(serialized)
+        crc = crc.to_bytes(4, byteorder='big', signed=False)
+
+        return serialized + crc
+
+    def _decode(self, data):
         """
-        @param owner is the person who owns the object & can do all, if not specified is default owner: j.application.owner
+        @return [val,owner="",schema="",expire=0,acl={}]
+        """
+
+        crcint = j.data.hash.crc32_string(data[:-4])
+        crc = crcint.to_bytes(4, byteorder='big', signed=False)
+
+        if not crc == data[-4:]:
+            raise j.exceptions.Input(message="Invalid checksum (CRC), is this a valid object ?:%s" % data)
+
+        #
+        # parsing header
+        #
+        header = data[0]
+
+        counter = 1
+        owner = j.data.hash.bin2hex(data[counter:counter + 16])
+
+        counter += 16
+
+        if header & 0b1000000:
+            # schema defined
+            schema = j.data.hash.bin2hex(data[counter:counter + 16])
+            counter += 16
+        else:
+            # no schema
+            schema = ""
+
+        if header & 0b0100000:
+            # expire is set
+            expire = int.from_bytes(data[counter:counter + 4], byteorder='big', signed=False)
+            counter += 4
+        else:
+            expire = 0
+
+        nrsecrets = int.from_bytes(data[counter:counter + 1], byteorder='big', signed=False)
+        aclbin = data[counter:counter + 17 * nrsecrets + 1]
+        counter += 17 * nrsecrets + 1
+
+        acl = j.servers.kvs._aclUnserialze(aclbin)
+
+        val = data[counter:-4]
+
+        val = snappy.decompress(val)
+
+        if header & 0b0010000:
+            val = j.data.serializer.msgpack.loads(val)
+
+        return (val, owner, schema, expire, acl)
+
+    def set(self, key, value=None, expire=None, acl={}, secret=None):
+        """
         @param secret, when not specified the owner will be used, allows to specify different secret than youw own owner key
         @param expire is seconds from now, when obj will expire
+            if you want to set then needs to be an int>0 or 0
 
         """
 
-        obj = self.get(key, secret=secret, decode=False)
-
-        if owner is None or owner == "":
-            owner = j.application.owner
-
         if secret is None:
-            secret = owner
+            secret = self.owner
 
-        if obj == None:
-            obj = KeyValueItem(key)
+        res = self.getraw(key, secret=secret, die=False, modecheck="w")
 
-            value2 = self.serialize(value)
+        if res != None:
+            (valOld, owner, schemaOld, expireOld, aclOld) = res
 
-            if j.data.types.bytes.check(value) == False:
-                value = j.data.serializer.msgpack.dumps(value)
-
-            obj.init(value=value, owner=owner, expire=expire, acl=acl, schema=self.schemaId)
-
-        else:
-
-            if not obj.isAllowed(secret, "w"):
-                raise j.exceptions.Input(
-                    message="Secret <%s> is not allowed to write for obj with key: '%s'" % (secret, key))
-
-            if obj._schema != self.schemaId:
+            if schemaOld != self.schema:
                 msg = "schema of this db instance should be same as what is found in db"
                 raise j.exceptions.Input(message=msg, level=1)
 
-            # update acl with new one
-            obj.updateAccessList(acl)
+            if expire == None:
+                expire = expireOld
 
-            obj.setExpiration(expire)
+            if value == None:
+                value = valOld
 
-            obj._value = value
+            acl.update(aclOld)
 
-        self._set(key, obj.serialize())
+        else:
+            if expire == None:
+                expire = 0
 
-        return obj
+            if value == None:
+                raise j.exceptions.Input(message="value needs to be set (not None), key:%s" %
+                                         key, level=1, source="", tags="", msgpub="")
 
-        """
-        if self.cache != None:
-            self.cache._set(key=key, category=category, value=value1)
-        """
+        value2 = self.serialize(value)
 
-    def get(self, key, secret="", decode=True, die=False):
+        data = self._encode(value2, expire, acl)
+
+        self._set(key, data)
+
+        # if self.cache != None:
+        #     self.cache._set(key=key, category=category, value=value1)
+
+    def get(self, key, secret=""):
         '''
         Gets a key value pair from the store
 
@@ -409,33 +231,48 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         @type: String
 
         @return: value of the key value pair
-        @rtype: Objects
-        '''
-        """
-        if self.cache != None:
-            res = self.cache._get(key=key, category=category)  # get raw data
-            if res != None:
-                return self.unserialize(self._decode(res))
-        """
-        payload = self._get(key)
 
-        if payload is None:
+        '''
+        return self.getraw(key, secret, die=True)[0]
+
+    def getraw(self, key, secret="", die=False, modecheck="r"):
+        '''
+        Gets a key value pair from the store
+
+        @param: key of the key value pair
+        @type: String
+
+        @param: modecheck is r,w or d, normally get always needs to check on r but can overrule this, can be more than 1 e.g. rw
+
+        @return: (val, owner, schema, expire, acl)
+
+        '''
+
+        # if self.cache != None:
+        #     res = self.cache._get(key=key, category=category)  # get raw data
+        #     if res != None:
+        #         return self.unserialize(self._decode(res))
+
+        data = self._get(key)
+
+        if data is None:
             if die:
                 raise j.exceptions.Input(message="Cannot find object:%s" % key, level=1, source="", tags="", msgpub="")
             else:
                 return None
 
-        if decode is False:
-            return KeyValueItem(key, data=payload)
-
         if secret == "":
-            secret = j.application.owner
+            secret = self.owner
 
-        obj = KeyValueItem(key, data=payload)
+        (val, owner, schema, expire, acl) = self._decode(data)
 
-        obj.isAllowed(secret, mode="r")
+        if j.servers.kvs._aclCheck(acl, owner, secret, modecheck) is False:
+            raise j.exceptions.Input(message="cannot get obj with key '%s' because mode '%s' is not allowed." % (
+                key, modecheck), level=1, source="", tags="", msgpub="")
 
-        return self.unserialize(obj.data)
+        val = self.unserialize(val)
+
+        return (val, owner, schema, expire, acl)
 
     def delete(self, key, secret=""):
 
@@ -465,6 +302,9 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
                 value = serializer.loads(value)
 
         return value
+
+    def destroy(self):
+        pass
 
 # DO NOT LOOK AT BELOW RIGHT NOW IS FOR FUTURE
 

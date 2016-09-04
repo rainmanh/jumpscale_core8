@@ -35,12 +35,46 @@ class StoreFactory:
         cache = j.servers.kvs.getRedisCacheLocal()
         serializer = j.data.serializer.json
         db = j.servers.kvs.getRedisStore(name="kvs", namespace="testdb", serializers=[serializer], cache=cache)
-
+        db.destroy()
         obj = [1, 2, 3, 4]
-        db.set("mykey", obj)
-        assert db.get("mykey") == obj
+        secret = j.data.hash.md5_string("a")  # generate whatever secret (needs to be 32 hex byte str eg result of md5)
+        secret2 = j.data.hash.md5_string("b")
+        acl = {secret: "r", secret2: "rwd"}
 
-        # TODO: do same with category and some other args
+        db.set("mykey", obj, acl=acl, expire=10)
+        assert db.get("mykey", secret=secret) == obj
+
+        res = db.getraw("mykey", secret=secret)
+        print(res)
+
+        obj2 = [1, 2, 3, 4, 5]
+        db.set("mykey", obj2, acl=acl, expire=0, secret=secret2)
+
+        assert db.get("mykey", secret=secret) == obj2
+
+        res2 = db.getraw("mykey", secret=secret)
+        print(res2)
+
+        # next should fail
+        try:
+            db.set("mykey", obj2, acl=acl, expire=0, secret=secret)
+        except Exception as e:
+            if "because mode 'w' is not allowed" not in str(e):
+                raise j.exceptions.Input(
+                    message="test failed, should not be allowed writing because of acl", level=1, source="", tags="", msgpub="")
+
+        # on my laptop performance is 50k+ per sec, so good enough for now
+        def encodetest():
+            print("start encode test")
+            for i in range(100000):
+                res = db._encode(b"aaaaaaabbbbbbbbccccccddddddddeeeeeeeeffffffffff", expire=10, acl=acl)
+            print("stop encode test")
+            print("start decode test")
+            for i in range(100000):
+                res2 = db._decode(res)
+            print("stop decode test")
+
+        # encodetest()
 
     def getRedisCacheLocal(self):
         """
@@ -128,6 +162,119 @@ class StoreFactory:
             )
 
         return self._cache[name]
+
+    def _aclSerialze(self, acl={}):
+        """
+        access list
+
+        key is secret in 16 or 32 bytes (32 bytes will be hex2byte changed)
+        val is "rwd"
+        """
+
+        #
+        # access list
+        #
+        nrsecrets = 0
+        secrets2 = b""
+        for secret, aclitem in acl.items():
+            acli = 0
+            if "r" in aclitem:
+                acli += 0b10000000
+
+            if "w" in aclitem:
+                acli += 0b01000000
+
+            if "d" in aclitem:
+                acli += 0b00100000
+
+            finalacli = acli.to_bytes(1, byteorder='big', signed=False)
+
+            if len(secret) == 32:
+                secret = j.data.hash.hex2bin(secret)
+
+            elif len(secret) != 16:
+                raise j.exceptions.Input(message="secret needs to be 16 bytes", level=1, source="", tags="", msgpub="")
+
+            nrsecrets += 1
+            secrets2 += secret + finalacli
+
+        if nrsecrets > 254:
+            raise j.exceptions.Input(message="cannot have more than 254 secrets",
+                                     level=1, source="", tags="", msgpub="")
+
+        acls = nrsecrets.to_bytes(1, byteorder='big', signed=False) + secrets2
+
+        return acls
+
+    def _aclUnserialze(self, data):
+        #
+        # extracting acl
+        #
+        acl = {}
+        counter = 0
+        nrsecrets = int.from_bytes(data[counter:counter + 1], byteorder='big', signed=False)
+        counter += 1
+        for i in range(nrsecrets):
+
+            secret = j.data.hash.bin2hex(data[counter:counter + 16])
+
+            counter += 16
+
+            access = data[counter:counter + 1]
+            accessint = int.from_bytes(access, byteorder='big', signed=False)
+
+            counter += 1
+
+            astr = ""
+
+            if accessint & 0b10000000:
+                astr += "r"
+
+            if accessint & 0b01000000:
+                astr += "w"
+
+            if accessint & 0b00100000:
+                astr += "d"
+
+            acl[secret.decode()] = astr
+        return acl
+
+    def _aclCheck(self, aclInObj, ownerInObj, secret, mode):
+        """
+        Check if user is allowed to do mode ("r", "w", "d")
+        """
+        if len(mode) > 1:
+            res = True
+            for modeitem in mode:
+                res = res and self._aclCheck(aclInObj, ownerInObj, secret, modeitem)
+            return res
+
+        # owner got full right
+        if len(secret) == 16:
+            secret = j.data.hash.bin2hex(secret)
+
+        if ownerInObj == secret:
+            return True
+
+        # if there is no acl, skipping
+        if aclInObj == {}:
+            # need to deny access if no acl list & is not owner
+            return False
+
+        #* means everyone
+        if "*" in aclInObj:
+            if mode in aclInObj["*"]:
+                return True
+
+        # user not found on acl
+        if not aclInObj.get(secret):
+            return False
+
+        # checking mode
+        if mode in aclInObj[secret]:
+            return True
+
+        return False
 
     # def getLevelDBStore(self, name, namespace='', basedir=None, serializers=[], cache=None, changelog=None, masterdb=None):
     #     '''

@@ -20,24 +20,20 @@ class RedisKeyValueStore(KeyValueStoreBase):
         KeyValueStoreBase.__init__(self, namespace=namespace, name=name, serializers=serializers,
                                    masterdb=masterdb, cache=cache, changelog=changelog)
 
-    def _getKey(self, key):
-        return '%s:%s' % (self.namespace, key)
-
     def _get(self, key):
-        return self.redisclient.get(self._getKey(key))
+        return self.redisclient.hget(self.namespace, key)
 
     def _set(self, key, val):
-        return self.redisclient.set(self._getKey(key), val)
+        return self.redisclient.hset(self.namespace, key, val)
 
     def _delete(self, key, val):
-        return self.redisclient.delete(self._getKey(key))
+        return self.redisclient.hdel(self.namespace, key)
 
     def _exists(self, key):
-        return self.redisclient.exists(self._getKey(key))
+        return self.redisclient.hexists(self.namespace, key)
 
-    def increment(self, key):
-        # only overrule if supporting DB has better ways
-        return self.redisclient.incr(self._getKey(key))
+    def destroy(self):
+        return self.redisclient.delete(self.namespace)
 
 #
 #     def set(self, category, key, value, expire=0, secret=""):

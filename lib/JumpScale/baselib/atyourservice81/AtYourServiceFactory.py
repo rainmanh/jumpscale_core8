@@ -10,7 +10,6 @@ from JumpScale.baselib.atyourservice81.ActionMethodDecorator import ActionMethod
 from JumpScale.baselib.atyourservice81.AtYourServiceRepo import AtYourServiceRepo
 
 from JumpScale.baselib.atyourservice81.AtYourServiceTester import AtYourServiceTester
-from JumpScale.baselib.atyourservice81.AtYourServiceDB import AtYourServiceDBFactory
 
 
 import colored_traceback
@@ -51,8 +50,6 @@ class AtYourServiceFactory:
         self.logger = j.logger.get('j.atyourservice')
 
         self._test = None
-
-        self.db = AtYourServiceDBFactory()
 
     def _doinit(self, force=False):
 
@@ -268,6 +265,13 @@ class AtYourServiceFactory:
                 "AYS templateRepo with name:%s already exists at %s, cannot have duplicate names." % (name, path))
 
         self._repos[name] = AtYourServiceRepo(name, gitrepo, path)
+
+    def get(self):
+        """
+        returns repo we are in
+        """
+        path = j.sal.fs.getcwd()
+        return self.repoGet(path)
 
     def repoGet(self, path="", name=""):
         """

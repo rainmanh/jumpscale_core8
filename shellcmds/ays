@@ -17,7 +17,7 @@ atyourservice = None
 @click.option('--nodebug', default=False, help='disable debug mode', is_flag=True)
 def cli(nodebug):
     global atyourservice
-    atyourservice = j.atyourservice.get()
+    atyourservice = j.atyourservice.repoGet()
     atyourservice.debug = not nodebug
 
 # @click.command()
@@ -78,6 +78,11 @@ def init(role="", instance="", data=""):
 
     atyourservice.init(role=role, instance=instance, data=data)
 
+    from IPython import embed
+    print("DEBUG NOW init in ays shell script")
+    embed()
+    raise RuntimeError("stop debug here")
+
 
 @click.command()
 @click.argument('path', default='')
@@ -94,7 +99,7 @@ def blueprint(path, role, instance):
 
     if role & instance specified then only the ays instances with specified role/instance will be processed
     """
-    atyourservice.execute_blueprint(role=role, instance=instance, path=path)
+    atyourservice.blueprintExecute(role=role, instance=instance, path=path)
 
 
 @click.command()
@@ -139,7 +144,7 @@ def do(action, role="", instance="", force=False, producerroles="*", ask=False):
     """
     # allservices=all
     # atyourservice.do(action,role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
-    run = atyourservice.getRun(role=role, instance=instance, action=action, force=force, producerRoles=producerroles)
+    run = atyourservice.runGet(role=role, instance=instance, action=action, force=force, producerRoles=producerroles)
     print(run)
     run.execute()
 
@@ -156,7 +161,7 @@ def install(role="", instance="", force=False, producerroles="*", ask=False):
     if you want more finegrained controle please use the do cmd
     """
     # atyourservice.do("install",role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
-    run = atyourservice.getRun(role=role, instance=instance, action="install", force=force, producerRoles=producerroles)
+    run = atyourservice.runGet(role=role, instance=instance, action="install", force=force, producerRoles=producerroles)
     print(run)
     run.execute()
 
@@ -172,7 +177,7 @@ def simulate(action, role="", instance="", force=False, producerroles="*"):
     is like do only does not execute it,
     is ideal to figure out what would happen if you run a certain action
     """
-    run = atyourservice.getRun(role=role, instance=instance, action=action,
+    run = atyourservice.runGet(role=role, instance=instance, action=action,
                                force=force, producerRoles=producerroles, simulate=True)
     print(run)
 
@@ -190,7 +195,7 @@ def setstate(action, state="DO", role="", instance="", force=False, producerrole
     this sets the state of an ays instance manually
     """
     atyourservice.setState(actions=[action], role=role, instance=instance, state=state)
-    run = atyourservice.getRun(role=role, instance=instance, action=action, force=False, producerRoles=producerroles)
+    run = atyourservice.runGet(role=role, instance=instance, action=action, force=False, producerRoles=producerroles)
     print(run)
 
 
@@ -306,7 +311,7 @@ def runinfo(runid=0):
     """
     print info about run, if not specified will be latest run
     """
-    run = atyourservice.getRun(id=runid)
+    run = atyourservice.runGet(id=runid)
     print(run)
 
 

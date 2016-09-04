@@ -8,10 +8,6 @@ class JobModel(ModelBase):
     """
     """
 
-    def __init__(self, category, db, index, key=""):
-        self._capnp = j.atyourservice.db.AYSModel.Job
-        ModelBase.__init__(self, category, db, index, key)
-
     @classmethod
     def list(self, actor="", service="", action="", state="", fromEpoch=0, toEpoch=999999999, returnIndex=False):
         if actor == "":
@@ -24,7 +20,7 @@ class JobModel(ModelBase):
             state = ".*"
         epoch = ".*"
         regex = "%s:%s:%s:%s:%s" % (actor, service, action, state, epoch)
-        res0 = j.atyourservice.db.job._index.list(regex, returnIndex=True)
+        res0 = self._index.list(regex, returnIndex=True)
         res1 = []
         for index, key in res0:
             epoch = int(index.split(":")[-1])
@@ -39,13 +35,13 @@ class JobModel(ModelBase):
         # put indexes in db as specified
         ind = "%s:%s:%s:%s:%s" % (self.dbobj.actorName, self.dbobj.serviceName,
                                   self.dbobj.actionName, self.dbobj.state, self.dbobj.lastModDate)
-        j.atyourservice.db.job._index.index({ind: self.dbobj._get_key()})
+        self._index.index({ind: self.key})
 
     @classmethod
     def find(self, actor="", service="", action="", state="", fromEpoch=0, toEpoch=999999999):
         res = []
         for key in self.list(actor, service, action, state, fromEpoch, toEpoch):
-            res.append(j.atyourservice.db.job.get(key))
+            res.append(self._modelfactory.get(key))
         return res
 
     def _post_init(self):

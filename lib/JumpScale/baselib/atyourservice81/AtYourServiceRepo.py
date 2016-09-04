@@ -14,6 +14,8 @@ from JumpScale.baselib.atyourservice81.Service import Service
 import colored_traceback
 colored_traceback.add_hook(always=True)
 
+from JumpScale.baselib.atyourservice81.AtYourServiceDB import AtYourServiceDBFactory
+
 
 class AtYourServiceRepo():
 
@@ -31,15 +33,13 @@ class AtYourServiceRepo():
 
         self.git = gitrepo
 
-        self._db = None
-
         self.name = name
 
         self._blueprints = {}
+        self._templates = {}
+        self._actors = {}
 
-        # self.indexdb = j.atyourservice.db.getIndexDB(self.name)
-        self.db = j.atyourservice.db.getDB('ays')
-
+        self.db = AtYourServiceDBFactory(self)
 
     def _doinit(self):
         pass

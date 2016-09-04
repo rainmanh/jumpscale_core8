@@ -8,10 +8,6 @@ class ActorModel(ModelBase):
     Model Class for an Actor object
     """
 
-    def __init__(self, category, db, index, key=""):
-        self._capnp = j.atyourservice.db.AYSModel.Actor
-        ModelBase.__init__(self, category, db, index, key)
-
     @classmethod
     def list(self, name="", role="", state="", returnIndex=False):
         if name == "":
@@ -21,18 +17,18 @@ class ActorModel(ModelBase):
         if state == "":
             state = ".*"
         regex = "%s:%s:%s" % (name, role, state)
-        return j.atyourservice.db.actor._index.list(regex, returnIndex=returnIndex)
+        return self._index.list(regex, returnIndex=returnIndex)
 
     def index(self):
         # put indexes in db as specified
-        ind = "%s:%s:%s" % (self.dbobj.name, self.dbobj.role, self.dbobj.state)
-        j.atyourservice.db.actor._index.index({ind: self.dbobj._get_key()})
+        ind = "%s:%s" % (self.dbobj.name, self.dbobj.state)
+        self._index.index({ind: self.key})
 
     @classmethod
     def find(self, name="", role="", state=""):
         res = []
         for key in self.list(name, role, state):
-            res.append(j.atyourservice.db.actor.get(key))
+            res.append(self._modelfactory.get(key))
         return res
 
     @property
@@ -74,8 +70,7 @@ class ActorModel(ModelBase):
         out = ""
         for action in self.dbobj.actions:
             actionCodeKey = action.actionCodeKey
-            actionCode = j.atyourservice.db.actionCode.get(actionCodeKey)
-
+            actionCode = self._modelfactory.repo.db.actionCode.get(actionCodeKey)
             defstr = "@%s\n" % action.type
             defstr += "def %s (" % actionCode.dbobj.name
             for arg in actionCode.dbobj.args:
@@ -159,19 +154,8 @@ class ActorModel(ModelBase):
         producer = newlist[-1]
         return producer
 
-# model methods
-    def _post_init(self):
-        # self.db.parent = j.atyourservice.AYSModel.actor.actorPointer.new_message()  # TODO
-        self.dbobj.key = j.data.idgenerator.generateGUID()
-        self.dbobj.ownerKey = j.data.idgenerator.generateGUID()
-
     def _pre_save(self):
         pass
-
-    def _get_key(self):
-        if self.dbobj.name == "":
-            raise j.exceptions.Input(message="name cannot be empty", level=1, source="", tags="", msgpub="")
-        return self.dbobj.name
 
     # def addMethod(self, name="", source="", isDefaultMethod=False):
     #     if source != "":

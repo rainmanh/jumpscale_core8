@@ -8,10 +8,6 @@ class RunModel(ModelBase):
     is state object for Run
     """
 
-    def __init__(self, category, db, index, key=""):
-        self._capnp = j.atyourservice.db.AYSModel.Run
-        ModelBase.__init__(self, category, db, index, key)
-
     @classmethod
     def list(self, state="", fromEpoch=0, toEpoch=999999999, returnIndex=False):
         if state == "":
@@ -32,13 +28,13 @@ class RunModel(ModelBase):
     def index(self):
         # put indexes in db as specified
         ind = "%s:%s" % (self.dbobj.state,  self.dbobj.lastModDate)
-        j.atyourservice.db.run._index.index({ind: self.dbobj._get_key()})
+        self._index.index({ind: self.key})
 
     @classmethod
     def find(self, state="", fromEpoch=0, toEpoch=999999999):
         res = []
         for key in self.list(state, fromEpoch, toEpoch):
-            res.append(j.atyourservice.db.run.get(key))
+            res.append(self._modelfactory.get(key))
         return res
 
     def stepNew(self, **kwargs):
@@ -68,11 +64,6 @@ class RunModel(ModelBase):
                 setattr(job, k, v)
 
         return job
-
-    def _get_key(self):
-        if self.dbobj.name == "":
-            raise j.exceptions.Input(message="name cannot be empty", level=1, source="", tags="", msgpub="")
-        return self.dbobj.name
 
     # def __repr__(self):
     #     out = ""

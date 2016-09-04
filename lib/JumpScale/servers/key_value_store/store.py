@@ -223,6 +223,18 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         # if self.cache != None:
         #     self.cache._set(key=key, category=category, value=value1)
 
+    def exists(self, key, secret=""):
+        try:
+            res = self.get(key, secret=secret)
+        except Exception as e:
+            if "not allowed" in str(e):
+                # exists but no access, should just return False
+                return False
+            if "Cannot find" in str(e):
+                return False
+            raise e
+        return res != None
+
     def get(self, key, secret=""):
         '''
         Gets a key value pair from the store
@@ -304,7 +316,33 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         return value
 
     def destroy(self):
-        pass
+        raise NotImplemented()
+
+    def index(self, items, secret=""):
+        """
+        items is {indexitem:key}
+        indexitem is e.g. $actorname:$state:$role (is a text which will be index to key)
+        indexitems are always made lowercase
+        ':' is not allowed in indexitem
+        """
+        # TODO: needs to be implemented by walking overindex objects (capnproto or flat text? (compressed))
+        if secret == "":
+            secret = self.owner
+        raise NotImplemented()
+
+    def list(self, regex=".*", returnIndex=False, secret=""):
+        """
+        regex is regex on the index, will return matched keys
+        e.g. .*:new:.* would match all actors with state new
+
+        allows to walk over index & find required objects
+
+        """
+        # TODO: needs to be implemented by walking overindex objects (capnproto or flat text? (compressed))
+        if secret == "":
+            secret = self.owner
+        raise NotImplemented()
+
 
 # DO NOT LOOK AT BELOW RIGHT NOW IS FOR FUTURE
 

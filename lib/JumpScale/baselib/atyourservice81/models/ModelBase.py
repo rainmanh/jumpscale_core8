@@ -3,17 +3,26 @@ from JumpScale import j
 
 class ModelBase():
 
-    def __init__(self, category, db, index, key=""):
+    def __init__(self, modelfactory, key=""):
         self.logger = j.atyourservice.logger
-        self._category = category
-        self._db = db
-        self._index = index
+        self._modelfactory = modelfactory
+        self._capnp = modelfactory._capnp
+        self._category = modelfactory.category
+        self._db = modelfactory._db
+        self._index = modelfactory._index
+        self._key = ""
         if key != "" and self._db.exists(key):
             # will get from db
             self.load(key=key)
         else:
             self.dbobj = self._capnp.new_message()
             self._post_init()
+
+    @property
+    def key(self):
+        if self._key == "":
+            self._key = self._generate_key()
+        return self._key
 
     def _post_init(self):
         pass
@@ -22,9 +31,9 @@ class ModelBase():
         # needs to be implemented see e.g. ActorModel
         pass
 
-    def _get_key(self):
+    def _generate_key(self):
         # return a unique key to be used in db (std the key but can be overriden)
-        return self.dbobj.key
+        return j.data.hash.md5_string(j.data.idgenerator.generateGUID())
 
     @classmethod
     def list(**args):
@@ -38,22 +47,17 @@ class ModelBase():
         # put indexes in db as specified
         raise NotImplemented
 
-    def load(self, key=""):
+    def load(self, key):
         """
         please do not use key when loading, will use predefined one, only relevant in init
         """
-        if key == "":
-            key = self._get_key()
-        # self.logger.debug('load actor from db. key:%s' % key)
         buff = self._db.get(key)
-        # builder to true so we can change the content of the model
         self.dbobj = self._capnp.from_bytes(buff, builder=True)
 
     def save(self):
         self._pre_save()
-        key = self._get_key()
         buff = self.dbobj.to_bytes()
-        self._db.set(key, buff)
+        self._db.set(self.key, buff)
         self.index()
 
     def __repr__(self):

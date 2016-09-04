@@ -7,10 +7,6 @@ VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 class ServiceModel(ModelBase):
 
-    def __init__(self, category, db, index, key=''):
-        self._capnp = j.atyourservice.db.AYSModel.Service
-        ModelBase.__init__(self, category, db, index, key)
-
     @classmethod
     def list(self, name="", role="", actor="", parent="", producer="", returnIndex=False):
         """
@@ -35,7 +31,7 @@ class ServiceModel(ModelBase):
             raise j.exceptions.Input(message="producer needs to be in format: $actorName!$instance",
                                      level=1, source="", tags="", msgpub="")
         regex = "%s:%s:%s:%s:%s" % (name, role, actor, parent, producer)
-        return j.atyourservice.db.actor._index.list(regex, returnIndex=returnIndex)
+        return self._index.list(regex, returnIndex=returnIndex)
 
     def index(self):
         # put indexes in db as specified
@@ -44,13 +40,13 @@ class ServiceModel(ModelBase):
         embed()
         raise RuntimeError("stop debug here")
         ind = "%s:%s:%s:%s:%s" % (self.dbobj.name, self.dbobj.role, self.dbobj.state, parent, producer)
-        j.atyourservice.db.actor._index.index({ind: self.dbobj._get_key()})
+        self._index.index({ind: self.key})
 
     @classmethod
     def find(self, name="", role="", state=""):
         res = []
         for key in self.list(name, role, state):
-            res.append(j.atyourservice.db.actor.get(key))
+            res.append(self._modelfactory.get(key))
         return res
 
     def _post_init(self):

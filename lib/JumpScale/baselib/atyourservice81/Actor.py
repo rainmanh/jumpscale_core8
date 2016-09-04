@@ -15,8 +15,6 @@ ActionsBase=j.atyourservice.getActionsBaseClass()
 """
 
 
-
-
 class Actor(ActorBase):
 
     def __init__(self, aysrepo, template):
@@ -35,10 +33,12 @@ class Actor(ActorBase):
         self._init_props()
         self._schema = None
 
-        if j.atyourservice.db.actor.exists(template.name):
-            self.model = j.atyourservice.db.actor.new()
+        self.db = aysrepo.db.actor
+
+        if self.db.exists(template.name):
+            self.model = self.db.new()
         else:
-            self.model = j.atyourservice.db.actor.get(key=template.name)
+            self.model = self.db.get(key=template.name)
 
         self.model.dbobj.name = self.name
 
@@ -188,12 +188,11 @@ class Actor(ActorBase):
 
     def _addAction(self, amName, amSource, amDecorator, amMethodArgs):
         actionKey = j.data.hash.md5_string(self.name + amName + amSource)
-        if not j.atyourservice.db.actionCode.exists(actionKey):
+        if not self.aysrepo.db.actionCode.exists(actionKey):
             # need to create new object
-            ac = j.atyourservice.db.actionCode.new()
+            ac = self.aysrepo.db.actionCode.new()
             ac.dbobj.code = amSource
             ac.dbobj.actorName = self.name
-            ac.dbobj.guid = actionKey
             ac.dbobj.name = amName
             for key, val in amMethodArgs.items():
                 ac.argAdd(key, val)  # will check for duplicates

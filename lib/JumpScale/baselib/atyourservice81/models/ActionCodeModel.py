@@ -8,10 +8,6 @@ class ActionCodeModel(ModelBase):
     Object holding source code from service template actions
     """
 
-    def __init__(self, category, db, index, key=""):
-        self._capnp = j.atyourservice.db.AYSModel.ActionCode
-        ModelBase.__init__(self, category, db, index, key)
-
     @classmethod
     def list(self, actorName="", name="", returnIndex=False):
         if name == "":
@@ -19,30 +15,25 @@ class ActionCodeModel(ModelBase):
         if actorName == "":
             actorName = ".*"
         regex = "%s:%s" % (actorName, name)
-        return j.atyourservice.db.actionCode._index.list(regex, returnIndex=returnIndex)
+        return self._index.list(regex, returnIndex=returnIndex)
 
     @classmethod
     def find(self, actorName="", name=""):
         res = []
         for key in self.list(actorName, name):
-            res.append(j.atyourservice.db.actionCode.get(key))
+            res.append(self._modelfactory.get(key))
         return res
 
     def index(self):
         # put indexes in db as specified
         ind = "%s:%s" % (self.dbobj.actorName, self.dbobj.name)
-        j.atyourservice.db.actionCode._index.index({ind: self.dbobj.guid})
+        self._index.index({ind: self.key})
 
     def _post_init(self):
         pass
 
     def _pre_save(self):
         pass
-
-    def _get_key(self):
-        if self.dbobj.guid == "":
-            raise j.exceptions.Input(message="guid cannot be empty", level=1, source="", tags="", msgpub="")
-        return self.dbobj.guid
 
     def argAdd(self, name, defval=""):
         """

@@ -27,10 +27,7 @@ struct Actor {
     actorKey @3 :Text;
   }
 
-  key @5 :Text;
-  ownerKey @6 :Text;
-
-  actions @7 :List(Action);
+  actions @5 :List(Action);
   struct Action {
     name @0 :Text;
     #unique key for code of action (see below)
@@ -43,7 +40,7 @@ struct Actor {
     }
   }
 
-  recurringTemplate @8 :List(Recurring);
+  recurringTemplate @6 :List(Recurring);
   struct Recurring {
     #period in seconds
     action @0 :Text;
@@ -53,10 +50,10 @@ struct Actor {
   }
 
   #capnp
-  serviceDataSchema @9 :Text;
-  actorDataSchema @10 :Text;
+  serviceDataSchema @7 :Text;
+  actorDataSchema @8 :Text;
 
-  origin @11 :Origin;
+  origin @9 :Origin;
   struct Origin {
     #link to git which hosts this template for the actor
     gitUrl @0 :Text;
@@ -65,11 +62,11 @@ struct Actor {
   }
 
   #python script which interactively asks for the information when not filled in
-  serviceDataUI @12 :Text;
-  actorDataUI @13 :Text;
+  serviceDataUI @10 :Text;
+  actorDataUI @11 :Text;
 
-  serviceDataSchemaHRD @14 :Text;
-  actorDataSchemaHRD @15 :Text;
+  serviceDataSchemaHRD @12 :Text;
+  actorDataSchemaHRD @13 :Text;
 
 
 }
@@ -135,9 +132,7 @@ struct Service {
   #schema of config data in textual format
   capnpSchema @9 :Text;
 
-  key @10 :Text;
-
-  gitRepos @11 :List(GitRepo);
+  gitRepos @10 :List(GitRepo);
   struct GitRepo {
     #git url
     url @0 :Text;
@@ -152,21 +147,17 @@ struct Service {
 #this is used to know which code was executed and what exactly the code was
 struct ActionCode {
 
-  #is blake hash constructed out of actor_name+name+code
-  #unique over world !
-  guid @0 :Text;
-
   #name of the method e.g. install
-  name @1 :Text;
+  name @0 :Text;
 
   #actor name e.g. node.ssh, is unique over all actors in world
-  actorName @2 :Text;
+  actorName @1 :Text;
 
-  code @3 :Text;
+  code @2 :Text;
 
-  lastModDate @4: UInt32;
+  lastModDate @3: UInt32;
 
-  args @5 :List(Argument);
+  args @4 :List(Argument);
   struct Argument {
     name @0: Text;
     defval @1: Data;
@@ -176,8 +167,8 @@ struct ActionCode {
 struct Run {
     #this object is hosted by actor based on FQDN
 
-    #unique id globally for this job = constructed out of blake hash of :  tbd
-    guid @0 :Text;
+    #which step is running right now, can only move to net one if previous one was completed
+    currentStep @0: UInt16;
 
     #FQDN of a specific actor which can run multiple jobs & orchestrate work
     aysControllerFQDN @1 :Text;
@@ -214,16 +205,15 @@ struct Run {
 
     lastModDate @4: UInt32;
 
-    #which step is running right now, can only move to net one if previous one was completed
-    currentStep @5: UInt16;
+
 
 }
 
 
 struct Job {
   #this object is hosted by actor based on FQDN
-
-  key @0 :Text;
+  #is the run which asked for this job
+  runGuid @0 :Text;
 
   #role of service e.g. node.ssh
   actorName @1 :Text;
@@ -272,11 +262,9 @@ struct Job {
   #dict which will be given to method as **args
   argsJson @10 :Data;
 
-  #can e.g. delete
-  ownerKey @11 :Text;
 
   #is the last current state
-  state @12 :State;
+  state @11 :State;
   enum State {
       new @0;
       running @1;
@@ -284,10 +272,7 @@ struct Job {
       error @3;
   }
 
-  #is the run which asked for this job
-  runGuid @13 :Text;
-
   #json serialized result (dict), if any
-  result @14 :Text;
+  result @12 :Text;
 
 }

@@ -58,8 +58,19 @@ class Machine:
     def create(self):
         self.domain = self.controller.connection.defineXML(self.to_xml())
 
+    @property
+    def is_created(self):
+        return False
+
+    @property
+    def is_started(self):
+        return False
+
     def delete(self):
         return domain.destroy() == 0
+
+    def pause(self):
+        return domain.suspend() == 0
 
     def start(self):
         return self.domain.create() == 0
@@ -72,17 +83,6 @@ class Machine:
 
     def resume(self):
         return self.domain.resume() == 0
-
-class MachineHelper:
-
-    def create(self, machine):
-        [disk.create() for disk in machine.disks]
-        [nic.create() for nic in machine.nics]
-        return machine.create()
-
-    def start(self, machine):
-        pass
-
 
 class KVMController:
 
@@ -134,3 +134,35 @@ class MIE_kvm:
         self.Disk = Disk
         self.Pool = Pool
         self.StorageController = StorageController
+        self.CloudMachine = CloudMachine
+
+class CloudMachine(Machine):
+
+    POOL = 'vms'
+
+    def __init__(self, controller, name, os, disks, nics, memory, cpucount, uuid=None):
+        self.pool = j.sal.our_kvm.Pool(controller, self.POOL)
+        new_nics = list(map(lambda x: j.sal.our_kvm.Interface(controller, x,
+            j.sal.our_kvm.Network(controller, x, x, [])), nics))
+        new_disks = [j.sal.our_kvm.Disk(controller, self.pool, name, 'base', disks[0], os)]
+        for i, disk in enumerate(disks[1:]):
+            new_disks.append(j.sal.our_kvm.Disk(controller, self.pool, name, 'data-%s'%(i), disk))
+
+        super().__init__(controller, name, new_disks, new_nics, memory, cpucount, uuid=uuid)
+
+
+    def create(self):
+        [disk.create() for disk in self.disks if not disk.is_created]
+        [nic.create() for nic in self.nics if not nic.is_created]
+        return super().create() if not self.is_created else True
+
+    def start(self):
+        [disk.start() for disk in self.disks if not disk.is_started]
+        [nic.start() for nic in self.nics if not nic.is_started]
+        return super().start() if not self.is_started else True
+
+    def stop(self):
+        return self.stop()
+
+    def destroy(self):
+        return self.destroy()

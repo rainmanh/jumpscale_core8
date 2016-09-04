@@ -69,7 +69,6 @@ class Network:
         self.controller.executor.execute(
             'ovs-vsctl --if-exists del-br %s' % self.name)
 
-
 class Interface:
 
     def __init__(self, controller, name, bridge, interface_rate=None, source=None):
@@ -156,3 +155,17 @@ class Interface:
             macaddress=self.mac, bridge=self.bridge.name, qos=self.qos, rate=self.interface_rate, burst=self.burst, name=self.name
         )
         return Interfacexml
+
+    @property
+    def is_created(self):
+        return False
+
+    @property
+    def is_started(self):
+        return False
+
+    def start(self):
+        pass
+
+    def create(self):
+        pass

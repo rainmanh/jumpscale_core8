@@ -5,7 +5,7 @@ import os
 
 class Disk():
 
-    def __init__(self, controller, pool, vm_id, role, size, image_name):
+    def __init__(self, controller, pool, vm_id, role, size, image_name=""):
         self.vm_id = vm_id
         self.role = role
         self.size = size
@@ -21,13 +21,20 @@ class Disk():
         vm_id = name.split('-')[0]
         role = name.split('-')[0].split('.')[0]
         size = disk.findtext('size')
-        path = disk.find('backingStore').findtext('path')
-        image_name = path.split("/")[0].split('.')[0]
+        #TODO optional image
+        if not disk.find('backingStore') is None:
+            path = disk.find('backingStore').findtext('path')
+            image_name = path.split("/")[0].split('.')[0]
+        else:
+            image_name = ''
         return cls(controller, vm_id, role, size,image_name)
 
     def to_xml(self):
         disktemplate = self.controller.env.get_template('disk.xml')
-        diskbasevolume = self.controller.executor.cuisine.core.joinpaths(self.controller.base_path, "images", '%s.qcow2' % self.image_name)
+        if self.image_name:
+            diskbasevolume = self.controller.executor.cuisine.core.joinpaths(self.controller.base_path, "images", '%s.qcow2' % self.image_name)
+        else:
+            diskbasevolume = ''
         diskpath = self.controller.executor.cuisine.core.joinpaths(self.pool.poolpath, '%s.qcow2' % self.name)
         diskxml = disktemplate.render({'diskname':self.name, 'diskpath': diskpath, 'disksize':self.size, 'diskbasevolume':diskbasevolume})
         return diskxml
@@ -36,6 +43,17 @@ class Disk():
         volume = self.pool.lvpool.createXML(self.to_xml(), 0)
         #return libvirt volume obj
         return volume
+
+    @property
+    def is_created(self):
+        return False
+
+    @property
+    def is_started(self):
+        return False
+
+    def start(self):
+        pass
 
     def delete(self):
         try:

@@ -3,9 +3,9 @@
 
 - /opt/jumpscale8/lib/JumpScale/sal/dnsmasq/Dnsmasq.py
 - Properties
-    - cuisine
     - executor
     - logger
+    - cuisine
 
 ### Methods
 

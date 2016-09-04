@@ -3,9 +3,9 @@
 
 - /opt/jumpscale8/lib/JumpScale/sal/docker/Docker.py
 - Properties
-    - base_url
     - client
     - logger
+    - base_url
 
 ### Methods
 

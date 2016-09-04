@@ -4,8 +4,8 @@
 - /opt/jumpscale8/lib/JumpScale/tools/worksheets/Sheets.py
 - Properties
     - sheetNames
-    - sheetsByCategory
     - sheets
+    - sheetsByCategory
 
 ### Methods
 

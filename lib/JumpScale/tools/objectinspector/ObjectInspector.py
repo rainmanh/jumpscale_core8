@@ -409,14 +409,16 @@ class ObjectInspector:
         """
         Writes the documentation on a specified path.
         """
+        self.dest=os.path.normpath(self.dest)
         todelete = []
         summary = {}
         for key, doc in list(self.classDocs.items()):
-            key2 = "_".join(key.split(".")[0:2])
+            key2 = ".".join(key.split(".")[0:2]) #root items (data,core,application, sal,..)
             if key2 not in summary:
                 summary[key2] = {}
             dest = doc.write(path)
             # remember gitbook info
+            dest=os.path.normpath(dest)
             summary[key2][key] = j.sal.fs.pathRemoveDirPart(dest, self.dest)
 
         summarytxt = ""
@@ -428,7 +430,8 @@ class ObjectInspector:
             keys2.sort()
             for key2 in keys2:
                 keylink = summary[key1][key2]
-                keylink = keylink.replace(".", "_")
+                keylink = keylink.rstrip(".md").replace(".", "_")
+                keylink = keylink + ".md"
                 summarytxt += "    * [%s](%s)\n" % (key2, keylink)
 
         j.sal.fs.writeFile(filename="%s/SUMMARY.md" % (self.dest), contents=summarytxt)

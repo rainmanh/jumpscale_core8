@@ -3,9 +3,9 @@
 
 - /opt/jumpscale8/lib/JumpScale/tools/sandboxer/Sandboxer.py
 - Properties
+    - new_size
     - original_size
     - exclude
-    - new_size
 
 ### Methods
 

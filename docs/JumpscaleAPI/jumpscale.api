@@ -1170,7 +1170,7 @@ j.core.platformtype.myplatform.executor.cuisine.core.file_sha256?4([- location
 j.core.platformtype.myplatform.executor.cuisine.core.file_unlink?4([- path
 ])
 j.core.platformtype.myplatform.executor.cuisine.core.file_update?4([- location
-, - updater = <function CuisineCore.<lambda> at 0x7fc8f9e2b2f0>
+, - updater = <function CuisineCore.<lambda> at 0x7f41e102d268>
 ])
 j.core.platformtype.myplatform.executor.cuisine.core.file_upload_binary?4([- local
 , - remote
@@ -5735,7 +5735,7 @@ j.tools.cuisine.local.core.file_sha256?4([- location
 j.tools.cuisine.local.core.file_unlink?4([- path
 ])
 j.tools.cuisine.local.core.file_update?4([- location
-, - updater = <function CuisineCore.<lambda> at 0x7fc8f9e2b2f0>
+, - updater = <function CuisineCore.<lambda> at 0x7f41e102d268>
 ])
 j.tools.cuisine.local.core.file_upload_binary?4([- local
 , - remote

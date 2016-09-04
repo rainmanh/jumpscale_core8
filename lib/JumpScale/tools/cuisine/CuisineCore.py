@@ -204,7 +204,7 @@ class CuisineCore(base):
     def getenv(self, refresh=False):
         def get():
             res = {}
-            rc, out, err = self._cuisine.core.run("printenv", profile=False, showout=False, replaceArgs=False)
+            _, out, _ = self._cuisine.core.run("printenv", profile=False, showout=False, replaceArgs=False)
             for line in out.splitlines():
                 if '=' in line:
                     name, val = line.split("=", 1)

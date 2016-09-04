@@ -6,7 +6,7 @@ import random
 class Network:
     """Network object representation of xml and actual Network."""
 
-    def __init__(self, controller, name, bridge, interfaces):
+    def __init__(self, controller, name, bridge=None, interfaces=[]):
         """
         Instance of network object representation of open vstorage network.
 
@@ -16,15 +16,18 @@ class Network:
         @param interfaces
         """
         self.name = name
-        self.bridge = bridge
+        self.bridge = bridge if bridge else name
         self._interfaces = interfaces
         self.controller = controller
 
     @property
     def interfaces(self):
         if self._interfaces is None:
-            self._interfaces = j.sal.openvswitch.netcl.listBridgePorts(
-                self.bridge)
+            if self.bridge in self.controller.executor.execute("ovs-vsctl list-br"):
+                self._interfaces = self.controller.executor.execute(
+                    "ovs-vsctl list-ports %s" % self.bridge)
+            else:
+                return []
         return self._interfaces
 
     def create(self, autostart=True, start=True):
@@ -64,7 +67,7 @@ class Network:
 
     def destroy(self):
         self.controller.executor.execute(
-            'ovs-ovstl --if-exists del-br %s' % self.name)
+            'ovs-vsctl --if-exists del-br %s' % self.name)
 
 
 class Interface:
@@ -89,8 +92,56 @@ class Interface:
         self._source = source
         self.mac = generate_mac()
 
-    def from_xml(self, source):
+    def Create(self):
+        """
+        Create and interface and relevant ports connected to certain bridge or network.
 
+        @name  str: name of the interface and port that will be creates
+        @bridge str: name of bridge to add the interface to
+        @qos int: limit the allowed rate to be used by interface
+        """
+        # TODO: *1 spec
+        # is a name relevant???, how do we identify a vnic
+        self.controller.executor.execute(
+            'ovs-vsctl --if-exists del-port %s %s' % (self.bridge, self.name))
+        self.controller.executor.execute(
+            'ovs-vsctl --may-exist add-port %s %s' % (self.bridge, self.name))
+
+    def list(self, bridge):
+        """
+        List ports available on bridge specified.
+        """
+        _, out, _ = self.controller.executor.execute(
+            "ovs-vsctl list-ports %s" % name)
+        return out.splitlines()
+
+    def destroy(self):
+        """
+        Delete interface and port related to certain machine.
+
+        @bridge str: name of bridge
+        @name str: name of port and interface to be deleted
+        """
+        return self.controller.executor.execute('ovs-vsctl del-port %s %s' % (self.bridge, self.name))
+
+    def qos(self, qos, burst=None):
+        """
+        Limit the throughtput into an interface as a for of qos.
+
+        @interface str: name of interface to limit rate on 
+        @qos int: rate to be limited to in Kb 
+        @burst int: maximum allowed burst that can be reached in Kb/s
+        """
+        # TODO: *1 spec what is relevant for a vnic from QOS perspective, what can we do
+        # goal is we can do this at runtime
+        self.controller.executor.execute(
+            'ovs-vsctl set interface %s ingress_policing_rate=%d' % (self.name, qos))
+        if not burst:
+            burst = int(qos * 0.1)
+        self.controller.executor.execute(
+            'ovs-vsctl set interface %s ingress_policing_burst=%d' % (self.name, burst))
+
+    def from_xml(self, source):
         interface = ElementTree.fromstring(source)
         self.name = interface.findall('paramaters')[0].get('profileid')
         self.bridge = interface.findall('source')[0].get('bridge')

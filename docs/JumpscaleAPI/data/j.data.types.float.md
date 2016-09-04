@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/data/types/PrimitiveTypes.py
 - Properties
-    - BASETYPE
     - NAME
+    - BASETYPE
 
 ### Methods
 
@@ -28,7 +28,7 @@ used to change the value to a predefined standard for this type
 
 #### fromString(*s*) 
 
-#### get_default(**) 
+#### get_default() 
 
 #### toString(*value*) 
 

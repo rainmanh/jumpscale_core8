@@ -3,9 +3,9 @@
 
 - /opt/jumpscale8/lib/JumpScale/tools/worksheets/Sheets.py
 - Properties
+    - sheets
     - sheetsByCategory
     - sheetNames
-    - sheets
 
 ### Methods
 
@@ -37,7 +37,7 @@
 
 #### new(*name, nrcols=72, headers, category*) 
 
-#### obj2dict(**) 
+#### obj2dict() 
 
 #### sumRows(*rows, newRow*) 
 

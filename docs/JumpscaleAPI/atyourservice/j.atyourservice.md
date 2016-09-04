@@ -3,9 +3,9 @@
 
 - /opt/jumpscale8/lib/JumpScale/baselib/atyourservice/AtYourServiceFactory.py
 - Properties
-    - logger
-    - debug
     - indocker
+    - debug
+    - logger
 
 ### Methods
 
@@ -46,11 +46,11 @@ Get a repo by name or path, if repo does not exist, it will be created
 
 ```
 
-#### getActionMethodDecorator(**) 
+#### getActionMethodDecorator() 
 
-#### getActionsBaseClassMgmt(**) 
+#### getActionsBaseClassMgmt() 
 
-#### getActionsBaseClassNode(**) 
+#### getActionsBaseClassNode() 
 
 #### getBlueprint(*aysrepo, path*) 
 
@@ -65,7 +65,7 @@ Get a repo by name or path, if repo does not exist, it will be created
 
 #### getTester(*name='fake_IT_env'*) 
 
-#### reset(**) 
+#### reset() 
 
 #### updateTemplates(*repos*) 
 

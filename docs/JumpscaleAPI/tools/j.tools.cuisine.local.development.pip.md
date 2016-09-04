@@ -5,7 +5,7 @@
 
 ### Methods
 
-#### ensure(**) 
+#### ensure() 
 
 #### install(*package, upgrade*) 
 

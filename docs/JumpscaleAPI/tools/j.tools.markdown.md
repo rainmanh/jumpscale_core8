@@ -5,7 +5,7 @@
 
 ### Methods
 
-#### installTools(**) 
+#### installTools() 
 
 ```
 installs useful tools for markdown

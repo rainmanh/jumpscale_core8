@@ -3,12 +3,12 @@
 
 - /opt/jumpscale8/lib/JumpScale/core/specparser/SpecParser.py
 - Properties
+    - appnames
+    - roles
     - actornames
+    - childspecs
     - app_actornames
     - specs
-    - appnames
-    - childspecs
-    - roles
     - modelnames
 
 ### Methods
@@ -43,7 +43,7 @@ do not specify query with one of the other filter criteria
 
 #### getactorSpec(*app, name, raiseError=True*) 
 
-#### init(**) 
+#### init() 
 
 #### parseSpecs(*specpath, appname, actorname*) 
 
@@ -54,5 +54,5 @@ do not specify query with one of the other filter criteria
 
 #### removeSpecsForactor(*appname, actorname*) 
 
-#### resetMemNonSystem(**) 
+#### resetMemNonSystem() 
 

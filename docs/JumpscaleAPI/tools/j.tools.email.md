@@ -5,7 +5,7 @@
 
 ### Methods
 
-#### getDefaultSender(**) 
+#### getDefaultSender() 
 
 ```
 Gets the default configured email sender
@@ -25,7 +25,7 @@ Gets most recent `num` emails
 
 #### getSender(*username, password, host='smtp.mandrillapp.com', port=587*) 
 
-#### pop(**) 
+#### pop() 
 
 ```
 Pops oldest email from the queue.

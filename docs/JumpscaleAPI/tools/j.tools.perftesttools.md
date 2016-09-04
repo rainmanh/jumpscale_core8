@@ -3,11 +3,11 @@
 
 - /opt/jumpscale8/lib/JumpScale/tools/perftesttools/PerfTestToolsFactory.py
 - Properties
-    - redispasswd
-    - nodes
-    - monitorNodeIp
     - monitorNodeSSHPort
+    - redispasswd
+    - monitorNodeIp
     - sshkey
+    - nodes
 
 ### Methods
 
@@ -34,7 +34,7 @@ call self.getScript()
 
 ```
 
-#### influxpump(**) 
+#### influxpump() 
 
 ```
 will dump redis stats into influxdb & env is used to get config parameters from
@@ -51,7 +51,7 @@ the goal is you use ssh-agent & your keys pre-loaded, best not to manually work 
 
 ```
 
-#### monitor(**) 
+#### monitor() 
 
 ```
 will do monitoring & send results to redis, env is used to get config parameters from

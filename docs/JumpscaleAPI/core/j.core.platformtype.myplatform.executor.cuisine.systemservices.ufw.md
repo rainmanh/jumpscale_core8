@@ -9,9 +9,9 @@
 
 #### denyIncoming(*port*) 
 
-#### flush(**) 
+#### flush() 
 
-#### show(**) 
+#### show() 
 
-#### ufw_enable(**) 
+#### ufw_enable() 
 

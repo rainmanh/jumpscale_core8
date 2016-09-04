@@ -27,11 +27,11 @@ it if necessary and also create it
 
 ```
 
-#### reload(**) 
+#### reload() 
 
 #### remove(*prefix*) 
 
-#### restart(**) 
+#### restart() 
 
 #### start(*name*) 
 

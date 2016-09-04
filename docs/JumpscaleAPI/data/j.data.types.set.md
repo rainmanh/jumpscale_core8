@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/data/types/CollectionTypes.py
 - Properties
-    - BASETYPE
     - NAME
+    - BASETYPE
 
 ### Methods
 
@@ -17,5 +17,5 @@ Check whether provided value is a set
 
 ```
 
-#### get_default(**) 
+#### get_default() 
 

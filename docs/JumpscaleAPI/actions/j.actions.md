@@ -3,10 +3,10 @@
 
 - /opt/jumpscale8/lib/JumpScale/tools/actions/ActionController.py
 - Properties
-    - lastOnes
-    - logger
     - last
     - rememberDone
+    - logger
+    - lastOnes
 
 ### Methods
 
@@ -46,7 +46,7 @@ name is name of method
 
 #### get(*actionkey*) 
 
-#### gettodo(**) 
+#### gettodo() 
 
 #### reset(*all, runid, prefix*) 
 
@@ -55,11 +55,11 @@ name is name of method
 
 ```
 
-#### resetAll(**) 
+#### resetAll() 
 
 #### run(*agentcontroller*) 
 
-#### selectAction(**) 
+#### selectAction() 
 
 #### setRunId(*runid, reset*) 
 

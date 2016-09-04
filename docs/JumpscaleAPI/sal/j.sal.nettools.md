@@ -53,9 +53,9 @@ or if the target file checksum doesn't match the expected checksum.
 
 ```
 
-#### getDefaultIPConfig(**) 
+#### getDefaultIPConfig() 
 
-#### getDefaultRouter(**) 
+#### getDefaultRouter() 
 
 ```
 Get default router
@@ -63,7 +63,7 @@ Get default router
 
 ```
 
-#### getDomainName(**) 
+#### getDomainName() 
 
 ```
 Retrieve the dns domain name
@@ -72,7 +72,7 @@ Retrieve the dns domain name
 
 #### getHostByName(*dnsHostname*) 
 
-#### getHostname(**) 
+#### getHostname() 
 
 ```
 Get hostname of the machine
@@ -107,7 +107,7 @@ Search the MAC address of the given IP address in the ARP table
 
 ```
 
-#### getNameServer(**) 
+#### getNameServer() 
 
 ```
 Returns the first nameserver IP found in /etc/resolv.conf
@@ -122,7 +122,7 @@ Only implemented for Unix based hosts.
 
 ```
 
-#### getNetworkInfo(**) 
+#### getNetworkInfo() 
 
 ```
 returns \{macaddr_name:[ipaddr,ipaddr],...\}

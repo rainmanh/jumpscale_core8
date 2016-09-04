@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/tools/cuisine/apps/CuisinePortal.py
 - Properties
-    - portal_dir
     - main_portal_dir
+    - portal_dir
 
 ### Methods
 
@@ -12,18 +12,18 @@
 
 #### addactor(*actorpath*) 
 
-#### getcode(**) 
+#### getcode() 
 
 #### install(*start=True, mongodbip='127.0.0.1', mongoport=27017, influxip='127.0.0.1', influxport=8086, grafanaip='127.0.0.1', grafanaport=3000, login='', passwd=''*) 
 
-#### installDeps(**) 
+#### installDeps() 
 
 ```
 make sure new env arguments are understood on platform
 
 ```
 
-#### linkCode(**) 
+#### linkCode() 
 
 #### serviceconnect(*mongodbip='127.0.0.1', mongoport=27017, influxip='127.0.0.1', influxport=8086, grafanaip='127.0.0.1', grafanaport=3000*) 
 
@@ -37,5 +37,5 @@ passwd : if not None, change the admin password to passwd after start
 
 ```
 
-#### stop(**) 
+#### stop() 
 

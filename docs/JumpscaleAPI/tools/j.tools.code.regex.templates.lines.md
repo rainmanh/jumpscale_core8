@@ -7,9 +7,9 @@
 
 regexexamples which find lines
 
-#### findClasslines(**) 
+#### findClasslines() 
 
-#### findCommentlines(**) 
+#### findCommentlines() 
 
-#### findDeflines(**) 
+#### findDeflines() 
 

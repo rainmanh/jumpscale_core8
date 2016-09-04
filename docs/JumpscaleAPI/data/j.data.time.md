@@ -127,14 +127,14 @@ is # hour from jan 1 2010
 
 ```
 
-#### getLocalTimeHR(**) 
+#### getLocalTimeHR() 
 
 ```
 Get the current local date and time in a human-readable form
 
 ```
 
-#### getLocalTimeHRForFilesystem(**) 
+#### getLocalTimeHRForFilesystem() 
 
 #### getMinuteId(*epoch*) 
 
@@ -145,14 +145,14 @@ is # min from jan 1 2010
 
 #### getSecondsInHR(*seconds*) 
 
-#### getTimeEpoch(**) 
+#### getTimeEpoch() 
 
 ```
 Get epoch timestamp (number of seconds passed since January 1, 1970)
 
 ```
 
-#### getTimeEpochBin(**) 
+#### getTimeEpochBin() 
 
 ```
 Get epoch timestamp (number of seconds passed since January 1, 1970)

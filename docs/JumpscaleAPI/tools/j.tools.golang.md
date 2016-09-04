@@ -7,7 +7,7 @@
 
 #### build(*url*) 
 
-#### check(**) 
+#### check() 
 
-#### init(**) 
+#### init() 
 

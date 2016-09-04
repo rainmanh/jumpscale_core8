@@ -9,15 +9,15 @@
 
 #### addRecord(*domain, host, ip, klass, type, ttl*) 
 
-#### cleanCache(**) 
+#### cleanCache() 
 
 #### deleteHost(*host*) 
 
-#### restart(**) 
+#### restart() 
 
-#### start(**) 
+#### start() 
 
-#### stop(**) 
+#### stop() 
 
 #### updateHostIp(*host, ip*) 
 

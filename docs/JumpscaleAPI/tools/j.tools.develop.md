@@ -5,7 +5,7 @@
 
 ### Methods
 
-#### help(**) 
+#### help() 
 
 #### init(*nodes*) 
 
@@ -25,7 +25,7 @@ look for changes in directories which are being pushed & if found push to remote
 
 ```
 
-#### resetState(**) 
+#### resetState() 
 
 #### syncCode(*ask, monitor, rsyncdelete=True, reset*) 
 

@@ -28,7 +28,7 @@ Add a new UFW rule
 
 ```
 
-#### commit(**) 
+#### commit() 
 
 ```
 Apply all bending actions
@@ -66,7 +66,7 @@ Remove the specified rule
 
 ```
 
-#### reset(**) 
+#### reset() 
 
 ```
 Remove all rules.

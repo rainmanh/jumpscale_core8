@@ -3,10 +3,10 @@
 
 - /opt/jumpscale8/lib/JumpScale/core/codegentools/CodeGenerator.py
 - Properties
-    - codepath
-    - classes
     - generated
+    - classes
     - appdir
+    - codepath
 
 ### Methods
 
@@ -46,7 +46,7 @@ return: returns dict with key name methodname and then the class (for each metho
 
 #### removeFromMem(*appname, actor*) 
 
-#### resetMemNonSystem(**) 
+#### resetMemNonSystem() 
 
 #### setTarget(*target*) 
 

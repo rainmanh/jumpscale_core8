@@ -11,7 +11,7 @@
 
 #### addUser(*username, password*) 
 
-#### commitShare(**) 
+#### commitShare() 
 
 #### getShare(*sharename*) 
 
@@ -19,11 +19,11 @@
 
 #### grantaccess(*username, sharename, sharepath, readonly=True*) 
 
-#### listShares(**) 
+#### listShares() 
 
 #### listSubShares(*path*) 
 
-#### listUsers(**) 
+#### listUsers() 
 
 #### removeShare(*sharename*) 
 

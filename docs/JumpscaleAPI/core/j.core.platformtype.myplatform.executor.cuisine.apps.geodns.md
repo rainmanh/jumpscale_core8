@@ -66,7 +66,7 @@ installs and builds geodns from github.com/abh/geodns
 
 ```
 
-#### isInstalled(**) 
+#### isInstalled() 
 
 ```
 Checks if a package is installed or not

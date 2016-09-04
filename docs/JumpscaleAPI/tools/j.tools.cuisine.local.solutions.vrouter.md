@@ -17,14 +17,14 @@ this interface will be used to create an accesspoint
 
 ```
 
-#### bridge(**) 
+#### bridge() 
 
 ```
 create bridge which has accesspoint interface in it (wireless)
 
 ```
 
-#### check(**) 
+#### check() 
 
 #### dhcpServer(*interfaces*) 
 
@@ -35,15 +35,15 @@ if not specified then will look for wireless interface which is used in accesspo
 
 ```
 
-#### dnsServer(**) 
+#### dnsServer() 
 
-#### firewall(**) 
+#### firewall() 
 
-#### hostap(**) 
+#### hostap() 
 
-#### prepare(**) 
+#### prepare() 
 
-#### proxy(**) 
+#### proxy() 
 
-#### runSolution(**) 
+#### runSolution() 
 

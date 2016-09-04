@@ -3,21 +3,21 @@
 
 - /opt/jumpscale8/lib/JumpScale/core/main/Dirs.py
 - Properties
-    - jsLibDir
     - varDir
-    - libDir
+    - pidDir
     - hrd
-    - cfgDir
+    - tmpDir
     - codeDir
-    - base
-    - binDir
-    - tmplsDir
+    - homeDir
+    - libDir
     - libExtDir
     - appDir
+    - jsLibDir
+    - base
+    - binDir
+    - cfgDir
     - logDir
-    - homeDir
-    - tmpDir
-    - pidDir
+    - tmplsDir
 
 ### Methods
 
@@ -25,7 +25,7 @@ Utility class to configure and store all relevant directory paths
 
 #### getPathOfRunningFunction(*function*) 
 
-#### init(**) 
+#### init() 
 
 #### replaceFilesDirVars(*path, recursive=True, filter, additionalArgs*) 
 

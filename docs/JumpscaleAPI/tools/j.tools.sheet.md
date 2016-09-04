@@ -5,7 +5,7 @@
 
 ### Methods
 
-#### getSheetsCollection(**) 
+#### getSheetsCollection() 
 
 #### new(*name, nrcols=72, headers, period='M'*) 
 

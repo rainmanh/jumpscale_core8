@@ -5,5 +5,5 @@
 
 ### Methods
 
-#### getGeventLoopClass(**) 
+#### getGeventLoopClass() 
 

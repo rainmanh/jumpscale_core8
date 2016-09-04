@@ -3,10 +3,10 @@
 
 - /opt/jumpscale8/lib/JumpScale/data/models/BaseModelFactory.py
 - Properties
+    - EmbeddedDocument
     - Alarm
     - Email
     - Generic
-    - EmbeddedDocument
     - Telegram
 
 ### Methods
@@ -15,5 +15,5 @@
 
 #### connect2mongo(*host='localhost', port=27017, db='jumpscale_system'*) 
 
-#### listModels(**) 
+#### listModels() 
 

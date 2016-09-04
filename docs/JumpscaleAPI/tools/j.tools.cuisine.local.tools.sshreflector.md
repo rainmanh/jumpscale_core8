@@ -18,7 +18,7 @@ js
 
 ```
 
-#### client_delete(**) 
+#### client_delete() 
 
 #### createconnection(*remoteids*) 
 

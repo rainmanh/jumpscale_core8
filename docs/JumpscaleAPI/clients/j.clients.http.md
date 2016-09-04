@@ -5,5 +5,5 @@
 
 ### Methods
 
-#### getConnection(**) 
+#### getConnection() 
 

@@ -9,7 +9,7 @@
 
 #### findDisk(*name='', mountpoint='', caseSensitive*) 
 
-#### getDisks(**) 
+#### getDisks() 
 
 ```
 Get list of all available disks on machine

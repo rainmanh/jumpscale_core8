@@ -4,15 +4,15 @@
 - /opt/jumpscale8/lib/JumpScale/core/main/Application.py
 - Properties
     - jid
-    - noremote
-    - interactive
-    - sandbox
     - gridInitialized
-    - agentid
-    - state
-    - logger
-    - appname
     - skipTraceback
+    - state
+    - interactive
+    - appname
+    - sandbox
+    - logger
+    - agentid
+    - noremote
 
 ### Methods
 
@@ -26,9 +26,9 @@ returns hrd for specific appname & instance name (default domain=jumpscale or no
 
 ```
 
-#### fixlocale(**) 
+#### fixlocale() 
 
-#### getAgentId(**) 
+#### getAgentId() 
 
 #### getAppHRDInstanceNames(*name, domain='jumpscale'*) 
 
@@ -51,7 +51,7 @@ returns list of hrd instances for specified app
 
 ```
 
-#### getCPUUsage(**) 
+#### getCPUUsage() 
 
 ```
 try to get cpu usage, if it doesn't work will return 0
@@ -59,7 +59,7 @@ By default 0 for windows
 
 ```
 
-#### getMemoryUsage(**) 
+#### getMemoryUsage() 
 
 ```
 try to get memory usage, if it doesn't work will return 0i
@@ -67,7 +67,7 @@ By default 0 for windows
 
 ```
 
-#### getUniqueMachineId(**) 
+#### getUniqueMachineId() 
 
 ```
 will look for network interface and return a hash calculated from lowest mac address from
@@ -75,15 +75,15 @@ will look for network interface and return a hash calculated from lowest mac add
 
 ```
 
-#### getWhoAmiStr(**) 
+#### getWhoAmiStr() 
 
-#### init(**) 
+#### init() 
 
-#### initGrid(**) 
+#### initGrid() 
 
-#### reload(**) 
+#### reload() 
 
-#### reset(**) 
+#### reset() 
 
 ```
 empties the core.db
@@ -111,7 +111,7 @@ Stop the application cleanly using a given exitcode
 
 ```
 
-#### useCurrentDirAsHome(**) 
+#### useCurrentDirAsHome() 
 
 ```
 use current directory as home for JumpScale

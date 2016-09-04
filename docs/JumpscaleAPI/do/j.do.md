@@ -3,13 +3,13 @@
 
 - /opt/jumpscale8/lib/JumpScale/InstallTools.py
 - Properties
-    - debug
+    - installer
     - BASE
+    - debug
+    - CODEDIR
     - TMP
     - VARDIR
-    - CODEDIR
     - TYPE
-    - installer
 
 ### Methods
 
@@ -61,7 +61,7 @@ check if path is dir or link to a dir
 
 ```
 
-#### checkSSHAgentAvailable(**) 
+#### checkSSHAgentAvailable() 
 
 #### chmod(*path, permissions*) 
 
@@ -147,7 +147,7 @@ Return the base name of pathname path.
 
 ```
 
-#### getBinDirSystem(**) 
+#### getBinDirSystem() 
 
 #### getDirName(*path, lastOnly, levelsUp*) 
 
@@ -230,13 +230,13 @@ TODO: why do we have 2 implementations which are almost the same see getParentDi
 
 #### getPythonLibSystem(*jumpscale*) 
 
-#### getPythonSiteConfigPath(**) 
+#### getPythonSiteConfigPath() 
 
 #### getSSHKeyFromAgentPub(*keyname, die=True*) 
 
 #### getSSHKeyPathFromAgent(*keyname, die=True*) 
 
-#### getTimeEpoch(**) 
+#### getTimeEpoch() 
 
 ```
 Get epoch timestamp (number of seconds passed since January 1, 1970)
@@ -245,7 +245,7 @@ Get epoch timestamp (number of seconds passed since January 1, 1970)
 
 #### getTmpPath(*filename*) 
 
-#### getWalker(**) 
+#### getWalker() 
 
 #### installPackage(*path*) 
 
@@ -280,9 +280,9 @@ Check if the specified path is a link
 
 ```
 
-#### isUnix(**) 
+#### isUnix() 
 
-#### isWindows(**) 
+#### isWindows() 
 
 #### joinPaths(**args*) 
 
@@ -456,7 +456,7 @@ dest is where the link will be created pointing to src
 
 #### updateGitRepos(*provider='', account='', name='', message=''*) 
 
-#### whoami(**) 
+#### whoami() 
 
 #### writeFile(*path, content, strip=True*) 
 

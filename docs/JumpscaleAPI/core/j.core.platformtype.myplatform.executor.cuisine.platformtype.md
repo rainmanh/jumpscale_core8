@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/core/main/PlatformTypes.py
 - Properties
-    - myplatform
     - cache
+    - myplatform
     - executor
 
 ### Methods
@@ -21,49 +21,49 @@ if any of the items e.g. darwin is in getMyRelevantPlatforms then return True
 
 #### has_parent(*name*) 
 
-#### isGeneric(**) 
+#### isGeneric() 
 
 ```
 Checks whether the platform is generic (they all should)
 
 ```
 
-#### isHyperV(**) 
+#### isHyperV() 
 
 ```
 Check whether the system supports HyperV
 
 ```
 
-#### isLinux(**) 
+#### isLinux() 
 
 ```
 Checks whether the platform is Linux-based
 
 ```
 
-#### isUnix(**) 
+#### isUnix() 
 
 ```
 Checks whether the platform is Unix-based
 
 ```
 
-#### isVirtualBox(**) 
+#### isVirtualBox() 
 
 ```
 Check whether the system supports VirtualBox
 
 ```
 
-#### isWindows(**) 
+#### isWindows() 
 
 ```
 Checks whether the platform is Windows-based
 
 ```
 
-#### isXen(**) 
+#### isXen() 
 
 ```
 Checks whether Xen support is enabled

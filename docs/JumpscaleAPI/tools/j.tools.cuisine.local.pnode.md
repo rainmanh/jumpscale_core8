@@ -7,9 +7,9 @@
 
 ### Methods
 
-#### buildArchImage(**) 
+#### buildArchImage() 
 
-#### buildG8OSImage(**) 
+#### buildG8OSImage() 
 
 #### erase(*keepRoot=True*) 
 

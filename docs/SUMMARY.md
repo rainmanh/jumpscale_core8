@@ -120,3 +120,4 @@
   - [ByteProcessor](Extensions/ByteProcessor.md)
   - [Manipulate Code](Extensions/ModuleCodeTools.md)
   - [Mail Client](Extensions/MailClient.md)
+- [Jumpscale API](JumpscaleAPI/SUMMARY.md)

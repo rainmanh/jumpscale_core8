@@ -9,9 +9,9 @@
 
 ### Methods
 
-#### enableServerHTTP(**) 
+#### enableServerHTTP() 
 
-#### enableServerRSYNC(**) 
+#### enableServerRSYNC() 
 
 #### existsStorageSpace(*name*) 
 
@@ -27,7 +27,7 @@ Return a storagespace object
 
 ```
 
-#### help(**) 
+#### help() 
 
 #### removeStorageSpace(*name*) 
 
@@ -36,7 +36,7 @@ Remove a complete storagespace and all it's content
 
 ```
 
-#### restart(**) 
+#### restart() 
 
-#### start(**) 
+#### start() 
 

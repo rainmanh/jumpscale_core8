@@ -12,7 +12,7 @@ install capnp
 
 ```
 
-#### isInstalled(**) 
+#### isInstalled() 
 
 ```
 Checks if a package is installed or not

@@ -19,11 +19,11 @@ look for editor (uses geany) and then edit the file
 
 ```
 
-#### classGetBase(**) 
+#### classGetBase() 
 
-#### classGetJSModelBase(**) 
+#### classGetJSModelBase() 
 
-#### classGetJSRootModelBase(**) 
+#### classGetJSRootModelBase() 
 
 #### classInfoGet(*classs*) 
 

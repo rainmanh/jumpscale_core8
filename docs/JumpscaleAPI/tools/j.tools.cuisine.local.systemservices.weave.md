@@ -9,7 +9,7 @@ virtual network services for docker
 
 #### install(*start=True, peer, jumpscalePath=True, reset*) 
 
-#### isInstalled(**) 
+#### isInstalled() 
 
 ```
 Checks if a package is installed or not

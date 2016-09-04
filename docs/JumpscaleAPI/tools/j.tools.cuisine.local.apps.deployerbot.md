@@ -32,9 +32,9 @@ If start is True, token g8_addresses, dns and oauth should be specified
 
 ```
 
-#### install_deps(**) 
+#### install_deps() 
 
-#### isInstalled(**) 
+#### isInstalled() 
 
 ```
 Checks if a package is installed or not
@@ -42,7 +42,7 @@ You can ovveride it to use another way for checking
 
 ```
 
-#### link_code(**) 
+#### link_code() 
 
 #### start(*token, g8_addresses, dns, oauth*) 
 

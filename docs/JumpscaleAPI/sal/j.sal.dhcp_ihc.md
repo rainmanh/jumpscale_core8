@@ -9,9 +9,9 @@
 
 #### configure(*ipFrom, ipTo, interface*) 
 
-#### restart(**) 
+#### restart() 
 
-#### start(**) 
+#### start() 
 
-#### stop(**) 
+#### stop() 
 

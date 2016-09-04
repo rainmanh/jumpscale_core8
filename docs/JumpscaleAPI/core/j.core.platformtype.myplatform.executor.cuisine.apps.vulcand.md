@@ -7,9 +7,9 @@
 
 #### build(*reset*) 
 
-#### install(**) 
+#### install() 
 
-#### isInstalled(**) 
+#### isInstalled() 
 
 ```
 Checks if a package is installed or not

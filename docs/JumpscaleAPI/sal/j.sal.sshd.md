@@ -12,7 +12,7 @@ Add pubkey to authorized_keys
 
 ```
 
-#### commit(**) 
+#### commit() 
 
 ```
 Apply all pending changes to authorized_keys
@@ -26,7 +26,7 @@ Delete pubkey from authorized_keys
 
 ```
 
-#### disableNonKeyAccess(**) 
+#### disableNonKeyAccess() 
 
 ```
 Disable passowrd login to server. This action doens't require
@@ -35,7 +35,7 @@ make sure to commit it before you call this method.
 
 ```
 
-#### erase(**) 
+#### erase() 
 
 ```
 Erase all keys from authorized_keys

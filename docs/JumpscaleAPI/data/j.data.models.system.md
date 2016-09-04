@@ -3,25 +3,25 @@
 
 - /opt/jumpscale8/lib/JumpScale/data/models/BaseModelFactory.py
 - Properties
-    - VDisk
-    - Debug
-    - SessionCache
-    - User
-    - Test
-    - Errorcondition
-    - Alert
-    - Log
     - Group
     - Machine
-    - Job
-    - Heartbeat
-    - Node
-    - Command
-    - Audit
     - Grid
+    - Log
+    - Alert
+    - Audit
+    - Heartbeat
+    - SessionCache
+    - Node
+    - Test
+    - Command
+    - Debug
+    - Nic
+    - User
+    - Job
+    - Errorcondition
+    - VDisk
     - Disk
     - Process
-    - Nic
 
 ### Methods
 
@@ -29,5 +29,5 @@
 
 #### connect2mongo(*host='localhost', port=27017, db='jumpscale_system'*) 
 
-#### listModels(**) 
+#### listModels() 
 

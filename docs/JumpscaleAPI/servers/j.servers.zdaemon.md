@@ -73,7 +73,7 @@ client=j.servers.zdaemon.getZDaemonHAClient([('127.0.0.1',
 
 ```
 
-#### getZDaemonTransportClass(**) 
+#### getZDaemonTransportClass() 
 
 ```
 #example usage:

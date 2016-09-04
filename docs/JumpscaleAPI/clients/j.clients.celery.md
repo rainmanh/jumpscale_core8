@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/clients/celery/CeleryFactory.py
 - Properties
-    - actors
     - app
+    - actors
 
 ### Methods
 

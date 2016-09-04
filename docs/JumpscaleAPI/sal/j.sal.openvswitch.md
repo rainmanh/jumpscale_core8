@@ -39,7 +39,7 @@ walk over system and get configuration, result is dict
 
 #### getType(*interfaceName*) 
 
-#### initNetworkInterfaces(**) 
+#### initNetworkInterfaces() 
 
 ```
 Resets /etc/network/interfaces with a basic configuration
@@ -63,9 +63,9 @@ Reasonable defaults  : mode=balance-tcp, lacp=active,fast, bondname=brname-Bond,
 
 #### newVlanBridge(*name, parentbridge, vlanid, mtu*) 
 
-#### printConfigFromSystem(**) 
+#### printConfigFromSystem() 
 
-#### removeOldConfig(**) 
+#### removeOldConfig() 
 
 #### setBackplane(*interfacename='eth0', backplanename=1, ipaddr='192.168.10.10/24', gw=''*) 
 

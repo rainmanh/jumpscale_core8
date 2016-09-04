@@ -5,7 +5,7 @@
 
 ### Methods
 
-#### close(**) 
+#### close() 
 
 #### query(*query_, **kwargs*) 
 

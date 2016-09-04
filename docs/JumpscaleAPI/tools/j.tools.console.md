@@ -3,9 +3,9 @@
 
 - /opt/jumpscale8/lib/JumpScale/tools/console/Console.py
 - Properties
-    - logger
-    - width
     - indent
+    - width
+    - logger
 
 ### Methods
 
@@ -123,7 +123,7 @@ Display a yes/no question and loop until a valid answer is entered
 
 ```
 
-#### cls(**) 
+#### cls() 
 
 ```
 clear screen
@@ -178,7 +178,7 @@ print a message which is formatted with a prefix
 
 ```
 
-#### enableOutput(**) 
+#### enableOutput() 
 
 #### formatMessage(*message, prefix='', withStar, indent, width, removeemptylines=True*) 
 
@@ -190,11 +190,11 @@ Reformat the message to display to the user and calculate length
 
 ```
 
-#### getOutput(**) 
+#### getOutput() 
 
-#### hideOutput(**) 
+#### hideOutput() 
 
-#### printOutput(**) 
+#### printOutput() 
 
 #### rawInputPerChar(*callback, params*) 
 

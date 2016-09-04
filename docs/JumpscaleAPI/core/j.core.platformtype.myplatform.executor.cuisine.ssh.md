@@ -62,5 +62,5 @@ user.
 
 ```
 
-#### unauthorizeAll(**) 
+#### unauthorizeAll() 
 

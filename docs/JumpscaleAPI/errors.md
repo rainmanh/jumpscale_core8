@@ -6,7 +6,6 @@
 * cannot eval j.clients.rogerthat
 * cannot eval j.clients.sqlalchemy
 * cannot eval j.clients.tarantool
-* cannot eval j.core.grid
 * cannot eval j.core.jobcontroller
 * cannot eval j.core.platformtype.myplatform.executor.cuisine.builder
 * cannot eval j.core.platformtype.myplatform.executor.cuisine.core.domain

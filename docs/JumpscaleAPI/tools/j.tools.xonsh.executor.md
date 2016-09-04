@@ -3,17 +3,17 @@
 
 - /opt/jumpscale8/lib/JumpScale/tools/executor/ExecutorLocal.py
 - Properties
-    - checkok
-    - dest_prefixes
+    - env
+    - curpath
     - type
+    - jumpscale
     - debug
     - id
-    - curpath
+    - dest_prefixes
     - logger
-    - env
-    - jumpscale
     - platformtype
     - addr
+    - checkok
 
 ### Methods
 
@@ -37,7 +37,7 @@ e.g. can do check on unix, or linux, will check all
 
 #### exists(*path*) 
 
-#### init(**) 
+#### init() 
 
 #### upload(*source, dest, dest_prefix='', recursive=True*) 
 

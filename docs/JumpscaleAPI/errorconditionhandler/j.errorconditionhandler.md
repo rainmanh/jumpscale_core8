@@ -3,10 +3,10 @@
 
 - /opt/jumpscale8/lib/JumpScale/core/errorhandling/ErrorConditionHandler.py
 - Properties
-    - exceptions
     - lastAction
-    - lastEco
+    - exceptions
     - inException
+    - lastEco
     - escalateToRedis
     - haltOnError
 
@@ -97,7 +97,7 @@ the errorcondition is then also processed e.g. send to local logserver and/or st
 
 #### reRaiseECO(*eco*) 
 
-#### setExceptHook(**) 
+#### setExceptHook() 
 
 #### toolStripNonAsciFromText(*text*) 
 

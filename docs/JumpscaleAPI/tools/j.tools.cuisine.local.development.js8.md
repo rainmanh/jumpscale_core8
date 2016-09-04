@@ -7,7 +7,7 @@
 
 #### install(*reset, deps=True*) 
 
-#### installDeps(**) 
+#### installDeps() 
 
 #### jumpscale_installed(*die*) 
 

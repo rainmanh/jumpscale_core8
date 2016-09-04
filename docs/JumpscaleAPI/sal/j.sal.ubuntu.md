@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/sal/ubuntu/Ubuntu.py
 - Properties
-    - logger
     - installedPackageNames
+    - logger
 
 ### Methods
 
@@ -16,11 +16,11 @@
 
 #### apt_get(*name*) 
 
-#### apt_get_cache_keys(**) 
+#### apt_get_cache_keys() 
 
-#### apt_get_installed(**) 
+#### apt_get_installed() 
 
-#### apt_init(**) 
+#### apt_init() 
 
 #### apt_install(*packagename*) 
 
@@ -45,7 +45,7 @@ Installs a specific version of an ubuntu package.
 
 ```
 
-#### apt_sources_list(**) 
+#### apt_sources_list() 
 
 #### apt_sources_uri_add(*url*) 
 
@@ -62,7 +62,7 @@ check if ubuntu or mint (which is based on ubuntu)
 
 ```
 
-#### checkroot(**) 
+#### checkroot() 
 
 #### deb_download_install(*url, removeDownloaded, minspeed=20*) 
 
@@ -74,7 +74,7 @@ will then install
 
 #### deb_install(*path, installDeps=True*) 
 
-#### get_installed_package_names(**) 
+#### get_installed_package_names() 
 
 #### is_pkg_installed(*pkg*) 
 
@@ -106,7 +106,7 @@ if regex used only output the ones who are matching regex
 
 #### sshkeys_generate(*passphrase='', type='rsa', overwrite, path='/root/.ssh/id_rsa'*) 
 
-#### version_get(**) 
+#### version_get() 
 
 ```
 returns codename,descr,id,release
@@ -114,5 +114,5 @@ known ids" raring, linuxmint
 
 ```
 
-#### whoami(**) 
+#### whoami() 
 

@@ -7,9 +7,9 @@
 
 ### Methods
 
-#### config(**) 
+#### config() 
 
-#### configAll(**) 
+#### configAll() 
 
 #### configTmux(*restart=True*) 
 

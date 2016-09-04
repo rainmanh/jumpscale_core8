@@ -20,7 +20,7 @@ installs privoxy
 
 ```
 
-#### removeFromSystemD(**) 
+#### removeFromSystemD() 
 
-#### start(**) 
+#### start() 
 

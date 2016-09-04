@@ -14,7 +14,7 @@ c.systemservices.kvm.install()
 
 #### diskGetPath(*name*) 
 
-#### install(**) 
+#### install() 
 
 #### machineCreate(*name, disks, nics, mem, pubkey*) 
 
@@ -30,7 +30,7 @@ will return kvmCuisineObj: is again a cuisine obj on which all kinds of actions 
 
 ```
 
-#### prepare(**) 
+#### prepare() 
 
 #### vdiskBootCreate(*name, image='http://fs.aydo.com/kvm/ub_small.img'*) 
 
@@ -50,7 +50,7 @@ set vdisk QOS settings at runtime
 
 ```
 
-#### vdisksList(**) 
+#### vdisksList() 
 
 #### vmGetPath(*name*) 
 

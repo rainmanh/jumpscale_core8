@@ -82,5 +82,5 @@ resolvconf will be disabled
 
 ```
 
-#### proxy_enable(**) 
+#### proxy_enable() 
 

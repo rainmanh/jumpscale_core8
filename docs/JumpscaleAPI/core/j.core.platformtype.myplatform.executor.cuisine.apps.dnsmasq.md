@@ -28,7 +28,7 @@ Removes a dhcp-host entry from dnsmasq.conf file
 
 ```
 
-#### restart(**) 
+#### restart() 
 
 #### setConfigPath(*config_path*) 
 

@@ -7,5 +7,5 @@
 
 ### Methods
 
-#### install(**) 
+#### install() 
 

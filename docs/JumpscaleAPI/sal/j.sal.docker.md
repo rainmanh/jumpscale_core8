@@ -44,7 +44,7 @@ return: strint containing the stdout
 
 #### get(*name, die=True*) 
 
-#### getImages(**) 
+#### getImages() 
 
 #### importRsync(*backupname, name, basename='', key='pub'*) 
 
@@ -56,11 +56,11 @@ return: strint containing the stdout
 
 #### importTgz(*backupname, name*) 
 
-#### init(**) 
+#### init() 
 
-#### ping(**) 
+#### ping() 
 
-#### ps(**) 
+#### ps() 
 
 ```
 return detailed info
@@ -77,13 +77,13 @@ output: print progress as it pushes
 
 ```
 
-#### reInstallDocker(**) 
+#### reInstallDocker() 
 
-#### removeDocker(**) 
+#### removeDocker() 
 
 #### removeImages(*tag='<none>:<none>'*) 
 
-#### status(**) 
+#### status() 
 
 ```
 return list docker with some info

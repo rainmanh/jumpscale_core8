@@ -9,7 +9,7 @@
 
 #### getClient(*redisConnection, nodename*) 
 
-#### getTester(**) 
+#### getTester() 
 
 ```
 The tester instance is used to test stats aggregation and more.

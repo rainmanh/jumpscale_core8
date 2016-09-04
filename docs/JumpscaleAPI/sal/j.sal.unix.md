@@ -229,7 +229,7 @@ Get the value of an environment variable in a Bash file
 
 ```
 
-#### getMachineInfo(**) 
+#### getMachineInfo() 
 
 ```
 Get memory and CPU info about this machine

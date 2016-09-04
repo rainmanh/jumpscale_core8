@@ -11,7 +11,7 @@
 
 #### btrfsSubvolExists(*name*) 
 
-#### btrfsSubvolList(**) 
+#### btrfsSubvolList() 
 
 #### btrfsSubvolNew(*name*) 
 
@@ -24,7 +24,7 @@
 
 #### destroy(*name*) 
 
-#### destroyAll(**) 
+#### destroyAll() 
 
 #### execute(*command*) 
 
@@ -56,7 +56,7 @@ last one is sum of mem & cpu
 
 #### importTgz(*backupname, name*) 
 
-#### list(**) 
+#### list() 
 
 ```
 names of running & stopped machines

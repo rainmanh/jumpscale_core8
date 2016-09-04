@@ -11,5 +11,5 @@
 
 #### create_cluster(*id*) 
 
-#### start(*name='arakoon'*) 
+#### start() 
 

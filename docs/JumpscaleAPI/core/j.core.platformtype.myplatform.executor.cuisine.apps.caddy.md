@@ -14,7 +14,7 @@ config format see https://caddyserver.com/docs/caddyfile
 
 #### install(*ssl, start=True, dns, reset*) 
 
-#### isInstalled(**) 
+#### isInstalled() 
 
 ```
 Checks if a package is installed or not

@@ -20,7 +20,7 @@ download, install, move files to appropriate places, and create relavent configs
 
 ```
 
-#### isInstalled(**) 
+#### isInstalled() 
 
 ```
 Checks if a package is installed or not
@@ -28,5 +28,5 @@ You can ovveride it to use another way for checking
 
 ```
 
-#### start(**) 
+#### start() 
 

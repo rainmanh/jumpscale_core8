@@ -57,7 +57,7 @@ class Docker:
             rc, self._weaveSocket = j.sal.process.execute(
                 "eval $(weave env) && echo $DOCKER_HOST", die=False)
             if rc > 0:
-                print("weave not found, do not forget to start if installed.")
+                self.logger.error("weave not found, do not forget to start if installed.")
                 self._weaveSocket = ""
             self._weaveSocket = self._weaveSocket.strip()
 
@@ -151,7 +151,7 @@ class Docker:
     @property
     def basepath(self):
         self._basepath = '/mnt/data/docker'
-        #TODO: needs to fetch values out of hrd
+        # TODO: needs to fetch values out of hrd
         # if not self._basepath:
         #     if j.application.config.exists('docker.basepath'):
         #         self._basepath = j.application.config.get('docker.basepath')
@@ -329,7 +329,6 @@ class Docker:
         @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
         @param vols in format as follows "/var/insidemachine:/var/inhost # /var/1:/var/1 # ..."   '#' is separator
         @param sshkeyname : use ssh-agent (can even do remote through ssh -A) and then specify key you want to use in docker
-        #TODO: *1 change way how we deal with ssh keys, put authorization file in filesystem before docker starts don't use ssh to push them, will be much faster and easier
         """
 
         # check there is weave
@@ -479,25 +478,28 @@ class Docker:
         self._containers[id] = container
 
         if ssh:
-            # time.sleep(0.5)  # give time to docker to start
-            if sshkeyname == None:
-                sshkeyname = ""
-            if sshpubkey == None:
-                sshpubkey = ""
-
             container.pushSSHKey(keyname=sshkeyname, sshpubkey=sshpubkey)
+
+            # Make sure docker is ready for executor
+            end_time = time.time() + 60
+            while time.time() < end_time:
+                rc, _, _ = container.executor.execute('ls /', die=False, showout=False)
+                if rc:
+                    time.sleep(0.1)
+                break
 
             if setrootrndpasswd:
                 if rootpasswd is None or rootpasswd == '':
-                    print("set default root passwd (gig1234)")
+                    self.logger.info("set default root passwd (gig1234)")
                     container.executor.execute(
                         "echo \"root:gig1234\"|chpasswd", showout=False)
                 else:
-                    print("set root passwd to %s" % rootpasswd)
+                    self.logger.info("set root passwd to %s" % rootpasswd)
                     container.cexecutor.execute(
                         "echo \"root:%s\"|chpasswd" % rootpasswd, showout=False)
-            if not self.weaveIsActive:
-                container.setHostName(name)
+
+        if not self.weaveIsActive:
+            container.setHostName(name)
 
         return container
 
@@ -616,7 +618,7 @@ class Docker:
 
         return: strint containing the stdout
         """
-        #TODO: implement force
+        # TODO: implement force
         out = []
         if force:
             nocache = True

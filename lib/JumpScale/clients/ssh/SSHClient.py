@@ -115,15 +115,14 @@ class SSHClient:
         self.passwd = passwd
         self.stdout = stdout
         self.timeout = timeout
+        self.allow_agent = allow_agent
         if passwd is not None:
             self.forward_agent = False
-            self.allow_agent = False
             self.look_for_keys = False
             self.key_filename = None
             self.passphrase = None
         else:
             self.forward_agent = forward_agent
-            self.allow_agent = allow_agent
             self.look_for_keys = look_for_keys
             self.key_filename = key_filename
             self.passphrase = passphrase
@@ -226,6 +225,7 @@ class SSHClient:
         ch = self.transport.open_session()
         if self.forward_agent:
             paramiko.agent.AgentRequestHandler(ch)
+
         class StreamReader(threading.Thread):
 
             def __init__(self, stream, queue, flag):

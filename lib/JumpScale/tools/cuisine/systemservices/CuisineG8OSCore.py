@@ -87,13 +87,14 @@ class CuisineG8OSCore(app):
         sourcepath = '$tmplsDir/cfg/core'
         C = self._cuisine.core.file_read("%s/g8os.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
+        # Ubuntu: /optvar/cfg
         cfgdir = self._cuisine.core.dir_paths['cfgDir']
         cfg["main"]["message_ID_file"] = self._cuisine.core.joinpaths(cfgdir, "/core/.mid")
         cfg["main"]["include"] = self._cuisine.core.joinpaths(cfgdir, "/core/conf")
         cfg["main"].pop("network")
         cfg["controllers"] = {"main": {"url": controller_url}}
         extension = cfg["extension"]
-        extension["sync"]["cwd"] = self._cuisine.core.joinpaths(cfgdir, "/core/extensions")
+        extension["sync"]["cwd"] = self._cuisine.core.joinpaths(cfgdir, "/core/extensions/sync")
         # Ubuntu: /optvar/cfg/core/extensions/jumpscript
         jumpscript_path = self._cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")
         extension["jumpscript"]["cwd"] = jumpscript_path

@@ -46,7 +46,8 @@ class CuisineController(app):
         """
         sourcepath = "$goDir/src/github.com/g8os/controller"
         # move binary
-        self._cuisine.core.file_move("%s/controller" % sourcepath, "$binDir/controller")
+        if not self._cuisine.core.file_exists('$binDir/controller'):
+            self._cuisine.core.file_move("%s/controller" % sourcepath, "$binDir/controller")
 
         # file copy
         self._cuisine.core.dir_remove("$tmplsDir/cfg/controller/extensions")

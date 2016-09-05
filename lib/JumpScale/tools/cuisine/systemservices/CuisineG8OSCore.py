@@ -94,6 +94,11 @@ class CuisineG8OSCore(app):
         cfg["main"].pop("network")
         cfg["controllers"] = {"main": {"url": controller_url}}
         extension = cfg["extension"]
+        syncthing = extension['syncthing']
+        syncthing['binary'] = '/optvar/cfg/core/extensions/syncthing/syncthing'
+        syncthing['cwd'] = '/optvar/cfg/core/extensions'
+        syncthing['env']['HOME'] = '/optvar/cfg/core/extensions/syncthing'
+
         extension["sync"]["cwd"] = self._cuisine.core.joinpaths(cfgdir, "/core/extensions/sync")
         # Ubuntu: /optvar/cfg/core/extensions/jumpscript
         jumpscript_path = self._cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")

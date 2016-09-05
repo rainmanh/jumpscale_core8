@@ -54,7 +54,6 @@ class CuisineSyncthing(app):
             </device>
             <gui enabled="true" tls="false">
                 <address>$lclAddrs:$port</address>
-                <apikey>wbgjQX6uSgjI1RfS7BT1XQgvGX26DHMf</apikey>
             </gui>
             <options>
                 <listenAddress>tcp://0.0.0.0:22000</listenAddress>

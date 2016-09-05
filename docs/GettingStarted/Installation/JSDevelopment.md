@@ -1,19 +1,19 @@
-## Installation
+# Installation
 
-### Supported platforms
+## Supported platforms
 
 - Ubuntu 14+
 - Mac OSX Yosemite
 - Windows 10 (Cygwin)
 
 
-### Requirements
+## Requirements
 
 - Python 3.5
 - curl
 
 
-### Ubuntu
+## Ubuntu
 
 Use the below installation script to make your life easy.
 
@@ -38,7 +38,7 @@ rm -f install.sh
 curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh
 ```
 
-### Mac OSX
+## Mac OSX
 
 - Make sure Brew and curl are installed
 ```
@@ -65,7 +65,7 @@ bash install.sh
 ```
 
 
-### Windows 10 (Cygwin)
+## Windows 10 (Cygwin)
 
  - Install [Cygwin](https://cygwin.com/install.html)
  - When installing Cygwin search for the following packages in the package menu and select them:
@@ -83,7 +83,7 @@ curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/insta
 bash install.sh
 ```
 
-### Reset your system
+## Reset your system
 
 If your installation failed or if you want to remove your current installation, you can execute the following commands:
 
@@ -96,7 +96,7 @@ bash reset.sh
 ```
 
 
-###  Environment variables that influence the installation process
+##  Environment variables that influence the installation process
 
 ```
 GITHUBUSER = ''
@@ -116,7 +116,7 @@ CODEDIR = '/opt/code'
 - JSGIT & AYSGIT: allow us to choose other installation sources for JumpScale as well as AtYourService repo
 
 
-### More detailed about installation process
+## More details about installation process
 
 Several scripts are involved to complete the installation:
 

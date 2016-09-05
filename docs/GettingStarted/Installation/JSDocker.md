@@ -8,8 +8,8 @@ docker pull jumpscale/ubuntu1604_golang
 docker run --rm -t -i  --name=js jumpscale/ubuntu1604_golang
 ```
 
+In the Docker container:
 ```
-#in docker do
 export HOME=/root
 js
 ```
@@ -19,7 +19,6 @@ You will now see a shell for JumpScale.
 An SSH server is installed in the Docker container, but you will have to remap port 22 to some other port on localhost, e.g. 2022.
 
 Here's how:
-
 ```
 docker rm -f js
 docker run --rm -i -t -p 2022:22 --name="js" jumpscale/ubuntu1604_golang /sbin/my_init -- bash -l
@@ -27,48 +26,55 @@ docker run --rm -i -t -p 2022:22 --name="js" jumpscale/ubuntu1604_golang /sbin/m
 
 ## With JumpScale already installed (recommended way)
 
-### install docker with cuisine
+### Install the Docker container with Cuisine
 
-requirements
+From your local machine with JumpScale pre-installed we will connect over SSH to a remote Ubuntu 16.04 server (here called myhost), and install Docker host and JumpScale on it.
 
-- an ssh enabled ubuntu 16.04 server (here called myhost)
-
+First op the shell:
 ```
-#open shell
 js
-
-#now inside the shell use following commands
-
-#establish connection to docker (ssh key already installed & loaded in ssh-agent, see ssh section in manual for more info)
-c=j.tools.cuisine.get("myhost") #can also use ipaddress
-#other example if other port
-c=j.tools.cuisine.get("192.168.4.4:2200")
-
-#install docker
-c.docker.install()
-
-#if jumpscale not installed yet
-c.install.jumpscale8() #will install jumpscale 8 using our virtual filesystem layer
 ```
 
-now login into the ubuntu and you can use following commands
+Using the interactive shell we establish a connection to the remote server:
+
+```
+c = j.tools.cuisine.get("myhost") #can also use ipaddress
+```
+
+Alternatively use following command if SSH is listening on another port:
+
+```
+c = j.tools.cuisine.get("192.168.4.4:2200")`
+```
+
+For the next step make sure the your SSK public key is know on the remote server and that your private key is loaded in ssh-agent.
+
+Now let's install Docker on the remote server:
+```
+c.docker.install()
+```
+
+In case JumpScale is not installed yet installed on the remote server, install it using following commands:
+```
+c.install.jumpscale8()
+```
+
+The above will install JumpScale 8 using our virtual filesystem layer.
+
+Now login to the Ubuntu server and use the following commands to start a new Docker container:
 
 ```
 jsdocker create -n kds -i jumpscale/ubuntu1604_golang -k mykey
+```
 
-#std port 9022 will be mapped to ssh (if only 1 docker)
-#-k specifies ssh key to be used (name as loaded in ssh-agent)
+With the above command port 9022 will be mapped by default to the SSH port of the Docker container (if only 1 Docker container). With the **-k** option you specify the SSH key to be used (name as loaded in ssh-agent). If no key is specified, a local one will be created.
 
-#if no key specified, will create a local one if it doesn't exist yet and use that one
-
-#jsdocker new -n kds --ports "22:9022 7766:9766" --vols "/mydata:/mydata" --cpu 100
-
-#to login
-ssh localhost -p 9022
+Alternatively you can do more sophisticated things:
+```
+jsdocker new -n kds --ports "22:9022 7766:9766" --vols "/mydata:/mydata" --cpu 100
 ```
 
 To list the Dockers containers:
-
 ```
 jsdocker list
 
@@ -77,6 +83,11 @@ jsdocker list
  build                jumpscale/ubuntu1604      localhost            9022       Up 20 minutes
  owncloudproxy        owncloudproxy             localhost                       Up 24 hours
  owncloud             owncloud:live             localhost                       Up 24 hours
+```
+
+To login:
+```
+ssh localhost -p 9022
 ```
 
 ## Build Docker images

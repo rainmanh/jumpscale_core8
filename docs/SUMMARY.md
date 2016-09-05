@@ -39,7 +39,9 @@
 
 * [Complete Walkthrough](Walkthrough/Walkthrough.md)
 
+
 * [How To](Howto/Howto.md)
+
   - [Use Git](Howto/how_to_use_git.md)
     - [Automated](Howto/how_to_use_git_automated.md)
     - [Manually](Howto/how_to_use_git_manually.md)
@@ -47,5 +49,6 @@
   - [Use the OpenvCloud APIs](Howto/how_to_use_OVC_API.md)
   - [Use the Shell & Debug](Howto/how_to_use_the_shell_and_debug.md)
   - [Add a New SAL](Howto/how_to_add_a_new_SAL.md)
+
 
 * [JumpScale API](JumpscaleAPI/SUMMARY.md)

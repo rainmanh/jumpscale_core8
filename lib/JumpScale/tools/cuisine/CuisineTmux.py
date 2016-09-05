@@ -127,8 +127,6 @@ class CuisineTmux(base):
             counter = 0
             ffound = False
             while not ffound:
-                # TODO: does not work if I'm opening js from a tmux.
-                # out returned is not rubbish
                 rc, out, err = self._executor.executeRaw("tmux capture-pane -pS -5000", showout=False)
                 # initial command needs to go
                 out = out.split('%s\n' % cmd)[-1]
@@ -143,7 +141,19 @@ class CuisineTmux(base):
                     break
 
             out = out.split("**START**")[-1]
-            if out.find("**ERROR**") != -1:
+            if out.find("**OK**") != -1:
+                out = out.split("**OK**")[0]
+                out = out.replace("**OK**", "")
+                out = out.strip()
+                if not out.endswith("\n"):
+                    out += "\n"
+                return 0, out
+            elif j.sal.process.checkProcessRunning(cmd):
+                # Warning: It's either hanging or running until explicitly closed
+                if not out.endswith("\n"):
+                    out += "\n"
+                return 0, out
+            elif out.find("**ERROR**") != -1:
                 out = out.replace("**OK**", "")
                 out = out.split("**ERROR**")[-2]
                 out = out.replace("**ERROR**", "")
@@ -154,17 +164,6 @@ class CuisineTmux(base):
                     raise j.exceptions.RuntimeError(msg)
                 else:
                     return 1, msg
-            elif out.find("**OK**") != -1:
-                out = out.split("**OK**")[0]
-                out = out.replace("**OK**", "")
-                out = out.strip()
-                if out.find("\n") != -1:
-                    out += "\n"
-                return 0, out
-            else:
-                # Assumption here is if it's timedout and there's error or ok then it's hanging
-                # Or like in case of redis it's a long running process or has output redirection
-                return 0, 'Warning: It\'s either hanging or running until explicitly closed'
             return 999, out
 
         if rc == 0:

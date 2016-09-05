@@ -21,7 +21,7 @@ class Machine:
 
     def to_xml(self):
         machinexml = self.controller.env.get_template('machine.xml').render({'machinename': self.name, 'memory': self.memory, 'nrcpu': self.cpucount,
-            'nics': self.nics, 'disks': self.disks})
+                                                                             'nics': self.nics, 'disks': self.disks})
         return machinexml
 
     @classmethod
@@ -67,10 +67,10 @@ class Machine:
         return False
 
     def delete(self):
-        return domain.destroy() == 0
+        return self.domain.destroy() == 0
 
     def pause(self):
-        return domain.suspend() == 0
+        return self.domain.suspend() == 0
 
     def start(self):
         return self.domain.create() == 0
@@ -83,6 +83,66 @@ class Machine:
 
     def resume(self):
         return self.domain.resume() == 0
+
+    def create_snapshot(self, name, description=""):
+        snap = MachineSnapshot(self.controller, self.domain, name, description)
+        return snap.create()
+
+    def load_snapshot(self, name):
+        snap = self.domain.snapshotLookupByName(name)
+        return self.domain.revertToSnapshot(snap)
+
+    def list_snapshots(self, libvirt=False):
+        snapshots = []
+        snaps = self.domain.listAllSnapshots()
+        if libvirt:
+            return snaps
+        for snap in snaps:
+            snapshots.append(MachineSnapshot(
+                self.controller, self, snap.getName())
+            )
+        return snapshots
+
+
+
+class MachineSnapshot:
+
+    def __init__(self, controller, domain, name, description=""):
+        self.controller = controller
+        self.domain = domain
+        self.name = name
+        self.description = description
+
+    @classmethod
+    def from_xml(cls, controller, source):
+        snapshot = ElementTree.fromstring(source)
+        description = snapshot.findtext('description')
+        name = snapshot.findtext('name')
+        domain_uuid = snapshot.findall("domain")[0].findtext('uuid')
+        domain = controller.connection.lookupByUUIDString(domain_uuid)
+        return MachineSnapshot(controller, domain, name, description)
+
+    def to_xml(self):
+        snapxml = self.controller.env.get_template(
+            'snapshot.xml').render(description=self.description, name=self.name)
+        return snapxml
+
+    def create(self):
+        snapxml = self.to_xml()
+        xml = self.domain.snapshotCreateXML(snapxml)
+        return xml
+
+
+class MachineHelper:
+
+    def create(self, machine):
+        [disk.create() for disk in machine.disks]
+        [nic.create() for nic in machine.nics]
+        return machine.create()
+
+    def start(self, machine):
+        pass
+
 
 class KVMController:
 

@@ -29,7 +29,7 @@ Below more details.
 
 `js8 init` will:
 
-- Aautomatically install all packets required to run AYS File System, including
+- Automatically install all packets required to run AYS File System, including
 
   - FUSE
   - tmux, or another startup manager if you specify that explicitelly since tmux is the default

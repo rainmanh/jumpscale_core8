@@ -1,4 +1,4 @@
-# IPython Tricks
+# First Steps
 
 The easiest way to get to know the JumpScale well is to start the IPython interactive shell.
 

@@ -42,6 +42,10 @@ class Disk():
         #return libvirt volume obj
         return volume
 
+    @property
+    def is_created(self):
+        return False
+
     def delete(self):
         try:
             volume = self.pool.storageVolLookupByName(self.name)
@@ -103,9 +107,9 @@ class Storage:
         except:
             return None
 
-    def create(self, pool):
+    def create_pool(self, pool):
         self.controller.executor.cuisine.core.dir_ensure (pool.poolpath)
-        cmd = 'chattr +C %s ' % self.poolpath
+        cmd = 'chattr +C %s ' % pool.poolpath
         self.controller.executor.execute(cmd)
         self.controller.connection.storagePoolCreateXML(pool.to_xml(), 0)
 

@@ -92,30 +92,6 @@ class Interface:
         self._source = source
         self.mac = generate_mac()
 
-    def create(self):
-        """
-        Create and interface and relevant ports connected to certain bridge or network.
-
-        @name  str: name of the interface and port that will be creates
-        @bridge str: name of bridge to add the interface to
-        @qos int: limit the allowed rate to be used by interface
-        """
-        # TODO: *1 spec
-        # is a name relevant???, how do we identify a vnic
-        self.controller.executor.execute(
-            'ovs-vsctl --if-exists del-port %s %s' % (self.bridge, self.name))
-        self.controller.executor.execute(
-            'ovs-vsctl --may-exist add-port %s %s' % (self.bridge, self.name))
-
-    @property
-    def is_created(self):
-        """
-        check if interface was actually added to the bridge on openvswitch 
-        """
-        _, out, _ = self.controller.executor.execute(
-            "ovs-vsctl list-ports %s" % self.bridge)
-        return self.name in out.splitlines()
-
     def destroy(self):
         """
         Delete interface and port related to certain machine.
@@ -123,14 +99,14 @@ class Interface:
         @bridge str: name of bridge
         @name str: name of port and interface to be deleted
         """
-        return self.controller.executor.execute('ovs-vsctl del-port %s %s' % (self.bridge, self.name))
+        return self.controller.executor.execute('ovs-vsctl del-port %s %s' % (self.bridge.name, self.name))
 
     def qos(self, qos, burst=None):
         """
         Limit the throughtput into an interface as a for of qos.
 
-        @interface str: name of interface to limit rate on 
-        @qos int: rate to be limited to in Kb 
+        @interface str: name of interface to limit rate on
+        @qos int: rate to be limited to in Kb
         @burst int: maximum allowed burst that can be reached in Kb/s
         """
         # TODO: *1 spec what is relevant for a vnic from QOS perspective, what can we do

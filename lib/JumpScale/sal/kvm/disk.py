@@ -21,7 +21,6 @@ class Disk():
         vm_id = name.split('-')[0]
         role = name.split('-')[0].split('.')[0]
         size = disk.findtext('size')
-        #TODO optional image
         if not disk.find('backingStore') is None:
             path = disk.find('backingStore').findtext('path')
             image_name = path.split("/")[0].split('.')[0]
@@ -126,7 +125,7 @@ class StorageController:
         if pool_name not in self.controller.connection.listStoragePools():
             poolpath = os.path.join(self.controller.base_path, pool_name)
             if not self.controller.executor.cuisine.core.dir_exists(poolpath):
-                self.executor.cuisine.core.dir_ensure(poolpath)
+                self.controller.executor.cuisine.core.dir_ensure(poolpath)
                 cmd = 'chattr +C %s ' % poolpath
                 self.controller.executor.execute(cmd)
             pool = self.controller.env.get_template('pool.xml').render(

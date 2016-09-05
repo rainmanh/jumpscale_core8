@@ -74,8 +74,26 @@ class CuisineKVM(base):
         self._executor = executor
         self._cuisine = cuisine
         self._path = None
-        self._controller = j.sal.our_kvm.KVMController(
-            host=self._cuisine.id, executor=self._cuisine._executor)
+        self._controller = None
+
+    @property
+    def controller(self):
+        if not self._controller:
+            if self._cuisine.id == 'localhost':
+                host = 'localhost'
+            else:
+                host = '%s'%(self._cuisine.id)
+            self._controller = j.sal.our_kvm.KVMController(
+                host=host, executor=self._cuisine._executor)
+        return self._controller
+
+    def download_image(self, url, overwrite=False):
+        name = url.split('/')[-1]
+        path = j.sal.fs.joinPaths(self.controller.base_path, 'images', name)
+        self.controller.executor.cuisine.core.file_download(url, path, overwrite=True)
+
+    def machine(self, name, os, disks, nics, memory, cpucount, uuid=None):
+        return j.sal.our_kvm.CloudMachine(self.controller, name, os, disks, nics, memory, cpucount, uuid=None)
 
     def prepare(self):
         self.install()

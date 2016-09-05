@@ -101,7 +101,7 @@ class KVMController:
     def open(self):
         uri = None
         if self._host != 'localhost':
-            uri = 'qemu+ssh://%s/system' % self._host
+            uri = 'qemu+libssh2://%s/system?no_tty=1' % self._host
         self.connection = libvirt.open(uri)
         self.readonly = libvirt.openReadOnly(uri)
 

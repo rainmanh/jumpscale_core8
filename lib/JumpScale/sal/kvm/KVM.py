@@ -194,7 +194,7 @@ class KVM:
         self.Interface = Interface
         self.Disk = Disk
         self.Pool = Pool
-        self.StorageController = StorageController
+        self.Storage = Storage
         self.CloudMachine = CloudMachine
 
 class CloudMachine(Machine):

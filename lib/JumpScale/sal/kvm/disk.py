@@ -42,17 +42,6 @@ class Disk():
         #return libvirt volume obj
         return volume
 
-    @property
-    def is_created(self):
-        return False
-
-    @property
-    def is_started(self):
-        return False
-
-    def start(self):
-        pass
-
     def delete(self):
         try:
             volume = self.pool.storageVolLookupByName(self.name)
@@ -102,7 +91,7 @@ class Pool:
 
 
 
-class StorageController:
+class Storage:
 
     def __init__(self, controller):
         self.controller = controller
@@ -113,6 +102,13 @@ class StorageController:
             return storagepool
         except:
             return None
+
+    def create(self, pool):
+        self.controller.executor.cuisine.core.dir_ensure (pool.poolpath)
+        cmd = 'chattr +C %s ' % self.poolpath
+        self.controller.executor.execute(cmd)
+        self.controller.connection.storagePoolCreateXML(pool.to_xml(), 0)
+
 
     def delete_pool(self, pootname):
         pool = self.get_pool(pool_name)

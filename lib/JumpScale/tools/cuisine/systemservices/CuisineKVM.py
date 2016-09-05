@@ -136,18 +136,23 @@ class CuisineKVM(base):
         path = j.sal.fs.joinPaths(self.diskStorPath, name)
         # create qcow2 image disk on the right path
 
-    def vdiskCreate(self, name, size=100):
+    def vdiskCreate(self, pool, name, size=100, image_name=""):
         """
         @param size in GB
         """
-        # create an empty disk we can attach
-        raise NotImplemented()
+        # create an empty disk we can attachl
+        disk = j.sal.our_kvm.Disk(self._controller, pool, name, size, image_name)
+        disk.create()
 
     def vdiskDelete(self, name):
-        raise NotImplemented()
+        vol = self._controller.connection.get_volume(name)
+        disk = j.sal.our_kvm.Disk.from_xml(self._controller, vol.XMLDesc())
+        disk.delete()
 
     def vdisksList(self):
-        raise NotImplemented()
+        storagecontroller = j.sal.our_kvm.StorageController(self._controller)
+        disks = storagecontroller.list_disks()
+        return disks
 
     def vnicCreate(self, name):
         # TODO: how to specify a virtual nic

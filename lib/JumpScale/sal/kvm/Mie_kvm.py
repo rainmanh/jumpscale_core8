@@ -206,7 +206,7 @@ class CloudMachine(Machine):
         self.pool = j.sal.our_kvm.Pool(controller, self.POOL)
         new_nics = list(map(lambda x: j.sal.our_kvm.Interface(controller, x,
             j.sal.our_kvm.Network(controller, x, x, [])), nics))
-        new_disks = [j.sal.our_kvm.Disk(controller, self.pool, name, 'base', disks[0], os)]
+        new_disks = [j.sal.our_kvm.Disk(controller, self.pool, name, disks[0], os)]
         for i, disk in enumerate(disks[1:]):
             new_disks.append(j.sal.our_kvm.Disk(controller, self.pool, name, 'data-%s'%(i), disk))
 

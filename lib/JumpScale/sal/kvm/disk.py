@@ -5,28 +5,27 @@ import os
 
 class Disk():
 
-    def __init__(self, controller, pool, vm_id, role, size, image_name=""):
-        self.vm_id = vm_id
-        self.role = role
+    def __init__(self, controller, pool, name, size, image_name=""):
         self.size = size
         self.image_name = image_name
         self.controller = controller
         self.pool = pool
-        self.name = vm_id + '-' + self.role + '.qcow2'
+        self.name = name
 
     @classmethod
     def from_xml(cls, controller, diskxml):
         disk = ElementTree.fromstring(diskxml)
         name = disk.findtext('name')
-        vm_id = name.split('-')[0]
-        role = name.split('-')[0].split('.')[0]
-        size = disk.findtext('size')
+        pool_name = disk.find('target').findtext('path').split("/")[-2]
+        pool = StorageController(controller).get_pool(pool_name)
+        size = disk.findtext('capacity')
+        #TODO optional image
         if not disk.find('backingStore') is None:
             path = disk.find('backingStore').findtext('path')
             image_name = path.split("/")[0].split('.')[0]
         else:
             image_name = ''
-        return cls(controller, vm_id, role, size,image_name)
+        return cls(controller, pool, name, size,image_name)
 
     def to_xml(self):
         disktemplate = self.controller.env.get_template('disk.xml')
@@ -134,3 +133,12 @@ class StorageController:
             self.controller.connection.storagePoolCreateXML(pool, 0)
         storagepool = self.controller.connection.storagePoolLookupByName(pool_name)
         return storagepool
+
+    def list_disks(self):
+        disks = []
+        for pool in self.controller.connection.listAllStoragePools():
+            if pool.isActive():
+                for vol in pool.listAllVolumes():
+                    disk = Disk.from_xml(self.controller, vol.XMLDesc())
+                    disks.append(disk)
+        return disks

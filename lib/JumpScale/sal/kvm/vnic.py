@@ -69,6 +69,7 @@ class Network:
         self.controller.executor.execute(
             'ovs-vsctl --if-exists del-br %s' % self.name)
 
+
 class Interface:
 
     def __init__(self, controller, name, bridge, interface_rate=None, source=None):
@@ -91,7 +92,7 @@ class Interface:
         self._source = source
         self.mac = generate_mac()
 
-    def Create(self):
+    def create(self):
         """
         Create and interface and relevant ports connected to certain bridge or network.
 
@@ -106,13 +107,14 @@ class Interface:
         self.controller.executor.execute(
             'ovs-vsctl --may-exist add-port %s %s' % (self.bridge, self.name))
 
-    def list(self, bridge):
+    @property
+    def is_created(self):
         """
-        List ports available on bridge specified.
+        check if interface was actually added to the bridge on openvswitch 
         """
         _, out, _ = self.controller.executor.execute(
-            "ovs-vsctl list-ports %s" % name)
-        return out.splitlines()
+            "ovs-vsctl list-ports %s" % self.bridge)
+        return self.name in out.splitlines()
 
     def destroy(self):
         """
@@ -155,17 +157,3 @@ class Interface:
             macaddress=self.mac, bridge=self.bridge.name, qos=self.qos, rate=self.interface_rate, burst=self.burst, name=self.name
         )
         return Interfacexml
-
-    @property
-    def is_created(self):
-        return False
-
-    @property
-    def is_started(self):
-        return False
-
-    def start(self):
-        pass
-
-    def create(self):
-        pass

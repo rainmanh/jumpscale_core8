@@ -28,8 +28,19 @@ class CuisineOpenvSwitch(app):
     def __init__(self, executor, cuisine):
         self._cuisine = cuisine
         self._executor = executor
-        self._controller = j.sal.our_kvm.KVMController(
-            host=self._cuisine.id, executor=self._cuisine._executor)
+        self.__controller = None
+
+
+    @property
+    def _controller(self):
+        if not self.__controller:
+            if self._cuisine.id == 'localhost':
+                host = 'localhost'
+            else:
+                host = '%s'%(self._cuisine.id)
+            self.__controller = j.sal.our_kvm.KVMController(
+                host=host, executor=self._cuisine._executor)
+        return self.__controller
 
     # def prepare(self):
 

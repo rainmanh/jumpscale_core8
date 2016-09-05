@@ -1,7 +1,7 @@
 from JumpScale import j
 import netaddr
+import time
 
-#TODO: rewrite all to use the executor and only the executor *3
 # MAYBE WE SHOULD STANDARDISE ON ARCH LINUX & USE SYSTEMDNETWORKING
 
 
@@ -14,6 +14,7 @@ class Netconfig:
         self.root = j.tools.path.get("/")
         self._executor = j.tools.executor.getLocal()
         self._interfaceChanged = False
+        self.log = j.logger.get("j.sal.netconfig")
 
     def chroot(self, root):
         """
@@ -58,7 +59,7 @@ class Netconfig:
         empty config of /etc/network/interfaces
         """
         if shutdown:
-            self.shutdownNetwork()
+            self.interfaces_shutdown()
         path = j.tools.path.get(self._getInterfacePath())
         self._backup(path)
         path.write_text("auto lo\n\n")
@@ -88,7 +89,6 @@ class Netconfig:
         change hostname
         """
         hostnameFile = j.tools.path.get('/etc/hostname')
-        old = hostnameFile.text()
         hostnameFile.write_text(hostname, append=False)
         cmd = 'hostname %s' % hostname
         self._executor.execute(cmd)
@@ -118,11 +118,11 @@ class Netconfig:
             """
         C = j.do.textstrip(C)
 
-        if bridgedev != None:
+        if bridgedev is not None:
             C += "    bridge_fd 0\n"
             C += "    bridge_maxwait 0\n"
 
-        if ipaddr != None:
+        if ipaddr is not None:
             if dhcp:
                 raise j.exceptions.RuntimeError("cannot specify ipaddr & dhcp")
             C += "    address $ip\n"
@@ -131,12 +131,12 @@ class Netconfig:
         else:
             C = C.replace("static", "manual")
 
-        if bridgedev != None:
+        if bridgedev is not None:
             C += "       bridge_ports %s\n" % bridgedev
         # else:
         #     C+="       bridge_ports none\n"
 
-        if gw != None:
+        if gw is not None:
             C += "       gateway %s" % gw
 
         #         future="""
@@ -160,7 +160,7 @@ class Netconfig:
 
         path = self._getInterfacePath()
         ed = j.tools.code.getTextFileEditor(path)
-        ed.setSection(devToApplyTo, C)
+        ed.setSection(dev, C)
 
         if apply:
             self.interfaces_restart(dev)
@@ -172,18 +172,13 @@ class Netconfig:
     #     self.enableInterfaceBridge(dev=dev,bridgedev=bridgedev,apply=apply)
 
     def interfaces_restart(self, dev=None):
-        if dev == None:
-            #TODO: (***) loop over devs
-            pass
-
-        self.log("restart:%s" % devToApplyTo)
-        cmd = "ifdown %s" % devToApplyTo
-        self._executor.execute(cmd)
-        cmd = "ifup %s" % devToApplyTo
-        self._executor.execute(cmd)
-
-        if not devToApplyTo.startswith(dev):
-            print(("restart:%s" % dev))
+        if dev is None:
+            for nic in j.sal.nic.nics:
+                cmd = "ifdown %s --force" % nic
+                print("shutdown:%s" % nic)
+                self._executor.execute(cmd, die=False)
+        else:
+            self.log("restart:%s" % dev)
             cmd = "ifdown %s" % dev
             self._executor.execute(cmd)
             cmd = "ifup %s" % dev
@@ -213,6 +208,15 @@ class Netconfig:
             opener = urllib.request.build_opener(proxy_support)
             urllib.request.install_opener(opener)
 
+    def interface_remove_ipaddr(self, network="192.168.1"):
+        for item in j.sal.nettools.getNetworkInfo():
+            for ip in item["ip"]:
+                if ip.startswith(network):
+                    # remove ip addr from this interface
+                    cmd = "ip addr flush dev %s" % item["name"]
+                    print(cmd)
+                    j.sal.process.execute(cmd)
+
     def interface_configure_dhcp_waitdown(self, interface="eth0", ipaddr=None, gw=None, mask=24, config=True):
         """
         @param config if True then will be stored in linux configuration files
@@ -221,10 +225,10 @@ class Netconfig:
 
         j.sal.netconfig.interfaces_reset(True)
 
-        if ipaddr == None or gw == None:
+        if ipaddr is None or gw is None:
             raise j.exceptions.Input("Cannot configure network when ipaddr or gw not specified", "net.config")
 
-        if pynetlinux.brctl.findbridge("brpub") != None:
+        if pynetlinux.brctl.findbridge("brpub") is not None:
             print("found brpub, will try to bring down.")
             i = pynetlinux.brctl.findbridge("brpub")
             i.down()
@@ -236,7 +240,7 @@ class Netconfig:
                 print("waiting for bridge:brpub to go down")
 
         i = pynetlinux.ifconfig.findif(interface)
-        if i != None:
+        if i is not None:
             print("found %s, will try to bring down." % interface)
             i.down()
             counter = 0
@@ -253,7 +257,7 @@ class Netconfig:
         print("bring interface up")
         i.up()
 
-        while i.is_up() == False:
+        while not i.is_up():
             i.up()
             time.sleep(1)
             print("waiting for interface:%s to go up" % interface)
@@ -269,16 +273,7 @@ class Netconfig:
         self.resetDefaultGateway(gw)
         print("default gw up:%s" % gw)
 
-    def interface_remove_ipaddr(self, network="192.168.1"):
-        for item in j.sal.nettools.getNetworkInfo():
-            for ip in item["ip"]:
-                if ip.startswith(network):
-                    # remove ip addr from this interface
-                    cmd = "ip addr flush dev %s" % item["name"]
-                    print(cmd)
-                    j.sal.process.execute(cmd)
-
-    def interface_configure_dhcp_waitdown(self, interface="eth0"):
+    def interface_configure_dhcp_waitdown2(self, interface="eth0"):
         """
         this will bring all bridges down and set specified interface on dhcp (dangerous)
         """
@@ -296,7 +291,7 @@ class Netconfig:
                 print("waiting for bridge:%s to go down" % br.name)
 
         i = pynetlinux.ifconfig.findif(interface)
-        if i != None:
+        if i is not None:
             print("found %s, will try to bring down." % interface)
             i.down()
             counter = 0
@@ -312,7 +307,7 @@ class Netconfig:
         self.interface_configure_dhcp(dev=interface, apply=True)
 
         print("check interface up")
-        while i.is_up() == False:
+        while not i.is_up():
             i.up()
             time.sleep(1)
             print("waiting for interface:%s to go up" % interface)
@@ -332,16 +327,16 @@ class Netconfig:
         if available and has ip addr to go to internet then nothing will happen
         otherwise system will try in a safe way set this ipaddr, this is a dangerous operation
 
-        if ipaddr == None then will look for existing config on interface and use that one to configure the bridge
+        if ipaddr is None then will look for existing config on interface and use that one to configure the bridge
         """
         import pynetlinux
-        if ipaddr == None or mask == None or interface == None:
+        if ipaddr is None or mask is None or interface is None:
             print("get default network config for main interface")
             interface2, ipaddr2 = self.getDefaultIPConfig()
-            if interface == None:
+            if interface is None:
                 interface = str(interface2)
                 print("interface found:%s" % interface)
-            if ipaddr == None:
+            if ipaddr is None:
                 ipaddr = ipaddr2
                 print("ipaddr found:%s" % ipaddr)
 
@@ -363,18 +358,18 @@ class Netconfig:
             else:
                 raise
 
-        if ipaddr == None:
+        if ipaddr is None:
             raise j.exceptions.RuntimeError("Did not find ipaddr: %s" % ipaddr)
 
-        if mask == None:
+        if mask is None:
             mask = i.get_netmask()
             print("mask found:%s" % mask)
 
-        if gw == None:
+        if gw is None:
             gw = pynetlinux.route.get_default_gw()
             print("gw found:%s" % gw)
 
-        if gw == None:
+        if gw is None:
             raise j.exceptions.RuntimeError("Did not find gw: %s" % gw)
 
         if not j.sal.nettools.pingMachine(gw, pingtimeout=2):
@@ -403,7 +398,7 @@ class Netconfig:
 
             # bring own interface down
             i = pynetlinux.ifconfig.findif(interface)
-            if i != None:
+            if i is not None:
                 print("found %s, will try to bring down." % interface)
                 i.down()
                 counter = 0

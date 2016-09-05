@@ -3,10 +3,10 @@
 
 - [Introduction](README.md)
 - [Getting Started](GettingStarted/GettingStarted.md)
-
-  - [Installation Linux Sandbox](GettingStarted/JS8.md)
-  - [Installation Development](GettingStarted/Installation.md)
-  - [JumpScale Dockers](GettingStarted/JSDockers.md)
+  - [Installation](GettingStarted/Installation/Installation.md)
+    - [Installation of the JumpScale Sandbox](GettingStarted/Installation/JS8.md)
+    - [Installation for Development Purposes](GettingStarted/Installation/JSDevelopment.md)
+    - [Installing JumpScale Docker Containers](GettingStarted/Installation/JSDocker.md)
   - [Components](GettingStarted/Components.md)
   - [IPythonTricks](GettingStarted/IPythonTricks.md)
 

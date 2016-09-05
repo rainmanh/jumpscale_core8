@@ -11,6 +11,5 @@
     </disk>
     {% endfor %}
     </disks>
-    {% endif %}
-    
+    {% endif %}    
 </domainsnapshot>

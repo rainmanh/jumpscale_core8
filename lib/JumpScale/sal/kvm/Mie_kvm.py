@@ -60,11 +60,15 @@ class Machine:
 
     @property
     def is_created(self):
-        return False
+        try:
+            self.domain
+            return True
+        except libvirt.libvirtError as e 
+            return False
 
     @property
     def is_started(self):
-        return False
+        return bool(self.domain.isActive())
 
     def delete(self):
         return self.domain.destroy() == 0

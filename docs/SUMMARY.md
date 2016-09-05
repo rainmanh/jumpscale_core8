@@ -2,54 +2,36 @@
 # Summary
 
 - [Introduction](README.md)
+
   - [Why Using JumpScale](Introduction/WhyJumpScale.md)
   - [JumpScale Core Components](Introduction/Components.md)
   - [Solutions Built with JumpScale](Introduction/JumpScaleSolutions.md)
 
+
 - [Getting Started](GettingStarted/GettingStarted.md)
+
   - [Installation](GettingStarted/Installation/Installation.md)
     - [Installation of the JumpScale Sandbox](GettingStarted/Installation/JS8.md)
     - [Installation for Development Purposes](GettingStarted/Installation/JSDevelopment.md)
     - [Installing JumpScale Docker Containers](GettingStarted/Installation/JSDocker.md)
   - [First Steps](GettingStarted/FirstSteps.md)
 
-- [SALs](SAL/SAL.md)
-    - [FileSystem](SAL/FS.md)
-    - [Docker](SAL/Docker.md)
-    - [LXC](SAL/Lxc.md)
-    - [Ubuntu](SAL/Ubuntu.md)
-    - [HostsFile](SAL/HostsFile.md)
-    - [BindDNS](SAL/BindDNS.md)
-    - [SSHD](SAL/SSHD.md)
-    - [SystemProcess](SAL/SystemProcess.md)
-    - [DiskLayout](SAL/Disklayout.md)
-    - [DiskManager](SAL/DiskManager.md)
-    - [Dnsmasq](SAL/Dnsmasq.md)
-    - [OpenVSwitch](SAL/OpenVSwitch.md)
-    - [DHCP_ihc](SAL/Dhcp_ihc.md)
-    - [NetConfig](SAL/NetConfig.md)
-    - [NetTools](SAL/NetTools.md)
-    - [Samba](SAL/Samba.md)
-    - [Tmux](SAL/Tmux.md)
-    - [NFS](SAL/NFS.md)
-    - [NGINX](SAL/Nginx.md)
-    - [RouterOs](SAL/RouterOs.md)
-    - [Rsync](SAL/Rsync)
-    - [UFW](SAL/UFW.md)
-    - [AOE](SAL/AOE.md)
 
-  - [Cuisine](Cuisine/Cuisine.md)
-    - [cuisine.core](Cuisine/cuisine.core.md)
-    - [cuisine.bash](Cuisine/cuisine.bash.md)
-    - [cuisine.development.pip](Cuisine/cuisine.development.pip.md)
-    - [cuisine.processmanager](Cuisine/cuisine.processmanager.md)
-    - [cuisine.apps](Cuisine/cuisine.apps.md)
-    - [cuisine.tmux](Cuisine/cuisine.tmux.md)
-    - [cuisine.docker](Cuisine/cuisine.docker.md)
-    - [cuisine.ssh](Cuisine/cuisine.ssh.md)
-    - [cuisine.package](Cuisine/cuisine.package.md)
-    - [cuisine.installer](Cuisine/cuisine.installer.md)
-    - [cuisine.installerdevelop](Cuisine/cuisine.installerdevelop.md)
+- [SALs](SAL/SAL.md)
+- [Cuisine](Cuisine/Cuisine.md)
+
+  - [cuisine.core](Cuisine/cuisine.core.md)
+  - [cuisine.bash](Cuisine/cuisine.bash.md)
+  - [cuisine.development.pip](Cuisine/cuisine.development.pip.md)
+  - [cuisine.processmanager](Cuisine/cuisine.processmanager.md)
+  - [cuisine.apps](Cuisine/cuisine.apps.md)
+  - [cuisine.tmux](Cuisine/cuisine.tmux.md)
+  - [cuisine.docker](Cuisine/cuisine.docker.md)
+  - [cuisine.ssh](Cuisine/cuisine.ssh.md)
+  - [cuisine.package](Cuisine/cuisine.package.md)
+  - [cuisine.installer](Cuisine/cuisine.installer.md)
+  - [cuisine.installerdevelop](Cuisine/cuisine.installerdevelop.md)
+
 
 - [AtYourService](AYS/AYS-Introduction.md)
   - [Definitions](AYS/Definitions/0-Definitions.md)
@@ -84,38 +66,13 @@
     - [Docker Example](AYS/Examples/DockerExample.md)
     - [OVC Example](AYS/Examples/OVCExample.md)
 
-
-- [Developers](Developers/Developers.md)
-
-  - [Debugging over SSH](Developers/debugging_over_ssh.md)
-  - [Consistent TOML for Python](Developers/Contoml.md)
-  - [Best Practices](Developers/best_practices.md)
-
-- [Cockpit](JSCockpit/JSCockpit.md)
-
-
-- [System Redis](Redis.md)
-- [Logging](Logging.md)
-- [SSH Tools](SSH/Home.md)
-
-  - [SSH Basics](SSH/SSHBasics.md)
-  - [SSH Agent Tips](SSH/SSHKeysAgent.md)
-
 - [How To](Howto/Howto.md)
-
   - [Use Git](Howto/how_to_use_git.md)
-
     - [Automated](Howto/how_to_use_git_automated.md)
     - [Manually](Howto/how_to_use_git_manually.md)
-
   - [Create a Tool for j](Howto/how_to_create_a_tool_for_j.md)
   - [Use the OpenvCloud APIs](Howto/how_to_use_OVC_API.md)
   - [Use the Shell & Debug](Howto/how_to_use_the_shell_and_debug.md)
   - [Add a New SAL](Howto/how_to_add_a_new_SAL.md)
 
-- [Extensions](Extensions/Extensions.md)
-
-  - [ByteProcessor](Extensions/ByteProcessor.md)
-  - [Manipulate Code](Extensions/ModuleCodeTools.md)
-  - [Mail Client](Extensions/MailClient.md)
-- [Jumpscale API](JumpscaleAPI/SUMMARY.md)
+- [JumpScale API](JumpscaleAPI/SUMMARY.md)

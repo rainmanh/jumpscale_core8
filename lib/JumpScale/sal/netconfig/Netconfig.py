@@ -2,7 +2,6 @@ from JumpScale import j
 import netaddr
 import time
 
-#TODO: rewrite all to use the executor and only the executor *3
 # MAYBE WE SHOULD STANDARDISE ON ARCH LINUX & USE SYSTEMDNETWORKING
 
 
@@ -173,11 +172,17 @@ class Netconfig:
     #     self.enableInterfaceBridge(dev=dev,bridgedev=bridgedev,apply=apply)
 
     def interfaces_restart(self, dev=None):
-        self.log("restart:%s" % dev)
-        cmd = "ifdown %s" % dev
-        self._executor.execute(cmd)
-        cmd = "ifup %s" % dev
-        self._executor.execute(cmd)
+        if dev is None:
+            for nic in j.sal.nic.nics:
+                cmd = "ifdown %s --force" % nic
+                print("shutdown:%s" % nic)
+                self._executor.execute(cmd, die=False)
+        else:
+            self.log("restart:%s" % dev)
+            cmd = "ifdown %s" % dev
+            self._executor.execute(cmd)
+            cmd = "ifup %s" % dev
+            self._executor.execute(cmd)
 
     def proxy_enable(self):
         maincfg = j.config.getConfig('main')

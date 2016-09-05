@@ -43,7 +43,8 @@ class CuisineG8OSCore(app):
         download, install, move files to appropriate places, and create relavent configs
         """
         sourcepath = "$goDir/src/github.com/g8os/core"
-        self._cuisine.core.file_move("%s/core" % sourcepath, "$binDir/core")
+        if not self._cuisine.core.file_exists('$binDir/core'):
+            self._cuisine.core.file_move("%s/core" % sourcepath, "$binDir/core")
 
         # copy extensions
         self._cuisine.core.dir_remove("$tmplsDir/cfg/core/extensions")

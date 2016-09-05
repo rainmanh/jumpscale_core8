@@ -8,13 +8,11 @@ docker pull jumpscale/ubuntu1604_golang
 docker run --rm -t -i  --name=js jumpscale/ubuntu1604_golang
 ```
 
-In the Docker container:
+In the Docker container let's test the JumpScale interactive shell:
 ```
 export HOME=/root
 js
 ```
-
-You will now see a shell for JumpScale.
 
 An SSH server is installed in the Docker container, but you will have to remap port 22 to some other port on localhost, e.g. 2022.
 

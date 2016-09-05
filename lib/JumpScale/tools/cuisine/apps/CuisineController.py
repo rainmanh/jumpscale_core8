@@ -21,7 +21,7 @@ class CuisineController(app):
         self._cuisine.apps.redis.install()
         self._cuisine.apps.redis.start()
         self._cuisine.apps.mongodb.build(start=False)
-        self._cuisine.apps.syncthing.build(start=False, reset=True)
+        self._cuisine.apps.syncthing.build(start=False)
 
         self._cuisine.processmanager.remove("agentcontroller8")
         pm = self._cuisine.processmanager.get("tmux")

@@ -34,7 +34,6 @@ class CuisineRedis(app):
 
             rm -f /usr/local/bin/redis-server
             rm -f /usr/local/bin/redis-cli
-
             """
             C = self._cuisine.bash.replaceEnvironInText(C)
             C = self._cuisine.core.args_replace(C)
@@ -46,7 +45,6 @@ class CuisineRedis(app):
             mkdir -p $base/bin/
             cp -f $tmpDir/build/redis/redis-stable/src/redis-server $base/bin/
             cp -f $tmpDir/build/redis/redis-stable/src/redis-cli $base/bin/
-
             rm -rf $base/apps/redis
             """
             C = self._cuisine.bash.replaceEnvironInText(C)

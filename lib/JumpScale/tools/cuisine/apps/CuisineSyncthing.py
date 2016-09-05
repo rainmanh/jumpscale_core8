@@ -38,7 +38,7 @@ class CuisineSyncthing(app):
         """
         # create config file
         config = """
-        <configuration version="11">
+        <configuration version="14">
             <folder id="default" path="$homeDir/Sync" ro="false" rescanIntervalS="60" ignorePerms="false" autoNormalize="false">
                 <device id="H7MBKSF-XNFETHA-2ERDXTB-JQCAXTA-BBTTLJN-23TN5BZ-4CL7KLS-FYCISAR"></device>
                 <minDiskFreePct>1</minDiskFreePct>
@@ -57,9 +57,8 @@ class CuisineSyncthing(app):
                 <apikey>wbgjQX6uSgjI1RfS7BT1XQgvGX26DHMf</apikey>
             </gui>
             <options>
-                <listenAddress>0.0.0.0:22000</listenAddress>
-                <globalAnnounceServer>udp4://announce.syncthing.net:22026</globalAnnounceServer>
-                <globalAnnounceServer>udp6://announce-v6.syncthing.net:22026</globalAnnounceServer>
+                <listenAddress>tcp://0.0.0.0:22000</listenAddress>
+                <globalAnnounceServer>default</globalAnnounceServer>
                 <globalAnnounceEnabled>true</globalAnnounceEnabled>
                 <localAnnounceEnabled>true</localAnnounceEnabled>
                 <localAnnouncePort>21025</localAnnouncePort>
@@ -98,10 +97,6 @@ class CuisineSyncthing(app):
 
         self._cuisine.core.dir_ensure("$tmplsDir/cfg/syncthing/")
         self._cuisine.core.file_write("$tmplsDir/cfg/syncthing/config.xml", content)
-        self._cuisine.core.file_copy(source="$goDir/src/github.com/syncthing/syncthing/bin/syncthing",
-                                     dest="$binDir",
-                                     recursive=True,
-                                     overwrite=False)
 
         if start:
             self.start()
@@ -109,9 +104,5 @@ class CuisineSyncthing(app):
     def start(self):
         self._cuisine.core.dir_ensure("$cfgDir")
         self._cuisine.core.file_copy("$tmplsDir/cfg/syncthing/", "$cfgDir", recursive=True)
-
-        GOPATH = self._cuisine.bash.environGet('GOPATH')
-        env = {}
-        env["TMPDIR"] = self._cuisine.core.dir_paths["tmpDir"]
         pm = self._cuisine.processmanager.get("tmux")
         pm.ensure(name="syncthing", cmd="./syncthing -home  $cfgDir/syncthing", path="$binDir")

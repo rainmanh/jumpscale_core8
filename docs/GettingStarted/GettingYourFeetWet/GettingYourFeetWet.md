@@ -1,28 +1,14 @@
-# Getting Started
+# Getting Your Feet Wet
 
-## JumpScale interactive shell
+- [JumpScale Interactive Shell](JShell.md)
+- [System Abstraction Layer](SAL.md)
+- [Cuisine](Cuisine.md)
+- [AtYourService](AYS.md)
 
-The best place to get acquainted is in the JumpScale interactive shell, based on IPython.
+@TODO repurpose the below
 
-In order to start the JumpScale interactive shell type `js` at the command line.
 
-Everything after `js` will be evalled in the JumpScale interactive shell session:
 
-```
-js 'j.do._.loadSSHAgent()'
-```
-
-## Installing JumpScale applications
-
-In order to install JumpScale applications there is **AtYourService**, abbreviated as AYS.
-
-AYS is part of JumpScale. It provides a framework for deploying any application or service so that the application or service becomes self-healing.
-
-To get acquanted with [AYS](/../AYS/AYS-introduction.md) type the following at the command line:
-
-```
-ays
-```
 
 ## SSH key management
 
@@ -61,7 +47,3 @@ You only will need to do this once on a system. Once done the `.bashrc` file wil
 Remark: if this is the first time then your current session does not have access to sshkeys yet, go into a new terminal to see the results & start using ssh
 
 If you want to read more about key management see [tips & tricks about ssh keys & agents (e.g. how to create your keys)](../SSHSystemManagement/SSHKeysAgent.md)
-
-## Also see
-
-- [IPythonTricks](IPythonTricks.md)

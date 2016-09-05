@@ -1,72 +1,45 @@
 
 # Summary
 
-- [Introduction](README.md)
+* [Introduction](README.md)
 
   - [Why Using JumpScale](Introduction/WhyJumpScale.md)
   - [JumpScale Core Components](Introduction/Components.md)
   - [Solutions Built with JumpScale](Introduction/JumpScaleSolutions.md)
 
 
-- [Getting Started](GettingStarted/GettingStarted.md)
+* [Getting Started](GettingStarted/GettingStarted.md)
 
   - [Installation](GettingStarted/Installation/Installation.md)
     - [Installation of the JumpScale Sandbox](GettingStarted/Installation/JS8.md)
     - [Installation for Development Purposes](GettingStarted/Installation/JSDevelopment.md)
     - [Installing JumpScale Docker Containers](GettingStarted/Installation/JSDocker.md)
-  - [First Steps](GettingStarted/FirstSteps.md)
+  - [Getting Your Feet Wet](GettingStarted/GettingYourFeetWet/GettingYourFeetWet.md)
+    - [JumpScale Interactive Shell](GettingStarted/GettingYourFeetWet/JShell.md)
+    - [System Abstraction Layer](GettingStarted/GettingYourFeetWet/SAL.md)
+    - [Cuisine](GettingStarted/GettingYourFeetWet/Cuisine.md)
+    - [AYS](GettingStarted/GettingYourFeetWet/AYS.md)
 
 
-- [SALs](SAL/SAL.md)
-- [Cuisine](Cuisine/Cuisine.md)
-
-  - [cuisine.core](Cuisine/cuisine.core.md)
-  - [cuisine.bash](Cuisine/cuisine.bash.md)
-  - [cuisine.development.pip](Cuisine/cuisine.development.pip.md)
-  - [cuisine.processmanager](Cuisine/cuisine.processmanager.md)
-  - [cuisine.apps](Cuisine/cuisine.apps.md)
-  - [cuisine.tmux](Cuisine/cuisine.tmux.md)
-  - [cuisine.docker](Cuisine/cuisine.docker.md)
-  - [cuisine.ssh](Cuisine/cuisine.ssh.md)
-  - [cuisine.package](Cuisine/cuisine.package.md)
-  - [cuisine.installer](Cuisine/cuisine.installer.md)
-  - [cuisine.installerdevelop](Cuisine/cuisine.installerdevelop.md)
+* [SALs](SAL/SAL.md)
 
 
-- [AtYourService](AYS/AYS-Introduction.md)
+* [Cuisine](Cuisine/Cuisine.md)
+
+
+* [AYS](AYS/AYS-Introduction.md)
   - [Definitions](AYS/Definitions/0-Definitions.md)
-    - [Repositories](AYS/Definitions/1-Repositories.md)
-    - [Templates, Recipes & Instances](AYS/Definitions/2-Templates-Recipes-Instances.md)
-    - [Service Name, Role & Version](AYS/Definitions/3-Name-Role-Version.md)
-    - [Service Unique Key](AYS/Definitions/4-Unique-Key.md)
-    - [Producers & Consumers](AYS/Definitions/5-Producers-Consumers.md)
-    - [Parents & Children](AYS/Definitions/6-Parents-Children.md)
-    - [Service Actions](AYS/Definitions/7-Actions.md)
-    - [Blueprints](AYS/Definitions/8-Blueprints.md)
   - [Life Cycle of an AYS Service](AYS/Service-Lifecycle.md)
   - [Commands](AYS/Commands/commands.md)
-    - [blueprint](AYS/Commands/blueprint.md)
-    - [init](AYS/Commands/init.md)
-    - [commit](AYS/Commands/commit.md)
-    - [install](AYS/Commands/install.md)
-    - [simulate](AYS/Commands/simulate.md)
-    - [destroy](AYS/Commands/destroy.md)
-    - [do](AYS/Commands/do.md)
-    - [list](AYS/Commands/list.md)
-    - [update](AYS/Commands/update.md)
-    - [test](AYS/Commands/test.md)
-    - [showparents](AYS/Commands/showparents.md)
-    - [showproducers](AYS/Commands/showproducers.md)
-    - [setstate](AYS/Commands/setstate.md)
   - [File Locations & Details](AYS/FileDetails/FilesDetails.md)
   - [AYS File System](AYS/G8OS-FS.md)
   - [AYS Portal](AYS/AYS-Portal.md)
   - [Building an AYS Service](AYS/Building.md)
   - [AYS Examples](AYS/Examples/Home.md)
-    - [Docker Example](AYS/Examples/DockerExample.md)
-    - [OVC Example](AYS/Examples/OVCExample.md)
 
-- [How To](Howto/Howto.md)
+* [Complete Walkthrough](Walkthrough/Walkthrough.md)
+
+* [How To](Howto/Howto.md)
   - [Use Git](Howto/how_to_use_git.md)
     - [Automated](Howto/how_to_use_git_automated.md)
     - [Manually](Howto/how_to_use_git_manually.md)
@@ -75,4 +48,4 @@
   - [Use the Shell & Debug](Howto/how_to_use_the_shell_and_debug.md)
   - [Add a New SAL](Howto/how_to_add_a_new_SAL.md)
 
-- [JumpScale API](JumpscaleAPI/SUMMARY.md)
+* [JumpScale API](JumpscaleAPI/SUMMARY.md)

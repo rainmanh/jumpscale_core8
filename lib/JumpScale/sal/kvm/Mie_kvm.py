@@ -93,7 +93,8 @@ class KVMController:
         atexit.register(self.close)
         if executor is None:
             self.executor = j.tools.executor.getLocal()
-        self.template_path = j.sal.fs.joinPaths(j.sal.fs.getParent(__file__), 'templates')
+        self.template_path = j.sal.fs.joinPaths(
+            j.sal.fs.getParent(__file__), 'templates')
         self.base_path = "/tmp/base"
         self.env = Environment(loader=FileSystemLoader(self.template_path))
         # self.env = Environment(loader=FileSystemLoader('/'.join(file.split('/')[:-1]) + '/templates'))
@@ -101,7 +102,7 @@ class KVMController:
     def open(self):
         uri = None
         if self._host != 'localhost':
-            uri = 'qemu+libssh2://%s/system?no_tty=1' % self._host
+            uri = 'qemu+ssh://%s/system' % self._host
         self.connection = libvirt.open(uri)
         self.readonly = libvirt.openReadOnly(uri)
 
@@ -119,12 +120,13 @@ class KVMController:
         machines = list()
         domains = self.connection.listAllDomains()
         for domain in domains:
-            machine = Machine.from_xml(self. domain.XMLDesc())
-            machine.append(machine)
+            machine = Machine.from_xml(self, domain.XMLDesc())
+            machines.append(machine)
         return machines
 
 
 class MIE_kvm:
+
     def __init__(self):
         self.__jslocation__ = "j.sal.our_kvm"
         self.Machine = Machine

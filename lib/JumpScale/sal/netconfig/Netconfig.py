@@ -60,7 +60,7 @@ class Netconfig:
         empty config of /etc/network/interfaces
         """
         if shutdown:
-            self.shutdownNetwork()
+            self.interfaces_shutdown()
         path = j.tools.path.get(self._getInterfacePath())
         self._backup(path)
         path.write_text("auto lo\n\n")
@@ -173,22 +173,11 @@ class Netconfig:
     #     self.enableInterfaceBridge(dev=dev,bridgedev=bridgedev,apply=apply)
 
     def interfaces_restart(self, dev=None):
-        if dev is None:
-            #TODO: (***) loop over devs
-            pass
-
-        self.log("restart:%s" % devToApplyTo)
-        cmd = "ifdown %s" % devToApplyTo
+        self.log("restart:%s" % dev)
+        cmd = "ifdown %s" % dev
         self._executor.execute(cmd)
-        cmd = "ifup %s" % devToApplyTo
+        cmd = "ifup %s" % dev
         self._executor.execute(cmd)
-
-        if not devToApplyTo.startswith(dev):
-            print(("restart:%s" % dev))
-            cmd = "ifdown %s" % dev
-            self._executor.execute(cmd)
-            cmd = "ifup %s" % dev
-            self._executor.execute(cmd)
 
     def proxy_enable(self):
         maincfg = j.config.getConfig('main')

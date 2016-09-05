@@ -19,7 +19,6 @@ class Disk():
         pool_name = disk.find('target').findtext('path').split("/")[-2]
         pool = StorageController(controller).get_pool(pool_name)
         size = disk.findtext('capacity')
-        #TODO optional image
         if not disk.find('backingStore') is None:
             path = disk.find('backingStore').findtext('path')
             image_name = path.split("/")[0].split('.')[0]
@@ -28,7 +27,7 @@ class Disk():
         return cls(controller, pool, name, size,image_name)
 
     def to_xml(self):
-        disktemplate = self.controller.env.get_template('disk.xml')
+        disktemplate = self.controller.get_template('disk.xml')
         if self.image_name:
             diskbasevolume = self.controller.executor.cuisine.core.joinpaths(self.controller.base_path, "images", '%s.qcow2' % self.image_name)
         else:
@@ -44,6 +43,7 @@ class Disk():
 
     @property
     def is_created(self):
+        # TODO
         return False
 
     def delete(self):
@@ -83,7 +83,7 @@ class Pool:
         self.controller.connection.storagePoolCreateXML(self.to_xml(), 0)
 
     def to_xml(self):
-        pool = self.controller.env.get_template('pool.xml').render(
+        pool = self.controller.get_template('pool.xml').render(
             pool_name=self.name, basepath=self.controller.base_path)
         return pool
 
@@ -127,7 +127,7 @@ class Storage:
                 self.controller.executor.cuisine.core.dir_ensure(poolpath)
                 cmd = 'chattr +C %s ' % poolpath
                 self.controller.executor.execute(cmd)
-            pool = self.controller.env.get_template('pool.xml').render(
+            pool = self.controller.get_template('pool.xml').render(
                 pool_name=pool_name, basepath=self.controller.base_path)
             print(pool)
             self.controller.connection.storagePoolCreateXML(pool, 0)

@@ -54,7 +54,7 @@ class Network:
             nw.create()
 
     def to_xml(self):
-        networkxml = self.controller.env.get_template(
+        networkxml = self.controller.get_template(
             'network.xml').render(networkname=self.name, bridge=self.bridge)
         return networkxml
 
@@ -129,7 +129,7 @@ class Interface:
         self.mac = interface.findall('mac')[0].get('address')
 
     def to_xml(self):
-        Interfacexml = self.controller.env.get_template('interface.xml').render(
+        Interfacexml = self.controller.get_template('interface.xml').render(
             macaddress=self.mac, bridge=self.bridge.name, qos=self.qos, rate=self.interface_rate, burst=self.burst, name=self.name
         )
         return Interfacexml

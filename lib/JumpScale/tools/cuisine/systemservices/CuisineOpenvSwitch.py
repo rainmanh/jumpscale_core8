@@ -38,7 +38,7 @@ class CuisineOpenvSwitch(app):
                 host = 'localhost'
             else:
                 host = '%s@%s'%(getattr(self._executor, '_login', 'root'), self._cuisine.id)
-            self.__controller = j.sal.our_kvm.KVMController(
+            self.__controller = j.sal.kvm.KVMController(
                 host=host, executor=self._cuisine._executor)
         return self.__controller
 
@@ -74,7 +74,7 @@ class CuisineOpenvSwitch(app):
         @bridge_name str: name of the main bridge created to connect to th host
         @interfaces [str]: names of the interfaces to be added to the bridge
         """
-        network = j.sal.our_kvm.Network(
+        network = j.sal.kvm.Network(
             self._controller, network_name, bridge_name, interfaces)
         return network.create()
 
@@ -84,7 +84,7 @@ class CuisineOpenvSwitch(app):
 
         @bridge_name
         """
-        network = j.sal.our_kvm.Network(self._controller, bridge_name)
+        network = j.sal.kvm.Network(self._controller, bridge_name)
         return network.destroy()
 
     def networkList(self):
@@ -111,7 +111,7 @@ class CuisineOpenvSwitch(app):
         """
         # TODO: *1 spec
         # is a name relevant???, how do we identify a vnic
-        interface = j.sal.our_kvm.Interface(self._controller, name, bridge)
+        interface = j.sal.kvm.Interface(self._controller, name, bridge)
         self.interfaces[name] = interface
         interface.create()
 
@@ -122,7 +122,7 @@ class CuisineOpenvSwitch(app):
         @bridge str: name of bridge
         @name str: name of port and interface to be deleted
         """
-        interface = j.sal.our_kvm.Interface(self._controller, name, bridge)
+        interface = j.sal.kvm.Interface(self._controller, name, bridge)
         return interface.destroy()
 
     def vnicQOS(self, name, bridge, qos, burst=None):
@@ -135,7 +135,7 @@ class CuisineOpenvSwitch(app):
         """
         # TODO: *1 spec what is relevant for a vnic from QOS perspective, what can we do
         # goal is we can do this at runtime
-        interface = j.sal.our_kvm.Interface(self._controller, name, bridge)
+        interface = j.sal.kvm.Interface(self._controller, name, bridge)
         interface.qos(qos, burst)
 
     def vnicBond(self, parameter_list):

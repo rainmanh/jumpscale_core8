@@ -83,7 +83,7 @@ class CuisineKVM(base):
                 host = 'localhost'
             else:
                 host = '%s@%s'%(getattr(self._executor, '_login', 'root'), self._cuisine.id)
-            self.__controller = j.sal.our_kvm.KVMController(
+            self.__controller = j.sal.kvm.KVMController(
                 host=host, executor=self._cuisine._executor)
         return self.__controller
 
@@ -93,7 +93,7 @@ class CuisineKVM(base):
         self._controller.executor.cuisine.core.file_download(url, path, overwrite=True)
 
     def machine(self, name, os, disks, nics, memory, cpucount, uuid=None):
-        return j.sal.our_kvm.CloudMachine(self._controller, name, os, disks, nics, memory, cpucount, uuid=None)
+        return j.sal.kvm.CloudMachine(self._controller, name, os, disks, nics, memory, cpucount, uuid=None)
 
     def prepare(self):
         self.install()
@@ -141,16 +141,16 @@ class CuisineKVM(base):
         @param size in GB
         """
         # create an empty disk we can attachl
-        disk = j.sal.our_kvm.Disk(self._controller, pool, name, size, image_name)
+        disk = j.sal.kvm.Disk(self._controller, pool, name, size, image_name)
         disk.create()
 
     def vdiskDelete(self, name):
         vol = self._controller.connection.get_volume(name)
-        disk = j.sal.our_kvm.Disk.from_xml(self._controller, vol.XMLDesc())
+        disk = j.sal.kvm.Disk.from_xml(self._controller, vol.XMLDesc())
         disk.delete()
 
     def vdisksList(self):
-        storagecontroller = j.sal.our_kvm.StorageController(self._controller)
+        storagecontroller = j.sal.kvm.StorageController(self._controller)
         disks = storagecontroller.list_disks()
         return disks
 
@@ -199,13 +199,13 @@ class CuisineKVM(base):
         raise NotImplemented()
 
     def vpoolCreate(self, name):
-        pool = j.sal.our_kvm.StorageController(self._controller).get_or_create_pool(name)
+        pool = j.sal.kvm.StorageController(self._controller).get_or_create_pool(name)
         return pool
 
     def vpoolDestroy(self, name):
-        j.sal.our_kvm.StorageController(self._controller).delete(name)
+        j.sal.kvm.StorageController(self._controller).delete(name)
         return True
 
     def vmachinesList(self):
-        machines = j.sal.our_kvm.controller.list_machines()
+        machines = j.sal.kvm.controller.list_machines()
         return machines

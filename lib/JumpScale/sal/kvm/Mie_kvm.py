@@ -63,7 +63,7 @@ class Machine:
         try:
             self.domain
             return True
-        except libvirt.libvirtError as e 
+        except libvirt.libvirtError as e:
             return False
 
     @property
@@ -79,7 +79,7 @@ class Machine:
     def start(self):
         return self.domain.create() == 0
 
-    def shuldown(self):
+    def shutdown(self):
         return self.domain.shutdown() == 0
 
     def suspend(self):
@@ -153,6 +153,7 @@ class KVMController:
     def __init__(self, host='localhost', executor=None):
         self.executor = executor
         self._host = host
+        self.user = host.split('@')[0] if '@' in host else 'root'
         self.open()
         atexit.register(self.close)
         if executor is None:
@@ -166,7 +167,10 @@ class KVMController:
     def open(self):
         uri = None
         if self._host != 'localhost':
-            uri = 'qemu+ssh://%s/system' % self._host
+            j.tools.cuisine.local.ssh.keygen(name='libvirt')
+            self.authorized = not self.executor.cuisine.ssh.authorize(self.user,
+                j.tools.cuisine.local.core.file_read('/root/.ssh/libvirt.pub'))
+            uri = 'qemu+ssh://%s/system?no_tty=1&keyfile=/root/.ssh/libvirt' % self._host
         self.connection = libvirt.open(uri)
         self.readonly = libvirt.openReadOnly(uri)
 
@@ -179,6 +183,9 @@ class KVMController:
                     pass
         close(self.connection)
         close(self.readonly)
+        if self.authorized:
+            self.executor._cuisine.ssh.unauthorize(self.user,
+                j.tools.cuisine.local.core.file_read('/root/.ssh/libvirt.pub'))
 
     def list_machines(self):
         machines = list()
@@ -226,9 +233,3 @@ class CloudMachine(Machine):
         [disk.start() for disk in self.disks if not disk.is_started]
         [nic.start() for nic in self.nics if not nic.is_started]
         return super().start() if not self.is_started else True
-
-    def stop(self):
-        return self.stop()
-
-    def destroy(self):
-        return self.destroy()

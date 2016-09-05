@@ -163,11 +163,11 @@ class CuisineSSH(base):
         """Removes the given key to the remote '.ssh/authorized_keys' for the given
         user."""
         key = key.strip()
-        d = user.check(user, need_passwd=False)
+        d = self._cuisine.user.check(user, need_passwd=False)
         group = d["gid"]
         keyf = d["home"] + "/.ssh/authorized_keys"
         if self._cuisine.core.file_exists(keyf):
-            self._cuisine.core.file_write(keyf, "\n".join(_ for _ in file_read(keyf).split(
+            self._cuisine.core.file_write(keyf, "\n".join(_ for _ in self._cuisine.core.file_read(keyf).split(
                 "\n") if _.strip() != key), owner=user, group=group, mode="600")
             return True
         else:

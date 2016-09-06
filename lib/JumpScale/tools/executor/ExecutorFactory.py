@@ -17,6 +17,12 @@ class ExecutorFactory:
         """
         ExecutorSSH(addr, port=port, login=login, passwd=passwd, pushkey=keyname, pubkey=pubkey)
 
+    def getSSHViaProxy(self, host, username, port, identityfile, proxycommand=None):
+        executor = ExecutorSSH()
+        executor.getSSHViaProxy(host)
+        self._executors[host] = executor
+        return executor
+
     def get(self, executor="localhost"):
         """
         @param executor is an executor object, None or $hostname:$port or $ipaddr:$port or $hostname or $ipaddr

@@ -5,7 +5,7 @@ import os
 
 class ExecutorSSH(ExecutorBase):
 
-    def __init__(self, addr, port, dest_prefixes={}, login="root",
+    def __init__(self, addr='', port=22, dest_prefixes={}, login="root",
                  passwd=None, debug=False, allow_agent=True,
                  look_for_keys=True, checkok=True, timeout=5):
         # DO NOT USE THIS TO PUSH A KEY!!!
@@ -69,6 +69,11 @@ class ExecutorSSH(ExecutorBase):
 
         return self._sshclient
 
+    def getSSHViaProxy(self, host, username, port, identityfile, proxycommand=None):
+        self._sshclient = j.clients.ssh.get()
+        self._sshclient.connectViaProxy(host, username, port, identityfile, proxycommand)
+        return self
+        
     def authorizeKey(self, pubkey=None, keyname=None, passphrase=None, login="root"):
         """
         This will authenticate the ssh client to access the target machine

@@ -24,6 +24,13 @@
             <target dev='vd{{"abcdefghijklmnopqrstuvwxyz"[loop.index0]}}' bus='virtio'/>
           </disk>
         {% endfor %}
+        {% if cloudinit %}
+          <disk type='file' device='cdrom'>
+            <driver name='qemu' type='raw'/>
+            <source file='{{image_path}}'/>
+            <target dev='hda' bus='ide'/>
+          </disk>
+        {% endif %}
         {% for nic in nics %}
             {{nic.to_xml()}}
         {% endfor %}

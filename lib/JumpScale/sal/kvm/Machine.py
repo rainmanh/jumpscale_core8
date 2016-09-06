@@ -1,6 +1,7 @@
 from xml.etree import ElementTree
 from JumpScale import j
 import libvirt
+import yaml
 from BaseKVMComponent import BaseKVMComponent
 
 class Machine(BaseKVMComponent):
@@ -17,7 +18,7 @@ class Machine(BaseKVMComponent):
         8: "last"
     }
 
-    def __init__(self, controller, name, disks, nics, memory, cpucount, uuid=None):
+    def __init__(self, controller, name, disks, nics, memory, cpucount, uuid=None, cloud_init=False):
         self.name = name
         self.disks = disks
         self.nics = nics
@@ -25,11 +26,14 @@ class Machine(BaseKVMComponent):
         self.cpucount = cpucount
         self.controller = controller
         self._uuid = uuid
+        self.cloud_init = cloud_init
+        self.image_path=""
         self._domain = None
 
     def to_xml(self):
         machinexml = self.controller.get_template('machine.xml').render({'machinename': self.name, 'memory': self.memory, 'nrcpu': self.cpucount,
-                                                                             'nics': self.nics, 'disks': self.disks})
+                                                                             'nics': self.nics, 'disks': self.disks, "cloudinit": self.cloud_init, 
+                                                                             "image_path":self.image_path})
         return machinexml
 
     @classmethod
@@ -87,7 +91,18 @@ class Machine(BaseKVMComponent):
 #
 #         #now get the cuisine of the virtual vm
 
-    def create(self):
+    def create(self, username="cloudscalers", passwd="gig1234"):
+        cuisine = self.controller.executor.cuisine
+        if self.cloud_init:
+            cuisine.core.dir_ensure("%s/metadata/%s" % (self.controller.base_path, self.name))
+            userdata = self.controller.get_template('user-data.yaml').render(pubkey=self.controller.pubkey)
+            metadata = '{"local-hostname":"vm-%s"}' % self.name
+            cuisine.core.file_write("%s/metadata/%s/user-data" % (self.controller.base_path, self.name), userdata)
+            cuisine.core.file_write("%s/metadata/%s/meta-data" % (self.controller.base_path, self.name), metadata)
+            cmd = "genisoimage -o {base}/{name}_ci.iso -V cidata -r -J {base}/metadata/{name}/meta-data {base}/metadata/{name}/user-data".format(base=self.controller.base_path, name=self.name)
+            cuisine.core.run(cmd)
+            self.image_path = "%s/%s_ci.iso" % (self.controller.base_path, self.name)
+            cuisine.core.dir_remove("%s/images/%s " % (self.controller.base_path, self.name))
         self.domain = self.controller.connection.defineXML(self.to_xml())
 
     @property

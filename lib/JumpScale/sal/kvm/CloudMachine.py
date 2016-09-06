@@ -3,7 +3,7 @@ from Machine import Machine
 
 class CloudMachine(Machine):
 
-    def __init__(self, controller, name, os, disks, nics, memory, cpucount, poolname='vms', uuid=None):
+    def __init__(self, controller, name, os, disks, nics, memory, cpucount, poolname='vms', uuid=None, cloud_init=False):
         self.pool = j.sal.kvm.Pool(controller, poolname)
         self.os = os
         new_nics = list(map(lambda x: j.sal.kvm.Interface(controller, x,
@@ -15,7 +15,7 @@ class CloudMachine(Machine):
         else:
             new_disks = []
 
-        super().__init__(controller, name, new_disks, new_nics, memory, cpucount, uuid=uuid)
+        super().__init__(controller, name, new_disks, new_nics, memory, cpucount, uuid=uuid, cloud_init=cloud_init)
 
     @classmethod
     def from_xml(cls, controller, xml):

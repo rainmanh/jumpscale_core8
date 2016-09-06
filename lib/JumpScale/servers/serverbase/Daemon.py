@@ -1,6 +1,6 @@
 from JumpScale import j
 from JumpScale.servers.serverbase import returnCodes
-from JumpScale.core.errorhandling.OurExceptions import BaseJSException
+from JumpScale.core.errorhandling.JSExceptions import BaseJSException
 import inspect
 import time
 

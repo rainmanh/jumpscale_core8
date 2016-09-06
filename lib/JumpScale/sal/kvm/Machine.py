@@ -1,8 +1,9 @@
 from xml.etree import ElementTree
 from JumpScale import j
 import libvirt
+from BaseKVMComponent import BaseKVMComponent
 
-class Machine:
+class Machine(BaseKVMComponent):
 
     STATES = {
         0: "nostate",
@@ -37,11 +38,16 @@ class Machine:
         name = machine.findtext('name')
         memory = int(machine.findtext('memory'))
         nrcpu = int(machine.findtext('vcpu'))
-        interfaces = map(lambda interface:Interface.from_xml(controller, ElementTree.tostring(interface)),
-            machine.findall('interface'))
-        disks = map(lambda disk:Disk.from_xml(controller, ElementTree.tostring(disk)),
-            machine.findall('disk'))
+        interfaces = list(map(lambda interface:j.sal.kvm.Interface.from_xml(controller, ElementTree.tostring(interface)),
+            machine.find('devices').findall('interface')))
+        disks = list(map(lambda disk:j.sal.kvm.Disk.from_xml(controller, ElementTree.tostring(disk)),
+            machine.find('devices').findall('disk')))
         return cls(controller, name, disks, interfaces, memory, nrcpu)
+
+    @classmethod
+    def get_by_name(cls, controller, name):
+        domain = controller.connection.lookupByName(name)
+        return cls.from_xml(controller, domain.XMLDesc())
 
     @property
     def domain(self):
@@ -101,19 +107,23 @@ class Machine:
         return self.STATES[self.domain.state()[0]]
 
     def delete(self):
-        return self.domain.destroy() == 0
-
-    def pause(self):
-        return self.domain.suspend() == 0
+        return self.domain.undefine() == 0
 
     def start(self):
         return self.domain.create() == 0
 
-    def shutdown(self):
-        return self.domain.shutdown() == 0
+    def shutdown(self, force=False):
+        if force:
+            return self.domain.destroy() == 0
+        else:
+            return self.domain.shutdown() == 0
+
+    stop = shutdown
 
     def suspend(self):
         return self.domain.suspend() == 0
+
+    pause = suspend
 
     def resume(self):
         return self.domain.resume() == 0

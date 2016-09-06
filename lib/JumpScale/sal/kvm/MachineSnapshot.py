@@ -1,7 +1,8 @@
 from xml.etree import ElementTree
 from JumpScale import j
+from BaseKVMComponent import BaseKVMComponent
 
-class MachineSnapshot:
+class MachineSnapshot(BaseKVMComponent):
 
     def __init__(self, controller, domain, name, description=""):
         self.controller = controller

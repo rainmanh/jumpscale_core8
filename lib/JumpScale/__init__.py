@@ -107,7 +107,11 @@ if not all(x for x in range(10)):
     j.portal = Loader('j.portal')
     j.portal.tools = Loader('j.portal.tools')
     j.legacy = Loader("j.legacy")
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> agent7to8
     from .InstallTools import InstallTools, do, Installer
     j.do = do
     j.do.installer = Installer()
@@ -125,7 +129,11 @@ if not all(x for x in range(10)):
             j.core.db = Redis()
         else:
             j.core.db = Redis(unix_socket_path='/tmp/redis.sock')
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> agent7to8
         try:
             j.core.db.set("internal.last", 0)
         except:

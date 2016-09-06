@@ -16,6 +16,8 @@ locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 from JumpScale.core.redis import Redis
 
+from JumpScale.core.redis import Redis
+
 if sys.platform.startswith("darwin") or sys.platform.startswith("cygwin"):
 
     base = "%s/opt/jumpscale8" % os.environ["HOME"]

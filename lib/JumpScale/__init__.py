@@ -11,6 +11,7 @@ try:
 except:
     pass
 
+
 from JumpScale.core.redis import Redis
 
 if sys.platform.startswith("darwin") or sys.platform.startswith("cygwin"):

@@ -34,8 +34,8 @@ class CloudMachine(Machine):
     def delete(self):
         return super().delete() if self.is_created else False
 
-    def shutdown(self):
-        return super().shutdown() if self.is_started else False
+    def shutdown(self, force=False):
+        return super().shutdown(force) if self.is_started else False
 
     stop = shutdown
 

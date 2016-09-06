@@ -4,7 +4,6 @@
 * [Introduction](README.md)
 
   - [Why Using JumpScale](Introduction/WhyJumpScale.md)
-  - [JumpScale Core Components](Introduction/Components.md)
   - [Solutions Built with JumpScale](Introduction/JumpScaleSolutions.md)
 
 
@@ -13,13 +12,15 @@
   - [Installation](GettingStarted/Installation/Installation.md)
     - [Installation of the JumpScale Sandbox](GettingStarted/Installation/JS8.md)
     - [Installation for Development Purposes](GettingStarted/Installation/JSDevelopment.md)
-    - [Installing JumpScale Docker Containers](GettingStarted/Installation/JSDocker.md)
+    - [Installing the JumpScale Docker Container](GettingStarted/Installation/JSDocker.md)
   - [Getting Your Feet Wet](GettingStarted/GettingYourFeetWet/GettingYourFeetWet.md)
-    - [JumpScale Interactive Shell](GettingStarted/GettingYourFeetWet/JShell.md)
-    - [Tools](GettingStarted/GettingYourFeetWet/Tools.md)
-    - [System Abstraction Layer](GettingStarted/GettingYourFeetWet/SAL.md)
-    - [Cuisine](GettingStarted/GettingYourFeetWet/Cuisine.md)
-    - [AYS](GettingStarted/GettingYourFeetWet/AYS.md)
+    - [Ways to Use JumpScale]
+      - [JumpScale Interactive Shell](GettingStarted/GettingYourFeetWet/JShell.md)
+      - [JumpScale at the Command Line]()
+    - [JumpScale Core Components](GettingStarted/GettingYourFeetWet/Components.md)
+      - [System Abstraction Layer](GettingStarted/GettingYourFeetWet/SAL.md)
+      - [Cuisine](GettingStarted/GettingYourFeetWet/Cuisine.md)
+      - [AYS](GettingStarted/GettingYourFeetWet/AYS.md)
 
 * [How To](Howto/Howto.md)
 
@@ -30,6 +31,7 @@
     - [Use the OpenvCloud APIs](Howto/how_to_use_OVC_API.md)
     - [Use the Shell & Debug](Howto/how_to_use_the_shell_and_debug.md)
     - [Add a New SAL](Howto/how_to_add_a_new_SAL.md)
+
 
 * [SALs](SAL/SAL.md)
 

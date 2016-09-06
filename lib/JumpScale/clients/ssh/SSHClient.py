@@ -154,8 +154,8 @@ class SSHClient:
         import os.path
         self.host = host
         cfg = {'hostname': host, 'username': username, "port": port}
-        self.addr = hostname
-        self.user = user
+        self.addr = host
+        self.user = username
 
         if identityfile is not None:
             cfg['key_filename'] = identityfile

@@ -17,7 +17,7 @@ class ExecutorFactory:
         """
         ExecutorSSH(addr, port=port, login=login, passwd=passwd, pushkey=keyname, pubkey=pubkey)
 
-    def getSSHViaProxy(self, jumphost, host, username, port, identityfile, proxycommand=None)
+    def getSSHViaProxy(self, jumphost, host, username, port, identityfile, proxycommand=None):
         executor = ExecutorSSH()
         executor.getSSHViaProxy(jumphost, host, username, port, identityfile, proxycommand)
         self._executors[host] = executor

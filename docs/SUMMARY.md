@@ -14,11 +14,12 @@
     - [Installation for Development Purposes](GettingStarted/Installation/JSDevelopment.md)
     - [Installing the JumpScale Docker Container](GettingStarted/Installation/JSDocker.md)
   - [Getting Your Feet Wet](GettingStarted/GettingYourFeetWet/GettingYourFeetWet.md)
-    - [Ways to Use JumpScale]
+    - [Ways to Use JumpScale](GettingStarted/GettingYourFeetWet/WaysToUseJS.md)
       - [JumpScale Interactive Shell](GettingStarted/GettingYourFeetWet/JShell.md)
-      - [JumpScale at the Command Line]()
+      - [JumpScale at the Command Line](GettingStarted/GettingYourFeetWet/JSAtCommandLine.md)
     - [JumpScale Core Components](GettingStarted/GettingYourFeetWet/Components.md)
-      - [System Abstraction Layer](GettingStarted/GettingYourFeetWet/SAL.md)
+      - [Various Tools](GettingStarted/GettingYourFeetWet/Tools.md)
+      - [System Abstraction Layers](GettingStarted/GettingYourFeetWet/SALs.md)
       - [Cuisine](GettingStarted/GettingYourFeetWet/Cuisine.md)
       - [AYS](GettingStarted/GettingYourFeetWet/AYS.md)
 
@@ -49,12 +50,11 @@
   - [Building an AYS Service](AYS/Building.md)
   - [AYS Examples](AYS/Examples/Home.md)
 
+
 * [Agent & Agent Controller](AAC/AAC.md)
 
+
 * [Complete Walkthrough](Walkthrough/Walkthrough.md)
-
-
-
 
 
 * [JumpScale API](JumpscaleAPI/SUMMARY.md)

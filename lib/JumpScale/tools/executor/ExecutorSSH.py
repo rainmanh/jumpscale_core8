@@ -5,7 +5,7 @@ import os
 
 class ExecutorSSH(ExecutorBase):
 
-    def __init__(self, addr, port, dest_prefixes={}, login="root",
+    def __init__(self, addr='', port=22, dest_prefixes={}, login="root",
                  passwd=None, debug=False, allow_agent=True,
                  look_for_keys=True, checkok=True, timeout=5):
         # DO NOT USE THIS TO PUSH A KEY!!!
@@ -68,6 +68,13 @@ class ExecutorSSH(ExecutorBase):
                                             timeout=self.timeout, usecache=False)  # TODO: add passphrase fo sshkeys (not urgent)
 
         return self._sshclient
+
+    def getSSHViaProxy(self, jumphost, jmpuser, host, username, port, identityfile, proxycommand=None):
+        self._sshclient = j.clients.ssh.get()
+        if proxycommand is None:
+            proxycommand = """ssh -A -i {identityfile} -q {jmpuser}@{jumphost} nc -q0 {host} {port}""".format(**locals())
+        self._sshclient.connectViaProxy(host, username, port, identityfile, proxycommand)
+        return self
 
     def authorizeKey(self, pubkey=None, keyname=None, passphrase=None, login="root"):
         """

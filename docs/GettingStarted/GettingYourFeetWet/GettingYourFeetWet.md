@@ -1,6 +1,7 @@
 # Getting Your Feet Wet
 
 - [JumpScale Interactive Shell](JShell.md)
+- [Tools] (Tools.md)
 - [System Abstraction Layer](SAL.md)
 - [Cuisine](Cuisine.md)
 - [AtYourService](AYS.md)

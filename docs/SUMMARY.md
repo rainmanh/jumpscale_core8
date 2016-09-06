@@ -16,6 +16,7 @@
     - [Installing JumpScale Docker Containers](GettingStarted/Installation/JSDocker.md)
   - [Getting Your Feet Wet](GettingStarted/GettingYourFeetWet/GettingYourFeetWet.md)
     - [JumpScale Interactive Shell](GettingStarted/GettingYourFeetWet/JShell.md)
+    - [Tools](GettingStarted/GettingYourFeetWet/Tools.md)
     - [System Abstraction Layer](GettingStarted/GettingYourFeetWet/SAL.md)
     - [Cuisine](GettingStarted/GettingYourFeetWet/Cuisine.md)
     - [AYS](GettingStarted/GettingYourFeetWet/AYS.md)

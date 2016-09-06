@@ -69,11 +69,13 @@ class ExecutorSSH(ExecutorBase):
 
         return self._sshclient
 
-    def getSSHViaProxy(self, host, username, port, identityfile, proxycommand=None):
+    def getSSHViaProxy(self, jumphost, host, username, port, identityfile, proxycommand=None):
         self._sshclient = j.clients.ssh.get()
+        if proxycommand is None:
+            proxycommand = """ProxyCommand ssh -A -i {identityfile} -q {username}@{jumphost} nc -q0 %h %p """.format(**locals())
         self._sshclient.connectViaProxy(host, username, port, identityfile, proxycommand)
         return self
-        
+
     def authorizeKey(self, pubkey=None, keyname=None, passphrase=None, login="root"):
         """
         This will authenticate the ssh client to access the target machine

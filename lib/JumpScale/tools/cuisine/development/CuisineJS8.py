@@ -138,6 +138,7 @@ class CuisineJS8(base):
         oauth2client
         crontab
         beautifulsoup4
+        lxml
         """
         self._cuisine.development.pip.multiInstall(C, upgrade=True)
 

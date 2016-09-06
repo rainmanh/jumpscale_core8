@@ -147,6 +147,7 @@ class SSHClient:
             return True
 
     def connectViaProxy(self, host, username, port, identityfile, proxycommand=None):
+        import pudb; pu.db
         self.usesproxy = True
         client = paramiko.SSHClient()
         client._policy = paramiko.WarningPolicy()

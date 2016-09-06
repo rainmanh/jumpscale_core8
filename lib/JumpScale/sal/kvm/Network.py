@@ -9,10 +9,10 @@ class Network(BaseKVMComponent):
         """
         Instance of network object representation of open vstorage network.
 
-        @param controller object: connection to libvirt controller
-        @param name string: name of network
-        @param bridge
-        @param interfaces
+        @param controller object: connection to libvirt controller.
+        @param name string: name of network.
+        @param bridge string: bridge name.
+        @param interfaces list: interfaces list.
         """
         self.name = name
         self.bridge = bridge if bridge else name

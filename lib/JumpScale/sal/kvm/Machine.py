@@ -27,8 +27,8 @@ class Machine(BaseKVMComponent):
 
         @param contrller object(j.sal.kvm.KVMController()): controller object to use.
         @param name str: machine name
-        @param disks [object(j.sal.kvm.Disk)]: list of disk instances to be used with machine.
-        @param nics [str]: name of networks to be used with machine.
+        @param disks [object(j.sal.kvm.Disk())]: list of disk instances to be used with machine.
+        @param nics [object(j.sal.kvm.interface())]: instance of networks to be used with machine.
         @param memory int: disk memory in Mb.
         @param cpucount int: number of cpus to use.
         @param cloud_init bool: option to use cloud_init passing creating and passing ssh_keys, user name and passwd to the image 
@@ -139,6 +139,9 @@ class Machine(BaseKVMComponent):
 
     @property
     def cuisine(self):
+        """
+        Return cuisine object connected to this instance of the machine.
+        """
         return self.executor.cuisine
 
     def create(self, username="cloudscalers", passwd="gig1234"):

@@ -178,7 +178,7 @@ class Worker(object):
                             #         if line.find(check) != -1:
                             #             found = True
                             #             break
-                            #     if found == False:
+                            #     if found is False:
                             #         out += "%s\n" % line
                             #
                             # eco.backtrace = out

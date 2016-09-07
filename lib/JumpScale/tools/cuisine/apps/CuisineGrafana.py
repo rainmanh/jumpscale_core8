@@ -9,7 +9,7 @@ class CuisineGrafana(app):
 
     def build(self, reset=False):
 
-        if reset == False and self.isInstalled():
+        if reset is False and self.isInstalled():
             return
 
         if self._cuisine.core.isUbuntu:

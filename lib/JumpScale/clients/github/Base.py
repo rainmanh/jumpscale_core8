@@ -51,7 +51,7 @@ class Base:
 
     @tags.setter
     def tags(self, ddict):
-        if j.data.types.dict(ddict) == False:
+        if j.data.types.dict(ddict) is False:
             raise j.exceptions.Input(
                 "Tags need to be dict as input for setter, now:%s" %
                 ddict)

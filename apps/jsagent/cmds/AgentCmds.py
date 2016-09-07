@@ -95,7 +95,7 @@ class AgentCmds():
                     j.events.bug_critical(msg, "jumpscript.notfound")
 
                 jscript = j.legacy.processmanager.cmds.jumpscripts.jumpscripts[jscriptkey]
-                if (jscript.async or job['queue']) and jscript.debug == False:
+                if (jscript.async or job['queue']) and jscript.debug is False:
                     j.legacy.redisworker.execJobAsync(job)
                 else:
                     def run(localjob):

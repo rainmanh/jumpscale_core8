@@ -70,7 +70,7 @@ class TornadoTransport(Transport):
             s = j.data.serializer.serializers.get('j')
             return "4", "j", s.dumps(eco.__dict__)
 
-        if rcv.ok == False:
+        if rcv.ok is False:
             eco = j.errorconditionhandler.getErrorConditionObject(msg='error 500 from webserver on %s' % self.url, msgpub='',
                                                                   category='tornado.transport')
             s = j.data.serializer.serializers.get('j')

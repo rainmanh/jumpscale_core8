@@ -96,7 +96,7 @@ class SyncthingClient:
 
         print("check if we can find syncthing on right port: %s:%s" %
               (self.addr, self.port))
-        if j.sal.nettools.waitConnectionTest(self.addr, self.port, timeout=10) == False:
+        if j.sal.nettools.waitConnectionTest(self.addr, self.port, timeout=10) is False:
             raise j.exceptions.RuntimeError(
                 "Could not find syncthing on %s:%s, tcp port test" % (self.addr, self.port))
 
@@ -118,7 +118,7 @@ class SyncthingClient:
         return self.api_call("system/status")
 
     def config_get(self, reload=False):
-        if self._config != None and reload == False:
+        if self._config != None and reload is False:
             return self._config
         self._config = self.api_call("system/config")
         return self._config

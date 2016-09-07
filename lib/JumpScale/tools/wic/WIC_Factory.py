@@ -37,7 +37,7 @@ class WIC_Factory:
             timeout = t + 300
             while t < timeout and state == "update":
                 res = j.sal.nettools.pingMachine(ipaddr, pingtimeout=1)
-                if res == False:
+                if res is False:
                     state = "reboot"
                 time.sleep(1)
 

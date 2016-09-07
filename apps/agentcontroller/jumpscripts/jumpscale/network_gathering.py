@@ -27,7 +27,7 @@ def action():
         pattern = j.application.config.getStr('nic.pattern')
     for netitem in netinfo:
         name = netitem['name']
-        if pattern and j.codetools.regex.match(pattern,name) == False:
+        if pattern and j.codetools.regex.match(pattern,name) is False:
             continue
 
         ipaddr = netitem.get('ip', [])

@@ -85,7 +85,7 @@ class NetTools:
         start = j.data.time.getTimeEpoch()
         now = start
         while now < start + timeout:
-            if j.sal.nettools.tcpPortConnectionTest(ipaddr, port, 1) == False:
+            if j.sal.nettools.tcpPortConnectionTest(ipaddr, port, 1) is False:
                 return True
             now = j.data.time.getTimeEpoch()
         return False

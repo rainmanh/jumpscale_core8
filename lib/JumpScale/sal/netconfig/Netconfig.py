@@ -253,7 +253,7 @@ class Netconfig:
         print("bring interface up")
         i.up()
 
-        while i.is_up() == False:
+        while i.is_up() is False:
             i.up()
             time.sleep(1)
             print("waiting for interface:%s to go up" % interface)
@@ -312,7 +312,7 @@ class Netconfig:
         self.interface_configure_dhcp(dev=interface, apply=True)
 
         print("check interface up")
-        while i.is_up() == False:
+        while i.is_up() is False:
             i.up()
             time.sleep(1)
             print("waiting for interface:%s to go up" % interface)

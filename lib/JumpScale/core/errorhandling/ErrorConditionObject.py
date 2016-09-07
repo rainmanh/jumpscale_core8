@@ -164,7 +164,7 @@ class ErrorConditionObject(BaseException):
     def process(self):
         self._toAscii()
 
-        if self.type in ["INPUT", "MONITORING", "OPERATIONS", "PERFORMANCE"] and j.application.debug == False:
+        if self.type in ["INPUT", "MONITORING", "OPERATIONS", "PERFORMANCE"] and j.application.debug is False:
             self.tb = ""
             self.code = ""
             self.backtrace = ""

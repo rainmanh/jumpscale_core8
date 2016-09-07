@@ -833,7 +833,7 @@ class WindowsSystem:
                         found = False
                 if found:
                     foundmaster = True
-            if foundmaster == False:
+            if foundmaster is False:
                 return False
         return True
 

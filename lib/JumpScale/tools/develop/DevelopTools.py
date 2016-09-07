@@ -23,7 +23,7 @@ class MyFSEventHandler(FileSystemEventHandler):
         else:
             error = False
             for node in j.tools.develop.nodes:
-                if error == False:
+                if error is False:
                     if node.cuisine.core.isJS8Sandbox:
                         sep = "jumpscale_core8/lib/JumpScale/"
                         sep_cmds = "jumpscale_core8/shellcmds/"
@@ -103,13 +103,13 @@ class DebugSSHNode:
         if self.connected is None:
             # lets test tcp on 22 if not then 9022 which are our defaults
             test = j.sal.nettools.tcpPortConnectionTest(self.addr, self.port, 3)
-            if test == False:
+            if test is False:
                 print("could not connect to %s:%s, will try port 9022" % (self.addr, self.port))
                 if self.port == 22:
                     test = j.sal.nettools.tcpPortConnectionTest(self.addr, 9022, 1)
                     if test:
                         self.port = 9022
-            if test == False:
+            if test is False:
                 raise j.exceptions.RuntimeError("Cannot connect to %s:%s" % (self.addr, self.port))
 
             self._platformType = None

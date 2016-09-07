@@ -123,7 +123,7 @@ class CuisineGeoDns(app):
         """
         installs and builds geodns from github.com/abh/geodns
         """
-        if reset == False and self.isInstalled():
+        if reset is False and self.isInstalled():
             return
         # deps
         # self._cuisine.development.golang.install(force=False)

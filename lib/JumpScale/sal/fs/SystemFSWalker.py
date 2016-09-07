@@ -96,7 +96,7 @@ class SystemFSWalker:
         '''
         if not j.sal.fs.isDir(root):
             raise ValueError('Root path for walk should be a folder')
-        if recursive == False:
+        if recursive is False:
             depths = [0]
         # We want to work with full paths, even if a non-absolute path is
         # provided
@@ -139,7 +139,7 @@ class SystemFSWalker:
                         if SystemFSWalker._checkDepth(path2, depths, path) and \
                                 SystemFSWalker._checkContent(path2, contentRegexIncludes, contentRegexExcludes):
                             result = callback(arg, path2)
-                    if result == False:
+                    if result is False:
                         continue  # do not recurse go to next dir
                 # recurse
                 j.sal.fs.walker._walk(path2, callback, arg, includeFolders, pathRegexIncludes, pathRegexExcludes,
@@ -202,7 +202,7 @@ class SystemFSWalker:
         paths = j.sal.fs.listFilesInDir(path, listSymlinks=True)
         paths.sort()
         for path2 in paths:
-            if callbackForMatchFile == False:
+            if callbackForMatchFile is False:
                 continue
             if callbackForMatchFile == None or callbackForMatchFile(path2, arg):
                 # execute

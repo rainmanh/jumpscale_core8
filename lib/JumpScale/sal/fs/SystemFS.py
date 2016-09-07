@@ -261,7 +261,7 @@ class SystemFS:
             target_folder = os.path.dirname(to)
             if createDirIfNeeded:
                 self.createDir(target_folder)
-            if overwriteFile == False:
+            if overwriteFile is False:
                 if self.exists(to) and os.path.samefile(to, target_folder):
                     destfilename = os.path.join(to, os.path.basename(fileFrom))
                     if self.exists(destfilename):
@@ -1027,8 +1027,8 @@ class SystemFS:
                             for excludeItem in exclude:
                                 if matcher(fullpath, excludeItem):
                                     exclmatch = True
-                        if exclmatch == False:
-                            if not(followSymlinks == False and self.isLink(fullpath)):
+                        if exclmatch is False:
+                            if not(followSymlinks is False and self.isLink(fullpath)):
                                 r, depth = self._listAllInDir(fullpath, recursive, filter, minmtime, maxmtime, depth=depth, type=type,
                                                               exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
                                 if len(r) > 0:
@@ -1464,7 +1464,7 @@ class SystemFS:
         if (filename is None) or (contents is None):
             raise TypeError('Passed None parameters in system.fs.writeFile')
         self.logger.debug('Opened file %s for writing' % filename)
-        if append == False:
+        if append is False:
             fp = open(filename, "wb")
         else:
             fp = open(filename, "ab")

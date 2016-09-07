@@ -754,7 +754,7 @@ class InstallTools():
                         filesreturn.append(fullpath)
             elif self.isDir(fullpath):
                 if "d" in type:
-                    if not(listSymlinks == False and self.isLink(fullpath)):
+                    if not(listSymlinks is False and self.isLink(fullpath)):
                         filesreturn.append(fullpath)
                 if recursive:
                     if depth != None and depth != 0:
@@ -765,13 +765,13 @@ class InstallTools():
                             for excludeItem in exclude:
                                 if matcher(fullpath, excludeItem):
                                     exclmatch = True
-                        if exclmatch == False:
-                            if not(followSymlinks == False and self.isLink(fullpath)):
+                        if exclmatch is False:
+                            if not(followSymlinks is False and self.isLink(fullpath)):
                                 r, depth = self._listAllInDir(fullpath, recursive, filter, minmtime, maxmtime, depth=depth,
                                                               type=type, exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
                                 if len(r) > 0:
                                     filesreturn.extend(r)
-            elif self.isLink(fullpath) and followSymlinks == False and listSymlinks:
+            elif self.isLink(fullpath) and followSymlinks is False and listSymlinks:
                 filesreturn.append(fullpath)
 
         return filesreturn, depth
@@ -1218,7 +1218,7 @@ class InstallTools():
                 "Url is invalid. Must be in the form of 'http(s)://hostname/account/repo' or 'git@hostname:account/repo'")
 
         protocol, repository_host, repository_account, repository_name = match.groups()
-        if protocol.startswith("git") and ssh == False:
+        if protocol.startswith("git") and ssh is False:
             protocol = "https://"
 
         if not repository_name.endswith('.git'):
@@ -1743,7 +1743,7 @@ class InstallTools():
 
         exists = self.exists(dest) if not executor else executor.exists(dest)
 
-        if onlyIfExists and exists == False:
+        if onlyIfExists and exists is False:
             return
 
         if dest is None and branch is None:
@@ -1906,7 +1906,7 @@ class InstallTools():
         """
         walk over all git repo's found in account & change login/passwd
         """
-        if ssh == False:
+        if ssh is False:
             for reponame, repopath in list(self.getGitReposListLocal(provider, account, name).items()):
                 import re
                 configpath = "%s/.git/config" % repopath
@@ -2196,7 +2196,7 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
             do.createDir("%s/hrd/apps/" % vardir)
             do.createDir("%s/cfg" % vardir)
 
-        if self.readonly == False or die == True:
+        if self.readonly is False or die == True:
             do.delete("%s/cfg" % basedir)
             do.delete("%s/hrd" % basedir)
             do.delete("%s/var" % basedir)
@@ -2336,7 +2336,7 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
                 "$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu:$_OLD_PYTHONPATH")
         envfile = "%s/env.sh" % basedir
 
-        if self.readonly == False or die == True:
+        if self.readonly is False or die == True:
             do.writeFile(envfile, C)
 
         # pythonversion = '3' if os.environ.get('PYTHONVERSION') == '3' else ''
@@ -2354,7 +2354,7 @@ exec python3 -q "$@"
         """
 
         # C2=C2.format(base=basedir, env=envfile)
-        if self.readonly == False or die == True:
+        if self.readonly is False or die == True:
 
             do.delete("/usr/bin/jspython")  # to remove link
             do.delete("%s/bin/jspython" % basedir)

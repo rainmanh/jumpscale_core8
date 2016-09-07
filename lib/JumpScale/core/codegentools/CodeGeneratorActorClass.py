@@ -177,7 +177,7 @@ self.appname="{appname}"
                     ok = True
                     s += "self.db=self.dbfs\n"
 
-            if ok == False:
+            if ok is False:
                 raise j.exceptions.RuntimeError(
                     "Cannot find default db, there needs to be fs,mem or arakoon specified as db on aktor level.")
 

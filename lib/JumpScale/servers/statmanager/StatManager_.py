@@ -116,7 +116,7 @@ class StatManager:
         ttime = self.getEpoch()
         try:
             for key in list(self.historyObjs.keys()):
-                if self.historyObjsMod[key] == False and ttime > (self.historyObjsLastSave[key] + 600):
+                if self.historyObjsMod[key] is False and ttime > (self.historyObjsLastSave[key] + 600):
                     self.historyObjs.pop(key)
                     self.historyObjsLastSave.pop(key)
                     self.historyObjsMod.pop(key)

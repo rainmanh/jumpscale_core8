@@ -191,7 +191,7 @@ class TarantoolFactory:
 
     def get(self, ipaddr="localhost", port=3301, login="guest", password=None, fromcache=True):
         key = "%s_%s" % (ipaddr, port)
-        if key not in self._tarantool or fromcache == False:
+        if key not in self._tarantool or fromcache is False:
             self._tarantool[key] = tarantool.connect(ipaddr, user=login, port=port, password=password)
         return Tarantool(self._tarantool[key])
 

@@ -26,7 +26,7 @@ class HRDType:
         self.hrd_ttype = None
 
     def validate(self, value):
-        if self.typeclass.check(value) == False:
+        if self.typeclass.check(value) is False:
             raise ValueError("Value:%s is not correct for %s" % (value, self))
 
     def ask(self):
@@ -325,7 +325,7 @@ struct Schema {
                 val = args[ttype.name]
             else:
                 if not hrd.exists(ttype.name):
-                    if ttype.doAsk == False:
+                    if ttype.doAsk is False:
                         val = ttype.default
                     else:
                         val = ttype.ask()

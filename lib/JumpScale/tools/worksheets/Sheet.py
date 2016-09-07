@@ -166,7 +166,7 @@ class Row(j.tools.code.classGetBase()):
         blocksize = start - 1
         halt = False
         x = start
-        while halt == False:
+        while halt is False:
             for xInBlock in range(0, blocksize + 1):
                 x += 1
                 xorg = xInBlock
@@ -663,7 +663,7 @@ class Sheet(j.tools.code.classGetBase()):
             row2 = self.getRow(rowName)
             result = row2.aggregate(period)
             for key in range(len(result)):
-                if headerDone == False:
+                if headerDone is False:
                     if period == "Y":
                         hid = "Y%s" % int(key + 1)
                     else:

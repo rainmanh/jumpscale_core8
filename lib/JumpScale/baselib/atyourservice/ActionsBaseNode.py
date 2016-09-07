@@ -367,9 +367,9 @@ class ActionsBaseNode:
                     for port in ports:
                         # need to do port checks
                         if wait:
-                            if j.sal.nettools.waitConnectionTest("localhost", port, timeout) == False:
+                            if j.sal.nettools.waitConnectionTest("localhost", port, timeout) is False:
                                 return False
-                        elif j.sal.nettools.tcpPortConnectionTest('127.0.0.1', port) == False:
+                        elif j.sal.nettools.tcpPortConnectionTest('127.0.0.1', port) is False:
                             return False
                 else:
                     # no ports defined
@@ -419,18 +419,18 @@ class ActionsBaseNode:
                     timeout = 2
                 for port in ports:
                     # need to do port checks
-                    if j.sal.nettools.waitConnectionTestStopped("localhost", port, timeout) == False:
+                    if j.sal.nettools.waitConnectionTestStopped("localhost", port, timeout) is False:
                         return False
             else:
                 # no ports defined
                 filterstr = process["filterstr"].strip()
                 if filterstr == "":
                     raise j.exceptions.RuntimeError("Process filterstr cannot be empty.")
-                return j.sal.process.checkProcessRunning(filterstr) == False
+                return j.sal.process.checkProcessRunning(filterstr) is False
 
         for process in self.service.getProcessDicts():
             result = do(process)
-            if result == False:
+            if result is False:
                 return False
         return True
 
@@ -523,7 +523,7 @@ class ActionsBaseNode:
             error = j.errorconditionhandler.parsePythonExceptionObject(e)
             eco.getBacktraceDetailed()
         finally:
-            if debug == False:
+            if debug is False:
                 docker_build.stop()
                 docker_build.removedata()
                 j.atyourservice.remove(name=docker_build.name, instance=docker_build.instance)

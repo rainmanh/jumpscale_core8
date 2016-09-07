@@ -8,7 +8,7 @@ class CuisineInfluxdb(app):
     NAME = "influxd"
 
     def install(self, dependencies=False, start=False, reset=False):
-        if reset == False and self.isInstalled():
+        if reset is False and self.isInstalled():
             return
 
         if dependencies:

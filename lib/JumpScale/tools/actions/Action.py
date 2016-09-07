@@ -544,7 +544,7 @@ class Action:
         j.actions.addToStack(self)
 
         if "showout" in self.kwargs:
-            if self.kwargs["showout"] == False:
+            if self.kwargs["showout"] is False:
                 self.actionshow = False
 
         if self.state == "OK" and not self.force:
@@ -558,20 +558,20 @@ class Action:
             args2print = self._args10line
             self.logger.info("  * %-20s: %-80s" % (self.name, args2print))
 
-        if self._stdOutput == False:
+        if self._stdOutput is False:
             j.tools.console.hideOutput()
 
         if self.force:
             self.state = "NEW"
 
-        if j.actions.showonly == False:
+        if j.actions.showonly is False:
             rcode = 0
             output = ""
             counter = 0
             ok = False
             err = ''
 
-            while ok == False and counter < self.retry + 1:
+            while ok is False and counter < self.retry + 1:
 
                 kwargs = self.kwargs
 
@@ -631,7 +631,7 @@ class Action:
                         err = err.replace("**NOSTACK**", "")
 
             # we did the retries, rcode will be >0 if error
-            if self._stdOutput == False:
+            if self._stdOutput is False:
                 j.tools.console.enableOutput()
                 self.stdouterr += j.tools.console.getOutput()
 

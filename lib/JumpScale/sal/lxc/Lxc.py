@@ -411,7 +411,7 @@ ipaddr=
             time.sleep(0.2)
             now = time.time()
 
-        if found == False:
+        if found is False:
             msg = "could not start new machine, did not start in 20 sec."
             if stdout:
                 print(msg)

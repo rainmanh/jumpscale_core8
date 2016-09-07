@@ -413,7 +413,7 @@ class Console:
             for item in choicearray:
                 if not j.data.types.string.check(item):
                     isstr = False
-            if isstr == False:
+            if isstr is False:
                 choicearrayNew = {}
                 for item in choicearray:
                     choicearrayNew[str(item)] = item

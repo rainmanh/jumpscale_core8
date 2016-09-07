@@ -54,7 +54,7 @@ class TextCharEditor:
                     skip = True
                     #j.logger.log("Could not match the pattern because as part of result there was already another block found, posstart:%s posstop%s" % (match.start,match.start+end-1),5)
             blocknr = self._getNextBlockNr(blockname)
-            if skip == False:
+            if skip is False:
                 for pos in range(match.start, match.start + end):
                     self.chars[pos][1] = blockname
                     self.chars[pos][2] = blocknr

@@ -20,7 +20,7 @@ class GeventWSTransport(Transport):
         everwrite this method in implementation to init your connection to server (the transport layer)
         """
         self._id = sessionid
-        if j.sal.nettools.tcpPortConnectionTest(self._addr, self._port) == False:
+        if j.sal.nettools.tcpPortConnectionTest(self._addr, self._port) is False:
             j.errorconditionhandler.raiseOperationalCritical("could not connect to server %s on port %s, is it running?" % (
                 self._addr, self._port), category="transport.ws.gevent.init")
 
@@ -72,7 +72,7 @@ class GeventWSTransport(Transport):
                                                                   category='gevent.transport')
             return "4", "m", j.data.serializer.serializers.msgpack.dumps(eco.__dict__)
 
-        if rcv.ok == False:
+        if rcv.ok is False:
             eco = j.errorconditionhandler.getErrorConditionObject(msg='error 500 from webserver on %s' % self.url, msgpub='',
                                                                   category='gevent.transport')
             return "6", "m", j.data.serializer.serializers.msgpack.dumps(eco.__dict__)

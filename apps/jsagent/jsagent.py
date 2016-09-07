@@ -85,7 +85,7 @@ class Process():
             self.log.error("could not execute:%s\nError:\n%s" % (self, e))
 
         time.sleep(0.1)
-        if self.is_running() == False:
+        if self.is_running() is False:
             self.log.warning("could not execute:%s\n" % (self))
             if j.sal.fs.exists(path=self.logpath):
                 log = j.sal.fs.fileGetContents(self.logpath)
@@ -129,7 +129,7 @@ class ProcessManager():
         # self.hrd = j.application.instanceconfig
         if opts.ip != "":
             # processmanager enabled
-            while j.sal.nettools.waitConnectionTest(opts.ip, opts.port, 2) == False:
+            while j.sal.nettools.waitConnectionTest(opts.ip, opts.port, 2) is False:
                 self.log.info("cannot connect to agentcontroller, will retry forever: '%s:%s'" % (opts.ip, opts.port))
 
             # now register to agentcontroller

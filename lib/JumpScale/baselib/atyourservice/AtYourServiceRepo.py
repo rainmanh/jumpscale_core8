@@ -456,7 +456,7 @@ class AtYourServiceRepo():
                 continue
             producersWaiting = service.getProducersRecursive(producers=set(), callers=set(), action=action, producerRoles=producerRoles)
             # remove the ones which are already in previous runs
-            producersWaiting = [item for item in producersWaiting if run.exists(item, action) == False]
+            producersWaiting = [item for item in producersWaiting if run.exists(item, action) is False]
             producersWaiting = [item for item in producersWaiting if item.state.get(action, die=False) != "OK"]
 
             if len(producersWaiting) == 0:
@@ -642,7 +642,7 @@ class AtYourServiceRepo():
             return recipe
         else:
             template = self.getTemplate(name=name, die=die)
-            if die == False and template == None:
+            if die is False and template == None:
                 return None
             recipe = template.getRecipe(self)
             self._recipes[recipe.name] = recipe

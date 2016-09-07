@@ -86,7 +86,7 @@ class RedisDBObj:
 
     @struct.setter
     def struct(self, val):
-        if j.data.types.dict.check(val) == False:
+        if j.data.types.dict.check(val) is False:
             raise j.exceptions.RuntimeError("only dict supported")
         self.db.hset(self.path, self.id,
                      j.data.serializer.json.dumps(val, sort_keys=True))
@@ -131,7 +131,7 @@ class RedisDBList:
         return obj
 
     def set(self, data, id=""):
-        if j.data.types.dict.check(data) == False:
+        if j.data.types.dict.check(data) is False:
             raise j.exceptions.RuntimeError("only dict supported")
         if not id:
             id = data['id']

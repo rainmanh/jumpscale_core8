@@ -201,7 +201,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         category = "lock"
         lockfree = self._lockWait(locktype, timeoutwait)
         if not lockfree:
-            if force == False:
+            if force is False:
                 raise j.exceptions.RuntimeError("Cannot lock %s %s" % (locktype, info))
         value = [self.id, j.data.time.getTimeEpoch() + timeout, info]
         encodedValue = j.data.serializer.json.dumps(value)
@@ -256,7 +256,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         """
         lockfree = self._lockWait(locktype, timeoutwait)
         if not lockfree:
-            if force == False:
+            if force is False:
                 raise j.exceptions.RuntimeError("Cannot unlock %s" % locktype)
         self.delete("lock", locktype)
 

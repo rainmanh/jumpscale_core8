@@ -296,7 +296,7 @@ class Tmux:
         session = self.getSession(sessionName, firstWindow=windowName)
         window = session.getWindow(windowName, reset=reset)
 
-        if len(window.panes) == 16 and reset == False:
+        if len(window.panes) == 16 and reset is False:
             return window
 
         a = window.getPane(name=windowName, killothers=True)

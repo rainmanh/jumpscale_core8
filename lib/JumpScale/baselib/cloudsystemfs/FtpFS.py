@@ -43,7 +43,7 @@ class FtpFS:
         self.is_dir = is_dir
         self.recursive = recursive
 
-        if is_dir == False:
+        if is_dir is False:
             self.logger.info("FtpFS: copying filename [%s] path [%s]" % (
                 self.filename, self.path))
         else:

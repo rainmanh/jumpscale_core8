@@ -868,13 +868,13 @@ class SpecParserFactory:
         else:
             result = self.getEnumerationSpec(
                 appname, actorname, typestr, die=False)
-            if result == False:
+            if result is False:
                 result = self.getModelSpec(
                     appname, actorname, typestr, die=False)
-            if result == False:
+            if result is False:
                 if returntype not in ["list", "dict"]:
                     returntype = "enum"
-            if result == False:
+            if result is False:
                 raise j.exceptions.RuntimeError(
                     "Cannot find spec for app:%s, actor:%s, with typestr:%s" % (appname, actorname, typestr))
             else:

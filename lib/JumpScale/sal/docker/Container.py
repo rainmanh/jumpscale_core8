@@ -136,7 +136,7 @@ class Container:
                     if len(portsfound) > 0:
                         return portsfound[0]
 
-        if self.isRunning() == False:
+        if self.isRunning() is False:
             raise j.exceptions.RuntimeError(
                 "docker %s is not running cannot get pub port." % self)
 

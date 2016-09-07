@@ -22,7 +22,7 @@ class CuisineSSH(base):
             except Exception as e:
                 print("  NOT OK")
                 continue
-            if testoutput == False:
+            if testoutput is False:
                 print("  NOT OK")
                 continue
             executor = j.tools.executor.getSSHBased(item, port, login, passwd, checkok=True)

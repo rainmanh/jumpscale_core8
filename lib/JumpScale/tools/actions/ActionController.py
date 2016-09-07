@@ -121,7 +121,7 @@ class ActionController:
 
         if showout == True:
             stdOutput = True
-        if showout == False:
+        if showout is False:
             stdOutput = False
 
         l = traceback.format_stack()

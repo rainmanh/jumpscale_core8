@@ -169,7 +169,7 @@ class Text:
         for line in txt.split("\n"):
             if line.find(prefix) == 0:
                 out += "%s\n" % (line[l:])
-            elif onlyPrefix == False:
+            elif onlyPrefix is False:
                 out += "%s\n" % (line)
         return out
 
@@ -184,7 +184,7 @@ class Text:
         for line in txt.split("\n"):
             if line.find(prefix) > -1:
                 out += "%s\n" % (line.split(prefix, 1)[1])
-            elif onlyPrefix == False:
+            elif onlyPrefix is False:
                 out += "%s\n" % (line)
         return out
 

@@ -58,7 +58,7 @@ class GitlabInstance:
         project["id"]
 
         res = self.gitlab.getfile(project["id"], path, "master")
-        if res == False:
+        if res is False:
             raise j.exceptions.Input(
                 "cannot find file:%s in gitlab in project:%s" % (path, project))
 

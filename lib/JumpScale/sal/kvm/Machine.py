@@ -3,6 +3,7 @@ from JumpScale import j
 import libvirt
 import yaml
 from BaseKVMComponent import BaseKVMComponent
+import re
 
 class Machine(BaseKVMComponent):
 
@@ -29,10 +30,11 @@ class Machine(BaseKVMComponent):
         self.cloud_init = cloud_init
         self.image_path = "%s/%s_ci.iso" % (self.controller.base_path, self.name) if cloud_init else ""
         self._domain = None
+        self._ip = None
 
     def to_xml(self):
         machinexml = self.controller.get_template('machine.xml').render({'machinename': self.name, 'memory': self.memory, 'nrcpu': self.cpucount,
-                                                                             'nics': self.nics, 'disks': self.disks, "cloudinit": self.cloud_init, 
+                                                                             'nics': self.nics, 'disks': self.disks, "cloudinit": self.cloud_init,
                                                                              "image_path":self.image_path})
         return machinexml
 
@@ -73,25 +75,25 @@ class Machine(BaseKVMComponent):
         if not self._uuid:
             self._uuid = self.domain.UUIDString()
         return self._uuid
+    @property
+    def ip(self):
+        if not self._ip:
+            for nic in self.nics:
+                import pudb; pu.db
+                bridge_name = nic.bridge.name
+                mac = nic.mac
+                rc, ip, err = self.controller.executor.execute("nmap -sn $(ip r | grep %s | grep -v default | awk '{print $1}') | grep -iB 2 '%s' | head -n 1 | awk '{print $NF}'" % (bridge_name, mac))
+                ip_pat = re.compile("\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}")
+                m = ip_pat.search(ip)
+                if m:
+                    self._ip = m.group()
+                if self._ip:
+                    break
+        return self._ip
 
-#     def forward_host(self, vmport):
-#         cmd = "ssh -L {hostport}:{vmip}:{vmport} -p 9022".format(hostport=, vmip=, vmport=)
-#         self._connection.cuisine.execute(cmd)
-#         executor = j.tools.executor.getSSHBased(pubkey=)
-#         vmcuisine = executor.cuisine
-#         return vmcuisine
-#
-#     def proxyintovm(self):
-#         sshconfig = """
-# Host {host}
-# HostName {hostname}
-# User {user}
-# ProxyCommand ssh {user}@{physicalhost} nc %h %p
-#         """.format(host=host, hostname=hostname, user=user, physicalhost=physicalhost)
-#         #write that in the host
-#         self.controller.cuisine.file_write("/root/.ssh/sshconfig", append=True)
-#
-#         #now get the cuisine of the virtual vm
+
+    def proxyintovm(self):
+        cont.executor.getSSHViaProxy(cont.executor.addr, getattr(cont.executor.cuisine, 'login', 'root'), m.ip, "cloudscalers", 22, "/root/.ssh/libvirt")
 
     def create(self, username="cloudscalers", passwd="gig1234"):
         cuisine = self.controller.executor.cuisine

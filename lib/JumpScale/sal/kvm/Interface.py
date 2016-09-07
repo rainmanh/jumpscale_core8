@@ -56,7 +56,8 @@ class Interface(BaseKVMComponent):
     def from_xml(cls, controller, xml):
         interface = ElementTree.fromstring(xml)
         name = interface.find('virtualport').find('parameters').get('profileid')
-        bridge = interface.find('source').get('bridge')
+        bridge_name = interface.find('source').get('bridge')
+        bridge = j.sal.kvm.Network(controller, bridge_name)
         bandwidth = interface.findall('bandwidth')
         if bandwidth:
             interface_rate = bandwidth[0].find('inbound').get('average')

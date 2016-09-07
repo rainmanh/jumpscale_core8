@@ -6,7 +6,9 @@ from BaseKVMComponent import BaseKVMComponent
 import re
 
 class Machine(BaseKVMComponent):
-
+    """
+    Wrapper class around libvirt's machine object , to use with jumpscale libs.
+    """
     STATES = {
         0: "nostate",
         1: "running",
@@ -20,6 +22,17 @@ class Machine(BaseKVMComponent):
     }
 
     def __init__(self, controller, name, disks, nics, memory, cpucount, uuid=None, cloud_init=False):
+        """
+        Machine object instance.
+
+        @param contrller object(j.sal.kvm.KVMController()): controller object to use.
+        @param name str:
+        @param disks [object(j.sal.kvm.Disk)]: list of disk instances to be used with machine.
+        @param nics [str]: name of networks to be used with machine.
+        @param memory int: disk memory in Mb.
+        @param cpucount int: number of cpus to use.
+        @param cloud_init bool: option to use cloud_init passing creating and passing ssh_keys, user name and passwd to the image 
+        """
         self.name = name
         self.disks = disks
         self.nics = nics
@@ -34,6 +47,9 @@ class Machine(BaseKVMComponent):
         self._executor = None
 
     def to_xml(self):
+        """
+        Return libvirt's xml string representation of the machine. 
+        """
         machinexml = self.controller.get_template('machine.xml').render({'machinename': self.name, 'memory': self.memory, 'nrcpu': self.cpucount,
                                                                              'nics': self.nics, 'disks': self.disks, "cloudinit": self.cloud_init,
                                                                              "image_path":self.image_path})
@@ -41,6 +57,12 @@ class Machine(BaseKVMComponent):
 
     @classmethod
     def from_xml(cls, controller, source):
+        """
+        Instantiate a Machine object using the provided xml source and kvm controller object.
+
+        @param controller object(j.sal.kvm.KVMController): controller object to use. 
+        @param source  str: xml string of machine to be created.
+        """
         machine =  ElementTree.fromstring(source)
         name = machine.findtext('name')
         memory = int(machine.findtext('memory'))
@@ -55,11 +77,17 @@ class Machine(BaseKVMComponent):
 
     @classmethod
     def get_by_name(cls, controller, name):
+        """
+        Get machine by name passing the controller to search with.
+        """
         domain = controller.connection.lookupByName(name)
         return cls.from_xml(controller, domain.XMLDesc())
 
     @property
     def domain(self):
+        """
+        Returns the Libvirt Object of the current machines , will be available if machine has been created at some point.
+        """
         if not self._domain:
             if self._uuid:
                 self._domain = self.controller.connection.lookupByUUIDString(self._uuid)
@@ -73,15 +101,18 @@ class Machine(BaseKVMComponent):
 
     @property
     def uuid(self):
+        """
+        Returns the uuid of this instance of the machine. 
+        """
         if not self._uuid:
             self._uuid = self.domain.UUIDString()
         return self._uuid
+
     @property
     def ip(self):
         """
-        return the ip of the machine
+        Retrun IP of this instance of the machine if started.
         """
-
         if not self._ip:
             for nic in self.nics:
                 import pudb; pu.db
@@ -108,6 +139,12 @@ class Machine(BaseKVMComponent):
         return self.executor.cuisine
 
     def create(self, username="cloudscalers", passwd="gig1234"):
+        """
+        Create and define the instanse of the machine xml onto libvirt.
+
+        @param username  str: set the username to be set in the machine on boot.
+        @param passwd str: set the passwd to be set in the machine on boot.
+        """
         cuisine = self.controller.executor.cuisine
         if self.cloud_init:
             cuisine.core.dir_ensure("%s/metadata/%s" % (self.controller.base_path, self.name))
@@ -120,7 +157,7 @@ class Machine(BaseKVMComponent):
                                               'shell': '/bin/bash',
                                               'ssh-authorized-keys': ['pubkey'],
                                               'sudo': 'ALL=(ALL) ALL'}]
-                                  })
+                                   })
             metadata = '{"local-hostname":"vm-%s"}' % self.name
             cuisine.core.file_write("%s/metadata/%s/user-data" % (self.controller.base_path, self.name), userdata)
             cuisine.core.file_write("%s/metadata/%s/meta-data" % (self.controller.base_path, self.name), metadata)
@@ -131,6 +168,9 @@ class Machine(BaseKVMComponent):
 
     @property
     def is_created(self):
+        """
+        Return bool option is machine defined in libvirt or not. 
+        """
         try:
             self.domain
             return True
@@ -139,19 +179,44 @@ class Machine(BaseKVMComponent):
 
     @property
     def is_started(self):
+        """
+        Check if machine is started.
+        """
         return bool(self.domain.isActive())
 
     @property
     def state(self):
+        """
+        Return the state if this instance of the machine which can be :
+
+        0: nostate
+        1: running
+        2: blocked
+        3: paused
+        4: shutdown
+        5: shutoff
+        6: crashed
+        7: pmsuspended
+        8: last  
+        """
         return self.STATES[self.domain.state()[0]]
 
     def delete(self):
+        """
+        Undefeine machine in libvirt.
+        """
         return self.domain.undefine() == 0
 
     def start(self):
+        """
+        Start machine.
+        """
         return self.domain.create() == 0
 
     def shutdown(self, force=False):
+        """
+        Shutdown machine.
+        """
         if force:
             return self.domain.destroy() == 0
         else:
@@ -160,22 +225,45 @@ class Machine(BaseKVMComponent):
     stop = shutdown
 
     def suspend(self):
+        """
+        Suspend machine, similar to hibernate. 
+        """
         return self.domain.suspend() == 0
 
     pause = suspend
 
     def resume(self):
+        """
+        Resume machine if suspended.
+        """
         return self.domain.resume() == 0
 
     def create_snapshot(self, name, description=""):
+        """
+        Create snapshot of the machine, both disk and ram when reverted will continue as if suspended on this state. 
+
+        @param name str:   name of the snapshot. 
+        @param descrition str: descitption of the snapshot. 
+        """
         snap = MachineSnapshot(self.controller, self.domain, name, description)
         return snap.create()
 
     def load_snapshot(self, name):
+        """
+        Revert to snapshot name.
+
+        @param name str: name of the snapshot to revvert to.
+        """
         snap = self.domain.snapshotLookupByName(name)
         return self.domain.revertToSnapshot(snap)
 
     def list_snapshots(self, libvirt=False):
+        """
+        List snapshots of the current machine, if libvirt is true libvirt objects will be returned 
+        else the sal wrapper will be returned.
+
+        @param libvirt bool: option to return libvirt snapshot obj or the sal wrapper.
+        """
         snapshots = []
         snaps = self.domain.listAllSnapshots()
         if libvirt:

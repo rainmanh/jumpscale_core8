@@ -7,6 +7,14 @@ class Container:
     """Docker Container"""
 
     def __init__(self, name, id, client, host="localhost"):
+        """
+        Container object instance.
+
+        @param name str: name of conainter.
+        @param id  int: id of container.
+        @param client obj(docker.Client()): client object from docker library.
+        @param host str: host running the docker deamon , usually an ip. 
+        """
 
         self.client = client
         self.logger = j.logger.get('j.sal.docker.container')
@@ -49,6 +57,11 @@ class Container:
         return self._cuisine
 
     def run(self, cmd):
+        """
+        Run Docker exec with cmd. 
+
+        @param  cmd str: cmd to be executed will default run in bash 
+        """
         cmd2 = "docker exec -i -t %s %s" % (self.name, cmd)
         j.sal.process.executeWithoutPipe(cmd2)
 
@@ -84,9 +97,15 @@ class Container:
         return info
 
     def isRunning(self):
+        """
+        Check conainter is running.
+        """
         return self.info["State"]["Running"] == True
 
     def getIp(self):
+        """
+        Return ip of docker on hostmachine.
+        """
         return self.info['NetworkSettings']['IPAddress']
 
     # def getProcessList(self, stdout=True):
@@ -122,10 +141,22 @@ class Container:
     #     return result
 
     def setHostName(self, hostname):
+        """
+        Set host name of docker conatainer.
+
+        @param hostname str: name of hostname.
+        """
         self._cuisine.core.sudo("echo '%s' > /etc/hostname" % hostname)
         self._cuisine.core.sudo("echo %s >> /etc/hosts" % hostname)
 
     def getPubPortForInternalPort(self, port):
+        """
+        Return public port that is forwarded to a port inside docker, 
+        this will only work if container has port forwarded the ports during
+        run time.
+
+        @param port int: port number inside docker to use.
+        """
 
         if not self.info["NetworkSettings"]["Ports"] is None:
             for key, portsDict in self.info["NetworkSettings"]["Ports"].items():
@@ -143,6 +174,13 @@ class Container:
         raise j.exceptions.Input("cannot find publicport for ssh?")
 
     def pushSSHKey(self, keyname="", sshpubkey="", generateSSHKey=True):
+        """
+        Push ssh keys onto container, the params are mutually exclusive.
+
+        @param keyname str: path to key or just keyname in /root/.ssh/keyname.
+        @param sshpubkey str: actual key content.
+        @param generateSSHKey bool: generate a key called docker_default.
+        """
         keys = set()
 
         home = j.tools.cuisine.local.bash.home
@@ -181,6 +219,9 @@ class Container:
         return list(keys)
 
     def cleanAysfs(self):
+        """
+        Cleans ays file system in the container.
+        """
         # clean default /optvar aysfs if any
         aysfs = j.sal.aysfs.get('%s-optvar' % self.name, None)
 
@@ -192,6 +233,9 @@ class Container:
                 self.logger.info("[+] aysfs stopped")
 
     def destroy(self):
+        """
+        Stop and remove container.
+        """
         self.cleanAysfs()
 
         try:
@@ -205,10 +249,16 @@ class Container:
                 del j.sal.docker._containers[self.id]
 
     def stop(self):
+        """
+        Stop running instance of container. 
+        """
         self.cleanAysfs()
         self.client.kill(self.id)
 
     def restart(self):
+        """
+        Restart isntance of the container.
+        """
         self.client.restart(self.id)
 
     def commit(self, imagename, msg="", delete=True, force=False, push=False, **kwargs):

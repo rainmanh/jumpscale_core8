@@ -101,13 +101,13 @@ class Machine(BaseKVMComponent):
             cuisine.core.dir_ensure("%s/metadata/%s" % (self.controller.base_path, self.name))
             userdata = "#cloud-config\n"
             userdata += yaml.dump({'chpasswd': {'expire': False},
-                                  'ssh_pwauth': True,
-                                  'users': [{'lock-passwd': False,
-                                             'name': 'cloudscalers',
-                                             'plain_text_passwd': 'gig1234',
-                                             'shell': '/bin/bash',
-                                             'ssh-authorized-keys': ['pubkey'],
-                                             'sudo': 'ALL=(ALL) ALL'}]
+                                   'ssh_pwauth': True,
+                                   'users': [{'lock-passwd': False,
+                                              'name': 'cloudscalers',
+                                              'plain_text_passwd': 'gig1234',
+                                              'shell': '/bin/bash',
+                                              'ssh-authorized-keys': ['pubkey'],
+                                              'sudo': 'ALL=(ALL) ALL'}]
                                   })
             metadata = '{"local-hostname":"vm-%s"}' % self.name
             cuisine.core.file_write("%s/metadata/%s/user-data" % (self.controller.base_path, self.name), userdata)

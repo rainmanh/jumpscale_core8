@@ -26,7 +26,7 @@ class Machine(BaseKVMComponent):
         Machine object instance.
 
         @param contrller object(j.sal.kvm.KVMController()): controller object to use.
-        @param name str:
+        @param name str: machine name
         @param disks [object(j.sal.kvm.Disk)]: list of disk instances to be used with machine.
         @param nics [str]: name of networks to be used with machine.
         @param memory int: disk memory in Mb.

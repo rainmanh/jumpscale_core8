@@ -10,12 +10,20 @@ class Pool(BaseKVMComponent):
 
 
     def create(self):
+        """
+        Create the bool
+        """
+
         self.controller.executor.cuisine.core.dir_ensure (self.poolpath)
         cmd = 'chattr +C %s ' % self.poolpath
         self.controller.executor.execute(cmd)
         self.controller.connection.storagePoolCreateXML(self.to_xml(), 0)
 
     def to_xml(self):
+        """
+        Export the pool to xml
+        """
+        
         pool = self.controller.get_template('pool.xml').render(
             pool_name=self.name, basepath=self.controller.base_path)
         return pool

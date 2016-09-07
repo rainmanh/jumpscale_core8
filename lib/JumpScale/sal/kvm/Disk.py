@@ -14,6 +14,13 @@ class Disk(BaseKVMComponent):
 
     @classmethod
     def from_xml(cls, controller, diskxml):
+        """
+        Create Disk object from xml.
+
+        @controller Controller: controller object
+        @diskxml str: xml representation of the disk
+        """
+
         disk = ElementTree.fromstring(diskxml)
         name = disk.findtext('name')
         pool_name = disk.find('source').get('pool')
@@ -27,6 +34,10 @@ class Disk(BaseKVMComponent):
         return cls(controller, pool, name, size,image_name)
 
     def to_xml(self):
+        """
+        Export disk object to xml
+        """
+
         disktemplate = self.controller.get_template('disk.xml')
         if self.image_name:
             diskbasevolume = self.controller.executor.cuisine.core.joinpaths(self.controller.base_path, "images", '%s.qcow2' % self.image_name)
@@ -37,16 +48,28 @@ class Disk(BaseKVMComponent):
         return diskxml
 
     def create(self):
+        """
+        Create the actual volume in libvirt
+        """
+
         volume = self.pool.lvpool.createXML(self.to_xml(), 0)
         #return libvirt volume obj
         return volume
 
     @property
     def is_created(self):
+        """
+        Check if the disk is created (defined) in libvirt
+        """
+
         # TODO
         return False
 
     def delete(self):
+        """
+        Delete the disk
+        """
+
         try:
             volume = self.pool.storageVolLookupByName(self.name)
             volume.wipe(0)
@@ -56,6 +79,10 @@ class Disk(BaseKVMComponent):
             return False
 
     def clone_disk(self, new_disk):
+        """
+        Clone the disk
+        """
+        
         volume = self.get_volume(self.name, pool)
         cloned_volume = self.pool.createXMLFrom(new_disk.to_xml(), disk, 0)
         return cloned_volume

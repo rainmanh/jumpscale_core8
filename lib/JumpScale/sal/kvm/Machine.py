@@ -78,6 +78,10 @@ class Machine(BaseKVMComponent):
         return self._uuid
     @property
     def ip(self):
+        """
+        return the ip of the machine
+        """
+
         if not self._ip:
             for nic in self.nics:
                 import pudb; pu.db

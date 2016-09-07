@@ -99,7 +99,16 @@ class Machine(BaseKVMComponent):
         cuisine = self.controller.executor.cuisine
         if self.cloud_init:
             cuisine.core.dir_ensure("%s/metadata/%s" % (self.controller.base_path, self.name))
-            userdata = self.controller.get_template('user-data.yaml').render(pubkey=self.controller.pubkey)
+            userdata = "#cloud-config\n"
+            userdata += yaml.dump({'chpasswd': {'expire': False},
+                                  'ssh_pwauth': True,
+                                  'users': [{'lock-passwd': False,
+                                             'name': 'cloudscalers',
+                                             'plain_text_passwd': 'gig1234',
+                                             'shell': '/bin/bash',
+                                             'ssh-authorized-keys': ['pubkey'],
+                                             'sudo': 'ALL=(ALL) ALL'}]
+                                  })
             metadata = '{"local-hostname":"vm-%s"}' % self.name
             cuisine.core.file_write("%s/metadata/%s/user-data" % (self.controller.base_path, self.name), userdata)
             cuisine.core.file_write("%s/metadata/%s/meta-data" % (self.controller.base_path, self.name), metadata)

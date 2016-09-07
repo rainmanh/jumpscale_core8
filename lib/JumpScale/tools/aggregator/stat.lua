@@ -15,8 +15,8 @@ local c = ""
 local stat
 local prev = redis.call('GET', statekey)
 
-local now_short_m = math.floor(now / 300) * 300
-local now_short_h = math.floor(now / 3600) * 3600
+local now_short_m = (math.floor(now / 300) * 300) + 300
+local now_short_h = (math.floor(now / 3600) * 3600) + 3600
 
 local differential = type == "D"
 

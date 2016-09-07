@@ -129,6 +129,9 @@ class Machine(BaseKVMComponent):
 
     @property
     def executor(self):
+        """
+        Return Executor obj where the conrtoller is connected.
+        """
         if self.cloud_init and not self._executor:
             self.controller.executor.getSSHViaProxy(self.controller.executor.addr,
                 getattr(self.controller.executor.cuisine, 'login', 'root'), m.ip, "cloudscalers", 22, "/root/.ssh/libvirt")

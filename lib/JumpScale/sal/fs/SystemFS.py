@@ -1987,7 +1987,7 @@ class SystemFS:
 
         @param sourceFile str: path to file to be Gzipped.
         @param destFile str: path to  destination Gzip file.
-        """"
+        """
         import gzip
         f_in = open(sourceFile, 'rb')
         f_out = gzip.open(destFile, 'wb')

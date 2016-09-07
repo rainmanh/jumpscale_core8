@@ -176,7 +176,7 @@ class TestEngine:
 
     def runTests(self, testrunname=None, debug=False):
 
-        if testrunname == None:
+        if testrunname is None:
             testrunname = j.data.time.getLocalTimeHRForFilesystem()
 
         for path in self.paths:

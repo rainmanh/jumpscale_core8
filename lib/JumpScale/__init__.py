@@ -139,7 +139,7 @@ if not all(x for x in range(10)):
     
     import os
     redisinit()
-    if j.core.db == None:
+    if j.core.db is None:
     
         if j.do.TYPE.startswith("OSX"):
             #--port 0
@@ -169,7 +169,7 @@ if not all(x for x in range(10)):
             os.system(cmd2)
         # Wait until redis is up
         redisinit()
-        while j.core.db == None:
+        while j.core.db is None:
             redisinit()
             time.sleep(1)
     
@@ -183,7 +183,7 @@ if not all(x for x in range(10)):
                 classname = line.replace("class ", "").split(
                     ":")[0].split("(", 1)[0].strip()
             if line.find("self.__jslocation__") != -1:
-                if classname == None:
+                if classname is None:
                     raise RuntimeError(
                         "Could not find class in %s while loading jumpscale lib." % path)
                 location = line.split("=", 1)[1].replace(
@@ -201,7 +201,7 @@ if not all(x for x in range(10)):
         if os.path.isdir(j.do.BASE):
             superroot = "%s/lib/JumpScale" % j.do.BASE
         else:
-            if j.core.db.get("system.superroot") == None:
+            if j.core.db.get("system.superroot") is None:
                 superroot = j.do.getDirName(__file__)
                 j.core.db.set("system.superroot", superroot)
             superroot = j.core.db.get("system.superroot").decode()
@@ -255,7 +255,7 @@ if not all(x for x in range(10)):
             print("force metadata reload")
     
     data = j.core.db.get("system.locations")
-    if forcereload or data == None:
+    if forcereload or data is None:
         if not j.do.exists(path="%s/metadata.db" % j.do.VARDIR):
             res = findModules()
             data = j.core.db.get("system.locations").decode()
@@ -275,7 +275,7 @@ if not all(x for x in range(10)):
     
     
     data = j.core.db.get("system.dirs.%s" % j.do.BASE)
-    if data == None:
+    if data is None:
         j.application._config = j.data.hrd.get(path="%s/hrd/system" % basevar)
     
     

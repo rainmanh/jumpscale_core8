@@ -68,7 +68,7 @@ def get_nic_params():
                 want = ('state', 'id', 'mtu')
                 params = parse_ipl_line(entry, want)
             nictypes[intf]['params'] = params
-            if namespace == None:
+            if namespace is None:
                 nictypes[intf]['detail'] = get_nic_detail(intf)
                 nictypes[intf]['namespace'] = None
             else:
@@ -177,7 +177,7 @@ def add_ips_to(physlayout):
 
 
 def get_ip_addrs(onlypermanent=False, namespace=None):
-    if namespace == None:
+    if namespace is None:
         cmd = '%s -o addr show' % ip
     else:
         cmd = '%s netns exec %s %s -o addr show' % (ip, namespace, ip)

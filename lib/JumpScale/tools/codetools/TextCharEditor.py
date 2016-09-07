@@ -153,9 +153,9 @@ class TextCharEditor:
         """
         block will be inserted at linenr, means line with linenr will be moved backwards
         """
-        if blocknr == None and blockname != "":
+        if blocknr is None and blockname != "":
             blocknr = self._getNextBlockNr(blockname)
-        if blocknr == None and blockname == "":
+        if blocknr is None and blockname == "":
             blocknr = 0
         if blocknr != None and blockname == "":
             raise j.exceptions.RuntimeError("Cannot have a blockname != \"\" with blocknr>0")
@@ -189,7 +189,7 @@ class TextCharEditor:
     def getBlockPosition(self, blockname, blocknr=None):
         for charnr in range(len(self.chars)):
             # print "%s %s %s" % (charnr,self.chars[charnr][1],self.chars[charnr][2])
-            if self.chars[charnr][1] == blockname and (blocknr == None or self.chars[charnr][2] == blocknr):
+            if self.chars[charnr][1] == blockname and (blocknr is None or self.chars[charnr][2] == blocknr):
                 return charnr
         raise j.exceptions.RuntimeError("Could not find block with name %s and blocknr %s" % (blockname, blocknr))
 

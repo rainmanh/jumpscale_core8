@@ -219,7 +219,7 @@ class Text:
         return out
 
     def isNumeric(self, txt):
-        return re_nondigit.search(txt) == None
+        return re_nondigit.search(txt) is None
 
     # def lstrip(self,content):
     #     """
@@ -282,7 +282,7 @@ class Text:
             if tags.tagExists("name"):
                 name = tags.tagGet("name")
             else:
-                if name == None:
+                if name is None:
                     if line.find("=") != -1:
                         name = line.split("=")[0].strip()
                     else:
@@ -446,7 +446,7 @@ class Text:
         if string2.lower() == "false":
             return "b", False
         # check int
-        if re_nondigit.search(string2) == None and string2 != "":
+        if re_nondigit.search(string2) is None and string2 != "":
             # print "int:'%s'"%string2
             return "i", int(string2)
         # check float
@@ -582,7 +582,7 @@ class Text:
         """
         try to convert a python object to string representation works for None, bool, integer, float, dict, list
         """
-        if obj == None:
+        if obj is None:
             return ""
         elif isinstance(obj, bytes):
             obj = obj.decode("utf8")
@@ -759,7 +759,7 @@ class Text:
             text = self.strip(text)
             if text.lower() == "none":
                 return 0
-            elif text == None:
+            elif text is None:
                 return 0
             elif text == "":
                 return 0
@@ -774,7 +774,7 @@ class Text:
             text = text.strip()
             if text.lower() == "none":
                 return 0.0
-            elif text == None:
+            elif text is None:
                 return 0.0
             elif text == "":
                 return 0.0
@@ -810,7 +810,7 @@ class Text:
             text = text.strip()
             if text.lower() == "none":
                 return False
-            elif text == None:
+            elif text is None:
                 return False
             elif text == "":
                 return False

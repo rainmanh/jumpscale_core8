@@ -27,7 +27,7 @@ class RedisKeyValueStore(KeyValueStoreBase):
 
         self.lastchangeIdKey = "changelog:lastid"
         self.nodelastchangeIdkey = "changelog:%s:lastid" % j.application.whoAmI.gid
-        if self.redisclient.get(self.nodelastchangeIdkey) == None:
+        if self.redisclient.get(self.nodelastchangeIdkey) is None:
             self.writedb.redisclient.set(self.nodelastchangeIdkey, 0)
         self.lastchangeId = int(self.redisclient.get(self.nodelastchangeIdkey) or 0)
 
@@ -47,7 +47,7 @@ class RedisKeyValueStore(KeyValueStoreBase):
         @param reset, will just ignore the changelog
         @param delete, means even delete the changelog on master
         """
-        if self.redisclient.get("changelog:lastid") == None:
+        if self.redisclient.get("changelog:lastid") is None:
             return
         lastid = int(self.redisclient.get("changelog:lastid"))
         result = []

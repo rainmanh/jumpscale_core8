@@ -35,7 +35,7 @@ class ProcessManagerFactory:
         pm is tmux, systemd or sv
         (sv=runit)
         """
-        if pm == None:
+        if pm is None:
             pm = self.get_prefered()
         else:
             if not self.is_available(pm):

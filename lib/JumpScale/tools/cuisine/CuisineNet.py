@@ -78,7 +78,7 @@ Gateway={gateway}
         find nodes which are active around (answer on SSH)
 
         """
-        if range == None:
+        if range is None:
             res = self._cuisine.net.getInfo()
             for item in res:
                 cidr = item['cidr']

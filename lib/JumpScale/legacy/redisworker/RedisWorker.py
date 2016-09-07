@@ -233,9 +233,9 @@ def action%(argspec)s:
         @return job
         """
         js = jumpscript
-        if js == None:
+        if js is None:
             js = self.getJumpscriptFromId(jumpscriptid)
-            if js == None:
+            if js is None:
                 raise RuntimeError("Cannot find jumpscript with id:'%s' on worker." % jumpscriptid)
         else:
             js = jumpscript
@@ -291,7 +291,7 @@ def action%(argspec)s:
 
     def waitJob(self, job, timeout=600):
         result = self.redis.blpop("workers:return:%s" % job.id, timeout=timeout)
-        if result == None:
+        if result is None:
             job.state = "TIMEOUT"
             job.timeStop = int(time.time())
             self.redis.set("workers:jobs%s" % job.id, json.dumps(job.__dict__), ex=60)

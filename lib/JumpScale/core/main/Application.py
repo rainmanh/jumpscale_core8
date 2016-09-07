@@ -127,25 +127,25 @@ class Application:
 
     @property
     def config(self):
-        if self._config == None:
+        if self._config is None:
             self._config = j.data.hrd.get(path=j.dirs.hrd)
         return self._config
 
     @property
     def whoAmiBytestr(self):
-        if self._whoAmi == None:
+        if self._whoAmi is None:
             self._initWhoAmI()
         return self._whoAmiBytestr
 
     @property
     def whoAmI(self):
-        if self._whoAmi == None:
+        if self._whoAmi is None:
             self._initWhoAmI()
         return self._whoAmi
 
     @property
     def systempid(self):
-        if self._systempid == None:
+        if self._systempid is None:
             self._systempid = os.getpid()
         return self._systempid
 

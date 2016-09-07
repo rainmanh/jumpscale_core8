@@ -74,7 +74,7 @@ class PostgresClient:
         self.cursor = self.client.cursor()
 
     def execute(self, sql):
-        if self.cursor == None:
+        if self.cursor is None:
             self.getcursor()
         return self.cursor.execute(sql)
 
@@ -214,7 +214,7 @@ class PostgresClient:
                         j.application.break_into_jshell(
                             "DEBUG NOW psycopg2dumpall2hrd")
 
-                if idfound == None:
+                if idfound is None:
                     j.application.break_into_jshell(
                         "DEBUG NOW could not find id for %s in psycopg2dumpall2hrd" % r)
 

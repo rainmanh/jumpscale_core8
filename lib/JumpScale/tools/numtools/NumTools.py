@@ -63,9 +63,9 @@ class NumTools:
             tointerpolate = [0.0 for item in tointerpolate]
 
         for xpos in range(len(tointerpolate)):
-            if not tointerpolate[xpos] == None and not j.data.types.int.check(tointerpolate[xpos]):
+            if not tointerpolate[xpos] is None and not j.data.types.int.check(tointerpolate[xpos]):
                 isint = False
-            if tointerpolate[xpos] == None:
+            if tointerpolate[xpos] is None:
                 x.append(xpos)
             if tointerpolate[xpos] != None:
                 xp.append(xpos)

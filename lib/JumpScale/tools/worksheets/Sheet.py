@@ -36,16 +36,16 @@ class Row(j.tools.code.classGetBase()):
         self.nrcols = nrcols
 
     def setDefaultValue(self, defval=None, stop=None):
-        if defval == None:
+        if defval is None:
             defval = self.defval
-        if defval == None:
+        if defval is None:
             defval = 0.0
-        if stop == None:
+        if stop is None:
             stop = self.nrcols
         else:
             stop += 1
         for colid in range(0, int(stop)):
-            if self.cells[colid] == None:
+            if self.cells[colid] is None:
                 self.cells[colid] = defval
 
     def indexation(self, yearlyIndexationInPerc, roundval=100):
@@ -84,7 +84,7 @@ class Row(j.tools.code.classGetBase()):
                 result = 9999999999999999999
             for m in months:
                 val = self.cells[m]
-                if val == None:
+                if val is None:
                     raise j.exceptions.RuntimeError("Cannot aggregrate row %s from group %s,\n%s" %
                                                     (self.name, self.groupname, self.cells))
                 if self.aggregateAction == "T" or self.aggregateAction == "AVG":
@@ -123,9 +123,9 @@ class Row(j.tools.code.classGetBase()):
         # if item==0.0:
         # item=None
         # tointerpolate.append(item)
-        if start == None:
+        if start is None:
             start = 0
-        if stop == None:
+        if stop is None:
             stop = len(self.cells) - 1
         tointerpolate = self.cells[start:stop + 1]
         try:
@@ -143,9 +143,9 @@ class Row(j.tools.code.classGetBase()):
     def randomVariation(self, variation, start=None, stop=None, min=None, max=None):
         if variation == 0:
             return
-        if start == None:
+        if start is None:
             start = 0
-        if stop == None:
+        if stop is None:
             stop = len(self.cells) - 1
         # variation=float(self.getMax())/100*float(random)
         variation = int(float(variation) * 100.0)
@@ -220,7 +220,7 @@ class Row(j.tools.code.classGetBase()):
         if start > self.nrcols:
             return start, None
         y = self.cells[start]  # start height
-        if y == None:
+        if y is None:
             raise j.exceptions.RuntimeError("start position y needs to != None")
         y = float(y)
         minvalue = y - godown
@@ -241,7 +241,7 @@ class Row(j.tools.code.classGetBase()):
             if x > stop:
                 return self.setCell(stop, y)
             x, y = self.setCell(x, y, minvalue, maxvalue)
-            if y == None:
+            if y is None:
                 self.setCell(self.nrcols - 1, y2)
                 return x, y2
 
@@ -253,7 +253,7 @@ class Row(j.tools.code.classGetBase()):
         if start > self.nrcols:
             return start, None
         y = self.cells[start]  # start height
-        if y == None:
+        if y is None:
             raise j.exceptions.RuntimeError("start position y needs to != None")
         y = float(y)
         minvalue = y
@@ -274,14 +274,14 @@ class Row(j.tools.code.classGetBase()):
             if x > stop:
                 return self.setCell(stop, y)
             x, y = self.setCell(x, y, minvalue, maxvalue)
-            if y == None:
+            if y is None:
                 self.setCell(self.nrcols - 1, y2)
                 return x, y
 
     def getMax(self, start=None, stop=None):
-        if start == None:
+        if start is None:
             start = 0
-        if stop == None:
+        if stop is None:
             stop = len(self.cells) - 1
         r = 0
         for x in range(start, stop + 1):
@@ -299,7 +299,7 @@ class Row(j.tools.code.classGetBase()):
 
     def _roundNrCumul(self, val, x, args):
         nr = val
-        if nr == None:
+        if nr is None:
             nr = 0.0
         # print "%s %s %s" % (self.name,nr,self._cumul)
         if nr + self._cumul > 0.5 and nr + self._cumul < 10:
@@ -364,7 +364,7 @@ class Row(j.tools.code.classGetBase()):
                                 "text2row input not properly formatted: %s, subpart: %s" % (data, item))
                         pos, value = item.split(":")
                         pos = int(pos) + (12 * year)
-                        if start == None and interp:
+                        if start is None and interp:
                             start = (int(j.tools.numtools.roundDown((float(pos) / 12)))) * 12
                         try:
                             value = j.tools.numtools.text2val(value)
@@ -379,13 +379,13 @@ class Row(j.tools.code.classGetBase()):
                         if pos > maxpos:
                             maxpos = pos
                         # calculate end of year of last found position where data was set
-            if maxpos == None:
+            if maxpos is None:
                 stop = 0
             else:
                 stop = int(j.tools.numtools.roundUp((float(maxpos) / 12)))
-            if start == None:
+            if start is None:
                 start = 0
-            if interpolate == True or (interp and interpolate == None):
+            if interpolate == True or (interp and interpolate is None):
                 if len(datas) != 1:
                     self.interpolate(start, stop * 12 - 1)
                 else:
@@ -408,11 +408,11 @@ class Row(j.tools.code.classGetBase()):
                 self.cells[x] = self.defval
 
         if not j.data.types.list.check(data):
-            if data == None:
+            if data is None:
                 self.cells[0] = float(startval)
             elif str(data).find(",") == -1 and str(data).find(":") == -1:
                 # is only 1 value so set all data
-                if str(data).strip() == "" or data == None:
+                if str(data).strip() == "" or data is None:
                     data = "0.0"
                 self.setDefaultValue(float(data))
             else:
@@ -425,7 +425,7 @@ class Row(j.tools.code.classGetBase()):
         else:
             datas = data
             stop, maxval = custom2rowvalues(datas)
-            if stop * 12 < self.nrcols and self.cells[stop * 12] == None:
+            if stop * 12 < self.nrcols and self.cells[stop * 12] is None:
                 self.cells[stop * 12] = maxval
             for x in range(len(datas)):
                 data = datas[x]
@@ -478,7 +478,7 @@ class Row(j.tools.code.classGetBase()):
         """
         @param roundval if e.g. 100 means round will be done with values of 10, nr float will then be 0 (automatically)
         """
-        if nrfloat == None:
+        if nrfloat is None:
             nrfloat = self.nrfloat
         if roundval > 0:
             nrfloat = 0
@@ -605,9 +605,9 @@ class Sheet(j.tools.code.classGetBase()):
         @param defval is default value for each col
         @param round is only valid for float e.g. 2 after comma
         """
-        if nrcols == None:
+        if nrcols is None:
             nrcols = self.nrcols
-        if ttype == "float" and nrfloat == None:
+        if ttype == "float" and nrfloat is None:
             nrfloat = 2
         row = Row(name, ttype, nrcols, aggregate, description=description, groupname=groupname,
                   groupdescr=groupdescr, format=format, defval=defval, nrfloat=nrfloat)
@@ -682,7 +682,7 @@ class Sheet(j.tools.code.classGetBase()):
         """
         @param sheets if None then this sheetobject
         """
-        if sheets == None:
+        if sheets is None:
             sheetfrom = self
         else:
             sheetfrom = sheets.sheets[sheetname]
@@ -797,7 +797,7 @@ class Sheet(j.tools.code.classGetBase()):
         previous = 0
         for colnr in range(self.nrcols):
             input = self.getCell(rowNameInput, colnr)
-            if input == None:
+            if input is None:
                 self.setCell(rowNameInput, colnr, defval)
         return self.rows[rowNameInput]
 
@@ -816,7 +816,7 @@ class Sheet(j.tools.code.classGetBase()):
             input = {}
             for name in rowNames:
                 input[name] = self.getCell(name, colnr)
-                if input[name] == None:
+                if input[name] is None:
                     input[name] = 0.0
             for key in params:
                 input[key] = params[key]
@@ -882,7 +882,7 @@ class Sheet(j.tools.code.classGetBase()):
             input = []
             for rowname in rownames:
                 val = self.getCell(rowname, colnr)
-                if val == None:
+                if val is None:
                     val = 0.0
                 input.append(val)
 

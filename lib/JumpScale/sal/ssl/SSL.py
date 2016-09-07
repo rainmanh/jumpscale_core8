@@ -23,7 +23,7 @@ class SSL:
         default keyvaluestor=j.servers.kvs.getFSStore("sslkeys", serializers=[])  #make sure to use no serializers
         pass another keyvaluestor if required (first do 'import JumpScale.servers.key_value_store')
         """
-        if keyvaluestor == None:
+        if keyvaluestor is None:
             keyvaluestor = j.servers.kvs.getFSStore("sslkeys", serializers=[])
         return KeyStor(keyvaluestor)
 

@@ -317,7 +317,7 @@ struct Schema {
         """
         populate hrd out of the schema
         """
-        if hrd == None:
+        if hrd is None:
             hrd = j.data.hrd.get(content="", prefixWithName=False)
         for key, ttype in self.items.items():
             val = None
@@ -368,7 +368,7 @@ struct Schema {
                     val = val[0]
 
             hrd.set(ttype.name, val, ttype=ttype.hrd_ttype)
-            if path == None:
+            if path is None:
                 hrd.path = path
 
         return hrd

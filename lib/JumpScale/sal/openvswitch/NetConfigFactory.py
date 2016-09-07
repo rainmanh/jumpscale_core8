@@ -21,7 +21,7 @@ class NetConfigFactory:
         """
         walk over system and get configuration, result is dict
         """
-        if self._layout == None or reload:
+        if self._layout is None or reload:
             self._layout = vxlan.NetLayout()
             self._layout.load()
         # add_ips_to(self._layout)  #TODO: fix

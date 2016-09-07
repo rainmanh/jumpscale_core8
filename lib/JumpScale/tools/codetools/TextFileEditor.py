@@ -217,8 +217,8 @@ class TextFileEditor:
         """
         write the manipulated file to a new path or to the original
         """
-        if filepath == None:
+        if filepath is None:
             filepath = self.filepath
-        if filepath == None:
+        if filepath is None:
             raise j.exceptions.RuntimeError("Cannot write the textfile because path is None")
         j.sal.fs.writeFile(filepath, self.content)

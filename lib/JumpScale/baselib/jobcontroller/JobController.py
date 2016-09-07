@@ -24,7 +24,7 @@ class JobController:
 
     @property
     def queue(self):
-        if self._queue == None:
+        if self._queue is None:
             self._queue = self.db._db.getQueue('workers')
         return self._queue
 

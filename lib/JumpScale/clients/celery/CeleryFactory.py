@@ -90,7 +90,7 @@ class CeleryFactory:
         if actorName in self.actors:
             return self.actors[actorName]
 
-        if self.app == None:
+        if self.app is None:
 
             from celery import Celery
 

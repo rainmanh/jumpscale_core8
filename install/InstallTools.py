@@ -543,7 +543,7 @@ class InstallTools():
         """
         check if path is dir or link to a dir
         """
-        if fullpath == None or fullpath.strip == "":
+        if fullpath is None or fullpath.strip == "":
             raise RuntimeError("path cannot be empty")
 
         if not self.isLink(fullpath) and os.path.isdir(fullpath):
@@ -640,7 +640,7 @@ class InstallTools():
         #result = []
         #os.path.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
         # return result
-        if path == None or path.strip == "":
+        if path is None or path.strip == "":
             raise RuntimeError("path cannot be empty")
         files = self._listInDir(path, followSymlinks=True)
         filesreturn = []
@@ -759,7 +759,7 @@ class InstallTools():
                 if recursive:
                     if depth != None and depth != 0:
                         depth = depth - 1
-                    if depth == None or depth != 0:
+                    if depth is None or depth != 0:
                         exclmatch = False
                         if exclude != []:
                             for excludeItem in exclude:
@@ -961,7 +961,7 @@ class InstallTools():
         if content[-1] != "\n":
             content += "\n"
 
-        if remote == None:
+        if remote is None:
             tmppath = self.getTmpPath("")
             content = "cd %s\n%s" % (tmppath, content)
         else:
@@ -1571,7 +1571,7 @@ class InstallTools():
             self.delete(socketpath)
             self.delete(self.joinPaths(self.TMP, "ssh-agent-pid"))
 
-        # if path == None:
+        # if path is None:
         #     path2 = self.joinPaths(os.environ["HOME"], ".ssh", keyname)
         #     if not self.exists(path2):
         #         if createkeys:
@@ -1682,13 +1682,13 @@ class InstallTools():
         """
 
         if url == "":
-            if dest == None:
+            if dest is None:
                 raise RuntimeError("dest cannot be None (url is also '')")
             if not self.exists(dest):
                 raise RuntimeError(
                     "Could not find git repo path:%s, url was not specified so git destination needs to be specified." % (dest))
 
-        if login == None and url.find("github.com/") != -1:
+        if login is None and url.find("github.com/") != -1:
             # can see if there if login & passwd in OS env
             # if yes fill it in
             if "GITHUBUSER" in os.environ:
@@ -1725,7 +1725,7 @@ class InstallTools():
                     reset=False, branch=None, revision=None, ssh="auto", executor=None, codeDir=None, onlyIfExists=False):
         """
         will clone or update repo
-        if dest == None then clone underneath: /opt/code/$type/$account/$repo
+        if dest is None then clone underneath: /opt/code/$type/$account/$repo
         will ignore changes !!!!!!!!!!!
 
         @param ssh ==True means will checkout ssh
@@ -2155,7 +2155,7 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
 
     @property
     def readonly(self):
-        if self._readonly == None:
+        if self._readonly is None:
             ppath = "%s/bin/_writetest" % do.BASE
             try:
                 do.writeFile(ppath, "")

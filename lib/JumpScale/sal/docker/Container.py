@@ -127,7 +127,7 @@ class Container:
 
     def getPubPortForInternalPort(self, port):
 
-        if not self.info["NetworkSettings"]["Ports"] == None:
+        if not self.info["NetworkSettings"]["Ports"] is None:
             for key, portsDict in self.info["NetworkSettings"]["Ports"].items():
                 if key.startswith(str(port)):
                     # if "PublicPort" not in port2:
@@ -160,7 +160,7 @@ class Container:
                 key = j.do.getSSHKeyFromAgentPub(keyname)
             else:
                 key = j.do.getSSHKeyFromAgentPub("docker_default", die=False)
-                if key == None:
+                if key is None:
                     dir = j.tools.path.get('%s/.ssh' % home)
                     if dir.listdir("docker_default.pub") == []:
                         # key does not exist, lets create one
@@ -173,7 +173,7 @@ class Container:
 
         j.sal.fs.writeFile(filename="%s/.ssh/known_hosts" % home, contents="")
 
-        if key == None or key.strip() == "":
+        if key is None or key.strip() == "":
             raise j.exceptions.Input("ssh key cannot be empty (None)")
 
         self.cuisine.ssh.authorize("root", key)

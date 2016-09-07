@@ -109,7 +109,7 @@ class CuisineKVM(base):
 
     @property
     def path(self):
-        if self._path == None:
+        if self._path is None:
             # look for btrfs fs kvm, is where all vm & disk info will be
             # TODO *1
             j.sal.fs.createDir(j.sal.fs.joinPaths(self._path, "vm"))

@@ -361,7 +361,7 @@ class SystemFS:
         self.logger.debug(
             'Creating directory if not exists %s' % toStr(newdir))
 
-        if newdir == '' or newdir == None:
+        if newdir == '' or newdir is None:
             raise TypeError(
                 'The newdir-parameter of system.fs.createDir() is None or an empty string.')
 
@@ -1021,7 +1021,7 @@ class SystemFS:
                 if recursive:
                     if depth != None and depth != 0:
                         depth = depth - 1
-                    if depth == None or depth != 0:
+                    if depth is None or depth != 0:
                         exclmatch = False
                         if exclude != []:
                             for excludeItem in exclude:
@@ -1708,7 +1708,7 @@ class SystemFS:
         @param prefix: string to start the generated name with
         @rtype: string representing the generated temp file path
         """
-        if dir == None:
+        if dir is None:
             return j.sal.fs.joinPaths(j.dirs.tmpDir, prefix + str(j.data.idgenerator.generateRandomInt(0, 1000000000000)) + ".tmp")
         else:
             dir = dir or j.dirs.tmpDir

@@ -45,7 +45,7 @@ class Worker(object):
                 client = j.legacy.agentcontroller.get(ipaddr, login='node')
                 self.clients[ipaddr] = client
             else:
-                if self.acclient == None:
+                if self.acclient is None:
                     self.acclient = j.legacy.agentcontroller.get(opts.ip, port=opts.port, login='node')
                 return self.acclient
         return client

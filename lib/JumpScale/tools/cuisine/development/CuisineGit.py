@@ -14,7 +14,7 @@ class CuisineGit(base):
     def pullRepo(self, url, dest=None, login=None, passwd=None, depth=1,
                  ignorelocalchanges=True, reset=False, branch=None, revision=None, ssh="first"):
 
-        if dest == None:
+        if dest is None:
             base, provider, account, repo, dest, url = j.do.getGitRepoArgs(
                 url, dest, login, passwd, reset=reset, ssh=ssh, codeDir=self._cuisine.core.dir_paths["codeDir"])
             # we need to work in remote linux so we only support /opt/code

@@ -38,7 +38,7 @@ will in a safe way configure bridge brpub
 if available and has ip addr to go to internet then nothing will happen
 otherwise system will try in a safe way set this ipaddr, this is a dangerous operation
 
-if ipaddr == None then will look for existing config on interface and use that one to
+if ipaddr is None then will look for existing config on interface and use that one to
     configure the bridge
 
 ```

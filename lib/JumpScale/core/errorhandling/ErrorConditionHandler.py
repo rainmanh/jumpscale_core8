@@ -141,7 +141,7 @@ class ErrorConditionHandler:
             print("exceptionObject was:\n%s" % exceptionObject)
             sys.exit(1)
 
-        if tb == None:
+        if tb is None:
             ttype, exc_value, tb = sys.exc_info()
 
         if hasattr(exceptionObject, "codetrace"):
@@ -213,7 +213,7 @@ class ErrorConditionHandler:
         # else:
         #     type_str=""
 
-        if eco == None:
+        if eco is None:
             eco = self.getErrorConditionObject(
                 msg=message, msgpub=msgpub, level=level, tb=tb, tags=tags, type=type)
 
@@ -318,10 +318,10 @@ class ErrorConditionHandler:
             except Exception:
                 return default
 
-        if tb == None:
+        if tb is None:
             ttype, msg, tb = sys.exc_info()
 
-        if tb == None:
+        if tb is None:
             frames = [(item[0], item[2]) for item in inspect.stack()]
         else:
             frames = []
@@ -408,7 +408,7 @@ class ErrorConditionHandler:
             # print "EDITOR FOUND:%s" % editor
             if editor:
                 # print errorConditionObject.errormessagepublic
-                if tb == None:
+                if tb is None:
                     try:
                         res = j.tools.console.askString(
                             "\nAn error has occurred. Do you want do you want to do? (s=stop, c=continue, t=getTrace)")

@@ -459,7 +459,7 @@ class socksocket(socket.socket):
                 self.__negotiatehttp(destpair[0], destpair[1])
             else:
                 self.__httptunnel = False
-        elif self.__proxy[0] == None:
+        elif self.__proxy[0] is None:
             _orgsocket.connect(self, (destpair[0], destpair[1]))
         else:
             raise GeneralProxyError((4, _generalerrors[4]))

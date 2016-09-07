@@ -178,7 +178,7 @@ class UnixSystem:
             crontabOptions = crontabOptions + "root    "
 
         # Construct output redirection
-        if logFilePath == None:
+        if logFilePath is None:
             crontabOutputRedir = " >/dev/null"
         else:
             if not self.exists(self.getDirName(logFilePath)):
@@ -243,7 +243,7 @@ class UnixSystem:
             group = 'root'
         j.logger.log('Chown %s:%s %s' % (user, group, path), 8)
         uid = pwd.getpwnam(user).pw_uid
-        if group == None:
+        if group is None:
             gid = grp.getgrnam(group).gr_gid
         else:
             gid = grp.getgrnam(group).gr_gid

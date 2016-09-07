@@ -239,7 +239,7 @@ class RegexTools:
 
     def matchAllText(self, pattern, text):
         result = self.getRegexMatch(pattern, text)
-        if result == None:
+        if result is None:
             return False
         if result.founditem.strip() != text.strip():
             return False

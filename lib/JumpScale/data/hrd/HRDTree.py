@@ -52,7 +52,7 @@ class HRDTree(HRDBase):
 
     def get(self, key, default=None,):
         if key not in self.items:
-            if default == None:
+            if default is None:
                 raise j.exceptions.Input("Cannot find value with key %s in tree %s." % (
                     key, self.path), "hrd.get.notexist")
             val = default

@@ -29,7 +29,7 @@ class HRDBase:
 
     def getBool(self, key, default=None):
         res = self.get(key, default=default)
-        if res == None:
+        if res is None:
             return False
         res2 = str(res)
         if res == True or res2 == "1" or res2.lower() == "true":
@@ -72,7 +72,7 @@ class HRDBase:
         return key in self.items
 
     def getList(self, key, default=None):
-        if default == None:
+        if default is None:
             lst = self.get(key)
         else:
             lst = self.get(key, default="")

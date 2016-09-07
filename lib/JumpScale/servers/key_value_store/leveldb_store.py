@@ -28,13 +28,13 @@ class LevelDBInterface:
 
     def getb(self, key):
         result = self.db.get(key, fill_cache=True, verify_checksums=True)
-        if result == None:
+        if result is None:
             raise j.exceptions.RuntimeError("Cannot find object in db with key:%s" % key)
         return result
 
     def get(self, key):
         value = self.getb(key)
-        if value == None:
+        if value is None:
             raise j.exceptions.RuntimeError("Cannot find object in db with key:%s" % key)
         val = j.data.serializer.serializers.getSerializerType('j').loads(value)
         return val
@@ -102,7 +102,7 @@ class LevelDBKeyValueStore(KeyValueStoreBase):
     def list(self, category, prefix):
         categoryKey = self._getCategoryKey(category, prefix)
         fullKeys = self.dbclient.prefix(categoryKey)
-        if fullKeys == None:
+        if fullKeys is None:
             return []
         # from IPython import embed
         # print "DEBUG NOW list"

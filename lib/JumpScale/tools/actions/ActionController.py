@@ -49,7 +49,7 @@ class ActionController:
 
     @property
     def runid(self):
-        if self._runid == "" or self._runid == None:
+        if self._runid == "" or self._runid is None:
             raise j.exceptions.RuntimeError("runid cannot be empty, please set with j.actions.setRunId(...)")
         return str(self._runid)
 
@@ -66,7 +66,7 @@ class ActionController:
                 self.logger.info("delete:%s" % item)
                 self.reset(runid=item, prefix=prefix)
         else:
-            if prefix == None:
+            if prefix is None:
                 self._actions = {}
                 if runid is None:
                     j.core.db.delete("actions.%s" % self.runid)
@@ -163,7 +163,7 @@ class ActionController:
     @property
     def stack(self):
         val = j.core.db.hget("actions.stack", self.runid)
-        if val == None:
+        if val is None:
             val2 = []
         else:
             val2 = j.data.serializer.json.loads(val)

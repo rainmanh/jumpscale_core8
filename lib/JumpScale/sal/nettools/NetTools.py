@@ -359,7 +359,7 @@ class NetTools:
 
     def getVlanTag(self, interface, nicType=None):
         """Get VLan tag on the specified interface and vlan type"""
-        if nicType == None:
+        if nicType is None:
             nicType = j.sal.nettools.getNicType(interface)
         if nicType == "INFINIBAND" or nicType == "ETHERNET_GB" or nicType == "VIRTUAL":
             return "0"

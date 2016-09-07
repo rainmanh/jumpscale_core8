@@ -49,7 +49,7 @@ class Session:
         else:
             hkey = self.name
         res = self.handler.redisconfig.hget(hkey, key)
-        if res == None:
+        if res is None:
             # if descr=="":
             #     session.send_message("Cannot find global variable: '%s' please define by using '%s=yourinput'."%(key,key))
             # else:

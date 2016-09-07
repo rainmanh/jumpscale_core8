@@ -40,7 +40,7 @@ class MDRenderer:
         ```
 
         """
-        if lang == None:
+        if lang is None:
             lang = ""
         code.replace("$lang", lang)
         code.replace("$code", code)

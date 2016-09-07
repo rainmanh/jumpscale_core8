@@ -42,7 +42,7 @@ class Cache:
         return (expire,value)
         """
         data = self.db.get("cache", key)
-        if data == None:
+        if data is None:
             return False, None
         data = json.loads(data)
         if data["expire"] < j.data.time.getTimeEpoch():

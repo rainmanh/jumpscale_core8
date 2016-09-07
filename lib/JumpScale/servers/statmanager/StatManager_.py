@@ -157,7 +157,7 @@ class StatManager:
         return j.data.time.get5MinuteId(epoch)
 
     def addInfoLine2HistoryObj(self, id, value, epoch=None):
-        if epoch == None:
+        if epoch is None:
             epoch = self.getEpoch()
         obj = self.getHistoryObject(id)
         key = j.data.time.get5MinuteId(epoch)
@@ -249,7 +249,7 @@ class StatManager:
         result list(list) 
 
         """
-        if id == None:
+        if id is None:
             id = ""
         if id.find(",") != -1:
             ids = id.split(",")

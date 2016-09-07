@@ -204,7 +204,7 @@ class SystemFSWalker:
         for path2 in paths:
             if callbackForMatchFile is False:
                 continue
-            if callbackForMatchFile == None or callbackForMatchFile(path2, arg):
+            if callbackForMatchFile is None or callbackForMatchFile(path2, arg):
                 # execute
                 callbackFunctionFile(path2, arg)
 
@@ -212,10 +212,10 @@ class SystemFSWalker:
         paths.sort()
         for path2 in paths:
             # print "walker dirpath:%s"% path2
-            if callbackForMatchDir == None or callbackForMatchDir(path2, arg):
+            if callbackForMatchDir is None or callbackForMatchDir(path2, arg):
                 # recurse
                 # print "walker matchdir:%s"% path2
-                if callbackFunctionDir == None:
+                if callbackFunctionDir is None:
                     j.sal.fs.walker._walkFunctional(
                         path2, callbackFunctionFile, callbackFunctionDir, arg, callbackForMatchDir, callbackForMatchFile)
                 else:

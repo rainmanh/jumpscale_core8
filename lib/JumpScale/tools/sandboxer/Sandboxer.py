@@ -108,7 +108,7 @@ class Sandboxer:
         find binaries on path and look for supporting libs, copy the libs to dest
         default dest = '%s/bin/'%j.dirs.base
         """
-        if dest == None:
+        if dest is None:
             dest = "%s/bin/" % j.dirs.base
         if j.sal.fs.isDir(path):
             # do all files in dir

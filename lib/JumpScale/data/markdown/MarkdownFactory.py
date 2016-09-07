@@ -68,7 +68,7 @@ class MDTable:
     def addHeader(self, cols):
         self.header = cols
         for nr in range(len(self.header)):
-            if self.header[nr] == None or self.header[nr].strip() == "":
+            if self.header[nr] is None or self.header[nr].strip() == "":
                 self.header[nr] = " . "
 
     def addRow(self, cols):
@@ -76,7 +76,7 @@ class MDTable:
             raise j.exceptions.Input(
                 "cols need to be same size as header. %s vs %s" % (len(cols), len(self.header)))
         for nr in range(len(cols)):
-            if cols[nr] == None or cols[nr].strip() == "":
+            if cols[nr] is None or cols[nr].strip() == "":
                 cols[nr] = " . "
         self.rows.append(cols)
 
@@ -221,7 +221,7 @@ class MDCode:
     def __repr__(self):
         out = self.text
         code = "\n```$lang\n$code\n```\n"
-        if self.lang == None:
+        if self.lang is None:
             self.lang = ""
         code = code.replace("$lang", self.lang)
         code = code.replace("$code", self.text)

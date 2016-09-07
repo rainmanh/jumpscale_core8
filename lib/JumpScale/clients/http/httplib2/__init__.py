@@ -1360,7 +1360,7 @@ and more.
                         location = response['location']
                         (scheme, authority, path, query,
                          fragment) = parse_uri(location)
-                        if authority == None:
+                        if authority is None:
                             response['location'] = urllib.urljoin(
                                 absolute_uri, location)
                     if response.status == 301 and method in ["GET", "HEAD"]:

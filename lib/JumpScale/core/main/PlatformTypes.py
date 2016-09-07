@@ -60,7 +60,7 @@ class PlatformTypes:
 
     @property
     def myplatform(self):
-        if self._myplatform == None:
+        if self._myplatform is None:
             self._myplatform = PlatformType()
         return self._myplatform
 
@@ -94,7 +94,7 @@ class PlatformType:
         # self._osversion=""
         # self._hostname=""
         # self._osname=""
-        if executor == None:
+        if executor is None:
             self.executor = j.tools.executor.getLocal()
         else:
             self.executor = executor

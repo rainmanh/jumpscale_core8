@@ -14,7 +14,7 @@ class JumpscriptsCmds():
         self.ORDER = 1
         self._name = "jumpscripts"
 
-        if daemon == None:
+        if daemon is None:
             return
 
         self.daemon = daemon
@@ -128,7 +128,7 @@ class JumpscriptsCmds():
             jumpscript.execute()
 
     def _run(self, period=None, redisw=None):
-        if period == None:
+        if period is None:
             for period in self.jumpscriptsByPeriod.keys():
                 self._run(period)
 

@@ -204,7 +204,7 @@ class CuisineSSHReflector(base):
                     pass
         else:
             cuisine = j.tools.cuisine.get(remoteids)
-        if cuisine == None:
+        if cuisine is None:
             raise j.exceptions.RuntimeError("could not find reflector active")
 
         rpath = "/home/sshreflector/reflectorclients"

@@ -235,7 +235,7 @@ class SpecBlock:
                 if key in j.core.specparser.actornames:
                     spec = j.core.specparser.getactorSpec(
                         self.appname, self.actorname, False)
-            if spec == None:
+            if spec is None:
                 spec = Specactor(self.name, self.descr, self.tags,
                                  self.parser.path, self.startline)
                 spec.actorname = self.actorname

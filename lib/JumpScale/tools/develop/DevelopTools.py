@@ -121,7 +121,7 @@ class DebugSSHNode:
     @property
     def ftpclient(self):
         self.test()
-        if self._ftpclient == None:
+        if self._ftpclient is None:
             self._ftpclient = self.sshclient.getSFTP()
         return self._ftpclient
 
@@ -141,7 +141,7 @@ class DebugSSHNode:
     @property
     def sshclient(self):
         self.test()
-        if self._sshclient == None:
+        if self._sshclient is None:
             if self.port != 0:
                 self._sshclient = j.clients.ssh.get(self.addr, port=self.port)
             else:
@@ -243,7 +243,7 @@ class DevelopToolsFactory:
     @property
     def nodes(self):
         if self._nodes == []:
-            if j.core.db.get("debug.nodes") == None:
+            if j.core.db.get("debug.nodes") is None:
                 self.init()
             nodes = j.core.db.get("debug.nodes").decode()
             if nodes == "":
@@ -279,7 +279,7 @@ class DevelopToolsFactory:
         @param ask=True means ask which repo's to sync (will get remembered in redis)
 
         """
-        if ask or j.core.db.get("debug.codepaths") == None:
+        if ask or j.core.db.get("debug.codepaths") is None:
             path = j.dirs.codeDir + "/github/jumpscale"
             if j.sal.fs.exists(path):
                 items = j.sal.fs.listDirsInDir(path)
@@ -345,7 +345,7 @@ class DevelopToolsFactory:
         """
         event_handler = MyFSEventHandler()
         observer = Observer()
-        if sync or j.core.db.get("debug.codepaths") == None:
+        if sync or j.core.db.get("debug.codepaths") is None:
             self.syncCode(monitor=False, rsyncdelete=False, reset=reset)
         codepaths = j.core.db.get("debug.codepaths").decode().split(",")
         for source in codepaths:

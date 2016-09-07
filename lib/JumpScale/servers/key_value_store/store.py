@@ -399,7 +399,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         """
         will return unique key which references the data, if it exists or not
         """
-        if data == "" or data == None:
+        if data == "" or data is None:
             return ""
         if len(data) < 32:
             return data

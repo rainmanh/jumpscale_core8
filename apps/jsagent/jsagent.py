@@ -64,7 +64,7 @@ class Process():
         return mem.vms != 0
 
     def _spawnProcess(self):
-        if self.logpath == None:
+        if self.logpath is None:
             self.logpath = j.sal.fs.joinPaths(j.dirs.logDir, "processmanager", "logs",
                                                  "%s_%s.log" % (self.domain, self.name))
             j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.logDir, "processmanager", "logs"))

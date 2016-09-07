@@ -69,7 +69,7 @@ class CifsFS:
         j.sal.fs.createDir(self.mntpoint)
 
         # Mount sharename
-        if self.username == None and self.password == None:
+        if self.username is None and self.password is None:
             command = '%s //%s/%s %s -o' % (self._command,
                                             self.server, self.sharename, self.mntpoint)
         else:

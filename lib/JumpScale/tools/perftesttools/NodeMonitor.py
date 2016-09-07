@@ -16,7 +16,7 @@ class NodeMonitor(NodeBase):
     def startInfluxPump(self):
         env = {}
 
-        if j.tools.perftesttools.monitorNodeIp == None:
+        if j.tools.perftesttools.monitorNodeIp is None:
             raise j.exceptions.RuntimeError("please do j.tools.perftesttools.init() before calling this")
 
         if self.influx_host is None:
@@ -47,7 +47,7 @@ class NodeMonitor(NodeBase):
 
     def getStatObject(self, node="total", key="writeiops"):
         data = self.redis.hget("stats:%s" % node, key)
-        if data == None:
+        if data is None:
             return {"val": None}
         data = j.data.serializer.json.loads(data)
         return data

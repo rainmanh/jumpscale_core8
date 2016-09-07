@@ -172,7 +172,7 @@ class Netconfig:
     #     self.enableInterfaceBridge(dev=dev,bridgedev=bridgedev,apply=apply)
 
     def interfaces_restart(self, dev=None):
-        if dev == None:
+        if dev is None:
             #TODO: (***) loop over devs
             pass
 
@@ -221,7 +221,7 @@ class Netconfig:
 
         j.sal.netconfig.interfaces_reset(True)
 
-        if ipaddr == None or gw == None:
+        if ipaddr is None or gw is None:
             raise j.exceptions.Input("Cannot configure network when ipaddr or gw not specified", "net.config")
 
         if pynetlinux.brctl.findbridge("brpub") != None:
@@ -332,16 +332,16 @@ class Netconfig:
         if available and has ip addr to go to internet then nothing will happen
         otherwise system will try in a safe way set this ipaddr, this is a dangerous operation
 
-        if ipaddr == None then will look for existing config on interface and use that one to configure the bridge
+        if ipaddr is None then will look for existing config on interface and use that one to configure the bridge
         """
         import pynetlinux
-        if ipaddr == None or mask == None or interface == None:
+        if ipaddr is None or mask is None or interface is None:
             print("get default network config for main interface")
             interface2, ipaddr2 = self.getDefaultIPConfig()
-            if interface == None:
+            if interface is None:
                 interface = str(interface2)
                 print("interface found:%s" % interface)
-            if ipaddr == None:
+            if ipaddr is None:
                 ipaddr = ipaddr2
                 print("ipaddr found:%s" % ipaddr)
 
@@ -363,18 +363,18 @@ class Netconfig:
             else:
                 raise
 
-        if ipaddr == None:
+        if ipaddr is None:
             raise j.exceptions.RuntimeError("Did not find ipaddr: %s" % ipaddr)
 
-        if mask == None:
+        if mask is None:
             mask = i.get_netmask()
             print("mask found:%s" % mask)
 
-        if gw == None:
+        if gw is None:
             gw = pynetlinux.route.get_default_gw()
             print("gw found:%s" % gw)
 
-        if gw == None:
+        if gw is None:
             raise j.exceptions.RuntimeError("Did not find gw: %s" % gw)
 
         if not j.sal.nettools.pingMachine(gw, pingtimeout=2):

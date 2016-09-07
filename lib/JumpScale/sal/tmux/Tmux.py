@@ -282,7 +282,7 @@ class Tmux:
                 sname = se.get("session_name")
                 if name == sname:
                     res = se
-            if res == None:
+            if res is None:
                 res = s.new_session(session_name=name, kill_session=False, attach=attach)
 
         self.sessions[name] = Session(res)

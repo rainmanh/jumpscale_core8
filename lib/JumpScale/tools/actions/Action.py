@@ -40,7 +40,7 @@ class Action:
         self.logger = j.logger.get("j.actions")
         # self.logger.debug("OPEN ACTION:%s"%action)
 
-        if key == "" and action == None:
+        if key == "" and action is None:
             raise j.exceptions.RuntimeError("need to specify key or action")
 
         self._args = ""
@@ -122,7 +122,7 @@ class Action:
             #     self._depkeys=[dep.key for dep in deps ]
             #     self._deps=deps
             else:
-                if deps == None:
+                if deps is None:
                     deps = []
                 self._deps = deps
                 self._depkeys = [dep.key for dep in deps]
@@ -172,7 +172,7 @@ class Action:
         return res
 
     def _getDepsAll(self, res=None):
-        if res == None:
+        if res is None:
             res = []
         for key in self._depkeys:
             if key not in res:
@@ -263,7 +263,7 @@ class Action:
 
     @property
     def actionRecover(self):
-        if self._actionRecover == None or self._actionRecover == "":
+        if self._actionRecover is None or self._actionRecover == "":
             return None
         return j.actions.get(self._actionRecover)
 
@@ -282,7 +282,7 @@ class Action:
     def method(self):
         if self.source == "":
             raise j.exceptions.RuntimeError("source cannot be empty")
-        if self._method == None:
+        if self._method is None:
             # j.sal.fs.changeDir(basepath)
             loader = importlib.machinery.SourceFileLoader(self.name, self.sourceToExecutePath)
             handle = loader.load_module(self.name)
@@ -412,7 +412,7 @@ class Action:
 
     @property
     def result(self):
-        if self._result == "" or self._result == None:
+        if self._result == "" or self._result is None:
             return None
         return j.data.serializer.json.loads(self._result)
 
@@ -519,7 +519,7 @@ class Action:
 
     @property
     def selfobj(self):
-        if self.selfGeneratorCode == None or self.selfGeneratorCode.lower().strip() == "none":
+        if self.selfGeneratorCode is None or self.selfGeneratorCode.lower().strip() == "none":
             return None
         if self.selfGeneratorCode != "":  # this is the code which needs to generate a selfobj
             try:

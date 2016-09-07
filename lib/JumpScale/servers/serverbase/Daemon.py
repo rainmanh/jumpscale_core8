@@ -313,7 +313,7 @@ class Daemon:
         else:
             data = parts[2]
 
-        if data == None:
+        if data is None:
             data = ""
 
         return (parts[0], parts[1], data)

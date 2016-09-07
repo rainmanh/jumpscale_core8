@@ -59,7 +59,7 @@ $name=j.data.hrd.get(content=hrdtmp)
         self.code += "%s\n" % C
 
     def addPyFile(self, path2add, path2save=None):
-        if path2save == None:
+        if path2save is None:
             path2save = path2add
         code = j.sal.fs.fileGetContents(path2add)
         C = """

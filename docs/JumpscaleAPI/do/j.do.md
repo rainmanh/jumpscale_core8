@@ -378,7 +378,7 @@ login & passwd is only for https
 
 ```
 will clone or update repo
-if dest == None then clone underneath: /opt/code/$type/$account/$repo
+if dest is None then clone underneath: /opt/code/$type/$account/$repo
 will ignore changes !!!!!!!!!!!
 
 @param ssh ==True means will checkout ssh

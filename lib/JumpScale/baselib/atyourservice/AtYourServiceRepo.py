@@ -350,7 +350,7 @@ class AtYourServiceRepo():
                     continue
                 if instance != "" and service.instance != instance:
                     continue
-                if service.getAction(action) == None:
+                if service.getAction(action) is None:
                     continue
                 service.state.set(action, state)
                 service.state.save()
@@ -562,7 +562,7 @@ class AtYourServiceRepo():
                 continue
             if not(role == "" or role == service.role):
                 continue
-            if hasAction != "" and service.getAction(hasAction) == None:
+            if hasAction != "" and service.getAction(hasAction) is None:
                 continue
             # if not(node is None or service.isOnNode(node)):
             #     continue
@@ -627,12 +627,12 @@ class AtYourServiceRepo():
             raise j.exceptions.Input("Cannot find template with name:%s" % name)
 
     def existsTemplate(self, name):
-        if self.getTemplate(name, die=False) == None:
+        if self.getTemplate(name, die=False) is None:
             return False
         return True
 
     def existsRecipe(self, name):
-        if self.getRecipe(name, die=False) == None:
+        if self.getRecipe(name, die=False) is None:
             return False
         return True
 
@@ -642,7 +642,7 @@ class AtYourServiceRepo():
             return recipe
         else:
             template = self.getTemplate(name=name, die=die)
-            if die is False and template == None:
+            if die is False and template is None:
                 return None
             recipe = template.getRecipe(self)
             self._recipes[recipe.name] = recipe

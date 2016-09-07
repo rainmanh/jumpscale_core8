@@ -24,7 +24,7 @@ class Base:
     def bodyWithoutTags(self):
         # remove the tag lines from the body
         out = ""
-        if self.body == None:
+        if self.body is None:
             return ""
         for line in self.body.split("\n"):
             if line.startswith("##") and not line.startswith("###"):
@@ -38,7 +38,7 @@ class Base:
     def tags(self):
         if "_tags" not in self.__dict__:
             lineAll = ""
-            if self.body == None:
+            if self.body is None:
                 self._tags = j.data.tags.getObject("")
                 return self._tags
             for line in self.body.split("\n"):

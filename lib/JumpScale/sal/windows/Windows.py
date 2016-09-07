@@ -793,7 +793,7 @@ class WindowsSystem:
 
         """
         for name, id, cmdline in self.listRunningProcesses():
-            if cmdline == None:
+            if cmdline is None:
                 cmdline = ""
             cmdline = cmdline.lower().replace("  ", "").replace("  ", "")
             for item in tokill:
@@ -816,7 +816,7 @@ class WindowsSystem:
 
         """
         for name, id, cmdline in self.listRunningProcesses():
-            if cmdline == None:
+            if cmdline is None:
                 cmdline = ""
             cmdline = cmdline.lower().replace("  ", "").replace("  ", "")
             foundmaster = False
@@ -1016,7 +1016,7 @@ class WindowsSystem:
         self.initKernel()
         CF_UNICODETEXT = 13
         GHND = 66
-        if text == None:
+        if text is None:
             return
 
         if type(text) == type(''):

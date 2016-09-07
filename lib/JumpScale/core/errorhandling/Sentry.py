@@ -56,7 +56,7 @@ def Sentry():
                         return True
                 return False
 
-            if modulename == None:
+            if modulename is None:
                 modulename = "appname:%s" % (j.application.appname)
                 try:
                     if frames == []:
@@ -65,7 +65,7 @@ def Sentry():
                     modulename = ""
                     while ignore(modulename):
                         modulename = inspect.getmodule(frame)
-                        if modulename == None or str(modulename).strip() == "":
+                        if modulename is None or str(modulename).strip() == "":
                             modulename = inspect.getmodulename(
                                 frame.f_code.co_filename)
                         modulename = str(modulename)
@@ -87,7 +87,7 @@ def Sentry():
 
             exc["module"] = modulename
             exc = [exc]
-            if tags == None:
+            if tags is None:
                 tags = {}
             else:
                 tags = j.data.tags.getObject(tags)

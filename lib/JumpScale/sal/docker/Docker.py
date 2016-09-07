@@ -53,7 +53,7 @@ class Docker:
 
     @property
     def weavesocket(self):
-        if self._weaveSocket == None:
+        if self._weaveSocket is None:
             rc, self._weaveSocket = j.sal.process.execute(
                 "eval $(weave env) && echo $DOCKER_HOST", die=False)
             if rc > 0:
@@ -480,9 +480,9 @@ class Docker:
 
         if ssh:
             # time.sleep(0.5)  # give time to docker to start
-            if sshkeyname == None:
+            if sshkeyname is None:
                 sshkeyname = ""
-            if sshpubkey == None:
+            if sshpubkey is None:
                 sshpubkey = ""
 
             container.pushSSHKey(keyname=sshkeyname, sshpubkey=sshpubkey)

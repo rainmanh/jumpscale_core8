@@ -29,7 +29,7 @@ class MySQLClient:
         return j.tools.html.html2text(html)
 
     def _mysqlTimeToEpoch(self, mysql_time):
-        if mysql_time == None:
+        if mysql_time is None:
             return 0
         mysql_time_struct = time.strptime(mysql_time, '%Y-%m-%d %H:%M:%S')
         mysql_time_epoch = calendar.timegm(mysql_time_struct)

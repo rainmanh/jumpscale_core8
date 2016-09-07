@@ -47,7 +47,7 @@ class TornadoTransport(Transport):
             timeout = self.timeout
         if retry:
             rcv = None
-            while rcv == None:
+            while rcv is None:
                 now = j.data.time.getTimeEpoch()
                 if now > start + timeout:
                     break
@@ -64,7 +64,7 @@ class TornadoTransport(Transport):
             print("NO RETRY ON REQUEST TORNADO TRANSPORT")
             rcv = requests.post(self.url, data=data2, headers=headers, timeout=timeout)
 
-        if rcv == None:
+        if rcv is None:
             eco = j.errorconditionhandler.getErrorConditionObject(msg='timeout on request to %s' % self.url, msgpub='',
                                                                   category='tornado.transport')
             s = j.data.serializer.serializers.get('j')

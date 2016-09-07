@@ -52,7 +52,7 @@ class QemuImg:
         if size != None:
             command = '%(command)s %(size)sK' % {'command': command, 'size': size}
 
-        if size == None and not baseImage:
+        if size is None and not baseImage:
             raise ValueError('Size can only be None if baseImage is specified')
 
         exitCode, output = self._local.execute(command, die=False)

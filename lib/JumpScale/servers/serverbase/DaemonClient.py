@@ -149,9 +149,9 @@ class DaemonClient:
         #     dest="unknown"
         # print "###data send to %s\n%s\n#######"%(dest,data)
 
-        if sendformat == None:
+        if sendformat is None:
             sendformat = self.defaultSerialization
-        if returnformat == None:
+        if returnformat is None:
             returnformat = self.defaultSerialization
         rawdata = data
         if sendformat != "":

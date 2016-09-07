@@ -28,7 +28,7 @@ class AgentControllerProxyClient:
     def __init__(self, category, agentControllerIP, port, login, passwd):
         self.category = category
 
-        if agentControllerIP == None:
+        if agentControllerIP is None:
             acipkey = "grid.agentcontroller.ip"
             if j.application.config.exists(acipkey):
                 self.ipaddr = j.application.config.get(acipkey)

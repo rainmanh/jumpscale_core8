@@ -76,7 +76,7 @@ class RedisDBObj:
     @property
     def struct(self):
         data = self.db.hget(self.path, self.id)
-        if data == None:
+        if data is None:
             raise j.exceptions.RuntimeError(
                 "could not find object %s:%s" % (self.path, self.id))
         obj = j.data.serializer.json.loads(data)

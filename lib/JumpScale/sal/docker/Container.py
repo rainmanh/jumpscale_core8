@@ -125,8 +125,8 @@ class Container:
     #     return result
 
     def setHostName(self, hostname):
-        self._cuisine.core.sudo("echo '%s' > /etc/hostname" % hostname)
-        self._cuisine.core.sudo("echo %s >> /etc/hosts" % hostname)
+        self.cuisine.core.sudo("echo '%s' > /etc/hostname" % hostname)
+        self.cuisine.core.sudo("echo %s >> /etc/hosts" % hostname)
 
     def getPubPortForInternalPort(self, port):
 

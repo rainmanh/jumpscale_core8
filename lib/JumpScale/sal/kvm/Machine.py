@@ -31,6 +31,7 @@ class Machine(BaseKVMComponent):
         self.image_path = "%s/%s_ci.iso" % (self.controller.base_path, self.name) if cloud_init else ""
         self._domain = None
         self._ip = None
+        self._executor = None
 
     def to_xml(self):
         machinexml = self.controller.get_template('machine.xml').render({'machinename': self.name, 'memory': self.memory, 'nrcpu': self.cpucount,
@@ -91,9 +92,16 @@ class Machine(BaseKVMComponent):
                     break
         return self._ip
 
+    @property
+    def executor(self):
+        if self.cloud_init and not self._executor:
+            self.controller.executor.getSSHViaProxy(self.controller.executor.addr,
+                getattr(self.controller.executor.cuisine, 'login', 'root'), m.ip, "cloudscalers", 22, "/root/.ssh/libvirt")
+        return self._executor
 
-    def proxyintovm(self):
-        cont.executor.getSSHViaProxy(cont.executor.addr, getattr(cont.executor.cuisine, 'login', 'root'), m.ip, "cloudscalers", 22, "/root/.ssh/libvirt")
+    @property
+    def cuisine(self):
+        return self.executor.cuisine
 
     def create(self, username="cloudscalers", passwd="gig1234"):
         cuisine = self.controller.executor.cuisine

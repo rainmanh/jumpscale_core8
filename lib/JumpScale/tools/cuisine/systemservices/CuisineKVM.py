@@ -101,7 +101,7 @@ class CuisineKVM(base):
         # check openvswitch properly configured
 
     def install(self):
-        if not self._cuisine.core.isUbuntu or self._cuisine.platformtype.osversion != '16.04'
+        if not self._cuisine.core.isUbuntu or self._cuisine.platformtype.osversion != '16.04':
             raise RuntimeError("only support ubuntu 16.04")
         self._libvirt()
         # check if kvm there if yes, don't do anything

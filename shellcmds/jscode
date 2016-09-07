@@ -98,8 +98,6 @@ def jscode(action, name, url, message, branch, accounts, update, force, deletech
             continue
 
         if action == "get":
-            # cmd = "git config --global push.default matching"
-            # j.sal.process.execute(cmd)
             j.do.pullGitRepo(client.remoteUrl, dest=None, depth=None,
                              ignorelocalchanges=deletechanges, reset=False, branch=branch)
             continue

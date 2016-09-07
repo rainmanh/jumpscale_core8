@@ -53,13 +53,17 @@ class Docker:
 
     @property
     def weavesocket(self):
-        if self._weaveSocket == None:
-            rc, self._weaveSocket = j.sal.process.execute(
-                "eval $(weave env) && echo $DOCKER_HOST", die=False)
-            if rc > 0:
-                self.logger.error("weave not found, do not forget to start if installed.")
+        if self._weaveSocket is None:
+            if not j.tools.cuisine.local.core.command_check('weave'):
+                self.logger.warning("weave not found, do not forget to start if installed.")
                 self._weaveSocket = ""
-            self._weaveSocket = self._weaveSocket.strip()
+            else:
+                rc, self._weaveSocket = j.sal.process.execute("eval $(weave env) && echo $DOCKER_HOST", die=False)
+                if rc > 0:
+                    self.logger.warning("weave not found, do not forget to start if installed.")
+                    self._weaveSocket = ""
+
+                self._weaveSocket = self._weaveSocket.strip()
 
         return self._weaveSocket
 

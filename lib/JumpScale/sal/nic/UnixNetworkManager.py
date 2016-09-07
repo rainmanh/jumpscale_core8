@@ -30,7 +30,7 @@ class UnixNetworkManager:
         """
         self._nicExists(device)
         cmd = 'echo `ip a | grep %s | sed -n 2p | xargs | cut -d " " -f 2`' % device
-        rc, res = self._executor.execute(cmd)
+        rc, res, err = self._executor.execute(cmd)
         ipmask = netaddr.IPNetwork(res)
         netmask = str(ipmask.netmask)
         ip = str(ipmask.ip)
@@ -78,7 +78,7 @@ class UnixNetworkManager:
     @property
     def nics(self):
         if self._nics is None:
-            rc, ifaces = self._executor.execute('ls --color=never -1 /sys/class/net')
+            rc, ifaces, err = self._executor.execute('ls --color=never -1 /sys/class/net')
             self._nics = [iface for iface in ifaces.splitlines() if iface]
         return self._nics
 

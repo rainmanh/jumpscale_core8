@@ -27,20 +27,20 @@ class StorScripts():
     # check if a set of keys exists
     def exists(self, root, keys):
         return """
-        import os
-        import json
+import os
+import json
 
-        root = "%s"
-        keys = json.loads('''%s''')
-        data = {}
+root = "%s"
+keys = json.loads('''%s''')
+data = {}
 
-        def hashPath(root, hash):
-            return os.path.join(root, hash[:2], hash[2:4], hash)
+def hashPath(root, hash):
+    return os.path.join(root, hash[:2], hash[2:4], hash)
 
-        for key in keys:
-            data[key] = os.path.isfile(hashPath(root, key))
+for key in keys:
+    data[key] = os.path.isfile(hashPath(root, key))
 
-        print(json.dumps(data))
+print(json.dumps(data))
 
         """ % (root, j.data.serializer.json.dumps(keys))
 
@@ -624,7 +624,7 @@ class StorSpace(object):
         # building the flist struct
         flist = self.flist(target)
 
-        exists = self.exists(flist.keys())
+        exists = self.exists(list(flist.keys()))
         needed = []
 
         for key, exist in exists.items():

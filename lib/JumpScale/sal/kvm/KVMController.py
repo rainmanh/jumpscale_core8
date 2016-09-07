@@ -25,7 +25,7 @@ class KVMController:
         self.pubkey = j.tools.cuisine.local.core.file_read('/root/.ssh/libvirt.pub')
         if self._host != 'localhost':
             self.authorized = not self.executor.cuisine.ssh.authorize(self.user, self.pubkey)        
-            uri = 'qemu+ssh://%s/system?no_tty=1&keyfile=/root/.ssh/libvirt' % self._host
+            uri = 'qemu+ssh://%s/system?no_tty=1&keyfile=/root/.ssh/libvirt&no_verify=1' % self._host
         self.connection = libvirt.open(uri)
         self.readonly = libvirt.openReadOnly(uri)
 
@@ -39,8 +39,7 @@ class KVMController:
         close(self.connection)
         close(self.readonly)
         if self.authorized:
-            self.executor._cuisine.ssh.unauthorize(self.user,
-                j.tools.cuisine.local.core.file_read('/root/.ssh/libvirt.pub'))
+            self.executor._cuisine.ssh.unauthorize(self.user, self.pubkey)
 
     def get_template(self, template):
         return self._env.get_template(template)

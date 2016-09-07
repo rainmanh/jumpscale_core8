@@ -22,7 +22,7 @@ class CloudMachine(Machine):
         m = Machine.from_xml(controller, xml)
         return cls(m.controller, m.name, m.disks and m.disks[0].image_name,
             list(map(lambda disk:disk.size, m.disks)), list(map(lambda nic:nic.name, m.nics)),
-            m.memory, m.cpucount, m.disks and m.disks[0].pool.name)
+            m.memory, m.cpucount, m.disks and m.disks[0].pool.name, cloud_init=m.cloud_init)
 
     def create(self):
         [disk.create() for disk in self.disks if not disk.is_created]

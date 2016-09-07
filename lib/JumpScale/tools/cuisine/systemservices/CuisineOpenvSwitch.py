@@ -56,6 +56,8 @@ class CuisineOpenvSwitch(app):
             return False
 
     def install(self):
+        if self.isInstalled():
+            return
         if self._cuisine.core.isUbuntu:
             self._cuisine.package.install('openssl')
             self._cuisine.package.install('openvswitch-switch')

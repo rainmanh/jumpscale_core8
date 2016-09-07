@@ -27,7 +27,7 @@ class Machine(BaseKVMComponent):
         self.controller = controller
         self._uuid = uuid
         self.cloud_init = cloud_init
-        self.image_path=""
+        self.image_path = "%s/%s_ci.iso" % (self.controller.base_path, self.name) if cloud_init else ""
         self._domain = None
 
     def to_xml(self):
@@ -44,9 +44,11 @@ class Machine(BaseKVMComponent):
         nrcpu = int(machine.findtext('vcpu'))
         interfaces = list(map(lambda interface:j.sal.kvm.Interface.from_xml(controller, ElementTree.tostring(interface)),
             machine.find('devices').findall('interface')))
+        xml_disks = [disk for disk in machine.find('devices').findall('disk') if disk.get('device') == 'disk']
         disks = list(map(lambda disk:j.sal.kvm.Disk.from_xml(controller, ElementTree.tostring(disk)),
-            machine.find('devices').findall('disk')))
-        return cls(controller, name, disks, interfaces, memory, nrcpu)
+            xml_disks))
+        cloud_init = bool([disk for disk in machine.find('devices').findall('disk') if disk.get('device') == 'cdrom'])
+        return cls(controller, name, disks, interfaces, memory, nrcpu, cloud_init=cloud_init)
 
     @classmethod
     def get_by_name(cls, controller, name):
@@ -101,7 +103,6 @@ class Machine(BaseKVMComponent):
             cuisine.core.file_write("%s/metadata/%s/meta-data" % (self.controller.base_path, self.name), metadata)
             cmd = "genisoimage -o {base}/{name}_ci.iso -V cidata -r -J {base}/metadata/{name}/meta-data {base}/metadata/{name}/user-data".format(base=self.controller.base_path, name=self.name)
             cuisine.core.run(cmd)
-            self.image_path = "%s/%s_ci.iso" % (self.controller.base_path, self.name)
             cuisine.core.dir_remove("%s/images/%s " % (self.controller.base_path, self.name))
         self.domain = self.controller.connection.defineXML(self.to_xml())
 

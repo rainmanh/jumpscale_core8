@@ -101,11 +101,8 @@ class CuisineKVM(base):
         # check openvswitch properly configured
 
     def install(self):
-        if self._cuisine.core.isUbuntu and self._cuisine.core.osversion == '16.04':
-            # TODO: check is ubuntu 16.04
-            raise NotImplemented()
-        else:
-            raise RuntimeError("only support ubuntu")
+        if not self._cuisine.core.isUbuntu or self._cuisine.platformtype.osversion != '16.04'
+            raise RuntimeError("only support ubuntu 16.04")
         self._libvirt()
         # check if kvm there if yes, don't do anything
         # do other required checks
@@ -129,7 +126,11 @@ class CuisineKVM(base):
         """
         """
         # TODO: *1 need to check and exit if required are met
+        self._cuisine.package.install('libvirt-bin')
         self._cuisine.package.install('libvirt-dev')
+        self._cuisine.package.install('qemu-system-x86')
+        self._cuisine.package.install('qemu-system-common')
+        self._cuisine.package.install('genisoimage')
         self._cuisine.development.pip.install("libvirt-python==1.3.2", upgrade=False)
 
     def vdiskBootCreate(self, name, image='http://fs.aydo.com/kvm/ub_small.img'):
@@ -153,17 +154,6 @@ class CuisineKVM(base):
         storagecontroller = j.sal.kvm.StorageController(self._controller)
         disks = storagecontroller.list_disks()
         return disks
-
-    def vnicCreate(self, name):
-        # TODO: how to specify a virtual nic
-        raise NotImplemented()
-
-    def vnicDelete(self, name):
-        # TODO: how to specify a virtual nic
-        raise NotImplemented()
-
-    def vnicsList(**kwargs):
-        raise NotImplemented()
 
     def machineCreate(self, name, disks, nics, mem, pubkey=None):
         """

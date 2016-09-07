@@ -1875,6 +1875,11 @@ class SystemFS:
     cleanupString = staticmethod(cleanupString)
 
     def constructDirPathFromArray(self, array):
+        """
+        Create a path using os specific seperators from a list being passed with directoy.
+
+        @param array str: list of dirs in the path.
+        """
         path = ""
         for item in array:
             path = path + os.sep + item
@@ -1885,6 +1890,11 @@ class SystemFS:
         return path
 
     def constructFilePathFromArray(self, array):
+        """
+        Add file name  to dir path.
+
+        @param array str: list including dir path then file name
+        """
         path = self.constructDirPathFromArray(array)
         if path[-1] == "/":
             path = path[0:-1]
@@ -1967,6 +1977,12 @@ class SystemFS:
         t.close()
 
     def gzip(self, sourceFile, destFile):
+        """
+        Gzip source file into destination zip
+
+        @param sourceFile str: path to file to be Gzipped.
+        @param destFile str: path to  destination Gzip file.
+        """"
         import gzip
         f_in = open(sourceFile, 'rb')
         f_out = gzip.open(destFile, 'wb')
@@ -1975,6 +1991,12 @@ class SystemFS:
         f_in.close()
 
     def gunzip(self, sourceFile, destFile):
+        """
+        Gunzip gzip sourcefile into destination file
+
+        @param sourceFile str: path to gzip file to be unzipped. 
+        @param destFile str: path to destination folder to unzip folder.
+        """
         import gzip
         self.createDir(self.getDirName(destFile))
         f_in = gzip.open(sourceFile, 'rb')

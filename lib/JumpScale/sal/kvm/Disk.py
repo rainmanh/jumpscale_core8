@@ -4,8 +4,20 @@ from BaseKVMComponent import BaseKVMComponent
 from Storage import Storage
 
 class Disk(BaseKVMComponent):
+    """
+    Wrapper class around libvirt's storage volume object , to use with jumpscale libs.
+    """
 
     def __init__(self, controller, pool, name, size, image_name=""):
+        """
+        Disk object instance.
+
+        @param controller object(j.sal.kvm.KVMController()): controller object to use.
+        @param pool str: name of the pool to add disk to.
+        @param name str: name of the disk.
+        @param size int: size of disk in Mb.
+        @param image_name  str: name of image to load on disk  if available.
+        """
         self.size = size
         self.image_name = image_name
         self.controller = controller
@@ -17,7 +29,7 @@ class Disk(BaseKVMComponent):
         """
         Create Disk object from xml.
 
-        @controller Controller: controller object
+        @controller object(j.sal.kvm.KVMController()): controller object to use.
         @diskxml str: xml representation of the disk
         """
 
@@ -87,7 +99,12 @@ class Disk(BaseKVMComponent):
         cloned_volume = self.pool.createXMLFrom(new_disk.to_xml(), disk, 0)
         return cloned_volume
 
-    def get_volume(disk_name):
+    def get_volume(self, disk_name):
+        """
+        Return libvirt's storage volume instance with disk_name if created.
+
+        @param disk_name str: disk name to search for.
+        """
         try:
             volume = self.pool.storageVolLookupByName(disk_name)
             return volume

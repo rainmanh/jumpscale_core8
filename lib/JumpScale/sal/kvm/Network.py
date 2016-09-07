@@ -21,6 +21,9 @@ class Network(BaseKVMComponent):
 
     @property
     def interfaces(self):
+        """
+        Return list of interfaces names added to the bridge of the current network 
+        """
         if self._interfaces is None:
             if self.bridge in self.controller.executor.execute("ovs-vsctl list-br"):
                 self._interfaces = self.controller.executor.execute(
@@ -53,17 +56,29 @@ class Network(BaseKVMComponent):
             nw.create()
 
     def to_xml(self):
+        """
+        Return libvirt's xml string representation of the Network. 
+        """
         networkxml = self.controller.get_template(
             'network.xml').render(networkname=self.name, bridge=self.bridge)
         return networkxml
 
     @classmethod
     def from_xml(cls, controller, source):
+        """
+        Instantiate a Network object using the provided xml source and kvm controller object.
+
+        @param controller object(j.sal.kvm.KVMController): controller object to use. 
+        @param source  str: xml string of machine to be created.
+        """
         network = ElementTree.fromstring(source)
         name = network.findtext('name')
         bridge = network.findall('bridge')[0].get('name')
         return cls(controller, name, bridge, None)
 
     def destroy(self):
+        """
+        Destroy network.
+        """
         self.controller.executor.execute(
             'ovs-vsctl --if-exists del-br %s' % self.name)

@@ -1403,6 +1403,11 @@ class SystemFS:
         return data
 
     def readFile(self, filename):
+        """
+        Get contents as string from filename.
+
+        @param filename str: file path to read from.
+        """
         return self.fileGetContents(filename)
 
     def fileGetUncommentedContents(self, filename):

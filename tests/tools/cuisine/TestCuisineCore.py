@@ -57,7 +57,7 @@ class TestCuisineCore(unittest.TestCase):
         Test accessing the isJS8Sandbox property
         """
         self.assertIsNotNone(self.core.isJS8Sandbox)
-    
+
     @mock.patch('JumpScale.j.tools.cuisine.local.core.getenv')
     @mock.patch('JumpScale.j.core.db')
     def test_dir_paths_property_if_JSBASE_and_linux(self, cache_mock, getenv_mock):
@@ -69,7 +69,7 @@ class TestCuisineCore(unittest.TestCase):
         getenv_mock.return_value = self.dump_env
         result = self.core.dir_paths
         self.assertEqual(result, self.dir_paths)
-    
+
     @mock.patch('JumpScale.j.tools.cuisine.local.core.getenv')
     @mock.patch('JumpScale.j.core.db')
     def test_dir_paths_property_if_linux(self, cache_mock, getenv_mock):
@@ -145,7 +145,6 @@ class TestCuisineCore(unittest.TestCase):
         self.assertEqual(result, expected_result)
         # Reset property mock
         type(self.core).isMac = is_mac_original
-
 
     @mock.patch('JumpScale.j.tools.cuisine.local.core.getenv')
     @mock.patch('JumpScale.j.core.db')

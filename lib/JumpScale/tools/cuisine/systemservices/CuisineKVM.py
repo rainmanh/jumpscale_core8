@@ -92,8 +92,18 @@ class CuisineKVM(base):
         path = j.sal.fs.joinPaths(self._controller.base_path, 'images', name)
         self._controller.executor.cuisine.core.file_download(url, path, overwrite=True)
 
-    def machine(self, name, os, disks, nics, memory, cpucount, uuid=None):
-        return j.sal.kvm.CloudMachine(self._controller, name, os, disks, nics, memory, cpucount, uuid=None)
+    def machine(self, name, os, disks, nics, memory, cpucount, uuid=None, cloud_init=True):
+        return j.sal.kvm.CloudMachine(self._controller, name, os, disks, nics, memory, cpucount, uuid=None, cloud_init=True)
+
+    def create_pool(self, name):
+        pool = j.sal.kvm.Pool(self._controller, name)
+        pool.create()
+        return pool
+
+    def create_network(self, name):
+        network = j.sal.kvm.Network(self._controller, name)
+        network.create()
+        return network
 
     def prepare(self):
         self.install()

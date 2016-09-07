@@ -133,8 +133,8 @@ class Machine(BaseKVMComponent):
         Return Executor obj where the conrtoller is connected.
         """
         if self.cloud_init and not self._executor:
-            self.controller.executor.getSSHViaProxy(self.controller.executor.addr,
-                getattr(self.controller.executor.cuisine, 'login', 'root'), m.ip, "cloudscalers", 22, "/root/.ssh/libvirt")
+            self._executor = self.controller.executor.getSSHViaProxy(self.controller.executor.addr,
+                getattr(self.controller.executor.cuisine, 'login', 'root'), self.ip, "cloudscalers", 22, "/root/.ssh/libvirt")
         return self._executor
 
     @property
@@ -158,7 +158,7 @@ class Machine(BaseKVMComponent):
                                               'name': 'cloudscalers',
                                               'plain_text_passwd': 'gig1234',
                                               'shell': '/bin/bash',
-                                              'ssh-authorized-keys': ['pubkey'],
+                                              'ssh-authorized-keys': [self.controller.pubkey],
                                               'sudo': 'ALL=(ALL) ALL'}]
                                    })
             metadata = '{"local-hostname":"vm-%s"}' % self.name

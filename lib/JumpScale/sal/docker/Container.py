@@ -159,7 +159,7 @@ class Container:
             if not j.do.checkSSHAgentAvailable():
                 j.do._loadSSHAgent()
 
-            if keyname != "":
+            if keyname != "" and keyname is not None:
                 key = j.do.getSSHKeyFromAgentPub(keyname)
             else:
                 key = j.do.getSSHKeyFromAgentPub("docker_default", die=False)

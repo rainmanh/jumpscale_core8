@@ -1,6 +1,5 @@
 # How to Use ByteProcessor
 
-@todo review the below
 
 To compress a simple string using blosc compression:
 

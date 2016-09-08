@@ -117,7 +117,7 @@ class MS1:
         return auth_key
 
     def sendUserMessage(self, msg, level=2, html=False, args={}):
-        if self.action != None:
+        if self.action is not None:
             self.action.sendUserMessage(msg, html=html)
         else:
             print(msg)

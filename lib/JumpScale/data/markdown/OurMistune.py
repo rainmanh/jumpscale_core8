@@ -74,7 +74,7 @@ class MDRenderer:
         :param level: a number for the header level, for example: 1.
         :param raw: raw text content of the header.
         """
-        if raw != None:
+        if raw is not None:
             return raw
         h = ""
         for item in range(level):

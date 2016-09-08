@@ -42,7 +42,7 @@ class Process():
     def start(self):
         if self.cmds != []:
             self._spawnProcess()
-        if self.pythonCode != None:
+        if self.pythonCode is not None:
             if self.sync:
                 self.do()
             else:
@@ -56,7 +56,7 @@ class Process():
         self.p = psutil.Process(self.pid)
 
     def kill(self):
-        if self.p != None:
+        if self.p is not None:
             self.p.kill()
 
     def is_running(self):
@@ -93,7 +93,7 @@ class Process():
 
     def do(self):
         self.log.info('A new child %s' % self.name, os.getpid())
-        if self.pythonCode != None:
+        if self.pythonCode is not None:
             exec(self.pythonCode)
 
         os._exit(0)
@@ -186,7 +186,7 @@ class ProcessManager():
             # self.log.info "NEXT:%s\n"%i    
             for p in self.processes[:]:
                 # p.refresh()        
-                if p.p != None:
+                if p.p is not None:
                     if not p.is_running():
                         if p.restart:
                             self.log.info("%s:%s was stopped restarting" % (p.domain, p.name))

@@ -137,7 +137,7 @@ class LibvirtUtil:
         for disk in disks:
             if disk.attrib['device'] == 'disk' or disk.attrib['device'] == 'cdrom':
                 source = disk.find('source')
-                if source != None:
+                if source is not None:
                     if disk.attrib['device'] == 'disk':
                         if 'dev' in source.attrib:
                             diskfiles.append(source.attrib['dev'])
@@ -469,7 +469,7 @@ class LibvirtUtil:
         for disk in disks:
             if disk.attrib['device'] == 'disk':
                 source = disk.find('source')
-                if source != None:
+                if source is not None:
                     if 'dev' in source.attrib:
                         diskfiles.append(source.attrib['dev'])
                     if 'file' in source.attrib:

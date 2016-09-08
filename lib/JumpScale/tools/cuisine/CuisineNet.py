@@ -158,7 +158,7 @@ Gateway={gateway}
                 return nic
             res.append(nic)
 
-        if device != None:
+        if device is not None:
             raise j.exceptions.RuntimeError("could not find device")
         return res
 

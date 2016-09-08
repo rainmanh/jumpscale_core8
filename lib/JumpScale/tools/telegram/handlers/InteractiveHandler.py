@@ -35,7 +35,7 @@ class Session:
         self.handler.activeSessions[self.user] = self
 
     def _processmarkup(self, markup):
-        if markup != None:
+        if markup is not None:
             markup2 = {}
             markup2["resize_keyboard"] = True
             markup2["one_time_keyboard"] = True
@@ -53,7 +53,7 @@ class Session:
             # if descr=="":
             #     session.send_message("Cannot find global variable: '%s' please define by using '%s=yourinput'."%(key,key))
             # else:
-            if presetvalue != None:
+            if presetvalue is not None:
                 res = presetvalue
             elif descr == "":
                 res = self.send_message("Cannot find variable: '%s', please specify" % key, True, markup=markup)
@@ -184,7 +184,7 @@ class InteractiveHandler:
             # returning message from flow
             session = self.activeCommunications[username]
             session.returnmsg = message
-            if session.event != None:
+            if session.event is not None:
                 session.event.set()
                 print("event release")
                 return
@@ -201,7 +201,7 @@ class InteractiveHandler:
 
         if text.startswith("!list") or text == "!l":
             msg = "Sessions:\n"
-            if self.redisconfig.hkeys("sessions_%s" % username) != None:
+            if self.redisconfig.hkeys("sessions_%s" % username) is not None:
                 for item in self.redisconfig.hkeys("sessions_%s" % username):
                     msg += "- %s\n" % item
             else:
@@ -227,7 +227,7 @@ class InteractiveHandler:
         if text == "l" or text == "@l":
             out = ""
             res = self.redisconfig.hkeys("config")
-            if res != None:
+            if res is not None:
                 out += "Global Arguments:\n"
                 for item in res:
                     val = self.redisconfig.hget("config", item)
@@ -236,7 +236,7 @@ class InteractiveHandler:
                 out += "\n"
 
             res = self.redisconfig.hkeys(session.name)
-            if res != None:
+            if res is not None:
                 out += "Session '%s' Arguments:\n" % session.name
                 for item in res:
                     val = self.redisconfig.hget(session.name, item)

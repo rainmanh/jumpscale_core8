@@ -71,7 +71,7 @@ class ErrorConditionObject(BaseException):
 
             self._traceback = ""
 
-            if tb != None:
+            if tb is not None:
                 self.tb = tb
 
             self.tags = ""  # e.g. machine:2323
@@ -191,7 +191,7 @@ class ErrorConditionObject(BaseException):
             self.level = 4
 
         res = j.errorconditionhandler._send2Redis(self)
-        if res != None:
+        if res is not None:
             self.__dict__ = res
 
     def toJson(self):
@@ -207,7 +207,7 @@ class ErrorConditionObject(BaseException):
         # if self.tags!="":
         #     content+="tags: %s\n" % self.tags
         content += "%s\n" % self.errormessage
-        if self.errormessagePub != "" and self.errormessagePub != None:
+        if self.errormessagePub != "" and self.errormessagePub is not None:
             content += "errorpub:\n%s\n\n" % self.errormessagePub
         return content
 

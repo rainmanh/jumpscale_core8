@@ -118,7 +118,7 @@ class SyncthingClient:
         return self.api_call("system/status")
 
     def config_get(self, reload=False):
-        if self._config != None and reload is False:
+        if self._config is not None and reload is False:
             return self._config
         self._config = self.api_call("system/config")
         return self._config

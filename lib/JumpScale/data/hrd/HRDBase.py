@@ -38,13 +38,13 @@ class HRDBase:
             return False
 
     def getInt(self, key, default=None):
-        if default != None:
+        if default is not None:
             default = int(default)
         res = self.get(key, default=default)
         return j.data.text.getInt(res)
 
     def getStr(self, key, default=None):
-        if default != None:
+        if default is not None:
             default = str(default)
         res = self.get(key, default=default)
         if type(res) == dict:

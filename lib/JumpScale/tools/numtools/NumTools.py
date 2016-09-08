@@ -57,7 +57,7 @@ class NumTools:
         allNone = True
 
         for x2 in tointerpolate:
-            if x2 != None:
+            if x2 is not None:
                 allNone = False
         if allNone:
             tointerpolate = [0.0 for item in tointerpolate]
@@ -67,7 +67,7 @@ class NumTools:
                 isint = False
             if tointerpolate[xpos] is None:
                 x.append(xpos)
-            if tointerpolate[xpos] != None:
+            if tointerpolate[xpos] is not None:
                 xp.append(xpos)
                 fp.append(tointerpolate[xpos])
         if len(x) > 0 and len(xp) > 0:
@@ -85,7 +85,7 @@ class NumTools:
             if isint:
                 result3 = [int(round(item, 0)) for item in result3]
             else:
-                if floatnr != None:
+                if floatnr is not None:
                     result3 = [round(float(item), floatnr) for item in result3]
                 else:
                     result3 = [float(item) for item in result3]

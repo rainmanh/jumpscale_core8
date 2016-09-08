@@ -83,7 +83,7 @@ class Action:
 
         self.runid = str(runid)
 
-        if action != None:
+        if action is not None:
 
             self.serviceObj = serviceObj
             self.selfGeneratorCode = selfGeneratorCode
@@ -100,15 +100,15 @@ class Action:
 
             self.method = action
 
-            if actionRecover != None:
+            if actionRecover is not None:
                 self._actionRecover = actionRecover.key
 
         if key == "":
-            if deps != None:
+            if deps is not None:
                 # remove deps which are None
-                deps = [dep for dep in deps if dep != None]
+                deps = [dep for dep in deps if dep is not None]
 
-            if deps != None and deps != []:
+            if deps is not None and deps != []:
                 # means they are specified
                 self._deps = deps
                 self._depkeys = [dep.key for dep in deps]
@@ -237,7 +237,7 @@ class Action:
         # print('load key %s' % self.key)
         data = j.core.db.hget("actions.%s" % self.runid, self.key)
 
-        if data != None:
+        if data is not None:
             data2 = j.data.serializer.json.loads(data)
 
             if "_hrd" not in data2:
@@ -646,7 +646,7 @@ class Action:
                         # print (action)
                         action.save()
 
-                if self.actionRecover != None:
+                if self.actionRecover is not None:
                     self.actionRecover.execute()
 
                 if self.state == "ERRORCHILD":
@@ -743,7 +743,7 @@ class Action:
             msg += "OUTPUT:\n%s" % j.data.text.indent(self.stdouterr)
             if msg[-1] != "\n":
                 msg += "\n"
-        if self.result != None:
+        if self.result is not None:
             msg += "RESULT:\n%s" % j.data.text.indent(str(self.result))
         if self.error != "":
             msg += "ERROR:\n%s" % j.data.text.indent(str(self.error))

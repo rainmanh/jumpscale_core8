@@ -43,7 +43,7 @@ class CuisineGroup(base):
         if not d:
             self.create(name, gid)
         else:
-            if gid != None and d.get("gid") != gid:
+            if gid is not None and d.get("gid") != gid:
                 self._cuisine.core.sudo("groupmod -g %s '%s'" % (gid, name))
 
     def user_check(self, group, user):

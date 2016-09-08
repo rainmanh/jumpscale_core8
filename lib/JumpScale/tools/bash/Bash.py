@@ -32,7 +32,7 @@ class Profile:
         else:
             _path = set()
             # self._path.add('${PATH}')
-            if binDir != None:
+            if binDir is not None:
                 _path.add(binDir)
 
         for item in _path:

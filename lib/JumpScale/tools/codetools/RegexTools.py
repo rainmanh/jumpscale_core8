@@ -31,7 +31,7 @@ class RegexMatches:
         self.matches = []
 
     def addMatch(self, match):
-        if match != None or match != "":
+        if match is not None or match != "":
             rm = RegexMatch()
             rm.start = match.start()
             rm.end = match.end()

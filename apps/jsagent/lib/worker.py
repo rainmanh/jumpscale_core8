@@ -121,7 +121,7 @@ class Worker(object):
 
                         except Exception as e:
                             agentid = j.application.getAgentId()
-                            if jscript != None:
+                            if jscript is not None:
                                 msg = "could not compile jscript:%s %s_%s on agent:%s.\nError:%s" % (
                                 jscript.id, jscript.organization, jscript.name, agentid, e)
                             else:

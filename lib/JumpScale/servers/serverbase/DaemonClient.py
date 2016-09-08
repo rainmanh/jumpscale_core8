@@ -39,7 +39,7 @@ class DaemonClient:
         """
         @param encrkey (use for simple blowfish shared key encryption, better to use SSL though, will do the same but dynamically exchange the keys)
         """
-        if id != None:
+        if id is not None:
             self._id = id
         else:
             end = 4294967295  # 4bytes max nr

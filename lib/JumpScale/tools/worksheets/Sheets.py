@@ -18,7 +18,7 @@ class Sheets(j.tools.code.classGetBase()):
 
     def add(self, sheet, category=None):
         self.sheets[sheet.name] = sheet
-        if category != None:
+        if category is not None:
             if category not in self.sheetsByCategory:
                 self.sheetsByCategory[category] = []
             self.sheetsByCategory[category].append(sheet.name)
@@ -85,7 +85,7 @@ class Sheets(j.tools.code.classGetBase()):
             return total
         rows2 = []
         for row in rows:
-            if row != None:
+            if row is not None:
                 rows2.append(row)
         newRow = self.applyFunction(rows2, sum, newRow)
         return newRow
@@ -98,7 +98,7 @@ class Sheets(j.tools.code.classGetBase()):
             return total
         rows2 = []
         for row in rows:
-            if row != None:
+            if row is not None:
                 rows2.append(row)
         newRow = self.applyFunction(rows2, mult, newRow)
         return newRow

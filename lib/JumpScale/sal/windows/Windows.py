@@ -203,7 +203,7 @@ class WindowsSystem:
         this method will return the wrong result.
         """
 
-        if self._isVistaUACEnabled != None:
+        if self._isVistaUACEnabled is not None:
             return self._isVistaUACEnabled
 
         if self.getWindowsVersion() != self.VERSION_VISTA:
@@ -223,7 +223,7 @@ class WindowsSystem:
 
     def userIsAdministrator(self):
         '''Verifies if the logged on user has administrative rights'''
-        if self._userIsAdministrator != None:
+        if self._userIsAdministrator is not None:
             return self._userIsAdministrator
         import win32net
         import win32netcon
@@ -511,7 +511,7 @@ class WindowsSystem:
         userDict = {}
         userDict['name'] = userName
 
-        if password != None:
+        if password is not None:
             userDict['password'] = password
 
         userDict['priv'] = win32netcon.USER_PRIV_USER
@@ -612,7 +612,7 @@ class WindowsSystem:
 
         executableString = binPath
 
-        if args != None:
+        if args is not None:
             executableString = "%s %s" % (executableString, args)
 
         """
@@ -991,7 +991,7 @@ class WindowsSystem:
                     for file in j.sal.fs.walk(dirPath, recurse=1):
                         self.logger.info('Changing attributes on %s' % fileMode)
                         win32file.SetFileAttributesW(file, fileMode & ~win32file.FILE_ATTRIBUTE_HIDDEN)
-                if errorHandler != None:
+                if errorHandler is not None:
                     shutil.rmtree(dirPath, onerror=errorHandler)
                 else:
                     shutil.rmtree(dirPath)

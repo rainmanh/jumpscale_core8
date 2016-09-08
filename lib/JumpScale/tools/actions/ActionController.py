@@ -74,7 +74,7 @@ class ActionController:
                     self._runid = runid
                     j.core.db.delete("actions.%s" % runid)
             else:
-                if runid != None:
+                if runid is not None:
                     self._runid = runid
                 key = "actions.%s" % self.runid
                 for hkey in j.core.db.hkeys(key):

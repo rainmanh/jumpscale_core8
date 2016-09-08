@@ -225,7 +225,7 @@ if not all(x for x in range(10)):
                         continue
     
                     for (classname, location) in findjumpscalelocations(classfile):
-                        if classname != None:
+                        if classname is not None:
                             loc = ".".join(location.split(".")[:-1])
                             item = location.split(".")[-1]
                             if loc not in result:
@@ -247,7 +247,7 @@ if not all(x for x in range(10)):
             forcereload = True
             j.do.delete(mdpath)
             # make sure redis is empty
-            if j.core.db != None:
+            if j.core.db is not None:
                 j.core.db.flushall()
             if base == "/optrw/jumpscale8":
                 j.do.installer.writeenv(

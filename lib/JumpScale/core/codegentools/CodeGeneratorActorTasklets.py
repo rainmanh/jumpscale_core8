@@ -44,7 +44,7 @@ class CodeGeneratoractorTasklets(CodeGeneratorBase):
             if j.sal.fs.exists(path):
                 path = None
 
-            if path != None and str(path) != "":
+            if path is not None and str(path) != "":
                 # lets also check there are no files in it yet
 
                 if len(j.sal.fs.listFilesInDir(j.sal.fs.getDirName(path))) == 0:

@@ -95,7 +95,7 @@ class CuisineSSH(base):
                         if addr.get("addrtype") == "mac":
                             mac = addr.get("addr")
 
-                    if ip != None:
+                    if ip is not None:
                         ips[ip] = {"mac": mac}
 
             # for line in out.split("\n"):

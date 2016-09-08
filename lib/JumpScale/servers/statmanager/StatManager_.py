@@ -18,13 +18,13 @@ class StatManager:
         self.fiveMinuteId = None
 
     def getFiveMinuteId(self):
-        if self.fiveMinuteId != None:
+        if self.fiveMinuteId is not None:
             return self.fiveMinuteId
         else:
             return j.data.time.get5MinuteId()
 
     def getHourId(self):
-        if self.hourId != None:
+        if self.hourId is not None:
             return self.hourId
         else:
             return self.base.time.getHourId()
@@ -127,7 +127,7 @@ class StatManager:
             pass
 
     def getEpoch(self):
-        if self.now != None:
+        if self.now is not None:
             return self.now
         else:
             return j.data.time.getTimeEpoch()

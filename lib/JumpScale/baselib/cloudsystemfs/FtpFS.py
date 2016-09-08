@@ -59,7 +59,7 @@ class FtpFS:
             # self.ftp.set_debuglevel(2)
             self.ftp.connect()
             self.ftp.set_pasv(True)
-            if self.username != None and self.password != None:
+            if self.username is not None and self.password is not None:
                 self.ftp.login(self.username, self.password)
             else:
                 self.ftp.login()

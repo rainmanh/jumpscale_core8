@@ -536,7 +536,7 @@ class NetTools:
             if nic.IPAddress:
                 for x in range(0, len(nic.IPAddress)):
                     # skip IPv6 addresses for now
-                    if re.match(ipv4Pattern, str(nic.IPAddress[x])) != None:
+                    if re.match(ipv4Pattern, str(nic.IPAddress[x])) is not None:
                         result.append([str(nic.IPAddress[x]), str(nic.IPSubnet[x]), ''])
             return result
         else:

@@ -150,7 +150,7 @@ class DebugSSHNode:
 
     # @property
     # def platformType(self):
-    #     if self._platformType != None:
+    #     if self._platformType is not None:
     #         j.application.break_into_jshell("platformtype")
     #     return self._platformType
 

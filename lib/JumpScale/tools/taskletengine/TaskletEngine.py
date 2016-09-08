@@ -69,7 +69,7 @@ class Tasklet:
         return params
 
     def checkExecute4method(self, args={}, params={}, actor=None, tags=None):
-        if tags != None:
+        if tags is not None:
             if j.data.types.string.check(tags):
                 tags = j.data.tags.getObject(tags)
 

@@ -118,11 +118,11 @@ class Netconfig:
             """
         C = j.do.textstrip(C)
 
-        if bridgedev != None:
+        if bridgedev is not None:
             C += "    bridge_fd 0\n"
             C += "    bridge_maxwait 0\n"
 
-        if ipaddr != None:
+        if ipaddr is not None:
             if dhcp:
                 raise j.exceptions.RuntimeError("cannot specify ipaddr & dhcp")
             C += "    address $ip\n"
@@ -131,12 +131,12 @@ class Netconfig:
         else:
             C = C.replace("static", "manual")
 
-        if bridgedev != None:
+        if bridgedev is not None:
             C += "       bridge_ports %s\n" % bridgedev
         # else:
         #     C+="       bridge_ports none\n"
 
-        if gw != None:
+        if gw is not None:
             C += "       gateway %s" % gw
 
         #         future="""
@@ -224,7 +224,7 @@ class Netconfig:
         if ipaddr is None or gw is None:
             raise j.exceptions.Input("Cannot configure network when ipaddr or gw not specified", "net.config")
 
-        if pynetlinux.brctl.findbridge("brpub") != None:
+        if pynetlinux.brctl.findbridge("brpub") is not None:
             print("found brpub, will try to bring down.")
             i = pynetlinux.brctl.findbridge("brpub")
             i.down()
@@ -236,7 +236,7 @@ class Netconfig:
                 print("waiting for bridge:brpub to go down")
 
         i = pynetlinux.ifconfig.findif(interface)
-        if i != None:
+        if i is not None:
             print("found %s, will try to bring down." % interface)
             i.down()
             counter = 0
@@ -296,7 +296,7 @@ class Netconfig:
                 print("waiting for bridge:%s to go down" % br.name)
 
         i = pynetlinux.ifconfig.findif(interface)
-        if i != None:
+        if i is not None:
             print("found %s, will try to bring down." % interface)
             i.down()
             counter = 0
@@ -403,7 +403,7 @@ class Netconfig:
 
             # bring own interface down
             i = pynetlinux.ifconfig.findif(interface)
-            if i != None:
+            if i is not None:
                 print("found %s, will try to bring down." % interface)
                 i.down()
                 counter = 0

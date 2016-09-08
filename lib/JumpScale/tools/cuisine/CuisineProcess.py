@@ -48,7 +48,7 @@ class CuisineProcess(base):
                 u"tcp *(?P<receive>[0-9]*) *(?P<send>[0-9]*) *(?P<local>[0-9*.]*):(?P<localport>[0-9*]*) *(?P<remote>[0-9.*]*):(?P<remoteport>[0-9*]*) *(?P<state>[A-Z]*) *(?P<pid>[0-9]*)/(?P<process>\w*)")
             for line in out.split("\n"):
                 res = re.search(p, line)
-                if res != None:
+                if res is not None:
                     # print (line)
                     d = res.groupdict()
                     d["process"] = d["process"].lower()

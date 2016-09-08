@@ -329,7 +329,7 @@ def action%(argspec)s:
         self._scheduleJob(jobobj)
 
     def getJobLine(self, job=None, jobid=None):
-        if jobid != None:
+        if jobid is not None:
             job = self.getJob(jobid)
         start = j.data.time.epoch2HRDateTime(job['timeStart'])
         if job['timeStop'] == 0:

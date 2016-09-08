@@ -698,7 +698,7 @@ class Console:
             else:
                 results.append(item.split("|")[returncol + 1])
 
-        if returncol != None:
+        if returncol is not None:
             return [item.strip(" ") for item in results]
         else:
             return results

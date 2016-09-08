@@ -104,7 +104,7 @@ class QSocketServerHandler(socketserver.BaseRequestHandler):
                     return
             else:
                 result = j.servers.socketserver._handledata(data)
-                if result != None:
+                if result is not None:
                     try:
                         self.senddata(result)
                     except Exception as e:

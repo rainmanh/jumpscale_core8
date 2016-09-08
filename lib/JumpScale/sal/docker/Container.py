@@ -187,7 +187,7 @@ class Container:
         user = [i['name'] for i in user_info if i['home'] == home]
         user = user[0] if user else 'root'
 
-        if sshpubkey != "" and sshpubkey != None:
+        if sshpubkey != "" and sshpubkey is not None:
             key = sshpubkey
         else:
             if not j.do.checkSSHAgentAvailable():

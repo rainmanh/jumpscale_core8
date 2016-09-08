@@ -451,7 +451,7 @@ class Text:
             return "i", int(string2)
         # check float
         match = re_float.search(string2)
-        if match != None and match.start() == 0 and match.end() == len(string2):
+        if match is not None and match.start() == 0 and match.end() == len(string2):
             return "f", float(string2)
 
         return "s", self.machinetext2str(string)
@@ -853,7 +853,7 @@ class Text:
         text = self._dealWithQuote(text)
         text = text.split(",")
         text = [item.strip() for item in text]
-        if ttype != None:
+        if ttype is not None:
             if ttype == "int":
                 text = [self.getInt(item) for item in text]
             elif ttype == "str" or ttype == j.data.types.string:

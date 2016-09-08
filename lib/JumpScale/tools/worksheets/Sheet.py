@@ -175,16 +175,16 @@ class Row(j.tools.code.classGetBase()):
                     halt = True
                     self.setCell(self.nrcols - 1, lastpos, minvalue, maxvalue)
                     break
-                if self.cells[xorg] != None:
+                if self.cells[xorg] is not None:
                     val = self.cells[xorg]
                     # print val
                     val = val + self._getVariationRelative(vvariation, val)
                     self.setCell(x, val, minvalue, maxvalue)
 
     def setCell(self, posx, value, minvalue=None, maxvalue=None):
-        if minvalue != None and value < minvalue:
+        if minvalue is not None and value < minvalue:
             value = minvalue
-        if maxvalue != None and value > maxvalue:
+        if maxvalue is not None and value > maxvalue:
             value = maxvalue
         if posx > self.nrcols - 1:
             print(("out of range: x:%s y:%s" % (posx, value)))
@@ -221,7 +221,7 @@ class Row(j.tools.code.classGetBase()):
             return start, None
         y = self.cells[start]  # start height
         if y is None:
-            raise j.exceptions.RuntimeError("start position y needs to != None")
+            raise j.exceptions.RuntimeError("start position y needs to is not None")
         y = float(y)
         minvalue = y - godown
         if minvalue < 0:
@@ -231,7 +231,7 @@ class Row(j.tools.code.classGetBase()):
         while True:
             runNr += 1
             start2 = start + blocksize * (runNr)
-            if isActiveFunction != None:
+            if isActiveFunction is not None:
                 if not isActiveFunction(start2):
                     stop += int(blocksize)
                     continue
@@ -254,7 +254,7 @@ class Row(j.tools.code.classGetBase()):
             return start, None
         y = self.cells[start]  # start height
         if y is None:
-            raise j.exceptions.RuntimeError("start position y needs to != None")
+            raise j.exceptions.RuntimeError("start position y needs to is not None")
         y = float(y)
         minvalue = y
         if minvalue < 0:
@@ -264,7 +264,7 @@ class Row(j.tools.code.classGetBase()):
         while True:
             runNr += 1
             start2 = start + blocksize * (runNr)
-            if isActiveFunction != None:
+            if isActiveFunction is not None:
                 if not isActiveFunction(start2):
                     stop += int(blocksize)
                     continue
@@ -293,7 +293,7 @@ class Row(j.tools.code.classGetBase()):
         for x in range(start, stop + 1):
             if start < 0:
                 continue
-            if self.cells[x] != None:
+            if self.cells[x] is not None:
                 return True
         return False
 
@@ -397,10 +397,10 @@ class Row(j.tools.code.classGetBase()):
             self.setDefaultValue(self.defval, stop * 12 - 1)
             return stop, maxval
 
-        if defval != None:
+        if defval is not None:
             self.defval = defval
 
-        if startval != None:
+        if startval is not None:
             self.cells[0] = float(startval)
 
         if standstill > 0:
@@ -433,7 +433,7 @@ class Row(j.tools.code.classGetBase()):
                 # print "%s %s" % (year,stop)
                 if year > stop:
                     # print "normal values in year %s" % year
-                    if str(data).find(",") == -1 and str(data).find(":") == -1 and data != None:
+                    if str(data).find(",") == -1 and str(data).find(":") == -1 and data is not None:
                         # is only 1 value
                         if str(data).strip() == "":
                             data = "0.0"
@@ -484,7 +484,7 @@ class Row(j.tools.code.classGetBase()):
             nrfloat = 0
 
         for colid in range(0, int(self.nrcols)):
-            if self.cells[colid] != None:
+            if self.cells[colid] is not None:
                 if roundval > 0:
                     self.cells[colid] = round(self.cells[colid] / roundval, nrfloat) * roundval
                 if self.ttype == "int":
@@ -508,7 +508,7 @@ class Row(j.tools.code.classGetBase()):
             self.cells[colid] = -self.cells[colid]
 
     def delay(self, delay=0, defval=None):
-        if defval != None:
+        if defval is not None:
             self.defval = defval
         delay = int(delay)
         out = [0.0 for item in range(self.nrcols)]
@@ -763,7 +763,7 @@ class Sheet(j.tools.code.classGetBase()):
         # break
         # i+=1
         # i=0
-        # if copy2otherRowName != None:
+        # if copy2otherRowName is not None:
         # check if row already exists
         # if not self.rows.has_key(copy2otherRowName):
         # self.addRow(copy2otherRowName,"float")

@@ -49,7 +49,7 @@ class QemuImg:
         command = '%(command)s -f %(diskImageFormat)s %(fileName)s' % {
             'command': command, 'diskImageFormat': diskImageFormat, 'fileName': fileName}
 
-        if size != None:
+        if size is not None:
             command = '%(command)s %(size)sK' % {'command': command, 'size': size}
 
         if size is None and not baseImage:

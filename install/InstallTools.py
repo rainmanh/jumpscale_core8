@@ -574,7 +574,7 @@ class InstallTools():
         if lastOnly:
             dname = dname.split(os.sep)[-1]
             return dname
-        if levelsUp != None:
+        if levelsUp is not None:
             parts = dname.split(os.sep)
             if len(parts) - levelsUp > 0:
                 return parts[len(parts) - levelsUp - 1]
@@ -671,12 +671,12 @@ class InstallTools():
         @Param exclude: list of std filters if matches then exclude
         @rtype: list
         """
-        if depth != None:
+        if depth is not None:
             depth = int(depth)
         # self.log('List files in directory with path: %s' % path,9)
         if depth == 0:
             depth = None
-        # if depth != None:
+        # if depth is not None:
         #     depth+=1
         filesreturn, depth = self._listAllInDir(path, recursive, filter, minmtime, maxmtime, depth, type="f",
                                                 case_sensitivity=case_sensitivity, exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
@@ -698,12 +698,12 @@ class InstallTools():
         @param type is string with f & d inside (f for when to find files, d for when to find dirs)
         @rtype: list
         """
-        if depth != None:
+        if depth is not None:
             depth = int(depth)
         self.log('List files in directory with path: %s' % path, 9)
         if depth == 0:
             depth = None
-        # if depth != None:
+        # if depth is not None:
         #     depth+=1
         filesreturn, depth = self._listAllInDir(
             path, recursive, filter, minmtime, maxmtime, depth, type=type, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
@@ -757,7 +757,7 @@ class InstallTools():
                     if not(listSymlinks is False and self.isLink(fullpath)):
                         filesreturn.append(fullpath)
                 if recursive:
-                    if depth != None and depth != 0:
+                    if depth is not None and depth != 0:
                         depth = depth - 1
                     if depth is None or depth != 0:
                         exclmatch = False
@@ -956,7 +956,7 @@ class InstallTools():
         """
         @param remote can be ip addr or hostname of remote, if given will execute cmds there
         """
-        if path != None:
+        if path is not None:
             content = self.readFile(path)
         if content[-1] != "\n":
             content += "\n"
@@ -973,7 +973,7 @@ class InstallTools():
         path2 = self.getTmpPath("do.sh")
         self.writeFile(path2, content, strip=True)
 
-        if remote != None:
+        if remote is not None:
             tmppathdest = "/tmp/do.sh"
             if sshkey:
                 if not self.getSSHKeyPathFromAgent(sshkey, die=False):
@@ -1278,7 +1278,7 @@ class InstallTools():
                 branch = line.split(" \"")[1].strip("]\" ").strip("]\" ").strip("]\" ")
 
     def whoami(self):
-        if self._whoami != None:
+        if self._whoami is not None:
             return self._whoami
         rc, result, err = self.execute("whoami", die=False, showout=False, outputStderr=False)
         if rc > 0:
@@ -1765,10 +1765,10 @@ class InstallTools():
             if ignorelocalchanges:
                 print(("git pull, ignore changes %s -> %s" % (url, dest)))
                 cmd = "cd %s;git fetch" % dest
-                if depth != None:
+                if depth is not None:
                     cmd += " --depth %s" % depth
                     self.execute(cmd, executor=executor)
-                if branch != None:
+                if branch is not None:
                     print("reset branch to:%s" % branch)
                     self.execute("cd %s;git reset --hard origin/%s" % (dest, branch), timeout=600, executor=executor)
             else:
@@ -1776,12 +1776,12 @@ class InstallTools():
                 print(("git pull %s -> %s" % (url, dest)))
                 if url.find("http") != -1:
                     print("http")
-                    if branch != None:
+                    if branch is not None:
                         cmd = "cd %s;git -c http.sslVerify=false pull origin %s" % (dest, branch)
                     else:
                         cmd = "cd %s;git -c http.sslVerify=false pull" % dest
                 else:
-                    if branch != None:
+                    if branch is not None:
                         cmd = "cd %s; git fetch ; git reset --hard origin/%s" % (dest, branch)
                     else:
                         cmd = "cd %s; git fetch ; git reset --hard origin/master" % dest
@@ -1792,13 +1792,13 @@ class InstallTools():
             if depth:
                 extra = "--depth=%s" % depth
             if url.find("http") != -1:
-                if branch != None:
+                if branch is not None:
                     cmd = "cd %s;git -c http.sslVerify=false clone %s --single-branch -b %s %s %s" % (
                         self.getParent(dest), extra, branch, url, dest)
                 else:
                     cmd = "cd %s;git -c http.sslVerify=false clone %s  %s %s" % (self.getParent(dest), extra, url, dest)
             else:
-                if branch != None:
+                if branch is not None:
                     cmd = "cd %s;git clone %s --single-branch -b %s %s %s" % (
                         self.getParent(dest), extra, branch, url, dest)
                 else:
@@ -1808,7 +1808,7 @@ class InstallTools():
 
             self.execute(cmd, timeout=600, executor=executor)
 
-        if revision != None:
+        if revision is not None:
             cmd = "cd %s;git checkout %s" % (dest, revision)
             print(cmd)
             self.execute(cmd, timeout=600, executor=executor)

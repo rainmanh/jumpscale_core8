@@ -395,7 +395,7 @@ class UnixSystem:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
                 raise j.exceptions.RuntimeError('Failed to add user %s, error: %s' %
                                                 (username, output))
-            if homedir != None:
+            if homedir is not None:
                 j.sal.fs.createDir(homedir)
                 j.sal.fs.chown(homedir, username)
                 j.sal.fs.chmod(homedir, 0o700)

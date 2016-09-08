@@ -60,7 +60,7 @@ class JobController:
         abort means jobs will stay in db but state will be set
         """
         job = self.queue.get_nowait()
-        while job != None:
+        while job is not None:
             job.state = "abort"
             job = self.queue.get_nowait()
 
@@ -69,6 +69,6 @@ class JobController:
         will empty queue & remove all jobs
         """
         job = self.queue.get_nowait()
-        while job != None:
+        while job is not None:
             self.db.delete(job.dbobj.key)
             job = self.queue.get_nowait()

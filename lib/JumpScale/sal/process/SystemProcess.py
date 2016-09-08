@@ -1416,7 +1416,7 @@ class SystemProcess:
                         output = output + stdoutData
                         (OUT_LINE, ERR_LINE) = _logoutput(stdoutData, OUT_LINE, ERR_LINE)
                     else:  # Did not read any data on channel
-                        if childprocess.poll() != None:  # Will return a number if the process has ended, or None if it's running.
+                        if childprocess.poll() is not None:  # Will return a number if the process has ended, or None if it's running.
                             childRunning = False
 
                 exitcode = childprocess.returncode

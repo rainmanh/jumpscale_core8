@@ -14,7 +14,7 @@ def Sentry():
         if eco.backtraceDetailed != "":
             extra["tb_detail"] = eco.backtraceDetailed
 
-        if hasattr(eco, "extra") and eco.extra != None:
+        if hasattr(eco, "extra") and eco.extra is not None:
             extra["details"] = eco.extra
 
         extra["category"] = eco.category
@@ -108,7 +108,7 @@ def Sentry():
                 j.application.whoAmI.gid, j.application.whoAmI.nid)
             data["extra"] = extra
 
-            if tb != None:
+            if tb is not None:
                 from stacks import iter_traceback_frames, get_stack_info
                 frames = iter_traceback_frames(tb)
                 data.update({

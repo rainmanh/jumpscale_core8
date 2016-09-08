@@ -35,9 +35,9 @@ class Dirs:
 
         # self.base=j.application.config.get("system.paths.base")
         self.base = j.do.BASE
-        if j.core.db != None:
+        if j.core.db is not None:
             data = j.core.db.get("system.dirs.%s" % self.base)
-            if data != None:
+            if data is not None:
                 self.__dict__ = j.data.serializer.json.loads(data.decode())
             else:
                 self.init()

@@ -215,7 +215,7 @@ class Diskmanager:
                         disko.ssd = ssd0
                         result.append(disko)
 
-                        if mountpoint != None:
+                        if mountpoint is not None:
                             print(("mountpoint:%s" % mountpoint))
                             size, used, free, percent = psutil.disk_usage(
                                 mountpoint)

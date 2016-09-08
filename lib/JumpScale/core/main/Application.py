@@ -205,7 +205,7 @@ class Application:
         # if hasattr(self, 'config'):
         #     self.debug = j.application.config.getBool('system.debug', default=True)
 
-        if j.core.db != None:
+        if j.core.db is not None:
             if j.core.db.hexists("application", self.appname):
                 pids = j.data.serializer.json.loads(
                     j.core.db.hget("application", self.appname))

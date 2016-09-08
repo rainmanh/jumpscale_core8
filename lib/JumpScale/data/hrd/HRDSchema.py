@@ -110,7 +110,7 @@ class HRDType:
 class HRDSchema:
 
     def __init__(self, path="", content=""):
-        if path != None:
+        if path is not None:
             content = j.sal.fs.fileGetContents(path)
         # if content=="":
             # raise j.exceptions.Input("Content needs to be provided if path is empty")
@@ -159,7 +159,7 @@ class HRDSchema:
             else:
                 regex = None
 
-            if regex != None and ttype != "str":
+            if regex is not None and ttype != "str":
                 raise ValueError(
                     "Hrd schema not properly formatted, type can only be string when regex used, see '%s'" % line)
 

@@ -869,7 +869,7 @@ class ProxyInfo:
                 self.proxy_user, self.proxy_pass)
 
     def isgood(self):
-        return (self.proxy_host != None) and (self.proxy_port != None)
+        return (self.proxy_host is not None) and (self.proxy_port is not None)
 
 
 class HTTPConnectionWithTimeout(http.client.HTTPConnection):

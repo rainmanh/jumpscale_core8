@@ -17,7 +17,7 @@ class CuisineNS(base):
         result = {}
         for line in self._cuisine.core.hostfile.splitlines():
             ipaddr_found = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b', line)
-            if ipaddr_found != None:
+            if ipaddr_found is not None:
                 ipaddr_found = ipaddr_found.group()
                 if ipaddr_found not in result:
                     result[ipaddr_found] = []

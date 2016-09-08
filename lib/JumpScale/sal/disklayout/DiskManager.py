@@ -76,7 +76,7 @@ class DiskManager:
                         not disks.isValidFS(partition.fstype):
                     continue
 
-                if partition.mountpoint != "" and partition.mountpoint != None:
+                if partition.mountpoint != "" and partition.mountpoint is not None:
                     # partition is already mounted, no need to remount it
                     hrd = self._loadhrd(partition.mountpoint)
                 elif partition.fstype:

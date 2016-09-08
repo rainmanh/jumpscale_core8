@@ -157,7 +157,7 @@ class TextCharEditor:
             blocknr = self._getNextBlockNr(blockname)
         if blocknr is None and blockname == "":
             blocknr = 0
-        if blocknr != None and blockname == "":
+        if blocknr is not None and blockname == "":
             raise j.exceptions.RuntimeError("Cannot have a blockname != \"\" with blocknr>0")
         if len(text) == 0:
             raise j.exceptions.RuntimeError("Cannot insert empty block of text.")

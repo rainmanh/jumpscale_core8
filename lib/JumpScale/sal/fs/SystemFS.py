@@ -416,7 +416,7 @@ class SystemFS:
                 errors = []
                 for name in names:
                     # is only for the name
-                    if applyHrdOnDestPaths != None:
+                    if applyHrdOnDestPaths is not None:
                         name2 = applyHrdOnDestPaths.applyOnContent(name)
                     else:
                         name2 = name
@@ -619,7 +619,7 @@ class SystemFS:
         if lastOnly:
             dname = dname.split(os.sep)[-1]
             return dname
-        if levelsUp != None:
+        if levelsUp is not None:
             parts = dname.split(os.sep)
             if len(parts) - levelsUp > 0:
                 return parts[len(parts) - levelsUp - 1]
@@ -755,7 +755,7 @@ class SystemFS:
         from grp import getgrnam
         getpwnam(user)[2]
         uid = getpwnam(user).pw_uid
-        if group != None:
+        if group is not None:
             gid = getgrnam(group).gr_gid
         else:
             gid = getpwnam(user).pw_gid
@@ -933,12 +933,12 @@ class SystemFS:
         @Param exclude: list of std filters if matches then exclude
         @rtype: list
         """
-        if depth != None:
+        if depth is not None:
             depth = int(depth)
         self.logger.debug('List files in directory with path: %s' % path)
         if depth == 0:
             depth = None
-        # if depth != None:
+        # if depth is not None:
         #     depth+=1
         filesreturn, depth = self._listAllInDir(path, recursive, filter, minmtime, maxmtime, depth, type="f", case_sensitivity=case_sensitivity,
                                                 exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
@@ -960,12 +960,12 @@ class SystemFS:
         @param type is string with f & d inside (f for when to find files, d for when to find dirs)
         @rtype: list
         """
-        if depth != None:
+        if depth is not None:
             depth = int(depth)
         self.logger.debug('List files in directory with path: %s' % path)
         if depth == 0:
             depth = None
-        # if depth != None:
+        # if depth is not None:
         #     depth+=1
         filesreturn, depth = self._listAllInDir(
             path, recursive, filter, minmtime, maxmtime, depth, type=type, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
@@ -1019,7 +1019,7 @@ class SystemFS:
                     # if not(listSymlinks==False and self.isLink(fullpath)):
                     filesreturn.append(fullpath)
                 if recursive:
-                    if depth != None and depth != 0:
+                    if depth is not None and depth != 0:
                         depth = depth - 1
                     if depth is None or depth != 0:
                         exclmatch = False

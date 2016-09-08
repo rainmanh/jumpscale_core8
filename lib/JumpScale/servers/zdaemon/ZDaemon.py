@@ -90,7 +90,7 @@ class ZDaemon(GeventLoop):
         self.startClock()
 
         print(("start %s on port:%s" % (self.name, self.port)))
-        if mainloop != None:
+        if mainloop is not None:
             mainloop()
         else:
             while True:

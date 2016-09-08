@@ -44,7 +44,7 @@ class MySQLClient:
         Q = "DELETE FROM %s WHERE %s" % (tablename, whereclause)
         self.client.query(Q)
         result = self.client.use_result()
-        if result != None:
+        if result is not None:
             result.fetch_row()
 
         return result

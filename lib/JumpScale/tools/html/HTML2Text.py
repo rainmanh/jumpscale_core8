@@ -506,7 +506,7 @@ class HTML2Text(html.parser.HTMLParser):
                 if has_key(attrs, 'title'):
                     self.abbr_title = attrs['title']
             else:
-                if self.abbr_title != None:
+                if self.abbr_title is not None:
                     self.abbr_list[self.abbr_data] = self.abbr_title
                     self.abbr_title = None
                 self.abbr_data = ''

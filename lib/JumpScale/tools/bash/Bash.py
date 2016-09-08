@@ -95,7 +95,6 @@ class Profile:
 
 
 class Bash:
-
     def __init__(self):
         self.__jslocation__ = "j.tools.bash"
         self._profilePath = ""

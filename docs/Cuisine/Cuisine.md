@@ -2,7 +2,7 @@
 
 The JumpScale implementation of Cuisine is a fork of the original Cuisine as available on GitHub: <https://github.com/sebastien/cuisine>
 
-Cuisine provides [Chef](https://en.wikipedia.org/wiki/Chef_(software)-like functionality for [Fabric](http://www.fabfile.org/).
+Cuisine provides [Chef](https://en.wikipedia.org/wiki/Chef) software-like functionality for [Fabric](http://www.fabfile.org/).
 
 Cuisine makes it easy to automate server installations and create configuration recipes by wrapping common administrative tasks, such as installing packages and creating users and groups, in Python functions.
 
@@ -31,8 +31,7 @@ cuisine = j.tools.cuisine.get(executor)
 - [cuisine.processmanager](cuisine.processmanager.md)
 - [cuisine.apps](cuisine.apps.md)
 - [cuisine.tmux](cuisine.tmux.md)
-- [cuisine.docker](cuisine.docker.md)
+- [cuisine.systemservices.docker](cuisine.systemservices.docker.md)
 - [cuisine.ssh](cuisine.ssh.md)
 - [cuisine.package](cuisine.package.md)
-- [cuisine.installer](cuisine.installer.md)
-- [cuisine.installerdevelop](cuisine.installerdevelop.md)
+- [cuisine.development.js8](cuisine.development.js8.md)

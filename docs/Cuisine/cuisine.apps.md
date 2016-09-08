@@ -11,6 +11,17 @@ Examples of methods inside an application:
 ## Applications that are currently supported
 
 ```
+alba
+arakoon
+brotli
+caddy
+capnp
+dnsmasq
+geodns
+hadoop
+ledis
+pyftpserver
+xrdp
 cockpit
 controller (g8os controller)
 core (g8os core)
@@ -23,8 +34,6 @@ mongodb
 portal
 redis
 skydns
-stor
 syncthing
 vulcand
-weave
 ```

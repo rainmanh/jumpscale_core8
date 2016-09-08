@@ -1044,6 +1044,7 @@ class CuisineCore(base):
         return cmd
 
     def cd(self, path):
+        """cd to the given path"""
         path = self.args_replace(path)
         self.cd = path
 

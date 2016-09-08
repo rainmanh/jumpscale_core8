@@ -1,17 +1,18 @@
 # JumpScale At The Command Line
 
-### JumpScale offers the following command line tools:
- * [ays](#### ays)
- * [jsdocker](#### jsdocker)
- * [jscode](#### jscode)
- * [jsdesktop](#### jsdesktop)
- * [jsnode](#### jsnode)
+JumpScale offers the following command line tools:
+
+ * [ays](## ays)
+ * [jsdocker](## jsdocker)
+ * [jscode](## jscode)
+ * [jsdesktop](## jsdesktop)
+ * [jsnode](## jsnode)
 
 
-#### ays
-Wrapper to JumpScale's **at your service** tool
+## ays
+Wrapper to JumpScale's **At Your Service** tool.
 
-```python
+```
 Usage: ays [OPTIONS] COMMAND [ARGS]...
 
 Options:
@@ -38,8 +39,8 @@ Commands:
   update         update the metdata for the templates as well...
 ```
 
-#### jsdocker
-Wrapper to docker to do docker operations
+## jsdocker
+Wrapper to Docker to do Docker operations.
 
 ```bash
 Usage: jsdocker [OPTIONS] COMMAND [ARGS]...
@@ -65,10 +66,10 @@ Commands:
   stop
 ```
 
-#### jscode
-Wrapper to git to do operations on multiple repositories
+## jscode
+Wrapper to Git to do operations on multiple repositories.
 
-```bash
+```
 Usage: jscode [OPTIONS] ACTION
 
 Options:
@@ -97,10 +98,10 @@ Actions:
   init
   ```
 
-#### jsdesktop
-Wrapper to Remote Desktop Protocol
+## jsdesktop
+Wrapper to Remote Desktop Protocol (RDP).
 
-```bash
+```
 usage: jsdesktop [OPTIONS] COMMAND
 
 Options:
@@ -121,10 +122,10 @@ Commands:
   userconfig
 ```
 
-#### jsnode
-Wrapper to list and manage nodes in the grid
+## jsnode
+Wrapper to list and manage nodes in a G8 grid.
 
-```bash
+```
 usage: jsnode [OPTIONS] COMMAND
 
 Options:

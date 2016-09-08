@@ -2,7 +2,7 @@
 Test CuisineCore module
 """
 import unittest
-from unittest import mock
+from unittest.mock import patch, PropertyMock
 import copy
 
 from JumpScale import j
@@ -58,8 +58,8 @@ class TestCuisineCore(unittest.TestCase):
         """
         self.assertIsNotNone(self.core.isJS8Sandbox)
 
-    @mock.patch('JumpScale.j.tools.cuisine.local.core.getenv')
-    @mock.patch('JumpScale.j.core.db')
+    @patch('JumpScale.j.tools.cuisine.local.core.getenv')
+    @patch('JumpScale.j.core.db')
     def test_dir_paths_property_if_JSBASE_and_linux(self, cache_mock, getenv_mock):
         """
         Happy Path: Test accessing the dir_paths property if JSBASE in env
@@ -70,8 +70,8 @@ class TestCuisineCore(unittest.TestCase):
         result = self.core.dir_paths
         self.assertEqual(result, self.dir_paths)
 
-    @mock.patch('JumpScale.j.tools.cuisine.local.core.getenv')
-    @mock.patch('JumpScale.j.core.db')
+    @patch('JumpScale.j.tools.cuisine.local.core.getenv')
+    @patch('JumpScale.j.core.db')
     def test_dir_paths_property_if_linux(self, cache_mock, getenv_mock):
         """
         Happy Path: Test accessing the dir_paths property if JSBASE not found in env
@@ -105,23 +105,21 @@ class TestCuisineCore(unittest.TestCase):
         result = self.core.dir_paths
         self.assertEqual(result, expected_result)
 
-    @mock.patch('JumpScale.j.tools.cuisine.local.core.getenv')
-    @mock.patch('JumpScale.j.core.db')
-    def test_dir_paths_property_if_not_linux(self, cache_mock, getenv_mock):
+    @patch('JumpScale.tools.cuisine.CuisineCore.CuisineCore.isMac', new_callable=PropertyMock)
+    @patch('JumpScale.j.tools.cuisine.local.core.getenv')
+    @patch('JumpScale.j.core.db')
+    def test_dir_paths_property_if_not_linux(self, cache_mock, getenv_mock, mac_mock):
         """
         Happy Path: Test accessing the dir_paths property if JSBASE not found in env and not linux
         """
         cache_mock.hget.return_value = None
         cache_mock.set.return_value = None
+        mac_mock.return_value = True
 
         # remove JSBASE from dump_env
         dump_env = copy.deepcopy(self.dump_env)
         del dump_env['JSBASE']
         getenv_mock.return_value = dump_env
-
-        # Mocking isMac property to return True
-        is_mac_original = self.core.isMac
-        type(self.core).isMac = mock.PropertyMock(return_value=True)
 
         expected_result = {
             'appDir': '/root/opt/jumpscale8//apps',
@@ -143,23 +141,19 @@ class TestCuisineCore(unittest.TestCase):
         }
         result = self.core.dir_paths
         self.assertEqual(result, expected_result)
-        # Reset property mock
-        type(self.core).isMac = is_mac_original
+        self.assertEqual(mac_mock.call_count, 2)
 
-    @mock.patch('JumpScale.j.tools.cuisine.local.core.getenv')
-    @mock.patch('JumpScale.j.core.db')
-    def test_dir_paths_property_if_JSBASE_and_not_linux(self, cache_mock, getenv_mock):
+    @patch('JumpScale.tools.cuisine.CuisineCore.CuisineCore.isMac', new_callable=PropertyMock)
+    @patch('JumpScale.j.tools.cuisine.local.core.getenv')
+    @patch('JumpScale.j.core.db')
+    def test_dir_paths_property_if_JSBASE_and_not_linux(self, cache_mock, getenv_mock, mac_mock):
         """
         Happy Path: Test accessing the dir_paths property if JSBASE in env and not linux
         """
         cache_mock.hget.return_value = None
         cache_mock.set.return_value = None
-
+        mac_mock.return_value = True
         getenv_mock.return_value = self.dump_env
-
-        # Mocking isMac property to return True
-        is_mac_original = self.core.isMac
-        type(self.core).isMac = mock.PropertyMock(return_value=True)
 
         expected_result = {
             'appDir': '/js/path/apps',
@@ -181,8 +175,7 @@ class TestCuisineCore(unittest.TestCase):
         }
         result = self.core.dir_paths
         self.assertEqual(result, expected_result)
-        # Reset property mock
-        type(self.core).isMac = is_mac_original
+        mac_mock.assert_called_once_with()
 
 
     @unittest.skip("Needs fixing")
@@ -190,19 +183,19 @@ class TestCuisineCore(unittest.TestCase):
         """
         Test args replace
         """
-        with mock.patch("JumpScale.j") as j_mock:
+        with patch("JumpScale.j") as j_mock:
             from JumpScale import j
             import JumpScale.tools.cuisine.CuisineCore
             JumpScale.tools.cuisine.CuisineCore.j = j
             from JumpScale.tools.cuisine.CuisineCore import CuisineCore
-            executor_mock = mock.MagicMock()
+            executor_mock = MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             executor = j.tools.executor.getLocal()
             cuisine = j.tools.cuisine.local
             cuisine_core = CuisineCore(executor, cuisine)
-            cuisine_core.getenv = mock.MagicMock()
+            cuisine_core.getenv = MagicMock()
             cuisine_core.getenv.return_value = self.dump_env
-            cuisine_core.run = mock.MagicMock()
+            cuisine_core.run = MagicMock()
             cuisine_core.run.return_value = (0, 'hostname', '')
             input_text = "$base:$appDir:$tmplsDir:$varDir:$binDir:$codeDir:$cfgDir:$homeDir:$jsLibDir:$libDir:$logDir:$pidDir:$tmpDir:$hostname"
             expected_output = "/opt/jumpscale8/:/opt/jumpscale8//apps:/opt/jumpscale8//templates:/optvar/:/opt/jumpscale8//bin:/opt/code/:/optvar//cfg:/root:/opt/jumpscale8//lib/JumpScale/:/opt/jumpscale8//lib/:/optvar//log:/optvar//pid:/optvar//tmp:hostname"

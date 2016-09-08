@@ -32,7 +32,7 @@ class Docker:
         j.do.execute("systemctl stop docker")
 
         d = j.sal.disklayout.findDisk(mountpoint="/storage")
-        if d != None:
+        if d is not None:
             # we found a disk, lets make sure its in fstab
             d.setAutoMount()
             dockerpath = "%s/docker" % d.mountpoint

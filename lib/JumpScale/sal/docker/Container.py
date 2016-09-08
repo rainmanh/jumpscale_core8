@@ -13,7 +13,7 @@ class Container:
         @param name str: name of conainter.
         @param id  int: id of container.
         @param client obj(docker.Client()): client object from docker library.
-        @param host str: host running the docker deamon , usually an ip. 
+        @param host str: host running the docker deamon , usually an ip.
         """
 
         self.client = client
@@ -58,9 +58,8 @@ class Container:
 
     def run(self, cmd):
         """
-        Run Docker exec with cmd. 
-
-        @param  cmd str: cmd to be executed will default run in bash 
+        Run Docker exec with cmd.
+        @param  cmd str: cmd to be executed will default run in bash
         """
         cmd2 = "docker exec -i -t %s %s" % (self.name, cmd)
         j.sal.process.executeWithoutPipe(cmd2)
@@ -100,7 +99,7 @@ class Container:
         """
         Check conainter is running.
         """
-        return self.info["State"]["Running"] == True
+        return self.info["State"]["Running"] is True
 
     def getIp(self):
         """
@@ -151,7 +150,7 @@ class Container:
 
     def getPubPortForInternalPort(self, port):
         """
-        Return public port that is forwarded to a port inside docker, 
+        Return public port that is forwarded to a port inside docker,
         this will only work if container has port forwarded the ports during
         run time.
 
@@ -250,7 +249,7 @@ class Container:
 
     def stop(self):
         """
-        Stop running instance of container. 
+        Stop running instance of container.
         """
         self.cleanAysfs()
         self.client.kill(self.id)

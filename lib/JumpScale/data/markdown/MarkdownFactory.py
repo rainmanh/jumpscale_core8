@@ -485,8 +485,8 @@ class MarkdownDocument:
 
             if linestripped != "":
                 block += "%s\n" % line
-            else:
-                block = addBlock(block)
+
+            block = addBlock(block)
 
     @property
     def content(self):

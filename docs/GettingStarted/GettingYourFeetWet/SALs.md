@@ -2,7 +2,7 @@
 
 SALs are system abstraction layers. They provide a unified interface to system operations. You can use the different available SALs to create powerful scripts that can monitor and manage your services.
 
-<!-- @todo: Provide simple example of how to use SALS, just to introduce the concept   -->
+<!-- @todo: Provide more simple examples of how to use SALS, just to introduce the concept   -->
 
 A SAL can for instance be used to check if the `.ssh` directory exists and create it if not:
 ```

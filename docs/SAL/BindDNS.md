@@ -4,19 +4,19 @@
 
 ## Usage
 
-- Starting
+- Starting bind9 server 
 
 ```python
 j.sal.bind.start()
 ```
 
-- Stopping
+- Stopping bind9 server
 
 ```python
 j.sal.bind.stop()
 ```
 
-- Restarting
+- Restarting bind9 server 
 
 ```python
 j.sal.bind.restart()
@@ -28,7 +28,7 @@ j.sal.bind.restart()
 j.sal.bind.updateHostIp(host, ip)
 ```
 
-- Add a record
+- Add an A record
 
 ```python
 addRecord(self, domain, host, ip, klass, type, ttl)

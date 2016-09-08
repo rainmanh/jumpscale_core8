@@ -1,9 +1,16 @@
 from JumpScale import j
 import Dumper
-import collections
 
 
-Stats = collections.namedtuple("Stats", "node key epoch stat avg max total")
+class Stats(object):
+    def __init__(self, node, key, epoch, stat, avg, max, total):
+        self.node = node
+        self.key = key
+        self.epoch = epoch
+        self.stat = stat
+        self.avg = avg
+        self.max = max
+        self.total = total
 
 
 class InfluxDumper(Dumper.BaseDumper):

@@ -86,7 +86,7 @@ class InfluxDumper(Dumper.BaseDumper):
             info = redis.get("stats:%s:%s" % (stats.node, stats.key))
 
             if info is not None:
-                info = json.loads(info)
+                info = json.loads(info.decode())
             else:
                 info = dict()
 

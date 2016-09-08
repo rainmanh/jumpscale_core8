@@ -5,7 +5,7 @@ SSH is used a lot when using the JumpScale framework. It's used do all remote sy
 In case you don't have SSH keys yet, you can create them using the JumpScale interactive shell, and immediatelly load then into the SSH Agent:
 
 ```shell
-js 'j.do._.loadSSHAgent(createkeys=True,keyname="despiegk")'
+js 'j.do._loadSSHAgent(createkeys=True)'
 ```
 
 In the above command you will of course want to replace the key name with something that is meaningful to you.
@@ -25,7 +25,7 @@ As a result of the SSH key creation process the public key will be saved as `$ho
 Alternativelly you can also type:
 
 ```shell
-js 'j.do._.loadSSHAgent()'
+js 'j.do._loadSSHAgent()'
 ```
 
 This will start the SSH Agent if required and load all the keys it can find in `$homedir/.ssh`

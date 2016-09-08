@@ -1,6 +1,7 @@
 # How to use Docker
 
-Make sure you have the latest JumpScale installed.jumpscale/ubuntu1604_python3
+Make sure you have the latest JumpScale installed, use for instance the Docker image [jumpscale/ubuntu1604_python3](https://hub.docker.com/r/jumpscale/ubuntu1604_python3/) from Docker Hub.
+
 
 ## Install Docker
 
@@ -11,7 +12,7 @@ ays apply
 
 ## Use Docker
 
-We already have a base Docker image ready to use `jumpscale/ubuntu1604_js8`. You also can [building your own Docker image](how_to_build_Docker_image_with_JumpScale.md).
+Let's use the Docker image with JumpScale pre-installed [jumpscale/ubuntu1604_js8](https://hub.docker.com/r/jumpscale/ubuntu1604_js8/) from Docker Hub. You can of course also first [build your own Docker image](how_to_build_Docker_image_with_JumpScale.md).
 
 ```bash
 docker pull jumpscale/ubuntu1604_js8
@@ -31,7 +32,7 @@ ssh localhost -p 9022
 (test)# apt-get update
 ```
 
-Now you can use `@ys` to install JumpScale packages.
+Now you can use `ays` to install JumpScale packages:
 
 ```bash
 ays init -i redis
@@ -43,7 +44,7 @@ ays apply
 When you setup your apps, and you are happy with your pre-set Docker container, you can commit your changes for later use or distribution by doing the following:
 
 ```bash
-#first get a docker running e.g. 
+#first get a docker running e.g.
 jsdocker create -n test -j
 
 #1- SSH to running container

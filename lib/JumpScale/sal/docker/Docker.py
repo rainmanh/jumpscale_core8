@@ -124,9 +124,6 @@ class Docker:
 
     @property
     def containerNamesRunning(self):
-        """
-        Gets a list of running containers names.
-        """
         res = []
         for container in self.containers:
             if container.isRunning():
@@ -135,9 +132,6 @@ class Docker:
 
     @property
     def containerNames(self):
-        """
-        Gets a list of all containers names.
-        """
         res = []
         for container in self.containers:
             res.append(container.name)
@@ -145,9 +139,6 @@ class Docker:
 
     @property
     def containersRunning(self):
-        """
-        Gets a list of running containers.
-        """
         res = []
         for container in self.containers:
             if container.isRunning():
@@ -288,13 +279,6 @@ class Docker:
         j.sal.process.executeWithoutPipe(cmd)
 
     def exportTgz(self, name, backupname):
-        """
-        Exports as TGZ tarball.
-
-        @param name string:
-        @param backupname string:
-
-        """
         raise j.exceptions.RuntimeError("not implemented")
         self.removeRedundantFiles(name)
         path = self._getMachinePath(name)
@@ -308,14 +292,6 @@ class Docker:
         return bpath
 
     def importTgz(self, backupname, name):
-        """
-        Imports from a TGZ tarball.
-
-        @param backupname string: backup tgz file name.
-        @param name string: import name.
-
-
-        """
         raise j.exceptions.RuntimeError("not implemented")
         path = self._getMachinePath(name)
         bpath = j.sal.fs.joinPaths(
@@ -351,13 +327,13 @@ class Docker:
                setrootrndpasswd=True, rootpasswd="", jumpscalebranch="master", aysfs=[], detach=False, privileged=False, getIfExists=True, weavenet=False):
         """
         Creates a new container.
-
+        
         @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
         @param vols in format as follows "/var/insidemachine:/var/inhost # /var/1:/var/1 # ..."   '#' is separator
         @param sshkeyname : use ssh-agent (can even do remote through ssh -A) and then specify key you want to use in docker
         #TODO: *1 change way how we deal with ssh keys, put authorization file in filesystem before docker starts don't use ssh to push them, will be much faster and easier
         """
-        if ssh is True and myinit is False:
+    if ssh is True and myinit is False:
             raise ValueError("SSH can't be enabled without myinit.")
         # check there is weave
         self.weavesocket
@@ -509,38 +485,33 @@ class Docker:
                 sshkeyname = ""
             if sshpubkey is None:
                 sshpubkey = ""
-
+            container.run("apt-get update")
+            container.run("apt-get install openssh-server -y")
+            container.run("service ssh start")
             container.pushSSHKey(keyname=sshkeyname, sshpubkey=sshpubkey)
 
             if setrootrndpasswd:
                 if rootpasswd is None or rootpasswd == '':
                     print("set default root passwd (gig1234)")
-                    container.executor.execute(
-                        "echo \"root:gig1234\"|chpasswd", showout=False)
+                    container.run(
+                        "echo \"root:gig1234\"|chpasswd")
                 else:
                     print("set root passwd to %s" % rootpasswd)
-                    container.cexecutor.execute(
-                        "echo \"root:%s\"|chpasswd" % rootpasswd, showout=False)
+                    container.run(
+                        "echo \"root:%s\"|chpasswd" % rootpasswd)
             if not self.weaveIsActive:
                 container.setHostName(name)
+        else:
+            self.container._executor = DockerExecObj(name)
 
         return container
 
     def getImages(self):
-        """
-        Gets a list of available images on your system.
-
-        """
         images = [str(item["RepoTags"][0]).replace(":latest", "")
                   for item in self.client.images()]
         return images
 
     def removeImages(self, tag="<none>:<none>"):
-        """
-        Removes images based on their tag.
-
-        @param tag: Images with tag (i.e ubuntu:xenial)
-        """
         for item in self.client.images():
             if tag in item["RepoTags"]:
                 self.client.remove_image(item["Id"])
@@ -602,9 +573,6 @@ class Docker:
         j.sal.fs.removeDirTree("/var/lib/docker")
 
     def reInstallDocker(self):
-        """
-        Reinstall docker on your machine.
-        """
 
         self.removeDocker()
 
@@ -613,11 +581,6 @@ class Docker:
         self.init()
 
     def pull(self, imagename):
-        """
-        Pulls image from docker hub.
-
-        @param imagename string: image to pull
-        """
         self.client.import_image_from_image(imagename)
 
     def push(self, image, output=True):
@@ -671,3 +634,13 @@ class Docker:
                 out.append(line)
 
         return "\n".join(out)
+
+
+    class DockerExecObj:
+
+        def __init__(self, name):
+            self.name = name
+            self.id = "docker:%s" % name
+
+        def execute(self, cmds, die=True, checkok=None, async=False, showout=True, timeout=0, env={}):
+            return self._cuisineDockerHost.core.run("docker exec %s  %s" % (self.name, cmds))

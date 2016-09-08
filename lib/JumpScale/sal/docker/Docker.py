@@ -331,7 +331,8 @@ class Docker:
         @param sshkeyname : use ssh-agent (can even do remote through ssh -A) and then specify key you want to use in docker
         #TODO: *1 change way how we deal with ssh keys, put authorization file in filesystem before docker starts don't use ssh to push them, will be much faster and easier
         """
-
+        if ssh is True and myinit is False:
+            raise ValueError("SSH can't be enabled without myinit.")
         # check there is weave
         self.weavesocket
 
@@ -470,7 +471,6 @@ class Docker:
             if type(k) == tuple and len(k) == 2:
                 portsdict["%s/%s" % (k[0], k[1])] = v
                 portsdict.pop(k)
-
         res = self.client.start(container=id, binds=binds, port_bindings=portsdict, lxc_conf=None,
                                 publish_all_ports=False, links=None, privileged=privileged, dns=nameserver, dns_search=None,
                                 volumes_from=None, network_mode=None)
@@ -479,7 +479,6 @@ class Docker:
         self._containers[id] = container
 
         if ssh:
-            # time.sleep(0.5)  # give time to docker to start
             if sshkeyname is None:
                 sshkeyname = ""
             if sshpubkey is None:

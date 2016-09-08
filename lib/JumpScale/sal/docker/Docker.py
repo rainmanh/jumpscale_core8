@@ -124,6 +124,9 @@ class Docker:
 
     @property
     def containerNamesRunning(self):
+        """
+        Gets a list of running containers names.
+        """
         res = []
         for container in self.containers:
             if container.isRunning():
@@ -132,6 +135,9 @@ class Docker:
 
     @property
     def containerNames(self):
+        """
+        Gets a list of all containers names.
+        """
         res = []
         for container in self.containers:
             res.append(container.name)
@@ -139,6 +145,9 @@ class Docker:
 
     @property
     def containersRunning(self):
+        """
+        Gets a list of running containers.
+        """
         res = []
         for container in self.containers:
             if container.isRunning():
@@ -279,6 +288,13 @@ class Docker:
         j.sal.process.executeWithoutPipe(cmd)
 
     def exportTgz(self, name, backupname):
+        """
+        Exports as TGZ tarball.
+
+        @param name string:
+        @param backupname string:
+
+        """
         raise j.exceptions.RuntimeError("not implemented")
         self.removeRedundantFiles(name)
         path = self._getMachinePath(name)
@@ -292,6 +308,14 @@ class Docker:
         return bpath
 
     def importTgz(self, backupname, name):
+        """
+        Imports from a TGZ tarball.
+
+        @param backupname string: backup tgz file name.
+        @param name string: import name.
+
+
+        """
         raise j.exceptions.RuntimeError("not implemented")
         path = self._getMachinePath(name)
         bpath = j.sal.fs.joinPaths(
@@ -326,6 +350,8 @@ class Docker:
                replace=True, cpu=None, mem=0, ssh=True, myinit=True, sharecode=False, sshkeyname="", sshpubkey="",
                setrootrndpasswd=True, rootpasswd="", jumpscalebranch="master", aysfs=[], detach=False, privileged=False, getIfExists=True, weavenet=False):
         """
+        Creates a new container.
+
         @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
         @param vols in format as follows "/var/insidemachine:/var/inhost # /var/1:/var/1 # ..."   '#' is separator
         @param sshkeyname : use ssh-agent (can even do remote through ssh -A) and then specify key you want to use in docker
@@ -501,11 +527,20 @@ class Docker:
         return container
 
     def getImages(self):
+        """
+        Gets a list of available images on your system.
+
+        """
         images = [str(item["RepoTags"][0]).replace(":latest", "")
                   for item in self.client.images()]
         return images
 
     def removeImages(self, tag="<none>:<none>"):
+        """
+        Removes images based on their tag.
+
+        @param tag: Images with tag (i.e ubuntu:xenial)
+        """
         for item in self.client.images():
             if tag in item["RepoTags"]:
                 self.client.remove_image(item["Id"])
@@ -567,6 +602,9 @@ class Docker:
         j.sal.fs.removeDirTree("/var/lib/docker")
 
     def reInstallDocker(self):
+        """
+        Reinstall docker on your machine.
+        """
 
         self.removeDocker()
 
@@ -575,6 +613,11 @@ class Docker:
         self.init()
 
     def pull(self, imagename):
+        """
+        Pulls image from docker hub.
+
+        @param imagename string: image to pull
+        """
         self.client.import_image_from_image(imagename)
 
     def push(self, image, output=True):

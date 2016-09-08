@@ -90,7 +90,7 @@ class InfluxDumper(Dumper.BaseDumper):
             else:
                 info = dict()
 
-            info['tags'] = j.core.tags.getObject(info.get('tags', []))
+            info['tags'] = j.data.tags.getObject(info.get('tags', []))
             info['tags'].tags['node'] = stats.node
             points = []
 

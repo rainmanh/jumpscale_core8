@@ -1,7 +1,6 @@
 from JumpScale import j
 import Dumper
 import collections
-import json
 
 
 Stats = collections.namedtuple("Stats", "node key epoch stat avg max total")
@@ -85,8 +84,11 @@ class InfluxDumper(Dumper.BaseDumper):
             stats = self._parse_line(line)
             info = redis.get("stats:%s:%s" % (stats.node, stats.key))
 
+            if stats.key.find('@') != -1:
+                stats.key = stats.key.split('@')[0]
+
             if info is not None:
-                info = json.loads(info.decode())
+                info = j.data.serializer.json.loads(info)
             else:
                 info = dict()
 

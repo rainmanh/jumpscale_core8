@@ -41,7 +41,7 @@ Commands:
 #### jsdocker
 Wrapper to docker to do docker operations
 
-```python
+```bash
 Usage: jsdocker [OPTIONS] COMMAND [ARGS]...
 
 Options:
@@ -68,7 +68,7 @@ Commands:
 #### jscode
 Wrapper to git to do operations on multiple repositories
 
-```python
+```bash
 Usage: jscode [OPTIONS] ACTION
 
 Options:
@@ -100,7 +100,7 @@ Actions:
 #### jsdesktop
 Wrapper to Remote Desktop Protocol
 
-```python
+```bash
 usage: jsdesktop [OPTIONS] COMMAND
 
 Options:
@@ -124,7 +124,7 @@ Commands:
 #### jsnode
 Wrapper to list and manage nodes in the grid
 
-```python
+```bash
 usage: jsnode [OPTIONS] COMMAND
 
 Options:

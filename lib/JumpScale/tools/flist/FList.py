@@ -5,18 +5,14 @@ import grp
 import os
 import sys
 
-class FListFactory(object):
+class FList(object):
     def __init__(self):
         self.__jslocation__ = "j.tools.flist"
 
-    def create(self):
-        return FList()
-        
-    def load(self, flist):
-        # ...
-        return FList()
+    def get(self):
+        return FListData()
     
-class FList(object):
+class FListData(object):
     """
         FList (sometime "plist") files contains a plain/text representation of
     a complete file system tree
@@ -78,23 +74,24 @@ class FList(object):
 
         index = 0
 
-        for line in flist.splitlines():
-            f = line.split('|')
-
-            self._data[index] = [
-                f[0],        # path
-                f[1],        # hash
-                int(f[2]),   # size
-                f[3],        # uname
-                f[4],        # gname
-                f[5],        # permission
-                int(f[6]),   # filetype
-                int(f[7]),   # ctime
-                int(f[8]),   # mtime
-                f[9]         # extended
-            ]
-            
-            index += 1
+        with open(filename) as flist:
+            for line in flist:
+                f = line.strip().split('|')
+                
+                index = self._indexForHash(f[1])
+                
+                self._data[index] = [
+                    f[0],        # path
+                    f[1],        # hash
+                    int(f[2]),   # size
+                    f[3],        # uname
+                    f[4],        # gname
+                    f[5],        # permission
+                    int(f[6]),   # filetype
+                    int(f[7]),   # ctime
+                    int(f[8]),   # mtime
+                    f[9]         # extended
+                ]
         
         return index
 
@@ -106,6 +103,9 @@ class FList(object):
             return None
 
         return self._hash[hash]
+    
+    def getHashList(self):
+        return list(self._hash.keys())
 
     def getObject(self, hash):
         object = {
@@ -129,17 +129,14 @@ class FList(object):
         if type is None:
             return None
         
-        """
-        # todo
+        # FIXME
+        
+        return None
     
-        S_IFSOCK
-        S_IFLNK
-        S_IFREG
-        S_IFBLK
-        S_IFDIR
-        S_IFCHR
-        S_IFIFO
-        """
+    
+    def isRegular(self, hash):
+        return self._getItem(hash, 6) == 2
+
 
     def getSize(self, hash):
         return self._getItem(hash, 2)
@@ -297,7 +294,6 @@ class FList(object):
         for dirpath, dirs, files in os.walk(path):
             for filename in files:
                 fname = os.path.join(dirpath, filename)
-                # print(fname)
                 self._build(fname)
 
         return len(self._data)

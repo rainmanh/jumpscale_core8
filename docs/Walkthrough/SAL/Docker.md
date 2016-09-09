@@ -1,8 +1,8 @@
-# j.sal.docker
+# Docker through SAL
 
-We will go through `j.sal.docker` to manage docker related operations using jumpscale framework.
+We will go through `j.sal.docker` to manage Docker related operations using JumpScale framework.
 
-Let's check what images we have on the system
+Let's check what images we have on the system:
 
 ```ipython
 In [14]: j.sal.docker.getImages()
@@ -32,24 +32,28 @@ Out[14]:
  'ubuntu:wily',
  '<none>:<none>',
  'hello-world']
-
 ```
-So let's create a container based on the latest ubuntu image.
+
+So let's create a container based on the latest Ubuntu image:
 
 ```
 In [1]: c1=j.sal.docker.create(name="mytest1", base="ubuntu", myinit=False, ssh=False)
 ```
-Here we are creating a container named `mytest1` based on the latest `ubuntu` image.
-myinit is a special entry command for the image but we're not using it here. and we don't want `ssh` as well.
 
-Let's check if it's running
+Here we are creating a container named `mytest1` based on the latest `ubuntu` image.
+
+**myinit** is a special entry command for the image but we're not using it here, and we don't want `ssh` as well.
+
+Let's check if it's running:
+
 ```
 In [4]: c1.isRunning()
 [Thu08 13:42] - ...lib/JumpScale/sal/docker/Container.py:94   - INFO     - read info of container mytest1:2a232407dd8bf95b46947b2fc490c2110a575598b292e67477c691399662b502
 
 Out[4]: True
 ```
-Let's get more info on that container
+Let's get more info on that container:
+
 ```
 In [9]: c1.info
 [Thu08 13:47] - ...lib/JumpScale/sal/docker/Container.py:94   - INFO     - read info of container mytest1:2a232407dd8bf95b46947b2fc490c2110a575598b292e67477c691399662b502
@@ -189,10 +193,9 @@ Out[9]:
   'Status': 'running'}}
 ```
 
-We can check for the container Names
+We can check for the container names:
 
 ```
-
 In [7]: j.sal.docker.containerNames
 Out[7]:
 ['js8playpriv2',
@@ -260,14 +263,15 @@ Out[7]:
  'gopyrubytest1']
 ```
 
-Checking for the running containerNames
+Checking for the names of the running containers:
+
 ```
 In [8]: j.sal.docker.containersRunning
 Out[8]: [docker:mytest1, docker:mytest]
 ```
 
+We can also get detailed information:
 
-We can also get detailed information
 ```
 In [5]: j.sal.docker.ps()
 Out[5]:

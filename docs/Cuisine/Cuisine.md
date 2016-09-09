@@ -23,7 +23,7 @@ executor = j.tools.executor.getSSHBased(addr, port, login,passwd)
 cuisine = j.tools.cuisine.get(executor)
 ```
 
-## Cuisine Modules
+## Cuisine modules
 - [cuisine.core](cuisine.core.md)
 - [cuisine.bash](cuisine.bash.md)
 - [cuisine.btrfs](cuisine.btrfs.md)

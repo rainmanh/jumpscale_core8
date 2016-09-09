@@ -1,18 +1,22 @@
 # cuisine.net
 
-The `cuisine.net` module handles network operations
+The `cuisine.net` module handles network operations.
 
 Examples for methods in `net`:
 
-- **getInfo**: Gets network info
+- Getting network info using  **getInfo**:
+
 ```python
 cuisine.net.getInfo()
 ```
-- **getNetRange**: ($fromip,$topip) from range attached to device, skip the mentioned ip addresses
+-  Getting ($fromip,$topip) IP range attached to device, **getNetRange**:
+
 ```python
 cuisine.net.getNetRange(device)
 ```
-- **ips**: property that gets all ips
+
+- Getting all IP addresses using the property **ips**:
+
   ```python
   cuisine.net.ips
   ```

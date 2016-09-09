@@ -1,14 +1,14 @@
 # cuisine.systemservices
 
-The `cuisine.systemservices` module is for installing, building and managing supported system services
+The `cuisine.systemservices` module is for installing, building and managing supported system services.
 
-Examples of:
+Examples:
 
-- **build**: builds the service on the specified target, it takes arguments needed for building and an optional start kwarg for starting the service after building it
-- **start**: starts an service
-- **stop**: stops an service
+- **build** builds the service on the specified target, it takes arguments needed for building and an optional start kwarg for starting the service after building it
+- **start** starts an service
+- **stop** stops an service
 
-## Services that are currently supported
+## Currently supported services
 
 ```
 aydostor

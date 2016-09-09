@@ -1,18 +1,23 @@
 # cuisine.group
 
-The `cuisine.group` module handles group operations
+The `cuisine.group` module handles group operations.
 
 Examples for methods in `group`:
 
-- **check**: Checks if there is a group defined with the given name
+- Checking if there is a group defined with the given name using the **check** method:
+
 ```python
 cuisine.group.check('root')
 ```
-- **create**: Creates a group with the given name, and optionally given gid
+
+-  Creating a group with the given name, and optionally given gid, using the **create** method:
+
 ```python
 cuisine.group.create('admin')
 ```
-- **ensure**: Ensures that the group with the given name (and optional gid) exists.
+
+- Ensuring that the group with the given name (and optional gid) exists using the **ensure** method:
+
   ```python
   cuisine.group.ensure('admin')
   ```

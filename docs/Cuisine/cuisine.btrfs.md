@@ -1,18 +1,22 @@
 # cuisine.btrfs
 
-The `cuisine.btrfs` module handles btrfs operations
+The `cuisine.btrfs` module handles **btrfs** operations.
 
 Examples for methods in `btrfs`:
 
-- **deviceAdd**: Adds a device to a filesystem.
+- Adding a device to a filesystem using **deviceAdd**:
+
 ```python
 cuisine.btrfs.deviceAdd('\', device)
 ```
-- **getSpaceUsageDataFree**: Gets free data percentage
+
+- Getting free data percentage using **getSpaceUsageDataFree**:
+
 ```python
 cuisine.btrfs.getSpaceUsageDataFree()
 ```
-- **subvolumeExists**: Checks if subvolume exists in the given path
+
+- Checking if subvolume exists in the given path using **subvolumeExists**:
 
   ```python
   cuisine.btrfs.subvolumeExists('/')

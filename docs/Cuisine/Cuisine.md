@@ -19,7 +19,7 @@ cuisine = j.tools.cuisine.get(executor)
 ## Remote
 
 ```python
-executor = j.tools.executor.getSSHBased(addr, port, login,passwd)
+executor = j.tools.executor.getSSHBased(addr, port, login, passwd)
 cuisine = j.tools.cuisine.get(executor)
 ```
 

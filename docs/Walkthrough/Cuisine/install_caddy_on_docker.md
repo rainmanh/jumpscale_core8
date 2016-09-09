@@ -1,41 +1,46 @@
-##__Installing Caddy through cuisine__
+# Installing Caddy using Cuisine
 
-P.S. This is a continuation on the previous example of creating a docker container using jumpscale , start with that from [here]().  
+This is a continuation on the walkthrough documentation on [Working with Docker using the Docker SAL](../SAL/Docker.md).  
 
-Now that you have created the docker container through jumpscale you have , the object wrapper of that container
-which includes a cuisine property. This property is a cuisine remote executor from your current host onto the container.
-This allows the you to manage the machine, execute commands, and most importantly build and install services.  
-to install caddy through the cuisine object:  
+Now that you have created the Docker container through JumpScale you have the object wrapper of that container which includes a Cuisine property. This property is a Cuisine remote executor from your current host onto the container. This allows you to manage the machine, execute commands, and most importantly build and install services.  
 
-##__- Step One__
-To get the docker container object up and running we run the same commands as before, but this time with different parameters:  
+To install Caddy through the Cuisine object is done in 3 steps:
+* [Step 3: Get the Docker container up and running](## Step 3: Get the Docker container up and running)
+* [Step 2: Get the Cuisine remote executor property](## Step 2: Get the Cuisine remote executor property)
+* [Step 3: Install Caddy ](## Step 3: Install Caddy)
+
+
+## Step 3: Get the Docker container up and running
+To get the Docker container up and running we run the same commands as before, but this time with different parameters:
+
 ```
 container1 = j.sal.docker.create( name="container1", myinit=False,  base="jumpscale/ubuntu1604" )
 ```
 
+## Step 2: Get the Cuisine remote executor property
+A neat feature which almost all the wrapper objects provide, is that any virtual machine or Docker container created through JumpScale will automatically have a remote executor property (`cuisine`). This allows us to run, install, and manage any node created through Cuisine.
 
-
-##__- Step Two__
-A neat feature wich almost all our wrapper objects provide, is that any VM or docker created through jumpscale will
-automatically have a remote executor (cuisine) to the instance. This allows us to run, install, or manage any node created through our framework.  
-In this case we will set it to a variable called conatainer1_cuisine it will be available inside conatainer1 at :
 ```
 cuisine = conatainer1.cuisine
 ```  
 
-##__- Step Two__
-As stated before cuisine has the ability to install services, in this case for example we want to install caddy.
-the install method of caddy has 5 parameters :
- - **ssl**, this tells the firewall to allow port 443 as well as 80 and 22 to support ssl.
+## Step 3: Install Caddy
+As stated above Cuisine has the ability to install services. In this case for example we want to install Caddy.
 
- - **start**, after installing the service this option is true will add the service to the default proccess manager an strart it .  
+The install method of Caddy takes 5 optional parameters:
 
- - **dns**,  default address to run caddy on.
+ - **ssl**, this tells the firewall to allow port 443 as well as ports 80 and 22 to support SSL
 
- - **reset**, if True this will install even if the service is already installed.
-to do that we run :  
+ - **start**, if True, the service will be added to the default process manager and start it, after installing the service  
+
+ - **dns**, default address to run Caddy on
+
+ - **reset**, if True this will install even if the service is already installed
+
+So to run Caddy:  
+
 ```
 cuisine.apps.caddy.install()
 ```
 
-###Now you have caddy running on the docker created through jumpscale.
+Now you have Caddy running on the Docker container created through JumpScale.

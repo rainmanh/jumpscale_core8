@@ -55,6 +55,8 @@
 
 
 * [Complete Walkthrough](Walkthrough/Walkthrough.md)
+  * [Working with Docker using the Docker SAL](Walkthrough/SAL/Docker.md)
+  * [Installing Caddy using Cuisine](Walkthrough/Cuisine/install_caddy_on_docker.md)
 
 
 * [JumpScale API](JumpscaleAPI/SUMMARY.md)

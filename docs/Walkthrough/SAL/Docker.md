@@ -1,4 +1,4 @@
-# Docker through SAL
+# Working with Docker using the Docker SAL
 
 We will go through `j.sal.docker` to manage Docker related operations using JumpScale framework.
 
@@ -324,4 +324,6 @@ Out[5]:
   'Ports': [],
   'State': 'running',
   'Status': 'Up 5 minutes'}]
-````
+```
+
+Next you will want to check the walkthrough documentation on [Installing Caddy using Cuisine](../Cuisine/install_caddy_on_docker.md) which builds on this walkthrough.

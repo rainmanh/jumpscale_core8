@@ -1,12 +1,10 @@
 from JumpScale import j
 from JumpScale.baselib.atyourservice81.models.ModelBase import ModelBase
+from JumpScale.baselib.atyourservice81.Service import Service
 
 from collections import OrderedDict
 
 VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
-
-from JumpScale.baselib.atyourservice81.Service import Service
-
 
 class ServiceModel(ModelBase):
 
@@ -216,18 +214,16 @@ class ServiceModel(ModelBase):
 
     @property
     def producers(self):
-        raise NotImplemented
-        return self._model["producers"]
+        producers = []
+        for prod in self.dbobj.producers:
+            producers.extend(self.find(name=prod.name, actor=prod.actorName))
+        return producers
 
-    def producerAdd(self, role, instance):
+    def producerAdd(self, actorName, name, key):
         p = self._producersAdd()
-        raise NotImplemented
-        if role not in self.producers:
-            return
-        key = "%s!%s" % (role, instance)
-        if key in self.producers[role]:
-            self.producers[role].remove(key)
-            self.changed = True
+        p.actorName = actorName
+        p.name = name
+        p.key = key
         self.save()
 
     def consume(self, producerkey="", aysi=None):

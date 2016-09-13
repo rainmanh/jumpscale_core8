@@ -266,10 +266,10 @@ class AtYourServiceRepo():
             if hasAction != "" and aysi.getAction(hasAction) is None:
                 continue
 
-            if includeDisabled is False and aysi.model.state == "disabled":
+            if includeDisabled is False and aysi.dbobj.state == "disabled":
                 continue
 
-            res.append(aysi.object)
+            res.append(aysi.objectGet(self))
         if first:
             if len(res) == 0:
                 raise j.exceptions.Input("cannot find service %s|%s:%s" % (self.name, actor, name), "ays.servicesFind")

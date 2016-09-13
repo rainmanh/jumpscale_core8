@@ -238,11 +238,6 @@ class Actor(ActorBase):
         else:
             service = Service(aysrepo=self.aysrepo, actor=self, name=instance, args=args)
 
-            from IPython import embed
-            print("DEBUG NOW service create")
-            embed()
-            raise RuntimeError("stop debug here")
-
         return service
 
     @property

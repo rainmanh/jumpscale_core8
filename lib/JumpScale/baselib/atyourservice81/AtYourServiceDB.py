@@ -7,11 +7,6 @@ import aysmodel_capnp as AYSModel
 
 from JumpScale.baselib.atyourservice81.models import ActorModel, JobModel, RunModel, ServiceModel, ActionCodeModel
 
-from IPython import embed
-print("DEBUG NOW load ServiceModel")
-embed()
-raise RuntimeError("stop debug here")
-
 
 class AtYourServiceDBFactory():
 

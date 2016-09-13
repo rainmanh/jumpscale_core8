@@ -99,11 +99,6 @@ class AtYourServiceRepo():
                 res = item.object
                 if res.dbobj.state != "disabled":
                     self._actors[res.dbobj.name] = res[res.dbobj.name].object
-        if self._actors != {}:
-            from IPython import embed
-            print("DEBUG NOW actors")
-            embed()
-            raise RuntimeError("stop debug here")
         return self._actors
 
     def actorsFind(self, name="", version="", role=''):

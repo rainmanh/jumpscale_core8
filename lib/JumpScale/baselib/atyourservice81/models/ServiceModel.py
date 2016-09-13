@@ -1,7 +1,7 @@
 from JumpScale import j
 from JumpScale.baselib.atyourservice81.models.ModelBase import ModelBase
 
-# from collections import OrderedDict
+from collections import OrderedDict
 
 VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
@@ -90,7 +90,7 @@ class ServiceModel(ModelBase):
     def _pre_save(self):
         pass
 
-    def producersAdd(self):
+    def _producersAdd(self):
         olditems = [item.to_dict() for item in self.dbobj.producers]
         newlist = self.dbobj.init("producers", len(olditems) + 1)
         for i, item in enumerate(olditems):
@@ -110,7 +110,7 @@ class ServiceModel(ModelBase):
                 return action
         raise j.exceptions.NotFound("Can't find method with name %s" % name)
 
-    def recurringAdd(self):
+    def _recurringAdd(self):
         olditems = [item.to_dict() for item in self.dbobj.recurring]
         newlist = self.dbobj.init("recurring", len(olditems) + 1)
         for i, item in enumerate(olditems):
@@ -163,9 +163,10 @@ class ServiceModel(ModelBase):
             recurrings[recurring.name] = (recurring.period, recurring.lastRun)
         return recurrings
 
-    def setRecurring(self, name, period):
+    def recurringAdd(self, name, period):
         """
         """
+        r = self._recurringAdd()
         raise NotImplemented
         name = name.lower()
         try:
@@ -179,7 +180,7 @@ class ServiceModel(ModelBase):
             recurring.period = period
             self.changed = True
 
-    def removeRecurring(self, name):
+    def recurringRemove(self, name):
         raise NotImplementedError
         # if name in self._model['recurring']:
         #     del self._model['recurring'][name]
@@ -212,7 +213,8 @@ class ServiceModel(ModelBase):
         raise NotImplemented
         return self._model["producers"]
 
-    def remove_producer(self, role, instance):
+    def producerAdd(self, role, instance):
+        p = self._producersAdd()
         raise NotImplemented
         if role not in self.producers:
             return
@@ -286,8 +288,11 @@ class ServiceModel(ModelBase):
 
     def __repr__(self):
         # TODO: *1 to put back on self.wiki
-        # return str(self.wiki)
-        return str(self.dbobj)
+        ddict = self.dbobj.to_dict()
+        ddict.pop("configData")
+        ddict.pop("capnpSchema")
+        ddict2 = OrderedDict(ddict)
+        # ddict = sortedcontainers.SortedDict(ddict)
+        return j.data.serializer.json.dumps(ddict2, sort_keys=True, indent=True)
 
-    def __str__(self):
-        return self.__repr__()
+    __str__ = __repr__

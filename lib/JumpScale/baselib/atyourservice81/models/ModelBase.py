@@ -1,5 +1,7 @@
 from JumpScale import j
 
+from collections import OrderedDict
+
 
 class ModelBase():
 
@@ -65,7 +67,8 @@ class ModelBase():
 
     def __repr__(self):
         ddict = self.dbobj.to_dict()
+        ddict2 = OrderedDict(ddict)
         # ddict = sortedcontainers.SortedDict(ddict)
-        return j.data.serializer.json.dumps(ddict, True, True)
+        return j.data.serializer.json.dumps(ddict2, sort_keys=True, indent=True)
 
     __str__ = __repr__

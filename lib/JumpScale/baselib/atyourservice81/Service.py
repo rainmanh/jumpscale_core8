@@ -7,6 +7,7 @@ from JumpScale import j
 import inspect
 import capnp
 # from JumpScale.baselib.atyourservice81.models.ServiceModel import ServiceModel
+from collections import OrderedDict
 
 
 def getProcessDicts(service, args={}):
@@ -47,6 +48,8 @@ class Service:
         self.aysrepo = aysrepo
         self.name = name
         self.actor = actor
+        self._path = ""
+        self._schema = None
 
         if j.data.types.string.check(actor):
             raise j.exceptions.RuntimeError("no longer supported, pass actor")
@@ -57,7 +60,7 @@ class Service:
         if name is None or name == "":
             raise j.exceptions.RuntimeError("name (ays instance name) needs to be specified")
 
-        res = self.aysrepo.db.service.find(actor=self.name, name=self.name)
+        res = self.aysrepo.db.service.find(actor=self.actor.name, name=self.name)
 
         if len(res) == 0:
 
@@ -175,6 +178,7 @@ class Service:
         get content from fs and load in object
         only for DR purposes, std from key value stor
         """
+        # TODO: *2 implement
         from IPython import embed
         print("DEBUG NOW loadFromFS")
         embed()
@@ -184,10 +188,25 @@ class Service:
 
     def saveToFS(self):
         j.sal.fs.createDir(self.path)
-        from IPython import embed
-        print("DEBUG NOW saveToFS")
-        embed()
-        raise RuntimeError("stop debug here")
+        path = j.sal.fs.joinPaths(self.path, "service.json")
+        j.sal.fs.writeFile(filename=path, contents=str(self.model), append=False)
+
+        ddict = self.data.to_dict()
+        ddict2 = OrderedDict(ddict)
+        # ddict = sortedcontainers.SortedDict(ddict)
+        data3 = j.data.serializer.json.dumps(ddict2, sort_keys=True, indent=True)
+        path3 = j.sal.fs.joinPaths(self.path, "data.json")
+        j.sal.fs.writeFile(path3, data3)
+
+    @property
+    def schemaData(self):
+        if self._schema is None:
+            self._schema = j.data.capnp.getSchema("aysservice_%s" % self.actor.name, self.model.dbobj.capnpSchema)
+        return self._schema
+
+    @property
+    def data(self):
+        return self.schemaData.from_bytes_packed(self.model.dbobj.configData)
 
     def reset(self):
         self._hrd = None
@@ -205,11 +224,19 @@ class Service:
 
     @property
     def role(self):
-        return self.name.split(".")[0]
+        return self.actor.name.split(".")[0]
+
+    # @property
+    # def key(self):
+    #     return self.model.key
 
     @property
-    def key(self):
-        return self.model.key
+    def path(self):
+        if self._path == "":
+            relpath = self.model.dbobj.gitRepos[0].path
+            assert self.model.dbobj.gitRepos[0].url == self.aysrepo.git.remoteUrl
+            self._path = j.sal.fs.joinPaths(self.aysrepo.path, relpath)
+        return self._path
 
     @property
     def dnsNames(self):

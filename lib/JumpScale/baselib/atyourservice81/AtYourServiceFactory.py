@@ -51,6 +51,15 @@ class AtYourServiceFactory:
 
         self._test = None
 
+    def test(self):
+        r = self.get()
+        print(r.servicesFind())
+
+        from IPython import embed
+        print("DEBUG NOW ays test")
+        embed()
+        raise RuntimeError("stop debug here")
+
     def _doinit(self, force=False):
 
         if force:

@@ -50,8 +50,8 @@ struct Actor {
   }
 
   #capnp
-  serviceDataSchema @7 :Text;
-  actorDataSchema @8 :Text;
+  dataSchemaService @7 :Text;
+  dataSchemaActor @8 :Text;
 
   origin @9 :Origin;
   struct Origin {
@@ -65,9 +65,7 @@ struct Actor {
   serviceDataUI @10 :Text;
   actorDataUI @11 :Text;
 
-  serviceDataSchemaHRD @12 :Text;
-  actorDataSchemaHRD @13 :Text;
-
+  data @12 :Data;
 
 }
 
@@ -126,11 +124,11 @@ struct Service {
     changed @5;
   }
 
-  configData @8 :Data;
+  data @8 :Data;
   # bytes version of the content of schema.hrd after translation to canpn
 
   #schema of config data in textual format
-  capnpSchema @9 :Text;
+  dataSchema @9 :Text;
 
   gitRepos @10 :List(GitRepo);
   struct GitRepo {

@@ -76,34 +76,10 @@ class Service:
                 dbobj.actorName = self.actor.name
                 dbobj.state = "new"
 
-                dbobj.capnpSchema = actor.model.dbobj.serviceDataSchema
+                dbobj.dataSchema = actor.model.dbobj.dataSchemaService
 
-                #  . are removed from . to Uppercase
-                for key in list(args.keys()):
-                    key2 = j.data.hrd.sanitize_key(key)
-                    if key2 != key:
-                        args[key2] = args[key]
-                        args.pop(key)
-                try:
-                    configdata = actor.schemaServiceCapnp.new_message(**args)
-                except Exception as e:
-                    if str(e).find("has no such member") != -1:
-                        msg = "cannot create service from arguments\n"
-                        msg += "actor:'%s' servicename:'%s'" % (actor.name, self.name)
-                        msg += "arguments:\n%s\n" % j.data.serializer.json.dumps(args, sort_keys=True, indent=True)
-                        msg += "schema:\n%s" % dbobj.capnpSchema
-                        ee = str(e).split("stack:")[0]
-                        ee = ee.split("failed:")[1]
-                        msg += "capnperror:%s" % ee
-                        print(msg)
-                        from IPython import embed
-                        print("DEBUG capnperror capnperror")
-                        embed()
-                        raise RuntimeError("stop debug here")
-                        raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
-                    raise e
-
-                dbobj.configData = configdata.to_bytes_packed()
+                self._data = j.data.capnp.getObj("aysi:%s!%s" % (self.actor.name, self.name),
+                                                 dbobj.dataSchema, args=args, serializeToBinary=False)
 
                 r = self.model.gitRepoAdd()
                 r.url = self.aysrepo.git.remoteUrl

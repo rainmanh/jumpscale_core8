@@ -21,7 +21,7 @@ class ActorModel(ModelBase):
 
     def index(self):
         # put indexes in db as specified
-        ind = "%s:%s" % (self.dbobj.name, self.dbobj.state)
+        ind = "%s:%s" % (self.dbobj.name1, self.dbobj.state)
         self._index.index({ind: self.key})
 
     @classmethod

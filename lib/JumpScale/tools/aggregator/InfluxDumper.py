@@ -1,9 +1,16 @@
 from JumpScale import j
 import Dumper
-import collections
 
 
-Stats = collections.namedtuple("Stats", "node key epoch stat avg max")
+class Stats(object):
+    def __init__(self, node, key, epoch, stat, avg, max, total):
+        self.node = node
+        self.key = key
+        self.epoch = epoch
+        self.stat = stat
+        self.avg = avg
+        self.max = max
+        self.total = total
 
 
 class InfluxDumper(Dumper.BaseDumper):
@@ -42,31 +49,26 @@ class InfluxDumper(Dumper.BaseDumper):
     def _parse_line(self, line):
         """
         Line is formated as:
-        node|key|epoch|stat|avg|max
+        node|key|epoch|stat|avg|max|total
         :param line: Line to parse
         :return: Stats object
         """
 
         parts = line.split('|')
-        if len(parts) != 6:
+        if len(parts) != 7:
             raise Exception('Invalid stats line "%s"' % line)
-        return Stats(parts[0], parts[1], int(parts[2]), float(parts[3]), float(parts[4]), float(parts[5]))
+        return Stats(parts[0], parts[1], int(parts[2]), float(parts[3]), float(parts[4]), float(parts[5]), float(parts[6]))
 
-    def _dump(self, key, stats, info):
-
-        points = [
-            {
-                "measurement": key,
-                "tags": info['tags'].tags,
-                "time": stats.epoch,
-                "fields": {
-                    "value": stats.avg,
-                    "max": stats.max,
-                }
+    def _mk_point(self, key, epoch, value, max, tags):
+        return {
+            "measurement": key,
+            "tags": tags,
+            "time": epoch,
+            "fields": {
+                "value": value,
+                "max": max,
             }
-        ]
-
-        self.influxdb.write_points(points, database=self.database, time_precision='s')
+        }
 
     def _dump_hour(self, stats):
         print(stats)
@@ -89,6 +91,9 @@ class InfluxDumper(Dumper.BaseDumper):
             stats = self._parse_line(line)
             info = redis.get("stats:%s:%s" % (stats.node, stats.key))
 
+            if stats.key.find('@') != -1:
+                stats.key = stats.key.split('@')[0]
+
             if info is not None:
                 info = j.data.serializer.json.loads(info)
             else:
@@ -96,8 +101,13 @@ class InfluxDumper(Dumper.BaseDumper):
 
             info['tags'] = j.data.tags.getObject(info.get('tags', []))
             info['tags'].tags['node'] = stats.node
+            points = []
 
+            tags = info['tags'].tags
             if queue == self.QUEUE_MIN:
-                self._dump("%s|m" % (stats.key,), stats, info)
+                points.append(self._mk_point("%s|m" % (stats.key,), stats.epoch, stats.avg, stats.max, tags))
+                points.append(self._mk_point("%s|t" % (stats.key,), stats.epoch, stats.total, stats.max, tags))
             else:
-                self._dump("%s|h" % (stats.key,), stats, info)
+                points.append(self._mk_point("%s|h" % (stats.key,), stats.epoch, stats.avg, stats.max, tags))
+
+            self.influxdb.write_points(points, database=self.database, time_precision='s')

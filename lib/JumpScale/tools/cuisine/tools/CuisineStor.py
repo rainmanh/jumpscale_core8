@@ -197,28 +197,28 @@ print(json.dumps(data))
 
     def tarball(self, root, keys, target):
         return """
-import os
-import json
-import subprocess
+        import os
+        import json
+        import subprocess
 
-root = "%s"
-keys = json.loads('''%s''')
-targ = '''%s'''
-item = targ + '.list'
+        root = "%s"
+        keys = json.loads('''%s''')
+        targ = '''%s'''
+        item = targ + '.list'
 
-os.chdir(root)
+        os.chdir(root)
 
-if os.path.isfile(targ):
-    os.unlink(targ)
+        if os.path.isfile(targ):
+            os.unlink(targ)
 
-with open(item, 'w') as f:
-    for key in keys:
-        f.write(os.path.join(key[:2], key[2:4], key) + "\\n")
+        with open(item, 'w') as f:
+            for key in keys:
+                f.write(os.path.join(key[:2], key[2:4], key) + "\\n")
 
-subprocess.call(['tar', '-cT', item, '-f', targ])
-os.unlink(item)
+        subprocess.call(['tar', '-cT', item, '-f', targ])
+        os.unlink(item)
 
-print(targ)
+        print(targ)
 
         """ % (root, j.data.serializer.json.dumps(keys), target)
 
@@ -337,19 +337,29 @@ class StorSpace(object):
         self._executor = stor._executor
         self.stor = stor
 
-        self.spacepath = j.sal.fs.joinPaths(stor.root, "namespaces", name)
-        self.archivepath = j.sal.fs.joinPaths(stor.root, "archives", name)
-        self.flistpath = j.sal.fs.joinPaths(stor.root, "flist", name)
+        self.path = j.sal.fs.joinPaths(stor.root, name)
         self._config = {}
 
         self.init()
+        # self.config["public"] = public
+        # self.config[""]
 
     def init(self):
-        self._cuisine.core.dir_ensure(self.spacepath)
-        self._cuisine.core.dir_ensure(self.archivepath)
-        self._cuisine.core.dir_ensure(self.flistpath)
+        if "setup" not in self.config:
+            self.config["setup"] = {"initialized": False, "http": False}
 
-    """
+        if not self.config["setup"]["initialized"]:
+            self._cuisine.core.dir_ensure(self.path)
+
+            # create a full empty directory tree
+            script = self.stor.scripts.initTree(self.path)
+            self._cuisine.core.execute_python(script)
+            self.config["setup"]["initialized"] = True
+
+        self.configCommit()
+
+        # self.start()
+
     def enableServerHTTP(self, name, browse=True, secrets=[]):
         if "HTTP" not in self.config:
             self.config["HTTP"] = {}
@@ -367,9 +377,7 @@ class StorSpace(object):
             self.config["RSYNC"] = {}
 
         self.config["RSYNC"][name] = {"secrets": secrets, "browse": browse}
-    """
 
-    '''
     @property
     def config(self):
         if self._config == {}:
@@ -380,26 +388,24 @@ class StorSpace(object):
                 self._config = j.data.serializer.yaml.loads(yaml)
 
         return self._config
-    '''
 
-    '''
+    """
     @config.setter
     def config(self, val):
         import ipdb; ipdb.set_trace()
         #check dict
         #store in config also remote serialized !!!
         pass
-    
+    """
+
     def configCommit(self):
         yaml = j.data.serializer.yaml.dumps(self.config)
         path = j.sal.fs.joinPaths(self.path, "config.yaml")
         self._cuisine.core.file_write(path, yaml)
-    '''
 
     def hashPath(self, hash):
         return '%s/%s/%s' % (hash[:2], hash[2:4], hash)
 
-    '''
     def metadataFile(self, path):
         return "%s.meta" % path
 
@@ -414,7 +420,6 @@ class StorSpace(object):
             return meta
 
         return None
-    '''
 
     def file_upload(self, source, storpath, expiration=None, tags=None):
         """
@@ -425,14 +430,13 @@ class StorSpace(object):
         # better approch: os.path.abspath ?
         storpath = storpath.replace('../', '')
 
-        filepath = j.sal.fs.joinPaths(self.spacepath, storpath)
+        filepath = j.sal.fs.joinPaths(self.path, storpath)
         path = j.sal.fs.getDirName(filepath)
 
         # be sur that remote directory exists
         self._cuisine.core.dir_ensure(path)
         self._cuisine.core.upload(source, filepath)
 
-        '''
         metadata = self.metadata(expiration, tags)
         if metadata:
             # upload metadata only if defined
@@ -441,24 +445,6 @@ class StorSpace(object):
             # json parser in python should be able out-of-box
             md = j.data.serializer.json.dumps(metadata)
             self._cuisine.core.file_write(self.metadataFile(filepath), md)
-        '''
-
-        return True
-    
-    def flist_upload(self, source, flistname):
-        """
-        Upload a flist file to the destination namespace
-        """
-        # small protection against directory transversal
-        # better approch: os.path.abspath ?
-        storpath = flistname.replace('../', '')
-
-        filepath = j.sal.fs.joinPaths(self.flistpath, flistname)
-        path = j.sal.fs.getDirName(filepath)
-
-        # be sur that remote directory exists
-        self._cuisine.core.dir_ensure(path)
-        self._cuisine.core.upload(source, filepath)
 
         return True
 
@@ -469,8 +455,8 @@ class StorSpace(object):
         # small protection against directory transversal
         storpath = storpath.replace('../', '')
 
-        filepath = j.sal.fs.joinPaths(self.spacepath, storpath)
-        self._cuisine.core.download(filepath, dest)
+        filepath = j.sal.fs.joinPaths(self.path, storpath)
+        self._cuisine.core.download(dest, filepath)
 
         if chmod:
             j.sal.fs.chmod(dest, chmod)
@@ -479,24 +465,10 @@ class StorSpace(object):
             # FIXME: group ?
             j.sal.fs.chown(dest, chown)
 
-        '''
         # checking if there is metadata
         metafile = self.metadataFile(storpath)
         if self._cuisine.core.file_exists(metafile):
             return self._cuisine.core.file_read(metafile)
-        '''
-
-        return True
-    
-    def flist_download(self, flistfile, dest):
-        """
-        Download a flist from the storagespace namespace to a specific location
-        """
-        # small protection against directory transversal
-        storpath = flistfile.replace('../', '')
-
-        filepath = j.sal.fs.joinPaths(self.flistpath, storpath)
-        self._cuisine.core.download(filepath, dest)
 
         return True
 
@@ -507,7 +479,7 @@ class StorSpace(object):
         # small protection against directory transversal
         storpath = storpath.replace('../', '')
 
-        path = j.sal.fs.joinPaths(self.spacepath, storpath)
+        path = j.sal.fs.joinPaths(self.path, storpath)
 
         if not self._cuisine.core.file_exists(path):
             return False
@@ -526,7 +498,7 @@ class StorSpace(object):
         """
         Check if a set of keys exists. Returns a list which contains hash and bool
         """
-        script = self.stor.scripts.exists(self.spacepath, keys)
+        script = self.stor.scripts.exists(self.path, keys)
         data = self._cuisine.core.execute_python(script)[1]
         return j.data.serializer.json.loads(data)
 
@@ -549,7 +521,6 @@ class StorSpace(object):
             return True
 
         hashpath = self.hashPath(checksum)
-        print(hashpath)
 
         # uploading file, if success, return the hash
         if self.file_upload(source, hashpath, expiration, tags):
@@ -567,12 +538,11 @@ class StorSpace(object):
         """
         Check consistancy and validity of a set of keys in the storagespace
         """
-        script = self.stor.scripts.check(self.spacepath, keys)
+        script = self.stor.scripts.check(self.path, keys)
         data = self._cuisine.core.execute_python(script)[1]
 
         return j.data.serializer.json.loads(data)
 
-    '''
     def getMetadata(self, keys):
         """
         Get metadata content for a set of keys from the storagespace
@@ -590,7 +560,6 @@ class StorSpace(object):
         script = self.stor.scripts.setMetadata(self.path, keys, metadata)
         data = self._cuisine.core.execute_python(script)
         return True
-    '''
 
     def getResponse(self, remote):
         if not remote.startswith('/tmp'):
@@ -653,15 +622,14 @@ class StorSpace(object):
             target = source
 
         # building the flist struct
-        f = j.tools.flist.get()
-        f.build(target)
+        flist = self.flist(target)
 
-        exists = self.exists(f.getHashList())
+        exists = self.exists(list(flist.keys()))
         needed = []
 
         for key, exist in exists.items():
-            if not exist and f.isRegular(key):
-                needed.append({'hash': key, 'file': f.getPath(key)})
+            if not exist:
+                needed.append({'hash': key, 'file': flist[key]['file']})
 
         if len(needed) == 0:
             # nothing to upload
@@ -693,8 +661,8 @@ class StorSpace(object):
         flistfile = j.sal.fs.joinPaths(flistpath, flistname + '.flist')
 
         # dumping flist and uploading it
-        j.sal.fs.writeFile(flistfile, f.dumps())
-        mds.flist_upload(flistfile, '%s.flist' % flistname)
+        j.sal.fs.writeFile(flistfile, self.flistDumps(flist))
+        mds.file_upload(flistfile, 'flist/%s.flist' % flistname)
 
         # cleaning: removing tar file, flist dir, ...
         j.sal.fs.removeDirTree(flistpath)
@@ -730,17 +698,16 @@ class StorSpace(object):
 
         workdir = j.sal.fs.getTmpDirPath()
         flistfile = j.sal.fs.joinPaths(workdir, flistname + '.flist')
-        mds.flist_download('%s.flist' % flistname, flistfile)
-        flist = j.tools.flist.get()
-        flist.parse(flistfile)
+        mds.file_download('flist/%s.flist' % flistname, flistfile)
+        flist = self.flistLoads(j.sal.fs.fileGetContents(flistfile))
 
         # checking for cache
 
         # building tar
         tarfile = '%s.tar' % flistname
-        tarpath = j.sal.fs.joinPaths(self.archivepath, tarfile)
+        tarpath = j.sal.fs.joinPaths('flist', tarfile)
 
-        self.tarball(flist.getHashList(), tarpath)
+        self.tarball(flist.keys(), tarpath)
 
         # downloading tar
         dstpath = j.sal.fs.joinPaths(workdir, tarfile)
@@ -755,34 +722,85 @@ class StorSpace(object):
         tar.extract(jstortmp)
 
         # restoring permissions
-        for key in flist.getHashList():
+        for key in flist.keys():
             file = j.sal.fs.joinPaths(jstortmp, self.hashPath(key))
 
-            final = j.sal.fs.joinPaths(destination, flist.getPath(key)[1:])
+            final = j.sal.fs.joinPaths(destination, flist[key]['file'][1:])
             fpath = j.sal.fs.getDirName(final)
 
             if not j.sal.fs.isDir(fpath):
                 j.sal.fs.createDir(fpath)
 
-            if flist.isRegular(key):
-                j.sal.fs.copyFile(file, final)
-                j.sal.fs.chown(final, flist.getOwner(key), flist.getGroup(key))
-                j.sal.fs.chmod(final, int(flist.getMode(key), 8))
-            
+            # restoring file to its correct location
+            if j.sal.fs.isLink(file):
+                linkto = os.readlink(file)
+                os.symlink(linkto, final)
+
             else:
-                print("FIXME, NOT REGULAR")
+                j.sal.fs.copyFile(file, final)
+                j.sal.fs.chown(final, flist[key]['uname'], flist[key]['gname'])
+                j.sal.fs.chmod(final, int(flist[key]['mode'], 8))
 
     def tarball(self, keys, target):
-        script = self.stor.scripts.tarball(self.spacepath, keys, target)
+        script = self.stor.scripts.tarball(self.path, keys, target)
         data = self._cuisine.core.execute_python(script)
+        return data
+
+    def flist(self, path):
+        """
+        Generate a flist for the path contents
+        """
+        #TODO: maxim, the original format was not a dict, this is not ideal, if you have a big directory this will explode ! it needs to go back to original text format & processing on disk directly not in mem
+        flist = {}
+        for file in j.sal.fs.walk(path, recurse=True):
+            stat = j.sal.fs.statPath(file)
+            hash = j.data.hash.md5(file)
+            mode = oct(stat.st_mode)[3:]
+
+            flist[hash] = {
+                'file': file,
+                'size': stat.st_size,
+                'mode': mode,
+                'uname': pwd.getpwuid(stat.st_uid).pw_name,
+                'gname': grp.getgrgid(stat.st_gid).gr_name
+            }
+
+        return flist
+
+    def flistDumps(self, flist):
+        data = []
+
+        for key, f in flist.items():
+            line = "%s|%s|%d|%s|%s|%s" % (
+                f['file'], key, f['size'], f['uname'], f['gname'], f['mode']
+            )
+
+            data.append(line)
+
+        return "\n".join(data) + "\n"
+
+    def flistLoads(self, flist):
+        data = {}
+
+        for line in flist.splitlines():
+            f = line.split('|')
+
+            data[f[1]] = {
+                'file': f[0],
+                'size': int(f[2]),
+                'mode': f[5],
+                'uname': f[3],
+                'gname': f[4]
+            }
+
         return data
 
     def _extract(self, tarfile):
         """
         Extract a tarball on the storage, this should be used only internally
         """
-        tarsource = j.sal.fs.joinPaths(self.spacepath, tarfile)
-        tartarget = self.spacepath
+        tarsource = j.sal.fs.joinPaths(self.path, tarfile)
+        tartarget = self.path
 
         self._cuisine.core.run('tar -xvf %s -C %s' % (tarsource, tartarget))
         self._cuisine.core.file_unlink(tarsource)

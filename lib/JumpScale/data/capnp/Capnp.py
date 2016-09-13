@@ -17,6 +17,7 @@ class Capnp:
             sys.path.append(self._capnpVarDir)
 
     def getSchema(self, name, schemaInText):
+        name = name.replace('.', '_')
         if not name in self._cache:
             print("load schema:%s" % name)
             md5 = j.data.hash.md5_string(schemaInText)

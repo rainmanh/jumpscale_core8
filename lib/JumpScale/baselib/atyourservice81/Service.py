@@ -78,14 +78,12 @@ class Service:
 
                 dbobj.capnpSchema = actor.model.dbobj.serviceDataSchema
 
-                #. are removed from . to Uppercase
-                for key, val in args.items():
-                    if "." in key:
-                        pre, post = key.split(".", 1)
-                        key2 = pre + post[0].upper() + post[1:]
+                #  . are removed from . to Uppercase
+                for key in list(args.keys()):
+                    key2 = j.data.hrd.sanitize_key(key)
+                    if key2 != key:
                         args[key2] = args[key]
                         args.pop(key)
-
                 try:
                     configdata = actor.schemaServiceCapnp.new_message(**args)
                 except Exception as e:
@@ -111,7 +109,7 @@ class Service:
                 r.url = self.aysrepo.git.remoteUrl
 
                 parent = actor.schemaServiceHRD.parentSchemaItemGet()
-                if parent != None:
+                if parent is not None:
                     parentrole = parent.parent
                     instance = args[parentrole]
                     res = self.aysrepo.db.service.find(name=instance, actor="%s.*" % parentrole)
@@ -135,23 +133,24 @@ class Service:
                             # instance name of the comusmption is specified
                             instance = args[producer_role]
                         else:
-                            # instance name of the comusmption is not specified
-                            # check if auto is true and try to find a valid producer
-                            if producer_schema_info.auto is False:
-                                raise j.exceptions.Input(message="no instance specified for producer %s and auto is disabled" % (
-                                                         producer_role, self), level=1, source="", tags="", msgpub="")
-                            else:
-                                # auto is True, let's try to find a valid producer
-                                instance = ''
+                            instance = ''
 
                         res = self.aysrepo.db.service.find(name=instance, actor="%s.*" % producer_role)
-                        if len(res) <= 0:
-                            raise j.exceptions.Input(message="could not find producer:%s!%s for %s" % (
-                                                     producer_role, instance, self), level=1, source="", tags="", msgpub="")
-                        elif len(res) > 1:
+                        producer_obj = None
+                        if len(res) > 1:
                             raise j.exceptions.Input(message="found more than 1 producer:%s!%s for %s" % (
                                                      producer_role, instance, self), level=1, source="", tags="", msgpub="")
-                        producer_obj = res[0].objectGet(self.aysrepo)
+
+                        elif len(res) <= 0:
+                            if producer_schema_info.auto is True:  # auto creation of the producer is enabled
+                                actor = self.aysrepo.actorGet(producer_role, reload=False)
+                                producer_obj = actor.serviceCreate(instance='auto', args={})
+                            else:
+                                raise j.exceptions.Input(message="could not find producer:%s!%s for %s" % (
+                                                         producer_role, instance, self), level=1, source="", tags="", msgpub="")
+
+                        if producer_obj is None:
+                            producer_obj = res[0].objectGet(self.aysrepo)
                         self.model.producerAdd(producer_obj.actor.name, producer_obj.name, producer_obj.key)
 
                 skey = "%s!%s" % (self.role, self.name)

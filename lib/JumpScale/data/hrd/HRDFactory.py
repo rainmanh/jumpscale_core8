@@ -12,6 +12,9 @@ class HRDFactory:
         self.logger = j.logger.get("j.data.hrd")
         self.logger.disabled = True
 
+    def sanitize_key(self, key):
+        return HRDSchema.sanitize_key(key)
+
     def getSchema(self, path=None, content=""):
         return HRDSchema(path=path, content=content)
 

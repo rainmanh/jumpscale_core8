@@ -255,7 +255,8 @@ class HRDSchema:
             for alias in hrdtype.alias:
                 self.items_with_alias[alias] = hrdtype
 
-    def _sanitize_key(self, key):
+    @classmethod
+    def sanitize_key(self, key):
         """
         make sure the key of an HRD schema has a valid format for Capnp Schema
         e.g.:
@@ -292,9 +293,10 @@ class HRDSchema:
         serializeddata = ""
 
         for k, ttype in self.fieldsforcapnp.items():
-            k = self._sanitize_key(k)
+            k = self.sanitize_key(k)
 
             if ttype.list is not True:
+            # if ttype.list is not True and ttype.consume_link == '':
                 serializeddata += "\t" + k + \
                     " @%d :%s;\n" % (fid, typesmap[ttype.hrd_ttype])
             else:

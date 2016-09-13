@@ -18,7 +18,7 @@ class Capnp:
 
     def getSchema(self, name, schemaInText):
         name = name.replace(".", "_")
-        if not name in self._cache:
+        if name not in self._cache:
             print("load schema:%s" % name)
             md5 = j.data.hash.md5_string(schemaInText)
             nameOnFS = "%s_%s.capnp" % (name, md5)
@@ -37,3 +37,30 @@ class Capnp:
 
             self._cache[name] = cl
         return self._cache[name]
+
+    def getObj(self, name, schemaInText, args={}, serializeToBinary=False):
+        #. are removed from . to Uppercase
+        for key, val in args.items():
+            if "." in key:
+                pre, post = key.split(".", 1)
+                key2 = pre + post[0].upper() + post[1:]
+                args[key2] = args[key]
+                args.pop(key)
+        schema = self.getSchema(name, schemaInText)
+        try:
+            configdata = schema.new_message(**args)
+        except Exception as e:
+            if str(e).find("has no such member") != -1:
+                msg = "cannot create data for schema:'%s' from arguments\n" % name
+                msg += "arguments:\n%s\n" % j.data.serializer.json.dumps(args, sort_keys=True, indent=True)
+                msg += "schema:\n%s" % schemaInText
+                ee = str(e).split("stack:")[0]
+                ee = ee.split("failed:")[1]
+                msg += "capnperror:%s" % ee
+                print(msg)
+                raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
+            raise e
+        if serializeToBinary:
+            return configdata.to_bytes_packed()
+        else:
+            return configdata

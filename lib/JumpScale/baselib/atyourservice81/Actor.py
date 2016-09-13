@@ -39,31 +39,37 @@ class Actor(ActorBase):
             existingKeys = self.db.list(name=self.name)
             if len(existingKeys) == 0:
                 self.model = self.db.new()
-                self.model.save()
             elif len(existingKeys) == 1:
                 self.model = self.db.get(existingKeys[0])
             else:
                 raise j.exceptions.Input(message="Found more than 1 object:%s" %
                                          existingKeys, level=1, source="", tags="", msgpub="")
-            self.loadFromFS()
+            self.copyFromActionTemplate()
+            self.saveAll()
         else:
             self.model = model
 
         self.model.dbobj.name = self.name
 
     @property
-    def schemaServiceCapnp(self):
+    def schemaActor(self):
         if self._schema is None:
             self._schema = j.data.capnp.getSchema("aysservice_%s" % self.name, self.model.dbobj.serviceDataSchema)
         return self._schema
 
     @property
-    def schemaServiceHRD(self):
-        return j.data.hrd.getSchema(content=self.model.dbobj.serviceDataSchemaHRD)
+    def schemaService(self):
+        if self._schema is None:
+            self._schema = j.data.capnp.getSchema("aysservice_%s" % self.name, self.model.dbobj.serviceDataSchema)
+        return self._schema
 
-    @property
-    def schemaActorHRD(self):
-        return j.data.hrd.getSchema(content=self.model.dbobj.serviceDataActorHRD)
+    # @property
+    # def schemaServiceHRD(self):
+    #     return j.data.hrd.getSchema(content=self.model.dbobj.serviceDataSchemaHRD)
+    #
+    # @property
+    # def schemaActorHRD(self):
+    #     return j.data.hrd.getSchema(content=self.model.dbobj.serviceDataActorHRD)
 
 
 # INIT
@@ -72,8 +78,43 @@ class Actor(ActorBase):
         """
         get content from fs and load in object
         """
-        self.copyFilesFromTemplates()
+        raise NotImplemented("#TODO *2")
+        scode = self.model.actionsSourceCode  # @TODO *1 is also wrong, need to check
 
+        self.model.save()
+
+    def saveToFS(self):
+        if not j.sal.fs.exists(self.path, followlinks=True):
+            j.sal.fs.createDir(self.path)
+            self.copyFilesFromTemplates()
+
+        path = j.sal.fs.joinPaths(self.path, "actor.json")
+        j.sal.fs.writeFile(filename=path, contents=str(self.model), append=False)
+
+        ddict = self.data.to_dict()
+        ddict2 = OrderedDict(ddict)
+        # ddict = sortedcontainers.SortedDict(ddict)
+        data3 = j.data.serializer.json.dumps(ddict2, sort_keys=True, indent=True)
+        path3 = j.sal.fs.joinPaths(self.path, "data.json")
+        j.sal.fs.writeFile(path3, data3)
+
+    def saveAll(self):
+        self.model.save()
+        self.saveToFS()
+
+    def copyFromActionTemplate(self):
+        j.sal.fs.createDir(self.path)
+        # look for all keys which start with path_ copy these from template to local actor in fs
+        for key in self.__dict__.keys():
+            if key.startswith("path_"):
+                print("COPY:%s" % key)
+                if j.sal.fs.exists(self.template.__dict__[key], followlinks=True):
+                    j.sal.fs.copyFile(self.template.__dict__[key], self.__dict__[key])
+
+        from IPython import embed
+        print("DEBUG NOW 9888")
+        embed()
+        raise RuntimeError("stop debug here")
         # hrd schema to capnp
         if j.sal.fs.exists(self.path_hrd_schema_actor):
             if self.model.dbobj.actorDataSchema != self.template.schemaActor.capnpSchema:
@@ -86,19 +127,9 @@ class Actor(ActorBase):
                 self.model.dbobj.serviceDataSchema = self.template.schemaService.capnpSchema
                 self.model.dbobj.serviceDataSchemaHRD = j.sal.fs.fileGetContents(self.path_hrd_schema_service)
 
-        scode = self.model.actionsSourceCode
-
-        self.model.save()
-
-    def copyFilesFromTemplates(self):
-        j.sal.fs.createDir(self.path)
-        # look for all keys which start with path_ copy these from template to local actor in fs
-        for key in self.__dict__.keys():
-            if key.startswith("path_"):
-                if j.sal.fs.exists(self.template.__dict__[key], followlinks=True):
-                    j.sal.fs.copyFile(self.template.__dict__[key], self.__dict__[key])
-
         self._processActionsFile()
+
+        self.saveTOFS()
 
     def _processActionsFile(self):
         self._out = ""

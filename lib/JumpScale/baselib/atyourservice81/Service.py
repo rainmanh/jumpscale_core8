@@ -50,6 +50,7 @@ class Service:
         self.actor = actor
         self._path = ""
         self._schema = None
+        self._producers = None
 
         if j.data.types.string.check(actor):
             raise j.exceptions.RuntimeError("no longer supported, pass actor")
@@ -77,6 +78,7 @@ class Service:
 
                 dbobj.capnpSchema = actor.model.dbobj.serviceDataSchema
 
+                #. are removed from . to Uppercase
                 for key, val in args.items():
                     if "." in key:
                         pre, post = key.split(".", 1)
@@ -85,7 +87,7 @@ class Service:
                         args.pop(key)
 
                 try:
-                    configdata = actor.schemaServiceCapnp.new_message(**args2)
+                    configdata = actor.schemaServiceCapnp.new_message(**args)
                 except Exception as e:
                     if str(e).find("has no such member") != -1:
                         msg = "cannot create service from arguments\n"
@@ -126,10 +128,18 @@ class Service:
 
                 producers = actor.schemaServiceHRD.consumeSchemaItemsGet()
                 if producers != []:
-                    from IPython import embed
-                    print("DEBUG NOW producers")
-                    embed()
-                    raise RuntimeError("stop debug here")
+                    for producer in producers:
+                        producer_role = producer.consume_link
+                        instance = args[producer_role]
+                        res = self.aysrepo.db.service.find(name=instance, actor="%s.*" % producer_role)
+                        if len(res) <= 0:
+                            raise j.exceptions.Input(message="could not find producer:%s!%s for %s" % (
+                                                     producer_role, instance, self), level=1, source="", tags="", msgpub="")
+                        elif len(res) > 1:
+                            raise j.exceptions.Input(message="found more than 1 producer:%s!%s for %s" % (
+                                                     producer_role, instance, self), level=1, source="", tags="", msgpub="")
+                        producer_obj = res[0].objectGet(self.aysrepo)
+                        self.model.producerAdd(producer_obj.actor.name, producer_obj.name, producer_obj.key)
 
                 skey = "%s!%s" % (self.role, self.name)
                 if parent is not None:
@@ -325,20 +335,17 @@ class Service:
 
     @property
     def producers(self):
-        raise NotImplemented("")
-        # TODO: *1
         if self._producers is None:
             self._producers = {}
-            for key, items in self.model.producers.items():
-                producerSet = set()
-                # items=[item for item in items if item.strip()!=""]
-                for item in items:
-                    role, instance = item.split("!")
-                    service = self.aysrepo.getService(
-                        role=role, instance=instance)
-                    producerSet.add(service)
+            for prod_model in self.model.producers:
 
-                self._producers[key] = list(producerSet)
+                if prod_model.dbobj.actorName not in self._producers:
+                    self._producers[prod_model.dbobj.actorName] = []
+
+                result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
+                for service in result:
+                    self._producers[prod_model.dbobj.actorName].append(service)
+
         return self._producers
 
     def remove_producer(self, role, instance):

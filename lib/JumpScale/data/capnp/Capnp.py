@@ -17,13 +17,23 @@ class Capnp:
             sys.path.append(self._capnpVarDir)
 
     def getSchema(self, name, schemaInText):
+        name = name.replace(".", "_")
         if not name in self._cache:
             print("load schema:%s" % name)
             md5 = j.data.hash.md5_string(schemaInText)
             nameOnFS = "%s_%s.capnp" % (name, md5)
             path = j.sal.fs.joinPaths(self._capnpVarDir, nameOnFS)
+            schemaInText = schemaInText.strip() + "\n"
             j.sal.fs.writeFile(filename=path, contents=schemaInText, append=False)
-            exec("import %s_%s_capnp as %s" % (name, md5, name))
+            try:
+                exec("import %s_%s_capnp as %s" % (name, md5, name))
+            except Exception as e:
+                if str(e).find("invalid syntax") != -1:
+                    raise j.exceptions.Input(message="Could not import schema:%s\n%s\n\nschema:\n%s\npath:%s\n\n" %
+                                             (name, e, schemaInText, path), level=1, source="", tags="", msgpub="")
+                raise e
+
             cl = eval(name + ".Schema")
+
             self._cache[name] = cl
         return self._cache[name]

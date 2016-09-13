@@ -6,6 +6,7 @@ from collections import OrderedDict
 
 VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
+
 class ServiceModel(ModelBase):
 
     @classmethod
@@ -244,7 +245,7 @@ class ServiceModel(ModelBase):
 
     @property
     def wiki(self):
-        # TODO: *1
+        # TODO: *3
         raise NotImplemented
         out = "## service:%s state" % self.service.key
 

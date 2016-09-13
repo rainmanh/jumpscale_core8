@@ -71,6 +71,8 @@ class ActorTemplate(ActorBase):
 
     @property
     def schemaActor(self):
+        if self._schema_actor == "EMPTY":
+            return None
         if self._schema_actor == None:
             if not j.sal.fs.exists(self.path_hrd_schema_actor):
                 self._schema_actor = j.data.hrd.getSchema(content="")

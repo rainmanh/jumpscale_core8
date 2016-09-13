@@ -287,6 +287,7 @@ class HRDSchema:
             'float': 'Float32',
         }
         fid = 0
+        print("generate id for schema")
         schema_id = j.data.idgenerator.generateCapnpID()
         serializeddata = ""
 

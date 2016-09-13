@@ -5,6 +5,8 @@ from collections import OrderedDict
 
 VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
+from JumpScale.baselib.atyourservice81.Service import Service
+
 
 class ServiceModel(ModelBase):
 
@@ -64,6 +66,10 @@ class ServiceModel(ModelBase):
                 ind = "%s:%s:%s:%s:%s" % (self.dbobj.name, self.dbobj.actorName, self.dbobj.state, parent, producer2)
                 index[ind] = self.key
             self._index.index(index)
+
+    def objectGet(self, aysrepo):
+        actor = aysrepo.actorGet(self.dbobj.actorName, die=True)
+        return Service(name=self.dbobj.name, actor=actor, aysrepo=aysrepo, model=self)
 
     @classmethod
     def find(self, name="", actor="", state="", parent="", producer=""):

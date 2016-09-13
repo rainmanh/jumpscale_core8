@@ -62,6 +62,12 @@ class Service:
 
         res = self.aysrepo.db.service.find(actor=self.actor.name, name=self.name)
 
+        if len(res) == 0 and model is not None:
+            from IPython import embed
+            print("DEBUG NOW model given, but found actor")
+            embed()
+            raise RuntimeError("stop debug here")
+            # raise j.exceptions.Input(message="when model specified then ", level=1, source="", tags="", msgpub="")
         if len(res) == 0:
 
             self.model = self.aysrepo.db.service.new()
@@ -103,10 +109,19 @@ class Service:
 
             parent = actor.schemaServiceHRD.parentSchemaItemGet()
             if parent != None:
-                from IPython import embed
-                print("DEBUG NOW found parent")
-                embed()
-                raise RuntimeError("stop debug here")
+                parentrole = parent.parent
+                instance = args[parentrole]
+                res = self.aysrepo.db.service.find(name=instance, actor="%s.*" % parentrole)
+                if res == []:
+                    raise j.exceptions.Input(message="could not find parent:%s!%s for %s" % (
+                        parentrole, instance, self), level=1, source="", tags="", msgpub="")
+                elif len(res) > 1:
+                    raise j.exceptions.Input(message="found more than 1 parent:%s!%s for %s" % (
+                        parentrole, instance, self), level=1, source="", tags="", msgpub="")
+                parentobj = res[0].objectGet(self.aysrepo)
+                dbobj.parent.actorName = parentobj.actor.name
+                dbobj.parent.key = parentobj.model.key
+                dbobj.parent.name = parentobj.model.dbobj.name
 
             producers = actor.schemaServiceHRD.consumeSchemaItemsGet()
             if producers != []:
@@ -115,10 +130,10 @@ class Service:
                 embed()
                 raise RuntimeError("stop debug here")
 
+            skey = "%s!%s" % (self.role, self.name)
             if parent is not None:
-                relpath = j.sal.fs.joinPaths(parent.path, key)
+                relpath = j.sal.fs.joinPaths(parentobj.path, skey)
             else:
-                skey = "%s!%s" % (self.role, self.name)
                 relpath = j.sal.fs.joinPaths("services", skey)
 
             r.path = relpath
@@ -345,16 +360,20 @@ class Service:
     def save(self):
         self.model.save()
 
-    def update_hrd(self):
-        if self.actor.template.schema is not None:
-            self._hrd = self.actor.template.schema.hrdGet(hrd=self.hrd, args={})
-            self._hrd.path = j.sal.fs.joinPaths(self.path, "instance.hrd")
+    # def update_hrd(self):
+    #     if self.actor.template.schema is not None:
+    #         self._hrd = self.actor.template.schema.hrdGet(hrd=self.hrd, args={})
+    #         self._hrd.path = j.sal.fs.joinPaths(self.path, "instance.hrd")
 
     def processChange(self, item):
         pass
 
     def init(self, args={}):
 
+        from IPython import embed
+        print("DEBUG NOW init service ")
+        embed()
+        raise RuntimeError("stop debug here")
         self.logger.info('INIT service: %s' % self)
 
         # j.sal.fs.createDir(self.model.dbobj.origin.path)

@@ -8,7 +8,7 @@ from JumpScale.baselib.atyourservice81.Actor import Actor
 # from JumpScale.baselib.atyourservice81.ActionMethodDecorator import ActionMethodDecorator
 from JumpScale.baselib.atyourservice81.Blueprint import Blueprint
 from JumpScale.baselib.atyourservice81.AYSRun import AYSRun
-from JumpScale.baselib.atyourservice81.Service import Service
+# from JumpScale.baselib.atyourservice81.Service import Service
 # from AYSdb import *
 
 import colored_traceback
@@ -77,12 +77,16 @@ class AtYourServiceRepo():
         self._actors[actor.name] = actor
         return actor
 
-    def actorGet(self, name, reload=False):
+    def actorGet(self, name, reload=False, die=False):
         if reload:
             self.reset()
         if name in self.actors:
             obj = self.actors[name]
-        obj = self.actorCreate(name)
+        else:
+            if die:
+                raise j.exceptions.Input(message="Could not find actor with name:%s" %
+                                         name, level=1, source="", tags="", msgpub="")
+            obj = self.actorCreate(name)
         if reload:
             obj.loadFromFS()
         return obj

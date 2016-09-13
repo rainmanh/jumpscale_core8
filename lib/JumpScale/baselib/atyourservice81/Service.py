@@ -126,11 +126,24 @@ class Service:
                     dbobj.parent.key = parentobj.model.key
                     dbobj.parent.name = parentobj.model.dbobj.name
 
-                producers = actor.schemaServiceHRD.consumeSchemaItemsGet()
-                if producers != []:
-                    for producer in producers:
-                        producer_role = producer.consume_link
-                        instance = args[producer_role]
+                producers_schema_info = actor.schemaServiceHRD.consumeSchemaItemsGet()
+                if producers_schema_info != []:
+                    for producer_schema_info in producers_schema_info:
+
+                        producer_role = producer_schema_info.consume_link
+                        if producer_role in args:
+                            # instance name of the comusmption is specified
+                            instance = args[producer_role]
+                        else:
+                            # instance name of the comusmption is not specified
+                            # check if auto is true and try to find a valid producer
+                            if producer_schema_info.auto is False:
+                                raise j.exceptions.Input(message="no instance specified for producer %s and auto is disabled" % (
+                                                         producer_role, self), level=1, source="", tags="", msgpub="")
+                            else:
+                                # auto is True, let's try to find a valid producer
+                                instance = ''
+
                         res = self.aysrepo.db.service.find(name=instance, actor="%s.*" % producer_role)
                         if len(res) <= 0:
                             raise j.exceptions.Input(message="could not find producer:%s!%s for %s" % (
@@ -694,7 +707,8 @@ class Service:
     def __repr__(self):
         # return '%s|%s!%s(%s)' % (self.domain, self.name, self.instance,
         # self.version)
-        return self.key
+        return "%s!%s" % (self.role, self.name)
+        # return self.key
 
     def __str__(self):
         return self.__repr__()

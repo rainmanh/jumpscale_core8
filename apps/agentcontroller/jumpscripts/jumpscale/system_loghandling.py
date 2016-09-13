@@ -50,15 +50,15 @@ def action():
         eventhandlingTE = None
 
     out=[]
-    while log != None:
+    while log is not None:
         log2=json.decode(log)
         log3 = j.logger.getLogObjectFromDict(log2)
         log4= loghandlingTE.executeV2(logobj=log3)
-        if log4 != None:
+        if log4 is not None:
             clientLogger.save(log4.__dict__)
         log=logqueue.get_nowait()
 
-    while ecoguid != None:
+    while ecoguid is not None:
         eco = j.data.models.system.Errorcondition.find({'guid':ecoguid})
         if eco:
             eco = eco[0].to_dict

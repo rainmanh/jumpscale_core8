@@ -175,7 +175,7 @@ from JumpScale import j
                                            _sync=False)
 
         self.lastrun = time.time()
-        if result != None:
+        if result is not None:
             print("ok:%s" % self.name)
         return result
 

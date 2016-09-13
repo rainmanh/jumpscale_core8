@@ -160,7 +160,7 @@ class IniFile:
         @param raw:         boolean specifying whether you wish the value to be returned raw
         @param default: if given and the value does not exist the default value will be given
         @return: The value"""
-        if default != None and not self.checkParam(sectionName, paramName):
+        if default is not None and not self.checkParam(sectionName, paramName):
             return default
         try:
             result = self.__configParser.get(sectionName, paramName, raw=raw)

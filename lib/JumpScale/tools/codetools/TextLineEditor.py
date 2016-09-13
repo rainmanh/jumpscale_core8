@@ -107,7 +107,7 @@ class TextLineEditor:
         """
         block will be inserted at linenr, means line with linenr will be moved backwards
         """
-        if blocknr == None:
+        if blocknr is None:
             blocknr = self.getNextBlockNr(blockname)
         for line in text.split("\n").revert():
             self.lines.insert(linenr, LTLine(line, blockname, blocknr))
@@ -116,12 +116,12 @@ class TextLineEditor:
         """
         mark block as not matching based on startline
         """
-        if blocknr == None:
+        if blocknr is None:
             if not self.existsBlock(blockname):
                 return
         else:
             self.getBlock(blockname, blocknr)  # just to check if block exists
-        if blocknr == None:
+        if blocknr is None:
             self.lines = [line for line in self.lines if (line.block != blockname)]
         else:
             self.lines = [line for line in self.lines if (line.block != blockname and line.blocknr == blocknr)]

@@ -23,7 +23,7 @@ class SSL:
         default keyvaluestor=j.servers.kvs.getFSStore("sslkeys", serializers=[])  #make sure to use no serializers
         pass another keyvaluestor if required (first do 'import JumpScale.servers.key_value_store')
         """
-        if keyvaluestor == None:
+        if keyvaluestor is None:
             keyvaluestor = j.servers.kvs.getFSStore("sslkeys", serializers=[])
         return KeyStor(keyvaluestor)
 
@@ -187,7 +187,7 @@ class KeyStor:
             message2 = message
         plainText = ReadRSA.private_decrypt(message2, m2c.RSA.pkcs1_oaep_padding)
 
-        if signature != None:
+        if signature is not None:
             if base64:
                 signature2 = signature.decode("base64")
             else:

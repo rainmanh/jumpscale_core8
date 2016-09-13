@@ -42,7 +42,7 @@ class Process():
     def start(self):
         if self.cmds != []:
             self._spawnProcess()
-        if self.pythonCode != None:
+        if self.pythonCode is not None:
             if self.sync:
                 self.do()
             else:
@@ -56,7 +56,7 @@ class Process():
         self.p = psutil.Process(self.pid)
 
     def kill(self):
-        if self.p != None:
+        if self.p is not None:
             self.p.kill()
 
     def is_running(self):
@@ -64,7 +64,7 @@ class Process():
         return mem.vms != 0
 
     def _spawnProcess(self):
-        if self.logpath == None:
+        if self.logpath is None:
             self.logpath = j.sal.fs.joinPaths(j.dirs.logDir, "processmanager", "logs",
                                                  "%s_%s.log" % (self.domain, self.name))
             j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.logDir, "processmanager", "logs"))
@@ -85,7 +85,7 @@ class Process():
             self.log.error("could not execute:%s\nError:\n%s" % (self, e))
 
         time.sleep(0.1)
-        if self.is_running() == False:
+        if self.is_running() is False:
             self.log.warning("could not execute:%s\n" % (self))
             if j.sal.fs.exists(path=self.logpath):
                 log = j.sal.fs.fileGetContents(self.logpath)
@@ -93,7 +93,7 @@ class Process():
 
     def do(self):
         self.log.info('A new child %s' % self.name, os.getpid())
-        if self.pythonCode != None:
+        if self.pythonCode is not None:
             exec(self.pythonCode)
 
         os._exit(0)
@@ -129,7 +129,7 @@ class ProcessManager():
         # self.hrd = j.application.instanceconfig
         if opts.ip != "":
             # processmanager enabled
-            while j.sal.nettools.waitConnectionTest(opts.ip, opts.port, 2) == False:
+            while j.sal.nettools.waitConnectionTest(opts.ip, opts.port, 2) is False:
                 self.log.info("cannot connect to agentcontroller, will retry forever: '%s:%s'" % (opts.ip, opts.port))
 
             # now register to agentcontroller
@@ -186,7 +186,7 @@ class ProcessManager():
             # self.log.info "NEXT:%s\n"%i    
             for p in self.processes[:]:
                 # p.refresh()        
-                if p.p != None:
+                if p.p is not None:
                     if not p.is_running():
                         if p.restart:
                             self.log.info("%s:%s was stopped restarting" % (p.domain, p.name))

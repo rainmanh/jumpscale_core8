@@ -46,7 +46,7 @@ class NodeNas(NodeBase):
             self.prepareTmux("perftest", screens)
 
     def autoInitDisks(self):
-        if self.debug == False:
+        if self.debug is False:
             diskids = "bcdefghijklmnopqrstuvwxyz"
             for i in range(self.nrdisks):
                 diskname = "/dev/vd%s" % diskids[i]

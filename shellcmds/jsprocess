@@ -83,7 +83,7 @@ if opts.action == 'restart':
             pd.stop()
     pds_sort = sorted(pds, key=lambda x: x.priority)
     for pd in pds_sort:
-        if pd.system == False:
+        if pd.system is False:
             pd.start()
     j.application.stop(0)
 

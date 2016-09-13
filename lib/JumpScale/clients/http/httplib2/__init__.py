@@ -869,7 +869,7 @@ class ProxyInfo:
                 self.proxy_user, self.proxy_pass)
 
     def isgood(self):
-        return (self.proxy_host != None) and (self.proxy_port != None)
+        return (self.proxy_host is not None) and (self.proxy_port is not None)
 
 
 class HTTPConnectionWithTimeout(http.client.HTTPConnection):
@@ -1360,7 +1360,7 @@ and more.
                         location = response['location']
                         (scheme, authority, path, query,
                          fragment) = parse_uri(location)
-                        if authority == None:
+                        if authority is None:
                             response['location'] = urllib.urljoin(
                                 absolute_uri, location)
                     if response.status == 301 and method in ["GET", "HEAD"]:

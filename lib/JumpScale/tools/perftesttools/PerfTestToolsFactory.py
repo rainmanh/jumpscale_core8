@@ -75,7 +75,7 @@ class PerfTestToolsFactory:
         dirpath = j.sal.fs.getDirName(os.path.realpath(__file__))
         path2 = "%s/exampleScriptexampleScript" % dirpath
         C = j.sal.fs.fileGetContents(path2)
-        if path != None:
+        if path is not None:
             j.sal.fs.writeFile(filename=path, contents=C)
         return C
 

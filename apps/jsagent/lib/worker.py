@@ -45,7 +45,7 @@ class Worker(object):
                 client = j.legacy.agentcontroller.get(ipaddr, login='node')
                 self.clients[ipaddr] = client
             else:
-                if self.acclient == None:
+                if self.acclient is None:
                     self.acclient = j.legacy.agentcontroller.get(opts.ip, port=opts.port, login='node')
                 return self.acclient
         return client
@@ -121,7 +121,7 @@ class Worker(object):
 
                         except Exception as e:
                             agentid = j.application.getAgentId()
-                            if jscript != None:
+                            if jscript is not None:
                                 msg = "could not compile jscript:%s %s_%s on agent:%s.\nError:%s" % (
                                 jscript.id, jscript.organization, jscript.name, agentid, e)
                             else:
@@ -178,7 +178,7 @@ class Worker(object):
                             #         if line.find(check) != -1:
                             #             found = True
                             #             break
-                            #     if found == False:
+                            #     if found is False:
                             #         out += "%s\n" % line
                             #
                             # eco.backtrace = out

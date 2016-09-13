@@ -14,7 +14,7 @@ class CuisineWeave(app):
         self._cuisine = cuisine
 
     def install(self, start=True, peer=None, jumpscalePath=True, reset=False):
-        if reset == False and self.isInstalled():
+        if reset is False and self.isInstalled():
             return
         if jumpscalePath:
             binPath = self._cuisine.core.joinpaths(

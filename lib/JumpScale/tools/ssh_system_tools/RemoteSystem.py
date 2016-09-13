@@ -438,7 +438,7 @@ class RemoteSystemFS(_remoteSystemObject):
         @raise RuntimeError: failed to create directory
         """
         self.logger.info('Creating directory if not exists %s' % newdir.encode("utf-8"), 8)
-        if newdir == '' or newdir == None:
+        if newdir == '' or newdir is None:
             raise TypeError('The newdir-parameter of system.fs.createDir() is None or an empty string.')
         try:
             if self.exists(newdir):

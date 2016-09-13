@@ -29,7 +29,7 @@ class CuisineLua(app):
         self.package("luasec")
 
     def installLuaTarantool(self, reset=False):
-        if reset == False and self.isInstalled():
+        if reset is False and self.isInstalled():
             return
 
         C = """

@@ -693,7 +693,7 @@ class RedisFactory:
         else:
             C = C.replace("$snapshot", "")
 
-        if passwd != None:
+        if passwd is not None:
             C = C.replace("$passwd", "requirepass %s" % passwd)
         else:
             C = C.replace("$passwd", "")

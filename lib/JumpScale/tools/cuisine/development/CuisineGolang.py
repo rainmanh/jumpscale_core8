@@ -7,7 +7,7 @@ app = j.tools.cuisine._getBaseAppClass()
 
 
 class CuisineGolang(app):
-    
+
     NAME = 'go'
 
     def __init__(self, executor, cuisine):
@@ -21,8 +21,8 @@ class CuisineGolang(app):
         return True
 
     def install(self, reset=False):
-        if reset==False and  self.isInstalled():
-            return 
+        if reset is False and self.isInstalled():
+            return
         if self._cuisine.core.isMac or self._cuisine.core.isArch:
             self._cuisine.core.run(cmd="rm -rf /usr/local/go", die=False)
             # if self._cuisine.core.isMac:
@@ -100,6 +100,9 @@ class CuisineGolang(app):
 
         pullurl = "git@%s.git" % url.replace('/', ':', 1)
 
-        dest = self._cuisine.development.git.pullRepo(pullurl, branch=branch, depth=depth,
-                                          dest='%s/src/%s' % (GOPATH, url), ssh=False)
+        dest = self._cuisine.development.git.pullRepo(pullurl,
+                                                      branch=branch,
+                                                      depth=depth,
+                                                      dest='%s/src/%s' % (GOPATH, url),
+                                                      ssh=False)
         self._cuisine.core.run('cd %s && godep restore' % dest, profile=True)

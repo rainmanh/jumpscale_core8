@@ -519,7 +519,7 @@ class Queue(object):
     def statistics(self, tube=None):
         """
         Return queue module statistics accumulated since server start.
-        Output format: if tube != None, then output is dictionary with
+        Output format: if tube is not None, then output is dictionary with
         stats of current tube. If tube is None, then output is dict of
         t stats, ...}
         e.g.:

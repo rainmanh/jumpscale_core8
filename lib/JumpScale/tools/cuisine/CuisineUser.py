@@ -79,7 +79,7 @@ class CuisineUser(base):
         need_passwd (Boolean) indicates if password to be included in result or not.
             If set to True it parses 'getent shadow' and needs self._cuisine.core.sudo access
         """
-        assert name != None or uid != None,     "check: either `uid` or `name` should be given"
+        assert name is not None or uid is not None,     "check: either `uid` or `name` should be given"
         assert name is None or uid is None, "check: `uid` and `name` both given, only one should be provided"
         if name is not None:
             _, d, _ = self._cuisine.core.run("getent passwd | egrep '^%s:' ; true" % (name))
@@ -109,21 +109,21 @@ class CuisineUser(base):
             self.create(name, passwd, home, uid, gid, shell, fullname=fullname, encrypted_passwd=encrypted_passwd)
         else:
             options = []
-            if home != None and d.get("home") != home:
+            if home is not None and d.get("home") != home:
                 options.append("-d '%s'" % (home))
-            if uid != None and d.get("uid") != uid:
+            if uid is not None and d.get("uid") != uid:
                 options.append("-u '%s'" % (uid))
-            if gid != None and d.get("gid") != gid:
+            if gid is not None and d.get("gid") != gid:
                 options.append("-g '%s'" % (gid))
-            if shell != None and d.get("shell") != shell:
+            if shell is not None and d.get("shell") != shell:
                 options.append("-s '%s'" % (shell))
-            if fullname != None and d.get("fullname") != fullname:
+            if fullname is not None and d.get("fullname") != fullname:
                 options.append("-c '%s'" % fullname)
             if options:
                 self._cuisine.core.sudo("usermod %s '%s'" % (" ".join(options), name))
             if passwd:
                 self.passwd(name=name, passwd=passwd, encrypted_passwd=encrypted_passwd)
-        if group != None:
+        if group is not None:
             self._cuisine.group.user_add(group=group, user=name)
 
     def remove(self, name, rmhome=None):

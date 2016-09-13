@@ -507,7 +507,7 @@ class Service:
             if producer.state.getObject("install").state != "OK":
                 producersChanged.add(producer)
 
-            if producer.getAction(action) == None:
+            if producer.getAction(action) is None:
                 continue
 
             actionrunobj = producer.state.getSetObject(action)

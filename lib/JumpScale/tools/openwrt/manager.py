@@ -136,7 +136,7 @@ class OpenWRTFactory:
         """
         Return disk manager for that cuisine connection.
         """
-        if connection == None:
+        if connection is None:
             connection = j.ssh.connection
 
         return OpenWRTManager(connection)

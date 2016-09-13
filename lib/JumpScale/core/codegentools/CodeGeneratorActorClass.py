@@ -90,11 +90,11 @@ class CodeGeneratoractorClass(CodeGeneratorBase):
         for var in method.vars:
             descr += "param:%s %s" % (var.name,
                                       self.descrTo1Line(var.description))
-            if var.defaultvalue != None:
+            if var.defaultvalue is not None:
                 descr += " default=%s" % var.defaultvalue
             descr += "\n"
 
-        if method.result != None:
+        if method.result is not None:
             descr += "result %s" % method.result.type
             linedescr = self.descrTo1Line(method.result.description)
             if linedescr:
@@ -108,7 +108,7 @@ class CodeGeneratoractorClass(CodeGeneratorBase):
         params = ['self']
         paramsd = list()
         for param in method.vars:
-            if param.defaultvalue != None:
+            if param.defaultvalue is not None:
                 paramsd.append("%s=%r" % (param.name, param.defaultvalue))
             else:
                 params.append(param.name)
@@ -177,12 +177,12 @@ self.appname="{appname}"
                     ok = True
                     s += "self.db=self.dbfs\n"
 
-            if ok == False:
+            if ok is False:
                 raise j.exceptions.RuntimeError(
                     "Cannot find default db, there needs to be fs,mem or arakoon specified as db on aktor level.")
 
             if False:  # TODO: "redis" in dbtypes:
-                if j.portal.server.active.rediscfg != None and appname != "system":
+                if j.portal.server.active.rediscfg is not None and appname != "system":
                     redisip, redisport, redisdb, rediskey = j.portal.server.active.startConnectRedisServer(
                         appname, actorname)
                     actorobject.dbredis = j.servers.kvs.getRedisStore(

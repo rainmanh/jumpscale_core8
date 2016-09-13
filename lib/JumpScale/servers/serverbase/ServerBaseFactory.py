@@ -118,7 +118,7 @@ class ServerBaseFactory:
 
     def _serializeBinReturn(self, resultcode, returnformat, result):
         lendata = len(result)
-        if resultcode == None:
+        if resultcode is None:
             resultcode = '\x00'
         lenreturnformat = len(returnformat)
         return str(resultcode).encode() + struct.pack("<II", lenreturnformat, lendata) + returnformat.encode() + result.encode()

@@ -194,14 +194,14 @@ class TextFileEditor:
         out = ""
         done = False
         for line in self.content.split("\n"):
-            if reset and done == False and line.find(tofind) != -1 and ignoreRegex != None:
+            if reset and done is False and line.find(tofind) != -1 and ignoreRegex is not None:
                 # found right line
                 line = j.tools.code.regex.replace(ignoreRegex, ignoreRegex, "", line).rstrip()
                 line = line + add
                 print(("CH:%s" % line))
                 done = True
-            if done == False and line.find(tofind) != -1 and  \
-               (ignoreRegex != None and not j.tools.code.regex.match(ignoreRegex, line)):
+            if done is False and line.find(tofind) != -1 and  \
+               (ignoreRegex is not None and not j.tools.code.regex.match(ignoreRegex, line)):
                 # found line we can change
                 line = line.replace(tofind, tofind + add)
                 done = True
@@ -217,8 +217,8 @@ class TextFileEditor:
         """
         write the manipulated file to a new path or to the original
         """
-        if filepath == None:
+        if filepath is None:
             filepath = self.filepath
-        if filepath == None:
+        if filepath is None:
             raise j.exceptions.RuntimeError("Cannot write the textfile because path is None")
         j.sal.fs.writeFile(filepath, self.content)

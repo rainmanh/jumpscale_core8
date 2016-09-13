@@ -139,7 +139,7 @@ class GithubRepo:
                     for filteritem in ignoreDelete:
                         if item.name.startswith(filteritem):
                             ignoreDeleteDo = True
-                    if ignoreDeleteDo == False:
+                    if ignoreDeleteDo is False:
                         item.delete()
                     self._labels = None
 
@@ -447,10 +447,10 @@ class GithubRepo:
                 issues = res[type][state]
                 stateheader = False
                 for issue in issues:
-                    if typeheader == False:
+                    if typeheader is False:
                         md.addMDHeader(2, "Type:%s" % type)
                         typeheader = True
-                    if stateheader == False:
+                    if stateheader is False:
                         md.addMDHeader(3, "State:%s" % state)
                         stateheader = True
                     md.addMDBlock(str(issue.getMarkdown()))

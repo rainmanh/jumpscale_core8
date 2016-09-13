@@ -85,7 +85,7 @@ class Console:
         @rtype: tuple<number, string>
         '''
 
-        if indent == 0 or indent == None:
+        if indent == 0 or indent is None:
             indent = self.indent
 
         if prefix != "":
@@ -299,14 +299,14 @@ class Console:
             raise j.exceptions.Input("Cannot ask an integer in a non interactive mode.")
         if validate and not isinstance(validate, collections.Callable):
             raise TypeError('The validate argument should be a callable')
-        if not minValue == None and not maxValue == None:
+        if not minValue is None and not maxValue is None:
             question += " (%d-%d)" % (minValue, maxValue)
-        elif not minValue == None:
+        elif not minValue is None:
             question += " (min. %d)" % minValue
-        elif not maxValue == None:
+        elif not maxValue is None:
             question += " (max. %d)" % maxValue
 
-        if not defaultValue == None:
+        if not defaultValue is None:
             defaultValue = int(defaultValue)
             question += " [%d]" % defaultValue
         question += ": "
@@ -318,11 +318,11 @@ class Console:
                 response = input(question).rstrip(chr(13))
             else:
                 response = input(question).rstrip(chr(13))
-            if response == "" and not defaultValue == None:
+            if response == "" and not defaultValue is None:
                 return defaultValue
             if (re.match("^-?[0-9]+$", response.strip())) and (not validate or validate(response)):
                 responseInt = int(response.strip())
-                if (minValue == None or responseInt >= minValue) and (maxValue == None or responseInt <= maxValue):
+                if (minValue is None or responseInt >= minValue) and (maxValue is None or responseInt <= maxValue):
                     return responseInt
             j.tools.console.echo("Please insert a valid value!")
             retryCount = retryCount - 1
@@ -413,7 +413,7 @@ class Console:
             for item in choicearray:
                 if not j.data.types.string.check(item):
                     isstr = False
-            if isstr == False:
+            if isstr is False:
                 choicearrayNew = {}
                 for item in choicearray:
                     choicearrayNew[str(item)] = item
@@ -693,12 +693,12 @@ class Console:
         result = self.askChoiceMultiple(choices, descr="")
         results = []
         for item in result:
-            if returncol == None:
+            if returncol is None:
                 results.append([item.strip() for item in item.split("|") if item.strip() != ""])
             else:
                 results.append(item.split("|")[returncol + 1])
 
-        if returncol != None:
+        if returncol is not None:
             return [item.strip(" ") for item in results]
         else:
             return results

@@ -14,7 +14,7 @@ class CuisineFW(base):
 
     @property
     def fw_type(self):
-        if self._fw_type == None:
+        if self._fw_type is None:
             if self._cuisine.core.isMac:
                 raise j.exceptions.Input(message="cannot enable fw, mac  not supported ",
                                          level=1, source="", tags="", msgpub="")

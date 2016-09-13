@@ -204,7 +204,7 @@ class CuisineCore(base):
     def getenv(self, refresh=False):
         def get():
             res = {}
-            rc, out, err = self._cuisine.core.run("printenv", profile=False, showout=False, replaceArgs=False)
+            _, out, _ = self._cuisine.core.run("printenv", profile=False, showout=False, replaceArgs=False)
             for line in out.splitlines():
                 if '=' in line:
                     name, val = line.split("=", 1)
@@ -235,11 +235,11 @@ class CuisineCore(base):
                     res["base"] = "/opt/jumpscale8/"
             if self.isMac or self.isCygwin:
                 res["codeDir"] = "%s/opt/code/" % env["HOME"]
-            else:
-                res["codeDir"] = "/opt/code/"
-            if self.isMac or self.isCygwin:
+                res["optDir"] = "%s/opt/" % env["HOME"]
                 res["varDir"] = "%s/optvar/" % env["HOME"]
             else:
+                res["codeDir"] = "/opt/code/"
+                res["optDir"] = "/opt/"
                 res["varDir"] = "/optvar/"
             res["appDir"] = "%s/apps" % res["base"]
             res['tmplsDir'] = "%s/templates" % res["base"]
@@ -252,10 +252,6 @@ class CuisineCore(base):
             res["pidDir"] = "%s/pid" % res["varDir"]
             res["tmpDir"] = "%s/tmp" % res["varDir"]
             res["hrdDir"] = "%s/hrd" % res["varDir"]
-            if self.isMac or self.isCygwin:
-                res["optDir"] = "%s/opt/" % env["HOME"]
-            else:
-                res["optDir"] = "/opt/"
 
             res["goDir"] = "%sgo/" % res["varDir"]
 
@@ -1048,6 +1044,7 @@ class CuisineCore(base):
         return cmd
 
     def cd(self, path):
+        """cd to the given path"""
         path = self.args_replace(path)
         self.cd = path
 

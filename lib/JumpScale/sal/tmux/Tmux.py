@@ -169,7 +169,7 @@ class Pane:
         panefound = None
         for pane2 in self.window.mgmt.panes:
             if not self.window.existsPane(id=pane2.get("pane_id")):
-                if panefound != None:
+                if panefound is not None:
                     raise j.exceptions.RuntimeError("can only find 1 pane, bug")
                 panefound = pane2
         pane = Pane(self.window, panefound)
@@ -282,7 +282,7 @@ class Tmux:
                 sname = se.get("session_name")
                 if name == sname:
                     res = se
-            if res == None:
+            if res is None:
                 res = s.new_session(session_name=name, kill_session=False, attach=attach)
 
         self.sessions[name] = Session(res)
@@ -296,7 +296,7 @@ class Tmux:
         session = self.getSession(sessionName, firstWindow=windowName)
         window = session.getWindow(windowName, reset=reset)
 
-        if len(window.panes) == 16 and reset == False:
+        if len(window.panes) == 16 and reset is False:
             return window
 
         a = window.getPane(name=windowName, killothers=True)

@@ -37,7 +37,7 @@ class ParamsFactory:
 class Params:
 
     def __init__(self, dictObject=None):
-        if dictObject != None:
+        if dictObject is not None:
             self.__dict__ = dictObject
 
     def merge(self, otherParams):
@@ -76,9 +76,9 @@ class Params:
         """
         params = self
         params2 = params.getDict()
-        if "paramsExtra" in params and params.paramsExtra != None:
+        if "paramsExtra" in params and params.paramsExtra is not None:
             params2.update(params.paramsExtra)
-        if "requestContext" in params and params.requestContext != None:
+        if "requestContext" in params and params.requestContext is not None:
             params2.update(params.requestContext.params)
         if "tags" in params and params2["tags"] != "":
             params2.update(params2["tags"].getDict())
@@ -114,10 +114,10 @@ class Params:
                     r[key] = d[key]
             return r
 
-        if "paramsExtra" in self and self.paramsExtra != None:
+        if "paramsExtra" in self and self.paramsExtra is not None:
             self.setDict(getArgs(self.paramsExtra))
             # self.pop("paramsExtra")
-        if "requestContext" in self and self.requestContext != None:
+        if "requestContext" in self and self.requestContext is not None:
             self.setDict(getArgs(self.requestContext.params))
             # self.pop("requestContext")
         if "tags" in self and self.tags != "":

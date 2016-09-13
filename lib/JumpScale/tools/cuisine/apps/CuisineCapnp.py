@@ -14,7 +14,7 @@ class CuisineCapnp(app):
         install capnp
         """
 
-        if reset == False and self.isInstalled():
+        if reset is False and self.isInstalled():
             return
 
         self._cuisine.package.mdupdate()

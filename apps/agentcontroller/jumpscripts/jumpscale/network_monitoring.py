@@ -41,7 +41,7 @@ def action(redisconnection):
         pattern = j.application.config.getStr('gridmonitoring.nic.pattern')
 
     for nic, stat in counters.items():
-        if pattern and j.codetools.regex.match(pattern,nic) == False:
+        if pattern and j.codetools.regex.match(pattern,nic) is False:
             continue
         if j.sal.nettools.getNicType(nic) == 'VIRTUAL' and not 'pub' in nic:
             continue

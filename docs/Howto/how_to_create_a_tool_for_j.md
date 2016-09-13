@@ -41,7 +41,7 @@ class Hello(object):
         return (self.msg + " ")*n + "!!!"
 ```
 
-5- You will need j.core.db.flushall()/j.core.db.flushdb() to force it to reread the tools directory
+5- You will need j.core.db.flushall()/j.core.db.flushdb()/j.application.reload() to force it to reread the tools directory
 
 6- Use it
 

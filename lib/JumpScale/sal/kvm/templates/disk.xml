@@ -16,9 +16,11 @@
                     </permissions>
                     <compat>1.1</compat>
                 </target>
-                <backingStore>
-                    <format type='qcow2'/>
-                    <path>{{diskbasevolume}}</path>
-                </backingStore>
+                {% if diskbasevolume %}
+                    <backingStore>
+                        <format type='qcow2'/>
+                        <path>{{diskbasevolume}}</path>
+                    </backingStore>
+                {% endif %}
  </volume> 
 

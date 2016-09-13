@@ -68,7 +68,7 @@ def get_nic_params():
                 want = ('state', 'id', 'mtu')
                 params = parse_ipl_line(entry, want)
             nictypes[intf]['params'] = params
-            if namespace == None:
+            if namespace is None:
                 nictypes[intf]['detail'] = get_nic_detail(intf)
                 nictypes[intf]['namespace'] = None
             else:
@@ -150,7 +150,7 @@ def find_veth_peer(interface, ns=None):
     @return: name
     """
     cmd = '%s -S %s' % (ethtool, interface)
-    if ns != None:
+    if ns is not None:
         cmd = '%s netns exec %s ' % (ip, ns) + cmd
     r, s, e = doexec(cmd.split())
     a = s.readlines()
@@ -171,13 +171,13 @@ def add_ips_to(physlayout):
     for key in physlayout:
         if key not in fullset:
             fullset[key] = physlayout[key]
-        if physlayout[key]['namespace'] != None:
+        if physlayout[key]['namespace'] is not None:
             fullset[key]['ipaddrs'] = get_ip_addrs(namespace=physlayout[key]['namespace'])
     return fullset
 
 
 def get_ip_addrs(onlypermanent=False, namespace=None):
-    if namespace == None:
+    if namespace is None:
         cmd = '%s -o addr show' % ip
     else:
         cmd = '%s netns exec %s %s -o addr show' % (ip, namespace, ip)

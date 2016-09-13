@@ -54,7 +54,7 @@ class TextCharEditor:
                     skip = True
                     #j.logger.log("Could not match the pattern because as part of result there was already another block found, posstart:%s posstop%s" % (match.start,match.start+end-1),5)
             blocknr = self._getNextBlockNr(blockname)
-            if skip == False:
+            if skip is False:
                 for pos in range(match.start, match.start + end):
                     self.chars[pos][1] = blockname
                     self.chars[pos][2] = blocknr
@@ -153,11 +153,11 @@ class TextCharEditor:
         """
         block will be inserted at linenr, means line with linenr will be moved backwards
         """
-        if blocknr == None and blockname != "":
+        if blocknr is None and blockname != "":
             blocknr = self._getNextBlockNr(blockname)
-        if blocknr == None and blockname == "":
+        if blocknr is None and blockname == "":
             blocknr = 0
-        if blocknr != None and blockname == "":
+        if blocknr is not None and blockname == "":
             raise j.exceptions.RuntimeError("Cannot have a blockname != \"\" with blocknr>0")
         if len(text) == 0:
             raise j.exceptions.RuntimeError("Cannot insert empty block of text.")
@@ -189,7 +189,7 @@ class TextCharEditor:
     def getBlockPosition(self, blockname, blocknr=None):
         for charnr in range(len(self.chars)):
             # print "%s %s %s" % (charnr,self.chars[charnr][1],self.chars[charnr][2])
-            if self.chars[charnr][1] == blockname and (blocknr == None or self.chars[charnr][2] == blocknr):
+            if self.chars[charnr][1] == blockname and (blocknr is None or self.chars[charnr][2] == blocknr):
                 return charnr
         raise j.exceptions.RuntimeError("Could not find block with name %s and blocknr %s" % (blockname, blocknr))
 

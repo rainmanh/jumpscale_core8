@@ -217,7 +217,7 @@ class CuisinePackage(base):
 
         """
         if self._cuisine.core.isUbuntu:
-            if package != None:
+            if package is not None:
                 return self._apt_get("-y --purge remove %s" % package)
             else:
                 self._cuisine.core.run("apt-get autoremove -y")

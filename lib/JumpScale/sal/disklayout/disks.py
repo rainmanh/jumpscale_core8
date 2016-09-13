@@ -105,7 +105,7 @@ class BlkInfo:
         Configure partition auto mount `fstab` on `mountpath` defined in HRD
         """
 
-        if self.hrd == None:
+        if self.hrd is None:
             path = self.mountpoint
             if path == "":
                 raise RuntimeError("path cannot be empty")

@@ -109,7 +109,7 @@ class SpecModelactorsGenerator:
 
             spec = j.core.specparser.specs[specname]
 
-            if spec.tags != None and spec.tags.find("nocrud") != -1:
+            if spec.tags is not None and spec.tags.find("nocrud") != -1:
                 # if no crud should be generated go to next
                 continue
 

@@ -73,7 +73,7 @@ class Connection:
         @params @question what are the params for?
         @headers e.g. headers={'content-type':'text/plain'}  (this is the default)
         """
-        if headers == None:
+        if headers is None:
             headers = {'content-type': 'text/plain'}
 
         # print data

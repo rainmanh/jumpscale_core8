@@ -32,7 +32,7 @@ class Docker:
         j.do.execute("systemctl stop docker")
 
         d = j.sal.disklayout.findDisk(mountpoint="/storage")
-        if d != None:
+        if d is not None:
             # we found a disk, lets make sure its in fstab
             d.setAutoMount()
             dockerpath = "%s/docker" % d.mountpoint
@@ -53,7 +53,7 @@ class Docker:
 
     @property
     def weavesocket(self):
-        if self._weaveSocket == None:
+        if self._weaveSocket is None:
             rc, self._weaveSocket = j.sal.process.execute(
                 "eval $(weave env) && echo $DOCKER_HOST", die=False)
             if rc > 0:
@@ -326,12 +326,15 @@ class Docker:
                replace=True, cpu=None, mem=0, ssh=True, myinit=True, sharecode=False, sshkeyname="", sshpubkey="",
                setrootrndpasswd=True, rootpasswd="", jumpscalebranch="master", aysfs=[], detach=False, privileged=False, getIfExists=True, weavenet=False):
         """
+        Creates a new container.
+        
         @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
         @param vols in format as follows "/var/insidemachine:/var/inhost # /var/1:/var/1 # ..."   '#' is separator
         @param sshkeyname : use ssh-agent (can even do remote through ssh -A) and then specify key you want to use in docker
         #TODO: *1 change way how we deal with ssh keys, put authorization file in filesystem before docker starts don't use ssh to push them, will be much faster and easier
         """
-
+    if ssh is True and myinit is False:
+            raise ValueError("SSH can't be enabled without myinit.")
         # check there is weave
         self.weavesocket
 
@@ -470,7 +473,6 @@ class Docker:
             if type(k) == tuple and len(k) == 2:
                 portsdict["%s/%s" % (k[0], k[1])] = v
                 portsdict.pop(k)
-
         res = self.client.start(container=id, binds=binds, port_bindings=portsdict, lxc_conf=None,
                                 publish_all_ports=False, links=None, privileged=privileged, dns=nameserver, dns_search=None,
                                 volumes_from=None, network_mode=None)
@@ -479,25 +481,28 @@ class Docker:
         self._containers[id] = container
 
         if ssh:
-            # time.sleep(0.5)  # give time to docker to start
-            if sshkeyname == None:
+            if sshkeyname is None:
                 sshkeyname = ""
-            if sshpubkey == None:
+            if sshpubkey is None:
                 sshpubkey = ""
-
+            container.run("apt-get update")
+            container.run("apt-get install openssh-server -y")
+            container.run("service ssh start")
             container.pushSSHKey(keyname=sshkeyname, sshpubkey=sshpubkey)
 
             if setrootrndpasswd:
                 if rootpasswd is None or rootpasswd == '':
                     print("set default root passwd (gig1234)")
-                    container.executor.execute(
-                        "echo \"root:gig1234\"|chpasswd", showout=False)
+                    container.run(
+                        "echo \"root:gig1234\"|chpasswd")
                 else:
                     print("set root passwd to %s" % rootpasswd)
-                    container.cexecutor.execute(
-                        "echo \"root:%s\"|chpasswd" % rootpasswd, showout=False)
+                    container.run(
+                        "echo \"root:%s\"|chpasswd" % rootpasswd)
             if not self.weaveIsActive:
                 container.setHostName(name)
+        else:
+            self.container._executor = DockerExecObj(name)
 
         return container
 
@@ -629,3 +634,13 @@ class Docker:
                 out.append(line)
 
         return "\n".join(out)
+
+
+    class DockerExecObj:
+
+        def __init__(self, name):
+            self.name = name
+            self.id = "docker:%s" % name
+
+        def execute(self, cmds, die=True, checkok=None, async=False, showout=True, timeout=0, env={}):
+            return self._cuisineDockerHost.core.run("docker exec %s  %s" % (self.name, cmds))

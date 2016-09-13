@@ -31,7 +31,7 @@ class RegexMatches:
         self.matches = []
 
     def addMatch(self, match):
-        if match != None or match != "":
+        if match is not None or match != "":
             rm = RegexMatch()
             rm.start = match.start()
             rm.end = match.end()
@@ -230,7 +230,7 @@ class RegexTools:
 
     def matchAllText(self, pattern, text):
         result = self.getRegexMatch(pattern, text)
-        if result == None:
+        if result is None:
             return False
         if result.founditem.strip() != text.strip():
             return False

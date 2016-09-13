@@ -23,7 +23,7 @@ opts = parser.parse_args()
 
 l=j.sal.lxc
 
-if opts.prefix != None:
+if opts.prefix is not None:
     l.prefix=opts.prefix
 
 ############PS
@@ -91,7 +91,7 @@ if opts.action =='importR':
     if opts.bname==None:
         raise j.exceptions.RuntimeError("specify backup name")    
     print("import %s to %s"%(opts.bname,opts.name))
-    if opts.base != None:
+    if opts.base is not None:
         l.importRsync(opts.bname,opts.name,basename=opts.base)
     else:
         l.importRsync(opts.bname,opts.name,key=opts.key)

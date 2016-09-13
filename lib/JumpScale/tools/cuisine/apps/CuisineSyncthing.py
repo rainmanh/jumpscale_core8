@@ -23,12 +23,11 @@ class CuisineSyncthing(app):
         # build
         url = "https://github.com/syncthing/syncthing.git"
         self._cuisine.core.dir_remove('$goDir/src/github.com/syncthing/syncthing')
-        self._cuisine.development.golang.get("github.com/golang/lint/golint")
         dest = self._cuisine.development.git.pullRepo(url,
                                                       dest='$goDir/src/github.com/syncthing/syncthing',
                                                       ssh=False,
                                                       depth=1)
-        self._cuisine.core.run("cd %s && go run build.go" % dest, profile=True)
+        self._cuisine.core.run("cd %s && go run build.go -version v0.14.5 -no-upgrade" % dest, profile=True)
 
         if install:
             self.install(start)
@@ -39,7 +38,7 @@ class CuisineSyncthing(app):
         """
         # create config file
         config = """
-        <configuration version="11">
+        <configuration version="14">
             <folder id="default" path="$homeDir/Sync" ro="false" rescanIntervalS="60" ignorePerms="false" autoNormalize="false">
                 <device id="H7MBKSF-XNFETHA-2ERDXTB-JQCAXTA-BBTTLJN-23TN5BZ-4CL7KLS-FYCISAR"></device>
                 <minDiskFreePct>1</minDiskFreePct>
@@ -55,12 +54,10 @@ class CuisineSyncthing(app):
             </device>
             <gui enabled="true" tls="false">
                 <address>$lclAddrs:$port</address>
-                <apikey>wbgjQX6uSgjI1RfS7BT1XQgvGX26DHMf</apikey>
             </gui>
             <options>
-                <listenAddress>0.0.0.0:22000</listenAddress>
-                <globalAnnounceServer>udp4://announce.syncthing.net:22026</globalAnnounceServer>
-                <globalAnnounceServer>udp6://announce-v6.syncthing.net:22026</globalAnnounceServer>
+                <listenAddress>tcp://0.0.0.0:22000</listenAddress>
+                <globalAnnounceServer>default</globalAnnounceServer>
                 <globalAnnounceEnabled>true</globalAnnounceEnabled>
                 <localAnnounceEnabled>true</localAnnounceEnabled>
                 <localAnnouncePort>21025</localAnnouncePort>
@@ -94,25 +91,23 @@ class CuisineSyncthing(app):
 
         # create config file
         content = self._cuisine.core.args_replace(config)
-        content = content.replace("$lclAddrs",  "0.0.0.0", 1)
-        content = content.replace("$port", "8384", 1)
+        content = content.replace('$lclAddrs',  '0.0.0.0', 1)
+        content = content.replace('$port', '18384', 1)
 
         self._cuisine.core.dir_ensure("$tmplsDir/cfg/syncthing/")
         self._cuisine.core.file_write("$tmplsDir/cfg/syncthing/config.xml", content)
-        self._cuisine.core.file_copy(source="$goDir/src/github.com/syncthing/syncthing/bin/syncthing",
-                                     dest="$binDir",
-                                     recursive=True,
-                                     overwrite=False)
 
+        # If syncthing isn't found, it means that syncthing must be built first
+        if not self._cuisine.core.file_exists('$binDir/syncthing'):
+            self._cuisine.core.file_copy(source="$goDir/src/github.com/syncthing/syncthing/bin/syncthing",
+                                         dest="$binDir",
+                                         recursive=True,
+                                         overwrite=False)
         if start:
             self.start()
 
     def start(self):
         self._cuisine.core.dir_ensure("$cfgDir")
         self._cuisine.core.file_copy("$tmplsDir/cfg/syncthing/", "$cfgDir", recursive=True)
-
-        GOPATH = self._cuisine.bash.environGet('GOPATH')
-        env = {}
-        env["TMPDIR"] = self._cuisine.core.dir_paths["tmpDir"]
         pm = self._cuisine.processmanager.get("tmux")
         pm.ensure(name="syncthing", cmd="./syncthing -home  $cfgDir/syncthing", path="$binDir")

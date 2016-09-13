@@ -49,10 +49,10 @@ class QemuImg:
         command = '%(command)s -f %(diskImageFormat)s %(fileName)s' % {
             'command': command, 'diskImageFormat': diskImageFormat, 'fileName': fileName}
 
-        if size != None:
+        if size is not None:
             command = '%(command)s %(size)sK' % {'command': command, 'size': size}
 
-        if size == None and not baseImage:
+        if size is None and not baseImage:
             raise ValueError('Size can only be None if baseImage is specified')
 
         exitCode, output = self._local.execute(command, die=False)

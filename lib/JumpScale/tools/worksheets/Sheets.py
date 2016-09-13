@@ -18,7 +18,7 @@ class Sheets(j.tools.code.classGetBase()):
 
     def add(self, sheet, category=None):
         self.sheets[sheet.name] = sheet
-        if category != None:
+        if category is not None:
             if category not in self.sheetsByCategory:
                 self.sheetsByCategory[category] = []
             self.sheetsByCategory[category].append(sheet.name)
@@ -47,7 +47,7 @@ class Sheets(j.tools.code.classGetBase()):
                     rowdest = sheettotal.rows[rowname]
                     sumvalue = 0.0
                     for sheet in sheets:
-                        if sheet.rows[rowname].cells[x] == None:
+                        if sheet.rows[rowname].cells[x] is None:
                             raise j.exceptions.RuntimeError(
                                 "could not aggregate sheet%s row:%s, found None value" % (sheet.name, rowname))
                         sumvalue += sheet.rows[rowname].cells[x]
@@ -66,7 +66,7 @@ class Sheets(j.tools.code.classGetBase()):
             input = []
             for row in rows:
                 val = row.cells[colnr]
-                if val == None:
+                if val is None:
                     val = 0.0
                 input.append(val)
             rowDest.cells[colnr] = method(input, params)
@@ -85,7 +85,7 @@ class Sheets(j.tools.code.classGetBase()):
             return total
         rows2 = []
         for row in rows:
-            if row != None:
+            if row is not None:
                 rows2.append(row)
         newRow = self.applyFunction(rows2, sum, newRow)
         return newRow
@@ -98,7 +98,7 @@ class Sheets(j.tools.code.classGetBase()):
             return total
         rows2 = []
         for row in rows:
-            if row != None:
+            if row is not None:
                 rows2.append(row)
         newRow = self.applyFunction(rows2, mult, newRow)
         return newRow

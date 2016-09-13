@@ -27,7 +27,7 @@ class IDGenerator:
         @reset if True means restart from 1
         """
         key = "incrementor_%s" % incrTypeId
-        if service.db.exists(key) and reset == False:
+        if service.db.exists(key) and reset is False:
             lastid = int(service.db.get(key))
             service.db.testAndSet(key, str(lastid), str(lastid + 1))
             return lastid + 1
@@ -41,7 +41,7 @@ class IDGenerator:
         remembers previously given id's
         """
         key = "idint_%s_%s" % (incrTypeId, objectUniqueSeedInfo)
-        if service.db.exists(key) and reset == False:
+        if service.db.exists(key) and reset is False:
             id = int(service.db.get(key))
             return id
         else:

@@ -118,11 +118,11 @@ class Netconfig:
             """
         C = j.do.textstrip(C)
 
-        if bridgedev != None:
+        if bridgedev is not None:
             C += "    bridge_fd 0\n"
             C += "    bridge_maxwait 0\n"
 
-        if ipaddr != None:
+        if ipaddr is not None:
             if dhcp:
                 raise j.exceptions.RuntimeError("cannot specify ipaddr & dhcp")
             C += "    address $ip\n"
@@ -131,12 +131,12 @@ class Netconfig:
         else:
             C = C.replace("static", "manual")
 
-        if bridgedev != None:
+        if bridgedev is not None:
             C += "       bridge_ports %s\n" % bridgedev
         # else:
         #     C+="       bridge_ports none\n"
 
-        if gw != None:
+        if gw is not None:
             C += "       gateway %s" % gw
 
         #         future="""
@@ -172,7 +172,7 @@ class Netconfig:
     #     self.enableInterfaceBridge(dev=dev,bridgedev=bridgedev,apply=apply)
 
     def interfaces_restart(self, dev=None):
-        if dev == None:
+        if dev is None:
             #TODO: (***) loop over devs
             pass
 
@@ -221,10 +221,10 @@ class Netconfig:
 
         j.sal.netconfig.interfaces_reset(True)
 
-        if ipaddr == None or gw == None:
+        if ipaddr is None or gw is None:
             raise j.exceptions.Input("Cannot configure network when ipaddr or gw not specified", "net.config")
 
-        if pynetlinux.brctl.findbridge("brpub") != None:
+        if pynetlinux.brctl.findbridge("brpub") is not None:
             print("found brpub, will try to bring down.")
             i = pynetlinux.brctl.findbridge("brpub")
             i.down()
@@ -236,7 +236,7 @@ class Netconfig:
                 print("waiting for bridge:brpub to go down")
 
         i = pynetlinux.ifconfig.findif(interface)
-        if i != None:
+        if i is not None:
             print("found %s, will try to bring down." % interface)
             i.down()
             counter = 0
@@ -253,7 +253,7 @@ class Netconfig:
         print("bring interface up")
         i.up()
 
-        while i.is_up() == False:
+        while i.is_up() is False:
             i.up()
             time.sleep(1)
             print("waiting for interface:%s to go up" % interface)
@@ -296,7 +296,7 @@ class Netconfig:
                 print("waiting for bridge:%s to go down" % br.name)
 
         i = pynetlinux.ifconfig.findif(interface)
-        if i != None:
+        if i is not None:
             print("found %s, will try to bring down." % interface)
             i.down()
             counter = 0
@@ -312,7 +312,7 @@ class Netconfig:
         self.interface_configure_dhcp(dev=interface, apply=True)
 
         print("check interface up")
-        while i.is_up() == False:
+        while i.is_up() is False:
             i.up()
             time.sleep(1)
             print("waiting for interface:%s to go up" % interface)
@@ -332,16 +332,16 @@ class Netconfig:
         if available and has ip addr to go to internet then nothing will happen
         otherwise system will try in a safe way set this ipaddr, this is a dangerous operation
 
-        if ipaddr == None then will look for existing config on interface and use that one to configure the bridge
+        if ipaddr is None then will look for existing config on interface and use that one to configure the bridge
         """
         import pynetlinux
-        if ipaddr == None or mask == None or interface == None:
+        if ipaddr is None or mask is None or interface is None:
             print("get default network config for main interface")
             interface2, ipaddr2 = self.getDefaultIPConfig()
-            if interface == None:
+            if interface is None:
                 interface = str(interface2)
                 print("interface found:%s" % interface)
-            if ipaddr == None:
+            if ipaddr is None:
                 ipaddr = ipaddr2
                 print("ipaddr found:%s" % ipaddr)
 
@@ -363,18 +363,18 @@ class Netconfig:
             else:
                 raise
 
-        if ipaddr == None:
+        if ipaddr is None:
             raise j.exceptions.RuntimeError("Did not find ipaddr: %s" % ipaddr)
 
-        if mask == None:
+        if mask is None:
             mask = i.get_netmask()
             print("mask found:%s" % mask)
 
-        if gw == None:
+        if gw is None:
             gw = pynetlinux.route.get_default_gw()
             print("gw found:%s" % gw)
 
-        if gw == None:
+        if gw is None:
             raise j.exceptions.RuntimeError("Did not find gw: %s" % gw)
 
         if not j.sal.nettools.pingMachine(gw, pingtimeout=2):
@@ -403,7 +403,7 @@ class Netconfig:
 
             # bring own interface down
             i = pynetlinux.ifconfig.findif(interface)
-            if i != None:
+            if i is not None:
                 print("found %s, will try to bring down." % interface)
                 i.down()
                 counter = 0

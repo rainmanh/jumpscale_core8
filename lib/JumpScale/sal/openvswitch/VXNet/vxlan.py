@@ -86,7 +86,7 @@ class VXNet:
             bridge.connect(veth.left)
             namespace.connect(veth.right)
             addIPv4(veth.right, self.ipv4, namespace=namespace.name)
-            if not self.ipv6 == None:
+            if not self.ipv6 is None:
                 addIPv6(veth.right, self.ipv6, namespace=namespace.name)
         elif self.inbridge == True:
             # IP on bridge

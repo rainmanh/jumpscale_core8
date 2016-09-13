@@ -20,13 +20,13 @@ class AAProcessManagerCmds():
         self.daemon = daemon
         self._reloadtime = time.time()
 
-        if daemon != None:
+        if daemon is not None:
             self.daemon._adminAuth = self._adminAuth
 
     def stop(self, session=None):
         print("STOP PROCESS MANAGER\n\n\n\n\n")
 
-        if session != None:
+        if session is not None:
             self._adminAuth(session.user, session.passwd)
         # raise RuntimeError("STOP APPLICATION 112299")
         args = sys.argv[:]
@@ -46,7 +46,7 @@ class AAProcessManagerCmds():
             print("Not reloading")
             return
         print("RELOAD JUMPSCRIPTS\n\n\n\n\n")
-        if session != None:
+        if session is not None:
             self._adminAuth(session.user, session.passwd)
 
         s = self.daemon.cmdsInterfaces["jumpscripts"]
@@ -58,7 +58,7 @@ class AAProcessManagerCmds():
         # make sure the empty queues no longer needed
 
     def getMonitorObject(self, name, id, monobject=None, lastcheck=0, session=None):
-        if session != None:
+        if session is not None:
             self._adminAuth(session.user, session.passwd)
 
         if not j.core.processmanager.monObjects.__dict__.has_key(name):
@@ -67,13 +67,13 @@ class AAProcessManagerCmds():
         if lastcheck == 0:
             lastcheck = time.time()
         val = j.core.processmanager.monObjects.__dict__[name].get(id, monobject=monobject, lastcheck=lastcheck)
-        if session != None:
+        if session is not None:
             return val.__dict__
         else:
             return val
 
     def exit(self, session=None):
-        if session != None:
+        if session is not None:
             self._adminAuth(session.user, session.passwd)
         j.application.stop()
 

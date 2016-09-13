@@ -153,7 +153,7 @@ class Daemon:
     def addCMDsInterface(self, cmdInterfaceClass, category, proxy=False):
         if category not in self.cmdsInterfaces:
             self.cmdsInterfaces[category] = []
-        if proxy == False:
+        if proxy is False:
             obj = cmdInterfaceClass(self)
         else:
             obj = cmdInterfaceClass()
@@ -313,7 +313,7 @@ class Daemon:
         else:
             data = parts[2]
 
-        if data == None:
+        if data is None:
             data = ""
 
         return (parts[0], parts[1], data)

@@ -194,7 +194,7 @@ class GitClient:
     def commit(self, message='', addremove=True):
         if addremove:
             self.addRemoveFiles()
-        if self.hasModifiedFiles() == False:
+        if self.hasModifiedFiles() is False:
             print("no need to commit, no changed files")
             return
         return self.repo.index.commit(message)

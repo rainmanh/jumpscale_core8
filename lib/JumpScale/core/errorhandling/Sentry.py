@@ -14,7 +14,7 @@ def Sentry():
         if eco.backtraceDetailed != "":
             extra["tb_detail"] = eco.backtraceDetailed
 
-        if hasattr(eco, "extra") and eco.extra != None:
+        if hasattr(eco, "extra") and eco.extra is not None:
             extra["details"] = eco.extra
 
         extra["category"] = eco.category
@@ -56,7 +56,7 @@ def Sentry():
                         return True
                 return False
 
-            if modulename == None:
+            if modulename is None:
                 modulename = "appname:%s" % (j.application.appname)
                 try:
                     if frames == []:
@@ -65,7 +65,7 @@ def Sentry():
                     modulename = ""
                     while ignore(modulename):
                         modulename = inspect.getmodule(frame)
-                        if modulename == None or str(modulename).strip() == "":
+                        if modulename is None or str(modulename).strip() == "":
                             modulename = inspect.getmodulename(
                                 frame.f_code.co_filename)
                         modulename = str(modulename)
@@ -87,7 +87,7 @@ def Sentry():
 
             exc["module"] = modulename
             exc = [exc]
-            if tags == None:
+            if tags is None:
                 tags = {}
             else:
                 tags = j.data.tags.getObject(tags)
@@ -108,7 +108,7 @@ def Sentry():
                 j.application.whoAmI.gid, j.application.whoAmI.nid)
             data["extra"] = extra
 
-            if tb != None:
+            if tb is not None:
                 from stacks import iter_traceback_frames, get_stack_info
                 frames = iter_traceback_frames(tb)
                 data.update({

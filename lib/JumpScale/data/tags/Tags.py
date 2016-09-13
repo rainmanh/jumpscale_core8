@@ -70,7 +70,7 @@ class Tags:
         self.tagstring = " ".join((labelsString, tagsString)).strip()
         self.tagstring = self.tagstring.replace("%2C", ",")
 
-        if self._setFunction4Tagstring != None:
+        if self._setFunction4Tagstring is not None:
             self._setFunction4Tagstring(self.tagstring)
 
         return self.tagstring

@@ -57,7 +57,7 @@ class ExecutorBase:
 
         pre = ""
 
-        if checkok == None:
+        if checkok is None:
             checkok = self.checkok
 
         if die:
@@ -92,7 +92,7 @@ class ExecutorBase:
 
     @property
     def cuisine(self):
-        if self._cuisine == None:
+        if self._cuisine is None:
             self._cuisine = j.tools.cuisine.get(self)
             self._cuisine._executor = self
             try:

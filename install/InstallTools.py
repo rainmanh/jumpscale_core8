@@ -543,7 +543,7 @@ class InstallTools():
         """
         check if path is dir or link to a dir
         """
-        if fullpath == None or fullpath.strip == "":
+        if fullpath is None or fullpath.strip == "":
             raise RuntimeError("path cannot be empty")
 
         if not self.isLink(fullpath) and os.path.isdir(fullpath):
@@ -574,7 +574,7 @@ class InstallTools():
         if lastOnly:
             dname = dname.split(os.sep)[-1]
             return dname
-        if levelsUp != None:
+        if levelsUp is not None:
             parts = dname.split(os.sep)
             if len(parts) - levelsUp > 0:
                 return parts[len(parts) - levelsUp - 1]
@@ -640,7 +640,7 @@ class InstallTools():
         #result = []
         #os.path.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
         # return result
-        if path == None or path.strip == "":
+        if path is None or path.strip == "":
             raise RuntimeError("path cannot be empty")
         files = self._listInDir(path, followSymlinks=True)
         filesreturn = []
@@ -671,12 +671,12 @@ class InstallTools():
         @Param exclude: list of std filters if matches then exclude
         @rtype: list
         """
-        if depth != None:
+        if depth is not None:
             depth = int(depth)
         # self.log('List files in directory with path: %s' % path,9)
         if depth == 0:
             depth = None
-        # if depth != None:
+        # if depth is not None:
         #     depth+=1
         filesreturn, depth = self._listAllInDir(path, recursive, filter, minmtime, maxmtime, depth, type="f",
                                                 case_sensitivity=case_sensitivity, exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
@@ -698,12 +698,12 @@ class InstallTools():
         @param type is string with f & d inside (f for when to find files, d for when to find dirs)
         @rtype: list
         """
-        if depth != None:
+        if depth is not None:
             depth = int(depth)
         self.log('List files in directory with path: %s' % path, 9)
         if depth == 0:
             depth = None
-        # if depth != None:
+        # if depth is not None:
         #     depth+=1
         filesreturn, depth = self._listAllInDir(
             path, recursive, filter, minmtime, maxmtime, depth, type=type, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
@@ -754,24 +754,24 @@ class InstallTools():
                         filesreturn.append(fullpath)
             elif self.isDir(fullpath):
                 if "d" in type:
-                    if not(listSymlinks == False and self.isLink(fullpath)):
+                    if not(listSymlinks is False and self.isLink(fullpath)):
                         filesreturn.append(fullpath)
                 if recursive:
-                    if depth != None and depth != 0:
+                    if depth is not None and depth != 0:
                         depth = depth - 1
-                    if depth == None or depth != 0:
+                    if depth is None or depth != 0:
                         exclmatch = False
                         if exclude != []:
                             for excludeItem in exclude:
                                 if matcher(fullpath, excludeItem):
                                     exclmatch = True
-                        if exclmatch == False:
-                            if not(followSymlinks == False and self.isLink(fullpath)):
+                        if exclmatch is False:
+                            if not(followSymlinks is False and self.isLink(fullpath)):
                                 r, depth = self._listAllInDir(fullpath, recursive, filter, minmtime, maxmtime, depth=depth,
                                                               type=type, exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
                                 if len(r) > 0:
                                     filesreturn.extend(r)
-            elif self.isLink(fullpath) and followSymlinks == False and listSymlinks:
+            elif self.isLink(fullpath) and followSymlinks is False and listSymlinks:
                 filesreturn.append(fullpath)
 
         return filesreturn, depth
@@ -956,12 +956,12 @@ class InstallTools():
         """
         @param remote can be ip addr or hostname of remote, if given will execute cmds there
         """
-        if path != None:
+        if path is not None:
             content = self.readFile(path)
         if content[-1] != "\n":
             content += "\n"
 
-        if remote == None:
+        if remote is None:
             tmppath = self.getTmpPath("")
             content = "cd %s\n%s" % (tmppath, content)
         else:
@@ -973,7 +973,7 @@ class InstallTools():
         path2 = self.getTmpPath("do.sh")
         self.writeFile(path2, content, strip=True)
 
-        if remote != None:
+        if remote is not None:
             tmppathdest = "/tmp/do.sh"
             if sshkey:
                 if not self.getSSHKeyPathFromAgent(sshkey, die=False):
@@ -1218,7 +1218,7 @@ class InstallTools():
                 "Url is invalid. Must be in the form of 'http(s)://hostname/account/repo' or 'git@hostname:account/repo'")
 
         protocol, repository_host, repository_account, repository_name = match.groups()
-        if protocol.startswith("git") and ssh == False:
+        if protocol.startswith("git") and ssh is False:
             protocol = "https://"
 
         if not repository_name.endswith('.git'):
@@ -1278,7 +1278,7 @@ class InstallTools():
                 branch = line.split(" \"")[1].strip("]\" ").strip("]\" ").strip("]\" ")
 
     def whoami(self):
-        if self._whoami != None:
+        if self._whoami is not None:
             return self._whoami
         rc, result, err = self.execute("whoami", die=False, showout=False, outputStderr=False)
         if rc > 0:
@@ -1571,7 +1571,7 @@ class InstallTools():
             self.delete(socketpath)
             self.delete(self.joinPaths(self.TMP, "ssh-agent-pid"))
 
-        # if path == None:
+        # if path is None:
         #     path2 = self.joinPaths(os.environ["HOME"], ".ssh", keyname)
         #     if not self.exists(path2):
         #         if createkeys:
@@ -1682,13 +1682,13 @@ class InstallTools():
         """
 
         if url == "":
-            if dest == None:
+            if dest is None:
                 raise RuntimeError("dest cannot be None (url is also '')")
             if not self.exists(dest):
                 raise RuntimeError(
                     "Could not find git repo path:%s, url was not specified so git destination needs to be specified." % (dest))
 
-        if login == None and url.find("github.com/") != -1:
+        if login is None and url.find("github.com/") != -1:
             # can see if there if login & passwd in OS env
             # if yes fill it in
             if "GITHUBUSER" in os.environ:
@@ -1725,7 +1725,7 @@ class InstallTools():
                     reset=False, branch=None, revision=None, ssh="auto", executor=None, codeDir=None, onlyIfExists=False):
         """
         will clone or update repo
-        if dest == None then clone underneath: /opt/code/$type/$account/$repo
+        if dest is None then clone underneath: /opt/code/$type/$account/$repo
         will ignore changes !!!!!!!!!!!
 
         @param ssh ==True means will checkout ssh
@@ -1743,7 +1743,7 @@ class InstallTools():
 
         exists = self.exists(dest) if not executor else executor.exists(dest)
 
-        if onlyIfExists and exists == False:
+        if onlyIfExists and exists is False:
             return
 
         if dest is None and branch is None:
@@ -1765,10 +1765,10 @@ class InstallTools():
             if ignorelocalchanges:
                 print(("git pull, ignore changes %s -> %s" % (url, dest)))
                 cmd = "cd %s;git fetch" % dest
-                if depth != None:
+                if depth is not None:
                     cmd += " --depth %s" % depth
                     self.execute(cmd, executor=executor)
-                if branch != None:
+                if branch is not None:
                     print("reset branch to:%s" % branch)
                     self.execute("cd %s;git reset --hard origin/%s" % (dest, branch), timeout=600, executor=executor)
             else:
@@ -1776,12 +1776,12 @@ class InstallTools():
                 print(("git pull %s -> %s" % (url, dest)))
                 if url.find("http") != -1:
                     print("http")
-                    if branch != None:
+                    if branch is not None:
                         cmd = "cd %s;git -c http.sslVerify=false pull origin %s" % (dest, branch)
                     else:
                         cmd = "cd %s;git -c http.sslVerify=false pull" % dest
                 else:
-                    if branch != None:
+                    if branch is not None:
                         cmd = "cd %s; git fetch ; git reset --hard origin/%s" % (dest, branch)
                     else:
                         cmd = "cd %s; git fetch ; git reset --hard origin/master" % dest
@@ -1792,13 +1792,13 @@ class InstallTools():
             if depth:
                 extra = "--depth=%s" % depth
             if url.find("http") != -1:
-                if branch != None:
+                if branch is not None:
                     cmd = "cd %s;git -c http.sslVerify=false clone %s --single-branch -b %s %s %s" % (
                         self.getParent(dest), extra, branch, url, dest)
                 else:
                     cmd = "cd %s;git -c http.sslVerify=false clone %s  %s %s" % (self.getParent(dest), extra, url, dest)
             else:
-                if branch != None:
+                if branch is not None:
                     cmd = "cd %s;git clone %s --single-branch -b %s %s %s" % (
                         self.getParent(dest), extra, branch, url, dest)
                 else:
@@ -1808,7 +1808,7 @@ class InstallTools():
 
             self.execute(cmd, timeout=600, executor=executor)
 
-        if revision != None:
+        if revision is not None:
             cmd = "cd %s;git checkout %s" % (dest, revision)
             print(cmd)
             self.execute(cmd, timeout=600, executor=executor)
@@ -1906,7 +1906,7 @@ class InstallTools():
         """
         walk over all git repo's found in account & change login/passwd
         """
-        if ssh == False:
+        if ssh is False:
             for reponame, repopath in list(self.getGitReposListLocal(provider, account, name).items()):
                 import re
                 configpath = "%s/.git/config" % repopath
@@ -2155,7 +2155,7 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
 
     @property
     def readonly(self):
-        if self._readonly == None:
+        if self._readonly is None:
             ppath = "%s/bin/_writetest" % do.BASE
             try:
                 do.writeFile(ppath, "")
@@ -2196,7 +2196,7 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
             do.createDir("%s/hrd/apps/" % vardir)
             do.createDir("%s/cfg" % vardir)
 
-        if self.readonly == False or die == True:
+        if self.readonly is False or die == True:
             do.delete("%s/cfg" % basedir)
             do.delete("%s/hrd" % basedir)
             do.delete("%s/var" % basedir)
@@ -2336,7 +2336,7 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
                 "$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu:$_OLD_PYTHONPATH")
         envfile = "%s/env.sh" % basedir
 
-        if self.readonly == False or die == True:
+        if self.readonly is False or die == True:
             do.writeFile(envfile, C)
 
         # pythonversion = '3' if os.environ.get('PYTHONVERSION') == '3' else ''
@@ -2354,7 +2354,7 @@ exec python3 -q "$@"
         """
 
         # C2=C2.format(base=basedir, env=envfile)
-        if self.readonly == False or die == True:
+        if self.readonly is False or die == True:
 
             do.delete("/usr/bin/jspython")  # to remove link
             do.delete("%s/bin/jspython" % basedir)

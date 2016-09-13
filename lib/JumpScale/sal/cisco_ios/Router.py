@@ -108,7 +108,7 @@ class Router:
                 self._log(msg, level='WARNING')
 
         if i == expect_list.index(self._LOGIN_USERNAME_PROMPTS):
-            if username == None:
+            if username is None:
                 self._exit("Username not provided")
             matched = self.exec_cmd(username, expects=expect_list,
                                     return_matched=True)
@@ -121,7 +121,7 @@ class Router:
 
         if i == expect_list.index(self._LOGIN_PASSWORD_PROMPTS):
 
-            if password == None:
+            if password is None:
                 self._exit("Password not provided")
             matched = self.exec_cmd(
                 password, expects=expect_list, return_matched=True)

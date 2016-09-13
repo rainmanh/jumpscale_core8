@@ -603,7 +603,7 @@ class Expect:
                 print(o)
                 self.send(tosend, False)
 
-            elif result == False:
+            elif result is False:
                 raise j.exceptions.RuntimeError("Timeout in execution of sequence.\nError:\n%s" % o)
             else:
                 raise j.exceptions.RuntimeError("Error in execution of sequence.\nError:\n%s" % o)
@@ -681,7 +681,7 @@ class Expect:
                 if line.find(filter) != -1:
                     j.logger.log("Found ignore line:%s:%s" % (filter, line), 9)
                     foundmatch = True
-            if foundmatch == False:
+            if foundmatch is False:
                 returnstr = returnstr + line + "\n"
         return returnstr
 
@@ -699,7 +699,7 @@ class Expect:
         done = False  # status param
         tokenfound = 0
         self._timeout = False
-        while(timeout == False and done == False):
+        while(timeout is False and done is False):
             returnpart, err = self.receive()
             print(returnpart)
             tokenfound = self._checkForTokens(returnpart)

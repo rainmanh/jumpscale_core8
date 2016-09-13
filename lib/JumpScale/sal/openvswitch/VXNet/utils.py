@@ -224,7 +224,7 @@ def addIPv4(interface, ipobj, namespace=None):
     ipv4addr = ipobj.ip
     # if ip existst on interface, we assume all ok
 
-    if namespace != None:
+    if namespace is not None:
         cmd = '%s netns exec %s ip addr add %s/%s dev %s' % (ip, namespace, ipv4addr, netmask, interface)
     else:
         cmd = '%s addr add %s/%s dev %s' % (ip, ipv4addr, netmask, interface)
@@ -239,7 +239,7 @@ def addIPv6(interface, ipobj, namespace=None):
     ipv6addr = ipobj.ip
     # if ip existst on interface, we assume all ok
 
-    if namespace != None and namespace in allnamespaces:
+    if namespace is not None and namespace in allnamespaces:
         cmd = '%s netns exec %s ip addr add %s/%s dev %s' % (ip, namespace, ipv6addr, netmask, interface)
     else:
         cmd = '%s addr add %s/%s dev %s' % (ip, ipv6addr, netmask, interface)

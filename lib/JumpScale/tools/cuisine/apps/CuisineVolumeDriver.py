@@ -15,7 +15,7 @@ class CuisineVolumeDriver(app):
         self.logger = j.logger.get("j.tools.cuisine.volumedriver")
 
     def build(self, reset=False):
-        if reset == False and self.isInstalled():
+        if reset is False and self.isInstalled():
             return
         self._install_deps()
         self._build()

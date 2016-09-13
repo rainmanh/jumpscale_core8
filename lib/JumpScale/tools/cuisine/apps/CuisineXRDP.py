@@ -11,7 +11,7 @@ class CuisineXRDP(app):
         builds a full xrdp, this can take a while
         """
 
-        if reset == False and self.isInstalled():
+        if reset is False and self.isInstalled():
             return
 
         C = """

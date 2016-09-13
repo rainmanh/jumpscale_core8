@@ -74,6 +74,36 @@ class CuisineKVM(base):
         self._executor = executor
         self._cuisine = cuisine
         self._path = None
+        self.__controller = None
+
+    @property
+    def _controller(self):
+        if not self.__controller:
+            if self._cuisine.id == 'localhost':
+                host = 'localhost'
+            else:
+                host = '%s@%s'%(getattr(self._executor, '_login', 'root'), self._cuisine.id)
+            self.__controller = j.sal.kvm.KVMController(
+                host=host, executor=self._cuisine._executor)
+        return self.__controller
+
+    def download_image(self, url, overwrite=False):
+        name = url.split('/')[-1]
+        path = j.sal.fs.joinPaths(self._controller.base_path, 'images', name)
+        self._controller.executor.cuisine.core.file_download(url, path, overwrite=True)
+
+    def machine(self, name, os, disks, nics, memory, cpucount, uuid=None, cloud_init=True):
+        return j.sal.kvm.CloudMachine(self._controller, name, os, disks, nics, memory, cpucount, uuid=None, cloud_init=True)
+
+    def create_pool(self, name):
+        pool = j.sal.kvm.Pool(self._controller, name)
+        pool.create()
+        return pool
+
+    def create_network(self, name):
+        network = j.sal.kvm.Network(self._controller, name)
+        network.create()
+        return network
 
     def prepare(self):
         self.install()
@@ -81,18 +111,15 @@ class CuisineKVM(base):
         # check openvswitch properly configured
 
     def install(self):
-        if self._cuisine.core.isUbuntu and self._cuisine.core.osversion == '16.04':
-            # TODO: check is ubuntu 16.04
-            raise NotImplemented()
-        else:
-            raise RuntimeError("only support ubuntu")
+        if not self._cuisine.core.isUbuntu or self._cuisine.platformtype.osversion != '16.04':
+            raise RuntimeError("only support ubuntu 16.04")
         self._libvirt()
         # check if kvm there if yes, don't do anything
         # do other required checks
 
     @property
     def path(self):
-        if self._path == None:
+        if self._path is None:
             # look for btrfs fs kvm, is where all vm & disk info will be
             # TODO *1
             j.sal.fs.createDir(j.sal.fs.joinPaths(self._path, "vm"))
@@ -108,37 +135,35 @@ class CuisineKVM(base):
     def _libvirt(self):
         """
         """
-        # TODO: *1 need to check and exit if required are met 
+        # TODO: *1 need to check and exit if required are met
+        self._cuisine.package.install('libvirt-bin')
         self._cuisine.package.install('libvirt-dev')
+        self._cuisine.package.install('qemu-system-x86')
+        self._cuisine.package.install('qemu-system-common')
+        self._cuisine.package.install('genisoimage')
         self._cuisine.development.pip.install("libvirt-python==1.3.2", upgrade=False)
 
     def vdiskBootCreate(self, name, image='http://fs.aydo.com/kvm/ub_small.img'):
         path = j.sal.fs.joinPaths(self.diskStorPath, name)
         # create qcow2 image disk on the right path
 
-    def vdiskCreate(self, name, size=100):
+    def vdiskCreate(self, pool, name, size=100, image_name=""):
         """
         @param size in GB
         """
-        # create an empty disk we can attach
-        raise NotImplemented()
+        # create an empty disk we can attachl
+        disk = j.sal.kvm.Disk(self._controller, pool, name, size, image_name)
+        disk.create()
 
     def vdiskDelete(self, name):
-        raise NotImplemented()
+        vol = self._controller.connection.get_volume(name)
+        disk = j.sal.kvm.Disk.from_xml(self._controller, vol.XMLDesc())
+        disk.delete()
 
     def vdisksList(self):
-        raise NotImplemented()
-
-    def vnicCreate(self, name):
-        # TODO: how to specify a virtual nic
-        raise NotImplemented()
-
-    def vnicDelete(self, name):
-        # TODO: how to specify a virtual nic
-        raise NotImplemented()
-
-    def vnicsList(**kwargs):
-        raise NotImplemented()
+        storagecontroller = j.sal.kvm.StorageController(self._controller)
+        disks = storagecontroller.list_disks()
+        return disks
 
     def machineCreate(self, name, disks, nics, mem, pubkey=None):
         """
@@ -172,3 +197,15 @@ class CuisineKVM(base):
         set vdisk QOS settings at runtime
         """
         raise NotImplemented()
+
+    def vpoolCreate(self, name):
+        pool = j.sal.kvm.StorageController(self._controller).get_or_create_pool(name)
+        return pool
+
+    def vpoolDestroy(self, name):
+        j.sal.kvm.StorageController(self._controller).delete(name)
+        return True
+
+    def vmachinesList(self):
+        machines = j.sal.kvm.controller.list_machines()
+        return machines

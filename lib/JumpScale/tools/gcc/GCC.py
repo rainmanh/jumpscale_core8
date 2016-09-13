@@ -74,7 +74,7 @@ class GCC_Mgmt():
         node object that represent the host machines
         """
         if self._docker_nodes == []:
-            if j.core.db.get("gcc.host_nodes") == None:
+            if j.core.db.get("gcc.host_nodes") is None:
                 self.init()
             nodes = j.core.db.get("gcc.host_nodes").decode()
             self._host_nodes = self._parseNode(nodes)
@@ -87,7 +87,7 @@ class GCC_Mgmt():
         the acutal apps are installed
         """
         if self._docker_nodes == []:
-            if j.core.db.get("gcc.docker_nodes") == None:
+            if j.core.db.get("gcc.docker_nodes") is None:
                 self.init()
             nodes = j.core.db.get("gcc.docker_nodes").decode()
             self._docker_nodes = self._parseNode(nodes)

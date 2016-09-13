@@ -128,7 +128,7 @@ class Time_:
         """
         is # min from jan 1 2010
         """
-        if epoch == None:
+        if epoch is None:
             epoch = time.time()
         if epoch < 1262318400.0:
             raise j.exceptions.RuntimeError(
@@ -179,7 +179,7 @@ class Time_:
         means 3 days ago 3 hours ago
         if 0 or '' then is now
         """
-        if txt == None or str(txt).strip() == "0":
+        if txt is None or str(txt).strip() == "0":
             return self.getTimeEpoch()
         return self.getTimeEpoch() + self.getDeltaTime(txt)
 
@@ -190,7 +190,7 @@ class Time_:
         and an int which would be just be returned
         if txt==None or 0 then will be 1 day ago
         """
-        if txt == None or str(txt).strip() == "0":
+        if txt is None or str(txt).strip() == "0":
             return self.getTimeEpoch()
         return self.getTimeEpoch() + self.getDeltaTime(txt)
 
@@ -235,7 +235,7 @@ class Time_:
                 if res != 0:
                     return res
             return 0
-        if val == None:
+        if val is None:
             return 0
         if j.data.types.int.check(val):
             return val

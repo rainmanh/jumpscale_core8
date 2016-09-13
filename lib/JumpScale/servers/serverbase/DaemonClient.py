@@ -39,7 +39,7 @@ class DaemonClient:
         """
         @param encrkey (use for simple blowfish shared key encryption, better to use SSL though, will do the same but dynamically exchange the keys)
         """
-        if id != None:
+        if id is not None:
             self._id = id
         else:
             end = 4294967295  # 4bytes max nr
@@ -149,9 +149,9 @@ class DaemonClient:
         #     dest="unknown"
         # print "###data send to %s\n%s\n#######"%(dest,data)
 
-        if sendformat == None:
+        if sendformat is None:
             sendformat = self.defaultSerialization
-        if returnformat == None:
+        if returnformat is None:
             returnformat = self.defaultSerialization
         rawdata = data
         if sendformat != "":

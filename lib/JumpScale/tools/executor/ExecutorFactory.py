@@ -17,6 +17,34 @@ class ExecutorFactory:
         """
         ExecutorSSH(addr, port=port, login=login, passwd=passwd, pushkey=keyname, pubkey=pubkey)
 
+    def getSSHViaProxy(self, jumphost, jmphostuser, host, username, port, identityfile, proxycommand=None):
+        """
+        To get an executor to host through a jumphost *knows about*.
+
+        @param  jumphost is the host we connect through
+        @param jmphostuser is the user at the jumphost
+        @host is the host we connect to through the jumphost
+        @username is the username on host
+
+        local> ssh jmphostuser@jumphost
+        jmphostuser@jumphost> ssh user@host
+        user@host>
+
+        example:
+        In [1]: ex=j.tools.executor.getSSHViaProxy("192.168.21.163", "cloudscalers",
+            "192.168.21.156","cloudscalers", 22, "/home/ahmed/.ssh/id_rsa")
+
+        In [2]: ex.cuisine.core.run("hostname")
+        [Tue06 14:22] - ...mpScale/tools/executor/ExecutorSSH.py:114  - DEBUG    - cmd: hostname
+        [Tue06 14:22] - ...mpScale/tools/executor/ExecutorSSH.py:128  - INFO     - EXECUTE :22: hostname
+        vm-6
+
+        """
+        executor = ExecutorSSH()
+        ex = executor.getSSHViaProxy(jumphost, jmphostuser, host, username, port, identityfile, proxycommand)
+        self._executors[host] = ex
+        return ex
+
     def get(self, executor="localhost"):
         """
         @param executor is an executor object, None or $hostname:$port or $ipaddr:$port or $hostname or $ipaddr

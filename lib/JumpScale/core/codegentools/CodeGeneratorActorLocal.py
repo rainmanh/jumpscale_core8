@@ -26,11 +26,11 @@ class CodeGeneratoractorLocal(CodeGeneratorBase):
         for var in method.vars:
             descr += "param:%s %s" % (var.name,
                                       self.descrTo1Line(var.description))
-            if var.defaultvalue != None:
+            if var.defaultvalue is not None:
                 descr += " default=%s" % var.defaultvalue
             descr += "\n"
 
-        if method.result != None:
+        if method.result is not None:
             descr += "result %s %s\n" % (method.result.type,
                                          self.descrTo1Line(method.result.description))
 
@@ -39,7 +39,7 @@ class CodeGeneratoractorLocal(CodeGeneratorBase):
 
         paramCodeStr = ","
         for param in method.vars:
-            if param.defaultvalue != None:
+            if param.defaultvalue is not None:
                 paramCodeStr += "%s=%r," % (param.name, param.defaultvalue)
             else:
                 paramCodeStr += "%s," % param.name

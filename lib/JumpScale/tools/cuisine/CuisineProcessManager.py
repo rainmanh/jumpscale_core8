@@ -43,7 +43,7 @@ class CuisineSystemd(ProcessManagerBase):
         result = []
         for line in out.split("\n"):
             res = re.search(p, line)
-            if res != None:
+            if res is not None:
                 # print (line)
                 d = res.groupdict()
                 if d["name"].startswith(prefix):

@@ -16,7 +16,7 @@ class SerializerHRD(SerializerBase):
         return '%s = %s\n' % (prepend, type)
 
     def dumps(self, data, prepend=''):
-        if data == None:
+        if data is None:
             return self._formatPrepends(prepend, 'None')
         if isinstance(data, dict):
             processed = self._dumpDict(data, prepend)
@@ -79,7 +79,7 @@ class SerializerHRD(SerializerBase):
         return dataresult
 
     def _processKey(self, key, value, result):
-        if result == None:
+        if result is None:
             result = [] if key.startswith('[') else {}
         if key.endswith('.'):
             key = key[:-1]

@@ -261,7 +261,7 @@ class SystemFS:
             target_folder = os.path.dirname(to)
             if createDirIfNeeded:
                 self.createDir(target_folder)
-            if overwriteFile == False:
+            if overwriteFile is False:
                 if self.exists(to) and os.path.samefile(to, target_folder):
                     destfilename = os.path.join(to, os.path.basename(fileFrom))
                     if self.exists(destfilename):
@@ -361,7 +361,7 @@ class SystemFS:
         self.logger.debug(
             'Creating directory if not exists %s' % toStr(newdir))
 
-        if newdir == '' or newdir == None:
+        if newdir == '' or newdir is None:
             raise TypeError(
                 'The newdir-parameter of system.fs.createDir() is None or an empty string.')
 
@@ -416,7 +416,7 @@ class SystemFS:
                 errors = []
                 for name in names:
                     # is only for the name
-                    if applyHrdOnDestPaths != None:
+                    if applyHrdOnDestPaths is not None:
                         name2 = applyHrdOnDestPaths.applyOnContent(name)
                     else:
                         name2 = name
@@ -619,7 +619,7 @@ class SystemFS:
         if lastOnly:
             dname = dname.split(os.sep)[-1]
             return dname
-        if levelsUp != None:
+        if levelsUp is not None:
             parts = dname.split(os.sep)
             if len(parts) - levelsUp > 0:
                 return parts[len(parts) - levelsUp - 1]
@@ -755,7 +755,7 @@ class SystemFS:
         from grp import getgrnam
         getpwnam(user)[2]
         uid = getpwnam(user).pw_uid
-        if group != None:
+        if group is not None:
             gid = getgrnam(group).gr_gid
         else:
             gid = getpwnam(user).pw_gid
@@ -933,12 +933,12 @@ class SystemFS:
         @Param exclude: list of std filters if matches then exclude
         @rtype: list
         """
-        if depth != None:
+        if depth is not None:
             depth = int(depth)
         self.logger.debug('List files in directory with path: %s' % path)
         if depth == 0:
             depth = None
-        # if depth != None:
+        # if depth is not None:
         #     depth+=1
         filesreturn, depth = self._listAllInDir(path, recursive, filter, minmtime, maxmtime, depth, type="f", case_sensitivity=case_sensitivity,
                                                 exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
@@ -960,12 +960,12 @@ class SystemFS:
         @param type is string with f & d inside (f for when to find files, d for when to find dirs)
         @rtype: list
         """
-        if depth != None:
+        if depth is not None:
             depth = int(depth)
         self.logger.debug('List files in directory with path: %s' % path)
         if depth == 0:
             depth = None
-        # if depth != None:
+        # if depth is not None:
         #     depth+=1
         filesreturn, depth = self._listAllInDir(
             path, recursive, filter, minmtime, maxmtime, depth, type=type, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
@@ -1019,16 +1019,16 @@ class SystemFS:
                     # if not(listSymlinks==False and self.isLink(fullpath)):
                     filesreturn.append(fullpath)
                 if recursive:
-                    if depth != None and depth != 0:
+                    if depth is not None and depth != 0:
                         depth = depth - 1
-                    if depth == None or depth != 0:
+                    if depth is None or depth != 0:
                         exclmatch = False
                         if exclude != []:
                             for excludeItem in exclude:
                                 if matcher(fullpath, excludeItem):
                                     exclmatch = True
-                        if exclmatch == False:
-                            if not(followSymlinks == False and self.isLink(fullpath)):
+                        if exclmatch is False:
+                            if not(followSymlinks is False and self.isLink(fullpath)):
                                 r, depth = self._listAllInDir(fullpath, recursive, filter, minmtime, maxmtime, depth=depth, type=type,
                                                               exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
                                 if len(r) > 0:
@@ -1403,6 +1403,11 @@ class SystemFS:
         return data
 
     def readFile(self, filename):
+        """
+        Get contents as string from filename.
+
+        @param filename str: file path to read from.
+        """
         return self.fileGetContents(filename)
 
     def fileGetUncommentedContents(self, filename):
@@ -1464,7 +1469,7 @@ class SystemFS:
         if (filename is None) or (contents is None):
             raise TypeError('Passed None parameters in system.fs.writeFile')
         self.logger.debug('Opened file %s for writing' % filename)
-        if append == False:
+        if append is False:
             fp = open(filename, "wb")
         else:
             fp = open(filename, "ab")
@@ -1708,7 +1713,7 @@ class SystemFS:
         @param prefix: string to start the generated name with
         @rtype: string representing the generated temp file path
         """
-        if dir == None:
+        if dir is None:
             return j.sal.fs.joinPaths(j.dirs.tmpDir, prefix + str(j.data.idgenerator.generateRandomInt(0, 1000000000000)) + ".tmp")
         else:
             dir = dir or j.dirs.tmpDir
@@ -1875,6 +1880,11 @@ class SystemFS:
     cleanupString = staticmethod(cleanupString)
 
     def constructDirPathFromArray(self, array):
+        """
+        Create a path using os specific seperators from a list being passed with directoy.
+
+        @param array str: list of dirs in the path.
+        """
         path = ""
         for item in array:
             path = path + os.sep + item
@@ -1885,6 +1895,11 @@ class SystemFS:
         return path
 
     def constructFilePathFromArray(self, array):
+        """
+        Add file name  to dir path.
+
+        @param array str: list including dir path then file name
+        """
         path = self.constructDirPathFromArray(array)
         if path[-1] == "/":
             path = path[0:-1]
@@ -1967,6 +1982,12 @@ class SystemFS:
         t.close()
 
     def gzip(self, sourceFile, destFile):
+        """
+        Gzip source file into destination zip
+
+        @param sourceFile str: path to file to be Gzipped.
+        @param destFile str: path to  destination Gzip file.
+        """
         import gzip
         f_in = open(sourceFile, 'rb')
         f_out = gzip.open(destFile, 'wb')
@@ -1975,6 +1996,12 @@ class SystemFS:
         f_in.close()
 
     def gunzip(self, sourceFile, destFile):
+        """
+        Gunzip gzip sourcefile into destination file
+
+        @param sourceFile str: path to gzip file to be unzipped. 
+        @param destFile str: path to destination folder to unzip folder.
+        """
         import gzip
         self.createDir(self.getDirName(destFile))
         f_in = gzip.open(sourceFile, 'rb')

@@ -26,7 +26,7 @@ class HRDType:
         self.hrd_ttype = None
 
     def validate(self, value):
-        if self.typeclass.check(value) == False:
+        if self.typeclass.check(value) is False:
             raise ValueError("Value:%s is not correct for %s" % (value, self))
 
     def ask(self):
@@ -110,7 +110,7 @@ class HRDType:
 class HRDSchema:
 
     def __init__(self, path="", content=""):
-        if path != None:
+        if path is not None:
             content = j.sal.fs.fileGetContents(path)
         # if content=="":
             # raise j.exceptions.Input("Content needs to be provided if path is empty")
@@ -159,7 +159,7 @@ class HRDSchema:
             else:
                 regex = None
 
-            if regex != None and ttype != "str":
+            if regex is not None and ttype != "str":
                 raise ValueError(
                     "Hrd schema not properly formatted, type can only be string when regex used, see '%s'" % line)
 
@@ -317,7 +317,7 @@ struct Schema {
         """
         populate hrd out of the schema
         """
-        if hrd == None:
+        if hrd is None:
             hrd = j.data.hrd.get(content="", prefixWithName=False)
         for key, ttype in self.items.items():
             val = None
@@ -325,7 +325,7 @@ struct Schema {
                 val = args[ttype.name]
             else:
                 if not hrd.exists(ttype.name):
-                    if ttype.doAsk == False:
+                    if ttype.doAsk is False:
                         val = ttype.default
                     else:
                         val = ttype.ask()
@@ -368,7 +368,7 @@ struct Schema {
                     val = val[0]
 
             hrd.set(ttype.name, val, ttype=ttype.hrd_ttype)
-            if path == None:
+            if path is None:
                 hrd.path = path
 
         return hrd

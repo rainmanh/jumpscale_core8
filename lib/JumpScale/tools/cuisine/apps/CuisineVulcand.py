@@ -12,7 +12,7 @@ class CuisineVulcand(app):
         self._cuisine = cuisine
 
     def build(self, reset=False):
-        if reset == False and self.isInstalled():
+        if reset is False and self.isInstalled():
             return
         C = '''
         #!/bin/bash

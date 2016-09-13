@@ -78,7 +78,7 @@ Gateway={gateway}
         find nodes which are active around (answer on SSH)
 
         """
-        if range == None:
+        if range is None:
             res = self._cuisine.net.getInfo()
             for item in res:
                 cidr = item['cidr']
@@ -158,7 +158,7 @@ Gateway={gateway}
                 return nic
             res.append(nic)
 
-        if device != None:
+        if device is not None:
             raise j.exceptions.RuntimeError("could not find device")
         return res
 

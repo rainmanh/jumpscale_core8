@@ -21,7 +21,7 @@ class NetConfigFactory:
         """
         walk over system and get configuration, result is dict
         """
-        if self._layout == None or reload:
+        if self._layout is None or reload:
             self._layout = vxlan.NetLayout()
             self._layout.load()
         # add_ips_to(self._layout)  #TODO: fix
@@ -268,7 +268,7 @@ iface $iname inet manual
         C = C.replace("$ipbase", str(n.ip))
         C = C.replace("$mask", str(n.netmask))
         C = C.replace("$MTU", str(self.PHYSMTU))
-        if gw != "" and gw != None:
+        if gw != "" and gw is not None:
             C = C.replace("$gw", "gateway %s" % gw)
         else:
             C = C.replace("$gw", "")
@@ -312,7 +312,7 @@ iface $bondname inet manual
         C = C.replace("$ipbase", str(n.ip))
         C = C.replace("$mask", str(n.netmask))
         C = C.replace("$MTU", str(self.PHYSMTU))
-        if gw != "" and gw != None:
+        if gw != "" and gw is not None:
             C = C.replace("$gw", "gateway %s" % gw)
         else:
             C = C.replace("$gw", "")
@@ -332,7 +332,7 @@ iface $bondname inet manual
                 self._exec("ip addr flush dev %s" % intname, False)
                 self._exec("ip link set %s down" % intname, False)
 
-        if backplanename != None:
+        if backplanename is not None:
             self._exec("ifdown %s" % backplanename, failOnError=False)
             # self._exec("ifup %s"%backplanename, failOnError=True)
 

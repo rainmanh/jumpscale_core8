@@ -17,17 +17,17 @@ ActionsBase=j.atyourservice.getActionsBaseClass()
 
 class Actor(ActorBase):
 
-    def __init__(self, aysrepo, template):
+    def __init__(self, aysrepo, template=None, model=None):
         """
         """
 
-        self.template = template
         self.aysrepo = aysrepo
 
         self.path = j.sal.fs.joinPaths(aysrepo.path, "actors", template.name)
 
         self.logger = j.atyourservice.logger
 
+        self.template = template
         self.name = self.template.name
 
         self._init_props()
@@ -35,22 +35,21 @@ class Actor(ActorBase):
 
         self.db = aysrepo.db.actor
 
-        existingKeys = self.db.list(name=self.name)
-        if len(existingKeys) == 0:
-            self.model = self.db.new()
-            self.model.save()
-        elif len(existingKeys) == 1:
-            self.model = self.db.get(existingKeys[0])
+        if model is None:
+            existingKeys = self.db.list(name=self.name)
+            if len(existingKeys) == 0:
+                self.model = self.db.new()
+                self.model.save()
+            elif len(existingKeys) == 1:
+                self.model = self.db.get(existingKeys[0])
+            else:
+                raise j.exceptions.Input(message="Found more than 1 object:%s" %
+                                         existingKeys, level=1, source="", tags="", msgpub="")
+            self.loadFromFS()
         else:
-            raise j.exceptions.Input(message="Found more than 1 object:%s" %
-                                     existingKeys, level=1, source="", tags="", msgpub="")
+            self.model = model
 
         self.model.dbobj.name = self.name
-
-        # copy the files
-        # TOO: needs to be real check (after debug)
-        if True or not j.sal.fs.exists(path=self.path):
-            self.loadFromFS()
 
     @property
     def schemaServiceCapnp(self):

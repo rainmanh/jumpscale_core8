@@ -45,12 +45,10 @@ class ActorModel(ModelBase):
             res.append(self._modelfactory.get(key))
         return res
 
-    @property
-    def object(self):
-        from IPython import embed
-        print("DEBUG NOW return object e.g. ays actor object")
-        embed()
-        raise RuntimeError("stop debug here")
+    def objectGet(self, aysrepo):
+        template = aysrepo.templateGet(self.dbobj.name)
+        Actor = aysrepo.getActorClass()
+        return Actor(aysrepo=aysrepo, template=template, model=self)
 
     @property
     def actionsSortedList(self):

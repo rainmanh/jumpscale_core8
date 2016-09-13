@@ -77,6 +77,9 @@ class AtYourServiceRepo():
         self._actors[actor.name] = actor
         return actor
 
+    def getActorClass(self):
+        return Actor
+
     def actorGet(self, name, reload=False, die=False):
         if reload:
             self.reset()
@@ -100,9 +103,9 @@ class AtYourServiceRepo():
     def actors(self):
         if self._actors == {}:
             for item in self.db.actor.find():
-                res = item.object
-                if res.dbobj.state != "disabled":
-                    self._actors[res.dbobj.name] = res[res.dbobj.name].object
+                res = item.objectGet(aysrepo=self)
+                if res.model.dbobj.state != "disabled":
+                    self._actors[res.model.dbobj.name] = res
         return self._actors
 
     def actorsFind(self, name="", version="", role=''):
@@ -125,7 +128,6 @@ class AtYourServiceRepo():
     def templates(self):
         """
         """
-        self._doinit()
         if self._templates == {}:
             # need to link to templates of factory and then overrule with the
             # local ones

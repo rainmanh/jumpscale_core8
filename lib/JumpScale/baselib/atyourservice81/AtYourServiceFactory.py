@@ -1,6 +1,6 @@
 from JumpScale import j
 
-# from JumpScale.baselib.atyourservice81.actor import actor
+# from JumpScale.baselib.atyourservice81.Actor import Actor
 # from JumpScale.baselib.atyourservice81.Service import Service, loadmodule
 from JumpScale.baselib.atyourservice81.ActorTemplate import ActorTemplate
 

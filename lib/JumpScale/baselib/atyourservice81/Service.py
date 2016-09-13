@@ -60,100 +60,97 @@ class Service:
         if name is None or name == "":
             raise j.exceptions.RuntimeError("name (ays instance name) needs to be specified")
 
-        res = self.aysrepo.db.service.find(actor=self.actor.name, name=self.name)
+        if model == None:
+            res = self.aysrepo.db.service.find(actor=self.actor.name, name=self.name)
+            if len(res) == 0:
 
-        if len(res) == 0 and model is not None:
-            from IPython import embed
-            print("DEBUG NOW model given, but found actor")
-            embed()
-            raise RuntimeError("stop debug here")
-            # raise j.exceptions.Input(message="when model specified then ", level=1, source="", tags="", msgpub="")
-        if len(res) == 0:
+                self.model = self.aysrepo.db.service.new()
+                dbobj = self.model.dbobj
+                dbobj.name = self.name
 
-            self.model = self.aysrepo.db.service.new()
-            dbobj = self.model.dbobj
-            dbobj.name = self.name
+                if self.role == "" or self.name == "":
+                    raise j.exceptions.Input(message="actor or name cannot be empty for service",
+                                             level=1, source="", tags="", msgpub="")
 
-            if self.role == "" or self.name == "":
-                raise j.exceptions.Input(message="actor or name cannot be empty for service",
-                                         level=1, source="", tags="", msgpub="")
+                dbobj.actorName = self.actor.name
+                dbobj.state = "new"
 
-            dbobj.actorName = self.actor.name
-            dbobj.state = "new"
+                dbobj.capnpSchema = actor.model.dbobj.serviceDataSchema
 
-            dbobj.capnpSchema = actor.model.dbobj.serviceDataSchema
+                for key, val in args.items():
+                    if "." in key:
+                        pre, post = key.split(".", 1)
+                        key2 = pre + post[0].upper() + post[1:]
+                        args[key2] = args[key]
+                        args.pop(key)
 
-            try:
-                configdata = actor.schemaServiceCapnp.new_message(**args)
-            except Exception as e:
-                if str(e).find("has no such member") != -1:
-                    msg = "cannot create service from arguments\n"
-                    msg += "actor:'%s' servicename:'%s'" % (actor.name, self.name)
-                    msg += "arguments:\n%s\n" % j.data.serializer.json.dumps(args, sort_keys=True, indent=True)
-                    msg += "schema:\n%s" % dbobj.capnpSchema
-                    ee = str(e).split("stack:")[0]
-                    ee = ee.split("failed:")[1]
-                    msg += "capnperror:%s" % ee
-                    print(msg)
+                try:
+                    configdata = actor.schemaServiceCapnp.new_message(**args2)
+                except Exception as e:
+                    if str(e).find("has no such member") != -1:
+                        msg = "cannot create service from arguments\n"
+                        msg += "actor:'%s' servicename:'%s'" % (actor.name, self.name)
+                        msg += "arguments:\n%s\n" % j.data.serializer.json.dumps(args, sort_keys=True, indent=True)
+                        msg += "schema:\n%s" % dbobj.capnpSchema
+                        ee = str(e).split("stack:")[0]
+                        ee = ee.split("failed:")[1]
+                        msg += "capnperror:%s" % ee
+                        print(msg)
+                        from IPython import embed
+                        print("DEBUG capnperror capnperror")
+                        embed()
+                        raise RuntimeError("stop debug here")
+                        raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
+                    raise e
+
+                dbobj.configData = configdata.to_bytes_packed()
+
+                r = self.model.gitRepoAdd()
+                r.url = self.aysrepo.git.remoteUrl
+
+                parent = actor.schemaServiceHRD.parentSchemaItemGet()
+                if parent != None:
+                    parentrole = parent.parent
+                    instance = args[parentrole]
+                    res = self.aysrepo.db.service.find(name=instance, actor="%s.*" % parentrole)
+                    if res == []:
+                        raise j.exceptions.Input(message="could not find parent:%s!%s for %s" % (
+                            parentrole, instance, self), level=1, source="", tags="", msgpub="")
+                    elif len(res) > 1:
+                        raise j.exceptions.Input(message="found more than 1 parent:%s!%s for %s" % (
+                            parentrole, instance, self), level=1, source="", tags="", msgpub="")
+                    parentobj = res[0].objectGet(self.aysrepo)
+                    dbobj.parent.actorName = parentobj.actor.name
+                    dbobj.parent.key = parentobj.model.key
+                    dbobj.parent.name = parentobj.model.dbobj.name
+
+                producers = actor.schemaServiceHRD.consumeSchemaItemsGet()
+                if producers != []:
                     from IPython import embed
-                    print("DEBUG capnperror capnperror")
+                    print("DEBUG NOW producers")
                     embed()
                     raise RuntimeError("stop debug here")
-                    raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
-                raise e
 
-            dbobj.configData = configdata.to_bytes_packed()
+                skey = "%s!%s" % (self.role, self.name)
+                if parent is not None:
+                    relpath = j.sal.fs.joinPaths(parentobj.path, skey)
+                else:
+                    relpath = j.sal.fs.joinPaths("services", skey)
 
-            r = self.model.gitRepoAdd()
-            r.url = self.aysrepo.git.remoteUrl
+                r.path = relpath
 
-            parent = actor.schemaServiceHRD.parentSchemaItemGet()
-            if parent != None:
-                parentrole = parent.parent
-                instance = args[parentrole]
-                res = self.aysrepo.db.service.find(name=instance, actor="%s.*" % parentrole)
-                if res == []:
-                    raise j.exceptions.Input(message="could not find parent:%s!%s for %s" % (
-                        parentrole, instance, self), level=1, source="", tags="", msgpub="")
-                elif len(res) > 1:
-                    raise j.exceptions.Input(message="found more than 1 parent:%s!%s for %s" % (
-                        parentrole, instance, self), level=1, source="", tags="", msgpub="")
-                parentobj = res[0].objectGet(self.aysrepo)
-                dbobj.parent.actorName = parentobj.actor.name
-                dbobj.parent.key = parentobj.model.key
-                dbobj.parent.name = parentobj.model.dbobj.name
+                self.model.save()
 
-            producers = actor.schemaServiceHRD.consumeSchemaItemsGet()
-            if producers != []:
-                from IPython import embed
-                print("DEBUG NOW producers")
-                embed()
-                raise RuntimeError("stop debug here")
+                self.saveToFS()
 
-            skey = "%s!%s" % (self.role, self.name)
-            if parent is not None:
-                relpath = j.sal.fs.joinPaths(parentobj.path, skey)
+                # service.processChange("init")
             else:
-                relpath = j.sal.fs.joinPaths("services", skey)
-
-            r.path = relpath
-
-            self.model.save()
-
-            # service.processChange("init")
-
-        elif model == None:
-            # existing service
-            self.model = self.aysrepo.db.service.find(name=name, actor=actor.name)
+                # existing service
+                self.model = self.aysrepo.db.service.find(name=name, actor=actor.name)
         else:
             self.model = model
 
         self.key = self.role + "!" + self.name  # human readable key
-
-        # copy the files
-        # TOO: needs to be real check (after debug)
-        if True or not j.sal.fs.exists(path=self.path):
-            self.saveToFS()
 
         # self._key = "%s!%s" % (self.role, self.name)
         # self._gkey = "%s!%s!%s" % (aysrepo.path, self.role, self.instance)

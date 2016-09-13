@@ -120,12 +120,70 @@ class Actor(ActorBase):
             if self.model.dbobj.actorDataSchema != self.template.schemaActor.capnpSchema:
                 self.processChange("schema_actor")
                 self.model.dbobj.actorDataSchema = self.template.schemaActor.capnpSchema
-                self.model.dbobj.actorDataSchemaHRD = j.sal.fs.fileGetContents(self.path_hrd_schema_actor)
         if j.sal.fs.exists(self.path_hrd_schema_service):
-            if self.model.dbobj.serviceDataSchema != self.template.schemaService.capnpSchema:
+            if self.model.dbobj.dataSchemaService != self.template.schemaService.capnpSchema:
                 self.processChange("schema_service")
-                self.model.dbobj.serviceDataSchema = self.template.schemaService.capnpSchema
-                self.model.dbobj.serviceDataSchemaHRD = j.sal.fs.fileGetContents(self.path_hrd_schema_service)
+                self.model.dbobj.dataSchemaService = self.template.schemaService.capnpSchema
+
+        from IPython import embed
+        print("DEBUG NOW sdsdsds")
+        embed()
+        raise RuntimeError("stop debug here")
+
+        parent = self.template.schemaService.parentSchemaItemGet()
+        if parent is not None:
+            parentrole = parent.parent
+
+            res = self.aysrepo.db.actor.find(name="%s.*" % parentrole)
+            if res == []:
+                raise j.exceptions.Input(message="could not find parent:%s!%s for %s" % (
+                    parentrole, instance, self), level=1, source="", tags="", msgpub="")
+            elif len(res) > 1:
+                raise j.exceptions.Input(message="found more than 1 parent:%s!%s for %s" % (
+                    parentrole, instance, self), level=1, source="", tags="", msgpub="")
+            parentobj = res[0].objectGet(self.aysrepo)
+
+            # instance = args[parentrole]
+            # res = self.aysrepo.db.service.find(name=instance, actor="%s.*" % parentrole)
+            # if res == []:
+            #     raise j.exceptions.Input(message="could not find parent:%s!%s for %s" % (
+            #         parentrole, instance, self), level=1, source="", tags="", msgpub="")
+            # elif len(res) > 1:
+            #     raise j.exceptions.Input(message="found more than 1 parent:%s!%s for %s" % (
+            #         parentrole, instance, self), level=1, source="", tags="", msgpub="")
+            # parentobj = res[0].objectGet(self.aysrepo)
+            dbobj.parent.actorName = parentobj.actor.name
+            dbobj.parent.key = parentobj.model.key
+            dbobj.parent.name = parentobj.model.dbobj.name
+        #
+        # producers_schema_info = actor.schemaServiceHRD.consumeSchemaItemsGet()
+        # if producers_schema_info != []:
+        #     for producer_schema_info in producers_schema_info:
+        #
+        #         producer_role = producer_schema_info.consume_link
+        #         if producer_role in args:
+        #             # instance name of the comusmption is specified
+        #             instance = args[producer_role]
+        #         else:
+        #             instance = ''
+        #
+        #         res = self.aysrepo.db.service.find(name=instance, actor="%s.*" % producer_role)
+        #         producer_obj = None
+        #         if len(res) > 1:
+        #             raise j.exceptions.Input(message="found more than 1 producer:%s!%s for %s" % (
+        #                                      producer_role, instance, self), level=1, source="", tags="", msgpub="")
+        #
+        #         elif len(res) <= 0:
+        #             if producer_schema_info.auto is True:  # auto creation of the producer is enabled
+        #                 actor = self.aysrepo.actorGet(producer_role, reload=False)
+        #                 producer_obj = actor.serviceCreate(instance='auto', args={})
+        #             else:
+        #                 raise j.exceptions.Input(message="could not find producer:%s!%s for %s" % (
+        #                                          producer_role, instance, self), level=1, source="", tags="", msgpub="")
+        #
+        #         if producer_obj is None:
+        #             producer_obj = res[0].objectGet(self.aysrepo)
+        #         self.model.producerAdd(producer_obj.actor.name, producer_obj.name, producer_obj.key)
 
         self._processActionsFile()
 

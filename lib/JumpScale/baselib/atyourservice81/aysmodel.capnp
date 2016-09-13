@@ -24,7 +24,8 @@ struct Actor {
     name @0 :Text;
     actorFQDN @1 :Text;
     maxServices @2 :UInt8;
-    actorKey @3 :Text;
+    maxServices @3 :UInt8;
+    actorName @4 :Text;
   }
 
   actions @5 :List(Action);

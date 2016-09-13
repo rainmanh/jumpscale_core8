@@ -131,8 +131,10 @@ class ClassDoc:
         self.methods[name] = md
         return source, md.params
 
+    def undersore_location(self):
+        return self.location.replace(".", "_")
     def write(self, dest):
-        dest2 = j.sal.fs.joinPaths(dest, self.location.split(".")[1], "%s.md" % self.location)
+        dest2 = j.sal.fs.joinPaths(dest, self.location.split(".")[1], "%s.md" % self.undersore_location())
         destdir = j.sal.fs.getDirName(dest2)
         j.sal.fs.createDir(destdir)
         content = str(self)
@@ -407,14 +409,16 @@ class ObjectInspector:
         """
         Writes the documentation on a specified path.
         """
+        self.dest=os.path.normpath(self.dest)
         todelete = []
         summary = {}
         for key, doc in list(self.classDocs.items()):
-            key2 = ".".join(key.split(".")[0:2])
+            key2 = ".".join(key.split(".")[0:2]) #root items (data,core,application, sal,..)
             if key2 not in summary:
                 summary[key2] = {}
             dest = doc.write(path)
             # remember gitbook info
+            dest=os.path.normpath(dest)
             summary[key2][key] = j.sal.fs.pathRemoveDirPart(dest, self.dest)
 
         summarytxt = ""
@@ -425,7 +429,10 @@ class ObjectInspector:
             keys2 = list(summary[key1].keys())
             keys2.sort()
             for key2 in keys2:
-                summarytxt += "    * [%s](%s)\n" % (key2, summary[key1][key2])
+                keylink = summary[key1][key2]
+                keylink = keylink.rstrip(".md").replace(".", "_")
+                keylink = keylink + ".md"
+                summarytxt += "    * [%s](%s)\n" % (key2, keylink)
 
         j.sal.fs.writeFile(filename="%s/SUMMARY.md" % (self.dest), contents=summarytxt)
 

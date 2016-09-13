@@ -58,8 +58,16 @@ class Docker:
                 "eval $(weave env) && echo $DOCKER_HOST", die=False)
             if rc > 0:
                 print("weave not found, do not forget to start if installed.")
+            # if not j.tools.cuisine.local.core.command_check('weave'):
+            #     self.logger.warning("weave not found, do not forget to start if installed.")
                 self._weaveSocket = ""
-            self._weaveSocket = self._weaveSocket.strip()
+            else:
+                rc, self._weaveSocket = j.sal.process.execute("eval $(weave env) && echo $DOCKER_HOST", die=False)
+                if rc > 0:
+                    self.logger.warning("weave not found, do not forget to start if installed.")
+                    self._weaveSocket = ""
+
+                self._weaveSocket = self._weaveSocket.strip()
 
         return self._weaveSocket
 
@@ -151,7 +159,7 @@ class Docker:
     @property
     def basepath(self):
         self._basepath = '/mnt/data/docker'
-        #TODO: needs to fetch values out of hrd
+        # TODO: needs to fetch values out of hrd
         # if not self._basepath:
         #     if j.application.config.exists('docker.basepath'):
         #         self._basepath = j.application.config.get('docker.basepath')
@@ -327,11 +335,10 @@ class Docker:
                setrootrndpasswd=True, rootpasswd="", jumpscalebranch="master", aysfs=[], detach=False, privileged=False, getIfExists=True, weavenet=False):
         """
         Creates a new container.
-        
+
         @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
         @param vols in format as follows "/var/insidemachine:/var/inhost # /var/1:/var/1 # ..."   '#' is separator
         @param sshkeyname : use ssh-agent (can even do remote through ssh -A) and then specify key you want to use in docker
-        #TODO: *1 change way how we deal with ssh keys, put authorization file in filesystem before docker starts don't use ssh to push them, will be much faster and easier
         """
     if ssh is True and myinit is False:
             raise ValueError("SSH can't be enabled without myinit.")
@@ -490,6 +497,14 @@ class Docker:
             container.run("service ssh start")
             container.pushSSHKey(keyname=sshkeyname, sshpubkey=sshpubkey)
 
+            # Make sure docker is ready for executor
+            end_time = time.time() + 60
+            while time.time() < end_time:
+                rc, _, _ = container.executor.execute('ls /', die=False, showout=False)
+                if rc:
+                    time.sleep(0.1)
+                break
+
             if setrootrndpasswd:
                 if rootpasswd is None or rootpasswd == '':
                     print("set default root passwd (gig1234)")
@@ -621,7 +636,7 @@ class Docker:
 
         return: strint containing the stdout
         """
-        #TODO: implement force
+        # TODO: implement force
         out = []
         if force:
             nocache = True

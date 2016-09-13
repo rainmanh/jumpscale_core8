@@ -58,6 +58,9 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
     @schema.setter
     def schema(self, val):
+        """
+        is any free text to define the schema used for this store category
+        """
         if len(val) == 32:
             val = j.data.hash.hex2bin(val)
         elif len(val) != 16:
@@ -69,6 +72,9 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
     @property
     def owner(self):
+        """
+        to define who owns this object, normally when you open a store, you set the owner if not the default
+        """
         return j.data.hash.bin2hex(self._owner).decode()
 
     @owner.setter
@@ -89,7 +95,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         # [acllist] + snappyencoded(val) + $crcOfAllPrevious
 
         #
-        # serialize type
+        # serialize type  (is more like a version e.g. version 1.0)
         #
 
         # type of this encoding, to make sure we have backwards compatibility
@@ -144,7 +150,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         header = data[0]
 
         counter = 1
-        owner = j.data.hash.bin2hex(data[counter:counter + 16])
+        owner = j.data.hash.bin2hex(data[counter:counter + 16]).decode()
 
         counter += 16
 
@@ -229,7 +235,10 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         except Exception as e:
             if "not allowed" in str(e):
                 # exists but no access, should just return False
-                return False
+                # return False
+                # raise j.exceptions.Input(message="Object '%s' does exist but I have not rights." %
+                                        #  key, level=1, source="", tags="", msgpub="")
+                return True
             if "Cannot find" in str(e):
                 return False
             raise e
@@ -320,15 +329,22 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
     def index(self, items, secret=""):
         """
-        items is {indexitem:key}
-        indexitem is e.g. $actorname:$state:$role (is a text which will be index to key)
-        indexitems are always made lowercase
+        @param items is {indexitem:key}
+            indexitem is e.g. $actorname:$state:$role (is a text which will be index to key)
+                indexitems are always made lowercase
+            key links to the object in the db
         ':' is not allowed in indexitem
         """
-        # TODO: needs to be implemented by walking overindex objects (capnproto or flat text? (compressed))
         if secret == "":
             secret = self.owner
+
         raise NotImplemented()
+
+        # TOO: load data
+        ddict = msgpack.loads(data)
+        ddict.update(items)
+        data2 = msgpack.dumps(ddict)
+        # TOO: save data2
 
     def list(self, regex=".*", returnIndex=False, secret=""):
         """

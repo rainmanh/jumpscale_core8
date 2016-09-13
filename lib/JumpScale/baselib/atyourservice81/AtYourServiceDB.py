@@ -7,6 +7,11 @@ import aysmodel_capnp as AYSModel
 
 from JumpScale.baselib.atyourservice81.models import ActorModel, JobModel, RunModel, ServiceModel, ActionCodeModel
 
+from IPython import embed
+print("DEBUG NOW load ServiceModel")
+embed()
+raise RuntimeError("stop debug here")
+
 
 class AtYourServiceDBFactory():
 
@@ -33,12 +38,18 @@ class ModelFactory():
         self.category = category
         self.repo = repo
         reponame = self.repo.name
-        self._db = j.servers.kvs.getRedisStore("ays:%s:%s" % (reponame, category), changelog=False)
-        self._index = j.servers.kvs.getRedisStore("ays:%s:%s" % (reponame, category), changelog=False)
+        ns = "ays:%s:%s" % (reponame, category)
+        self._db = j.servers.kvs.getRedisStore(ns, ns, changelog=False)
+        # for now we do index same as database
+        self._index = j.servers.kvs.getRedisStore(ns, ns, changelog=False)
         self._modelClass = eval(self.category + "Model." + self.category + "Model")
         self._capnp = eval("AYSModel." + self.category)
         self.list = self._modelClass.list
         self.find = self._modelClass.find
+
+        # on class level we need relation to _index & _modelfactory
+        self._modelClass._index = self._index
+        self._modelClass._modelfactory = self
 
         self.exists = self._db.exists
         self.queueSize = self._db.queueSize
@@ -57,3 +68,8 @@ class ModelFactory():
     def destroy(self):
         self._db.destroy()
         self._index.destroy()
+
+    def __str__(self):
+        return("modelfactory:%s:%s" % (self.repo.name, self.category))
+
+    __repr__ = __str__

@@ -1,6 +1,7 @@
 from JumpScale import j
 from JumpScale.baselib.atyourservice81.models.ModelBase import ModelBase
-from collections import OrderedDict
+
+# from collections import OrderedDict
 
 VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
@@ -8,18 +9,29 @@ VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 class ServiceModel(ModelBase):
 
     @classmethod
-    def list(self, name="", role="", actor="", parent="", producer="", returnIndex=False):
+    def list(self, name="", actor="", state="", parent="", producer="", returnIndex=False):
         """
-        @parent is in form $actorName!$instance
-        @producer is in form $actorName!$instance
+        @param name can be the full name e.g. myappserver or a prefix but then use e.g. myapp.*
+        @param actor can be the full name e.g. node.ssh or role e.g. node.* (but then need to use the .* extension, which will match roles)
+        @param parent is in form $actorName!$instance
+        @param producer is in form $actorName!$instance
+
+        @param state:
+            new
+            installing
+            ok
+            error
+            disabled
+            changed
 
         """
         if name == "":
             name = ".*"
-        if role == "":
-            role = ".*"
         if actor == "":
             actor = ".*"
+        if state == "":
+            state = ".*"
+
         if parent == "":
             parent = ".*"
         elif parent.find("!") == -1:
@@ -30,44 +42,53 @@ class ServiceModel(ModelBase):
         elif producer.find("!") == -1:
             raise j.exceptions.Input(message="producer needs to be in format: $actorName!$instance",
                                      level=1, source="", tags="", msgpub="")
-        regex = "%s:%s:%s:%s:%s" % (name, role, actor, parent, producer)
+        regex = "%s:%s:%s:%s:%s" % (name, actor, state, parent, producer)
         return self._index.list(regex, returnIndex=returnIndex)
 
     def index(self):
         # put indexes in db as specified
-        from IPython import embed
-        print("DEBUG NOW index service")
-        embed()
-        raise RuntimeError("stop debug here")
-        ind = "%s:%s:%s:%s:%s" % (self.dbobj.name, self.dbobj.role, self.dbobj.state, parent, producer)
-        self._index.index({ind: self.key})
+        if self.dbobj.parent.actorName != "":
+            parent = "%s!%s" % (self.dbobj.parent.actorName, self.dbobj.parent.name)
+        else:
+            parent = ""
+
+        if len(self.dbobj.producers) == 0:
+            ind = "%s:%s:%s:%s:%s" % (self.dbobj.name, self.dbobj.actorName, self.dbobj.state, parent, "")
+            self._index.index({ind: self.key})
+        else:
+            # now batch all producers as more than 1 index
+            #@TODO: *1 test
+            index = {}
+            for producer in self.dbobj.producers:
+                producer2 = "%s!%s" % (producer.actorName, producer.name)
+                ind = "%s:%s:%s:%s:%s" % (self.dbobj.name, self.dbobj.actorName, self.dbobj.state, parent, producer2)
+                index[ind] = self.key
+            self._index.index(index)
 
     @classmethod
-    def find(self, name="", role="", state=""):
+    def find(self, name="", actor="", state="", parent="", producer=""):
+        """
+        @param name can be the full name e.g. myappserver or a prefix but then use e.g. myapp.*
+        @param actor can be the full name e.g. node.ssh or role e.g. node.* (but then need to use the .* extension, which will match roles)
+        @param parent is in form $actorName!$instance
+        @param producer is in form $actorName!$instance
+
+        @param state:
+            new
+            installing
+            ok
+            error
+            disabled
+            changed
+
+        """
         res = []
-        for key in self.list(name, role, state):
+        for key in self.list(name, actor, state, producer=producer, parent=parent):
             res.append(self._modelfactory.get(key))
         return res
 
-    def _post_init(self):
-        self.dbobj.key = j.data.idgenerator.generateGUID()
-
-    # def _get_key(self):
-    #     # return a unique key to be used in db (std the key but can be overriden)
-    #     return self.dbobj.role + "!" + self.dbobj.name
-
     def _pre_save(self):
         pass
-
-    def index(self, db):
-        # put indexes in db as specified
-        ikey = self.dbobj.role + "!" + self.dbobj.name
-        db.hset("actor_%s" % self.dbobj.actorName, ikey, self.dbobj.key)
-
-        from IPython import embed
-        print("DEBUG NOW cache actor")
-        embed()
-        raise RuntimeError("stop debug here")
 
     def producersAdd(self):
         olditems = [item.to_dict() for item in self.dbobj.producers]
@@ -219,6 +240,7 @@ class ServiceModel(ModelBase):
 
     @property
     def wiki(self):
+        # TODO: *1
         raise NotImplemented
         out = "## service:%s state" % self.service.key
 
@@ -263,7 +285,9 @@ class ServiceModel(ModelBase):
     #         self.changed = False
 
     def __repr__(self):
-        return str(self.wiki)
+        # TODO: *1 to put back on self.wiki
+        # return str(self.wiki)
+        return str(self.dbobj)
 
     def __str__(self):
         return self.__repr__()

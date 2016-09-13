@@ -1,12 +1,12 @@
 from JumpScale import j
 
-from contextlib import redirect_stdout
-import io
-import imp
-import sys
+# from contextlib import redirect_stdout
+# import io
+# import imp
+# import sys
 import inspect
 import capnp
-from JumpScale.baselib.atyourservice81.models.ServiceModel import ServiceModel
+# from JumpScale.baselib.atyourservice81.models.ServiceModel import ServiceModel
 
 
 def getProcessDicts(service, args={}):
@@ -39,145 +39,155 @@ def getProcessDicts(service, args={}):
 
 class Service:
 
-    def __init__(self, aysrepo, role, instance):
+    def __init__(self, aysrepo, actor, name, args={}, model=None):
         """
+        @param args, need to give it when you want to create a new instance
         """
         self.logger = aysrepo.logger
         self.aysrepo = aysrepo
+        self.name = name
+        self.actor = actor
 
-        self.key = role + "!" + instance
+        if j.data.types.string.check(actor):
+            raise j.exceptions.RuntimeError("no longer supported, pass actor")
 
-        if j.atyourservice.db.service.exists(self.key):
-            self.model = j.atyourservice.db.service.new()
+        if actor is None:
+            raise j.exceptions.RuntimeError("service actor cannot be None")
+
+        if name is None or name == "":
+            raise j.exceptions.RuntimeError("name (ays instance name) needs to be specified")
+
+        res = self.aysrepo.db.service.find(actor=self.name, name=self.name)
+
+        if len(res) == 0:
+
+            self.model = self.aysrepo.db.service.new()
+            dbobj = self.model.dbobj
+            dbobj.name = self.name
+
+            if self.role == "" or self.name == "":
+                raise j.exceptions.Input(message="actor or name cannot be empty for service",
+                                         level=1, source="", tags="", msgpub="")
+
+            dbobj.actorName = self.actor.name
+            dbobj.state = "new"
+
+            dbobj.capnpSchema = actor.model.dbobj.serviceDataSchema
+
+            try:
+                configdata = actor.schemaServiceCapnp.new_message(**args)
+            except Exception as e:
+                if str(e).find("has no such member") != -1:
+                    msg = "cannot create service from arguments\n"
+                    msg += "actor:'%s' servicename:'%s'" % (actor.name, self.name)
+                    msg += "arguments:\n%s\n" % j.data.serializer.json.dumps(args, sort_keys=True, indent=True)
+                    msg += "schema:\n%s" % dbobj.capnpSchema
+                    ee = str(e).split("stack:")[0]
+                    ee = ee.split("failed:")[1]
+                    msg += "capnperror:%s" % ee
+                    print(msg)
+                    from IPython import embed
+                    print("DEBUG capnperror capnperror")
+                    embed()
+                    raise RuntimeError("stop debug here")
+                    raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
+                raise e
+
+            dbobj.configData = configdata.to_bytes_packed()
+
+            r = self.model.gitRepoAdd()
+            r.url = self.aysrepo.git.remoteUrl
+
+            parent = actor.schemaServiceHRD.parentSchemaItemGet()
+            if parent != None:
+                from IPython import embed
+                print("DEBUG NOW found parent")
+                embed()
+                raise RuntimeError("stop debug here")
+
+            producers = actor.schemaServiceHRD.consumeSchemaItemsGet()
+            if producers != []:
+                from IPython import embed
+                print("DEBUG NOW producers")
+                embed()
+                raise RuntimeError("stop debug here")
+
+            if parent is not None:
+                relpath = j.sal.fs.joinPaths(parent.path, key)
+            else:
+                skey = "%s!%s" % (self.role, self.name)
+                relpath = j.sal.fs.joinPaths("services", skey)
+
+            r.path = relpath
+
+            self.model.save()
+
+            # service.processChange("init")
+
+        elif model == None:
+            # existing service
+            self.model = self.aysrepo.db.service.find(name=name, actor=actor.name)
         else:
-            self.model = j.atyourservice.db.service.get(self.key)
+            self.model = model
 
-        return
+        self.key = self.role + "!" + self.name  # human readable key
 
         # copy the files
         # TOO: needs to be real check (after debug)
         if True or not j.sal.fs.exists(path=self.path):
-            self.loadFromFS()
+            self.saveToFS()
 
+        # self._key = "%s!%s" % (self.role, self.name)
+        # self._gkey = "%s!%s!%s" % (aysrepo.path, self.role, self.instance)
+
+        # self.hrd
+
+        # if actor is not None:
+        #     self.model.actor = actor.name
+        #     self.init(args=args)  # first time init
         #
-        if path != "" and j.sal.fs.exists(path):
-            self._role, self._instance = j.sal.fs.getBaseName(path).split("!")
-            self._actor = None
-            self.path = path
-            actor = None
-        else:
-            if not j.data.types.string.check(instance) or instance == "":
-                raise j.exceptions.Input("Instance needs to be a string.")
+        # # Set subscribed event into state
+        # if self.actor.template.hrd is not None:
+        #     for event, actions in self.actor.template.hrd.getDictFromPrefix('events').items():
+        #         self.model.setEvents(event, actions)
+        #     # Set recurring into state
+        #     for action, period in self.actor.template.hrd.getDictFromPrefix('recurring').items():
+        #         self.model.setRecurring(action, period)
+        #
+        #     # if service.hrd has remove some event action, update state to
+        #     # reflect that
+        #     actual = set(self.actor.template.hrd.getDictFromPrefix('events').keys())
+        #     total = set(self.model.events.keys())
+        #     for action in total.difference(actual):
+        #         self.model.removeEvent(action)
+        #
+        #     # if service.hrd has remove some recurring action, update state to
+        #     # reflect that
+        #     actual = set(self.actor.template.hrd.getDictFromPrefix('recurring').keys())
+        #     total = set(self.model.recurring.keys())
+        #     for action in total.difference(actual):
+        #         self.model.removeRecurring(action)
+        #
+        # self.model.save()
 
-            if j.data.types.string.check(actor):
-                raise j.exceptions.RuntimeError("no longer supported, pass actor")
-
-            if actor is None:
-                raise j.exceptions.RuntimeError("service actor cannot be None")
-
-            if instance is None:
-                raise j.exceptions.RuntimeError("instance needs to be specified")
-
-            self._instance = instance.lower()
-            self._role = actor.name.split(".")[0]
-
-            self.path = j.sal.fs.joinPaths(self.aysrepo.path, "services", "%s!%s" % (self.role, instance))
-
-            parentkey = ""
-            if parent is None:
-                if actor.schema is not None:
-                    # CHECK PARENTS !
-                    parent_actor_item = actor.schema.parentSchemaItemGet()
-
-                    if parent_actor_item is not None and parent_actor_item.parent is not None and parent_actor_item.parent != "":
-
-                        ays_template_name = parent_actor_item.parent
-
-                        # parent exists
-                        if '.' in ays_template_name:
-                            parentrole = ays_template_name.split('.', 1)[0]
-                        else:
-                            parentrole = ays_template_name
-
-                        # parent.name is name of element in scheme which points
-                        # to item we are filling in
-                        parentinstance = ""
-                        if parent_actor_item.name in args:
-                            # has been speficied or empty
-                            parentinstance = args[parent_actor_item.name].strip()
-                        elif parentrole in args:
-                            # has been speficied or empty
-                            parentinstance = args[parentrole].strip()
-
-                        if parentinstance != "":
-                            aysi = self.aysrepo.serviceGet(role=parentrole, instance=parentinstance, die=True)
-                        elif parent_actor_item.auto:
-                            aysi = self.aysrepo.serviceGet(role=parentrole, instance="main", die=True)
-                            if aysi is None:
-                                parent_actor = self.aysrepo.actorGet(name=parent_actor_item.name)
-                                aysi = parent_actor.newInstance(instance="main", args={})
-                        else:
-                            raise j.exceptions.Input("Parent '%s' needs to be specified or put on autocreation in actor:%s, now instance:%s" % (
-                                parent_actor_item.name, actor, self.instance))
-
-                        parentkey = aysi.key
-                        parent = aysi
-            else:
-                parentkey = parent.key
-
-            if parentkey != "":
-                self.path = j.sal.fs.joinPaths(parent.path, "%s!%s" % (self.role, self.instance))
-                # self.model = ServiceModel(self)
-                # self.model.parent = parentkey
-            else:
-                if self.path == "":
-                    raise j.exceptions.Input("path cannot be empty")
-
-            j.sal.fs.createDir(self.path)
-
-            # if actor.template.schema is None and actor.template.hrd is None:
-            # self._hrd = "EMPTY"
-
-            # if model is not None:
-            #     self.model = model
-
-            # self.hrd  # create empty hrd
-
-        self._key = "%s!%s" % (self.role, self.instance)
-        self._gkey = "%s!%s!%s" % (aysrepo.path, self.role, self.instance)
-
-        if self.model is None:
-            self.model = ServiceModel(self)
-
-        self.hrd
-
-        if actor is not None:
-            self.model.actor = actor.name
-            self.init(args=args)  # first time init
-
-        # Set subscribed event into state
-        if self.actor.template.hrd is not None:
-            for event, actions in self.actor.template.hrd.getDictFromPrefix('events').items():
-                self.model.setEvents(event, actions)
-            # Set recurring into state
-            for action, period in self.actor.template.hrd.getDictFromPrefix('recurring').items():
-                self.model.setRecurring(action, period)
-
-            # if service.hrd has remove some event action, update state to
-            # reflect that
-            actual = set(self.actor.template.hrd.getDictFromPrefix('events').keys())
-            total = set(self.model.events.keys())
-            for action in total.difference(actual):
-                self.model.removeEvent(action)
-
-            # if service.hrd has remove some recurring action, update state to
-            # reflect that
-            actual = set(self.actor.template.hrd.getDictFromPrefix('recurring').keys())
-            total = set(self.model.recurring.keys())
-            for action in total.difference(actual):
-                self.model.removeRecurring(action)
+    def loadFromFS(self):
+        """
+        get content from fs and load in object
+        only for DR purposes, std from key value stor
+        """
+        from IPython import embed
+        print("DEBUG NOW loadFromFS")
+        embed()
+        raise RuntimeError("stop debug here")
 
         self.model.save()
+
+    def saveToFS(self):
+        j.sal.fs.createDir(self.path)
+        from IPython import embed
+        print("DEBUG NOW saveToFS")
+        embed()
+        raise RuntimeError("stop debug here")
 
     def reset(self):
         self._hrd = None
@@ -191,33 +201,27 @@ class Service:
         self._parentChain = None
         self._parent = None
         self._actor = None
+        self._path = ""
 
     @property
     def role(self):
-        return self.model.dbobj.role
+        return self.name.split(".")[0]
 
     @property
-    def instance(self):
-        return self.model.dbobj.instance
-
-    # @property
-    # def actor(self):
-    #     if self._actor is None:
-    #         self._actor = self.aysrepo.actorGet(name=self.model.actor)
-    #     return self._actor
-
-    @property
-    def templatename(self):
-        return self.model.actor
+    def key(self):
+        return self.model.key
 
     @property
     def dnsNames(self):
+        raise NotImplemented("dns names in service")
         if self._dnsNames == []:
             self._dnsNames = self.hrd.getList("dns")
         return self._dnsNames
 
     @property
     def parents(self):
+        raise NotImplemented("")
+        # TODO: *1
         if self._parentChain is None:
             chain = []
             parent = self.parent
@@ -229,6 +233,8 @@ class Service:
 
     @property
     def parent(self):
+        raise NotImplemented("")
+        # TODO: *1
         if self._parent is None:
             if self.model.parent != "":
                 self._parent = self.aysrepo.getServiceFromKey(
@@ -280,6 +286,8 @@ class Service:
 
     @property
     def producers(self):
+        raise NotImplemented("")
+        # TODO: *1
         if self._producers is None:
             self._producers = {}
             for key, items in self.model.producers.items():
@@ -295,6 +303,8 @@ class Service:
         return self._producers
 
     def remove_producer(self, role, instance):
+        raise NotImplemented("")
+        # TODO: *1
         key = "%s!%s" % (role, instance)
         self.model.remove_producer(role, instance)
         self._producers[role].remove(key)

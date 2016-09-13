@@ -42,19 +42,20 @@ class AtYourServiceRepo():
         self.db = AtYourServiceDBFactory(self)
 
     def _doinit(self):
-        pass
+        if self._actors == {}:
+            self.actors  # will load it
 
     def reset(self):
         # self._db.reload()
         j.dirs._ays = None
-        self._services = {}
+        # self._services = {}
         self._actors = {}
         self._templates = {}
         # self._reposDone = {}
         self._todo = []
         self._blueprints = {}
         # self._load_blueprints()
-        self._servicesTree = {}
+        # self._servicesTree = {}
 
     def destroy(self, uninstall=True):
         if uninstall:
@@ -71,27 +72,34 @@ class AtYourServiceRepo():
         will look for name inside & create actor from it
         """
         actorTemplate = self.templateGet(name)
-        actor = Actor(self, actorTemplate)
+        actor = Actor(aysrepo=self, template=actorTemplate)
+        actor.model.save()
         self._actors[actor.name] = actor
         return actor
 
     def actorGet(self, name, reload=False):
-        if name in self._actors:
-            obj = self._actors[name]
+        if reload:
+            self.reset()
+        if name in self.actors:
+            obj = self.actors[name]
         obj = self.actorCreate(name)
         if reload:
             obj.loadFromFS()
         return obj
 
     def actorExists(self, name):
-        if name in self._actors:
+        if name in self.actors:
             return True
-        return j.atyourservice.db.actor.exists(name)
+        return False
 
     @property
     def actors(self):
-        self._doinit()
-        if not self._actors:
+        if self._actors == {}:
+            for item in self.db.actor.find():
+                res = item.object
+                if res.dbobj.state != "disabled":
+                    self._actors[res.dbobj.name] = res[res.dbobj.name].object
+        if self._actors != {}:
             from IPython import embed
             print("DEBUG NOW actors")
             embed()
@@ -100,19 +108,16 @@ class AtYourServiceRepo():
 
     def actorsFind(self, name="", version="", role=''):
         res = []
-        domain = "ays"
-        for template in self.actors:
-            if not(name == "" or template.name == name):
+        if version != "":
+            raise NotImplemented("actors find with version not implemented.")
+        for item in self.actors:
+            if not(name == "" or item.name == name):
                 # no match continue
                 continue
-            if not(domain == "" or template.domain == domain):
+            if not (role == '' or item.role == role):
                 # no match continue
                 continue
-            if not (role == '' or template.role == role):
-                # no match continue
-                continue
-            res.append(template)
-
+            res.append(item)
         return res
 
 # TEMPLATES
@@ -175,17 +180,14 @@ class AtYourServiceRepo():
         throw error if service is not found or if more than one service is found
         """
         if role.strip() == "" or instance.strip() == "":
-            raise j.exceptions.Input("role or instance cannot be empty.")
-        key = "%s!%s" % (role, instance)
-        if j.atyourservice.db.service.exists(key) == False:
-            if die is False:
-                return None
-            else:
-                raise j.exceptions.Input("Cannot get ays service '%s', did not find" % key, "ays.getservice")
-        from IPython import embed
-        print("DEBUG NOW service get")
-        embed()
-        raise RuntimeError("stop debug here")
+            raise j.exceptions.Input("role and instance cannot be empty.")
+
+        objs = self.db.service.find(actor="%s.*" % role, name=instance)
+        if len(objs) == 0:
+            if die:
+                raise j.exceptions.Input(message="Cannot find service %s:%s" %
+                                         (role, instance), level=1, source="", tags="", msgpub="")
+            return None
 
     @property
     def serviceKeys(self):
@@ -196,6 +198,9 @@ class AtYourServiceRepo():
 
     @property
     def servicesTree(self):
+        # TODO: implement, needs to come from db now
+        raise RuntimeError()
+
         if self._servicesTree:
             return self._servicesTree
         self._doinit()
@@ -225,6 +230,8 @@ class AtYourServiceRepo():
             if "init" not in actions:
                 actions.insert(0, "init")
 
+        # TODO: *1 implement
+        raise RuntimeError()
         for action in actions:
             for key, service in self.services.items():
                 if role != "" and service.role != role:
@@ -236,33 +243,42 @@ class AtYourServiceRepo():
                 service.state.set(action, state)
                 service.state.save()
 
-    def servicesFind(self, instance="", parent=None, first=False, role="", hasAction="", include_disabled=False, actorName=""):
+    def servicesFind(self, name="", actor="", state="", parent="", producer="", hasAction="",
+                     includeDisabled=False, first=False):
+        """
+        @param name can be the full name e.g. myappserver or a prefix but then use e.g. myapp.*
+        @param actor can be the full name e.g. node.ssh or role e.g. node.*
+                            (but then need to use the .* extension, which will match roles)
+        @param parent is in form $actorName!$instance
+        @param producer is in form $actorName!$instance
+
+        @param state:
+            new
+            installing
+            ok
+            error
+            disabled
+            changed
+        """
         res = []
 
-        for key, service in self.services.items():
-            # if service._state and service._state.hrd.getBool('disabled', False) and not include_disabled:
-            #     continue
-            if not(instance == "" or service.instance == instance):
+        for aysi in self.db.service.find(name=name, actor=actor, state=state, parent=parent, producer=producer):
+
+            if hasAction != "" and aysi.getAction(hasAction) is None:
                 continue
-            if not(parent is None or service.parent == parent):
+
+            if includeDisabled is False and aysi.model.state == "disabled":
                 continue
-            if not(actorName is "" or service.actorName == actorName):
-                continue
-            if not(role == "" or role == service.role):
-                continue
-            if hasAction != "" and service.getAction(hasAction) == None:
-                continue
-            # if not(node is None or service.isOnNode(node)):
-            #     continue
-            res.append(service)
+
+            res.append(aysi.object)
         if first:
             if len(res) == 0:
-                raise j.exceptions.Input("cannot find service %s|%s:%s (%s)" % (
-                    domain, service.templatename, instance, version), "ays.servicesFind")
+                raise j.exceptions.Input("cannot find service %s|%s:%s" % (self.name, actor, name), "ays.servicesFind")
             return res[0]
         return res
 
     def serviceFindProducer(self, producercategory, instancename):
+        raise NotImplemented("TODO: *1 move to service obj")
         for item in self.servicesFind(instance=instancename):
             if producercategory in item.categories:
                 return item
@@ -271,6 +287,7 @@ class AtYourServiceRepo():
         """
         @return set of services that consumes target
         """
+        raise NotImplemented("TODO: *1 move to service obj")
         result = set()
         for service in self.servicesFind():
             if target.isConsumedBy(service):
@@ -281,6 +298,7 @@ class AtYourServiceRepo():
         """
         @return set of services that consumes target, recursivlely
         """
+        raise NotImplemented("TODO: *1 move to service obj")
         for service in self.findConsumers(target):
             out.add(service)
             self.findConsumersRecursive(service, out)
@@ -569,3 +587,8 @@ class AtYourServiceRepo():
         if not printonly:
             run.execute()
         run.execute()
+
+    def __str__(self):
+        return("aysrepo:%s" % (self.name))
+
+    __repr__ = __str__

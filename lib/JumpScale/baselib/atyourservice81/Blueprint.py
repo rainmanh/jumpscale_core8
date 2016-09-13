@@ -93,10 +93,7 @@ class Blueprint:
 
                     actor = self.aysrepo.actorGet(actorname, reload=False)
 
-                    if not len(self.aysrepo.servicesFind(role=actor.role, instance=bpinstance)):
-                        # if it's not there, create it.
-                        aysi = actor.serviceCreate(
-                            instance=bpinstance, args=item)
+                    aysi = actor.serviceCreate(instance=bpinstance, args=item)
 
     def _add2models(self, content, nr):
         # make sure we don't process double

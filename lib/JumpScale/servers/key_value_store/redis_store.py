@@ -1,6 +1,7 @@
 from servers.key_value_store.store import KeyValueStoreBase
 from JumpScale import j
 
+import re
 
 # import time
 #
@@ -46,9 +47,10 @@ class RedisKeyValueStore(KeyValueStoreBase):
 
     def index(self, items, secret=""):
         """
-        items is {indexitem:key}
-        indexitem is e.g. $actorname:$state:$role (is a text which will be index to key)
-        indexitems are always made lowercase
+        @param items is {indexitem:key}
+            indexitem is e.g. $actorname:$state:$role (is a text which will be index to key)
+                indexitems are always made lowercase
+            key links to the object in the db
         ':' is not allowed in indexitem
         """
         # if in non redis, implement as e.g. str index in 1 key and if gets too big then create multiple

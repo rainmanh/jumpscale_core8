@@ -35,10 +35,15 @@ class Actor(ActorBase):
 
         self.db = aysrepo.db.actor
 
-        if self.db.exists(template.name):
+        existingKeys = self.db.list(name=self.name)
+        if len(existingKeys) == 0:
             self.model = self.db.new()
+            self.model.save()
+        elif len(existingKeys) == 1:
+            self.model = self.db.get(existingKeys[0])
         else:
-            self.model = self.db.get(key=template.name)
+            raise j.exceptions.Input(message="Found more than 1 object:%s" %
+                                     existingKeys, level=1, source="", tags="", msgpub="")
 
         self.model.dbobj.name = self.name
 
@@ -231,63 +236,12 @@ class Actor(ActorBase):
             # print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))
             return service
         else:
-            service = Service(self.aysrepo, self.role, instance)
-            key = "%s!%s" % (self.role, instance)
-            dbobj = service.model.dbobj
-            dbobj.role = self.role
-            dbobj.name = instance
-            dbobj.actorName = self.name
-            dbobj.capnpSchema = self.model.dbobj.serviceDataSchema
+            service = Service(aysrepo=self.aysrepo, actor=self, name=instance, args=args)
 
-            try:
-                configdata = self.schemaServiceCapnp.new_message(**args)
-            except Exception as e:
-                if str(e).find("has no such member") != -1:
-                    msg = "cannot create service from arguments\n"
-                    msg += "actor:'%s' servicename:'%s'" % (self.name, instance)
-                    msg += "arguments:\n%s\n" % j.data.serializer.json.dumps(args, sort_keys=True, indent=True)
-                    msg += "schema:\n%s" % dbobj.capnpSchema
-                    ee = str(e).split("stack:")[0]
-                    ee = ee.split("failed:")[1]
-                    msg += "capnperror:%s" % ee
-                    from IPython import embed
-                    print("DEBUG NOW 98")
-                    embed()
-                    raise RuntimeError("stop debug here")
-                    raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
-
-                raise e
-            dbobj.configData = configdata.to_bytes_packed()
-
-            r = service.model.gitRepoAdd()
-
-            r.url = self.aysrepo.git.remoteUrl
-
-            parent = self.schemaServiceHRD.parentSchemaItemGet()
-            if parent != None:
-                from IPython import embed
-                print("DEBUG NOW found parent")
-                embed()
-                raise RuntimeError("stop debug here")
-
-            producers = self.schemaServiceHRD.consumeSchemaItemsGet()
-            if producers != []:
-                from IPython import embed
-                print("DEBUG NOW producers")
-                embed()
-                raise RuntimeError("stop debug here")
-
-            if parent is not None:
-                fullpath = j.sal.fs.joinPaths(parent.path, key)
-            else:
-                ppath = j.sal.fs.joinPaths(self.aysrepo.path, "services")
-                fullpath = j.sal.fs.joinPaths(ppath, key)
-
-            r.path = fullpath
-
-            service.model.save()
-
-            service.processChange("init")
+            from IPython import embed
+            print("DEBUG NOW service create")
+            embed()
+            raise RuntimeError("stop debug here")
 
         return service
 

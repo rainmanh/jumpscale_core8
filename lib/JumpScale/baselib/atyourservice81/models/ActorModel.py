@@ -9,27 +9,48 @@ class ActorModel(ModelBase):
     """
 
     @classmethod
-    def list(self, name="", role="", state="", returnIndex=False):
+    def list(self, name="", state="", returnIndex=False):
+        """
+        @param name can be the full name e.g. node.ssh or a rule but then use e.g. node.*  (are regexes, so need to use .* at end)
+        @param state
+            new
+            ok
+            error
+            disabled
+        """
         if name == "":
             name = ".*"
-        if role == "":
-            role = ".*"
         if state == "":
             state = ".*"
-        regex = "%s:%s:%s" % (name, role, state)
+        regex = "%s:%s" % (name, state)
         return self._index.list(regex, returnIndex=returnIndex)
 
     def index(self):
         # put indexes in db as specified
-        ind = "%s:%s" % (self.dbobj.name1, self.dbobj.state)
+        ind = "%s:%s" % (self.dbobj.name, self.dbobj.state)
         self._index.index({ind: self.key})
 
     @classmethod
-    def find(self, name="", role="", state=""):
+    def find(self, name="", state=""):
+        """
+        @param name can be the full name e.g. node.ssh or a rule but then use e.g. node.*  (are regexes, so need to use .* at end)
+        @param state
+            new
+            ok
+            error
+            disabled
+        """
         res = []
-        for key in self.list(name, role, state):
+        for key in self.list(name, state):
             res.append(self._modelfactory.get(key))
         return res
+
+    @property
+    def object(self):
+        from IPython import embed
+        print("DEBUG NOW return object e.g. ays actor object")
+        embed()
+        raise RuntimeError("stop debug here")
 
     @property
     def actionsSortedList(self):

@@ -19,6 +19,7 @@ class CuisinePEP8(base):
         touched_python_files=`git diff --cached --name-only |egrep '\.py$' || true`
         if [ -n "$touched_python_files" ]; then
             autopep8 -ria --max-line-length=120 $touched_python_files
+            git add $touched_python_files
         fi
         """
         for repo_path in paths:

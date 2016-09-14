@@ -32,7 +32,8 @@ class Machine(BaseKVMComponent):
         @param nics [object(j.sal.kvm.interface())]: instance of networks to be used with machine.
         @param memory int: disk memory in Mb.
         @param cpucount int: number of cpus to use.
-        @param cloud_init bool: option to use cloud_init passing creating and passing ssh_keys, user name and passwd to the image
+        @param cloud_init bool: option to use cloud_init passing creating and passing ssh_keys,
+         user name and passwd to the image
         """
         self.name = name
         self.disks = disks
@@ -42,7 +43,8 @@ class Machine(BaseKVMComponent):
         self.controller = controller
         self._uuid = uuid
         self.cloud_init = cloud_init
-        self.image_path = "%s/%s_ci.iso" % (self.controller.base_path, self.name) if cloud_init else ""
+        self.image_path = "%s/%s_ci.iso" % (self.controller.base_path,
+                                            self.name) if cloud_init else ""
         self._domain = None
         self._ip = None
         self._executor = None
@@ -51,8 +53,12 @@ class Machine(BaseKVMComponent):
         """
         Return libvirt's xml string representation of the machine.
         """
-        machinexml = self.controller.get_template('machine.xml').render({'machinename': self.name, 'memory': self.memory, 'nrcpu': self.cpucount,
-                                                                         'nics': self.nics, 'disks': self.disks, "cloudinit": self.cloud_init,
+        machinexml = self.controller.get_template('machine.xml').render({'machinename': self.name,
+                                                                         'memory': self.memory,
+                                                                         'nrcpu': self.cpucount,
+                                                                         'nics': self.nics,
+                                                                         'disks': self.disks,
+                                                                         "cloudinit": self.cloud_init,
                                                                          "image_path": self.image_path})
         return machinexml
 
@@ -68,12 +74,17 @@ class Machine(BaseKVMComponent):
         name = machine.findtext('name')
         memory = int(machine.findtext('memory'))
         nrcpu = int(machine.findtext('vcpu'))
-        interfaces = list(map(lambda interface: j.sal.kvm.Interface.from_xml(controller, ElementTree.tostring(interface)),
-                              machine.find('devices').findall('interface')))
-        xml_disks = [disk for disk in machine.find('devices').findall('disk') if disk.get('device') == 'disk']
+        interfaces = list(map(
+            lambda interface: j.sal.kvm.Interface.from_xml(
+                controller, ElementTree.tostring(interface)),
+            machine.find('devices').findall('interface')
+        ))
+        xml_disks = [disk for disk in machine.find('devices').findall(
+            'disk') if disk.get('device') == 'disk']
         disks = list(map(lambda disk: j.sal.kvm.Disk.from_xml(controller, ElementTree.tostring(disk)),
                          xml_disks))
-        cloud_init = bool([disk for disk in machine.find('devices').findall('disk') if disk.get('device') == 'cdrom'])
+        cloud_init = bool([disk for disk in machine.find(
+            'devices').findall('disk') if disk.get('device') == 'cdrom'])
         return cls(controller, name, disks, interfaces, memory, nrcpu, cloud_init=cloud_init)
 
     @classmethod
@@ -87,7 +98,8 @@ class Machine(BaseKVMComponent):
     @property
     def domain(self):
         """
-        Returns the Libvirt Object of the current machines , will be available if machine has been created at some point.
+        Returns the Libvirt Object of the current machines ,
+        will be available if machine has been created at some point.
         """
         if not self._domain:
             if self._uuid:
@@ -116,12 +128,11 @@ class Machine(BaseKVMComponent):
         """
         if not self._ip:
             for nic in self.nics:
-                import pudb
-                pu.db
                 bridge_name = nic.bridge.name
                 mac = nic.mac
                 rc, ip, err = self.controller.executor.execute(
-                    "nmap -sn $(ip r | grep %s | grep -v default | awk '{print $1}') | grep -iB 2 '%s' | head -n 1 | awk '{print $NF}'" % (bridge_name, mac))
+                    "nmap -sn $(ip r | grep %s | grep -v default | " +
+                    "awk '{print $1}') | grep -iB 2 '%s' | head -n 1 | awk '{print $NF}'" % (bridge_name, mac))
                 ip_pat = re.compile("\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}")
                 m = ip_pat.search(ip)
                 if m:
@@ -137,7 +148,11 @@ class Machine(BaseKVMComponent):
         """
         if self.cloud_init and not self._executor:
             self._executor = self.controller.executor.getSSHViaProxy(self.controller.executor.addr,
-                                                                     getattr(self.controller.executor.cuisine, 'login', 'root'), self.ip, "cloudscalers", 22, "/root/.ssh/libvirt")
+                                                                     getattr(self.controller.executor.cuisine, 'login',
+                                                                             'root'
+                                                                             ), self.ip,
+                                                                     "cloudscalers", 22, "/root/.ssh/libvirt"
+                                                                     )
         return self._executor
 
     @property
@@ -168,10 +183,15 @@ class Machine(BaseKVMComponent):
                                               'sudo': 'ALL=(ALL) ALL'}]
                                    })
             metadata = '{"local-hostname":"vm-%s"}' % self.name
-            cuisine.core.file_write("%s/metadata/%s/user-data" % (self.controller.base_path, self.name), userdata)
-            cuisine.core.file_write("%s/metadata/%s/meta-data" % (self.controller.base_path, self.name), metadata)
-            cmd = "genisoimage -o {base}/{name}_ci.iso -V cidata -r -J {base}/metadata/{name}/meta-data {base}/metadata/{name}/user-data".format(
-                base=self.controller.base_path, name=self.name)
+            userdata_path = "%s/metadata/%s/user-data" % (self.controller.base_path, self.name)
+            metadata_path = "%s/metadata/%s/meta-data" % (self.controller.base_path, self.name)
+            cuisine.core.file_write(userdata_path, userdata)
+            cuisine.core.file_write(metadata_path, metadata)
+            cmd = "genisoimage -o {base}/{name}_ci.iso -V cidata -r -J {metadata_path} {userdata_path}".format(
+                base=self.controller.base_path,
+                name=self.name,
+                metadata_path=metadata_path,
+                userdata_path=userdata_path)
             cuisine.core.run(cmd)
             cuisine.core.dir_remove("%s/images/%s " % (self.controller.base_path, self.name))
         self.domain = self.controller.connection.defineXML(self.to_xml())

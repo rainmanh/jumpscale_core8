@@ -1,4 +1,3 @@
-from JumpScale import j
 from xml.etree import ElementTree
 from BaseKVMComponent import BaseKVMComponent
 

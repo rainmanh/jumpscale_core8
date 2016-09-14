@@ -54,7 +54,8 @@ class CuisineRedis(app):
             raise j.exceptions.NotImplemented(
                 message="only ubuntu supported for building redis", level=1, source="", tags="", msgpub="")
 
-    def start(self, name="main", ip="localhost", port=6379, maxram=200, appendonly=True,   snapshot=False, slave=(), ismaster=False, passwd=None):
+    def start(self, name="main", ip="localhost", port=6379, maxram=200,
+              appendonly=True, snapshot=False, slave=(), ismaster=False, passwd=None):
         redis_cli = j.clients.redis.getInstance(self._cuisine)
         redis_cli.configureInstance(name,
                                     ip,

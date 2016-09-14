@@ -62,7 +62,8 @@ class WindowsSystem:
         else:
             return False
 
-    def createStartMenuShortcut(self, description, executable, workingDir, startMenuSubdir="", iconLocation=None, createDesktopShortcut=False, putInStartup=False):
+    def createStartMenuShortcut(self, description, executable, workingDir, startMenuSubdir="",
+                                iconLocation=None, createDesktopShortcut=False, putInStartup=False):
         '''Create a shortcut in the Start menu
 
         @type description: string
@@ -265,11 +266,13 @@ class WindowsSystem:
 
     def getStartMenuProgramsPath(self):
         """ Returns the windows "START MENU/PROGRAMS" folder in Unicode format. """
-        return shell.SHGetFolderPath(0, shellcon.CSIDL_PROGRAMS, 0, 0) + os.sep  # See http://msdn2.microsoft.com/en-us/library/bb762181(VS.85).aspx for information about this function.
+        return shell.SHGetFolderPath(0, shellcon.CSIDL_PROGRAMS, 0, 0) + \
+            os.sep  # See http://msdn2.microsoft.com/en-us/library/bb762181(VS.85).aspx for information about this function.
 
     def getStartupPath(self):
         """ Returns the windows "START MENU/STARTUP" folder in Unicode format. """
-        return shell.SHGetFolderPath(0, shellcon.CSIDL_STARTUP, 0, 0) + os.sep  # See http://msdn2.microsoft.com/en-us/library/bb762181(VS.85).aspx for information about this function.
+        return shell.SHGetFolderPath(0, shellcon.CSIDL_STARTUP, 0, 0) + \
+            os.sep  # See http://msdn2.microsoft.com/en-us/library/bb762181(VS.85).aspx for information about this function.
 
     def getDesktopPath(self):
         """ Returns the windows "DESKTOP" folder in Unicode format. """
@@ -934,7 +937,7 @@ class WindowsSystem:
 
         return acl
 
-    def grantAccessToDirTree(self,  dirPath, userName='everyone'):
+    def grantAccessToDirTree(self, dirPath, userName='everyone'):
         """
         Allow Permission to userName on a directory tree
         Adds permission to parentDir the walks through all subdirectories and add permissions
@@ -1019,7 +1022,7 @@ class WindowsSystem:
         if text is None:
             return
 
-        if type(text) == type(''):
+        if isinstance(text, type('')):
             text = str(text, 'mbcs')
         bufferSize = (len(text) + 1) * 2
         hGlobalMem = ctypes.windll.kernel32.GlobalAlloc(ctypes.c_int(GHND), ctypes.c_int(bufferSize))

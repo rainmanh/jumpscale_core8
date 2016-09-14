@@ -1,13 +1,15 @@
 from JumpScale import j
 
 
+app = j.tools.cuisine._getBaseAppClass()
 
-app =j.tools.cuisine._getBaseAppClass()
+
 class CuisineDeployerBot(app):
-    NAME =''
+    NAME = ''
 
     def isInstalled(self):
-        return self._cuisine.core.file_exists("$appDir/deployer_bot/telegram-bot") and  self._cuisine.core.file_exists('$cfgDir/deployerbot/config.toml')
+        return self._cuisine.core.file_exists(
+            "$appDir/deployer_bot/telegram-bot") and self._cuisine.core.file_exists('$cfgDir/deployerbot/config.toml')
 
     def install(self, start=True, token=None, g8_addresses=None, dns=None, oauth=None):
         """

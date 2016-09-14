@@ -96,7 +96,7 @@ class CloudSystemFS:
         self.logger.info("copyDir: from [%s] to [%s]" %
                          (sourcepath, destinationpath))
 
-        src_fs = self._getSourceHandler(sourcepath, is_dir=True,  Atype='copy')
+        src_fs = self._getSourceHandler(sourcepath, is_dir=True, Atype='copy')
         dst_fs = self._getDestinationHandler(
             destinationpath, is_dir=True, Atype='copy')
         dst_fs.upload(src_fs.download())
@@ -111,7 +111,7 @@ class CloudSystemFS:
         self.logger.info("moveDir: from [%s] to [%s]" %
                          (sourcepath, destinationpath))
 
-        src_fs = self._getSourceHandler(sourcepath, is_dir=True,  Atype='move')
+        src_fs = self._getSourceHandler(sourcepath, is_dir=True, Atype='move')
         dst_fs = self._getDestinationHandler(
             destinationpath, is_dir=True, Atype='move')
         dst_fs.upload(src_fs.download())
@@ -159,7 +159,8 @@ class CloudSystemFS:
 
         return src_fs
 
-    def _getDestinationHandler(self, destinationpath, is_dir=False, recursive=True, tempdir=j.dirs.tmpDir, Atype='copy'):
+    def _getDestinationHandler(self, destinationpath, is_dir=False, recursive=True,
+                               tempdir=j.dirs.tmpDir, Atype='copy'):
         """
         Handle all protocol related stuff
         Returns a dict with the src and dst
@@ -253,7 +254,7 @@ class CloudSystemFS:
         self.logger.info("exportDir: from [%s] to [%s]" % (
             sourcepath, destinationpath))
 
-        src_fs = self._getSourceHandler(sourcepath, is_dir=True,  Atype='copy')
+        src_fs = self._getSourceHandler(sourcepath, is_dir=True, Atype='copy')
         dst_fs = self._getDestinationHandler(
             destinationpath, is_dir=True, Atype='copy')
         dst_fs.upload(src_fs.download())

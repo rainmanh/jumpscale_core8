@@ -9,6 +9,7 @@ from Machine import Machine
 from CloudMachine import CloudMachine
 from MachineSnapshot import MachineSnapshot
 
+
 class KVM:
 
     def __init__(self):

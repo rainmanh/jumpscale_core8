@@ -181,7 +181,8 @@ class InstallTools():
 
         self.removeSymlink(path)
 
-        if path.strip().rstrip("/") in ["", "/", "/etc", "/root", "/usr", "/opt", "/usr/bin", "/usr/sbin", self.CODEDIR]:
+        if path.strip().rstrip("/") in ["", "/", "/etc", "/root", "/usr",
+                                        "/opt", "/usr/bin", "/usr/sbin", self.CODEDIR]:
             raise RuntimeError('cannot delete protected dirs')
 
         # if not force and path.find(self.CODEDIR)!=-1:
@@ -275,7 +276,8 @@ class InstallTools():
                            ignoredir=ignoredir, ignorefiles=ignorefiles)
             self.debug = old_debug
 
-    def _copyTree(self, src, dst, keepsymlinks=False, deletefirst=False, overwriteFiles=True, ignoredir=[".egg-info", "__pycache__"], ignorefiles=[".egg-info"]):
+    def _copyTree(self, src, dst, keepsymlinks=False, deletefirst=False, overwriteFiles=True,
+                  ignoredir=[".egg-info", "__pycache__"], ignorefiles=[".egg-info"]):
         """Recursively copy an entire directory tree rooted at src.
         The dst directory may already exist; if not,
         it will be created as well as missing parent directories
@@ -442,8 +444,7 @@ class InstallTools():
     def list(self, path):
         # self.log("list:%s"%path)
         if(self.isDir(path)):
-            s = ["%s/%s" % (path, item) for item in os.listdir(path)]
-            s.sort()
+            s = sorted(["%s/%s" % (path, item) for item in os.listdir(path)])
             return s
         elif(self.isLink(path)):
             link = self.readLink(path)
@@ -655,7 +656,8 @@ class InstallTools():
                     filesreturn.extend(self.listDirsInDir(fullpath, recursive, dirNameOnly, findDirectorySymlinks))
         return filesreturn
 
-    def listFilesInDir(self, path, recursive=False, filter=None, minmtime=None, maxmtime=None, depth=None, case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=False):
+    def listFilesInDir(self, path, recursive=False, filter=None, minmtime=None, maxmtime=None,
+                       depth=None, case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=False):
         """Retrieves list of files found in the specified directory
         @param path:       directory path to search in
         @type  path:       string
@@ -682,7 +684,8 @@ class InstallTools():
                                                 case_sensitivity=case_sensitivity, exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
         return filesreturn
 
-    def listFilesAndDirsInDir(self, path, recursive=False, filter=None, minmtime=None, maxmtime=None, depth=None, type="fd", followSymlinks=True, listSymlinks=False):
+    def listFilesAndDirsInDir(self, path, recursive=False, filter=None, minmtime=None,
+                              maxmtime=None, depth=None, type="fd", followSymlinks=True, listSymlinks=False):
         """Retrieves list of files found in the specified directory
         @param path:       directory path to search in
         @type  path:       string
@@ -709,7 +712,8 @@ class InstallTools():
             path, recursive, filter, minmtime, maxmtime, depth, type=type, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
         return filesreturn
 
-    def _listAllInDir(self, path, recursive, filter=None, minmtime=None, maxmtime=None, depth=None, type="df", case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=True):
+    def _listAllInDir(self, path, recursive, filter=None, minmtime=None, maxmtime=None, depth=None,
+                      type="df", case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=True):
         """
         # There are 3 possible options for case-sensitivity for file names
         # 1. `os`: the same behavior as the OS
@@ -855,7 +859,8 @@ class InstallTools():
 
     # NON FS
 
-    def download(self, url, to="", overwrite=True, retry=3, timeout=0, login="", passwd="", minspeed=0, multithread=False, curl=False):
+    def download(self, url, to="", overwrite=True, retry=3, timeout=0, login="",
+                 passwd="", minspeed=0, multithread=False, curl=False):
         """
         @return path of downloaded file
         @param minspeed is kbytes per sec e.g. 50, if less than 50 kbytes during 10 min it will restart the download (curl only)
@@ -952,7 +957,8 @@ class InstallTools():
             return True
         return False
 
-    def executeBashScript(self, content="", path=None, die=True, remote=None, sshport=22, showout=True, outputStderr=True, sshkey=""):
+    def executeBashScript(self, content="", path=None, die=True, remote=None,
+                          sshport=22, showout=True, outputStderr=True, sshkey=""):
         """
         @param remote can be ip addr or hostname of remote, if given will execute cmds there
         """
@@ -984,10 +990,11 @@ class InstallTools():
             rc, res, err = self.execute("ssh %s -oStrictHostKeyChecking=no -A -p %s root@%s 'bash %s'" %
                                         (sshkey, sshport, remote, tmppathdest), die=die)
         else:
-            rc, res, err = self.execute("bash %s" % path2, die=die,  showout=showout, outputStderr=outputStderr)
+            rc, res, err = self.execute("bash %s" % path2, die=die, showout=showout, outputStderr=outputStderr)
         return rc, res, err
 
-    def executeCmds(self, cmdstr, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=120, captureout=True, die=True):
+    def executeCmds(self, cmdstr, showout=True, outputStderr=True, useShell=True,
+                    log=True, cwd=None, timeout=120, captureout=True, die=True):
         rc_ = []
         out_ = ""
         for cmd in cmdstr.split("\n"):
@@ -1000,7 +1007,8 @@ class InstallTools():
 
         return rc_, out_
 
-    def sendmail(self, ffrom, to, subject, msg, smtpuser, smtppasswd, smtpserver="smtp.mandrillapp.com", port=587, html=""):
+    def sendmail(self, ffrom, to, subject, msg, smtpuser, smtppasswd,
+                 smtpserver="smtp.mandrillapp.com", port=587, html=""):
         from email.mime.multipart import MIMEMultipart
         from email.mime.text import MIMEText
 
@@ -1044,7 +1052,7 @@ class InstallTools():
         """
 
         if executor:
-            return executor.execute(command, die=die, checkok=False, async=async,  showout=True, timeout=timeout)
+            return executor.execute(command, die=die, checkok=False, async=async, showout=True, timeout=timeout)
 
         executable = '/bin/bash' if useShell else None
 
@@ -1639,7 +1647,8 @@ class InstallTools():
         else:
             return True
 
-    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False, branch=None, ssh="auto", codeDir=None, executor=None):
+    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False,
+                       branch=None, ssh="auto", codeDir=None, executor=None):
         """
         Extracts and returns data useful in cloning a Git repository.
 
@@ -1733,9 +1742,11 @@ class InstallTools():
         """
         if ssh == "first":
             try:
-                return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges, reset, branch, revision, True, executor)
+                return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
+                                        reset, branch, revision, True, executor)
             except Exception:
-                return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges, reset, branch, revision, False, executor)
+                return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
+                                        reset, branch, revision, False, executor)
             raise RuntimeError("Could not checkout, needs to be with ssh or without.")
 
         base, provider, account, repo, dest, url = self.getGitRepoArgs(
@@ -1830,11 +1841,13 @@ class InstallTools():
         for top in self.listDirsInDir(self.CODEDIR, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
             if provider != "" and provider != top:
                 continue
-            for accountfound in self.listDirsInDir("%s/%s" % (self.CODEDIR, top), recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+            for accountfound in self.listDirsInDir("%s/%s" % (self.CODEDIR, top),
+                                                   recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
                 if account != "" and account != accountfound:
                     continue
                 accountfounddir = "/%s/%s/%s" % (self.CODEDIR, top, accountfound)
-                for reponame in self.listDirsInDir("%s/%s/%s" % (self.CODEDIR, top, accountfound), recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+                for reponame in self.listDirsInDir(
+                        "%s/%s/%s" % (self.CODEDIR, top, accountfound), recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
                     if name != "" and name != reponame:
                         continue
                     repodir = "%s/%s/%s/%s" % (self.CODEDIR, top, accountfound, reponame)
@@ -1902,7 +1915,8 @@ class InstallTools():
         #     raise RuntimeError("could not find branch")
         # return branch
 
-    def changeLoginPasswdGitRepos(self, provider="", account="", name="", login="", passwd="", ssh=True, pushmessage=""):
+    def changeLoginPasswdGitRepos(self, provider="", account="", name="",
+                                  login="", passwd="", ssh=True, pushmessage=""):
         """
         walk over all git repo's found in account & change login/passwd
         """

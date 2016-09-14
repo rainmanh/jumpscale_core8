@@ -63,7 +63,8 @@ class ActionsBaseNode:
                 port = client.hrd.getInt('ssh.port')
                 root = client.hrd.getStr('root')
                 src = '%s:%s/dedupe/md/%s' % (addr, root, flist)
-                j.sal.fs.copyDirTree(src, mdPath, deletefirst=True, overwriteFiles=True, ssh=True, sshport=port, recursive=False)
+                j.sal.fs.copyDirTree(src, mdPath, deletefirst=True, overwriteFiles=True,
+                                     ssh=True, sshport=port, recursive=False)
 
                 content = j.sal.fs.fileGetContents(mdPath)
                 for line in content.splitlines():
@@ -79,7 +80,8 @@ class ActionsBaseNode:
                     value, unit = j.data.units.bytes.converToBestUnit(int(size))
                     unit = unit if unit != '' else 'B'
                     print("downloading %s (%s %s)" % (path, value, unit))
-                    j.sal.fs.copyDirTree(src, path, deletefirst=False, overwriteFiles=False, ssh=True, sshport=port, recursive=False)
+                    j.sal.fs.copyDirTree(src, path, deletefirst=False, overwriteFiles=False,
+                                         ssh=True, sshport=port, recursive=False)
 
                     # @TODO need a way to know if the file need to be executable or not
                     j.sal.fs.chmod(path, 0o775)
@@ -190,19 +192,22 @@ class ActionsBaseNode:
                         extracmds = "\n".join(parts[:-1])
                         cmd2 = parts[-1]
 
-                    C = "#!/bin/sh\nset -e\ncd %s\nrm -f /var/log/%s.log\n%s\nexec %s >>/var/log/%s.log 2>&1\n" % (cwd, name, extracmds, cmd2, name)
+                    C = "#!/bin/sh\nset -e\ncd %s\nrm -f /var/log/%s.log\n%s\nexec %s >>/var/log/%s.log 2>&1\n" % (
+                        cwd, name, extracmds, cmd2, name)
                     j.sal.fs.remove("/var/log/%s.log" % name)
                     j.sal.fs.createDir("/etc/service/%s" % name)
                     path2 = "/etc/service/%s/run" % name
                     j.sal.fs.writeFile(path2, C)
                     j.sal.fs.chmod(path2, 0o770)
-                    j.sal.process.execute("sv start %s" % name, die=False, outputToStdout=False, outputStderr=False, captureout=False)
+                    j.sal.process.execute("sv start %s" % name, die=False, outputToStdout=False,
+                                          outputStderr=False, captureout=False)
                 else:
                     j.sal.ubuntu.service_install(name, tcmd, pwd=cwd, env=env)
                     j.sal.ubuntu.service_start(name)
 
             elif startupmethod == "tmux":
-                j.tools.cuisine.local.tmux.executeInScreen(domain, name, tcmd + " " + targs, cwd=cwd, env=env, user=tuser)  # , newscr=True)
+                j.tools.cuisine.local.tmux.executeInScreen(
+                    domain, name, tcmd + " " + targs, cwd=cwd, env=env, user=tuser)  # , newscr=True)
 
             else:
                 raise j.exceptions.RuntimeError("startup method not known or disabled:'%s'" % startupmethod)
@@ -282,7 +287,8 @@ class ActionsBaseNode:
 
             if j.sal.fs.exists(path="/etc/my_init.d/%s" % name):
                 print("stop through myinitd:%s" % name)
-                j.sal.process.execute("sv stop %s" % name, die=False, outputToStdout=False, outputStderr=False, captureout=False)
+                j.sal.process.execute("sv stop %s" % name, die=False, outputToStdout=False,
+                                      outputStderr=False, captureout=False)
             elif startupmethod == "upstart":
                 print("stop through upstart:%s" % name)
                 j.sal.ubuntu.service_stop(name)
@@ -496,7 +502,8 @@ class ActionsBaseNode:
 
             if syncLocalJumpscale:
                 print("upload jumpscale core lib to build docker.")
-                dockerExecutor.upload("/opt/code/github/jumpscale/jumpscale_core8/lib/", "/opt/code/github/jumpscale/jumpscale_core8/lib/")
+                dockerExecutor.upload("/opt/code/github/jumpscale/jumpscale_core8/lib/",
+                                      "/opt/code/github/jumpscale/jumpscale_core8/lib/")
 
             print("start build of %s" % self)
             dockerExecutor.execute("ays build -n %s" % self.name)

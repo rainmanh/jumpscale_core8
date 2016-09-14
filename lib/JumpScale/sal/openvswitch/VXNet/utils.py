@@ -79,15 +79,18 @@ def ip_link_set(device, args):
     cmd = "ip l set " + device + " " + args
     doexec(cmd.split())
 
+
 def limit_interface_rate(limit, interface, burst):
-    cmd = "%s set interface %s ingress_policing_rate=%s" 
+    cmd = "%s set interface %s ingress_policing_rate=%s"
     r, s, e = doexec(cmd.split())
     if r:
-        raise j.exception.RuntimeError("Problem with setting rate on interface: %s , problem was : %s " % (interface, e))
+        raise j.exception.RuntimeError(
+            "Problem with setting rate on interface: %s , problem was : %s " % (interface, e))
     cmd = "%s set interface %s ingress_policing_burst=%s"
     r, s, e = doexec(cmd.split())
     if r:
-        raise j.exception.RuntimeError("Problem with setting burst on interface: %s , problem was : %s " % (interface, e))
+        raise j.exception.RuntimeError(
+            "Problem with setting burst on interface: %s , problem was : %s " % (interface, e))
 
 
 def createBridge(name):
@@ -96,10 +99,11 @@ def createBridge(name):
     if r:
         raise j.exceptions.RuntimeError("Problem with creation of bridge %s, err was: %s" % (name, e))
     if name == "public":
-        cmd = '%s set Bridge %s stp_enable=true' % (vsctl,name)
+        cmd = '%s set Bridge %s stp_enable=true' % (vsctl, name)
         r, s, e = doexec(cmd.split())
         if r:
             raise j.exceptions.RuntimeError("Problem setting STP on bridge %s, err was: %s" % (name, e))
+
 
 def destroyBridge(name):
     cmd = '%s --if-exists del-br %s' % (vsctl, name)
@@ -107,12 +111,14 @@ def destroyBridge(name):
     if r:
         raise j.exceptions.RuntimeError("Problem with destruction of bridge %s, err was: %s" % (name, e))
 
+
 def listBridgePorts(name):
     cmd = '%s list-ports %s' % (vsctl, name)
     r, s, e = doexec(cmd.split())
     if r:
-        raise j.exception.RuntimeError("Problem with listing of bridge %s's ports , err was: %s " %(name, e))
+        raise j.exception.RuntimeError("Problem with listing of bridge %s's ports , err was: %s " % (name, e))
     return s.read()
+
 
 def VlanPatch(parentbridge, vlanbridge, vlanid):
     parentpatchport = '%s-%s' % (vlanbridge, str(vlanid))
@@ -258,12 +264,14 @@ def connectIfToBridge(bridge, interfaces):
         if r:
             raise j.exceptions.RuntimeError('Error adding port %s to bridge %s' % (interface, bridge))
 
+
 def removeIfFromBridge(bridge, interfaces):
     for interface in interfaces:
         cmd = '%s --if-exists del-port %s %s' % (vsctl, bridge, interface)
         r, s, e = doexec(cmd.split())
         if r:
             raise j.exceptions.RuntimeError('Error adding port %s to bridge %s' % (interface, bridge))
+
 
 def connectIfToNameSpace(nsname, interface):
     cmd = '%s link set %s netns %s' % (ip, interface, nsname)
@@ -300,7 +308,7 @@ def addBond(bridge, bondname, iflist, lacp="active", lacp_time="fast", mode="bal
     """
 
     intf = re.split('\W+', iflist)
-    if type(trunks) is str:
+    if isinstance(trunks, str):
         tr = re.split('\W+', trunks)
     buildup = "add-bond %s %s " % (bridge, bondname) + " ".join(e for e in list(set(intf))) + " lacp=%s " % lacp
     buildup = buildup + " -- set Port %s bond_mode=%s bond_fake_iface=false " % (bondname, mode)

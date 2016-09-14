@@ -105,7 +105,7 @@ class StatManager:
         self.historyObjsMod[key] = False
 
     def _serialize(self, key, obj):
-        #TODO: needs to be implemented, go to dense binary format (use struct)
+        # TODO: needs to be implemented, go to dense binary format (use struct)
         return obj
 
     def _deserialize(self, data):
@@ -195,7 +195,7 @@ class StatManager:
         """
         can be multi line
         param:info dotnotation of info e.g. 'water.white.level.sb 10'  (as used in graphite)
-        result bool         
+        result bool
         """
         now = self.getEpoch()
         for line in info.split("\n"):
@@ -246,7 +246,7 @@ class StatManager:
         param:start epoch
         param:stop epoch
         param:maxvalues nr of values you want to return
-        result list(list) 
+        result list(list)
 
         """
         if id is None:
@@ -317,7 +317,7 @@ class StatManager:
         param:id id in dot noation e.g. 'water.white.level.sb'
         param:start epoch
         param:stop epoch
-        result dict() 
+        result dict()
 
         """
         pass
@@ -357,7 +357,7 @@ class StatManager:
         param:id id in dot noation e.g. 'water.white.level.sb' (can be multiple use comma as separation)
         param:start epoch; 0 means all
         param:stop epoch; 0 means all
-        result list(list) 
+        result list(list)
 
         """
         pass

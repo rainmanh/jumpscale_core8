@@ -360,7 +360,8 @@ class CuisineCore(base):
         x = self.args_replace(x)
         return x
 
-    def file_download(self, url, to, overwrite=True, retry=3, timeout=0, login="", passwd="", minspeed=0, multithread=False, expand=False):
+    def file_download(self, url, to, overwrite=True, retry=3, timeout=0, login="",
+                      passwd="", minspeed=0, multithread=False, expand=False):
         """
         download from url
         @return path of downloaded file
@@ -810,7 +811,8 @@ class CuisineCore(base):
         # be on the safe side.
         location = self.args_replace(location)
         if self.file_exists(location):
-            return self.run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(self.shell_safe((location))), debug=False, checkok=False, showout=False)[1]
+            return self.run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(
+                self.shell_safe((location))), debug=False, checkok=False, showout=False)[1]
         else:
             return None
         # else:
@@ -854,7 +856,7 @@ class CuisineCore(base):
             self.logger.debug('set dir attributes:%s"%location')
         recursive = recursive and "-R " or ""
         if mode:
-            self.run('chmod %s %s %s' % (recursive, mode,  location), showout=False)
+            self.run('chmod %s %s %s' % (recursive, mode, location), showout=False)
         if owner:
             self.run('chown %s %s %s' % (recursive, owner, location), showout=False)
         if group:

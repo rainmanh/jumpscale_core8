@@ -14,11 +14,11 @@ class Blueprint:
     def __init__(self, aysrepo, path="", content=""):
         self.aysrepo = aysrepo
         self.path = path
-        self.active=True
+        self.active = True
         if path != "":
             self.name = j.sal.fs.getBaseName(path)
-            if self.name[0]=="_":
-                self.active=False
+            if self.name[0] == "_":
+                self.active = False
             self.name = self.name.lstrip('_')
             self.content = j.sal.fs.fileGetContents(path)
         else:
@@ -57,7 +57,8 @@ class Blueprint:
             if model is not None:
                 for key, item in model.items():
                     if key.find("__") == -1:
-                        raise j.exceptions.Input("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
+                        raise j.exceptions.Input(
+                            "Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
                     aysname, aysinstance = key.lower().split("__", 1)
 
                     if instance != "" and aysinstance != instance:
@@ -97,7 +98,8 @@ class Blueprint:
         try:
             model = j.data.serializer.yaml.loads(content)
         except Exception as e:
-            msg = "Could not process blueprint (load from yaml):\npath:'%s',\nline: '%s', content:\n######\n\n%s\n######\nerror:%s" % (self.path, nr, content, e)
+            msg = "Could not process blueprint (load from yaml):\npath:'%s',\nline: '%s', content:\n######\n\n%s\n######\nerror:%s" % (
+                self.path, nr, content, e)
             raise j.exceptions.Input(msg)
 
         self.models.append(model)
@@ -109,7 +111,8 @@ class Blueprint:
             if model is not None:
                 for key, item in model.items():
                     if key.find("__") == -1:
-                        raise j.exceptions.Input("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
+                        raise j.exceptions.Input(
+                            "Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
 
                     aysname, aysinstance = key.lower().split("__", 1)
                     if aysname.find(".") != -1:
@@ -125,23 +128,23 @@ class Blueprint:
 
     def disable(self):
         if self.active:
-            base=j.sal.fs.getBaseName(self.path)
-            dirpath=j.sal.fs.getDirName(self.path)
-            newpath=j.sal.fs.joinPaths(dirpath,"_%s"%base)
-            j.sal.fs.moveFile(self.path,newpath)
-            self.path=newpath
-            self.active=False
+            base = j.sal.fs.getBaseName(self.path)
+            dirpath = j.sal.fs.getDirName(self.path)
+            newpath = j.sal.fs.joinPaths(dirpath, "_%s" % base)
+            j.sal.fs.moveFile(self.path, newpath)
+            self.path = newpath
+            self.active = False
 
     def enable(self):
-        if self.active==False:
-            base=j.sal.fs.getBaseName(self.path)
+        if self.active == False:
+            base = j.sal.fs.getBaseName(self.path)
             if base.startswith("_"):
-                base=base[1:]
-            dirpath=j.sal.fs.getDirName(self.path)
-            newpath=j.sal.fs.joinPaths(dirpath,base)
-            j.sal.fs.moveFile(self.path,newpath)
-            self.path=newpath
-            self.active=True
+                base = base[1:]
+            dirpath = j.sal.fs.getDirName(self.path)
+            newpath = j.sal.fs.joinPaths(dirpath, base)
+            j.sal.fs.moveFile(self.path, newpath)
+            self.path = newpath
+            self.active = True
 
     def __str__(self):
         return "%s:%s" % (self.name, self.hash)

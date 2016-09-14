@@ -82,7 +82,7 @@ class CuisineKVM(base):
             if self._cuisine.id == 'localhost':
                 host = 'localhost'
             else:
-                host = '%s@%s'%(getattr(self._executor, '_login', 'root'), self._cuisine.id)
+                host = '%s@%s' % (getattr(self._executor, '_login', 'root'), self._cuisine.id)
             self.__controller = j.sal.kvm.KVMController(
                 host=host, executor=self._cuisine._executor)
         return self.__controller
@@ -93,7 +93,8 @@ class CuisineKVM(base):
         self._controller.executor.cuisine.core.file_download(url, path, overwrite=True)
 
     def machine(self, name, os, disks, nics, memory, cpucount, uuid=None, cloud_init=True):
-        return j.sal.kvm.CloudMachine(self._controller, name, os, disks, nics, memory, cpucount, uuid=None, cloud_init=True)
+        return j.sal.kvm.CloudMachine(self._controller, name, os, disks, nics,
+                                      memory, cpucount, uuid=None, cloud_init=True)
 
     def create_pool(self, name):
         pool = j.sal.kvm.Pool(self._controller, name)

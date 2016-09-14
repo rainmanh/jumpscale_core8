@@ -58,7 +58,8 @@ class Ubuntu:
         self.check()
         import lsb_release
         result = lsb_release.get_distro_information()
-        return result["CODENAME"].lower().strip(), result["DESCRIPTION"], result["ID"].lower().strip(), result["RELEASE"],
+        return result["CODENAME"].lower().strip(), result["DESCRIPTION"], result[
+            "ID"].lower().strip(), result["RELEASE"],
 
     def apt_install_check(self, packagenames, cmdname):
         """

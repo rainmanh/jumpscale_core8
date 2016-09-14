@@ -7,7 +7,7 @@ class MountError(Exception):
 
 class Mount:
 
-    def __init__(self,  device, path=None, options=''):
+    def __init__(self, device, path=None, options=''):
         self._device = device
         self._path = path
         self._autoClean = False

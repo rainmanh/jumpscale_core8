@@ -72,7 +72,7 @@ class Interface(BaseKVMComponent):
         """
         Instantiate a interface object using the provided xml source and kvm controller object.
 
-        @param controller object(j.sal.kvm.KVMController): controller object to use. 
+        @param controller object(j.sal.kvm.KVMController): controller object to use.
         @param xml str: xml string of machine to be created.
         """
         interface = ElementTree.fromstring(xml)
@@ -91,7 +91,7 @@ class Interface(BaseKVMComponent):
 
     def to_xml(self):
         """
-        Return libvirt's xml string representation of the interface. 
+        Return libvirt's xml string representation of the interface.
         """
         Interfacexml = self.controller.get_template('interface.xml').render(
             macaddress=self.mac, bridge=self.bridge.name, qos=self.qos, rate=self.interface_rate, burst=self.burst, name=self.name

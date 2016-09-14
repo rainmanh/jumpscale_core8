@@ -60,7 +60,8 @@ class whmcstickets:
                 'Failed to create ticket. Error: %s' % response.content, category='whmcs')
         return ticketid
 
-    def update_ticket(self, ticketid, subject=None, priority=None, status=None, email=None, cc=None, flag=None, userid='', deptid=''):
+    def update_ticket(self, ticketid, subject=None, priority=None, status=None,
+                      email=None, cc=None, flag=None, userid='', deptid=''):
         clientid = clientid or self._operations_user_id
         deptid = deptid or self._operations_department_id
 

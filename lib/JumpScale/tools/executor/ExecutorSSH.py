@@ -72,7 +72,8 @@ class ExecutorSSH(ExecutorBase):
     def getSSHViaProxy(self, jumphost, jmpuser, host, username, port, identityfile, proxycommand=None):
         self._sshclient = j.clients.ssh.get()
         if proxycommand is None:
-            proxycommand = """ssh -A -i {identityfile} -q {jmpuser}@{jumphost} nc -q0 {host} {port}""".format(**locals())
+            proxycommand = """ssh -A -i {identityfile} -q {jmpuser}@{jumphost} nc -q0 {host} {port}""".format(
+                **locals())
         self._sshclient.connectViaProxy(host, username, port, identityfile, proxycommand)
         return self
 

@@ -41,7 +41,7 @@ class SpecModelactorsGenerator:
 		\"\"\"
         @tasklettemplate:modelget
 		var:id int,None,Object identifier
-        var:guid str,"",unique identifier can be used as auth key  @tags: optional 
+        var:guid str,"",unique identifier can be used as auth key  @tags: optional
         result:object
 
     method:model_{name}_new
@@ -76,14 +76,14 @@ class SpecModelactorsGenerator:
         list models, used by e.g. a datagrid
         \"\"\"
         @tasklettemplate:modellist novalidation
-        result:json   
+        result:json
 
     method:model_{name}_datatables
         \"\"\"
         list models, used by e.g. a datagrid
         \"\"\"
         @tasklettemplate:modeldatatables returnformat:jsonraw
-        result:json   
+        result:json
 
 
 """

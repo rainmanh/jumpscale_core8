@@ -77,10 +77,12 @@ class AtYourServiceTester:
         # Make sure all producers exist
         for name, service in self.aysrepo.services.items():
             assert j.sal.fs.exists(service.path), 'service "%s" files missing' % name
-            assert service.parent.path if service.parent else service.path in service.path, 'service "%s" has parent "%s" but is not a child directory' % (name, self.parent)
+            assert service.parent.path if service.parent else service.path in service.path, 'service "%s" has parent "%s" but is not a child directory' % (
+                name, self.parent)
             for role, producers in service.producers.items():
                 for producer in producers:
-                    assert j.sal.fs.exists(producer.path), 'service "%s" has producer of role "%s", but seems to be missing' % (name, role)
+                    assert j.sal.fs.exists(
+                        producer.path), 'service "%s" has producer of role "%s", but seems to be missing' % (name, role)
         self.logger.info('All producers accounted for')
 
     def test_install(self):
@@ -96,8 +98,10 @@ class AtYourServiceTester:
                     continue
                 assert state[0] != 'ERROR', "%s state was %s" % (service, state)
                 run_services.append(service)
-                missing_producers = [aysi for producers in service.producers.values() for aysi in producers if aysi not in run_services]
-                assert not missing_producers, 'Producers should have already run! producer %s of service %s hasn\'t' % (missing_producers, service)
+                missing_producers = [aysi for producers in service.producers.values()
+                                     for aysi in producers if aysi not in run_services]
+                assert not missing_producers, 'Producers should have already run! producer %s of service %s hasn\'t' % (
+                    missing_producers, service)
         self.logger.info('No errors in install simulation')
         self.logger.info('Producers always preceding consumers! Order is correct')
 
@@ -113,10 +117,12 @@ class AtYourServiceTester:
         random_blueprint = random.choice(self.aysrepo.blueprints)
         blueprint_templates = [key.split('__')[0] for model in random_blueprint.models for key in model]
 
-        templates_with_action_files = [self.aysrepo.getTemplate(template).path_actions for template in blueprint_templates if j.sal.fs.exists(self.aysrepo.getTemplate(template).path_actions)]
+        templates_with_action_files = [self.aysrepo.getTemplate(
+            template).path_actions for template in blueprint_templates if j.sal.fs.exists(self.aysrepo.getTemplate(template).path_actions)]
         template_path = random.choice(templates_with_action_files)
         data = j.sal.fs.fileGetContents(template_path).splitlines()
-        method_lines = [indx for indx in range(0, len(data) - 1) if data[indx].startswith('    def ') and 'init' not in data[indx]]
+        method_lines = [indx for indx in range(
+            0, len(data) - 1) if data[indx].startswith('    def ') and 'init' not in data[indx]]
         random_method_line = random.choice(method_lines)
         random_method = data[random_method_line].split('def')[1].strip().split('(')[0]
 
@@ -149,7 +155,8 @@ class AtYourServiceTester:
         third_run = subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE)
         third_run = third_run.stdout.readlines()
 
-        assert len(second_run) == len(third_run), "third run should've only contained affected services, same ones second run did"
+        assert len(second_run) == len(
+            third_run), "third run should've only contained affected services, same ones second run did"
 
         # check second_run only contains changed
         # change 1 template method
@@ -164,7 +171,8 @@ class AtYourServiceTester:
         random_blueprint = random.choice(self.aysrepo.blueprints)
         blueprint_templates = [key.split('__')[0] for model in random_blueprint.models for key in model]
 
-        templates_with_schema = [self.aysrepo.getTemplate(template).path_hrd_schema for template in blueprint_templates if j.sal.fs.exists(self.aysrepo.getTemplate(template).path_hrd_schema)]
+        templates_with_schema = [self.aysrepo.getTemplate(template).path_hrd_schema for template in blueprint_templates if j.sal.fs.exists(
+            self.aysrepo.getTemplate(template).path_hrd_schema)]
         schema_path = random.choice(templates_with_schema)
         service_role = j.sal.fs.getBaseName(j.sal.fs.getDirName(schema_path)).split('.')[0]
         command = ["ays", "simulate", "install"]
@@ -190,7 +198,8 @@ class AtYourServiceTester:
         third_run = subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE)
         third_run = third_run.stdout.readlines()
 
-        assert len(second_run) == len(third_run), "third run should've only contained affected services, same ones second run did"
+        assert len(second_run) == len(
+            third_run), "third run should've only contained affected services, same ones second run did"
         assert service_role in ''.join(third_run), 'service of role "%s" should have been affected' % service_role
         # change 1 template schema (add variable)
         # ask for aysrun for init, check the aysrun is ok, right aysi impacted
@@ -232,7 +241,8 @@ class AtYourServiceTester:
         third_run = subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE)
         third_run = third_run.stdout.readlines()
 
-        assert len(second_run) == len(third_run), "third run should've only contained affected services, same ones second run did"
+        assert len(second_run) == len(
+            third_run), "third run should've only contained affected services, same ones second run did"
 
         # change an argument in blueprint
         # ask for aysrun for init, check the aysrun is ok, right aysi impacted
@@ -244,7 +254,8 @@ class AtYourServiceTester:
         self.reset()
         self.aysrepo.init()
 
-        services = [j.sal.fs.joinPaths(service.path, 'instance.hrd') for service in list(self.aysrepo.services.values())]
+        services = [j.sal.fs.joinPaths(service.path, 'instance.hrd')
+                    for service in list(self.aysrepo.services.values())]
         instance_path = random.choice(services)
         service_role = j.sal.fs.getBaseName(j.sal.fs.getDirName(instance_path)).split('.')[0]
         command = ["ays", "simulate", "install"]
@@ -270,7 +281,8 @@ class AtYourServiceTester:
         third_run = subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE)
         third_run = third_run.stdout.readlines()
 
-        assert len(second_run) == len(third_run), "third run should've only contained affected services, same ones second run did"
+        assert len(second_run) == len(
+            third_run), "third run should've only contained affected services, same ones second run did"
         assert service_role in ''.join(third_run), 'service of role "%s" should have been affected' % service_role
         # change 1 template schema (add variable)
         # change hrd for 1 instance

@@ -30,8 +30,7 @@ class JobController:
 
     def startWorkers(self, nrworkers=8):
 
-        paneNames = [pane.name for pane in self.tmux.panes]
-        paneNames.sort()
+        paneNames = sorted([pane.name for pane in self.tmux.panes])
         for i in range(nrworkers):
             name = paneNames[i]
             pane = self.tmux.getPane(name)

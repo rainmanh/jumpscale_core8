@@ -6,7 +6,8 @@ try:
 except:
     from configparser import ConfigParser
 
-#TODO: UGLY, validation should not happen on object (file) where you read from but on file where you populate values (kds)
+# TODO: UGLY, validation should not happen on object (file) where you read
+# from but on file where you populate values (kds)
 
 
 class InifileTool:
@@ -317,7 +318,7 @@ class IniFile:
     def getContent(self):
         """ Get the Inifile content to a string
         """
-        #TODO: jumpscale primitives should be used (no fp...)
+        # TODO: jumpscale primitives should be used (no fp...)
         fp = None
         if self.__file and not self.__file.closed:
             fp = self.__file

@@ -3,6 +3,7 @@ from xml.etree import ElementTree
 from BaseKVMComponent import BaseKVMComponent
 from Storage import Storage
 
+
 class Disk(BaseKVMComponent):
     """
     Wrapper class around libvirt's storage volume object , to use with jumpscale libs.
@@ -43,7 +44,7 @@ class Disk(BaseKVMComponent):
             image_name = path.split("/")[-1].split('.')[0]
         else:
             image_name = ''
-        return cls(controller, pool, name, size,image_name)
+        return cls(controller, pool, name, size, image_name)
 
     def to_xml(self):
         """
@@ -52,11 +53,13 @@ class Disk(BaseKVMComponent):
 
         disktemplate = self.controller.get_template('disk.xml')
         if self.image_name:
-            diskbasevolume = self.controller.executor.cuisine.core.joinpaths(self.controller.base_path, "images", '%s.qcow2' % self.image_name)
+            diskbasevolume = self.controller.executor.cuisine.core.joinpaths(
+                self.controller.base_path, "images", '%s.qcow2' % self.image_name)
         else:
             diskbasevolume = ''
         diskpath = self.controller.executor.cuisine.core.joinpaths(self.pool.poolpath, '%s.qcow2' % self.name)
-        diskxml = disktemplate.render({'diskname':self.name, 'diskpath': diskpath, 'disksize':self.size, 'diskbasevolume':diskbasevolume})
+        diskxml = disktemplate.render({'diskname': self.name, 'diskpath': diskpath,
+                                       'disksize': self.size, 'diskbasevolume': diskbasevolume})
         return diskxml
 
     def create(self):
@@ -65,7 +68,7 @@ class Disk(BaseKVMComponent):
         """
 
         volume = self.pool.lvpool.createXML(self.to_xml(), 0)
-        #return libvirt volume obj
+        # return libvirt volume obj
         return volume
 
     @property
@@ -94,7 +97,7 @@ class Disk(BaseKVMComponent):
         """
         Clone the disk
         """
-        
+
         volume = self.get_volume(self.name, pool)
         cloned_volume = self.pool.createXMLFrom(new_disk.to_xml(), disk, 0)
         return cloned_volume

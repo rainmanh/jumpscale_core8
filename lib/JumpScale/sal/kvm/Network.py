@@ -2,6 +2,7 @@ from JumpScale import j
 from xml.etree import ElementTree
 from BaseKVMComponent import BaseKVMComponent
 
+
 class Network(BaseKVMComponent):
     """Network object representation of xml and actual Network."""
 
@@ -22,7 +23,7 @@ class Network(BaseKVMComponent):
     @property
     def interfaces(self):
         """
-        Return list of interfaces names added to the bridge of the current network 
+        Return list of interfaces names added to the bridge of the current network
         """
         if self._interfaces is None:
             if self.bridge in self.controller.executor.execute("ovs-vsctl list-br"):
@@ -57,7 +58,7 @@ class Network(BaseKVMComponent):
 
     def to_xml(self):
         """
-        Return libvirt's xml string representation of the Network. 
+        Return libvirt's xml string representation of the Network.
         """
         networkxml = self.controller.get_template(
             'network.xml').render(networkname=self.name, bridge=self.bridge)
@@ -68,7 +69,7 @@ class Network(BaseKVMComponent):
         """
         Instantiate a Network object using the provided xml source and kvm controller object.
 
-        @param controller object(j.sal.kvm.KVMController): controller object to use. 
+        @param controller object(j.sal.kvm.KVMController): controller object to use.
         @param source  str: xml string of machine to be created.
         """
         network = ElementTree.fromstring(source)

@@ -1210,7 +1210,8 @@ class SystemProcess:
 
         return exitcode
 
-    def executeAsync(self, command, args=[], printCommandToStdout=False, redirectStreams=True, argsInCommand=False, useShell=None, outputToStdout=True):
+    def executeAsync(self, command, args=[], printCommandToStdout=False, redirectStreams=True,
+                     argsInCommand=False, useShell=None, outputToStdout=True):
         """ Execute command asynchronous. By default, the input, output and error streams of the command will be piped to the returned Popen object. Be sure to call commands that don't expect user input, or send input to the stdin parameter of the returning Popen object.
         @param command: Command to execute. (string)
         @param args: [Optional, [] by default] Arguments to be passed to the command. (Array of string)
@@ -1811,7 +1812,7 @@ class SystemProcess:
                     return gd['cmd'].strip()
             return None
         else:
-            #TODO: needs to be validated on mac & windows
+            # TODO: needs to be validated on mac & windows
             import psutil
             for process in psutil.process_iter():
                 try:

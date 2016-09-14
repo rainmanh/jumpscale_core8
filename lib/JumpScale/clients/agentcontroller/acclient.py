@@ -343,7 +343,8 @@ class Job(Base):
         """
         Kills this command on agent (if it's running)
         """
-        return self._client.cmd(self._gid, self._nid, 'kill', RunArgs(), data=j.data.serializer.json.dumps({'id': self._id}))
+        return self._client.cmd(self._gid, self._nid, 'kill', RunArgs(),
+                                data=j.data.serializer.json.dumps({'id': self._id}))
 
     def get_stats(self):
         """

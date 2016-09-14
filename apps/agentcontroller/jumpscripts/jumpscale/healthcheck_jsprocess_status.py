@@ -17,15 +17,15 @@ order = 1
 enable = True
 async = True
 log = True
-queue ='process'
+queue = 'process'
 roles = []
 
 
 def action():
-    results =list()
+    results = list()
     for ays in j.atyourservice.findServices():
         if not ays.getProcessDicts():
-                continue
+            continue
         result = dict()
         result['state'] = 'OK'
         result['message'] = "Process %s:%s:%s " % (ays.domain, ays.name, ays.instance)
@@ -37,8 +37,8 @@ def action():
             result['message'] = message
             result['category'] = 'AYS Process'
         results.append(result)
-            
+
     return results
-         
+
 if __name__ == '__main__':
     print(action())

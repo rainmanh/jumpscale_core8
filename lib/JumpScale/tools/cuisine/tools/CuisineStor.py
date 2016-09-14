@@ -252,18 +252,18 @@ class CuisineStor(base):
     @property
     def config(self):
         if self._config is None:
-            path = j.sal.fs.joinPaths(self.root,"config.yaml")
+            path = j.sal.fs.joinPaths(self.root, "config.yaml")
             if self._cuisine.core.file_exists(path):
-                self._config = j.data.serializer.yaml.load(self._cuisine.file_read(self.root,"config.yaml"))
+                self._config = j.data.serializer.yaml.load(self._cuisine.file_read(self.root, "config.yaml"))
 
         return self._config
 
     @config.setter
     def config(self, key, value):
-        self.config #populate if it doesn't exist
+        self.config  # populate if it doesn't exist
         self._config[key] = value
         serialized = j.data.serializer.dumps(self._config)
-        path = j.sal.fs.joinPaths(self.root,"config.yaml")
+        path = j.sal.fs.joinPaths(self.root, "config.yaml")
         self._cuisine.core.file_write(path, serialized)
 
     def enableServerHTTP(self):
@@ -588,7 +588,8 @@ class StorSpace(object):
 
         return obj
 
-    def upload(self, flistname, host=None, source="/", excludes=["\.pyc", "__pycache__"], removetmpdir=True, metadataStorspace=None):
+    def upload(self, flistname, host=None, source="/",
+               excludes=["\.pyc", "__pycache__"], removetmpdir=True, metadataStorspace=None):
         """
         Upload a complete directory:
          - from 'host' (if it's an executor)
@@ -609,7 +610,7 @@ class StorSpace(object):
             - metadataStorspace!=None then use other storspace for uploading the plist
         - remove tmpdir if removetmpdir=True
         """
-        #TODO: maxim: specs have not been implemented, lets discuss what we will do and what not
+        # TODO: maxim: specs have not been implemented, lets discuss what we will do and what not
         if not host:
             host = j.tools.executor.getLocal()
 
@@ -750,7 +751,9 @@ class StorSpace(object):
         """
         Generate a flist for the path contents
         """
-        #TODO: maxim, the original format was not a dict, this is not ideal, if you have a big directory this will explode ! it needs to go back to original text format & processing on disk directly not in mem
+        # TODO: maxim, the original format was not a dict, this is not ideal, if
+        # you have a big directory this will explode ! it needs to go back to
+        # original text format & processing on disk directly not in mem
         flist = {}
         for file in j.sal.fs.walk(path, recurse=True):
             stat = j.sal.fs.statPath(file)

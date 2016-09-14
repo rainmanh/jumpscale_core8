@@ -130,7 +130,8 @@ class OpenWRTManager:
 class OpenWRTFactory:
 
     def _getFactoryEnabledClasses(self):
-        return (("", "UCI", UCI()), ("", "DNS", DNS()), ("", "DHCP", DHCP()), ("", "PureFTP", PureFTP()), ("", "Network", Network()), ("", "Firewall", Firewall()), ("", "OpenWRTManager", OpenWRTManager()))
+        return (("", "UCI", UCI()), ("", "DNS", DNS()), ("", "DHCP", DHCP()), ("", "PureFTP", PureFTP()),
+                ("", "Network", Network()), ("", "Firewall", Firewall()), ("", "OpenWRTManager", OpenWRTManager()))
 
     def get(self, connection=None):
         """

@@ -10,6 +10,7 @@ from JumpScale.baselib.atyourservice.ServiceState import ServiceState
 
 modulecache = {}
 
+
 def loadmodule(name, path):
     key = path
     if key in modulecache:
@@ -50,7 +51,8 @@ def getProcessDicts(service, args={}):
 
 class Service:
 
-    def __init__(self, aysrepo, servicerecipe=None, instance=None, path="", args={}, originator=None, parent=None, model=None):
+    def __init__(self, aysrepo, servicerecipe=None, instance=None, path="",
+                 args={}, originator=None, parent=None, model=None):
         """
         """
         self.aysrepo = aysrepo
@@ -123,7 +125,8 @@ class Service:
                                 parent_recipe = self.aysrepo.getRecipe(name=parent_recipe_item.name)
                                 aysi = parent_recipe.newInstance(instance="main", args={})
                         else:
-                            raise j.exceptions.Input("Parent '%s' needs to be specified or put on autocreation in recipe:%s, now instance:%s" % (parent_recipe_item.name, servicerecipe, self.instance))
+                            raise j.exceptions.Input("Parent '%s' needs to be specified or put on autocreation in recipe:%s, now instance:%s" % (
+                                parent_recipe_item.name, servicerecipe, self.instance))
 
                         parentkey = aysi.key
                         parent = aysi
@@ -323,7 +326,7 @@ class Service:
         # run the args manipulation action as an action
         self.state.save()
         args = self.actions.input(self, self.recipe, self.role, self.instance, args)
-        
+
         originalhrd = j.data.hrd.get(content=str(self.hrd))
 
         # apply args
@@ -385,7 +388,7 @@ class Service:
                 instancenames = []
                 if consumename in args:
                     # args[consumename] can be a list or a string, we need to convert it to a list
-                    if type(args[consumename]) == str:
+                    if isinstance(args[consumename], str):
                         instancenames = [args[consumename]]
                     else:
                         instancenames = args[consumename]
@@ -396,19 +399,23 @@ class Service:
                     if len(instancenames) > 0:
                         ays_s = [candidate for candidate in candidates if candidate.instance in instancenames]
                     else:
-                        self.logger.debug('[_consumeFromSchema] No instance specificed for consumed service %s' % consumename)
+                        self.logger.debug(
+                            '[_consumeFromSchema] No instance specificed for consumed service %s' % consumename)
                         ays_s = candidates
 
                 # autoconsume
                 if len(candidates) < int(consumeitem.consume_nr_min) and consumeitem.auto:
                     for instance in range(len(candidates), int(consumeitem.consume_nr_min)):
-                        consumable = self.aysrepo.new(name=consumeitem.consume_link, instance='auto_%i' % instance, parent=self.parent)
+                        consumable = self.aysrepo.new(name=consumeitem.consume_link,
+                                                      instance='auto_%i' % instance, parent=self.parent)
                         ays_s.append(consumable)
 
                 if len(ays_s) > int(consumeitem.consume_nr_max):
-                    raise j.exceptions.RuntimeError("Found too many services with role '%s' which we are relying upon for service '%s, max:'%s'" % (role, self, consumeitem.consume_nr_max))
+                    raise j.exceptions.RuntimeError("Found too many services with role '%s' which we are relying upon for service '%s, max:'%s'" % (
+                        role, self, consumeitem.consume_nr_max))
                 if len(ays_s) < int(consumeitem.consume_nr_min):
-                    msg = "Found not enough services with role '%s' which we are relying upon for service '%s, min:'%s'" % (role, self, consumeitem.consume_nr_min)
+                    msg = "Found not enough services with role '%s' which we are relying upon for service '%s, min:'%s'" % (
+                        role, self, consumeitem.consume_nr_min)
                     if len(ays_s) > 0:
                         msg += "Require following instances:%s" % self.args[consumename]
                     raise j.exceptions.RuntimeError(msg)
@@ -450,7 +457,8 @@ class Service:
             elif isinstance(input, Service):
                 toConsume.add(input)
             else:
-                raise j.exceptions.Input("Type of input to consume not valid. Only support list, string or Service object", category='AYS.consume', msgpub='Type of input to consume not valid. Only support list, string or Service object')
+                raise j.exceptions.Input("Type of input to consume not valid. Only support list, string or Service object",
+                                         category='AYS.consume', msgpub='Type of input to consume not valid. Only support list, string or Service object')
 
             for ays in toConsume:
                 self.state.consume(aysi=ays)
@@ -464,7 +472,8 @@ class Service:
                     if action == "" or producer.getAction(action) is not None:
                         if producerRoles == "*" or producer.role in producerRoles:
                             producers.add(producer)
-                    producers = producer.getProducersRecursive(producers=producers, callers=callers, action=action, producerRoles=producerRoles)
+                    producers = producer.getProducersRecursive(
+                        producers=producers, callers=callers, action=action, producerRoles=producerRoles)
         return producers.symmetric_difference(callers)
 
     def printProducersRecursive(self, prefix=""):
@@ -646,7 +655,7 @@ class Service:
         a = getattr(self.actions, action)
         return a
 
-    def getActionSource(self,action):
+    def getActionSource(self, action):
         if action not in self.action_methods:
             return ""
         return j.data.text.strip(inspect.getsource(self.action_methods[action]))

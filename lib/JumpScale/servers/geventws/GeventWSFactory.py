@@ -32,7 +32,8 @@ class GeventWSFactory:
         from servers.geventws.GeventWSServer import GeventWSServer
         return GeventWSServer('', port, ssluser=ssluser, sslorg=sslorg, sslkeyvaluestor=sslkeyvaluestor)
 
-    def getClient(self, addr, port, category="core", org="myorg", user="root", passwd="passwd", ssl=False, roles=[], id=None, timeout=60):
+    def getClient(self, addr, port, category="core", org="myorg", user="root",
+                  passwd="passwd", ssl=False, roles=[], id=None, timeout=60):
 
         key = "%s_%s" % (addr, port)
         keycat = "%s_%s_%s" % (addr, port, category)
@@ -52,7 +53,8 @@ class GeventWSFactory:
         self.cachecat[keycat] = cl.getCmdClient(category)
         return self.cachecat[keycat]
 
-    def getHAClient(self, connections, category="core", org="myorg", user="root", passwd="passwd", ssl=False, roles=[], id=None, timeout=60, reconnect=False):
+    def getHAClient(self, connections, category="core", org="myorg", user="root",
+                    passwd="passwd", ssl=False, roles=[], id=None, timeout=60, reconnect=False):
 
         key = "%s" % (connections)
         keycat = "%s_%s" % (connections, category)

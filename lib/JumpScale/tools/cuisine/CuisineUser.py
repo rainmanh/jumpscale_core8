@@ -79,7 +79,7 @@ class CuisineUser(base):
         need_passwd (Boolean) indicates if password to be included in result or not.
             If set to True it parses 'getent shadow' and needs self._cuisine.core.sudo access
         """
-        assert name is not None or uid is not None,     "check: either `uid` or `name` should be given"
+        assert name is not None or uid is not None, "check: either `uid` or `name` should be given"
         assert name is None or uid is None, "check: `uid` and `name` both given, only one should be provided"
         if name is not None:
             _, d, _ = self._cuisine.core.run("getent passwd | egrep '^%s:' ; true" % (name))
@@ -101,7 +101,8 @@ class CuisineUser(base):
         else:
             return None
 
-    def ensure(self, name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True, group=None):
+    def ensure(self, name, passwd=None, home=None, uid=None, gid=None,
+               shell=None, fullname=None, encrypted_passwd=True, group=None):
         """Ensures that the given users exists, optionally updating their
         passwd/home/uid/gid/shell."""
         d = self.check(name)

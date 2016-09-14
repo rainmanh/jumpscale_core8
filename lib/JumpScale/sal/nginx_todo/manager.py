@@ -1,6 +1,6 @@
 from JumpScale import j
 
-#TODO: *2 is double with previous one, fix
+# TODO: *2 is double with previous one, fix
 
 
 class NginxManager:
@@ -145,5 +145,5 @@ class NginxManagerFactory:
     # def _getFactoryEnabledClasses(self):
     #     return ([("","NginxManager",NginxManager()),("server","NginxServer",NginxServer())])
 
-    def get(self,  path='/etc/nginx/nginx.conf'):
+    def get(self, path='/etc/nginx/nginx.conf'):
         return NginxManager(path)

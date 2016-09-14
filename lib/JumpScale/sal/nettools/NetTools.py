@@ -1,4 +1,4 @@
-#TODO: test *2
+# TODO: test *2
 
 import time
 import socket
@@ -281,7 +281,8 @@ class NetTools:
         elif j.core.platformtype.myplatform.isWindows():
             import wmi
             w = wmi.WMI()
-            return ["%s:%s" % (ad.index, str(ad.NetConnectionID)) for ad in w.Win32_NetworkAdapter() if ad.PhysicalAdapter and ad.NetEnabled]
+            return ["%s:%s" % (ad.index, str(ad.NetConnectionID))
+                    for ad in w.Win32_NetworkAdapter() if ad.PhysicalAdapter and ad.NetEnabled]
         else:
             raise j.exceptions.RuntimeError("Not supported on this platform!")
 

@@ -8,10 +8,11 @@ from JumpScale import j
 
 
 class TestCuisineFactory(unittest.TestCase):
+
     def setUp(self):
         self.factory = j.tools.cuisine
-        self.ssh_add_l_output = (0, '2048 SHA256:C7QPiMG99B+2XP/WV6Uwqdi/VIGf7Mglq74FPVHlvw0 abdelrahman@abdelrahman-work (RSA)')
-
+        self.ssh_add_l_output = (
+            0, '2048 SHA256:C7QPiMG99B+2XP/WV6Uwqdi/VIGf7Mglq74FPVHlvw0 abdelrahman@abdelrahman-work (RSA)')
 
     def tearDown(self):
         pass

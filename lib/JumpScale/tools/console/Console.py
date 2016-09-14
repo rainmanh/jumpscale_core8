@@ -632,7 +632,9 @@ class Console:
         @return: string multi-line reply by the user, always ending with a newline
         """
         self.echo("%s:" % question)
-        self.echo("(Enter answer over multiple lines, end by typing '%s' (without the quotes) on an empty line)" % escapeString)
+        self.echo(
+            "(Enter answer over multiple lines, end by typing '%s' (without the quotes) on an empty line)" %
+            escapeString)
         lines = []
         user_input = input()
         while user_input != escapeString:

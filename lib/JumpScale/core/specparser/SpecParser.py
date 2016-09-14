@@ -218,7 +218,8 @@ class SpecBlock:
         elif len(splitted) == 2:
             self.name = splitted[1]
         else:
-            return parser.raiseError("each [...] on block need to be in format [$type:$name] or  [$type], did not find :", line, linenr)
+            return parser.raiseError(
+                "each [...] on block need to be in format [$type:$name] or  [$type], did not find :", line, linenr)
 
         self.parser = parser
         self.startline = linenr
@@ -267,7 +268,8 @@ class SpecBlock:
             # print "###########"
             currentitemClass = SpecModelProperty
         else:
-            return self.parser.raiseError("Invalid type '%s' could not find right type of spec doc, only supported model,actor,enum :" % self.type, self.content, self.startline)
+            return self.parser.raiseError(
+                "Invalid type '%s' could not find right type of spec doc, only supported model,actor,enum :" % self.type, self.content, self.startline)
 
         # find the items in the block
         linenr = self.startline
@@ -377,8 +379,7 @@ class SpecDirParser:
                 if len(p) not in r:
                     r[len(p)] = []
                 r[len(p)].append(p)
-            lkeysSorted = list(r.keys())
-            lkeysSorted.sort()
+            lkeysSorted = sorted(r.keys())
             for lkey in lkeysSorted:
                 result = result + r[lkey]
             return result

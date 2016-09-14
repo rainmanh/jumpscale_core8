@@ -5,6 +5,7 @@ import yaml
 from BaseKVMComponent import BaseKVMComponent
 import re
 
+
 class Machine(BaseKVMComponent):
     """
     Wrapper class around libvirt's machine object , to use with jumpscale libs.
@@ -31,7 +32,7 @@ class Machine(BaseKVMComponent):
         @param nics [object(j.sal.kvm.interface())]: instance of networks to be used with machine.
         @param memory int: disk memory in Mb.
         @param cpucount int: number of cpus to use.
-        @param cloud_init bool: option to use cloud_init passing creating and passing ssh_keys, user name and passwd to the image 
+        @param cloud_init bool: option to use cloud_init passing creating and passing ssh_keys, user name and passwd to the image
         """
         self.name = name
         self.disks = disks
@@ -48,11 +49,11 @@ class Machine(BaseKVMComponent):
 
     def to_xml(self):
         """
-        Return libvirt's xml string representation of the machine. 
+        Return libvirt's xml string representation of the machine.
         """
         machinexml = self.controller.get_template('machine.xml').render({'machinename': self.name, 'memory': self.memory, 'nrcpu': self.cpucount,
-                                                                             'nics': self.nics, 'disks': self.disks, "cloudinit": self.cloud_init,
-                                                                             "image_path":self.image_path})
+                                                                         'nics': self.nics, 'disks': self.disks, "cloudinit": self.cloud_init,
+                                                                         "image_path": self.image_path})
         return machinexml
 
     @classmethod
@@ -60,18 +61,18 @@ class Machine(BaseKVMComponent):
         """
         Instantiate a Machine object using the provided xml source and kvm controller object.
 
-        @param controller object(j.sal.kvm.KVMController): controller object to use. 
+        @param controller object(j.sal.kvm.KVMController): controller object to use.
         @param source  str: xml string of machine to be created.
         """
-        machine =  ElementTree.fromstring(source)
+        machine = ElementTree.fromstring(source)
         name = machine.findtext('name')
         memory = int(machine.findtext('memory'))
         nrcpu = int(machine.findtext('vcpu'))
-        interfaces = list(map(lambda interface:j.sal.kvm.Interface.from_xml(controller, ElementTree.tostring(interface)),
-            machine.find('devices').findall('interface')))
+        interfaces = list(map(lambda interface: j.sal.kvm.Interface.from_xml(controller, ElementTree.tostring(interface)),
+                              machine.find('devices').findall('interface')))
         xml_disks = [disk for disk in machine.find('devices').findall('disk') if disk.get('device') == 'disk']
-        disks = list(map(lambda disk:j.sal.kvm.Disk.from_xml(controller, ElementTree.tostring(disk)),
-            xml_disks))
+        disks = list(map(lambda disk: j.sal.kvm.Disk.from_xml(controller, ElementTree.tostring(disk)),
+                         xml_disks))
         cloud_init = bool([disk for disk in machine.find('devices').findall('disk') if disk.get('device') == 'cdrom'])
         return cls(controller, name, disks, interfaces, memory, nrcpu, cloud_init=cloud_init)
 
@@ -102,7 +103,7 @@ class Machine(BaseKVMComponent):
     @property
     def uuid(self):
         """
-        Returns the uuid of this instance of the machine. 
+        Returns the uuid of this instance of the machine.
         """
         if not self._uuid:
             self._uuid = self.domain.UUIDString()
@@ -115,10 +116,12 @@ class Machine(BaseKVMComponent):
         """
         if not self._ip:
             for nic in self.nics:
-                import pudb; pu.db
+                import pudb
+                pu.db
                 bridge_name = nic.bridge.name
                 mac = nic.mac
-                rc, ip, err = self.controller.executor.execute("nmap -sn $(ip r | grep %s | grep -v default | awk '{print $1}') | grep -iB 2 '%s' | head -n 1 | awk '{print $NF}'" % (bridge_name, mac))
+                rc, ip, err = self.controller.executor.execute(
+                    "nmap -sn $(ip r | grep %s | grep -v default | awk '{print $1}') | grep -iB 2 '%s' | head -n 1 | awk '{print $NF}'" % (bridge_name, mac))
                 ip_pat = re.compile("\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}")
                 m = ip_pat.search(ip)
                 if m:
@@ -134,7 +137,7 @@ class Machine(BaseKVMComponent):
         """
         if self.cloud_init and not self._executor:
             self._executor = self.controller.executor.getSSHViaProxy(self.controller.executor.addr,
-                getattr(self.controller.executor.cuisine, 'login', 'root'), self.ip, "cloudscalers", 22, "/root/.ssh/libvirt")
+                                                                     getattr(self.controller.executor.cuisine, 'login', 'root'), self.ip, "cloudscalers", 22, "/root/.ssh/libvirt")
         return self._executor
 
     @property
@@ -167,7 +170,8 @@ class Machine(BaseKVMComponent):
             metadata = '{"local-hostname":"vm-%s"}' % self.name
             cuisine.core.file_write("%s/metadata/%s/user-data" % (self.controller.base_path, self.name), userdata)
             cuisine.core.file_write("%s/metadata/%s/meta-data" % (self.controller.base_path, self.name), metadata)
-            cmd = "genisoimage -o {base}/{name}_ci.iso -V cidata -r -J {base}/metadata/{name}/meta-data {base}/metadata/{name}/user-data".format(base=self.controller.base_path, name=self.name)
+            cmd = "genisoimage -o {base}/{name}_ci.iso -V cidata -r -J {base}/metadata/{name}/meta-data {base}/metadata/{name}/user-data".format(
+                base=self.controller.base_path, name=self.name)
             cuisine.core.run(cmd)
             cuisine.core.dir_remove("%s/images/%s " % (self.controller.base_path, self.name))
         self.domain = self.controller.connection.defineXML(self.to_xml())
@@ -175,7 +179,7 @@ class Machine(BaseKVMComponent):
     @property
     def is_created(self):
         """
-        Return bool option is machine defined in libvirt or not. 
+        Return bool option is machine defined in libvirt or not.
         """
         try:
             self.domain
@@ -203,7 +207,7 @@ class Machine(BaseKVMComponent):
         5: shutoff
         6: crashed
         7: pmsuspended
-        8: last  
+        8: last
         """
         return self.STATES[self.domain.state()[0]]
 
@@ -232,7 +236,7 @@ class Machine(BaseKVMComponent):
 
     def suspend(self):
         """
-        Suspend machine, similar to hibernate. 
+        Suspend machine, similar to hibernate.
         """
         return self.domain.suspend() == 0
 
@@ -246,10 +250,10 @@ class Machine(BaseKVMComponent):
 
     def create_snapshot(self, name, description=""):
         """
-        Create snapshot of the machine, both disk and ram when reverted will continue as if suspended on this state. 
+        Create snapshot of the machine, both disk and ram when reverted will continue as if suspended on this state.
 
-        @param name str:   name of the snapshot. 
-        @param descrition str: descitption of the snapshot. 
+        @param name str:   name of the snapshot.
+        @param descrition str: descitption of the snapshot.
         """
         snap = MachineSnapshot(self.controller, self.domain, name, description)
         return snap.create()
@@ -265,7 +269,7 @@ class Machine(BaseKVMComponent):
 
     def list_snapshots(self, libvirt=False):
         """
-        List snapshots of the current machine, if libvirt is true libvirt objects will be returned 
+        List snapshots of the current machine, if libvirt is true libvirt objects will be returned
         else the sal wrapper will be returned.
 
         @param libvirt bool: option to return libvirt snapshot obj or the sal wrapper.

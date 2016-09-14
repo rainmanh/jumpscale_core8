@@ -32,9 +32,8 @@ def action():
             j.errorconditionhandler.raiseOperationalCritical(result['message'], 'monitoring', die=False)
             result['state'] = 'ERROR'
 
-
         results.append(result)
     return results
 
 if __name__ == "__main__":
-    print (action())
+    print(action())

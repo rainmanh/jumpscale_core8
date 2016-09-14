@@ -71,9 +71,9 @@ class AggregatorClient:
         @param type: "BUG", "PERF", "OPS", "UNKNOWN"), default="UNKNOWN"
 
         usage of tags (tags can be used in all flexibility to ad meaning to an errorondition)
-        e.g. nid: gid: aid: pid: jid: mjid: appname: 
+        e.g. nid: gid: aid: pid: jid: mjid: appname:
             nid = IntField()
-            gid = IntField()    
+            gid = IntField()
             aid = IntField(default=0)
             pid = IntField(default=0)
             jid = StringField(default='')  #TODO: *2 is this right, string???

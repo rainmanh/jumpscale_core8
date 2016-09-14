@@ -15,6 +15,7 @@ class Arg:
     """
         Wrapper for argument
     """
+
     def __init__(self, name, defaultvalue):
         self.name = name
         self.defaultvalue = defaultvalue
@@ -88,7 +89,8 @@ class MethodDoc:
         out = ""
         param_s = ""
         if len(self.params) > 0:
-            param_s = ", ".join([str(arg.name) + "=" + str(arg.defaultvalue) if arg.defaultvalue else arg.name for arg in self.params])
+            param_s = ", ".join([str(arg.name) + "=" + str(arg.defaultvalue)
+                                 if arg.defaultvalue else arg.name for arg in self.params])
             param_s = "*%s*" % param_s
         out += "#### %s(%s) \n\n" % (self.name, param_s)
 
@@ -165,8 +167,7 @@ class ClassDoc:
         if self.comments is not None:
             C += "\n%s\n\n" % self.comments
 
-        keys = list(self.methods.keys())
-        keys.sort()
+        keys = sorted(self.methods.keys())
         for key in keys:
             method = self.methods[key]
             C2 = str(method)
@@ -175,6 +176,7 @@ class ClassDoc:
 
     def __repr__(self):
         return self.__str__()
+
 
 class ObjectInspector:
 
@@ -238,7 +240,7 @@ class ObjectInspector:
         #self.errors = ''
         objectLocationPath = objpath
 
-        #extract the object name (j.sal.unix ) -> unix to make a stub out of it.
+        # extract the object name (j.sal.unix ) -> unix to make a stub out of it.
         objname = ''
         filepath = ''
         if '.' in objpath:
@@ -259,7 +261,7 @@ class ObjectInspector:
         except:
             pass
 
-        #add the root object to the tree (self.jstree) as its first element (order maintained by ordereddict/pickle)
+        # add the root object to the tree (self.jstree) as its first element (order maintained by ordereddict/pickle)
         self.jstree[objectLocationPath] = attrib(objname, "class", 'emptydocs', objectLocationPath)
         self.inspect(objectLocationPath)
         j.sal.fs.createDir(dest)
@@ -283,7 +285,6 @@ class ObjectInspector:
         obj = self.classDocs[path]
 
     def inspect(self, objectLocationPath="j", recursive=True, parent=None, obj=None):
-
         """
         walk over objects in memory and create code completion api in jumpscale cfgDir under codecompletionapi
         @param object is start object
@@ -366,7 +367,8 @@ class ObjectInspector:
                     self.logger.error("the _getFactoryEnabledClasses gives error")
                     import ipdb
             elif inspect.isfunction(objattribute) or inspect.ismethod(objattribute) or inspect.isbuiltin(objattribute) or inspect.isgenerator(objattribute):
-                #isinstance(objattribute, (types.BuiltinMethodType, types.BuiltinFunctionType, types.MethodType, types.FunctionType)):
+                # isinstance(objattribute, (types.BuiltinMethodType,
+                # types.BuiltinFunctionType, types.MethodType, types.FunctionType)):
                 try:
                     methodpath = inspect.getabsfile(objattribute)
                     methodargs = ", ".join(objattribute.__code__.co_varnames)
@@ -381,22 +383,27 @@ class ObjectInspector:
                 source, params = self._processMethod(objattributename, objattribute, objectLocationPath2, obj)
                 self.logger.debug("instancemethod: %s" % objectLocationPath2)
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?4(%s)\n" % (objectLocationPath2, params), True)
-                self.jstree[objectLocationPath2]=attrib(objattributename, "method", objattribute.__doc__, objectLocationPath2, filepath, methodargs)
+                self.jstree[objectLocationPath2] = attrib(
+                    objattributename, "method", objattribute.__doc__, objectLocationPath2, filepath, methodargs)
 
             elif isinstance(objattribute, (str, bool, int, float, list, tuple, dict, property)) or objattribute is None:
                 self.logger.debug("property: %s" % objectLocationPath2)
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
-                self.jstree[objectLocationPath2]=attrib(objattributename, "property", objattribute.__doc__, objectLocationPath2)
+                self.jstree[objectLocationPath2] = attrib(
+                    objattributename, "property", objattribute.__doc__, objectLocationPath2)
 
-            elif type(objattribute.__class__) == type :
+            elif isinstance(objattribute.__class__, type):
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
                 self.logger.debug("class or instance: %s" % objectLocationPath2)
                 try:
                     filepath = inspect.getfile(objattribute.__class__)
-                except: pass
-                self.jstree[objectLocationPath2]=attrib(objattributename, "class", objattribute.__doc__, objectLocationPath2, filepath)
+                except:
+                    pass
+                self.jstree[objectLocationPath2] = attrib(
+                    objattributename, "class", objattribute.__doc__, objectLocationPath2, filepath)
                 try:
-                    if not isinstance(objattribute, (str, bool, int, float, dict, list, tuple)) or objattribute is not None:
+                    if not isinstance(objattribute, (str, bool, int, float, dict, list, tuple)
+                                      ) or objattribute is not None:
                         self.inspect(objectLocationPath2, parent=objattribute)
                 except Exception as e:
                     self.logger.error(str(e))
@@ -418,12 +425,10 @@ class ObjectInspector:
             summary[key2][key] = j.sal.fs.pathRemoveDirPart(dest, self.dest)
 
         summarytxt = ""
-        keys1 = list(summary.keys())
-        keys1.sort()
+        keys1 = sorted(summary.keys())
         for key1 in keys1:
             summarytxt += "* %s\n" % (key1)
-            keys2 = list(summary[key1].keys())
-            keys2.sort()
+            keys2 = sorted(summary[key1].keys())
             for key2 in keys2:
                 summarytxt += "    * [%s](%s)\n" % (key2, summary[key1][key2])
 

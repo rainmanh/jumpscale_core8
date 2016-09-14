@@ -47,7 +47,7 @@ class HRDBase:
         if default is not None:
             default = str(default)
         res = self.get(key, default=default)
-        if type(res) == dict:
+        if isinstance(res, dict):
             res2 = ''
             for k, v in res.items():
                 res2 += '%s:%s ' % (k, v)
@@ -122,8 +122,7 @@ class HRDBase:
 
     def getHRDAsDict(self):
         ddict = self.getDictFromPrefix("")
-        keys = list(ddict.keys())
-        keys.sort()
+        keys = sorted(ddict.keys())
         prevkey = ""
         for key in keys:
             if key.count(".") == 1:
@@ -151,7 +150,8 @@ class HRDBase:
                     ddict.pop(key)
         return ddict
 
-    def getListFromPrefixEachItemDict(self, prefix, musthave=[], defaults={}, aredict={}, arelist=[], areint=[], arebool=[]):
+    def getListFromPrefixEachItemDict(self, prefix, musthave=[], defaults={},
+                                      aredict={}, arelist=[], areint=[], arebool=[]):
         """
         returns values from prefix return as list
         each value represents a dict
@@ -254,7 +254,8 @@ class HRDBase:
         if key in self.items:
             self.items.pop(key)
 
-    def applyOnDir(self, path, filter=None, minmtime=None, maxmtime=None, depth=None, changeFileName=True, changeContent=True, additionalArgs={}):
+    def applyOnDir(self, path, filter=None, minmtime=None, maxmtime=None, depth=None,
+                   changeFileName=True, changeContent=True, additionalArgs={}):
         """
         look for $(name) and replace with hrd value
         """
@@ -318,8 +319,7 @@ class HRDBase:
     def __repr__(self):
 
         parts = []
-        keys = list(self.items.keys())
-        keys.sort()
+        keys = sorted(self.items.keys())
         if self.commentblock != "":
             out = [self.commentblock]
         else:

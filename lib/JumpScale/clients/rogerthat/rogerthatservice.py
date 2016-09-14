@@ -67,7 +67,8 @@ class GeventWSServer:
     def process_test(self, value):
         return value
 
-    def process_update(self, status=None, answer_id=None, received_timestamp=None, member=None, user_details=None, message_key=None, parent_message_key=None, tag=None, acked_timestamp=None, service_identity=None, result_key=None):
+    def process_update(self, status=None, answer_id=None, received_timestamp=None, member=None, user_details=None,
+                       message_key=None, parent_message_key=None, tag=None, acked_timestamp=None, service_identity=None, result_key=None):
         message_key = parent_message_key if parent_message_key else message_key
 
         # return

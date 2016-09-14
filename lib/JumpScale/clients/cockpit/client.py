@@ -152,7 +152,8 @@ class Client:
         self._assert_response(resp)
         return resp.json()
 
-    def simulateAction(self, repository, action, role='', instance='', producer_roles='*', force=False, headers=None, query_params=None):
+    def simulateAction(self, repository, action, role='', instance='',
+                       producer_roles='*', force=False, headers=None, query_params=None):
         """
         simulate the execution of an action
         It is method for POST /ays/repository/{repository}/simulate
@@ -172,7 +173,8 @@ class Client:
         self._assert_response(resp)
         return resp.json()
 
-    def executeAction(self, repository, action, role='', instance='', producer_roles='*', force=False, async=False, headers=None, query_params=None):
+    def executeAction(self, repository, action, role='', instance='', producer_roles='*',
+                      force=False, async=False, headers=None, query_params=None):
         """
         simulate the execution of an action
         It is method for POST /ays/repository/{repository}/simulate

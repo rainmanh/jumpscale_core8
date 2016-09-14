@@ -3,11 +3,11 @@ from InstallTools import *
 
 import sys
 
-if len(sys.argv)<3:
+if len(sys.argv) < 3:
     raise j.exceptions.RuntimeError("specify login/passwd (as 2 independant args)")
 
-login=sys.argv[1]
-passwd=sys.argv[2]
+login = sys.argv[1]
+passwd = sys.argv[2]
 
 
 # do.installJS(base=j.dirs.base,clean=True,insystem=False,pythonversion=3,web=True)
@@ -18,10 +18,11 @@ from JumpScale import j
 
 
 def get(url):
-    cmd="git config --global push.default matching"
+    cmd = "git config --global push.default matching"
     do.execute(cmd)
-    do.pullGitRepo(url,dest=None,login=login,passwd=passwd,depth=None,ignorelocalchanges=False,reset=False,branch="master")
-    do.pushGitRepos(message="init",name=do.getBaseName(url))
+    do.pullGitRepo(url, dest=None, login=login, passwd=passwd, depth=None,
+                   ignorelocalchanges=False, reset=False, branch="master")
+    do.pushGitRepos(message="init", name=do.getBaseName(url))
 
 # get("http://git.aydo.com/0-complexity/netwpoc")
 # get("http://git.aydo.com/aydo/docs_0disk")

@@ -74,7 +74,8 @@ class CuisineGroup(base):
         """remove the given user from the given group."""
         assert self.check(group), "Group does not exist: %s" % (group)
         if self.user_check(group, user):
-            cmd = "getent group | egrep -v '^%s:' | grep '%s' | awk -F':' '{print $1}' | grep -v %s; true" % (group, user, user)
+            cmd = "getent group | egrep -v '^%s:' | grep '%s' | awk -F':' '{print $1}' | grep -v %s; true" % (
+                group, user, user)
             _, out, _ = self._cuisine.core.run(cmd)
             for_user = out.splitlines()
             if for_user:

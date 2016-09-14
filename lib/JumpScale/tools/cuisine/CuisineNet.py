@@ -23,7 +23,7 @@ Address={ipaddr}/{cidr}
 Gateway={gateway}
         """.format(ipaddr=ipaddr, dns=dns, cidr=cidr, gateway=gateway)
 
-        targetfile='/etc/systemd/network/{interface}.network'.format(interface=interface)
+        targetfile = '/etc/systemd/network/{interface}.network'.format(interface=interface)
         self._cuisine.core.write_file(targetfile, content=conf)
 
     @property

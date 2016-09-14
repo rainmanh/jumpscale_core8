@@ -3,7 +3,7 @@ import dns.resolver
 import time
 
 
-def test(geodns_install=False, dnsresolver_install=True,  port=3333, tmux=True):
+def test(geodns_install=False, dnsresolver_install=True, port=3333, tmux=True):
     # start geodns instance(this is the main object to be used it is an
     # abstraction of the domain object)
     cuisine = j.tools.cuisine.local

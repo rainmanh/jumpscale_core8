@@ -13,7 +13,8 @@ class GitClient:
         baseDir = baseDir.replace("\\", "/")  # NOQA
         baseDir = baseDir.rstrip("/")
 
-        while ".git" not in j.sal.fs.listDirsInDir(baseDir, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+        while ".git" not in j.sal.fs.listDirsInDir(
+                baseDir, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
             baseDir = j.sal.fs.getParent(baseDir)
 
             if baseDir == "/":
@@ -145,7 +146,7 @@ class GitClient:
                     result[state].append(_file)
 
         for diff in self.repo.index.diff(None):
-            #TODO: does not work, did not show my changes !!! *1
+            # TODO: does not work, did not show my changes !!! *1
             path = diff.a_blob.path
             if checkignore(ignore, path):
                 continue

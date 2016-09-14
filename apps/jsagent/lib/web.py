@@ -11,10 +11,12 @@ from flask import Flask, request, Response, render_template
 app = Flask(__name__)
 app.debug = True
 
+
 class PMWSServer():
-    def __init__(self):        
+
+    def __init__(self):
         self.http_server = WSGIServer(('127.0.0.1', 8001), app)
-    
+
     def start(self):
         self.http_server.serve_forever()
 
@@ -28,7 +30,7 @@ class PMWSServer():
 
     @app.route('/my_event_source')
     def sse_request():
-        return Response(PMWSServer.event_stream(),mimetype='text/event-stream')
+        return Response(PMWSServer.event_stream(), mimetype='text/event-stream')
 
     @app.route('/')
     def page():
@@ -36,4 +38,3 @@ class PMWSServer():
 
 # s=PMWSServer()
 # s.start()
-

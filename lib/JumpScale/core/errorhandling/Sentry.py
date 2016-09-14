@@ -21,7 +21,8 @@ def Sentry():
         self.sendMessageToSentry(modulename=modulename, message=eco.errormessage, ttype=ttype, frames=frames, tags=None,
                                  extra=extra, level=level, tb=tb, hrdprefix=hrdprefix)
 
-    def sendMessageToSentry(self, modulename, message, ttype="bug", tags=None, extra={}, level="error", tb=None, frames=[], backtrace="", hrdprefix="sentry"):
+    def sendMessageToSentry(self, modulename, message, ttype="bug", tags=None, extra={},
+                            level="error", tb=None, frames=[], backtrace="", hrdprefix="sentry"):
         """
         @param level
             fatal

@@ -56,7 +56,8 @@ class Disk:
         self.type = []
 
     def __str__(self):
-        return "%s %s %s free:%s ssd:%s fs:%s model:%s id:%s" % (self.path, self.mountpoint, self.size, self.free, self.ssd, self.fs, self.model, self.id)
+        return "%s %s %s free:%s ssd:%s fs:%s model:%s id:%s" % (
+            self.path, self.mountpoint, self.size, self.free, self.ssd, self.fs, self.model, self.id)
 
     __repr__ = __str__
 
@@ -224,7 +225,8 @@ class Diskmanager:
                             size = disko.size / 1024
                             disko.free = int(disko.free)
 
-                            if (ttype is None or fs == ttype) and size > minsize and (maxsize is None or size < maxsize):
+                            if (ttype is None or fs == ttype) and size > minsize and (
+                                    maxsize is None or size < maxsize):
                                 if ssd is None or disko.ssd == ssd:
                                     # print disko
                                     hrdpath = "%s/disk.hrd" % mountpoint

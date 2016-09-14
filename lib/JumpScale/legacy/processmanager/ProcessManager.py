@@ -11,6 +11,7 @@ class Dummy:
 
 
 class DummyDaemon:
+
     def __init__(self):
         self.cmdsInterfaces = {}
 
@@ -66,7 +67,7 @@ class ProcessmanagerFactory:
             j.legacy.redisworker.redis.lpush("workers:action:%s" % queuename, "RESTART")
 
     def getCmdsObject(self, category):
-        if self.cmds.has_key(category):
+        if category in self.cmds:
             return self.cmds["category"]
         else:
             raise RuntimeError("Could not find cmds with category:%s" % category)
@@ -74,14 +75,13 @@ class ProcessmanagerFactory:
     def loadCmds(self):
         if self.basedir not in sys.path:
             sys.path.insert(0, self.basedir)
-        cmds = j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(self.basedir, "cmds"), filter="*.py")
-        cmds.sort()
+        cmds = sorted(j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(self.basedir, "cmds"), filter="*.py"))
         for item in cmds:
             name = j.sal.fs.getBaseName(item).replace(".py", "")
             if name[0] != "_":
                 module = importlib.import_module('cmds.%s' % name)
                 classs = getattr(module, name)
-                print ("load cmds object:%s" % name)
+                print("load cmds object:%s" % name)
                 tmp = classs(daemon=self.daemon)
                 self.daemon.addCMDsInterface(classs, category=tmp._name)
 
@@ -96,7 +96,7 @@ class ProcessmanagerFactory:
         for key, cmd in sorted(self.daemon.daemon.cmdsInterfaces.items(), key=sort):
             self.cmds.__dict__[key] = cmd
             if hasattr(self.cmds.__dict__[key], "_init"):
-                print ("### INIT ###:%s" % key)
+                print("### INIT ###:%s" % key)
                 self.cmds.__dict__[key]._init()
 
     def getStartupTime(self):

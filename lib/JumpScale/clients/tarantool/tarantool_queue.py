@@ -367,7 +367,7 @@ class Queue(object):
     def basic_deserialize(data):
         return msgpack.unpackb(data)
 
-    def __init__(self, host="localhost", port=33013,  space=0):
+    def __init__(self, host="localhost", port=33013, space=0):
         if not(host and port):
             raise Queue.BadConfigException("host and port params "
                                            "must be not empty")
@@ -525,7 +525,7 @@ class Queue(object):
         e.g.:
 
             >>> tube.statistics()
-            # or queue.statistics('tube0') 
+            # or queue.statistics('tube0')
             # or queue.statistics(tube.opt['tube'])
             {'ack': '233',
             'meta': '35',

@@ -44,7 +44,7 @@ class ApiRos:
         if self.writeSentence(words) == 0:
             return
         r = []
-        while 1:
+        while True:
             i = self.readSentence()
             if len(i) == 0:
                 continue
@@ -70,7 +70,7 @@ class ApiRos:
 
     def readSentence(self):
         r = []
-        while 1:
+        while True:
             w = self.readWord()
             if w == '':
                 return r

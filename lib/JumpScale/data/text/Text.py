@@ -378,7 +378,7 @@ class Text:
                 if not default:
                     default = None
                 result = j.tools.console.askInteger(
-                    question=descr,  defaultValue=default, minValue=minValue, maxValue=maxValue, retry=retry)
+                    question=descr, defaultValue=default, minValue=minValue, maxValue=maxValue, retry=retry)
 
             elif ttype == "bool":
                 if descr != "":
@@ -639,8 +639,7 @@ class Text:
                     "subitem cannot be list or dict for:%s" % obj)
             if multiline:
                 resout = "\n"
-                keys = list(obj.keys())
-                keys.sort()
+                keys = sorted(obj.keys())
                 for key in keys:
                     val = obj[key]
                     val = self.pythonObjToStr1line(val)
@@ -650,8 +649,7 @@ class Text:
                 resout = resout.rstrip().rstrip(",") + ",\n"
             else:
                 resout = ""
-                keys = list(obj.keys())
-                keys.sort()
+                keys = sorted(obj.keys())
                 for key in keys:
                     val = obj[key]
                     val = self.pythonObjToStr1line(val)

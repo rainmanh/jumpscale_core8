@@ -7,6 +7,7 @@ app = j.tools.cuisine._getBaseAppClass()
 
 class CuisineDocker(app):
     NAME = "docker"
+
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
@@ -65,7 +66,8 @@ class CuisineDocker(app):
         # change passwd
         dockerCuisineObject.user.passwd("root", j.data.idgenerator.generateGUID())
 
-    def dockerStart(self, name="ubuntu1", image='jumpscale/ubuntu1604_all', ports='', volumes=None, pubkey=None, weave=False):
+    def dockerStart(self, name="ubuntu1", image='jumpscale/ubuntu1604_all',
+                    ports='', volumes=None, pubkey=None, weave=False):
         """
         will return dockerCuisineObj: is again a cuisine obj on which all kinds of actions can be executed
 
@@ -116,8 +118,8 @@ class CuisineDocker(app):
         pass
 
 
-
 class Cuisinedockerobj:
+
     def __init__(self, name, addr, port, cuisineDockerHost):
         self.id = addr
         self.port = port

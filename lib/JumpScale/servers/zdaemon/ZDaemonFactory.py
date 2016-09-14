@@ -27,7 +27,7 @@ class ZDaemonFactory:
             def echo(self,msg="",session=None):
                 return msg
 
-        #remark always need to add **args in method because user & returnformat are passed as params which can 
+        #remark always need to add **args in method because user & returnformat are passed as params which can
           be used in method
 
         zd.addCMDsInterface(MyCommands)  #pass as class not as object !!!
@@ -81,12 +81,13 @@ class ZDaemonFactory:
                 self._cmdchannel.send_multipart(args)
                 result=self._cmdchannel.recv_multipart()
                 return result
-        transp=BlobStorTransport(addr=ipaddr,port=port,gevent=True)        
+        transp=BlobStorTransport(addr=ipaddr,port=port,gevent=True)
         """
         from ZDaemonTransport import ZDaemonTransport
         return ZDaemonTransport
 
-    def getZDaemonAgent(self, ipaddr="127.0.0.1", port=5651, org="myorg", user="root", passwd="1234", ssl=False, reset=False, roles=[]):
+    def getZDaemonAgent(self, ipaddr="127.0.0.1", port=5651, org="myorg",
+                        user="root", passwd="1234", ssl=False, reset=False, roles=[]):
         """
         example usage, see example for server at self.getZDaemon
 

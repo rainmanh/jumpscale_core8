@@ -6,6 +6,7 @@ app = j.tools.cuisine._getBaseAppClass()
 
 class CuisineEtcd(app):
     NAME = "etcd"
+
     def build(self, start=True, host=None, peers=[], reset=False):
         """
         Build and start etcd

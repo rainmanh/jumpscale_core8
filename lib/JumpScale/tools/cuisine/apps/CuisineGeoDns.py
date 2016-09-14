@@ -3,7 +3,8 @@ from JumpScale import j
 
 class Domain:
 
-    def __init__(self, name, cuisine, serial=1, ttl=None, content="", max_hosts=2,  a_records={}, cname_records={}, ns=[]):
+    def __init__(self, name, cuisine, serial=1, ttl=None, content="",
+                 max_hosts=2, a_records={}, cname_records={}, ns=[]):
         """
         @name = full domain name to be created or to edit
         @content = string with json of entire zone file to replace or create zonefile
@@ -115,6 +116,7 @@ app = j.tools.cuisine._getBaseAppClass()
 
 class CuisineGeoDns(app):
     NAME = "geodns"
+
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
@@ -140,7 +142,8 @@ class CuisineGeoDns(app):
         self._cuisine.core.file_copy(
             "$tmplsDir/cfg/geodns", "$cfgDir/", recursive=True)
 
-    def start(self, ip="0.0.0.0", port="5053", config_dir="$cfgDir/geodns/dns/", identifier="geodns_main", cpus="1", tmux=False):
+    def start(self, ip="0.0.0.0", port="5053", config_dir="$cfgDir/geodns/dns/",
+              identifier="geodns_main", cpus="1", tmux=False):
         """
         starts geodns server with given params
         """
@@ -169,7 +172,8 @@ class CuisineGeoDns(app):
                 domains.append(basename.rstrip('.json'))
         return domains
 
-    def ensure_domain(self, domain_name, serial=1, ttl=600, content=None, max_hosts=2,  a_records={}, cname_records={}, ns=[]):
+    def ensure_domain(self, domain_name, serial=1, ttl=600, content=None,
+                      max_hosts=2, a_records={}, cname_records={}, ns=[]):
         """
         used to create a domain_name in dns server also updates if already exists
         @name = full domain name to be created or to edit

@@ -151,7 +151,7 @@ class Docker:
     @property
     def basepath(self):
         self._basepath = '/mnt/data/docker'
-        #TODO: needs to fetch values out of hrd
+        # TODO: needs to fetch values out of hrd
         # if not self._basepath:
         #     if j.application.config.exists('docker.basepath'):
         #         self._basepath = j.application.config.get('docker.basepath')
@@ -327,11 +327,13 @@ class Docker:
                setrootrndpasswd=True, rootpasswd="", jumpscalebranch="master", aysfs=[], detach=False, privileged=False, getIfExists=True, weavenet=False):
         """
         Creates a new container.
-        
+
         @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
         @param vols in format as follows "/var/insidemachine:/var/inhost # /var/1:/var/1 # ..."   '#' is separator
         @param sshkeyname : use ssh-agent (can even do remote through ssh -A) and then specify key you want to use in docker
-        #TODO: *1 change way how we deal with ssh keys, put authorization file in filesystem before docker starts don't use ssh to push them, will be much faster and easier
+        # TODO: *1 change way how we deal with ssh keys, put authorization file in
+        # filesystem before docker starts don't use ssh to push them, will be much
+        # faster and easier
         """
     if ssh is True and myinit is False:
             raise ValueError("SSH can't be enabled without myinit.")
@@ -621,7 +623,7 @@ class Docker:
 
         return: strint containing the stdout
         """
-        #TODO: implement force
+        # TODO: implement force
         out = []
         if force:
             nocache = True

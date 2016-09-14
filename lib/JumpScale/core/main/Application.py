@@ -231,7 +231,7 @@ class Application:
         '''
         import sys
 
-        #TODO: should we check the status (e.g. if application wasnt started, we shouldnt call this method)
+        # TODO: should we check the status (e.g. if application wasnt started, we shouldnt call this method)
         if self.state == "UNKNOWN":
             # Consider this a normal exit
             self.state = "HALTED"
@@ -263,7 +263,7 @@ class Application:
 
         # tell gridmaster the process stopped
 
-        #TODO: this SHOULD BE WORKING AGAIN, now processes are never removed
+        # TODO: this SHOULD BE WORKING AGAIN, now processes are never removed
 
         if stop:
             sys.exit(exitcode)
@@ -273,7 +273,7 @@ class Application:
         # You can only come here if an application has been started, and if
         # an abnormal exit happened, i.e. somebody called sys.exit or the end of script was reached
         # Both are wrong! One should call j.application.stop(<exitcode>)
-        #TODO: can we get the line of code which called sys.exit here?
+        # TODO: can we get the line of code which called sys.exit here?
 
         #j.logger.log("UNCLEAN EXIT OF APPLICATION, SHOULD HAVE USED j.application.stop()", 4)
         import sys
@@ -285,7 +285,7 @@ class Application:
         returns hrd for specific appname & instance name (default domain=jumpscale or not used when inside a config git repo)
         """
         return False
-        #TODO: fix
+        # TODO: fix
         if j.atyourservice.type != "c":
             path = '%s/%s__%s__%s.hrd' % (j.dirs.getHrdDir(),
                                           domain, name, instance)
@@ -300,7 +300,7 @@ class Application:
         returns hrd for specific domain,name and & instance name
         """
         return j.application.config
-        #TODO: fix
+        # TODO: fix
         service = j.atyourservice.getService(
             domain=domain, name=name, instance=instance)
         return service.hrd
@@ -309,7 +309,7 @@ class Application:
         """
         returns list of hrd instances for specified app
         """
-        #TODO: fix
+        # TODO: fix
         res = []
         for instance in self.getAppHRDInstanceNames(name, domain):
             res.append(self.getAppInstanceHRD(name, instance, domain))
@@ -322,9 +322,8 @@ class Application:
         repos = []
         for path in j.atyourservice.findAYSRepos(j.dirs.codeDir):
             repos.append(j.atyourservice.get(path=path))
-        names = [service.instance for aysrepo in repos for service in list(
-            aysrepo.services.values()) if service.templatename == name]
-        names.sort()
+        names = sorted([service.instance for aysrepo in repos for service in list(
+            aysrepo.services.values()) if service.templatename == name])
         return names
 
     def getCPUUsage(self):

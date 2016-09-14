@@ -91,7 +91,7 @@ class CuisineSyncthing(app):
 
         # create config file
         content = self._cuisine.core.args_replace(config)
-        content = content.replace('$lclAddrs',  '0.0.0.0', 1)
+        content = content.replace('$lclAddrs', '0.0.0.0', 1)
         content = content.replace('$port', '18384', 1)
 
         self._cuisine.core.dir_ensure("$tmplsDir/cfg/syncthing/")

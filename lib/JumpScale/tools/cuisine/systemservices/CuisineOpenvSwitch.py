@@ -30,14 +30,13 @@ class CuisineOpenvSwitch(app):
         self._executor = executor
         self.__controller = None
 
-
     @property
     def _controller(self):
         if not self.__controller:
             if self._cuisine.id == 'localhost':
                 host = 'localhost'
             else:
-                host = '%s@%s'%(getattr(self._executor, '_login', 'root'), self._cuisine.id)
+                host = '%s@%s' % (getattr(self._executor, '_login', 'root'), self._cuisine.id)
             self.__controller = j.sal.kvm.KVMController(
                 host=host, executor=self._cuisine._executor)
         return self.__controller
@@ -82,7 +81,7 @@ class CuisineOpenvSwitch(app):
 
     def networkDelete(self, bridge_name):
         """
-        Delete network and bridge related to it. 
+        Delete network and bridge related to it.
 
         @bridge_name
         """
@@ -131,8 +130,8 @@ class CuisineOpenvSwitch(app):
         """
         Limit the throughtput into an interface as a for of qos.
 
-        @interface str: name of interface to limit rate on 
-        @qos int: rate to be limited to in Kb 
+        @interface str: name of interface to limit rate on
+        @qos int: rate to be limited to in Kb
         @burst int: maximum allowed burst that can be reached in Kb/s
         """
         # TODO: *1 spec what is relevant for a vnic from QOS perspective, what can we do

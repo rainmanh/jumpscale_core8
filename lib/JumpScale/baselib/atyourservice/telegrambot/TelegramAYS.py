@@ -131,7 +131,8 @@ class TelegramAYS:
 
             if line == '':
                 if len(outbuffer) > 0:
-                    bot.sendMessage(chat_id=update.message.chat_id, text="Sorry, I saw these errors during the execution:")
+                    bot.sendMessage(chat_id=update.message.chat_id,
+                                    text="Sorry, I saw these errors during the execution:")
                     self.bulkSend(bot, update, "".join(outbuffer))
 
                 break
@@ -333,13 +334,15 @@ class TelegramAYS:
             bluelist.append('/blueprint delete %s' % blueprint)
 
         if len(bluelist) == 0:
-            return bot.sendMessage(chat_id=update.message.chat_id, text="Sorry, this repository doesn't contains blueprint for now, upload me some of them !")
+            return bot.sendMessage(chat_id=update.message.chat_id,
+                                   text="Sorry, this repository doesn't contains blueprint for now, upload me some of them !")
 
         bluelist.append("I'm done")
 
         custom_keyboard = [bluelist]
         reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
-        return bot.sendMessage(chat_id=update.message.chat_id, text="Which blueprint do you want to delete ?", reply_markup=reply_markup)
+        return bot.sendMessage(chat_id=update.message.chat_id,
+                               text="Which blueprint do you want to delete ?", reply_markup=reply_markup)
 
     def _blueprintGetAll(self, bot, update, project):
         files = j.sal.fs.listFilesInDir(self._blueprintsPath(username, project))

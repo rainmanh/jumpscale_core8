@@ -15,7 +15,8 @@ def chunks(l, n):
 
 class MongoDBKeyValueStore(KeyValueStoreBase):
 
-    def __init__(self, namespace="", host='localhost', port=7771, db=0, password='', serializers=[], masterdb=None, changelog=True):
+    def __init__(self, namespace="", host='localhost', port=7771, db=0,
+                 password='', serializers=[], masterdb=None, changelog=True):
         raise j.exceptions.RuntimeError("not implemented")
         self.namespace = namespace
 

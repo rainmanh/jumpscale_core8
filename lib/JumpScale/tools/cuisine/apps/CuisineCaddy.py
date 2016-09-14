@@ -18,7 +18,7 @@ class CuisineCaddy(app):
         @param ssl str:  this tells the firewall to allow port 443 as well as 80 and 22 to support ssl.
         @param start bool: after installing the service this option is true will add the service to the default proccess manager an strart it .
         @param dns str: default address to run caddy on.
-        @param reset bool:  if True this will install even if the service is already installed. 
+        @param reset bool:  if True this will install even if the service is already installed.
         """
         if reset is False and self.isInstalled():
             return

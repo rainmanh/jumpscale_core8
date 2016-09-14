@@ -17,15 +17,16 @@ period = 600
 
 log = True
 
+
 def action():
     ports = {}
     results = list()
 
     for instance in j.atyourservice.findServices(name='redis'):
-        
+
         if not instance.isInstalled():
             continue
-        
+
         for redisport in instance.getTCPPorts():
             if redisport:
                 ports[instance.instance] = ports.get(instance.instance, [])
@@ -54,19 +55,18 @@ def action():
                 size, unit = j.data.units.bytes.converToBestUnit(used_memory)
                 msize, munit = j.data.units.bytes.converToBestUnit(maxmemory)
                 used_memorymsg = '%.2f %sB' % (size, unit)
-                maxmemorymsg = '%.2f %sB' % (msize, munit)               
+                maxmemorymsg = '%.2f %sB' % (msize, munit)
                 result['message'] = '*Port*: %s. *Memory usage*: %s/ %s' % (port, used_memorymsg, maxmemorymsg)
 
                 if (used_memory / maxmemory) * 100 > 90:
                     state = 'WARNING'
                     j.errorconditionhandler.raiseOperationalWarning(result['message'], 'monitoring')
-      
+
             result['state'] = state
             results.append(result)
-            print (results)
+            print(results)
 
     return results
 
 if __name__ == "__main__":
-    print (action())
-
+    print(action())

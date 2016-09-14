@@ -16,7 +16,8 @@ class DigitalOcean:
         return [s for s in self._client.list_sizes() if s.name.lower().find(size_name.lower()) != -1]
 
     def find_image(self, image_name):
-        return [i for i in self._client.list_images() if i.name.lower().find(image_name.lower()) != -1 or i.extra['distribution'].lower().find(image_name.lower()) != -1]
+        return [i for i in self._client.list_images() if i.name.lower().find(image_name.lower()) != -
+                1 or i.extra['distribution'].lower().find(image_name.lower()) != -1]
 
     def find_location(self, location_name):
         return [l for l in self._client.list_locations() if l.name.lower().find(location_name.lower()) != -1]
@@ -38,7 +39,8 @@ class DigitalOcean:
     def create_machine(self, name, image, size, location, ssh_key_name, ssh_key_file):
         self.import_keypair(ssh_key_name, ssh_key_file)
         time.sleep(5)
-        return self._client.create_node(name=name, image=image, size=size, location=location, ex_ssh_key_ids=[ssh_key_name, ])
+        return self._client.create_node(name=name, image=image, size=size,
+                                        location=location, ex_ssh_key_ids=[ssh_key_name, ])
 
     def execute_command(self, machine_name, command, sudo=False):
         machines = self.list_machines()

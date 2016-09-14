@@ -147,7 +147,8 @@ class SSHClient:
             return True
 
     def connectViaProxy(self, host, username, port, identityfile, proxycommand=None):
-        import pudb; pu.db
+        import pudb
+        pu.db
         self.usesproxy = True
         client = paramiko.SSHClient()
         client._policy = paramiko.WarningPolicy()
@@ -173,6 +174,7 @@ class SSHClient:
         self._client.connect(**cfg)
 
         return self._client
+
     @property
     def transport(self):
         if self.client is None:
@@ -254,6 +256,7 @@ class SSHClient:
         ch = self.transport.open_session()
         if self.forward_agent:
             paramiko.agent.AgentRequestHandler(ch)
+
         class StreamReader(threading.Thread):
 
             def __init__(self, stream, queue, flag):

@@ -30,7 +30,7 @@ class SyncthingClient:
         self.sshport = sshport
         self.rootpasswd = rootpasswd
         self.port = port
-        #TODO: need to be https
+        # TODO: need to be https
         self.syncthing_url = 'http://%s:%s/rest' % (self.addr, self.port)
         self.syncthing_apikey = apikey
         self._config = None
@@ -223,7 +223,8 @@ class SyncthingClient:
         # self.config_set()
         return device
 
-    def config_add_folder(self, name, path, replace=True, ignorePerms=False, readOnly=False, rescanIntervalS=10, devices=[]):
+    def config_add_folder(self, name, path, replace=True, ignorePerms=False,
+                          readOnly=False, rescanIntervalS=10, devices=[]):
         name = name.lower()
         config = self.config_get()
         if self.config_exists_folder(name):

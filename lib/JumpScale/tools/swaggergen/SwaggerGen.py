@@ -136,7 +136,7 @@ class SwaggerGen:
                     'path': self._clientPath(h['path'], method['params']),
                     'method': method['type'].upper(),
                     'optional_params': self._clientParams(method['params'], required=False),
-                    'required_params': self._clientParams(method['params'],  required=True)
+                    'required_params': self._clientParams(method['params'], required=True)
                 }
                 name = h['name'] + "_" + method['type']
             methods[name] = sporeMethod

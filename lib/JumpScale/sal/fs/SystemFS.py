@@ -917,7 +917,8 @@ class SystemFS:
             raise j.exceptions.RuntimeError(
                 "Specified path: %s does not exist in system.fs.listDir" % path)
 
-    def listFilesInDir(self, path, recursive=False, filter=None, minmtime=None, maxmtime=None, depth=None, case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=False):
+    def listFilesInDir(self, path, recursive=False, filter=None, minmtime=None, maxmtime=None,
+                       depth=None, case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=False):
         """Retrieves list of files found in the specified directory
         @param path:       directory path to search in
         @type  path:       string
@@ -944,7 +945,8 @@ class SystemFS:
                                                 exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
         return filesreturn
 
-    def listFilesAndDirsInDir(self, path, recursive=False, filter=None, minmtime=None, maxmtime=None, depth=None, type="fd", followSymlinks=True, listSymlinks=False):
+    def listFilesAndDirsInDir(self, path, recursive=False, filter=None, minmtime=None,
+                              maxmtime=None, depth=None, type="fd", followSymlinks=True, listSymlinks=False):
         """Retrieves list of files found in the specified directory
         @param path:       directory path to search in
         @type  path:       string
@@ -971,7 +973,8 @@ class SystemFS:
             path, recursive, filter, minmtime, maxmtime, depth, type=type, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
         return filesreturn
 
-    def _listAllInDir(self, path, recursive, filter=None, minmtime=None, maxmtime=None, depth=None, type="df", case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=True):
+    def _listAllInDir(self, path, recursive, filter=None, minmtime=None, maxmtime=None, depth=None,
+                      type="df", case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=True):
         """
         # There are 3 possible options for case-sensitivity for file names
         # 1. `os`: the same behavior as the OS
@@ -1058,7 +1061,8 @@ class SystemFS:
                 return True
         return False
 
-    def changeFileNames(self, toReplace, replaceWith, pathToSearchIn, recursive=True, filter=None, minmtime=None, maxmtime=None):
+    def changeFileNames(self, toReplace, replaceWith, pathToSearchIn,
+                        recursive=True, filter=None, minmtime=None, maxmtime=None):
         """
         @param toReplace e.g. {name}
         @param replace with e.g. "jumpscale"
@@ -1070,7 +1074,8 @@ class SystemFS:
             if path2 != path:
                 self.renameFile(path, path2)
 
-    def replaceWordsInFiles(self, pathToSearchIn, templateengine, recursive=True, filter=None, minmtime=None, maxmtime=None):
+    def replaceWordsInFiles(self, pathToSearchIn, templateengine, recursive=True,
+                            filter=None, minmtime=None, maxmtime=None):
         """
         apply templateengine to list of found files
         @param templateengine =te  #example below
@@ -1561,7 +1566,8 @@ class SystemFS:
         files = sorted(self.walk(folder, recurse=1))
         return self.md5sum(files)
 
-    def walkExtended(self, root, recurse=0, dirPattern='*', filePattern='*', followSoftLinks=True, dirs=True, files=True):
+    def walkExtended(self, root, recurse=0, dirPattern='*', filePattern='*',
+                     followSoftLinks=True, dirs=True, files=True):
         """
         Extended Walk version: seperate dir and file pattern
         @param  root                : start directory to start the search.
@@ -1632,7 +1638,8 @@ class SystemFS:
 
         return result
 
-    def walk(self, root, recurse=0, pattern='*', return_folders=0, return_files=1, followSoftlinks=True, str=False, depth=None):
+    def walk(self, root, recurse=0, pattern='*', return_folders=0,
+             return_files=1, followSoftlinks=True, str=False, depth=None):
         """This is to provide ScanDir similar function
         It is going to be used wherever some one wants to list all files and subfolders
         under one given directly with specific or none matchers
@@ -1668,7 +1675,8 @@ class SystemFS:
             for pat in pat_list:
                 if (fnmatch.fnmatch(name, pat)):
 
-                    if (self.isFile(fullname, followSoftlinks) and return_files) or (return_folders and self.isDir(fullname, followSoftlinks)):
+                    if (self.isFile(fullname, followSoftlinks) and return_files) or (
+                            return_folders and self.isDir(fullname, followSoftlinks)):
                         result.append(fullname)
                     continue
 
@@ -1714,7 +1722,8 @@ class SystemFS:
         @rtype: string representing the generated temp file path
         """
         if dir is None:
-            return j.sal.fs.joinPaths(j.dirs.tmpDir, prefix + str(j.data.idgenerator.generateRandomInt(0, 1000000000000)) + ".tmp")
+            return j.sal.fs.joinPaths(j.dirs.tmpDir, prefix +
+                                      str(j.data.idgenerator.generateRandomInt(0, 1000000000000)) + ".tmp")
         else:
             dir = dir or j.dirs.tmpDir
             return tempfile.mktemp('', prefix, dir)
@@ -1999,7 +2008,7 @@ class SystemFS:
         """
         Gunzip gzip sourcefile into destination file
 
-        @param sourceFile str: path to gzip file to be unzipped. 
+        @param sourceFile str: path to gzip file to be unzipped.
         @param destFile str: path to destination folder to unzip folder.
         """
         import gzip

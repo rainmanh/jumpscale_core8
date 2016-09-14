@@ -7,8 +7,10 @@ from nose.tools import assert_equal
 
 from JumpScale import j
 
+
 def generate_rnd_ip():
-    return socket.inet_ntoa(struct.pack('>I', random.randint(1, 0xffffffff))) #generate random ip
+    return socket.inet_ntoa(struct.pack('>I', random.randint(1, 0xffffffff)))  # generate random ip
+
 
 class TestHostFile:
 
@@ -39,9 +41,9 @@ class TestHostFile:
         self.hostsfile.remove(ip)
 
     def test_remove_ip_doesnt_exist(self):
-        #does nothing..
-        unrealip="8911.124.12.41111"
-        oldcontent, newcontent= "", ""
+        # does nothing..
+        unrealip = "8911.124.12.41111"
+        oldcontent, newcontent = "", ""
         with open("/tmp/hosts_testfile") as f:
             oldcontent = f.read()
             assert_equal(unrealip in oldcontent, False)

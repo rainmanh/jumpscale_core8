@@ -66,7 +66,8 @@ class Job(object):
         """
         self.gid = int(self.gid)
         self.id = int(self.id)
-        self.guid = j.data.hash.sha256_string(self.getContentKey())  # need to make sure roles & source cannot be changed
+        # need to make sure roles & source cannot be changed
+        self.guid = j.data.hash.sha256_string(self.getContentKey())
 
         return self.guid
 
@@ -93,7 +94,7 @@ class RedisWorkerFactory(object):
 
         random = j.data.idgenerator.generateGUID()
         self.sessionid = "%s_%s_%s_%s" % (
-        j.application.whoAmI.gid, j.application.whoAmI.nid, j.application.whoAmI.pid, random)
+            j.application.whoAmI.gid, j.application.whoAmI.nid, j.application.whoAmI.pid, random)
         self.returnQueues = {}
         self._redis = None
         self._queue = None
@@ -219,7 +220,7 @@ def action%(argspec)s:
             if self.redis.hexists("workers:inqueuetest", jumpscript.getKey()):
                 inserttime = self.redis.hget("workers:inqueuetest", jumpscript.getKey())
                 if inserttime is not None and int(inserttime) < (
-                    int(time.time()) - 3600):  # when older than 1h remove no matter what
+                        int(time.time()) - 3600):  # when older than 1h remove no matter what
                     self.redis.hdel("workers:inqueuetest", jumpscript.getKey())
                     self.checkQueue()
                     return False
@@ -338,7 +339,7 @@ def action%(argspec)s:
             stop = j.data.time.epoch2HRDateTime(job['timeStop'])
         jobid = '[%s|/grid/job?id=%s]' % (job['id'], job['id'])
         line = "|%s|%s|%s|%s|%s|%s|%s|%s|" % (
-        jobid, job['state'], job['queue'], job['category'], job['cmd'], job['jscriptid'], start, stop)
+            jobid, job['state'], job['queue'], job['category'], job['cmd'], job['jscriptid'], start, stop)
         return line
 
     def getQueuedJobs(self, queue=None, asWikiTable=True):

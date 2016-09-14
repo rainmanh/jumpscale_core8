@@ -9,6 +9,7 @@ from JumpScale import j
 
 
 class TestCuisineCore(unittest.TestCase):
+
     def setUp(self):
         self.dump_env = {
             'HOME': '/root',
@@ -47,7 +48,7 @@ class TestCuisineCore(unittest.TestCase):
                           'tmpDir': '/optvar//tmp',
                           'tmplsDir': '/js/path/templates',
                           'varDir': '/optvar/'
-                         }
+                          }
 
     def tearDown(self):
         pass
@@ -177,7 +178,6 @@ class TestCuisineCore(unittest.TestCase):
         self.assertEqual(result, expected_result)
         mac_mock.assert_called_once_with()
 
-
     @unittest.skip("Needs fixing")
     def test_args_replace(self):
         """
@@ -221,7 +221,7 @@ class TestCuisineCore(unittest.TestCase):
             cuisine_core.run.return_value = (0, 'hostname', '')
             cuisine_core.getenv = mock.MagicMock()
             cuisine_core.getenv.return_value = self.dump_env
-            j.data.idgenerator.generateXCharID.return_value = 10*'a'
+            j.data.idgenerator.generateXCharID.return_value = 10 * 'a'
             expected_output = '/optvar//tmp/aaaaaaaaaa'
             actual_output = cuisine_core.file_get_tmp_path()
             self.assertEquals(expected_output, actual_output)
@@ -350,7 +350,6 @@ class TestCuisineCore(unittest.TestCase):
             cuisine_core.file_write = mock.MagicMock()
             self.assertIsNone(cuisine_core.touch('/tmp/hello'))
             self.assertTrue(cuisine_core.file_write.called)
-
 
     # def file_upload_binary(self, local, remote):
     # def file_upload_local(self, local, remote):

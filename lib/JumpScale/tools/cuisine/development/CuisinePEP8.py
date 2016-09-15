@@ -15,10 +15,13 @@ class CuisinePEP8(base):
         j.tools.cuisine.local.development.pip.install('autopep8')
 
         # Get git repos paths
-        repos = j.clients.git.find() if repo_path is None else [repo_path]
-        paths = (path.join(repo[-1], '.git/hooks/pre-commit') for repo in repos)
+        if repo_path is None:
+            repos = (repo.baseDir for repo in j.clients.git.find(returnGitClient=True))
+        else:
+            repos = [repo_path]
+        paths = (path.join(repo, '.git/hooks/pre-commit') for repo in repos)
 
-        pre_commit_cmd = """
+        hook_cmd = """
         #!/bin/sh
         touched_python_files=`git diff --cached --name-only |egrep '\.py$' || true`
         if [ -n "$touched_python_files" ]; then
@@ -27,7 +30,7 @@ class CuisinePEP8(base):
         fi
         """
         for repo_path in paths:
-            self._cuisine.core.file_write(repo_path, pre_commit_cmd)
+            self._cuisine.core.file_write(repo_path, hook_cmd)
 
     def autopep8(self, repo_path=None, commit=True, rebase=False):
         """
@@ -35,11 +38,14 @@ class CuisinePEP8(base):
         @param repo_path: path of desired repo to autopep8, if None will find all recognized repos to jumpscale
         @param commit: commit with pep8 as the commit message
         """
-        j.tools.cuisine.local.development.pip.install('autopep8', upgrade=True)
+        j.tools.cuisine.local.development.pip.install('autopep8')
 
         # Get git repos paths
-        repos = j.clients.git.find() if repo_path is None else [repo_path]
-        paths = (repo[-1] for repo in repos)
+        if repo_path is None:
+            repos = (repo.baseDir for repo in j.clients.git.find(returnGitClient=True))
+        else:
+            repos = [repo_path]
+        paths = (repo for repo in repos)
 
         # Prepare cmd command
         pep8_cmd = """

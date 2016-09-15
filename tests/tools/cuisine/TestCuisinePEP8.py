@@ -14,6 +14,7 @@ class GitClientStub:
 
 
 @patch('JumpScale.j.tools.cuisine.local.development.pip')
+@patch('JumpScale.j.clients.git')
 class TestCuisineCore(unittest.TestCase):
 
     def setUp(self):
@@ -45,7 +46,6 @@ class TestCuisineCore(unittest.TestCase):
         git rebase origin/$branch
         """
 
-    @patch('JumpScale.j.clients.git')
     @patch('JumpScale.j.tools.cuisine.local.core')
     def test_prepare_no_args_single_repo(self, core_mock, git_mock, pip_mock):
         """Happy Path: Test if parepare method called with no args, and one git repo found"""
@@ -54,7 +54,6 @@ class TestCuisineCore(unittest.TestCase):
         pip_mock.install.assert_called_once_with('autopep8')
         core_mock.file_write.assert_called_once_with('/root/.git/hooks/pre-commit', self.hook_cmd)
 
-    @patch('JumpScale.j.clients.git')
     @patch('JumpScale.j.tools.cuisine.local.core')
     def test_prepare_no_args_multiple_repos(self, core_mock, git_mock, pip_mock):
         """Happy Path: Test if parepare method called with no args, and multiple git repos found"""
@@ -64,15 +63,59 @@ class TestCuisineCore(unittest.TestCase):
         self.assertEqual(core_mock.file_write.call_count, 2)
 
     @patch('JumpScale.j.tools.cuisine.local.core')
-    def test_prepare_repo_path_provided(self, core_mock, pip_mock):
+    def test_prepare_repo_path_provided(self, core_mock, git_mock, pip_mock):
         """Happy Path: Test if parepare method called with a repo_path"""
         self.pep8.prepare('/root')
         pip_mock.install.assert_called_once_with('autopep8')
         core_mock.file_write.assert_called_once_with('/root/.git/hooks/pre-commit', self.hook_cmd)
 
-    @patch('JumpScale.j.clients.git')
-    def test_autopep8_no_args_single_repo(self, git_mock, pip_mock):
+    @patch('JumpScale.j.tools.cuisine.local.core')
+    def test_autopep8_no_args_single_repo(self, core_mock, git_mock, pip_mock):
         """Happy Path: Test if autopep8 method called with no args, and one git repo found"""
         git_mock.find.return_value = [GitClientStub('/root')]
         self.pep8.autopep8()
+        core_mock.execute_script.assert_called_once_with(self.pep8_cmd + self.commit_cmd, tmux=False, die=False)
+        pip_mock.install.assert_called_once_with('autopep8')
+
+    @patch('JumpScale.j.tools.cuisine.local.core')
+    def test_autopep8_no_args_multiple_repos(self, core_mock, git_mock, pip_mock):
+        """Happy Path: Test if autopep8 method called with no args, and multiple git repo found"""
+        git_mock.find.return_value = [GitClientStub('/root'), GitClientStub('/test')]
+        self.pep8.autopep8()
+        self.assertEqual(core_mock.execute_script.call_count, 2)
+        pip_mock.install.assert_called_once_with('autopep8')
+
+    @patch('JumpScale.j.tools.cuisine.local.core')
+    def test_autopep8_no_args_commit_false(self, core_mock, git_mock, pip_mock):
+        """Happy Path: Test if autopep8 method called if commit is false"""
+        git_mock.find.return_value = [GitClientStub('/root')]
+        self.pep8.autopep8(commit=False)
+        core_mock.execute_script.assert_called_once_with(self.pep8_cmd, tmux=False, die=False)
+        pip_mock.install.assert_called_once_with('autopep8')
+
+    @patch('JumpScale.j.tools.cuisine.local.core')
+    def test_autopep8_no_args_commit_false_rebase_true(self, core_mock, git_mock, pip_mock):
+        """Happy Path: Test if autopep8 method called if commit is false and rebase is true"""
+        git_mock.find.return_value = [GitClientStub('/root')]
+        self.pep8.autopep8(commit=False, rebase=True)
+        core_mock.execute_script.assert_called_once_with(self.pep8_cmd, tmux=False, die=False)
+        pip_mock.install.assert_called_once_with('autopep8')
+
+    @patch('JumpScale.j.tools.cuisine.local.core')
+    def test_autopep8_no_args_commit_true_rebase_true(self, core_mock, git_mock, pip_mock):
+        """Happy Path: Test if autopep8 method called if commit is true and rebase is true"""
+        git_mock.find.return_value = [GitClientStub('/root')]
+        self.pep8.autopep8(rebase=True)
+        core_mock.execute_script.assert_called_once_with(
+            self.pep8_cmd + self.commit_cmd + self.rebase_cmd,
+            tmux=False,
+            die=False
+        )
+        pip_mock.install.assert_called_once_with('autopep8')
+
+    @patch('JumpScale.j.tools.cuisine.local.core')
+    def test_autopep8_if_repo_path_passed(self, core_mock, git_mock, pip_mock):
+        """Happy Path: Test if autopep8 method called with repo_path"""
+        self.pep8.autopep8('/root')
+        core_mock.execute_script.assert_called_once_with(self.pep8_cmd + self.commit_cmd, tmux=False, die=False)
         pip_mock.install.assert_called_once_with('autopep8')

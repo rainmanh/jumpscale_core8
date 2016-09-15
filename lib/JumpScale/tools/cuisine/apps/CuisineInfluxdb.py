@@ -40,9 +40,9 @@ class CuisineInfluxdb(app):
         self._cuisine.core.dir_ensure("$varDir/data/influxdb/wal")
         content = self._cuisine.core.file_read('$tmplsDir/cfg/influxdb/influxdb.conf')
         cfg = j.data.serializer.toml.loads(content)
-        cfg['meta']['dir'] = "$varDir/data/influxdb/meta"
-        cfg['data']['dir'] = "$varDir/data/influxdb/data"
-        cfg['data']['wal-dir'] = "$varDir/data/influxdb/data"
+        cfg['meta']['dir'] = self._cuisine.core.args_replace("$varDir/data/influxdb/meta")
+        cfg['data']['dir'] = self._cuisine.core.args_replace("$varDir/data/influxdb/data")
+        cfg['data']['wal-dir'] = self._cuisine.core.args_replace("$varDir/data/influxdb/data")
         self._cuisine.core.dir_ensure('$cfgDir/influxdb')
         self._cuisine.core.file_write('$cfgDir/influxdb/influxdb.conf', j.data.serializer.toml.dumps(cfg))
         cmd = "%s -config $cfgDir/influxdb/influxdb.conf" % (binPath)

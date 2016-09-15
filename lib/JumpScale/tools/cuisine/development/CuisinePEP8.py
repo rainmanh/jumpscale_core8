@@ -29,7 +29,7 @@ class CuisinePEP8(base):
         for repo_path in paths:
             self._cuisine.core.file_write(repo_path, pre_commit_cmd)
 
-    def autopep8(self, repo_path=None, commit=True, rebase=True):
+    def autopep8(self, repo_path=None, commit=True, rebase=False):
         """
         Run autopep8 on found repos and commit with pep8 massage
         @param repo_path: path of desired repo to autopep8, if None will find all recognized repos to jumpscale

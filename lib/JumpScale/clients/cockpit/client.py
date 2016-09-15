@@ -114,7 +114,7 @@ class Client:
         data = j.data.serializer.json.dumps({'name': name})
         resp = self._client.createNewRepository(
             data=data, headers=headers, query_params=query_params)
-        self._assert_response(resp)
+        self._assert_response(resp, 201)
         return resp.json()
 
     def getRepository(self, repository, headers=None, query_params=None):
@@ -382,7 +382,7 @@ class Client:
             {'name': 'myTemplate', 'action_py': 'valid action file', 'schema_hrd': 'valid hrd schema'})
         resp = self._client.createNewTemplate(
             data=data, repository=repository, headers=headers, query_params=query_params)
-        self._assert_response(resp)
+        self._assert_response(resp, 201)
         return resp.json()
 
     def getTemplate(self, template, repository, headers=None, query_params=None):

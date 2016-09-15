@@ -39,7 +39,9 @@ class Client:
         jwt: str, json web token from itsyou.online
         """
         self._client = client_lower.Client()
-        self._client._verify_ssl = verify_ssl
+        self._client.session.verify = verify_ssl
+        if verify_ssl is False:
+            requests.packages.urllib3.disable_warnings()
         self._client.url = base_uri
         self._jwt = jwt
         self._client.session.headers = {

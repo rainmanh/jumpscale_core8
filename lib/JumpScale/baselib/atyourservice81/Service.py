@@ -40,17 +40,37 @@ def getProcessDicts(service, args={}):
 
 class Service:
 
-    def __init__(self, aysrepo, actor, name, args={}, model=None):
+    def __init__(self, aysrepo, actor=None, model=None, name="", args={}):
         """
-        @param args, need to give it when you want to create a new instance
+        init from a template or from a model
         """
-        self.logger = aysrepo.logger
-        self.aysrepo = aysrepo
-        self.name = name
-        self.actor = actor
+        self._schema = None
         self._path = ""
         self._schema = None
         self._producers = None
+        self._name = name
+
+        self.aysrepo = aysrepo
+        self.logger = j.atyourservice.logger
+        self.db = aysrepo.db.service
+
+        if actor is not None:
+            self._initFromActor(actor, args=args, name=name)
+        elif model is not None:
+            self.model = model
+        else:
+            raise j.exceptions.Input(
+                message="template or model needs to be specified when creating an actor", level=1, source="", tags="", msgpub="")
+
+    @property
+    def path(self):
+        if self._path == "":
+            relpath = self.model.dbobj.gitRepos[0].path
+            assert self.model.dbobj.gitRepos[0].url == self.aysrepo.git.remoteUrl
+            self._path = j.sal.fs.joinPaths(self.aysrepo.path, relpath)
+        return self._path
+
+    def _initFromActor(self, actor, name, args={}):
 
         if j.data.types.string.check(actor):
             raise j.exceptions.RuntimeError("no longer supported, pass actor")
@@ -58,63 +78,56 @@ class Service:
         if actor is None:
             raise j.exceptions.RuntimeError("service actor cannot be None")
 
-        if name is None or name == "":
-            raise j.exceptions.RuntimeError("name (ays instance name) needs to be specified")
+        # if model == None:
+        #     res = self.aysrepo.db.service.find(actor=self.actor.name, name=self.name)
+        #     if len(res) == 0:
 
-        if model == None:
-            res = self.aysrepo.db.service.find(actor=self.actor.name, name=self.name)
+        self.model = self.aysrepo.db.service.new()
+        dbobj = self.model.dbobj
+        dbobj.name = name
+
+        dbobj.actorName = actor.model.dbobj.name
+        dbobj.actorKey = actor.model.key
+
+        dbobj.state = "new"
+
+        dbobj.dataSchema = actor.model.dbobj.serviceDataSchema
+
+        dbobj.data = j.data.capnp.getBinaryData(j.data.capnp.getObj(dbobj.dataSchema, args=args))
+
+        r = self.model.gitRepoAdd()
+
+        r.url = self.aysrepo.git.remoteUrl
+
+        # parents/producers
+        skey = "%s!%s" % (self.model.role, self.model.name)
+        if actor.model.dbobj.parent.actorKey is not "":
+            actorname = actor.model.dbobj.parent.actorName
+            res = self.aysrepo.db.service.find(actor=actorname)
             if len(res) == 0:
+                raise j.exceptions.Input(message="could not find parent:%s, found 0" %
+                                         actorname, level=1, source="", tags="", msgpub="")
+            elif len(res) > 1:
+                raise j.exceptions.Input(message="could not find parent:%s, found more than 1." %
+                                         actorname, level=1, source="", tags="", msgpub="")
+            parentobj = res[0].objectGet(self.aysrepo)
+            fullpath = j.sal.fs.joinPaths(parentobj.path, skey)
+            relpath = j.sal.fs.pathRemoveDirPart(fullpath, self.aysrepo.path)
 
-                self.model = self.aysrepo.db.service.new()
-                dbobj = self.model.dbobj
-                dbobj.name = self.name
+            self.model.dbobj.parent.actorName = parentobj.model.dbobj.actorName
+            self.model.dbobj.parent.key = parentobj.model.key
+            self.model.dbobj.parent.serviceName = parentobj.model.dbobj.name
 
-                if self.role == "" or self.name == "":
-                    raise j.exceptions.Input(message="actor or name cannot be empty for service",
-                                             level=1, source="", tags="", msgpub="")
-
-                dbobj.actorName = self.actor.name
-                dbobj.state = "new"
-
-                dbobj.dataSchema = actor.model.dbobj.dataSchemaService
-
-                self._data = j.data.capnp.getObj("aysi:%s!%s" % (self.actor.name, self.name),
-                                                 dbobj.dataSchema, args=args, serializeToBinary=False)
-
-                r = self.model.gitRepoAdd()
-                r.url = self.aysrepo.git.remoteUrl
-
-                # parents/producers
-
-                skey = "%s!%s" % (self.role, self.name)
-                if parent is not None:
-                    relpath = j.sal.fs.joinPaths(parentobj.path, skey)
-                else:
-                    relpath = j.sal.fs.joinPaths("services", skey)
-
-                r.path = relpath
-
-                self.model.save()
-
-                self.saveToFS()
-
-                # service.processChange("init")
-            else:
-                # existing service
-                self.model = self.aysrepo.db.service.find(name=name, actor=actor.name)
         else:
-            self.model = model
+            relpath = j.sal.fs.joinPaths("services", skey)
+        r.path = relpath
 
-        self.key = self.role + "!" + self.name  # human readable key
+        # self.init(args=args)  # first time init
 
-        # self._key = "%s!%s" % (self.role, self.name)
-        # self._gkey = "%s!%s!%s" % (aysrepo.path, self.role, self.instance)
+        self.model.save()
 
-        # self.hrd
+        self.saveToFS()
 
-        # if actor is not None:
-        #     self.model.actor = actor.name
-        #     self.init(args=args)  # first time init
         #
         # # Set subscribed event into state
         # if self.actor.template.hrd is not None:
@@ -155,25 +168,21 @@ class Service:
 
     def saveToFS(self):
         j.sal.fs.createDir(self.path)
-        path = j.sal.fs.joinPaths(self.path, "service.json")
-        j.sal.fs.writeFile(filename=path, contents=str(self.model), append=False)
+        path2 = j.sal.fs.joinPaths(self.path, "service.json")
+        j.sal.fs.writeFile(path2, self.model.dictJson, append=False)
 
-        ddict = self.data.to_dict()
-        ddict2 = OrderedDict(ddict)
-        # ddict = sortedcontainers.SortedDict(ddict)
-        data3 = j.data.serializer.json.dumps(ddict2, sort_keys=True, indent=True)
         path3 = j.sal.fs.joinPaths(self.path, "data.json")
-        j.sal.fs.writeFile(path3, data3)
+        j.sal.fs.writeFile(path3, self.model.dataJSON)
 
-    @property
-    def schemaData(self):
-        if self._schema is None:
-            self._schema = j.data.capnp.getSchema("aysservice_%s" % self.actor.name, self.model.dbobj.capnpSchema)
-        return self._schema
+        path4 = j.sal.fs.joinPaths(self.path, "schema.capnp")
+        j.sal.fs.writeFile(path4, self.model.dbobj.dataSchema)
 
-    @property
-    def data(self):
-        return self.schemaData.from_bytes_packed(self.model.dbobj.configData)
+    def save(self):
+        self.model.save()
+
+    def saveAll(self):
+        self.model.save()
+        self.saveToFS()
 
     def reset(self):
         self._hrd = None
@@ -186,31 +195,8 @@ class Service:
         self._producers = None
         self._parentChain = None
         self._parent = None
-        self._actor = None
         self._path = ""
-
-    @property
-    def role(self):
-        return self.actor.name.split(".")[0]
-
-    # @property
-    # def key(self):
-    #     return self.model.key
-
-    @property
-    def path(self):
-        if self._path == "":
-            relpath = self.model.dbobj.gitRepos[0].path
-            assert self.model.dbobj.gitRepos[0].url == self.aysrepo.git.remoteUrl
-            self._path = j.sal.fs.joinPaths(self.aysrepo.path, relpath)
-        return self._path
-
-    @property
-    def dnsNames(self):
-        raise NotImplemented("dns names in service")
-        if self._dnsNames == []:
-            self._dnsNames = self.hrd.getList("dns")
-        return self._dnsNames
+        self._schema = ""
 
     @property
     def parents(self):
@@ -235,15 +221,15 @@ class Service:
                     self.model.parent)
         return self._parent
 
-    @property
-    def hrd(self):
-        if self._hrd is None:
-            schema_path = j.sal.fs.joinPaths(self.path, 'schema.capnp')
-            if not j.sal.fs.exists(schema_path):
-                j.sal.fs.writeFile(schema_path, self.actor.schema.capnpSchema)
-                capnp_models = capnp.load(schema_path)
-                self._hrd = capnp_models.Schema.new_message()
-        return self._hrd
+    # @property
+    # def hrd(self):
+    #     if self._hrd is None:
+    #         schema_path = j.sal.fs.joinPaths(self.path, 'schema.capnp')
+    #         if not j.sal.fs.exists(schema_path):
+    #             j.sal.fs.writeFile(schema_path, self.actor.schema.capnpSchema)
+    #             capnp_models = capnp.load(schema_path)
+    #             self._hrd = capnp_models.Schema.new_message()
+    #     return self._hrd
         # if self._hrd == "EMPTY":
         # return None
         # if self._hrd is None:
@@ -305,9 +291,6 @@ class Service:
         if self._executor is None:
             self._executor = self._getExecutor()
         return self._executor
-
-    def save(self):
-        self.model.save()
 
     # def update_hrd(self):
     #     if self.actor.template.schema is not None:
@@ -639,7 +622,7 @@ class Service:
     def __repr__(self):
         # return '%s|%s!%s(%s)' % (self.domain, self.name, self.instance,
         # self.version)
-        return "%s!%s" % (self.role, self.name)
+        return "service:%s!%s" % (self.model.role, self.model.name)
         # return self.key
 
     def __str__(self):

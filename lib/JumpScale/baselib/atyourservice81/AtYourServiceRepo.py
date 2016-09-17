@@ -1,7 +1,7 @@
 from JumpScale import j
 
 from JumpScale.baselib.atyourservice81.Actor import Actor
-# from JumpScale.baselib.atyourservice81.Service import Service, loadmodule
+from JumpScale.baselib.atyourservice81.Service import Service
 # from JumpScale.baselib.atyourservice81.ActionsBaseNode import ActionsBaseNode
 # from JumpScale.baselib.atyourservice81.ActionsBase import ActionsBase
 # from JumpScale.baselib.atyourservice81.actorTemplate import actorTemplate
@@ -14,7 +14,7 @@ from JumpScale.baselib.atyourservice81.AYSRun import AYSRun
 import colored_traceback
 colored_traceback.add_hook(always=True)
 
-from JumpScale.baselib.atyourservice81.AtYourServiceDB import AtYourServiceDBFactory
+from JumpScale.baselib.atyourservice81.models import ModelsFactory
 
 
 class AtYourServiceRepo():
@@ -39,7 +39,7 @@ class AtYourServiceRepo():
         self._templates = {}
         self._actors = {}
 
-        self.db = AtYourServiceDBFactory(self)
+        self.db = ModelsFactory(self)
 
     def _doinit(self):
         if self._actors == {}:
@@ -74,11 +74,14 @@ class AtYourServiceRepo():
         actorTemplate = self.templateGet(name)
         actor = Actor(aysrepo=self, template=actorTemplate)
         actor.model.save()
-        self._actors[actor.name] = actor
+        self._actors[actor.model.name] = actor
         return actor
 
     def getActorClass(self):
         return Actor
+
+    def getServiceClass(self):
+        return Service
 
     def actorGet(self, name, reload=False, die=False):
         if reload:

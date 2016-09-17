@@ -5,7 +5,7 @@ from collections import OrderedDict
 
 class ModelBase():
 
-    def __init__(self, modelfactory, key=""):
+    def __init__(self, modelfactory, key="", new=False):
         self.logger = j.atyourservice.logger
         self._modelfactory = modelfactory
         self._capnp = modelfactory._capnp
@@ -16,12 +16,22 @@ class ModelBase():
         if key != "":
             if len(key) != 16 and len(key) != 32:
                 raise j.exceptions.Input("Key needs to be length 32")
-        if key != "" and self._db.exists(key):
-            # will get from db
-            self.load(key=key)
-        else:
+
+        if new:
             self.dbobj = self._capnp.new_message()
             self._post_init()
+            if key != "":
+                self._key = key
+        elif key != "":
+            # will get from db
+            if self._db.exists(key):
+                self.load(key=key)
+            else:
+                raise j.exceptions.Input(message="Cannot find object:%s!%s" % (
+                    modelfactory.category, key), level=1, source="", tags="", msgpub="")
+        else:
+            raise j.exceptions.Input(message="key cannot be empty when no new obj is asked for.",
+                                     level=1, source="", tags="", msgpub="")
 
     @property
     def key(self):
@@ -53,9 +63,6 @@ class ModelBase():
         raise NotImplemented
 
     def load(self, key):
-        """
-        please do not use key when loading, will use predefined one, only relevant in init
-        """
         buff = self._db.get(key)
         self.dbobj = self._capnp.from_bytes(buff, builder=True)
 
@@ -65,10 +72,38 @@ class ModelBase():
         self._db.set(self.key, buff)
         self.index()
 
-    def __repr__(self):
-        ddict = self.dbobj.to_dict()
-        ddict2 = OrderedDict(ddict)
-        # ddict = sortedcontainers.SortedDict(ddict)
+    @property
+    def dictFiltered(self):
+        """
+        remove items from obj which cannot be serialized to json or not relevant in dict
+        """
+        return self.dbobj.to_dict()
+
+    @property
+    def dictJson(self):
+        ddict2 = OrderedDict(self.dictFiltered)
         return j.data.serializer.json.dumps(ddict2, sort_keys=True, indent=True)
 
+    def __repr__(self):
+        return self.dictJson()
+
     __str__ = __repr__
+
+
+class ModelBaseWitData(ModelBase):
+
+    @property
+    def data(self):
+        return j.data.capnp.getObj(self.dbobj.dataSchema, binaryData=self.dbobj.data)
+
+    @property
+    def dataSchema(self):
+        return j.data.capnp.getSchema(self.dbobj.dataSchema)
+
+    @property
+    def dataJSON(self):
+        return j.data.capnp.getJSON(self.data)
+
+    @property
+    def dataBinary(self):
+        return j.data.capnp.getBinaryData(self.data)

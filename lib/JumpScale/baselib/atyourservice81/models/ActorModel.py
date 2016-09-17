@@ -1,3 +1,7 @@
+import msgpack
+from collections import OrderedDict
+
+
 from JumpScale import j
 
 from JumpScale.baselib.atyourservice81.models.ModelBase import ModelBase
@@ -7,6 +11,17 @@ class ActorModel(ModelBase):
     """
     Model Class for an Actor object
     """
+
+    @property
+    def name(self):
+        if self.dbobj.name.strip() == "":
+            raise j.exceptions.Input(message="name of actor cannot be empty in model",
+                                     level=1, source="", tags="", msgpub="")
+        return self.dbobj.name
+
+    @property
+    def role(self):
+        return self.dbobj.name.split(".")[0]
 
     @classmethod
     def list(self, name="", state="", returnIndex=False):
@@ -46,9 +61,8 @@ class ActorModel(ModelBase):
         return res
 
     def objectGet(self, aysrepo):
-        template = aysrepo.templateGet(self.dbobj.name)
         Actor = aysrepo.getActorClass()
-        return Actor(aysrepo=aysrepo, template=template, model=self)
+        return Actor(aysrepo=aysrepo, model=self)
 
     @property
     def actionsSortedList(self):
@@ -90,7 +104,8 @@ class ActorModel(ModelBase):
         for action in self.dbobj.actions:
             actionCodeKey = action.actionCodeKey
             actionCode = self._modelfactory.repo.db.actionCode.get(actionCodeKey)
-            defstr = "@%s\n" % action.type
+            defstr = ""
+            # defstr = "@%s\n" % action.type
             defstr += "def %s (" % actionCode.dbobj.name
             for arg in actionCode.dbobj.args:
                 default = ""
@@ -100,10 +115,14 @@ class ActorModel(ModelBase):
             defstr = defstr.rstrip(", ")
             defstr += "):\n"
 
-            if not actionCode.dbobj.code:
+            if actionCode.dbobj.doc != "":
+                defstr += "    '''\n    %s\n    '''\n" % actionCode.dbobj.doc
+
+            if actionCode.dbobj.code == "":
                 defstr += "    pass\n\n"
             else:
-                defstr += "%s\n" % actionCode.dbobj.code
+                if actionCode.dbobj.code != "":
+                    defstr += "%s\n" % j.data.text.indent(actionCode.dbobj.code, 4)
 
             out += defstr
         return out
@@ -175,6 +194,35 @@ class ActorModel(ModelBase):
 
     def _pre_save(self):
         pass
+
+    @property
+    def data(self):
+        # return a dict
+        if self.dbobj.data == b"":
+            return {}
+        return msgpack.loads(self.dbobj.data)
+
+    @property
+    def dataJSON(self):
+        ddict2 = OrderedDict(self.data)
+        return j.data.serializer.json.dumps(ddict2, sort_keys=True, indent=True)
+
+    @property
+    def dictFiltered(self):
+        ddict = self.dbobj.to_dict()
+        if "data" in ddict:
+            ddict.pop("data")
+        # ddict.pop("dataSchema")
+        return ddict
+
+    def __repr__(self):
+        out = self.dictJson + "\n"
+        if self.dbobj.data not in ["", b""]:
+            out += "CONFIG:\n"
+            out += self.configJSON
+        return out
+
+    __str__ = __repr__
 
     # def addMethod(self, name="", source="", isDefaultMethod=False):
     #     if source != "":

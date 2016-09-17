@@ -1,13 +1,19 @@
 from JumpScale import j
-from JumpScale.baselib.atyourservice81.models.ModelBase import ModelBase
-from JumpScale.baselib.atyourservice81.Service import Service
+from JumpScale.baselib.atyourservice81.models.ModelBase import ModelBaseWitData
 
-from collections import OrderedDict
 
 VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 
-class ServiceModel(ModelBase):
+class ServiceModel(ModelBaseWitData):
+
+    @property
+    def name(self):
+        return self.dbobj.name
+
+    @property
+    def role(self):
+        return self.dbobj.actorName.split(".")[0]
 
     @classmethod
     def list(self, name="", actor="", state="", parent="", producer="", returnIndex=False):
@@ -49,7 +55,7 @@ class ServiceModel(ModelBase):
     def index(self):
         # put indexes in db as specified
         if self.dbobj.parent.actorName != "":
-            parent = "%s!%s" % (self.dbobj.parent.actorName, self.dbobj.parent.name)
+            parent = "%s!%s" % (self.dbobj.parent.actorName, self.dbobj.parent.serviceName)
         else:
             parent = ""
 
@@ -68,6 +74,7 @@ class ServiceModel(ModelBase):
 
     def objectGet(self, aysrepo):
         actor = aysrepo.actorGet(self.dbobj.actorName, die=True)
+        Service = aysrepo.getServiceClass()
         return Service(name=self.dbobj.name, actor=actor, aysrepo=aysrepo, model=self)
 
     @classmethod
@@ -91,9 +98,6 @@ class ServiceModel(ModelBase):
         for key in self.list(name, actor, state, producer=producer, parent=parent):
             res.append(self._modelfactory.get(key))
         return res
-
-    def _pre_save(self):
-        pass
 
     def _producersAdd(self):
         olditems = [item.to_dict() for item in self.dbobj.producers]
@@ -135,7 +139,67 @@ class ServiceModel(ModelBase):
             newlist[i] = item
         return newlist[-1]
 
-# OLD METHODS:
+    @property
+    def wiki(self):
+        # TODO: *3
+        raise NotImplemented
+        out = "## service:%s state" % self.service.key
+
+        if self.parent != "":
+            out += "\n- parent:%s\n\n" % self.parent
+
+        if self.producers != {}:
+            out = "### producers\n\n"
+            out += "| %-20s | %-30s |\n" % ("role", "producer")
+            out += "| %-20s | %-30s |\n" % ("---", "---")
+            for role, producers in self.producers.items():
+                for producer in producers:
+                    out += "| %-20s | %-30s |\n" % (role, producer)
+            out += "\n"
+
+        if self.recurring != {} or self.methods != {}:
+            methods = OrderedDict()
+            for actionname, actionstate in self.methods.items():
+                methods[actionname] = [actionstate, "", 0]
+            for actionname, obj in self.recurring.items():
+                period, last = obj
+                actionstate, _, _ = methods[actionname]
+                methods[actionname] = [actionstate, period, int(last)]
+
+            out = "### actions\n\n"
+            out += "| %-20s | %-10s | %-10s | %-30s |\n" % (
+                "name", "state", "period", "last")
+            out += "| %-20s | %-10s | %-10s | %-30s |\n" % (
+                "---", "---", "---", "---")
+            for actionname, obj in methods.items():
+                actionstate, period, last = obj
+                out += "| %-20s | %-10s | %-10s | %-30s |\n" % (
+                    actionname, actionstate, period, last)
+            out += "\n"
+
+        return out
+
+    @property
+    def dictFiltered(self):
+        ddict = self.dbobj.to_dict()
+        if "data" in ddict:
+            ddict.pop("data")
+        if "dataSchema" in ddict:
+            ddict.pop("dataSchema")
+        return ddict
+
+    def __repr__(self):
+        # TODO: *1 to put back on self.wiki
+        out = self.dictJson + "\n"
+        if self.dbobj.dataSchema not in ["", b""]:
+            out += "SCHEMA:\n"
+            out += self.dbobj.dataSchema
+        if self.dbobj.data not in ["", b""]:
+            out += "DATA:\n"
+            out += self.dataJSON
+        return out
+
+    __str__ = __repr__
 
     @property
     def methods(self):
@@ -242,60 +306,3 @@ class ServiceModel(ModelBase):
             self._model["producers"][aysi.role].sort()
             self.changed = True
             self.service.reset()
-
-    @property
-    def wiki(self):
-        # TODO: *3
-        raise NotImplemented
-        out = "## service:%s state" % self.service.key
-
-        if self.parent != "":
-            out += "\n- parent:%s\n\n" % self.parent
-
-        if self.producers != {}:
-            out = "### producers\n\n"
-            out += "| %-20s | %-30s |\n" % ("role", "producer")
-            out += "| %-20s | %-30s |\n" % ("---", "---")
-            for role, producers in self.producers.items():
-                for producer in producers:
-                    out += "| %-20s | %-30s |\n" % (role, producer)
-            out += "\n"
-
-        if self.recurring != {} or self.methods != {}:
-            methods = OrderedDict()
-            for actionname, actionstate in self.methods.items():
-                methods[actionname] = [actionstate, "", 0]
-            for actionname, obj in self.recurring.items():
-                period, last = obj
-                actionstate, _, _ = methods[actionname]
-                methods[actionname] = [actionstate, period, int(last)]
-
-            out = "### actions\n\n"
-            out += "| %-20s | %-10s | %-10s | %-30s |\n" % (
-                "name", "state", "period", "last")
-            out += "| %-20s | %-10s | %-10s | %-30s |\n" % (
-                "---", "---", "---", "---")
-            for actionname, obj in methods.items():
-                actionstate, period, last = obj
-                out += "| %-20s | %-10s | %-10s | %-30s |\n" % (
-                    actionname, actionstate, period, last)
-            out += "\n"
-
-        return out
-
-    # def save(self):
-    #     if self.changed:
-    #         # self.service.logger.info ("State Changed, writen to disk.")
-    #         j.data.serializer.yaml.dump(self._path, self.model)
-    #         self.changed = False
-
-    def __repr__(self):
-        # TODO: *1 to put back on self.wiki
-        ddict = self.dbobj.to_dict()
-        ddict.pop("configData")
-        ddict.pop("capnpSchema")
-        ddict2 = OrderedDict(ddict)
-        # ddict = sortedcontainers.SortedDict(ddict)
-        return j.data.serializer.json.dumps(ddict2, sort_keys=True, indent=True)
-
-    __str__ = __repr__

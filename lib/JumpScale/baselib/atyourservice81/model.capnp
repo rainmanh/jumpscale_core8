@@ -1,4 +1,4 @@
-@0x93c1ac9f09464fd6;
+@0x93c1ac9f09464fd9;
 
 struct Actor {
 
@@ -21,11 +21,10 @@ struct Actor {
   producers @4 :List(ActorPointer);
 
   struct ActorPointer {
-    name @0 :Text;
-    actorFQDN @1 :Text;
-    maxServices @2 :UInt8;
+    actorKey @0 :Text;
+    actorName @1 :Text;
+    minServices @2 :UInt8;
     maxServices @3 :UInt8;
-    actorName @4 :Text;
   }
 
   actions @5 :List(Action);
@@ -50,11 +49,9 @@ struct Actor {
     log @2 :Bool;
   }
 
-  #capnp
-  dataSchemaService @7 :Text;
-  dataSchemaActor @8 :Text;
 
-  origin @9 :Origin;
+  #where does the template compe from
+  origin @7 :Origin;
   struct Origin {
     #link to git which hosts this template for the actor
     gitUrl @0 :Text;
@@ -63,10 +60,21 @@ struct Actor {
   }
 
   #python script which interactively asks for the information when not filled in
-  serviceDataUI @10 :Text;
-  actorDataUI @11 :Text;
+  serviceDataUI @8 :Text;
 
-  data @12 :Data;
+  serviceDataSchema @9 :Text;
+
+  data @10 :Data; #is msgpack dict
+
+  dataUI @11 :Text;
+
+  gitRepo @12 :GitRepo;
+  struct GitRepo {
+    #git url
+    url @0 :Text;
+    #path in repo
+    path @1 :Text;
+  }
 
 }
 
@@ -85,13 +93,12 @@ struct Service {
   producers @4 :List(ServicePointer);
 
   struct ServicePointer {
-    name @0 :Text;
-    actorName @1 :Text;
+    actorName @0 :Text;
+    serviceName @1 :Text;
     #domain name of actor who owns this service pointed too
     actorFQDN @2 :Text;
     #defines which rights this service has to the other service e.g. owner or not
     key @3 :Text;
-
   }
 
   actions @5 :List(Action);
@@ -139,6 +146,8 @@ struct Service {
     path @1 :Text;
   }
 
+  actorKey @11 :Text;
+
 }
 
 #is one specific piece of code which can be executed
@@ -161,7 +170,13 @@ struct ActionCode {
     name @0: Text;
     defval @1: Data;
     }
+
+  #documentation string in markdown of the action
+  doc @5 :Text;
+
 }
+
+
 
 struct Run {
     #this object is hosted by actor based on FQDN

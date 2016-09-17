@@ -1,78 +1,40 @@
 from JumpScale import j
+from collections import OrderedDict
 
-import copy
-import inspect
-import imp
-import sys
+# import copy
+# import inspect
+# import imp
+# import sys
+import msgpack
 
-from JumpScale.baselib.atyourservice81.models.ActorModel import ActorModel
-from JumpScale.baselib.atyourservice81.ActorTemplate import ActorTemplate, ActorBase
+# from JumpScale.baselib.atyourservice81.models.ActorModel import ActorModel
+# from JumpScale.baselib.atyourservice81.ActorTemplate import ActorTemplate
 from JumpScale.baselib.atyourservice81.Service import Service
 
-DECORATORCODE = """
-ActionsBase=j.atyourservice.getActionsBaseClass()
 
-"""
-
-
-class Actor(ActorBase):
+class Actor():
 
     def __init__(self, aysrepo, template=None, model=None):
         """
+        init from a template or from a model
         """
 
         self.aysrepo = aysrepo
-
-        self.path = j.sal.fs.joinPaths(aysrepo.path, "actors", template.name)
-
         self.logger = j.atyourservice.logger
-
-        self.template = template
-        self.name = self.template.name
-
-        self._init_props()
         self._schema = None
-
         self.db = aysrepo.db.actor
 
-        if model is None:
-            existingKeys = self.db.list(name=self.name)
-            if len(existingKeys) == 0:
-                self.model = self.db.new()
-            elif len(existingKeys) == 1:
-                self.model = self.db.get(existingKeys[0])
-            else:
-                raise j.exceptions.Input(message="Found more than 1 object:%s" %
-                                         existingKeys, level=1, source="", tags="", msgpub="")
-            self.copyFromActionTemplate()
-            self.saveAll()
-        else:
+        if template is not None:
+            self._initFromTemplate(template)
+        elif model is not None:
             self.model = model
-
-        self.model.dbobj.name = self.name
-
-    @property
-    def schemaActor(self):
-        if self._schema is None:
-            self._schema = j.data.capnp.getSchema("aysservice_%s" % self.name, self.model.dbobj.serviceDataSchema)
-        return self._schema
+        else:
+            raise j.exceptions.Input(
+                message="template or model needs to be specified when creating an actor", level=1, source="", tags="", msgpub="")
 
     @property
-    def schemaService(self):
-        if self._schema is None:
-            self._schema = j.data.capnp.getSchema("aysservice_%s" % self.name, self.model.dbobj.serviceDataSchema)
-        return self._schema
-
-    # @property
-    # def schemaServiceHRD(self):
-    #     return j.data.hrd.getSchema(content=self.model.dbobj.serviceDataSchemaHRD)
-    #
-    # @property
-    # def schemaActorHRD(self):
-    #     return j.data.hrd.getSchema(content=self.model.dbobj.serviceDataActorHRD)
-
-
-# INIT
+    def path(self):
+        return j.sal.fs.joinPaths(self.aysrepo.path, "actors", self.model.name)
 
     def loadFromFS(self):
         """
@@ -84,77 +46,69 @@ class Actor(ActorBase):
         self.model.save()
 
     def saveToFS(self):
-        if not j.sal.fs.exists(self.path, followlinks=True):
-            j.sal.fs.createDir(self.path)
-            self.copyFilesFromTemplates()
+        j.sal.fs.createDir(self.path)
 
         path = j.sal.fs.joinPaths(self.path, "actor.json")
-        j.sal.fs.writeFile(filename=path, contents=str(self.model), append=False)
+        j.sal.fs.writeFile(filename=path, contents=str(self.model.dictJson), append=False)
 
-        ddict = self.data.to_dict()
-        ddict2 = OrderedDict(ddict)
-        # ddict = sortedcontainers.SortedDict(ddict)
-        data3 = j.data.serializer.json.dumps(ddict2, sort_keys=True, indent=True)
-        path3 = j.sal.fs.joinPaths(self.path, "data.json")
-        j.sal.fs.writeFile(path3, data3)
+        actionspath = j.sal.fs.joinPaths(self.path, "actions.py")
+        j.sal.fs.writeFile(actionspath, self.model.actionsSourceCode)
+
+        path3 = j.sal.fs.joinPaths(self.path, "config.json")
+        if self.model.data != {}:
+            j.sal.fs.writeFile(path3, self.model.dataJSON)
+
+        path4 = j.sal.fs.joinPaths(self.path, "schema.capnp")
+        if self.model.dbobj.serviceDataSchema.strip() != "":
+            j.sal.fs.writeFile(path4, self.model.dbobj.serviceDataSchema)
 
     def saveAll(self):
         self.model.save()
         self.saveToFS()
 
-    def copyFromActionTemplate(self):
-        j.sal.fs.createDir(self.path)
-        # look for all keys which start with path_ copy these from template to local actor in fs
-        for key in self.__dict__.keys():
-            if key.startswith("path_"):
-                print("COPY:%s" % key)
-                if j.sal.fs.exists(self.template.__dict__[key], followlinks=True):
-                    j.sal.fs.copyFile(self.template.__dict__[key], self.__dict__[key])
+    def _initFromTemplate(self, template):
+        self.model = self.db.new()
 
-        from IPython import embed
-        print("DEBUG NOW 9888")
-        embed()
-        raise RuntimeError("stop debug here")
+        self.model.dbobj.name = template.name
+
+        self.model.dbobj.state = "new"
+
         # hrd schema to capnp
-        if j.sal.fs.exists(self.path_hrd_schema_actor):
-            if self.model.dbobj.actorDataSchema != self.template.schemaActor.capnpSchema:
-                self.processChange("schema_actor")
-                self.model.dbobj.actorDataSchema = self.template.schemaActor.capnpSchema
-        if j.sal.fs.exists(self.path_hrd_schema_service):
-            if self.model.dbobj.dataSchemaService != self.template.schemaService.capnpSchema:
-                self.processChange("schema_service")
-                self.model.dbobj.dataSchemaService = self.template.schemaService.capnpSchema
+        if self.model.dbobj.serviceDataSchema != template.schemaCapnpText:
+            self.processChange("dataschema")
+            self.model.dbobj.serviceDataSchema = template.schemaCapnpText
 
-        from IPython import embed
-        print("DEBUG NOW sdsdsds")
-        embed()
-        raise RuntimeError("stop debug here")
+        if self.model.dbobj.dataUI != template.dataUI:
+            self.processChange("ui")
+            self.model.dbobj.dataUI = template.dataUI
 
-        parent = self.template.schemaService.parentSchemaItemGet()
-        if parent is not None:
-            parentrole = parent.parent
+        if self.model.dataJSON != template.configJSON:
+            self.processChange("config")
+            self.model.dbobj.data = msgpack.dumps(template.configDict)
 
-            res = self.aysrepo.db.actor.find(name="%s.*" % parentrole)
-            if res == []:
-                raise j.exceptions.Input(message="could not find parent:%s!%s for %s" % (
-                    parentrole, instance, self), level=1, source="", tags="", msgpub="")
-            elif len(res) > 1:
-                raise j.exceptions.Input(message="found more than 1 parent:%s!%s for %s" % (
-                    parentrole, instance, self), level=1, source="", tags="", msgpub="")
-            parentobj = res[0].objectGet(self.aysrepo)
+        # git location of actor
+        self.model.dbobj.gitRepo.url = self.aysrepo.git.remoteUrl
+        actorpath = j.sal.fs.joinPaths(self.aysrepo.path, "actors", self.model.name)
+        self.model.dbobj.gitRepo.path = j.sal.fs.pathRemoveDirPart(self.path, actorpath)
 
-            # instance = args[parentrole]
-            # res = self.aysrepo.db.service.find(name=instance, actor="%s.*" % parentrole)
-            # if res == []:
-            #     raise j.exceptions.Input(message="could not find parent:%s!%s for %s" % (
-            #         parentrole, instance, self), level=1, source="", tags="", msgpub="")
-            # elif len(res) > 1:
-            #     raise j.exceptions.Input(message="found more than 1 parent:%s!%s for %s" % (
-            #         parentrole, instance, self), level=1, source="", tags="", msgpub="")
-            # parentobj = res[0].objectGet(self.aysrepo)
-            dbobj.parent.actorName = parentobj.actor.name
-            dbobj.parent.key = parentobj.model.key
-            dbobj.parent.name = parentobj.model.dbobj.name
+        # process origin,where does the template come from
+        # TODO: *1 need to check if template can come from other aysrepo than the one we work on right now
+        self.model.dbobj.origin.gitUrl = template.aysrepo.git.remoteUrl
+        self.model.dbobj.origin.path = template.pathRelative
+
+        if template.parentActor is not None:
+            parentobj = template.parentActor
+            self.model.dbobj.parent.actorName = parentobj.model.name
+            self.model.dbobj.parent.actorKey = parentobj.model.key
+            self.model.dbobj.parent.minServices = 1
+            self.model.dbobj.parent.maxServices = 1
+
+        if template.producers != []:
+            from IPython import embed
+            print("DEBUG NOW producers")
+            embed()
+            raise RuntimeError("stop debug here")
+
         #
         # producers_schema_info = actor.schemaServiceHRD.consumeSchemaItemsGet()
         # if producers_schema_info != []:
@@ -185,11 +139,11 @@ class Actor(ActorBase):
         #             producer_obj = res[0].objectGet(self.aysrepo)
         #         self.model.producerAdd(producer_obj.actor.name, producer_obj.name, producer_obj.key)
 
-        self._processActionsFile()
+        self._processActionsFile(template=template)
 
-        self.saveTOFS()
+        self.saveToFS()
 
-    def _processActionsFile(self):
+    def _processActionsFile(self, template):
         self._out = ""
 
         actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
@@ -197,15 +151,14 @@ class Actor(ActorBase):
 
         actorMethods = ["input", "build"]
 
-        if j.sal.fs.exists(self.template._path_actions):
-            content = j.sal.fs.fileGetContents(self.template._path_actions)
+        actionspath = j.sal.fs.joinPaths(template.path, "actions.py")
+        if j.sal.fs.exists(actionspath):
+            content = j.sal.fs.fileGetContents(actionspath)
         else:
             content = "class Actions(ActionsBase):\n\n"
 
         if content.find("class action(ActionMethodDecorator)") != -1:
             raise j.exceptions.Input("There should be no decorator specified in %s" % self.path_actions)
-
-        content = "%s\n\n%s" % (DECORATORCODE, content)
 
         content = content.replace("from JumpScale import j", "")
         content = "from JumpScale import j\n\n%s" % content
@@ -213,33 +166,40 @@ class Actor(ActorBase):
         state = "INIT"
         amSource = ""
         amName = ""
+        amDoc = ""
         amDecorator = ""
         amMethodArgs = {}
 
         # DO NOT CHANGE TO USE PYTHON PARSING UTILS
         lines = content.splitlines()
-
         for line in lines:
             linestrip = line.strip()
             if state == "INIT" and linestrip.startswith("class Actions"):
                 state = "MAIN"
                 continue
 
+            if state in ["MAIN", "INIT"]:
+                if linestrip == "" or linestrip[0] == "#":
+                    continue
+
             if state == "DEF" and (linestrip.startswith("@") or linestrip.startswith("def")):
                 # means we are at end of def to new one
-                self._addAction(amName, amSource, amDecorator, amMethodArgs)
+                self._addAction(amName, amSource, amDecorator, amMethodArgs, amDoc)
                 amSource = ""
                 amName = ""
+                amDoc = ""
                 amDecorator = ""
                 amMethodArgs = {}
                 state = 'MAIN'
 
-            if state is not "INIT" and linestrip.startswith("@"):
+            if state in ["MAIN", "DEF"] and linestrip.startswith("@"):
                 amDecorator = linestrip
                 continue
 
             if state == "MAIN" and linestrip.startswith("def"):
                 definition, args = linestrip.split("(", 1)
+                amDoc = ""
+                amSource = ""
                 args = args.rstrip('):')
                 for arg in args.split(','):
                     if '=' in arg:
@@ -258,12 +218,32 @@ class Actor(ActorBase):
                 state = "DEF"
                 continue
 
+            if state == "DEF" and line.strip() == "":
+                continue
+
+            if state == "DEF" and line[8:12] in ["'''", "\"\"\""]:
+                state = "DEFDOC"
+                amDoc = ""
+                continue
+
+            if state == "DEFDOC" and line[8:12] in ["'''", "\"\"\""]:
+                state = "DEF"
+                continue
+
+            if state == "DEFDOC":
+                amDoc += "%s\n" % line[8:]
+                continue
+
             if state == "DEF":
-                amSource += "%s\n" % line[4:]
+                if linestrip != line[8:].strip():
+                    # means we were not rightfully intented
+                    raise j.exceptions.Input(message="error in source of action (indentation):\nline:%s\n%s"(
+                        line, content), level=1, source="", tags="", msgpub="")
+                amSource += "%s\n" % line[8:]
 
         # process the last one
         if amName != "":
-            self._addAction(amName, amSource, amDecorator, amMethodArgs)
+            self._addAction(amName, amSource, amDecorator, amMethodArgs, amDoc)
 
         for actionname in actionmethodsRequired:
             if actionname not in self.model.actionsSortedList:
@@ -271,26 +251,34 @@ class Actor(ActorBase):
                 # not found
                 if actionname == "input":
                     self._addAction(amName="input", amSource="", amDecorator="actor",
-                                    amMethodArgs={"service": "", "name": "", "role": "", "instance": ""})
+                                    amMethodArgs={"service": "", "name": "", "role": "", "instance": ""}, amDoc="")
                 else:
                     self._addAction(amName=actionname, amSource="", amDecorator="service",
-                                    amMethodArgs={"service": ""})
+                                    amMethodArgs={"service": ""}, amDoc="")
 
-        # add missing methods
-        j.sal.fs.writeFile(self._path_actions, self.model.actionsSourceCode)
+    def _addAction(self, amName, amSource, amDecorator, amMethodArgs, amDoc):
 
-    def _addAction(self, amName, amSource, amDecorator, amMethodArgs):
-        actionKey = j.data.hash.md5_string(self.name + amName + amSource)
+        amDoc = amDoc.strip()
+        amSource = amSource.strip(" \n")
+
+        actionKey = j.data.hash.md5_string(self.model.name + amName + amSource)
         if not self.aysrepo.db.actionCode.exists(actionKey):
             # need to create new object
-            ac = self.aysrepo.db.actionCode.new()
+            ac = self.aysrepo.db.actionCode.new(key=actionKey)
             ac.dbobj.code = amSource
-            ac.dbobj.actorName = self.name
+            ac.dbobj.actorName = self.model.name
+            ac.dbobj.doc = amDoc
             ac.dbobj.name = amName
             for key, val in amMethodArgs.items():
                 ac.argAdd(key, val)  # will check for duplicates
             ac.dbobj.lastModDate = j.data.time.epoch
             ac.save()
+        else:
+            ac = self.aysrepo.db.actionCode.get(key=actionKey)
+            from IPython import embed
+            print("DEBUG NOW  _addAction exists")
+            embed()
+            raise RuntimeError("stop debug here")
 
         if amName in ["init", "build"]:
             atype = 'actor'
@@ -306,7 +294,7 @@ class Actor(ActorBase):
             oldaction.actionCodeKey = actionKey
 
     def processChange(self, changeCategory):
-        """e.g. action_install"""
+        """template action change e.g. action_install"""
         # TODO: implement change mgmt
         pass
 
@@ -318,7 +306,7 @@ class Actor(ActorBase):
 
         instance = instance.lower()
 
-        service = self.aysrepo.serviceGet(role=self.role, instance=instance, die=False)
+        service = self.aysrepo.serviceGet(role=self.model.role, instance=instance, die=False)
 
         if service is not None:
             # print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))
@@ -333,8 +321,7 @@ class Actor(ActorBase):
         """
         return a list of instance name for this template
         """
-        services = self.aysrepo.findServices(templatename=self.name)
-        return [service.instance for service in services]
+        return self.aysrepo.servicesFind(actor=self.model.dbobj.name)
 
 
 # GENERIC
@@ -346,7 +333,7 @@ class Actor(ActorBase):
     #         path, storpath="/tmp/aysfs", name="md", reset=False, append=True)
 
     def __repr__(self):
-        return "actor: %-15s" % (self.name)
+        return "actor: %-15s" % (self.model.name)
 
     # def downloadfiles(self):
     #     """

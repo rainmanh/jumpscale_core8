@@ -35,125 +35,61 @@ These actions get executed when the AYS robot runs. This file is stored in the A
 
 ```python
 class ActionsBaseMgmt:
-    """
-    implement methods of this class to change behavior of lifecycle management of service
-    this one happens at central side from which we coordinate our efforts
-    """
 
-    def input(self,name,role,instance,args={}):
-        """
+    def change_hrd_template(self, service, originalhrd):
+        for methodname, obj in service.state.methods.items():
+            if methodname in ["install"]:
+                service.state.set(methodname, "CHANGEDHRD")
+                service.state.save()
 
-        gets executed before init happens of this ays
+    def change_hrd_instance(self, service, originalhrd):
+        for methodname, obj in service.state.methods.items():
+            if methodname in ["install"]:
+                service.state.set(methodname, "CHANGEDHRD")
+                service.state.save()
 
-        use this method to manipulate the arguments which are given or already part of ays instance
-        this is done as first action on an ays, at central location
+    def change_method(self, service, methodname):
+        service.state.set(methodname, "CHANGED")
+        service.state.save()
 
-        example how to use
+    def ask_telegram(self, username=None, message='', keyboard=[],
+                     expect_response=True, timeout=120, redis=None, channel=None):
+        """
+        username: str, telegram username of the person you want to send the message to
+        channel: str, telegram channel where the bot is an admin
+        message: str, message
+        keyboard: list of str: optionnal content for telegram keyboard.
+        expect_response: bool, if you want to wait for a response or not. if True, this method retuns the response
+            if not it return None
+        timeout: int, number of second we need to wait for a response
+        redis: redis client, optionnal if you want to use a specific reids client instead of j.core.db
+        """
+        redis = redis or j.core.db
 
-        if name.startswith("node"):
-            args["something"]=111
+        key = "%s:%s" % (username, j.data.idgenerator.generateGUID())
 
-        make sure to return args
+        out_evt = j.data.models.cockpit_event.Telegram()
+        out_evt.io = 'output'
+        out_evt.action = 'service.communication'
+        out_evt.args = {
+            'key': key,
+            'username': username,
+            'channel': channel,
+            'message': message,
+            'keyboard': keyboard,
+            'expect_response': expect_response
+        }
+        redis.publish('telegram', out_evt.to_json())
+        if expect_response:
+            data = redis.blpop(key, timeout=timeout)
+            if data is None:
+                raise j.exceptions.Timeout('timeout reached')
 
-        """
-        return args
+            _, resp = data
+            resp = j.data.serializer.json.loads(resp)
+            if 'error' in resp:
+                raise j.exceptions.RuntimeError('Unexpected error: %s' % resp['error'])
 
-    def init(self, service):
-        """
-        First action executed during the instanciation of a service template to a service instance.
-        """
+            return resp['response']
 
-
-    def hrd(self, service):
-        """
-        manipulate the hrd's after processing of the @ASK statements
-        """
-
-
-    def install(self, service):
-        """
-        """
-        return True
-
-    def start(self, service):
-        """
-        """
-        return True
-
-    def stop(self, service):
-        """
-        """
-        return True
-
-    def halt(self, service):
-        """
-        hard kill the app
-        """
-        return True
-
-    def check_up(self, service):
-        """
-        do checks to see if process(es) is (are) running.
-        """
-        return True
-
-    def check_down(self, service):
-        """
-        do checks to see if process(es) is down.
-        """
-        return True
-
-
-    def check_requirements(self, service):
-        """
-        do checks if requirements are met to install this app
-        e.g. can we connect to database, is this the right platform, ...
-        """
-        return True
-
-    def cleanup(self, service):
-        """
-        regular cleanup of env e.g. remove logfiles, ...
-        is just to keep the system healthy
-        do not forget to schedule in your service.hrd or instance.hrd
-        """
-        return True
-
-    def data_export(self, service):
-        """
-        export data of app to a central location (configured in hrd under whatever chosen params)
-        return the location where to restore from (so that the restore action knows how to restore)
-        we remember in $name.export the backed up events (epoch,$id,$state,$location)  $state is OK or ERROR
-        """
-        return False
-
-    def data_import(self,service):
-        """
-        import data of app to local location
-        """
-        return False
-
-    def uninstall(self, service):
-        """
-        uninstall the apps, remove relevant files
-        """
-        pass
-
-    def removedata(self, service):
-        """
-        remove all data from the app (called when doing a reset)
-        """
-        pass
-
-
-    def test(self, service):
-        """
-        test the service on appropriate behavior
-        """
-        pass
-
-    def build(self, service):
-        """
-        build the service
-        """
 ```

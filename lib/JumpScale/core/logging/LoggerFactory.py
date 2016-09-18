@@ -26,23 +26,75 @@ _name_to_mode = {
 }
 
 
+class Handlers():
+
+    def __init__(self):
+        self._fileRotateHandler = None
+        self._consoleHandler = None
+        self._memoryHandler = None
+        self._all = []
+
+    @property
+    def fileRotateHandler(self, name='jumpscale'):
+        if self._fileRotateHandler is None:
+            if not j.do.exists("%s/log/" % j.do.VARDIR):
+                j.do.createDir("%s/log/" % j.do.VARDIR)
+            filename = "%s/log/%s.log" % (j.do.VARDIR, name)
+            formatter = logging.Formatter(FILE_FORMAT)
+            fh = logging.handlers.TimedRotatingFileHandler(
+                filename, when='D', interval=1, backupCount=7, encoding=None, delay=False, utc=False, atTime=None)
+            fh.setLevel(logging.DEBUG)
+            fh.setFormatter(formatter)
+            self._fileRotateHandler = fh
+            self._all.append(self._fileRotateHandler)
+        return self._fileRotateHandler
+
+    @property
+    def consoleHandler(self):
+        if self._consoleHandler is None:
+            formatter = LimitFormater(
+                fmt=CONSOLE_FORMAT,
+                datefmt="%a%d %H:%M",
+                reset=True,
+                log_colors={
+                    'DEBUG':    'cyan',
+                    'INFO':     'green',
+                    'WARNING':  'yellow',
+                    'ERROR':    'red',
+                    'CRITICAL': 'red,bg_white',
+                },
+                secondary_log_colors={},
+                style='%',
+                lenght=37
+            )
+            ch = logging.StreamHandler()
+            ch.setLevel(logging.INFO)
+            ch.setFormatter(formatter)
+            self._consoleHandler = ch
+            self._all.append(self._consoleHandler)
+        return self._consoleHandler
+
+    @property
+    def memoryHandler(self):
+        if self._memoryHandler is None:
+            self._memoryHandler = logging.handlers.MemoryHandler(capacity=10000)
+            self._all.append(self._memoryHandler)
+        return self._memoryHandler
+
+
 class LoggerFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.logger"
         self.root_logger_name = 'j'
-        self.handlerTemplates = {
-            "console": self.__consoleHandler(),
-            # "file": self.__fileRotateHandler(),
-        }
+        self.handlers = Handlers()
 
-        # Modes
         self.PRODUCTION = PRODUCTION
         self.DEV = DEV
         self._quiet = False
 
-        self._logger = logging.getLogger(self.root_logger_name)
-        # self._logger.addHandler(logging.NullHandler())
+        self.logging = logging.getLogger(self.root_logger_name)
+        # self.logging.addHandler(logging.NullHandler())
 
     def test(self):
 
@@ -51,11 +103,6 @@ class LoggerFactory:
         self.enableConsoleMemHandler()
 
         logger.info("a test")
-
-        from IPython import embed
-        print("DEBUG NOW ")
-        embed()
-        raise RuntimeError("stop debug here")
 
     def testPerformance(self):
         logger = self.get("loggerTest")
@@ -73,12 +120,9 @@ class LoggerFactory:
             print("nr of logs per sec:%s" % int(nr / (stop - start)))
 
         perftest(logger)
-        # j.tools.performancetrace.profile("perftest(logger)", globals=locals())  # {"perftest": perftest}
 
-        from IPython import embed
-        print("DEBUG NOW sdsd")
-        embed()
-        raise RuntimeError("stop debug here")
+        # FOLLOWING PROVES THAT THE LOOKING FOR FILE & PATH INFO IS THE SLOWING DOWN FACTOR
+        # j.tools.performancetrace.profile("perftest(logger)", globals=locals())  # {"perftest": perftest}
 
     def init(self, mode, level, filter=[]):
         self.set_mode(mode.upper())
@@ -92,7 +136,7 @@ class LoggerFactory:
         every logger return by this function is a child of the jumpscale root logger 'j'
 
         Usage:
-            self._logger = j.logger.get(__name__)
+            self.logging = j.logger.get(__name__)
         in library module always pass __name__ as argument.
         """
         if not name:
@@ -103,11 +147,11 @@ class LoggerFactory:
         if not name.startswith(self.root_logger_name):
             name = "%s.%s" % (self.root_logger_name, name)
 
+        logger = logging.getLogger(name)
+
         if enable_only_me:
             logger = JSLogger(name)
             logger.enable_only_me()
-        else:
-            logger = logging.getLogger(name)
 
         return logger
 
@@ -127,80 +171,35 @@ class LoggerFactory:
             self._enable_dev_mode()
 
     def set_level(self, level):
-        self.handlerTemplates['console'].setLevel(level)
+        for handler in self.handlers._all:
+            handler.setLevel(level)
 
     def log(self, msg=None, level=logging.INFO, category="j"):
         logger = j.logger.get(category)
         logger.log(level, msg)
 
-    def getMemHandler(self):
-        from IPython import embed
-        print("DEBUG NOW 9")
-        embed()
-        raise RuntimeError("stop debug here")
-
     def enableMemHandler(self):
-        self._logger.handlers = []
-        self._logger.propagate = True
-        self._logger.addHandler(logging.handlers.MemoryHandler(capacity=10000))
+        self.logging.handlers = []
+        self.logging.propagate = True
+        self.logging.addHandler(self.handlers.memoryHandler)
 
     def enableConsoleMemHandler(self):
-        self._logger.handlers = []
-        self._logger.propagate = True
-        self._logger.addHandler(logging.handlers.MemoryHandler(capacity=10000))
-        # self._logger.addHandler(self.__consoleHandler())
-
-        from IPython import embed
-        print("DEBUG NOW sse")
-        embed()
-        raise RuntimeError("stop debug here")
+        self.logging.handlers = []
+        self.logging.propagate = True
+        self.logging.addHandler(self.handlers.memoryHandler)
+        self.logging.addHandler(self.handlers.consoleHandler)
 
     def _enable_production_mode(self):
-        self._logger.handlers = []
-        self._logger.addHandler(logging.NullHandler())
-        self._logger.propagate = True
+        self.logging.handlers = []
+        self.logging.addHandler(logging.NullHandler())
+        self.logging.propagate = True
 
     def _enable_dev_mode(self):
         logging.setLoggerClass(JSLogger)
-        self._logger.setLevel(logging.DEBUG)
-        self._logger.propagate = False
+        self.logging.setLevel(logging.DEBUG)
+        self.logging.propagate = False
         logging.lastResort = None
-        for k, h in self.handlerTemplates.items():
-            if k == 'console' and self._quiet:
-                continue
-            self._logger.addHandler(h)
-
-    def __fileRotateHandler(self, name='jumpscale'):
-        if not j.do.exists("%s/log/" % j.do.VARDIR):
-            j.do.createDir("%s/log/" % j.do.VARDIR)
-        filename = "%s/log/%s.log" % (j.do.VARDIR, name)
-        formatter = logging.Formatter(FILE_FORMAT)
-        fh = logging.handlers.TimedRotatingFileHandler(
-            filename, when='D', interval=1, backupCount=7, encoding=None, delay=False, utc=False, atTime=None)
-        fh.setLevel(logging.DEBUG)
-        fh.setFormatter(formatter)
-        return fh
-
-    def __consoleHandler(self):
-        formatter = LimitFormater(
-            fmt=CONSOLE_FORMAT,
-            datefmt="%a%d %H:%M",
-            reset=True,
-            log_colors={
-                'DEBUG':    'cyan',
-                'INFO':     'green',
-                'WARNING':  'yellow',
-                'ERROR':    'red',
-                'CRITICAL': 'red,bg_white',
-            },
-            secondary_log_colors={},
-            style='%',
-            lenght=37
-        )
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.INFO)
-        ch.setFormatter(formatter)
-        return ch
+        self.enableMemHandler()
 
     # def __redisHandler(self, redis_client=None):
     #     if redis_client is None:

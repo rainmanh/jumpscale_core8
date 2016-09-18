@@ -1,7 +1,11 @@
 from JumpScale import j
-from JumpScale.baselib.atyourservice81.models.ModelBase import ModelBase
+
+ModelBase = j.data.capnp.getModelBaseClass()
+
 import importlib
-import inspect
+# import inspect
+import msgpack
+from collections import OrderedDict
 
 
 class JobModel(ModelBase):
@@ -9,7 +13,7 @@ class JobModel(ModelBase):
     """
 
     @classmethod
-    def list(self, actor="", service="", action="", state="", fromEpoch=0, toEpoch=999999999, returnIndex=False):
+    def list(self, actor="", service="", action="", state="", serviceKey="", fromEpoch=0, toEpoch=999999999, returnIndex=False):
         if actor == "":
             actor = ".*"
         if service == "":
@@ -18,8 +22,10 @@ class JobModel(ModelBase):
             action = ".*"
         if state == "":
             state = ".*"
+        if serviceKey == "":
+            serviceKey = ".*"
         epoch = ".*"
-        regex = "%s:%s:%s:%s:%s" % (actor, service, action, state, epoch)
+        regex = "%s:%s:%s:%s:%s:%s" % (actor, service, action, state, serviceKey, epoch)
         res0 = self._index.list(regex, returnIndex=True)
         res1 = []
         for index, key in res0:
@@ -33,19 +39,16 @@ class JobModel(ModelBase):
 
     def index(self):
         # put indexes in db as specified
-        ind = "%s:%s:%s:%s:%s" % (self.dbobj.actorName, self.dbobj.serviceName,
-                                  self.dbobj.actionName, self.dbobj.state, self.dbobj.lastModDate)
+        ind = "%s:%s:%s:%s:%s:%s" % (self.dbobj.actorName, self.dbobj.serviceName,
+                                     self.dbobj.actionName, self.dbobj.state, self.dbobj.serviceKey, self.dbobj.lastModDate)
         self._index.index({ind: self.key})
 
     @classmethod
-    def find(self, actor="", service="", action="", state="", fromEpoch=0, toEpoch=999999999):
+    def find(self, actor="", service="", action="", state="", serviceKey="", fromEpoch=0, toEpoch=999999999):
         res = []
-        for key in self.list(actor, service, action, state, fromEpoch, toEpoch):
+        for key in self.list(actor, service, action, state, serviceKey, fromEpoch, toEpoch):
             res.append(self._modelfactory.get(key))
         return res
-
-    def _post_init(self):
-        self.dbobj.key = j.data.idgenerator.generateGUID()
 
     def stateChangeObjNew(self):
         olditems = [item.to_dict() for item in self.dbobj.stateChanges]
@@ -99,7 +102,24 @@ class JobModel(ModelBase):
         sc = self.stateChangeObjNew()
         sc.epoch = j.data.time.getTimeEpoch()
         sc.state = val
+        self.dbobj.lastModDate = sc.epoch
         self.dbobj.state = val
+
+    @property
+    def args(self):
+        if self.dbobj.args == b"":
+            return {}
+        return msgpack.loads(self.dbobj.args)
+
+    @property
+    def argsJons(self):
+        ddict2 = OrderedDict(self.args)
+        return j.data.serializer.json.dumps(ddict2, sort_keys=True, indent=True)
+
+    @args.setter
+    def args(self, val):
+        args = msgpack.dumps(val)
+        self.dbobj.args = args
 
     @property
     def actioncodeObj(self):
@@ -128,20 +148,7 @@ class JobModel(ModelBase):
         """
         will inspect the method
         """
-        source = "".join(inspect.getsourcelines(val)[0])
-        if source != "" and source[-1] != "\n":
-            source += "\n"
-        if source.strip().startswith("@"):
-            # decorator needs to be removed (first line)
-            source = "\n".join(source.split("\n")[1:])
-        source = j.data.text.strip(source)
-        # self._name = source.split("\n")[0].strip().replace("def ", "").split("(")[0].strip()
-        # self._path = inspect.getsourcefile(val).replace("//", "/")
-        # self._doc=inspect.getdoc(self.method)
-        # if self._doc==None:
-        #     self._doc=""
-        # if self._doc!="" and self._doc[-1]!="\n":
-        #     self._doc+="\n"
+
         from IPython import embed
         print("DEBUG NOW actionMethod")
         embed()
@@ -153,3 +160,19 @@ class JobModel(ModelBase):
             self._source = self.runstep.run.db.get_dedupe(
                 "source", self.model["source"]).decode()
         return self._source
+
+    @property
+    def dictFiltered(self):
+        ddict = self.dbobj.to_dict()
+        if "args" in ddict:
+            ddict.pop("args")
+        return ddict
+
+    def __repr__(self):
+        out = self.dictJson + "\n"
+        if self.dbobj.args not in ["", b""]:
+            out += "args:\n"
+            out += self.argsJons
+        return out
+
+    __str__ = __repr__

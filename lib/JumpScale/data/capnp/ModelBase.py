@@ -85,12 +85,12 @@ class ModelBase():
         return j.data.serializer.json.dumps(ddict2, sort_keys=True, indent=True)
 
     def __repr__(self):
-        return self.dictJson()
+        return self.dictJson
 
     __str__ = __repr__
 
 
-class ModelBaseWitData(ModelBase):
+class ModelBaseWithData(ModelBase):
 
     @property
     def data(self):

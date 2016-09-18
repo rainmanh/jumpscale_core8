@@ -1,11 +1,12 @@
 from JumpScale import j
-from JumpScale.baselib.atyourservice81.models.ModelBase import ModelBaseWitData
+
+ModelBase = j.data.capnp.getModelBaseClassWithData()
 
 
 VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 
-class ServiceModel(ModelBaseWitData):
+class ServiceModel(ModelBase):
 
     @property
     def name(self):

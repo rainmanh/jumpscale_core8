@@ -456,6 +456,40 @@ class Text:
 
         return "s", self.machinetext2str(string)
 
+    def parseDefLine(self, line):
+        """
+        will return name & args
+        args is dict, with support for int, str, list, dict, float
+        """
+        amMethodArgs = {}
+        definition, args = line.split("(", 1)
+        args = args.rstrip('):')
+        for arg in args.split(','):
+            if '=' in arg:
+                argname, default = arg.split('=', 1)
+                argname = argname.strip()
+                default = default.strip()
+                if default[0] == "\"":
+                    default = default.strip("\"")
+                elif default[0] == "'":
+                    default = default.strip("'")
+                elif default == "[]":
+                    default = []
+                elif default == "{}":
+                    default = {}
+                elif default[0] in ("[", "{"):
+                    default = eval(default)
+                elif "." in default:
+                    default = float(default)
+                else:
+                    default = int(default)
+            else:
+                argname = arg.strip()
+                default = None
+            amMethodArgs[argname] = default
+        amName = definition[4:].strip()
+        return amName, amMethodArgs
+
     def str2var(self, string):
         """
         convert list, dict of strings

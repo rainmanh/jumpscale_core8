@@ -261,7 +261,6 @@ class Actor():
         amDoc = amDoc.strip()
         amSource = amSource.strip(" \n")
 
-        actionKey = j.data.hash.md5_string(self.model.name + amName + amSource)
         if not self.aysrepo.db.actionCode.exists(actionKey):
             # need to create new object
             ac = self.aysrepo.db.actionCode.new(key=actionKey)

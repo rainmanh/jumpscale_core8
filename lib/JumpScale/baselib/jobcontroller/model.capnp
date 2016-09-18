@@ -1,9 +1,9 @@
-@0x13c1ac9e09464fd1;
+@0xc95b52bf39888c7e;
 
 struct Job {
   #this object is hosted by actor based on FQDN
   #is the run which asked for this job
-  runGuid @0 :Text;
+  runKey @0 :Text;
 
   #role of service e.g. node.ssh
   actorName @1 :Text;
@@ -18,7 +18,7 @@ struct Job {
   serviceName @4 :Text;
 
   #has link to code which needs to be executed
-  actionCodeGUID @5 :Text;
+  actionKey @5 :Text;
 
   stateChanges @6 :List(StateChange);
 
@@ -46,12 +46,13 @@ struct Job {
   }
 
   #info which is input for the action, will be given to methods as service=...
-  argsCapnp @8 :Data;
-  #any other format e.g. binary or text or ... is up to actionmethod to deserialize & use, normally, will be given to method as data=...
-  argsData @9 :Data;
-  #dict which will be given to method as **args
-  argsJson @10 :Data;
+  serviceKey @8 :Text;
 
+  #binary or other
+  argsData @9 :Data;
+
+  #dict which will be given to method as **args (msgpack)
+  args @10 :Data;
 
   #is the last current state
   state @11 :State;
@@ -62,7 +63,48 @@ struct Job {
       error @3;
   }
 
-  #json serialized result (dict), if any
-  result @12 :Text;
+  #msgpack serialized
+  result @12 :Data;
+
+  lastModDate @13: UInt32;
+
+}
+
+#is one specific piece of code which can be executed
+#is owned by a ACTOR_TEMPLATE specified by actor_name e.g. node.ssh
+#this is used to know which code was executed and what exactly the code was
+struct Action {
+
+  #name of the method e.g. install
+  name @0 :Text;
+
+  actorName @1 :Text;
+
+  code @2 :Text;
+
+  lastModDate @3: UInt32;
+
+  args @4 :Data;
+
+  #documentation string in markdown of the action
+  doc @5 :Text;
+
+  #is optional, could be e.g. sourcefile
+  origin @6 :Text;
+
+  whoami @7 :Data;
+
+  debug @8: Bool;
+
+  #modules to import
+  imports @9 :List(Text);
+
+  log @10: Bool;
+
+  logStdout @11: Bool;
+
+  remember @12: Bool;
+
+
 
 }

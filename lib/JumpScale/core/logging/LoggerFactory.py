@@ -2,7 +2,7 @@ from JumpScale import j
 
 from JSLogger import JSLogger
 from Filter import ModuleFilter
-
+import time
 import logging
 import logging.handlers
 from colorlog import ColoredFormatter
@@ -31,9 +31,9 @@ class LoggerFactory:
     def __init__(self):
         self.__jslocation__ = "j.logger"
         self.root_logger_name = 'j'
-        self.handlers = {
+        self.handlerTemplates = {
             "console": self.__consoleHandler(),
-            "file": self.__fileRotateHandler(),
+            # "file": self.__fileRotateHandler(),
         }
 
         # Modes
@@ -42,13 +42,49 @@ class LoggerFactory:
         self._quiet = False
 
         self._logger = logging.getLogger(self.root_logger_name)
-        self._logger.addHandler(logging.NullHandler())
+        # self._logger.addHandler(logging.NullHandler())
+
+    def test(self):
+
+        logger = self.get("loggerTest")
+
+        self.enableConsoleMemHandler()
+
+        logger.info("a test")
+
+        from IPython import embed
+        print("DEBUG NOW ")
+        embed()
+        raise RuntimeError("stop debug here")
+
+    def testPerformance(self):
+        logger = self.get("loggerTest")
+
+        self.enableMemHandler()
+
+        def perftest(logger):
+            print("start perftest logger")
+            start = time.time()
+            nr = 30000
+            for i in range(nr):
+                logger.info("this is an info message")
+                # self.getActionObjFromMethod(test)
+            stop = time.time()
+            print("nr of logs per sec:%s" % int(nr / (stop - start)))
+
+        perftest(logger)
+        # j.tools.performancetrace.profile("perftest(logger)", globals=locals())  # {"perftest": perftest}
+
+        from IPython import embed
+        print("DEBUG NOW sdsd")
+        embed()
+        raise RuntimeError("stop debug here")
 
     def init(self, mode, level, filter=[]):
         self.set_mode(mode.upper())
         self.set_level(level)
         if filter:
-            self.handlers['console'].addFilter(ModuleFilter(filter))
+            self.handlerTemplates['console'].addFilter(ModuleFilter(filter))
 
     def get(self, name=None, enable_only_me=False):
         """
@@ -56,7 +92,7 @@ class LoggerFactory:
         every logger return by this function is a child of the jumpscale root logger 'j'
 
         Usage:
-            self.logger = j.logger.get(__name__)
+            self._logger = j.logger.get(__name__)
         in library module always pass __name__ as argument.
         """
         if not name:
@@ -66,10 +102,13 @@ class LoggerFactory:
                 name = path.replace(os.sep, '.')
         if not name.startswith(self.root_logger_name):
             name = "%s.%s" % (self.root_logger_name, name)
-        logger = logging.getLogger(name)
+
         if enable_only_me:
             logger = JSLogger(name)
             logger.enable_only_me()
+        else:
+            logger = logging.getLogger(name)
+
         return logger
 
     def set_quiet(self, quiet):
@@ -88,11 +127,33 @@ class LoggerFactory:
             self._enable_dev_mode()
 
     def set_level(self, level):
-        self.handlers['console'].setLevel(level)
+        self.handlerTemplates['console'].setLevel(level)
 
     def log(self, msg=None, level=logging.INFO, category="j"):
         logger = j.logger.get(category)
         logger.log(level, msg)
+
+    def getMemHandler(self):
+        from IPython import embed
+        print("DEBUG NOW 9")
+        embed()
+        raise RuntimeError("stop debug here")
+
+    def enableMemHandler(self):
+        self._logger.handlers = []
+        self._logger.propagate = True
+        self._logger.addHandler(logging.handlers.MemoryHandler(capacity=10000))
+
+    def enableConsoleMemHandler(self):
+        self._logger.handlers = []
+        self._logger.propagate = True
+        self._logger.addHandler(logging.handlers.MemoryHandler(capacity=10000))
+        # self._logger.addHandler(self.__consoleHandler())
+
+        from IPython import embed
+        print("DEBUG NOW sse")
+        embed()
+        raise RuntimeError("stop debug here")
 
     def _enable_production_mode(self):
         self._logger.handlers = []
@@ -104,7 +165,7 @@ class LoggerFactory:
         self._logger.setLevel(logging.DEBUG)
         self._logger.propagate = False
         logging.lastResort = None
-        for k, h in self.handlers.items():
+        for k, h in self.handlerTemplates.items():
             if k == 'console' and self._quiet:
                 continue
             self._logger.addHandler(h)
@@ -141,9 +202,12 @@ class LoggerFactory:
         ch.setFormatter(formatter)
         return ch
 
-    def __redisHandler(self, redis_client=None):
-        if redis_client is None:
-            self.redis_client = j.core.db
+    # def __redisHandler(self, redis_client=None):
+    #     if redis_client is None:
+    #         self.redis_client = j.core.db
+    #     ch = logging.StreamHandler()
+    #     ch.setLevel(logging.INFO)
+    #     return ch
 
 
 class LimitFormater(ColoredFormatter):

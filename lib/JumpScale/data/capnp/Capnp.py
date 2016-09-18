@@ -3,6 +3,7 @@ from JumpScale import j
 import sys
 # import capnp
 from collections import OrderedDict
+from ModelBase import ModelBase, ModelBaseWithData
 
 
 class ModelFactory():
@@ -60,6 +61,12 @@ class Capnp:
 
     def getModelFactoryClass(self):
         return ModelFactory
+
+    def getModelBaseClass(self):
+        return ModelBase
+
+    def getModelBaseClassWithData(self):
+        return ModelBaseWithData
 
     def getId(self, schemaInText):
         id = [item for item in schemaInText.split("\n") if item.strip() != ""][0][3:-1]

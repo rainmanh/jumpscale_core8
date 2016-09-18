@@ -7,7 +7,6 @@ import model_capnp as ModelCapnp
 from .ActorModel import ActorModel
 from .RunModel import RunModel
 from .ServiceModel import ServiceModel
-from .ActionCodeModel import ActionCodeModel
 
 # JobModel
 

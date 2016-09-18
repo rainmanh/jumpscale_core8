@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 from JumpScale import j
 
-from JumpScale.baselib.atyourservice81.models.ModelBase import ModelBase
+ModelBase = j.data.capnp.getModelBaseClassWithData()
 
 
 class ActorModel(ModelBase):

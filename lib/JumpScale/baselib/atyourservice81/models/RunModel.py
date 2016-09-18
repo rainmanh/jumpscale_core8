@@ -1,6 +1,6 @@
 from JumpScale import j
 
-from .ModelBase import ModelBase
+ModelBase = j.data.capnp.getModelBaseClass()
 
 
 class RunModel(ModelBase):

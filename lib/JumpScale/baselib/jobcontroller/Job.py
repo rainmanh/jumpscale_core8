@@ -9,14 +9,18 @@ colored_traceback.add_hook(always=True)
 import pygments.lexers
 from pygments.formatters import get_formatter_by_name
 
+import importlib
+
 
 class Job():
     """
     is what needs to be done for 1 specific action for a service
     """
 
-    def __init__(self):
+    def __init__(self, model):
         self.logger = j.atyourservice.logger
+        self.model = model
+        self._action = None
 
     def _str_error(self, error):
         out = ''
@@ -51,6 +55,78 @@ class Job():
             self.error_q.put(self._str_error(e))
             self.result_q.put(self.result)
             raise e
+
+    @property
+    def action(self):
+        if self._action == None:
+            self._action = j.core.jobcontroller.db.action.get(self.model.dbobj.actionKey)
+        return self._action
+
+    @property
+    def sourceToExecute(self):
+        s = """
+        $imports
+        from JumpScale import j
+
+        def action($args):
+        $source
+        """
+        s = j.data.text.strip(s)
+        s = s.replace("$imports", '\n'.join(self.action.imports))
+        code = self.action.dbobj.code
+        code = j.data.text.indent(code, 4)
+
+        s = s.replace("$source", code)
+        # s = s.replace("$name", self.name)
+
+        argsstr = ""
+        for key, val in self.action.args.items():
+            if j.data.types.bytes.check(val):
+                val = "\"%s\"" % val.decode()
+            argsstr += "%s = %s," % (key.decode(), val)
+        argsstr = argsstr.rstrip(",")
+
+        s = s.replace("$args", argsstr)
+
+        return s
+
+    @property
+    def sourceToExecutePath(self):
+        path = j.sal.fs.joinPaths(j.dirs.tmpDir, "actions", self.action.dbobj.actorName, self.action.dbobj.name + ".py")
+        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.tmpDir, "actions", self.action.dbobj.actorName))
+        j.do.writeFile(path, self.sourceToExecute)
+        return path
+
+    @property
+    def method(self):
+        if not self.action.key in j.core.jobcontroller._methods:
+            loader = importlib.machinery.SourceFileLoader(self.action.key, self.sourceToExecutePath)
+            handle = loader.load_module(self.action.key)
+            method = eval("handle.action")
+            j.core.jobcontroller._methods[self.action.key] = method
+        return j.core.jobcontroller._methods[self.action.key]
+
+    def executeInProcess(self):
+        """
+        execute the job in the process, capture output when possible
+        if debug job then will not capture output so our debugging features work
+        """
+        try:
+            res = self.method(**self.model.args)
+        except Exception as e:
+            tb = e.__traceback__
+            value = e
+            type = None
+
+            tblist = traceback.format_exception(type, value, tb)
+            tblist.pop(1)
+            self.traceback = "".join(tblist)
+
+            err = ""
+            for e_item in e.args:
+                if isinstance(e_item, (set, list, tuple)):
+                    e_item = ' '.join(e_item)
+                err += "%s\n" % e_item
 
     def execute(self):
         # for squential runs

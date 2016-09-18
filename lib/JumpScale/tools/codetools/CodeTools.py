@@ -71,7 +71,7 @@ class CodeTools:
 
     def textToTitle(self, text, maxnrchars=60):
         """
-        try to create a title out of text, ignoring irrelevant words and making lower case and removing 
+        try to create a title out of text, ignoring irrelevant words and making lower case and removing
         not needed chars
         """
         ignore = "for in yes no after up down the"
@@ -122,21 +122,8 @@ class CodeTools:
         filepath, linenr, sourcecode = self.classInfoGet(classs)
         j.sal.process.executeWithoutPipe("geany %s" % filepath)
 
-    def classEditWing(self, classs):
-        """
-        look for editor (uses geany) and then edit the file
-        """
-        filepath, linenr, sourcecode = self.classInfoGet(classs)
-        j.sal.process.executeWithoutPipe("wing4.1 %s" % filepath)
-
     def classGetBase(self):
         return ClassBase
-
-    def classGetJSModelBase(self):
-        return JSModelBase
-
-    def classGetJSRootModelBase(self):
-        return JSRootModelBase
 
     # def classGetAppserver6GreenletSchedule(self):
     #     return Appserver6GreenletScheduleBase

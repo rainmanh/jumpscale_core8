@@ -3,6 +3,11 @@ from JumpScale import j
 # from Worker import Worker
 
 import inspect
+import msgpack
+import time
+
+from JumpScale.baselib.jobcontroller.models import ModelsFactory
+from JumpScale.baselib.jobcontroller.Job import Job
 
 
 class JobController:
@@ -13,22 +18,38 @@ class JobController:
 
     def __init__(self):
         self.__jslocation__ = "j.core.jobcontroller"
-        self.db = j.atyourservice.db.job
+
+        self.db = ModelsFactory(self)
+        self._methods = {}
+
         self._init = False
-        self._queue = None
+
+    def test(self):
+
+        def test(msg, f="f", g=1):
+            """
+            cool test
+            """
+            print("hello")
+            print(msg)
+            return msg
+
+        job = self.newJobFromMethod(test, msg="hallo2")
+
+        job.executeInProcess()
+
+        from IPython import embed
+        print("DEBUG NOW test")
+        embed()
+        raise RuntimeError("stop debug here")
+
+    def startWorkers(self, nrworkers=8):
+
         curdir = j.sal.fs.getDirName(inspect.getsourcefile(self.__init__))
 
         self._workerPath = j.sal.fs.joinPaths(curdir, "Worker.py")
 
         self.tmux = j.sal.tmux.createPanes4x4("workers", "actions", False)
-
-    @property
-    def queue(self):
-        if self._queue is None:
-            self._queue = self.db._db.getQueue('workers')
-        return self._queue
-
-    def startWorkers(self, nrworkers=8):
 
         paneNames = [pane.name for pane in self.tmux.panes]
         paneNames.sort()
@@ -38,7 +59,66 @@ class JobController:
             cmd = "python3 %s -q worker%s" % (self._workerPath, i)
             pane.execute(cmd)
 
-    def executeJob(self, jobguid):
+    def newJobFromMethod(self, method, runKey="", **args):
+        """
+        method is link to method (function)
+        """
+        action = self.getActionObjFromMethod(method)
+        if not j.core.jobcontroller.db.action.exists(action.key):
+            action.save()
+        job = j.core.jobcontroller.db.job.new()
+        job.dbobj.actionKey = action.key
+        job.dbobj.actionName = action.dbobj.name
+        job.dbobj.actorName = action.dbobj.actorName
+        job.dbobj.runKey = runKey
+        job.dbobj.state = "new"
+        job.dbobj.lastModDate = j.data.time.getTimeEpoch()
+        job.args = args
+
+        job0 = Job(model=job)
+        return job0
+
+    def getActionObjFromMethod(self, method):
+        path = inspect.getsourcefile(method)
+        src = j.data.text.strip(inspect.getsource(method))
+        return self.getActionObjFromMethodCode(src, path)
+
+    def getActionObjFromMethodCode(self, src, path="", actorName="", actionName=""):
+        # leave this our own parsing, is much faster
+
+        action = self.db.action.new()
+        action.dbobj.whoami = j.application.whoAmiBytestr
+        action.dbobj.origin = path
+        action.dbobj.name = actionName
+        action.dbobj.actorName = actorName
+
+        state = "D"
+        comment = ""
+        source = ""
+        for line in src.split("\n"):
+            if state == "D":
+                name, args = j.data.text.parseDefLine(line)
+                state = "M"
+                continue
+            if state == "M" and line[4:8] in ["'''", "\"\"\""]:
+                state = "C"
+                continue
+            if state == "C":
+                if line[4:8] in ["'''", "\"\"\""]:
+                    state = "M"
+                else:
+                    comment += "%s\n" % line[4:]
+                continue
+            source += "%s\n" % line[4:]
+
+        action.dbobj.name = name
+        action.dbobj.doc = comment.rstrip() + "\n"
+        action.code = source
+        action.args = args
+
+        return action
+
+    def executeJobFromKey(self, jobkey):
         """
         """
         self.queue.put(jobguid)
@@ -72,3 +152,85 @@ class JobController:
         while job is not None:
             self.db.delete(job.dbobj.key)
             job = self.queue.get_nowait()
+
+    def testPerformance(self):
+
+        def test(msg, defa="sdsd", llist=[]):
+            """
+            cool test
+            """
+            print("hello")
+            print(msg)
+            return msg
+
+        print("start perftest getsourcefile")
+        start = time.time()
+        nr = 60000
+        for i in range(nr):
+            inspect.getsourcefile(test)
+        stop = time.time()
+        print("nr of getsourcefile per sec:%s" % int(nr / (stop - start)))
+
+        print("start perftest inspect.getargspec")
+        start = time.time()
+        nr = 30000
+        for i in range(nr):
+            inspect.getargspec(test)
+        stop = time.time()
+        print("nr of inspect.getargspec per sec:%s" % int(nr / (stop - start)))
+
+        # print("start eval perftest")
+        # start = time.time()
+        # nr = 100000
+        # for i in range(nr):
+        #     eval("[1,2,3,4]")
+        # stop = time.time()
+        # print("nr of eval of list per sec:%s" % int(nr / (stop - start)))
+
+        print("start perftest own parser of args")
+        start = time.time()
+        nr = 100000
+        # r = "def something(me,also=   [],also2=[1],w=2,ee=\"sss\",wwww=  '33')"
+        r = "def something(me, also=[],w=2)"
+        for i in range(nr):
+            j.data.text.parseDefLine(r)
+        stop = time.time()
+        print("nr of our own parser of args per sec:%s" % int(nr / (stop - start)))
+
+        print("start perftest read sourcecode")
+        start = time.time()
+        nr = 5000
+        for i in range(nr):
+            path = inspect.getsourcefile(test)
+            # inspect.getsource(test)
+            src = j.data.text.strip(inspect.getsource(test))
+        stop = time.time()
+        print("nr of read sourcecode per sec:%s" % int(nr / (stop - start)))
+
+        path = inspect.getsourcefile(test)
+        src = j.data.text.strip(inspect.getsource(test))
+
+        def perftest(src, path):
+            print("start perftest creation of action objects")
+            start = time.time()
+            nr = 100000
+            # r = "def something(me,also=   [],also2=[1],w=2,ee=\"sss\",wwww=  '33')"
+            r = "def something(me, also=[],w=2)"
+            for i in range(nr):
+                self.getActionObjFromMethodCode(src, path)
+                # self.getActionObjFromMethod(test)
+            stop = time.time()
+            print("nr of creation of actionobj per sec:%s" % int(nr / (stop - start)))
+
+        # j.tools.performancetrace.profile("perftest(src,path)", globals=locals())  # {"perftest": perftest}
+        # our own processing of code is fast, fetching the code is not, but was expected
+        perftest(src, path)
+
+        """
+        DID SOME BENCHMARKING
+
+        - msgpack of med complex args = 250k/sec
+        - getsourcefile of a method: 100k/sec
+        - getargspec: 40k/sec
+        - getargspec: 200k/sec if own parser
+        """

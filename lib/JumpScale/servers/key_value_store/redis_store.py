@@ -79,28 +79,28 @@ class RedisKeyValueStore(KeyValueStoreBase):
 
     def queueSize(self, name):
         """Return the approximate size of the queue."""
-        return self.db.redisclient.llen(self._getQueueNameKey(name))
+        return self.redisclient.llen(self._getQueueNameKey(name))
 
     def queuePut(self, name, item):
         """Put item into the queue."""
-        self.db.redisclient.rpush(self._getQueueNameKey(name), item)
+        self.redisclient.rpush(self._getQueueNameKey(name), item)
 
     def queueGet(self, name, timeout=20):
         """Remove and return an item from the queue."""
         if timeout > 0:
-            item = self.db.redisclient.blpop(self._getQueueNameKey(name), timeout=timeout)
+            item = self.redisclient.blpop(self._getQueueNameKey(name), timeout=timeout)
             if item:
                 item = item[1]
         else:
-            item = self.db.redisclient.lpop(self._getQueueNameKey(name))
+            item = self.redisclient.lpop(self._getQueueNameKey(name))
         return item
 
     def queueFetch(self, name, block=True, timeout=None):
         """ Like get but without remove"""
         if block:
-            item = self.db.redisclient.brpoplpush(self._getQueueNameKey(name), self._getQueueNameKey(name), timeout)
+            item = self.redisclient.brpoplpush(self._getQueueNameKey(name), self._getQueueNameKey(name), timeout)
         else:
-            item = self.db.redisclient.lindex(self._getQueueNameKey(name), 0)
+            item = self.redisclient.lindex(self._getQueueNameKey(name), 0)
         return item
 
         #

@@ -58,6 +58,7 @@ class Machine(BaseKVMComponent):
                                                                          'nrcpu': self.cpucount,
                                                                          'nics': self.nics,
                                                                          'disks': self.disks,
+                                                                         'diskiops': self.disk_iops,
                                                                          "cloudinit": self.cloud_init,
                                                                          "image_path": self.image_path})
         return machinexml
@@ -131,8 +132,7 @@ class Machine(BaseKVMComponent):
                 bridge_name = nic.bridge.name
                 mac = nic.mac
                 rc, ip, err = self.controller.executor.execute(
-                    "nmap -sn $(ip r | grep %s | grep -v default | " +
-                    "awk '{print $1}') | grep -iB 2 '%s' | head -n 1 | awk '{print $NF}'" % (bridge_name, mac))
+                    "nmap -sn $(ip r | grep %s | grep -v default | awk '{print $1}') | grep -iB 2 '%s' | head -n 1 | awk '{print $NF}'" % (bridge_name, mac))
                 ip_pat = re.compile("\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}")
                 m = ip_pat.search(ip)
                 if m:
@@ -170,6 +170,7 @@ class Machine(BaseKVMComponent):
         @param passwd str: set the passwd to be set in the machine on boot.
         """
         cuisine = self.controller.executor.cuisine
+        cuisine.core.dir_ensure("%s/metadata/%s" % (self.controller.base_path, self.name))
         if self.cloud_init:
             cuisine.core.dir_ensure("%s/metadata/%s" % (self.controller.base_path, self.name))
             userdata = "#cloud-config\n"

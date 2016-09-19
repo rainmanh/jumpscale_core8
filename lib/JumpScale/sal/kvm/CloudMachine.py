@@ -19,7 +19,8 @@ class CloudMachine(Machine):
         @param nics [str]: name of networks to be used with machine.
         @param memory int: disk memory in Mb.
         @param cpucount int: number of cpus to use.
-        @param cloud_init bool: option to use cloud_init passing creating and passing ssh_keys, user name and passwd to the image
+        @param cloud_init bool: option to use cloud_init passing creating and passing ssh_keys, user name and passwd to
+        the image
         """
         self.pool = j.sal.kvm.Pool(controller, poolname)
         self.os = os

@@ -22,6 +22,11 @@
             <driver name='qemu' type='qcow2'/>
             <source pool='{{disk.pool.name}}' volume='{{disk.name}}'/>
             <target dev='vd{{"abcdefghijklmnopqrstuvwxyz"[loop.index0]}}' bus='virtio'/>
+            {% if diskiops %}
+            <iotune>
+                <total_bytes_sec>{{diskiops}}</total_bytes_sec>
+            </iotune>
+            {% endif %}
           </disk>
         {% endfor %}
         {% if cloudinit %}

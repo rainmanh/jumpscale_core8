@@ -9,7 +9,7 @@ class Disk(BaseKVMComponent):
     Wrapper class around libvirt's storage volume object , to use with jumpscale libs.
     """
 
-    def __init__(self, controller, pool, name, size, image_name=""):
+    def __init__(self, controller, pool, name, size, image_name="", disk_iops=None):
         """
         Disk object instance.
 
@@ -18,12 +18,14 @@ class Disk(BaseKVMComponent):
         @param name str: name of the disk.
         @param size int: size of disk in Mb.
         @param image_name  str: name of image to load on disk  if available.
+        @param disk_iops int: total throughput limit in bytes per second.
         """
         self.size = size
         self.image_name = image_name
         self.controller = controller
         self.pool = pool
         self.name = name
+        self.disk_iops = int(disk_iops) if disk_iops else None
 
     @classmethod
     def from_xml(cls, controller, diskxml):

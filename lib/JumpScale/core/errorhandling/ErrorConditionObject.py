@@ -18,7 +18,7 @@ LEVELMAP = {1: 'CRITICAL', 2: 'WARNING', 3: 'INFO', 4: 'DEBUG'}
 
 class ErrorConditionObject(BaseException):
     """
-    @param type #BUG,INPUT,MONITORING,OPERATIONS,PERFORMANCE,UNKNOWN  
+    @param type #BUG,INPUT,MONITORING,OPERATIONS,PERFORMANCE,UNKNOWN
     @param level #1:critical, 2:warning, 3:info see j.enumerators.ErrorConditionLevel
     """
 
@@ -200,6 +200,7 @@ class ErrorConditionObject(BaseException):
         return j.data.serializer.json.dumps(data)
 
     def __str__(self):
+        self.printTraceback()
         # self._toAscii()
         content = "\n\n***ERROR***\n"
         if self.type != "UNKNOWN":

@@ -94,19 +94,20 @@ class ErrorConditionHandler:
         try:
             ##do something
         except Exception,e:
-            j.errorconditionhandler.processexceptionObject(e)
+            j.errorconditionhandler.processPythonExceptionObject(e)
 
         @param exceptionObject is errorobject thrown by python when there is an exception
         @param ttype : is the description of the error, can be None
         @param tb : can be a python data object for traceback, can be None
 
-        @return [ecsource,ecid,ecguid]
+        @return ecoObj
 
         the errorcondition is then also processed e.g. send to local logserver and/or stored locally in errordb
         """
         eco = self.parsePythonExceptionObject(
-            exceptionObject, ttype, tb, level, message)
+            exceptionObject=exceptionObject, tb=tb)
         eco.process()
+        return eco
 
     def parsePythonExceptionObject(self, exceptionObject, tb=None):
         """

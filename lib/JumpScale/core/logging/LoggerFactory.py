@@ -183,6 +183,11 @@ class LoggerFactory:
         self.logging.propagate = True
         self.logging.addHandler(self.handlers.memoryHandler)
 
+    def enableConsoleHandler(self):
+        self.logging.handlers = []
+        self.logging.propagate = True
+        self.logging.addHandler(self.handlers.consoleHandler)
+
     def enableConsoleMemHandler(self):
         self.logging.handlers = []
         self.logging.propagate = True
@@ -199,7 +204,7 @@ class LoggerFactory:
         self.logging.setLevel(logging.DEBUG)
         self.logging.propagate = False
         logging.lastResort = None
-        self.enableMemHandler()
+        self.enableConsoleHandler()
 
     # def __redisHandler(self, redis_client=None):
     #     if redis_client is None:

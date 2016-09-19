@@ -46,7 +46,7 @@ class GeventLoopFactory:
         count_greenlets('start')
 
         processes = {}
-        for i in range(5):
+        for i in range(50):
             p = gevent.subprocess.Popen('python3', stdout=gevent.subprocess.PIPE,
                                         stderr=gevent.subprocess.PIPE, stdin=gevent.subprocess.PIPE, shell=True)
             processes[i] = (p,

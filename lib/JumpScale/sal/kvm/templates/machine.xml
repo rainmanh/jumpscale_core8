@@ -24,7 +24,7 @@
             <target dev='vd{{"abcdefghijklmnopqrstuvwxyz"[loop.index0]}}' bus='virtio'/>
             {% if disk.disk_iops %}
             <iotune>
-                <total_bytes_sec>{{disk.diskiops}}</total_bytes_sec>
+                <total_bytes_sec>{{disk.disk_iops}}</total_bytes_sec>
             </iotune>
             {% endif %}
           </disk>

@@ -71,11 +71,25 @@ class ExecutorSSH(ExecutorBase):
 
     def getSSHViaProxy(self, jumphost, jmpuser, host, username, port, identityfile, proxycommand=None):
         self._sshclient = j.clients.ssh.get()
+        self._login = jmpuser
+        self.addr = jumphost
+        jmpuser = self._login
+        jmphost = self.addr
         if proxycommand is None:
-            proxycommand = """ssh -A -i {identityfile} -q {jmpuser}@{jumphost} nc -q0 {host} {port}""".format(
+            proxycommand = """ssh -A -i {identityfile} -q {jmpuser}@{jmphost} nc -q0 {host} {port}""".format(
                 **locals())
         self._sshclient.connectViaProxy(host, username, port, identityfile, proxycommand)
         return self
+
+    def jumpto(self, host, username, port, identityfile, proxycommand=None):
+        jumpedto = j.clients.ssh.get()
+        jmpuser = self._login
+        jumphost = self.addr
+        if proxycommand is None:
+            proxycommand = """ssh -A -i {identityfile} -q {jmpuser}@{jumphost} nc -q0 {host} {port}""".format(
+                **locals())
+        jumpedto.connectViaProxy(host, username, port, identityfile, proxycommand)
+        return jumpedto
 
     def authorizeKey(self, pubkey=None, keyname=None, passphrase=None, login="root"):
         """

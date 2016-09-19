@@ -24,6 +24,7 @@ class ExecutorSSH(ExecutorBase):
         self._sshclient = None
         self.type = "ssh"
         self.timeout = timeout
+        self.proxycommand = None
 
     @property
     def login(self):
@@ -74,22 +75,35 @@ class ExecutorSSH(ExecutorBase):
         self._login = jmpuser
         self.addr = jumphost
         jmpuser = self._login
-        jmphost = self.addr
-        if proxycommand is None:
-            proxycommand = """ssh -A -i {identityfile} -q {jmpuser}@{jmphost} nc -q0 {host} {port}""".format(
-                **locals())
-        self._sshclient.connectViaProxy(host, username, port, identityfile, proxycommand)
-        return self
-
-    def jumpto(self, host, username, port, identityfile, proxycommand=None):
-        jumpedto = j.clients.ssh.get()
-        jmpuser = self._login
         jumphost = self.addr
         if proxycommand is None:
             proxycommand = """ssh -A -i {identityfile} -q {jmpuser}@{jumphost} nc -q0 {host} {port}""".format(
                 **locals())
-        jumpedto.connectViaProxy(host, username, port, identityfile, proxycommand)
-        return jumpedto
+        self._sshclient.connectViaProxy(host, username, port, identityfile, proxycommand)
+        return self
+
+    def jumpto(self, addr='', port=22, dest_prefixes={}, login='root',
+            passwd=None, debug=False, allow_agent=True,
+            look_for_keys=True, checkok=True, timeout=5,
+            identityfile=None, proxycommand=None):
+        if identityfile is None:
+            raise ValueError("you have to pass an identityfile (for now)")
+        x = ExecutorSSH(addr=addr, port=port, dest_prefixes=dest_prefixes, login=login,
+            passwd=passwd, debug=debug, allow_agent=allow_agent,
+            look_for_keys=look_for_keys, checkok=checkok, timeout=timeout)
+        jumpedto = j.clients.ssh.get()
+        jmpuser = self._login
+        jumphost = self.addr
+        if proxycommand is None:
+            if self.proxycommand is None: 
+                proxycommand = """ssh -A -i {identityfile} -q {jmpuser}@{jumphost} nc -q0 {addr} {port}""".format(
+                    **locals())
+            else:
+                raise NotImplementedError()
+        jumpedto.connectViaProxy(addr, login, port, identityfile, proxycommand)
+        x._sshclient = jumpedto
+        x.proxycommand = proxycommand
+        return x
 
     def authorizeKey(self, pubkey=None, keyname=None, passphrase=None, login="root"):
         """

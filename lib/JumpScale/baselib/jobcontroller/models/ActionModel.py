@@ -31,20 +31,26 @@ class ActionModel(ModelBase):
         self.dbobj.code = val
 
     @property
-    def args(self):
-        if self.dbobj.args == b"":
-            return {}
-        return msgpack.loads(self.dbobj.args)
+    def argsText(self):
+        if self.dbobj.args == "":
+            return ""
+        return self.dbobj.args
+        #     return {}
+        # return msgpack.loads(self.dbobj.args, encoding='utf-8')
 
-    @property
-    def argsJons(self):
-        ddict2 = OrderedDict(self.args)
-        return j.data.serializer.json.dumps(ddict2, sort_keys=True, indent=True)
+    # @property
+    # def argsJons(self):
+    #     ddict2 = OrderedDict(self.args)
+    #     return j.data.serializer.json.dumps(ddict2, sort_keys=True, indent=True)
 
-    @args.setter
-    def args(self, val):
-        args = msgpack.dumps(val)
-        self.dbobj.args = args
+    @argsText.setter
+    def argsText(self, val):
+        # args = msgpack.dumps(val)
+        if j.data.types.string.check(val) == False:
+            raise j.exceptions.Input(message="args input need to be string", level=1, source="", tags="", msgpub="")
+        val = val.rstrip(":) ")
+        val = val.rstrip(":) ")
+        self.dbobj.args = val
 
     @property
     def key(self):
@@ -81,18 +87,18 @@ class ActionModel(ModelBase):
     def _pre_save(self):
         pass
 
-    @property
-    def dictFiltered(self):
-        ddict = self.dbobj.to_dict()
-        if "args" in ddict:
-            ddict.pop("args")
-        return ddict
+    # @property
+    # def dictFiltered(self):
+    #     ddict = self.dbobj.to_dict()
+    #     # if "args" in ddict:
+    #     #     ddict.pop("args")
+    #     return ddict
 
     def __repr__(self):
         out = self.dictJson + "\n"
-        if self.dbobj.args not in ["", b""]:
-            out += "args:\n"
-            out += self.argsJons
+        # if self.dbobj.args not in ["", b""]:
+        #     out += "args:\n"
+        #     out += self.argsJons
         return out
 
     __str__ = __repr__

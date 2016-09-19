@@ -55,7 +55,10 @@ class RedisKeyValueStore(KeyValueStoreBase):
         """
         # if in non redis, implement as e.g. str index in 1 key and if gets too big then create multiple
         for key, val in items.items():
-            self.redisclient.hset(self._indexkey, key.lower(), val)
+            lkey = key.lower()
+            if self.redisclient.hexists(self._indexkey, lkey):
+                val = self.redisclient.hget(self._indexkey, lkey).decode() + "," + val
+            self.redisclient.hset(self._indexkey, lkey, val)
         return True
 
     def list(self, regex=".*", returnIndex=False, secret=""):
@@ -69,9 +72,17 @@ class RedisKeyValueStore(KeyValueStoreBase):
             if re.match(regex, item) is not None:
                 key = self.redisclient.hget(self._indexkey, item).decode()
                 if returnIndex == False:
-                    res.append(key)
+                    if "," in key:
+                        for key2 in key.split(","):
+                            res.append(key2)
+                    else:
+                        res.append(key)
                 else:
-                    res.append((item, key))
+                    if "," in key:
+                        for key2 in key.split(","):
+                            res.append((item, key2))
+                    else:
+                        res.append((item, key))
         return res
 
     def _getQueueNameKey(self, name):

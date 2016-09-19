@@ -18,6 +18,13 @@ else:
 IPREGEX = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
 
 
+import sys
+# from io import TextIOWrapper, BytesIO
+# import logging
+#
+# log = logging.getLogger('stdxxx')
+
+
 class Console:
     """
     class which groups functionality to print to a console
@@ -31,6 +38,8 @@ class Console:
         self.logger = j.logger.get('j.tools.console')
         self.width = 230
         self.indent = 0  # current indentation of messages send to console
+        self.stdout = None
+        self.stderr = None
 
     def rawInputPerChar(self, callback, params):
         """
@@ -645,14 +654,27 @@ class Console:
         pass  # TODO: Implement this method
         return ""
 
-    def hideOutput(self):
-        pass
+    def hideOutput(self, reset=False):
+        # setup the environment
+        self._old_stdout = sys.stdout
+        self._old_stderr = sys.stderr
+        if self.stdout == None or reset:
+            self.stdout = TextIOWrapper(BytesIO(), sys.stdout.encoding)
+        if self.stderr == None or reset:
+            self.stderr = TextIOWrapper(BytesIO(), sys.stderr.encoding)
+        sys.stdout =
 
     def printOutput(self):
         pass
 
     def enableOutput(self):
-        pass
+        # restore stdout
+        if self.stdout != None:
+            self.stdout.close()
+        if self.stderr != None:
+            self.stderr.close()
+        sys.stdout = self._old_stdout
+        sys.stderr = self._old_stderr
 
     def showArray(self, array, header=True):
         choices = self._array2list(array, header)

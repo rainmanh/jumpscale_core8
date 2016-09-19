@@ -11,6 +11,13 @@ from pygments.formatters import get_formatter_by_name
 
 import importlib
 
+# try:
+#     from capturer import CaptureOutput
+# except:
+#     j.sal.process.execute("pip3 install capturer", die=True, outputToStdout=False, ignoreErrorOutput=False)
+#     from capturer import CaptureOutput
+#
+
 
 class Job():
     """
@@ -40,21 +47,21 @@ class Job():
         out += "\n\n******************************************************************************************\n"
         return out
 
-    def run(self):
-        # for parallelized runs
-        try:
-            self.result = self.service.runAction(self.runstep.action)
-            self.logger.debug('running stepaction: %s' % self.service)
-            self.logger.debug('\tresult:%s' % self.result)
-            self.result_q.put(self.result)
-        except Exception as e:
-            self.logger.debug(
-                'running stepaction with error: %s' % self.service)
-            self.logger.debug('\tresult:%s' % self.result)
-            self.logger.debug('\error:%s' % self._str_error(e))
-            self.error_q.put(self._str_error(e))
-            self.result_q.put(self.result)
-            raise e
+    # def run(self):
+    #     # for parallelized runs
+    #     try:
+    #         self.result = self.service.runAction(self.runstep.action)
+    #         self.logger.debug('running stepaction: %s' % self.service)
+    #         self.logger.debug('\tresult:%s' % self.result)
+    #         self.result_q.put(self.result)
+    #     except Exception as e:
+    #         self.logger.debug(
+    #             'running stepaction with error: %s' % self.service)
+    #         self.logger.debug('\tresult:%s' % self.result)
+    #         self.logger.debug('\error:%s' % self._str_error(e))
+    #         self.error_q.put(self._str_error(e))
+    #         self.result_q.put(self.result)
+    #         raise e
 
     @property
     def action(self):
@@ -79,14 +86,12 @@ class Job():
         s = s.replace("$source", code)
         # s = s.replace("$name", self.name)
 
-        argsstr = ""
-        for key, val in self.action.args.items():
-            if j.data.types.bytes.check(val):
-                val = "\"%s\"" % val.decode()
-            argsstr += "%s = %s," % (key.decode(), val)
-        argsstr = argsstr.rstrip(",")
+        # argsstr = ""
+        # for key, val in self.action.args.items():
+        #     argsstr += "%s = %s," % (key, val)
+        # argsstr = argsstr.rstrip(",")
 
-        s = s.replace("$args", argsstr)
+        s = s.replace("$args", self.action.argsText)
 
         return s
 
@@ -111,50 +116,44 @@ class Job():
         execute the job in the process, capture output when possible
         if debug job then will not capture output so our debugging features work
         """
-        try:
-            res = self.method(**self.model.args)
-        except Exception as e:
-            tb = e.__traceback__
-            value = e
-            type = None
+        with CaptureOutput() as capturer:
+            try:
+                res = self.method(**self.model.args)
+            except Exception as e:
+                tb = e.__traceback__
+                value = e
+                type = None
 
-            tblist = traceback.format_exception(type, value, tb)
-            tblist.pop(1)
-            self.traceback = "".join(tblist)
+                tblist = traceback.format_exception(type, value, tb)
+                tblist.pop(1)
+                self.traceback = "".join(tblist)
 
-            err = ""
-            for e_item in e.args:
-                if isinstance(e_item, (set, list, tuple)):
-                    e_item = ' '.join(e_item)
-                err += "%s\n" % e_item
+                err = ""
+                for e_item in e.args:
+                    if isinstance(e_item, (set, list, tuple)):
+                        e_item = ' '.join(e_item)
+                    err += "%s\n" % e_item
+                print("ERROR:%s" % err)
+            print(3)
+            capturer.finish_capture()
+            # text = capturer.get_lines()
+            print(4)
+            from IPython import embed
+            print("DEBUG NOW sdsdsd")
+            embed()
+            raise RuntimeError("stop debug here")
 
-    def execute(self):
-        # for squential runs
-        try:
-            self.result = self.service.runAction(self.runstep.action)
-        except Exception as e:
-            if j.actions.last:
-                j.actions.last.print()
-                self.result = j.actions.last.str
-            else:
-                self._print_error(e)
-                self.result = e.__str__()
-            self.state = "ERROR"
-            self.runstep.state = "ERROR"
-            self.runstep.run.state = "ERROR"
-            return False
-        self.state = "OK"
-        return True
+        return res
 
-    def __repr__(self):
-        out = "runstep action: %s!%s (%s)\n" % (
-            self.service.key, self.name, self.state)
-        if self.service_model != "":
-            out += "model:\n%s\n\n" % j.data.text.indent(self.service_model)
-        if self.service_hrd != "":
-            out += "hrd:\n%s\n\n" % j.data.text.indent(self.service_hrd)
-        if self.source != "":
-            out += "source:\n%s\n\n" % j.data.text.indent(self.source)
-        return out
+    # def __repr__(self):
+    #     out = "runstep action: %s!%s (%s)\n" % (
+    #         self.service.key, self.name, self.state)
+    #     if self.service_model != "":
+    #         out += "model:\n%s\n\n" % j.data.text.indent(self.service_model)
+    #     if self.service_hrd != "":
+    #         out += "hrd:\n%s\n\n" % j.data.text.indent(self.service_hrd)
+    #     if self.source != "":
+    #         out += "source:\n%s\n\n" % j.data.text.indent(self.source)
+    #     return out
 
-    __str__ = __repr__
+    # __str__ = __repr__

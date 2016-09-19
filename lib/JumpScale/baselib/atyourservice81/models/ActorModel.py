@@ -200,7 +200,7 @@ class ActorModel(ModelBase):
         # return a dict
         if self.dbobj.data == b"":
             return {}
-        return msgpack.loads(self.dbobj.data)
+        return msgpack.loads(self.dbobj.data, encoding='utf-8')
 
     @property
     def dataJSON(self):

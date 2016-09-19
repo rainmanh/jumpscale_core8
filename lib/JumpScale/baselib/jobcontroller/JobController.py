@@ -25,6 +25,7 @@ class JobController:
         self._init = False
 
     def test(self):
+        self.db.destroy()
 
         def test(msg, f="f", g=1):
             """
@@ -34,14 +35,29 @@ class JobController:
             print(msg)
             return msg
 
+        def test2(msg, f="f", g=1):
+            """
+            cool test2
+            """
+            return msg
+
         job = self.newJobFromMethod(test, msg="hallo2")
+        res = job.executeInProcess()
 
-        job.executeInProcess()
+        # PERFTEST BASIC (CAN DO ABOUT 1000 per sec, in process)
+        def perftest():
+            print("start perftest exec in process, will interprete code, create objects, ...")
+            start = time.time()
+            nr = 50
+            for i in range(nr):
+                job = self.newJobFromMethod(test2, msg="hallo%s" % i)
+                job.model.save()
+                res = job.executeInProcess()
+            stop = time.time()
+            print("nr of exec in process per sec:%s" % int(nr / (stop - start)))
 
-        from IPython import embed
-        print("DEBUG NOW test")
-        embed()
-        raise RuntimeError("stop debug here")
+        # j.tools.performancetrace.profile("perftest()", globals=locals())
+        # perftest()
 
     def startWorkers(self, nrworkers=8):
 
@@ -97,7 +113,7 @@ class JobController:
         source = ""
         for line in src.split("\n"):
             if state == "D":
-                name, args = j.data.text.parseDefLine(line)
+                name, args = j.data.text.parseDefLine(line, False)
                 state = "M"
                 continue
             if state == "M" and line[4:8] in ["'''", "\"\"\""]:
@@ -114,7 +130,7 @@ class JobController:
         action.dbobj.name = name
         action.dbobj.doc = comment.rstrip() + "\n"
         action.code = source
-        action.args = args
+        action.argsText = args
 
         return action
 

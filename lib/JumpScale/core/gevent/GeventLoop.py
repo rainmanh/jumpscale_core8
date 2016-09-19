@@ -1,6 +1,6 @@
 import time
 import gevent
-import zmq.green as zmq
+# import zmq.green as zmq
 
 
 class GeventLoop:

@@ -13,7 +13,7 @@ class JobModel(ModelBase):
     """
 
     @classmethod
-    def list(self, actor="", service="", action="", state="", serviceKey="", fromEpoch=0, toEpoch=999999999, returnIndex=False):
+    def list(self, actor="", service="", action="", state="", serviceKey="", fromEpoch=0, toEpoch=9999999999999, returnIndex=False):
         if actor == "":
             actor = ".*"
         if service == "":
@@ -109,7 +109,7 @@ class JobModel(ModelBase):
     def args(self):
         if self.dbobj.args == b"":
             return {}
-        return msgpack.loads(self.dbobj.args)
+        return msgpack.loads(self.dbobj.args, encoding='utf-8')
 
     @property
     def argsJons(self):
@@ -158,7 +158,7 @@ class JobModel(ModelBase):
     def source(self):
         if self._source is None:
             self._source = self.runstep.run.db.get_dedupe(
-                "source", self.model["source"]).decode()
+                "source", self.model["source"])
         return self._source
 
     @property

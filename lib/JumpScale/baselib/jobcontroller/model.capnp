@@ -84,7 +84,7 @@ struct Action {
 
   lastModDate @3: UInt32;
 
-  args @4 :Data;
+  args @4 :Text;
 
   #documentation string in markdown of the action
   doc @5 :Text;

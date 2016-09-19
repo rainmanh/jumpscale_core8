@@ -456,14 +456,16 @@ class Text:
 
         return "s", self.machinetext2str(string)
 
-    def parseDefLine(self, line):
+    def parseArgs(self, args):
         """
-        will return name & args
-        args is dict, with support for int, str, list, dict, float
+        @param args e.g.
+            msg,f = 'f',g = 1, x=[1,2,3]
+
+        result is dict with key the name, val is the default val
+        if empty like for msg then None
         """
-        amMethodArgs = {}
-        definition, args = line.split("(", 1)
         args = args.rstrip('):')
+        amMethodArgs = {}
         for arg in args.split(','):
             if '=' in arg:
                 argname, default = arg.split('=', 1)
@@ -487,8 +489,23 @@ class Text:
                 argname = arg.strip()
                 default = None
             amMethodArgs[argname] = default
+        return amMethodArgs
+
+    def parseDefLine(self, line, parseArgs=True):
+        """
+        will return name & args
+        args is dict, with support for int, str, list, dict, float
+
+        example line:
+            def echo('f',g = 1, x=[1,2,3])
+
+        """
+        definition, args = line.split("(", 1)
         amName = definition[4:].strip()
-        return amName, amMethodArgs
+        args = args.strip()
+        if parseArgs:
+            args = self.parseArgs(args)
+        return amName, args
 
     def str2var(self, string):
         """

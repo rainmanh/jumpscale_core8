@@ -70,6 +70,7 @@ class ExecutorSSH(ExecutorBase):
 
         return self._sshclient
 
+
     def getSSHViaProxy(self, jumphost, jmpuser, host, username, port, identityfile, proxycommand=None):
         self._sshclient = j.clients.ssh.get()
         self._login = jmpuser
@@ -82,28 +83,39 @@ class ExecutorSSH(ExecutorBase):
         self._sshclient.connectViaProxy(host, username, port, identityfile, proxycommand)
         return self
 
-    def jumpto(self, addr='', port=22, dest_prefixes={}, login='root',
-            passwd=None, debug=False, allow_agent=True,
-            look_for_keys=True, checkok=True, timeout=5,
-            identityfile=None, proxycommand=None):
+    def jumpto(self, addr='', port=22, dest_prefixes={}, login="root",
+                 passwd=None, debug=False, allow_agent=True,
+                 look_for_keys=True, checkok=True, timeout=5,
+                 identityfile=None):
         if identityfile is None:
-            raise ValueError("you have to pass an identityfile (for now)")
-        x = ExecutorSSH(addr=addr, port=port, dest_prefixes=dest_prefixes, login=login,
-            passwd=passwd, debug=debug, allow_agent=allow_agent,
-            look_for_keys=look_for_keys, checkok=checkok, timeout=timeout)
-        jumpedto = j.clients.ssh.get()
+            raise NotImplementedError("you have to use an identityfile for now")
+
+        def escape(s):
+            return s.replace("'", "'\"'\"'")
+
+        jumpedto = j.clients.ssh.get(addr=addr, port=port, login=login,
+            usecache=False)
         jmpuser = self._login
         jumphost = self.addr
-        if proxycommand is None:
-            if self.proxycommand is None: 
-                proxycommand = """ssh -A -i {identityfile} -q {jmpuser}@{jumphost} nc -q0 {addr} {port}""".format(
-                    **locals())
-            else:
-                raise NotImplementedError()
-        jumpedto.connectViaProxy(addr, login, port, identityfile, proxycommand)
-        x._sshclient = jumpedto
-        x.proxycommand = proxycommand
-        return x
+        if self.proxycommand is not None:
+            proxy_part =  " -o ProxyCommand='{proxy_command}'".format(
+            proxy_command=escape(self.proxycommand))
+        else:
+            proxy_part = ""
+        proxy_command = "ssh -A -i {identityfile} {old_login}@{old_ip} \
+            -p {old_port} {proxy_part} nc -q0 {ip} {port}".format(
+                ip=addr, port=port, old_port=self.port, old_ip=self.addr,
+                old_login=self.login, identityfile=identityfile,
+                proxy_part=proxy_part)
+        ex = ExecutorSSH(addr=addr, port=port, dest_prefixes=dest_prefixes,
+            login=login,passwd=passwd, debug=debug, allow_agent=allow_agent,
+            look_for_keys=look_for_keys, checkok=checkok, timeout=timeout)
+        ex.proxycommand = proxy_command
+
+        jumpedto.connectViaProxy(addr, login, port, identityfile, proxy_command)
+        ex._sshclient = jumpedto
+        return ex
+
 
     def authorizeKey(self, pubkey=None, keyname=None, passphrase=None, login="root"):
         """

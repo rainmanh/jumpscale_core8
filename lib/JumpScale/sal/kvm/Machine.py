@@ -58,7 +58,6 @@ class Machine(BaseKVMComponent):
                                                                          'nrcpu': self.cpucount,
                                                                          'nics': self.nics,
                                                                          'disks': self.disks,
-                                                                         'diskiops': self.disk_iops,
                                                                          "cloudinit": self.cloud_init,
                                                                          "image_path": self.image_path})
         return machinexml

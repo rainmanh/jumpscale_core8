@@ -22,9 +22,9 @@
             <driver name='qemu' type='qcow2'/>
             <source pool='{{disk.pool.name}}' volume='{{disk.name}}'/>
             <target dev='vd{{"abcdefghijklmnopqrstuvwxyz"[loop.index0]}}' bus='virtio'/>
-            {% if diskiops %}
+            {% if disk.disk_iops %}
             <iotune>
-                <total_bytes_sec>{{diskiops}}</total_bytes_sec>
+                <total_bytes_sec>{{disk.diskiops}}</total_bytes_sec>
             </iotune>
             {% endif %}
           </disk>

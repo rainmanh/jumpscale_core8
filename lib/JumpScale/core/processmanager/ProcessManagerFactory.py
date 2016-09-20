@@ -195,6 +195,17 @@ class ProcessManagerFactory:
         self._lastnr = 0
         self.processes = {}
 
+    def clearCaches(self):
+        """
+        call this in subprocess if you want to make sure that no sockets will be reused
+        """
+        j.clients.ssh.cache = {}
+        j.clients.redis._redis = {}
+        j.clients.redis._redisq = {}
+        j.clients.postgres.clients = {}
+
+        j.core.db = Redis(unix_socket_path='/tmp/redis.sock')
+
     def startProcess(self, method, args={}, name="", autoclear=True, autowait=True):
         if name == "":
             name = "process_%s" % self._lastnr

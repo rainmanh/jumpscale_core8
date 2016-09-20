@@ -49,6 +49,18 @@ class GogsClient:
         # modify gogs if have to to get API to do what we want (seems to be
         # incomplete)
 
+    def test(self):
+        # compile gogs (using cuisine golang, ...)
+        # start gogs using process manager j.core.... in subprocess
+        # create orgs
+        # create users
+        # list orgs/users
+        # create issues
+        # list issues
+        # delete issues
+        # delete users
+        # delete orgs
+
     def get_url(self, *args):
         return j.sal.fs.joinPaths(self.base_url, *args)
 
@@ -395,7 +407,7 @@ class GogsClient:
             raise NotFoundException("User or repo does not exist")
 
     def issue_get(self, repo_name, index, owner=None):
-        """ 
+        """
         get json representation of issue
         owner can be user or organization
         """
@@ -416,10 +428,10 @@ class GogsClient:
             raise NotFoundException("User or repo does not exist")
 
     def issue_create(self, repo_name, title, owner=None, description=None, assignee=None, milestone=None, labels=None, closed=None):
-        """ 
-        create issue 
+        """
+        create issue
         @milestone  = int
-        @id = int 
+        @id = int
         owner can be user or organization
         """
 

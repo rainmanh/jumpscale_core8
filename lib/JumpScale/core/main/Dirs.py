@@ -2,7 +2,6 @@
 import sys
 import os
 import inspect
-import tempfile
 
 from JumpScale import j
 
@@ -56,7 +55,7 @@ class Dirs:
         self.codeDir = j.application.config.get("system.paths.code")
         self.libExtDir = j.application.config.get(
             "system.paths.python.lib.ext")
-        self.tmpDir = tempfile.gettempdir()
+        self.tmpDir = os.environ["TMP"]
         self.hrd = os.path.join(
             j.application.config.get("system.paths.hrd"), "system")
         self.homeDir = os.environ["HOME"]

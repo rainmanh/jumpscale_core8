@@ -6,7 +6,6 @@ import json
 import argparse
 import importlib
 import importlib.machinery
-import tempfile
 import os.path
 import locale
 # QUESTION: this was removed why?
@@ -33,6 +32,9 @@ if sys.platform.startswith("darwin") or sys.platform.startswith("cygwin"):
     # for p in ["%s/lib"%base,"%s/lib/lib-dynload/"%base,"%s/bin"%base,"%s/lib/plat-x86_64-linux-gnu"%base]:
     #     if p not in sys.path:
     #         sys.path.append(p)
+
+    os.environ["TMP"] = os.path.join(os.environ["HOME"], "tmp")
+
 else:
     if "JSBASE" not in os.environ:
         os.environ["JSBASE"] = "/opt/jumpscale8"
@@ -40,7 +42,9 @@ else:
     base = os.environ["JSBASE"]
     basevar = "/optvar"
 
-tmpdir = tempfile.gettempdir()
+    os.environ["TMP"] = os.path.join(basevar, "tmp")
+
+tmpdir = os.environ["TMP"]
 if not os.path.isdir(tmpdir):
     os.makedirs(tmpdir)
 os.environ['TMP'] = tmpdir

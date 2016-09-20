@@ -7,6 +7,8 @@ import traceback
 import copy
 # don't do logging, slows down
 
+import multiprocessing
+
 
 class Process():
 
@@ -206,6 +208,12 @@ class ProcessManagerFactory:
 
         j.core.db = Redis(unix_socket_path='/tmp/redis.sock')
 
+        def getQueue(self, size=1000):
+            """
+            can get this & give to startProcess in args (see test)
+            """
+            return multiprocessing.Queue(size)
+
     def startProcess(self, method, args={}, name="", autoclear=True, autowait=True):
         if name == "":
             name = "process_%s" % self._lastnr
@@ -290,6 +298,21 @@ class ProcessManagerFactory:
 
         # next should print the error & the log
         print(p)
+
+        def queuetest(queue):
+            counter = 0
+            print("QUEUE test")
+            while True:
+                counter += 1
+                print(counter)
+                if counter == till:
+                    # raise j.exceptions.Input(message="issue", level=1, source="", tags="", msgpub="")
+                    return(x)
+
+        from IPython import embed
+        print("DEBUG NOW queuetest")
+        embed()
+        raise RuntimeError("stop debug here")
 
     def perftest(self):
 

@@ -56,14 +56,14 @@ class RedisFactory:
 
         try:
             j.core.db.set("internal.last", 0)
-        except:
+        except Exception as e:
             print("warning:did not find redis")
             j.core.db = None
 
         if j.core.db is None:
-            self.start4JSCore(j, tmpdir)
+            self.start4JScore(j, tmpdir)
 
-    def start4JSCore(self, j, tmpdir):
+    def start4JScore(self, j, tmpdir):
         """
         starts a redis instance in separate ProcessLookupError
         standard on $tmpdir/redis.sock
@@ -71,7 +71,7 @@ class RedisFactory:
         if j.do.TYPE.startswith("OSX"):
             #--port 0
             cmd = "redis-server --unixsocket %s/redis.sock --maxmemory 100000000 --daemonize yes" % tmpdir
-            print("start redis in background")
+            print("start redis in background (osx)")
             os.system(cmd)
         elif j.do.TYPE.startswith("WIN"):
             cmd = "redis-server --maxmemory 100000000 & "

@@ -19,7 +19,7 @@ class JobController:
     def __init__(self):
         self.__jslocation__ = "j.core.jobcontroller"
 
-        self.db = ModelsFactory(self)
+        self.db = ModelsFactory()
         self._methods = {}
 
         self._init = False

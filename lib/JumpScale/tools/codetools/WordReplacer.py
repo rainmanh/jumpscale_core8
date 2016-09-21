@@ -1,10 +1,12 @@
 
 from JumpScale import j
-import re,random
+import re
+import random
 
 
 class Synonym:
-    def __init__(self,name='',replaceWith='', simpleSearch="", addConfluenceLinkTags=False, replaceExclude=''):
+
+    def __init__(self, name='', replaceWith='', simpleSearch="", addConfluenceLinkTags=False, replaceExclude=''):
         """
         @param name: Name of the sysnoym
         @param replaceWith: The replacement of simpleSearch
@@ -12,86 +14,90 @@ class Synonym:
         @addConfluenceLinkTags: True to add confluence tags around the synonym
         @defSynonym: If True then this is a definition synonym, which can be used in spectools
         """
-        self.simpleSearch=simpleSearch
-        self.regexFind=""
-        self.regexFindForReplace=""
+        self.simpleSearch = simpleSearch
+        self.regexFind = ""
+        self.regexFindForReplace = ""
         self.name = name
-        self.replaceWith=replaceWith
-        self.addConfluenceLinkTags=addConfluenceLinkTags
+        self.replaceWith = replaceWith
+        self.addConfluenceLinkTags = addConfluenceLinkTags
         self.replaceExclude = replaceExclude
-        self._markers=dict()
-        if simpleSearch!="":
-            search=simpleSearch.replace("?","[ -_]?")  #match " " or "-" or "_"  one or 0 time  
+        self._markers = dict()
+        if simpleSearch != "":
+            search = simpleSearch.replace("?", "[ -_]?")  # match " " or "-" or "_"  one or 0 time
             if addConfluenceLinkTags:
-                bracketMatchStart="(\[ *|)"
-                bracketMatchStop="( *\]|)"
+                bracketMatchStart = "(\[ *|)"
+                bracketMatchStop = "( *\]|)"
             else:
-                bracketMatchStart=""
-                bracketMatchStop=""                                
-            self.regexFind=r"(?i)%s\b%s\b%s" % (bracketMatchStart,search.lower(),bracketMatchStop)
+                bracketMatchStart = ""
+                bracketMatchStop = ""
+            self.regexFind = r"(?i)%s\b%s\b%s" % (bracketMatchStart, search.lower(), bracketMatchStop)
             #self.regexFind=r"%s\b%s\b%s" % (bracketMatchStart,search.lower(),bracketMatchStop)
-            self.regexFindForReplace=self.regexFind
-        
-    def setRegexSearch(self,regexFind,regexFindForReplace):
-        self.regexFind=regexFind
-        if regexFindForReplace=="":
-            regexFindForReplace=regexFind
-        self.regexFindForReplace=regexFindForReplace
-        self.simpleSearch=""
+            self.regexFindForReplace = self.regexFind
 
-    def replace(self,text):
+    def setRegexSearch(self, regexFind, regexFindForReplace):
+        self.regexFind = regexFind
+        if regexFindForReplace == "":
+            regexFindForReplace = regexFind
+        self.regexFindForReplace = regexFindForReplace
+        self.simpleSearch = ""
+
+    def replace(self, text):
         if self.replaceExclude:
             # Check for any def tag that contains name "e.g: [ Q-Layer ]", remove them and put markers in place
-            text=self._replaceDefsWithMarkers(text)
-        text=j.tools.code.regex.replace(regexFind=self.regexFind,regexFindsubsetToReplace=self.regexFindForReplace\
-                                       ,replaceWith=self.replaceWith,text=text)
+            text = self._replaceDefsWithMarkers(text)
+        text = j.tools.code.regex.replace(
+            regexFind=self.regexFind, regexFindsubsetToReplace=self.regexFindForReplace, replaceWith=self.replaceWith, text=text)
         if self.replaceExclude:
             # Remove the markers and put the original def tags back
-            text=self._replaceMarkersWithDefs(text)
+            text = self._replaceMarkersWithDefs(text)
         return text
 
-    def _replaceDefsWithMarkers(self,text):
+    def _replaceDefsWithMarkers(self, text):
         """
         Search for any def tags that contains the name of this synonym  "e.g [Q-layer]" in text and replace that with a special marker. Also it stores markers and replaced string into the dict _markers
         """
         # patterns you don't want to be replaced
-        pat=self.replaceExclude
+        pat = self.replaceExclude
 
-        matches = j.tools.code.regex.findAll(pat,text)
+        matches = j.tools.code.regex.findAll(pat, text)
 
         for match in matches:
-            mark = "$$MARKER$$%s$$"%random.randint(0,1000)
+            mark = "$$MARKER$$%s$$" % random.randint(0, 1000)
             self._markers[mark] = match
             match = re.escape(match)
-            text=j.tools.code.regex.replace(regexFind=match,regexFindsubsetToReplace=match,replaceWith=mark,text=text)
+            text = j.tools.code.regex.replace(
+                regexFind=match, regexFindsubsetToReplace=match, replaceWith=mark, text=text)
         return text
 
-    def _replaceMarkersWithDefs(self,text):
+    def _replaceMarkersWithDefs(self, text):
         """
         Removes markers out of text and puts the original strings back
         """
-        for marker,replacement in list(self._markers.items()):
+        for marker, replacement in list(self._markers.items()):
             marker = re.escape(marker)
-            text=j.tools.code.regex.replace(regexFind=marker,regexFindsubsetToReplace=marker,replaceWith=replacement,text=text)
+            text = j.tools.code.regex.replace(
+                regexFind=marker, regexFindsubsetToReplace=marker, replaceWith=replacement, text=text)
         return text
 
     def __str__(self):
-        out="name:%s simple:%s regex:%s regereplace:%s replacewith:%s\n" % (self.name,self.simpleSearch,self.regexFind,self.regexFindForReplace,self.replaceWith)
+        out = "name:%s simple:%s regex:%s regereplace:%s replacewith:%s\n" % (
+            self.name, self.simpleSearch, self.regexFind, self.regexFindForReplace, self.replaceWith)
         return out
 
     def __repr__(self):
         return self.__str__()
-    
+
+
 class WordReplacer:
-    
+
     def __init__(self):
-        self.synonyms=[] #array Synonym()
-            
+        self.synonyms = []  # array Synonym()
+
     def synonymsPrint(self):
         for syn in self.synonyms:
             print(syn)
 
-    def synonymAdd(self,name='', simpleSearch='', regexFind='', regexFindForReplace='', replaceWith='',replaceExclude='', addConfluenceLinkTags =False):
+    def synonymAdd(self, name='', simpleSearch='', regexFind='', regexFindForReplace='', replaceWith='', replaceExclude='', addConfluenceLinkTags=False):
         """
         Adds a new synonym to this replacer
         @param name: Synonym name
@@ -99,15 +105,15 @@ class WordReplacer:
         @param regexFind: Provide this regex only if you didn't provide simpleSearch, it represents the regex that'll be used in search for this synonym . It overrides the default synonym search pattern
         @param regexFindForReplace: The subset within regexFind that'll be replaced for this synonym
         """
-        synonym = Synonym(name,replaceWith, simpleSearch, addConfluenceLinkTags, replaceExclude)
+        synonym = Synonym(name, replaceWith, simpleSearch, addConfluenceLinkTags, replaceExclude)
         if regexFind:
             synonym.setRegexSearch(regexFind, regexFindForReplace)
         self.synonyms.append(synonym)
 
     def reset(self):
-        self.synonyms=[]
-                    
-    def synonymsAddFromFile(self,path,addConfluenceLinkTags=False):
+        self.synonyms = []
+
+    def synonymsAddFromFile(self, path, addConfluenceLinkTags=False):
         """
         load synonym satements from a file in the following format
         [searchStatement]:[replaceto]
@@ -124,76 +130,76 @@ class WordReplacer:
         ******
         @param addConfluenceLinkTags id True then replaced items will be surrounded by [] (Boolean)
         """
-        txt=j.sal.fs.fileGetContents(path)
+        txt = j.sal.fs.fileGetContents(path)
         for line in txt.split("\n"):
-            line=line.strip()
-            if line!="" and line.find(":")!=-1:
-                if j.tools.code.regex.match("^'",line):
-                    #found line which is regex format
-                    splitted=line.split("'")
-                    if len(splitted)!=4:
-                        raise j.exceptions.RuntimeError("syntax error in synonym line (has to be 2 'regex' statements" % line)
-                    syn=Synonym(replaceWith=splitted[2])
-                    syn.setRegexSearch(regexFind=splitted[0],regexFindForReplace=splitted[1])
-                else:    
-                    find=line.split(":")[0]
-                    replace=line.split(":")[1].strip()
-                    syn=Synonym(replaceWith=replace,simpleSearch=find,addConfluenceLinkTags=addConfluenceLinkTags)
+            line = line.strip()
+            if line != "" and line.find(":") != -1:
+                if j.tools.code.regex.match("^'", line):
+                    # found line which is regex format
+                    splitted = line.split("'")
+                    if len(splitted) != 4:
+                        raise j.exceptions.RuntimeError(
+                            "syntax error in synonym line (has to be 2 'regex' statements" % line)
+                    syn = Synonym(replaceWith=splitted[2])
+                    syn.setRegexSearch(regexFind=splitted[0], regexFindForReplace=splitted[1])
+                else:
+                    find = line.split(":")[0]
+                    replace = line.split(":")[1].strip()
+                    syn = Synonym(replaceWith=replace, simpleSearch=find, addConfluenceLinkTags=addConfluenceLinkTags)
                 self.synonyms.append(syn)
 
-    def removeConfluenceLinks(self,text):
+    def removeConfluenceLinks(self, text):
         """
         find [...] and remove the [ and the ]
-        @todo 2  (id:19)
+        TODO: 2  (id:19)
         """
-        raise j.exceptions.RuntimeError("todo needs to be done, is not working now") 
+        raise j.exceptions.RuntimeError("todo needs to be done, is not working now")
+
         def replaceinside(matchobj):
-            match=matchobj.group()
-            #we found a match now
-            #print "regex:%s match:%s replace:%s" % (searchitem[1],match,searchitem[2])
-            if match.find("|")==-1:
-                match=re.sub("( *\])|(\[ *)","",match)
-                toreplace=searchitem[2]
-                searchregexReplace=searchitem[1]
-                match = re.sub(searchregexReplace, toreplace,match)  
+            match = matchobj.group()
+            # we found a match now
+            # print "regex:%s match:%s replace:%s" % (searchitem[1],match,searchitem[2])
+            if match.find("|") == -1:
+                match = re.sub("( *\])|(\[ *)", "", match)
+                toreplace = searchitem[2]
+                searchregexReplace = searchitem[1]
+                match = re.sub(searchregexReplace, toreplace, match)
                 return match
             else:
                 return match
         for searchitem in self.synonyms:
-            #text = re.sub(searchitem[0],searchitem[1], text)               
+            #text = re.sub(searchitem[0],searchitem[1], text)
             text = re.sub(searchitem[0], replaceinside, text)
-        return text        
-        
-    def replace(self,text):        
+        return text
+
+    def replace(self, text):
         for syn in self.synonyms:
-            text=syn.replace(text)
-        return text        
-        
+            text = syn.replace(text)
+        return text
+
     def replaceInConfluence(self, text):
         """
         @[..|.] will also be looked for and replaced
         """
         def replaceinside(matchobj):
-            match=matchobj.group()
-            #we found a match now
-            #print "regex:%s match:%s replace:%s" % (searchitem[1],match,searchitem[2])
-            if match.find("|")==-1:
-                match=re.sub("( *\])|(\[ *)","",match)
-                match = re.sub(syn.regexFind, syn.replaceWith,match)  
+            match = matchobj.group()
+            # we found a match now
+            # print "regex:%s match:%s replace:%s" % (searchitem[1],match,searchitem[2])
+            if match.find("|") == -1:
+                match = re.sub("( *\])|(\[ *)", "", match)
+                match = re.sub(syn.regexFind, syn.replaceWith, match)
                 return match
             else:
                 return match
-        for syn in self.synonyms:       
-            #call function replaceinside when match
+        for syn in self.synonyms:
+            # call function replaceinside when match
             text = re.sub(syn.regexFind, replaceinside, text)
         return text
-        
-    def _addConfluenceLinkTags(self,word):
+
+    def _addConfluenceLinkTags(self, word):
         """
         add [ & ] to word
         """
-        if word.find("[")==-1 and word.find("]")==-1:
-            word="[%s]" % word
+        if word.find("[") == -1 and word.find("]") == -1:
+            word = "[%s]" % word
         return word
-
-

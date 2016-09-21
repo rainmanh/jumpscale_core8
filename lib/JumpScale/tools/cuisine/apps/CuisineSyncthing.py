@@ -1,34 +1,44 @@
 from JumpScale import j
 
+app = j.tools.cuisine._getBaseAppClass()
 
-from ActionDecorator import ActionDecorator
 
+class CuisineSyncthing(app):
 
-"""
-please ensure that the start and build methods are separate and
-the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
-"""
+    NAME = 'syncthing'
 
-class actionrun(ActionDecorator):
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.syncthing"
-
-base=j.tools.cuisine.getBaseClass()
-class Syncthing(base):
-    
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
-    @actionrun(action=True)
-    def build(self, start=True):
+    def build(self, start=True, install=True, reset=False):
         """
         build and setup syncthing to run on :8384 , this can be changed from the config file in /optvar/cfg/syncthing
         """
-        self.cuisine.apps.installdeps()
+        # install golang
+        if reset is False and self.isInstalled():
+            return
+        self._cuisine.development.golang.install()
 
-        config="""
+        # build
+        url = "https://github.com/syncthing/syncthing.git"
+        self._cuisine.core.dir_remove('$goDir/src/github.com/syncthing/syncthing')
+        self._cuisine.development.golang.get("github.com/golang/lint/golint")
+        dest = self._cuisine.development.git.pullRepo(url,
+                                                      dest='$goDir/src/github.com/syncthing/syncthing',
+                                                      ssh=False,
+                                                      depth=1)
+        self._cuisine.core.run("cd %s && go run build.go" % dest, profile=True)
+
+        if install:
+            self.install(start)
+
+    def install(self, start=True):
+        """
+        download, install, move files to appropriate places, and create relavent configs
+        """
+        # create config file
+        config = """
         <configuration version="11">
             <folder id="default" path="$homeDir/Sync" ro="false" rescanIntervalS="60" ignorePerms="false" autoNormalize="false">
                 <device id="H7MBKSF-XNFETHA-2ERDXTB-JQCAXTA-BBTTLJN-23TN5BZ-4CL7KLS-FYCISAR"></device>
@@ -79,36 +89,30 @@ class Syncthing(base):
             </options>
         </configuration>
         """
-        #create config file
-        content = self.cuisine.core.args_replace(config)
+        # install deps
+        self._cuisine.development.golang.install()
+
+        # create config file
+        content = self._cuisine.core.args_replace(config)
         content = content.replace("$lclAddrs",  "0.0.0.0", 1)
-        content = content.replace ("$port", "8384", 1)
+        content = content.replace("$port", "8384", 1)
 
-        self.cuisine.core.dir_ensure("$tmplsDir/cfg/syncthing/")
-        self.cuisine.core.file_write("$tmplsDir/cfg/syncthing/config.xml", content)
-
-        #build
-        url = "https://github.com/syncthing/syncthing.git"
-        self.cuisine.core.dir_remove('$goDir/src/github.com/syncthing/syncthing')
-        self.cuisine.golang.clean_src_path()
-        dest = self.cuisine.git.pullRepo(url, dest='$goDir/src/github.com/syncthing/syncthing', ssh=False, depth=1)
-        self.cuisine.golang.get("github.com/golang/lint/golint")
-        self.cuisine.core.run("cd %s && go run build.go -version v0.11.25 -no-upgrade"% dest , profile=True)
-
-        #copy bin
-        self.cuisine.core.file_copy(self.cuisine.core.joinpaths(dest, 'bin/syncthing'), "$goDir/bin/", recursive=True)
-        self.cuisine.core.file_copy("$goDir/bin/syncthing", "$binDir", recursive=True)
+        self._cuisine.core.dir_ensure("$tmplsDir/cfg/syncthing/")
+        self._cuisine.core.file_write("$tmplsDir/cfg/syncthing/config.xml", content)
+        self._cuisine.core.file_copy(source="$goDir/src/github.com/syncthing/syncthing/bin/syncthing",
+                                     dest="$binDir",
+                                     recursive=True,
+                                     overwrite=False)
 
         if start:
             self.start()
 
-    @actionrun(force=True)
     def start(self):
-        self.cuisine.core.dir_ensure("$cfgDir")
-        self.cuisine.core.file_copy("$tmplsDir/cfg/syncthing/", "$cfgDir", recursive=True)
+        self._cuisine.core.dir_ensure("$cfgDir")
+        self._cuisine.core.file_copy("$tmplsDir/cfg/syncthing/", "$cfgDir", recursive=True)
 
-        GOPATH = self.cuisine.bash.environGet('GOPATH')
-        env={}
-        env["TMPDIR"]=self.cuisine.core.dir_paths["tmpDir"]
-        pm = self.cuisine.processmanager.get("tmux")
-        pm.ensure(name="syncthing", cmd="./syncthing -home  $cfgDir/syncthing", path=self.cuisine.core.joinpaths(GOPATH, "bin"))
+        GOPATH = self._cuisine.bash.environGet('GOPATH')
+        env = {}
+        env["TMPDIR"] = self._cuisine.core.dir_paths["tmpDir"]
+        pm = self._cuisine.processmanager.get("tmux")
+        pm.ensure(name="syncthing", cmd="./syncthing -home  $cfgDir/syncthing", path="$binDir")

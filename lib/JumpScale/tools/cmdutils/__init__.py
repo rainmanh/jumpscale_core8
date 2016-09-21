@@ -3,10 +3,12 @@ from JumpScale import j
 import argparse
 import sys
 
+
 class ArgumentParser(argparse.ArgumentParser):
+
     def exit(self, status=0, message=None):
         if message:
-            self._print_message(message, sys.stderr) 
+            self._print_message(message, sys.stderr)
         if j.application.state == "RUNNING":
             j.application.stop(status)
         else:
@@ -15,14 +17,15 @@ class ArgumentParser(argparse.ArgumentParser):
 
 def processLogin(parser):
 
-    parser.add_argument("-l",'--login', help='login for grid, if not specified defaults to root')
-    parser.add_argument("-p",'--passwd', help='passwd for grid')
-    parser.add_argument("-a",'--addr', help='ip addr of master, if not specified will be the one as specified in local config')
+    parser.add_argument("-l", '--login', help='login for grid, if not specified defaults to root')
+    parser.add_argument("-p", '--passwd', help='passwd for grid')
+    parser.add_argument(
+        "-a", '--addr', help='ip addr of master, if not specified will be the one as specified in local config')
 
     opts = parser.parse_args()
 
-    if opts.login==None:
-        opts.login="root"
+    if opts.login == None:
+        opts.login = "root"
 
     # if opts.passwd==None and opts.login=="root":
     #     if j.application.config.exists("grid.master.superadminpasswd"):
@@ -30,7 +33,7 @@ def processLogin(parser):
     #     else:
     #         opts.passwd=j.tools.console.askString("please provide superadmin passwd for the grid.")
 
-    # if opts.addr==None:    
+    # if opts.addr==None:
     #     opts.addr=j.application.config.get("grid.master.ip")
 
     return opts

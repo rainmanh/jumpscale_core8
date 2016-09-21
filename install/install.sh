@@ -44,7 +44,7 @@ if [ "$(uname)" == "Darwin" ]; then
     pip3 install --upgrade pymux
     pip3 install --upgrade ptpdb
     pip3 install --upgrade http://carey.geek.nz/code/python-fcrypt/fcrypt-1.3.1.tar.gz
-
+    pip3 install --upgrade uvloop
 
     export TMPDIR=~/tmp
 
@@ -54,7 +54,9 @@ if [ "$(uname)" == "Darwin" ]; then
     mkdir -p $TMPDIR
     cd $TMPDIR
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-    export LC_ALL='C.UTF-8'
+    # export LC_ALL='C.UTF-8'
+    locale-gen en_US.UTF-8
+    export LANG=en_US.UTF-8
     dist=''
     dist=`grep DISTRIB_ID /etc/*-release | awk -F '=' '{print $2}'`
     if [ "$dist" == "Ubuntu" ]; then
@@ -64,7 +66,8 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
         rm -f /usr/bin/python3
         ln -s /usr/bin/python3.5 /usr/bin/python
         ln -s /usr/bin/python3.5 /usr/bin/python3
-
+        apt-get install python3-pip python3-click -y
+        pip3 install --upgrade uvloop
     elif [ -f "/etc/slitaz-release" ]; then
       echo "found slitaz"
       tazpkg get-install curl

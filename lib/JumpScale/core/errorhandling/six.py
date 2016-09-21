@@ -53,6 +53,7 @@ else:
     else:
         # It's possible to have sizeof(long) != sizeof(Py_ssize_t).
         class X:
+
             def __len__(self):
                 return 1 << 31
         try:
@@ -153,7 +154,8 @@ _moved_attributes = [
     MovedModule("html_entities", "htmlentitydefs", "html.entities"),
     MovedModule("html_parser", "HTMLParser", "html.parser"),
     MovedModule("http_client", "httplib", "http.client"),
-    MovedModule("email_mime_multipart", "email.MIMEMultipart", "email.mime.multipart"),
+    MovedModule("email_mime_multipart", "email.MIMEMultipart",
+                "email.mime.multipart"),
     MovedModule("email_mime_text", "email.MIMEText", "email.mime.text"),
     MovedModule("email_mime_base", "email.MIMEBase", "email.mime.base"),
     MovedModule("BaseHTTPServer", "BaseHTTPServer", "http.server"),
@@ -166,8 +168,10 @@ _moved_attributes = [
     MovedModule("tkinter", "Tkinter"),
     MovedModule("tkinter_dialog", "Dialog", "tkinter.dialog"),
     MovedModule("tkinter_filedialog", "FileDialog", "tkinter.filedialog"),
-    MovedModule("tkinter_scrolledtext", "ScrolledText", "tkinter.scrolledtext"),
-    MovedModule("tkinter_simpledialog", "SimpleDialog", "tkinter.simpledialog"),
+    MovedModule("tkinter_scrolledtext", "ScrolledText",
+                "tkinter.scrolledtext"),
+    MovedModule("tkinter_simpledialog", "SimpleDialog",
+                "tkinter.simpledialog"),
     MovedModule("tkinter_tix", "Tix", "tkinter.tix"),
     MovedModule("tkinter_constants", "Tkconstants", "tkinter.constants"),
     MovedModule("tkinter_dnd", "Tkdnd", "tkinter.dnd"),

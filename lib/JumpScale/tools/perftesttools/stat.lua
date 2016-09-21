@@ -2,7 +2,7 @@
 --key,measurement,value,str(now),type,tags
 
 local key=KEYS[1]
-local measurement=ARGV[1]
+local measurement=ARGV[1] --remove ?
 local value = tonumber(ARGV[2])
 local now = tonumber(ARGV[3])
 local type=ARGV[4]
@@ -12,8 +12,10 @@ local node=ARGV[6]
 local hsetkey =string.format("stats:%s",node)
 local v= {}
 local c=""
-local m 
+local m
 local prev = redis.call('HGET',hsetkey,key)
+
+-- TODO: per 5 min in stead of per 1 min
 
 if prev then
     -- get previous value, it exists in a hkey
@@ -21,7 +23,7 @@ if prev then
     local diff
     local difftime
 
-    -- calculate the dif when absolute nrs are logged e.g. byte counter for network 
+    -- calculate the dif when absolute nrs are logged e.g. byte counter for network
     if type=="D" then
         -- diff
         diff = tonumber(value)-v["val"]
@@ -44,14 +46,14 @@ if prev then
     end
 
     --remember current measurement, and calculate the avg/max for minute value
-    v["m_epoch"]= now    
+    v["m_epoch"]= now
     v["m_last"]=m
     v["m_total"]=v["m_total"]+m
     v["m_nr"]=v["m_nr"]+1
     v["m_avg"]= v["m_total"]/v["m_nr"]
     if m>v["m_max"] then
         v["m_max"]=m
-    end 
+    end
 
     -- remember the current value
     v['val'] = value
@@ -73,6 +75,8 @@ if prev then
 
     -- epoch in seconds
     local nowshort=math.floor(now/1000+0.5)
+
+    -- TODO: only put to queue if last one longer than 5 min ago
 
     c=string.format("%s|%u|%u|%u|%u|%u|%u",key,nowshort,m,v["m_avg"],v["m_max"],v["h_avg"],v["h_max"])
 
@@ -101,4 +105,3 @@ else
     redis.call('HSET',hsetkey,KEYS[1],cjson.encode(v))
     return 0
 end
-

@@ -18,11 +18,12 @@ def unpack_long(value):
 class Task(object):
     """
     Tarantool queue task wrapper.
-    
+
     .. warning::
 
         Don't instantiate it with your bare hands
     """
+
     def __init__(self, queue, space=0, task_id=0,
                  tube="", status="", raw_data=None):
         self.task_id = task_id
@@ -36,7 +37,7 @@ class Task(object):
     def ack(self):
         """
         Confirm completion of a task. Before marking a task as complete
-        
+
         :rtype: `Task` instance
         """
         self.modified = True
@@ -45,7 +46,7 @@ class Task(object):
     def release(self, **kwargs):
         """
         Return a task back to the queue: the task is not executed.
-        
+
         :param ttl: new time to live
         :param delay: new delay for task
         :type ttl: int
@@ -70,7 +71,7 @@ class Task(object):
         Puts the task at the end of the queue, so that it's
         executed only after all existing tasks in the queue are
         executed.
-        
+
         :rtype: boolean
         """
         self.modified = True
@@ -125,7 +126,7 @@ class Task(object):
     def touch(self):
         """
         Prolong living time for taken task with this id.
-        
+
         :rtype: boolean
         """
         return self.queue._touch(self.task_id)
@@ -135,7 +136,8 @@ class Task(object):
         if not self.raw_data:
             return None
         if not hasattr(self, '_decoded_data'):
-            self._decoded_data = self.queue.tube(self.tube).deserialize(self.raw_data)
+            self._decoded_data = self.queue.tube(
+                self.tube).deserialize(self.raw_data)
         return self._decoded_data
 
     def __str__(self):
@@ -169,21 +171,22 @@ class Tube(object):
     """
     Tarantol queue tube wrapper. Pinned to space and tube, but unlike Queue
     it has predefined delay, ttl, ttr, and pri.
-    
+
     .. warning::
 
         Don't instantiate it with your bare hands
     """
+
     def __init__(self, queue, name, **kwargs):
         self.queue = queue
-        self.name=name
+        self.name = name
         self.opt = {
-            'delay' : 0,
-            'ttl'   : 0,
-            'ttr'   : 0,
-            'pri'   : 0,
-            'tube'  : name
-            }
+            'delay': 0,
+            'ttl': 0,
+            'ttr': 0,
+            'pri': 0,
+            'tube': name
+        }
         self.opt.update(kwargs)
         self._serialize = None
         self._deserialize = None
@@ -197,17 +200,19 @@ class Tube(object):
         if self._serialize is None:
             return self.queue.serialize
         return self._serialize
+
     @serialize.setter
     def serialize(self, func):
         if not (hasattr(func, '__call__') or func is None):
             raise TypeError("func must be Callable "
-                            "or None, but not "+str(type(func)))
+                            "or None, but not " + str(type(func)))
         self._serialize = func
 
     @serialize.deleter
     def serialize(self):
         self._serialize = None
 #----------------
+
     @property
     def deserialize(self):
         """
@@ -221,13 +226,14 @@ class Tube(object):
     def deserialize(self, func):
         if not (hasattr(func, '__call__') or func is None):
             raise TypeError("func must be Callable "
-                            "or None, but not "+str(type(func)))
+                            "or None, but not " + str(type(func)))
         self._deserialize = func
 
     @deserialize.deleter
     def deserialize(self):
         self._deserialize = None
 #----------------
+
     def update_options(self, **kwargs):
         """
         Update options for current tube (such as ttl, ttr, pri and delay)
@@ -256,10 +262,10 @@ class Tube(object):
         """
         opt = dict(self.opt, **kwargs)
 
-        method = "queue.tube.%s.put"%self.name
+        method = "queue.tube.%s.put" % self.name
         if "urgent" in kwargs and kwargs["urgent"]:
             opt["delay"] = 0
-            method = "queue.%s.urgent"%self.name
+            method = "queue.%s.urgent" % self.name
 
         the_tuple = self.queue.tnt.call(method, (
             str(self.queue.space),
@@ -277,7 +283,7 @@ class Tube(object):
         """
         Same as :meth:`Tube.put() <tarantool_queue.Tube.put>` put, but set highest priority for this task.
         """
-        kwargs['urgent']=True
+        kwargs['urgent'] = True
         return self.put(data, **dict(self.opt, **kwargs))
 
     def take(self, timeout=0):
@@ -300,7 +306,7 @@ class Tube(object):
         """
         'Dig up' count tasks in a queue. If count is not given, digs up
         just one buried task.
-        
+
         :rtype boolean
         """
         return self.queue._kick(self.opt['tube'], count)
@@ -310,6 +316,7 @@ class Tube(object):
         See :meth:`Queue.statistics() <tarantool_queue.Queue.statistics>` for more information.
         """
         return self.queue.statistics(tube=self.opt['tube'])
+
 
 class Queue(object):
     """
@@ -389,17 +396,19 @@ class Queue(object):
         if self._serialize is None:
             return self.queue.serialize
         return self._serialize
+
     @serialize.setter
     def serialize(self, func):
         if not (hasattr(func, '__call__') or func is None):
             raise TypeError("func must be Callable "
-                            "or None, but not "+str(type(func)))
+                            "or None, but not " + str(type(func)))
         self._serialize = func
 
     @serialize.deleter
     def serialize(self):
         self._serialize = self.basic_serialize
 #----------------
+
     @property
     def deserialize(self):
         """
@@ -413,7 +422,7 @@ class Queue(object):
     def deserialize(self, func):
         if not (hasattr(func, '__call__') or func is None):
             raise TypeError("func must be Callable "
-                            "or None, but not "+str(type(func)))
+                            "or None, but not " + str(type(func)))
         self._deserialize = func
 
     @deserialize.deleter
@@ -486,7 +495,7 @@ class Queue(object):
     def peek(self, task_id):
         """
         Return a task by task id.
-        
+
         :param task_id: UUID of task in HEX
         :type task_id: string
         :rtype: `Task` instance
@@ -557,15 +566,16 @@ class Queue(object):
         ans = {}
         if stat.rowcount > 0:
             for k, v in dict(zip(stat[0][0::2], stat[0][1::2])).iteritems():
-                k_t =  re.split('space([^.]*)\.(.*)\.([^.]*)', k)[1:3]
+                k_t = re.split('space([^.]*)\.(.*)\.([^.]*)', k)[1:3]
                 task = False
                 if int(k_t[0]) != self.space:
                     continue
                 if k_t[-1] in ('total', 'ready', 'delayed', 'taken', 'buried', 'done'):
-                    k_t = map((lambda x: x[::-1]), k_t[1][::-1].split('.', 1))[::-1] + k_t[2:3]
+                    k_t = map((lambda x: x[::-1]), k_t[1]
+                              [::-1].split('.', 1))[::-1] + k_t[2:3]
                     task = True
                 if not (k_t[1] in ans):
-                    ans[k_t[1]] = {'tasks' : {}}
+                    ans[k_t[1]] = {'tasks': {}}
                 if task:
                     ans[k_t[1]]['tasks'][k_t[-1]] = v
                 else:
@@ -581,7 +591,7 @@ class Queue(object):
         """
         Create Tube object, if not created before, and set kwargs.
         If existed, return existed Tube.
-        
+
         :param name: name of Tube
         :param delay: default delay for Tube tasks (Not necessary, will be 0)
         :param ttl: default TTL for Tube tasks (Not necessary, will be 0)

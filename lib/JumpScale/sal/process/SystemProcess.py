@@ -10,8 +10,8 @@ import signal
 from subprocess import Popen
 
 
-
 from JumpScale import j
+
 
 def kill(pid, sig=None):
     """
@@ -28,10 +28,12 @@ def kill(pid, sig=None):
             os.kill(pid, sig)
 
         except OSError as e:
-            raise j.exceptions.RuntimeError("Could not kill process with id %s.\n%s" % (pid,e))
+            raise j.exceptions.RuntimeError("Could not kill process with id %s.\n%s" % (pid, e))
 
     elif j.core.platformtype.myplatform.isWindows():
-        import win32api, win32process, win32con
+        import win32api
+        import win32process
+        import win32con
         try:
             handle = win32api.OpenProcess(win32con.PROCESS_TERMINATE, False, pid)
             win32process.TerminateProcess(handle, 0)
@@ -39,20 +41,20 @@ def kill(pid, sig=None):
             raise
 
 
-#Fix subprocess.Popen EINTR issues
-#The _communicate method on Unix uses select(2) to monitor stdout/err pipes,
-#which can raise an exception (EINTR) whenever the parent process receives a
-#signal (or the system call is interrupted for some other reason), eg a
-#SIGCHLD when the actual subprocess stops.
-#This was partially fixed in Python 2.6.0, but not completely. This code
-#replaces the standard implementation with a patched one based on the code
-#in Python 2.6.0, a patch in Python bug #1068268
+# Fix subprocess.Popen EINTR issues
+# The _communicate method on Unix uses select(2) to monitor stdout/err pipes,
+# which can raise an exception (EINTR) whenever the parent process receives a
+# signal (or the system call is interrupted for some other reason), eg a
+# SIGCHLD when the actual subprocess stops.
+# This was partially fixed in Python 2.6.0, but not completely. This code
+# replaces the standard implementation with a patched one based on the code
+# in Python 2.6.0, a patch in Python bug #1068268
 #(http://bugs.python.org/issue1068268) and a patch applied to the Python2.5
-#package in Ubuntu Linux (http://patches.ubuntu.com/p/python2.5/extracted/
+# package in Ubuntu Linux (http://patches.ubuntu.com/p/python2.5/extracted/
 #        subprocess-eintr-safety.dpatch)
 mswindows = (j.core.platformtype.myplatform == "win32")
-#Bump this version number as long as the upstream subprocess module is not
-#fixed. Testcases on Solaris tend to fail easily.
+# Bump this version number as long as the upstream subprocess module is not
+# fixed. Testcases on Solaris tend to fail easily.
 if sys.version_info >= (2, 7, 0) or mswindows:
     SafePopen = subprocess.Popen
 else:
@@ -61,12 +63,14 @@ else:
     import gc
     import traceback
     import pickle
+
     class SafePopen(subprocess.Popen):
-        #Make sure we wrap this for Unix/win32 splitup if ever we need some
-        #win32-specific fixes (see original subprocess.Popen)
+        # Make sure we wrap this for Unix/win32 splitup if ever we need some
+        # win32-specific fixes (see original subprocess.Popen)
+
         def communicate(self, input=None):
-            #This is based on code in CPython 2.6.0, but including some extra
-            #checks to emulate 2.5 behavior which didn't close stdout/err.
+            # This is based on code in CPython 2.6.0, but including some extra
+            # checks to emulate 2.5 behavior which didn't close stdout/err.
             if [self.stdin, self.stdout, self.stderr].count(None) >= 2:
                 stdout = None
                 stderr = None
@@ -74,24 +78,24 @@ else:
                     if input:
                         #MOD - 1068268
                         self._fo_write_no_intr(self.stdin, input)
-                        #END MOD
+                        # END MOD
                     self.stdin.close()
                 elif self.stdout:
                     #MOD - 1068268
                     stdout = self._fo_read_no_intr(self.stdout)
-                    #END MOD
-                    #MOD
+                    # END MOD
+                    # MOD
                     if sys.version_info >= (2, 7):
                         self.stdout.close()
-                    #END MOD
+                    # END MOD
                 elif self.stderr:
                     #MOD - 1068268
                     stderr = self._fo_read_no_intr(self.stderr)
-                    #END MOD
-                    #MOD
+                    # END MOD
+                    # MOD
                     if sys.version_info >= (2, 7):
                         self.stderr.close()
-                    #END MOD
+                    # END MOD
                 self.wait()
                 return (stdout, stderr)
 
@@ -99,29 +103,29 @@ else:
 
         if sys.version_info < (2, 6):
             def _communicate(self, input):
-                #This is subprocess.Popen._communicate in the non-win32 case of
-                #Python 2.5.2, as found on
-                #http://svn.python.org/projects/python/tags/r252/Lib/subprocess.py
-                #2 modifications were made: a minor self-check, and an exception
-                #handling clause around select.select as found in the version of
-                #subprocess.Popen._communicate of Python 2.6.0
-                #The differences found in the patch of 1068268 are applied as
-                #well, similar to the 2.6.0 _communicate
+                # This is subprocess.Popen._communicate in the non-win32 case of
+                # Python 2.5.2, as found on
+                # http://svn.python.org/projects/python/tags/r252/Lib/subprocess.py
+                # 2 modifications were made: a minor self-check, and an exception
+                # handling clause around select.select as found in the version of
+                # subprocess.Popen._communicate of Python 2.6.0
+                # The differences found in the patch of 1068268 are applied as
+                # well, similar to the 2.6.0 _communicate
 
-                #First we'll check whether 'self' got all attributes used in this
-                #method, to catch issues with older versions of subprocess.Popen.
-                #MOD START
+                # First we'll check whether 'self' got all attributes used in this
+                # method, to catch issues with older versions of subprocess.Popen.
+                # MOD START
                 for attr in ('stdin', 'stdout', 'stderr',
-                        'universal_newlines', '_translate_newlines',
-                        'wait', ):
+                             'universal_newlines', '_translate_newlines',
+                             'wait', ):
                     if not hasattr(self, attr):
-                        #This implementation can't be used, use the original
+                        # This implementation can't be used, use the original
                         return subprocess.Popen._communicate(self, input)
-                #MOD END
+                # MOD END
                 read_set = []
                 write_set = []
-                stdout = None # Return
-                stderr = None # Return
+                stdout = None  # Return
+                stderr = None  # Return
 
                 if self.stdin:
                     # Flush stdio buffer.  This might block, if the user has
@@ -141,7 +145,7 @@ else:
                 input_offset = 0
                 while read_set or write_set:
                     #MOD - 1068268
-                    #Handle EINTR in select(2)
+                    # Handle EINTR in select(2)
                     import select
                     try:
                         rlist, wlist, xlist = select.select(read_set, write_set, [])
@@ -149,16 +153,16 @@ else:
                         if e.args[0] == errno.EINTR:
                             continue
                         raise
-                    #MOD END
+                    # MOD END
 
                     if self.stdin in wlist:
                         # When select has indicated that the file is writable,
                         # we can write up to PIPE_BUF bytes without risk
                         # blocking.  POSIX defines PIPE_BUF >= 512
                         #MOD - 1068268
-                        bytes_written = self._write_no_intr(self.stdin.fileno(), \
-                                buffer(input, input_offset, 512))
-                        #END MOD
+                        bytes_written = self._write_no_intr(self.stdin.fileno(),
+                                                            buffer(input, input_offset, 512))
+                        # END MOD
                         input_offset += bytes_written
                         if input_offset >= len(input):
                             self.stdin.close()
@@ -167,7 +171,7 @@ else:
                     if self.stdout in rlist:
                         #MOD - 1068268
                         data = self._read_no_intr(self.stdout.fileno(), 1024)
-                        #END MOD
+                        # END MOD
                         if data == "":
                             self.stdout.close()
                             read_set.remove(self.stdout)
@@ -176,7 +180,7 @@ else:
                     if self.stderr in rlist:
                         #MOD - 1068268
                         data = self._read_no_intr(self.stderr.fileno(), 1024)
-                        #END MOD
+                        # END MOD
                         if data == "":
                             self.stderr.close()
                             read_set.remove(self.stderr)
@@ -202,15 +206,15 @@ else:
                 return (stdout, stderr)
 
         # sys.version_info >= (2, 6)
-        #We only patch 2.6.0 though, bump this if necessary
+        # We only patch 2.6.0 though, bump this if necessary
         elif sys.version < (2, 7, 0):
             def _communicate(self, input):
-                #This is _communicate of Python 2.6.0 + partial application of
+                # This is _communicate of Python 2.6.0 + partial application of
                 #patch in 1068268
                 read_set = []
                 write_set = []
-                stdout = None # Return
-                stderr = None # Return
+                stdout = None  # Return
+                stderr = None  # Return
 
                 if self.stdin:
                     # Flush stdio buffer.  This might block, if the user has
@@ -240,11 +244,11 @@ else:
                         # When select has indicated that the file is writable,
                         # we can write up to PIPE_BUF bytes without risk
                         # blocking.  POSIX defines PIPE_BUF >= 512
-                        chunk = input[input_offset : input_offset + 512]
+                        chunk = input[input_offset: input_offset + 512]
                         #MOD - 1068268
                         bytes_written = self._write_no_intr(self.stdin.fileno(),
-                                chunk)
-                        #END MOD
+                                                            chunk)
+                        # END MOD
                         input_offset += bytes_written
                         if input_offset >= len(input):
                             self.stdin.close()
@@ -253,7 +257,7 @@ else:
                     if self.stdout in rlist:
                         #MOD - 1068268
                         data = self._read_no_intr(self.stdout.fileno(), 1024)
-                        #END MOD
+                        # END MOD
                         if data == "":
                             self.stdout.close()
                             read_set.remove(self.stdout)
@@ -262,7 +266,7 @@ else:
                     if self.stderr in rlist:
                         #MOD - 1068268
                         data = self._read_no_intr(self.stderr.fileno(), 1024)
-                        #END MOD
+                        # END MOD
                         if data == "":
                             self.stderr.close()
                             read_set.remove(self.stderr)
@@ -286,8 +290,6 @@ else:
 
                 self.wait()
                 return (stdout, stderr)
-
-
 
         def _execute_child(self, args, executable, preexec_fn, close_fds,
                            cwd, env, universal_newlines,
@@ -378,7 +380,7 @@ else:
                     exc_value.child_traceback = ''.join(exc_lines)
                     #MOD - 1068268
                     self._write_no_intr(errpipe_write, pickle.dumps(exc_value))
-                    #END MOD
+                    # END MOD
 
                 # This exitcode won't be reported to applications, so it
                 # really doesn't matter what we return.
@@ -397,13 +399,13 @@ else:
 
             # Wait for exec to fail or succeed; possibly raising exception
             #MOD - 1068268
-            data = self._read_no_intr(errpipe_read, 1048576) # Exceptions limited to 1 MB
-            #END MOD
+            data = self._read_no_intr(errpipe_read, 1048576)  # Exceptions limited to 1 MB
+            # END MOD
             os.close(errpipe_read)
             if data != "":
                 #MOD - 1068268
                 self._waitpid_no_intr(self.pid, 0)
-                #END MOD
+                # END MOD
                 child_exception = pickle.loads(data)
                 raise child_exception
 
@@ -414,7 +416,7 @@ else:
                 try:
                     #MOD - 1068268
                     pid, sts = self._waitpid_no_intr(self.pid, os.WNOHANG)
-                    #END MOD
+                    # END MOD
                     if pid == self.pid:
                         self._handle_exitstatus(sts)
                 except os.error:
@@ -422,7 +424,7 @@ else:
                         self.returncode = _deadstate
             return self.returncode
 
-        #poll became _internal_poll in 2.6
+        # poll became _internal_poll in 2.6
         if sys.version_info >= (2, 7):
             _internal_poll = _fixed_poll
         else:
@@ -434,7 +436,7 @@ else:
             if self.returncode is None:
                 #MOD - 1068268
                 pid, sts = self._waitpid_no_intr(self.pid, 0)
-                #END MOD
+                # END MOD
                 self._handle_exitstatus(sts)
             return self.returncode
 
@@ -448,7 +450,6 @@ else:
                         continue
                     else:
                         raise
-
 
         def _write_no_intr(self, fd, s):
             """Like os.write, but retries on EINTR"""
@@ -495,8 +496,9 @@ else:
                         raise
 
 if sys.version_info < (2, 6):
-    #Add terminate() and kill() as introduced in Python2.6
+    # Add terminate() and kill() as introduced in Python2.6
     import signal
+
     class SafePopen(SafePopen):
         if j.core.platformtype.myplatform.isWindows():
             def send_signal(self, sig):
@@ -526,6 +528,7 @@ if sys.version_info < (2, 6):
                 '''Kill the process with SIGKILL'''
                 self.send_signal(signal.SIGKILL)
 
+
 def _safe_subprocess(*args, **kwargs):
     '''Create a L{subprocess.Popen} object in a safe way
 
@@ -538,16 +541,16 @@ def _safe_subprocess(*args, **kwargs):
 
     @see: L{subprocess.Popen}
     '''
-    #Close all threaded log targets before creating a subprocess, which forks
+    # Close all threaded log targets before creating a subprocess, which forks
     ##from JumpScale.core.log.LogTargets import ThreadedLogTarget
-    ##ThreadedLogTarget.disable_all_instances(close=True)
+    # ThreadedLogTarget.disable_all_instances(close=True)
 
     try:
-        #Make sure we re-enable logging, even when subprocess creation fails
+        # Make sure we re-enable logging, even when subprocess creation fails
         process = SafePopen(*args, **kwargs)
     finally:
-        #Re-enable afterwards
-        ##ThreadedLogTarget.enable_all_instances()
+        # Re-enable afterwards
+        # ThreadedLogTarget.enable_all_instances()
         pass
 
     return process
@@ -608,7 +611,7 @@ def _convert_uid_gid(user, group):
         # Validation: does os.set*id exist?
         if not hasattr(os, setfunc):
             raise j.exceptions.RuntimeError('%s provided but %s() not available on '
-                               'this platform' % (cname, setfunc))
+                                            'this platform' % (cname, setfunc))
 
         # We want to make sure we're running as root. This requires os.getuid
         if not hasattr(os, 'getuid'):
@@ -650,14 +653,14 @@ def _convert_uid_gid(user, group):
         import pwd
 
         uid = _convert(user, 'user', 'UID', 'setuid', pwd.getpwnam, 'pw_uid',
-                        pwd.getpwuid)
+                       pwd.getpwuid)
 
     # Calculate GID
     if group is not None:
         import grp
 
         gid = _convert(group, 'group', 'GID', 'setgid', grp.getgrnam, 'gr_gid',
-                        grp.getgrgid)
+                       grp.getgrgid)
 
     # Return them
     return uid, gid
@@ -727,7 +730,7 @@ def run(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
     @return: Tuple containing subprocess exitcode, stdout and stderr output
     @rtype: tuple(number, string, string)
     '''
-    env =  kwargs.pop('env', os.environ)
+    env = kwargs.pop('env', os.environ)
     env = env.copy()
 
     # Calculate UID and GID t run as
@@ -765,12 +768,12 @@ def run(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
         env['PYTHONPATH'] = path
 
     return _runWithEnv(commandline, showOutput=showOutput,
-            captureOutput=captureOutput, maxSeconds=maxSeconds,
-            stopOnError=stopOnError, env=env, **kwargs)
+                       captureOutput=captureOutput, maxSeconds=maxSeconds,
+                       stopOnError=stopOnError, env=env, **kwargs)
 
 
 def _runWithEnv(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
-        stopOnError=True, env=None, **kwargs):
+                stopOnError=True, env=None, **kwargs):
     '''Execute a command and wait for its termination
 
     This method provides the same functionality as L{run}, but also allows a
@@ -781,18 +784,18 @@ def _runWithEnv(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
     @param env: Environment to run the subprocess in
     @type env: dict
     '''
-    #This list will contain callables executed at the end to clean up everything
-    #where necessary, eg closing file descriptors
+    # This list will contain callables executed at the end to clean up everything
+    # where necessary, eg closing file descriptors
     cleanup = list()
-    #Did we have to kill the subprocess (because maxSeconds timed out?)
+    # Did we have to kill the subprocess (because maxSeconds timed out?)
     killed = False
 
     if captureOutput and showOutput:
         raise ValueError('captureOutput and showOutput are mutually exclusive')
 
     j.sal.process.logger.debug(
-            'system.process.start "%s" maxSeconds=%d stopOnError=%s' % \
-            (commandline, maxSeconds, stopOnError))
+        'system.process.start "%s" maxSeconds=%d stopOnError=%s' %
+        (commandline, maxSeconds, stopOnError))
 
     if captureOutput and not showOutput:
         stdin = None
@@ -803,10 +806,10 @@ def _runWithEnv(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
         stdout = sys.stdout
         stderr = sys.stderr
     elif not showOutput and not captureOutput:
-        #There's no place like devnull
-        fd = open(getattr(os, 'devnull', \
-                'nul' if j.core.platformtype.myplatform.isWindows() else '/dev/null'),
-                'rw')
+        # There's no place like devnull
+        fd = open(getattr(os, 'devnull',
+                          'nul' if j.core.platformtype.myplatform.isWindows() else '/dev/null'),
+                  'rw')
         stdin = stdout = stderr = fd
 
         def cleanup_fd():
@@ -854,33 +857,33 @@ def _runWithEnv(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
         code = -1 if process.returncode < 0 else process.returncode
         ret = (code, out, err)
 
-    else: #maxSeconds set
+    else:  # maxSeconds set
         start = time.time()
-        #Use maxSeconds - 1 to make sure the function actually waits only
-        #maxSeconds. If maxSeconds <= 1, use maxSeconds.
+        # Use maxSeconds - 1 to make sure the function actually waits only
+        # maxSeconds. If maxSeconds <= 1, use maxSeconds.
         timediff = maxSeconds - 1 if maxSeconds > 1 else maxSeconds
         while time.time() - start < timediff and process.poll() is None:
-            #Wait 0.1 seconds between subprocess polling during the first 3
-            #seconds the process runs. Bump this polling interval to 1s when
-            #this threshold is reached.
+            # Wait 0.1 seconds between subprocess polling during the first 3
+            # seconds the process runs. Bump this polling interval to 1s when
+            # this threshold is reached.
             if time.time() - start < 3:
                 time.sleep(0.1)
             else:
                 time.sleep(1)
 
         if process.poll() is None:
-            #Child is still running, kill it
+            # Child is still running, kill it
             if j.core.platformtype.myplatform.isUnix():
-                #Soft and hard kill on Unix
+                # Soft and hard kill on Unix
                 try:
                     process.terminate()
-                    #Give the process some time to settle
+                    # Give the process some time to settle
                     time.sleep(0.2)
                     process.kill()
                 except OSError:
                     pass
             else:
-                #Kill on anything else
+                # Kill on anything else
                 time.sleep(0.1)
                 if process.poll():
                     process.terminate()
@@ -888,61 +891,61 @@ def _runWithEnv(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
             killed = True
 
         if captureOutput and not killed:
-            #Subprocess stopped in-time, let's read the output
+            # Subprocess stopped in-time, let's read the output
             out = process.stdout.read()
             err = process.stderr.read()
         elif captureOutput and killed:
-            #Subprocess had to be killed. This causes funny situations if we'd
-            #want to read the output streams now (blocking read hangs the
-            #application, whilst the intermediate shell goes into zombie mode,
-            #fun).
+            # Subprocess had to be killed. This causes funny situations if we'd
+            # want to read the output streams now (blocking read hangs the
+            # application, whilst the intermediate shell goes into zombie mode,
+            # fun).
 
-            #Read out process streams, but don't block
+            # Read out process streams, but don't block
             if j.core.platformtype.myplatform.isUnix():
                 def readout(stream):
-                    #Non-blocking, safe UNIX-style stream readout
+                    # Non-blocking, safe UNIX-style stream readout
                     import fcntl
                     import select
-                    #Store original flags
+                    # Store original flags
                     flags = fcntl.fcntl(stream, fcntl.F_GETFL)
                     if not stream.closed:
-                        #Set non-blocking
+                        # Set non-blocking
                         fcntl.fcntl(stream, fcntl.F_SETFL,
-                                flags | os.O_NONBLOCK)
+                                    flags | os.O_NONBLOCK)
 
-                    #Store all intermediate data
+                    # Store all intermediate data
                     data = list()
                     try:
                         while True:
-                            #Check whether more data is available
+                            # Check whether more data is available
                             if not select.select([stream], [], [], 0)[0]:
-                                #If not, kthxbye
+                                # If not, kthxbye
                                 break
 
-                            #Read out all available data
+                            # Read out all available data
                             line = stream.read()
                             if not line:
                                 break
 
-                            #Honour subprocess univeral_newlines
+                            # Honour subprocess univeral_newlines
                             if process.universal_newlines:
                                 line = process._translate_newlines(line)
 
-                            #Add data to cache
+                            # Add data to cache
                             data.append(line)
 
                     finally:
-                        #Don't forget to reset stream flags
-                        #Although normally the stream won't ever be used after
-                        #this
+                        # Don't forget to reset stream flags
+                        # Although normally the stream won't ever be used after
+                        # this
                         if not stream.closed:
                             fcntl.fcntl(stream, fcntl.F_SETFL, flags)
 
-                    #Fold cache and return
+                    # Fold cache and return
                     return ''.join(data)
 
             else:
-                #This is not UNIX, most likely Win32. read() seems to work
+                # This is not UNIX, most likely Win32. read() seems to work
                 def readout(stream):
                     return stream.read()
 
@@ -956,19 +959,19 @@ def _runWithEnv(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
         code = -2 if killed else code
         ret = (code, out, err)
 
-    #Run cleanup callables
+    # Run cleanup callables
     for func in cleanup:
         func()
 
-    j.sal.process.logger.debug('system.process.run ended, exitcode was %d' % \
-            ret[0])
+    j.sal.process.logger.debug('system.process.run ended, exitcode was %d' %
+                               ret[0])
     j.sal.process.logger.debug('system.process.run stdout:\n%s' % ret[1])
     j.sal.process.logger.debug('system.process.run stderr:\n%s' % ret[2])
 
-    #45 first, since -2 != 0
+    # 45 first, since -2 != 0
     if stopOnError and killed:
         j.sal.process.logger.debug(
-                'system.process.start had to kill the subprocess')
+            'system.process.start had to kill the subprocess')
         sys.exit(45)
     if stopOnError and ret[0] != 0:
         j.sal.process.logger.debug('system.process.start subprocess failed')
@@ -976,8 +979,9 @@ def _runWithEnv(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
 
     return ret
 
+
 def runScript(script, showOutput=False, captureOutput=True, maxSeconds=0,
-        stopOnError=True):
+              stopOnError=True):
     '''Execute a Python script
 
     This function executes a Python script, making sure the script output will
@@ -1003,7 +1007,7 @@ def runScript(script, showOutput=False, captureOutput=True, maxSeconds=0,
     j.sal.process.logger.info('Executing script: %s' % cmdline, 6)
 
     return run(cmdline, showOutput=showOutput, captureOutput=captureOutput,
-            maxSeconds=maxSeconds, stopOnError=stopOnError)
+               maxSeconds=maxSeconds, stopOnError=stopOnError)
 
 
 def runDaemon(commandline, stdout=None, stderr=None, user=None, group=None,
@@ -1128,6 +1132,7 @@ class _Unset:
 UNSET = _Unset()
 del _Unset
 
+
 def calculateEnvironment(values, source=None):
     '''Merge new keys in an environment dict
 
@@ -1174,14 +1179,13 @@ def calculateEnvironment(values, source=None):
     return result
 
 
-
-
 class SystemProcess:
+
     def __init__(self):
         self.__jslocation__ = "j.sal.process"
         self.logger = j.logger.get('j.sal.process')
 
-    def executeWithoutPipe(self, command, die = True, printCommandToStdout = False):
+    def executeWithoutPipe(self, command, die=True, printCommandToStdout=False):
         """
 
         Execute command without opening pipes, returns only the exitcode
@@ -1200,13 +1204,13 @@ class SystemProcess:
             self.logger.debug("system.process.executeWithoutPipe [%s]" % command)
         exitcode = os.system(command)
 
-        if exitcode !=0 and die:
+        if exitcode != 0 and die:
             self.logger.error("command: [%s]\nexitcode:%s" % (command, exitcode))
             raise j.exceptions.RuntimeError("Error during execution!\nCommand: %s\nExitcode: %s" % (command, exitcode))
 
         return exitcode
 
-    def executeAsync(self, command, args = [], printCommandToStdout = False, redirectStreams = True, argsInCommand = False, useShell = None, outputToStdout=True):
+    def executeAsync(self, command, args=[], printCommandToStdout=False, redirectStreams=True, argsInCommand=False, useShell=None, outputToStdout=True):
         """ Execute command asynchronous. By default, the input, output and error streams of the command will be piped to the returned Popen object. Be sure to call commands that don't expect user input, or send input to the stdin parameter of the returning Popen object.
         @param command: Command to execute. (string)
         @param args: [Optional, [] by default] Arguments to be passed to the command. (Array of string)
@@ -1216,7 +1220,7 @@ class SystemProcess:
         @param useShell: [Optional, False by default on Windows, True by default on Linux] Indicates if the command should be executed throug the shell.
         @return: If redirectStreams is true, this function returns a subprocess.Popen object representing the started process. Otherwise, it will return the pid-number of the started process.
         """
-        if useShell == None: # The default value depends on which platform we're using.
+        if useShell == None:  # The default value depends on which platform we're using.
             if j.core.platformtype.myplatform.isUnix():
                 useShell = True
             elif j.core.platformtype.myplatform.isWindows():
@@ -1234,25 +1238,30 @@ class SystemProcess:
             else:
                 cmd = command
 
-
-            if redirectStreams: # Process will be started and the Popen object will be returned. The calling function can use this object to read or write to its pipes or to wait for completion.
-                retVal = subprocess.Popen(cmd, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE, env=os.environ, shell = useShell)
+            if redirectStreams:  # Process will be started and the Popen object will be returned. The calling function can use this object to read or write to its pipes or to wait for completion.
+                retVal = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                          stderr=subprocess.PIPE, env=os.environ, shell=useShell)
             else:
                 # Process will be started without inheriting handles. Subprocess doesn't offer functionality to accomplish this, so we implement it ourselves using the lowlevel win32.CreateProcess method.
                 # Example use-case: Image a vapp that contains a deamon that can be started using a control script, and we want to start this deamon after installation.
                 #                   In this case, we want to call the control script from the install script using system.process.execute to be able to capture the output of the control script.
                 #                   The control script in turn will start the daemon in an asynchronous way and is not interested in the output of the daemon.
                 #                   If we would use the subprocess.Popen object to start the daemon in the control script, the stdout pipe of the control script will be inherited by the daemon,
-                #                   it will not be closed before the control script AND the daemon have ended both, so the install script will stay listening on the stdout pipe as long as it exists and the system.process.execute() method will not return until the daemon ends.
+                # it will not be closed before the control script AND the daemon have
+                # ended both, so the install script will stay listening on the stdout pipe
+                # as long as it exists and the system.process.execute() method will not
+                # return until the daemon ends.
                 from win32process import CreateProcess, STARTUPINFO, STARTF_USESHOWWINDOW
                 from win32con import SW_HIDE
                 sui = STARTUPINFO()
-                if useShell: # 4 lines below are copied from subprocess.Popen._execute_child().  (Code for Win9x is omitted as we only support WinXP and higher.)
+                if useShell:  # 4 lines below are copied from subprocess.Popen._execute_child().  (Code for Win9x is omitted as we only support WinXP and higher.)
                     sui.dwFlags |= STARTF_USESHOWWINDOW
                     sui.wShowWindow = SW_HIDE
                     comspec = os.environ.get("COMSPEC", "cmd.exe")
                     cmd = comspec + " /c " + cmd
-                # Returns a handle for the created process, a handle for the main thread, the identifier of the process (PID) and the identifier of the main thread.
+                # Returns a handle for the created process, a handle for the main thread,
+                # the identifier of the process (PID) and the identifier of the main
+                # thread.
                 hp, ht, pid, tid = CreateProcess(None,        # Executable
                                                  cmd,         # Command Line
                                                  None,        # Security Attributes for Process
@@ -1272,7 +1281,8 @@ class SystemProcess:
                     cmd = subprocess.list2cmdline([command] + args)
 
                 if redirectStreams:
-                    retVal = subprocess.Popen(cmd, shell=True, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE, env=os.environ)
+                    retVal = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
+                                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ)
                 else:
                     if outputToStdout:
                         proc = subprocess.Popen(cmd, shell=True, env=os.environ)
@@ -1280,26 +1290,34 @@ class SystemProcess:
                         devnull = open('/dev/null', 'w')
                         proc = subprocess.Popen(cmd, shell=True, env=os.environ, stdout=devnull, stderr=devnull)
                         devnull.close()
-                    retVal = proc.pid # Returning the pid, analogous to the windows implementation where we don't have a Popen object to return.
+                    # Returning the pid, analogous to the windows implementation where we
+                    # don't have a Popen object to return.
+                    retVal = proc.pid
             else:
-                if argsInCommand: # Not possible, only the shell is able to parse command line arguments form a space-separated string.
-                    raise j.exceptions.RuntimeError("On Unix, either use the shell to execute a command, or split your command in an argument list")
+                # Not possible, only the shell is able to parse command line arguments form a space-separated string.
+                if argsInCommand:
+                    raise j.exceptions.RuntimeError(
+                        "On Unix, either use the shell to execute a command, or split your command in an argument list")
                 if redirectStreams:
-                    retVal = subprocess.Popen([command] + args, shell=False, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE, env=os.environ)
+                    retVal = subprocess.Popen([command] + args, shell=False, stdin=subprocess.PIPE,
+                                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ)
                 else:
                     if outputToStdout:
                         proc = subprocess.Popen([command] + args, shell=False, env=os.environ)
                     else:
                         devnull = open('/dev/null', 'w')
-                        proc = subprocess.Popen([command] + args, shell=False, env=os.environ, stdout=devnull, stderr=devnull)
+                        proc = subprocess.Popen([command] + args, shell=False, env=os.environ,
+                                                stdout=devnull, stderr=devnull)
                         devnull.close()
-                    retVal = proc.pid # Returning the pid, analogous to the windows implementation where we don't have a Popen object to return.
+                    # Returning the pid, analogous to the windows implementation where we
+                    # don't have a Popen object to return.
+                    retVal = proc.pid
         else:
             raise j.exceptions.RuntimeError("Platform not supported")
 
         return retVal
 
-    def execute(self, command , die=True, outputToStdout=False, useShell = False, ignoreErrorOutput=False):
+    def execute(self, command, die=True, outputToStdout=False, useShell=False, ignoreErrorOutput=False):
         """Executes a command, returns the exitcode and the output
         @param command: command to execute
         @param die: boolean to die if got non zero exitcode
@@ -1316,7 +1334,8 @@ class SystemProcess:
         #
         # When the process terminates, we log the final lines (and add a \n to them)
         self.logger.info("exec:%s" % command)
-        def _logentry(entry,loglevel=5):
+
+        def _logentry(entry, loglevel=5):
             self.tools.console.info(entry)
 
         def _splitdata(data):
@@ -1334,7 +1353,7 @@ class SystemProcess:
             if partialline:
                 OUT_LINE = partialline
             for x in lines:
-                _logentry(x,3)
+                _logentry(x, 3)
             return OUT_LINE, ERR_LINE
 
         def _logerror(data, OUT_LINE, ERR_LINE):
@@ -1347,7 +1366,7 @@ class SystemProcess:
             if partialline:
                 ERR_LINE = partialline
             for x in lines:
-                _logentry(x,4)
+                _logentry(x, 4)
             return OUT_LINE, ERR_LINE
 
         def _flushlogs(OUT_LINE, ERR_LINE):
@@ -1355,9 +1374,9 @@ class SystemProcess:
                 non-\n terminated pieces of the stdout and stderr streams
             """
             if OUT_LINE:
-                _logentry(OUT_LINE,3)
+                _logentry(OUT_LINE, 3)
             if ERR_LINE:
-                _logentry(ERR_LINE,4)
+                _logentry(ERR_LINE, 4)
 
         if command is None:
             raise ValueError('Error, cannot execute command not specified')
@@ -1365,35 +1384,39 @@ class SystemProcess:
         try:
             import errno
             if j.core.platformtype.myplatform.isUnix():
-                import subprocess
-                import signal
-                try:
-                    signal.signal(signal.SIGCHLD, signal.SIG_DFL)
-                except Exception as ex:
-                    self.logger.error('failed to set child signal, error %s'%ex)
-                childprocess = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True, shell=True, env=os.environ)
-                (output,error) = childprocess.communicate()
+                childprocess = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                                stderr=subprocess.PIPE, close_fds=True, shell=True, env=os.environ)
+                (output, error) = childprocess.communicate()
                 exitcode = childprocess.returncode
 
             elif j.core.platformtype.myplatform.isWindows():
-                import subprocess, win32pipe, msvcrt, pywintypes
+                import win32pipe
+                import msvcrt
+                import pywintypes
 
                 # For some awkward reason you need to include the stdin pipe, or you get an error deep inside
                 # the subprocess module if you use QRedirectStdOut in the calling script
                 # We do not use the stdin.
-                childprocess = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=False, shell=useShell, env=os.environ)
-                output = ""; OUT_LINE = ""; ERR_LINE = ""
+                childprocess = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                                stderr=subprocess.STDOUT, close_fds=False, shell=useShell, env=os.environ)
+                output = ""
+                OUT_LINE = ""
+                ERR_LINE = ""
                 childRunning = True
 
                 while childRunning:
-                    stdoutData = childprocess.stdout.readline() # The readline method will block until data is received on stdout, or the stdout pipe has been destroyed. (Will return empty string)
-                                                                # Only call processes that release their stdout pipe when exiting, otherwise the method will not return when the process completed.
-                                                                # When the called process starts another process and marks its handle of the stdout pipe as inheritable, the pipe will not be destroyed before both processes end.
+                    # The readline method will block until data is received on stdout, or the
+                    # stdout pipe has been destroyed. (Will return empty string)
+                    stdoutData = childprocess.stdout.readline()
+                    # Only call processes that release their stdout pipe when exiting, otherwise the method will not return when the process completed.
+                    # When the called process starts another process and marks its handle of
+                    # the stdout pipe as inheritable, the pipe will not be destroyed before
+                    # both processes end.
                     if stdoutData != '':
                         output = output + stdoutData
                         (OUT_LINE, ERR_LINE) = _logoutput(stdoutData, OUT_LINE, ERR_LINE)
-                    else: # Did not read any data on channel
-                        if childprocess.poll() != None: # Will return a number if the process has ended, or None if it's running.
+                    else:  # Did not read any data on channel
+                        if childprocess.poll() != None:  # Will return a number if the process has ended, or None if it's running.
                             childRunning = False
 
                 exitcode = childprocess.returncode
@@ -1405,72 +1428,73 @@ class SystemProcess:
         except Exception as e:
             raise
 
-        output=output.decode("utf8")#'ascii')
-        error=error.decode("utf8")#'ascii')
+        output = output.decode("utf8")  # 'ascii')
+        error = error.decode("utf8")  # 'ascii')
 
-        if exitcode!=0 or error!="":
+        if exitcode != 0 or error != "":
             self.logger.error(" Exitcode:%s\nOutput:%s\nError:%s\n" % (exitcode, output, error))
-            if ignoreErrorOutput!=True:
-                output="%s\n***ERROR***\n%s\n" % (output,error)
+            if ignoreErrorOutput != True:
+                output = "%s\n***ERROR***\n%s\n" % (output, error)
 
-        if exitcode !=0 and die:
+        if exitcode != 0 and die:
             self.logger.error("command: [%s]\nexitcode:%s\noutput:%s\nerror:%s" % (command, exitcode, output, error))
-            raise j.exceptions.RuntimeError("Error during execution! (system.process.execute())\n\nCommand: [%s]\n\nExitcode: %s\n\nProgram output:\n%s\n\nErrormessage:\n%s\n" % (command, exitcode, output, error))
-
+            raise j.exceptions.RuntimeError(
+                "Error during execution! (system.process.execute())\n\nCommand: [%s]\n\nExitcode: %s\n\nProgram output:\n%s\n\nErrormessage:\n%s\n" % (command, exitcode, output, error))
 
         return exitcode, output
 
-    def executeIndependant(self,cmd):
+    def executeIndependant(self, cmd):
         # devnull = open(os.devnull, 'wb') # use this in python < 3.3
         # Popen(['nohup', cmd+" &"], stdout=devnull, stderr=devnull)
-        cmd2="nohup %s > /dev/null 2>&1 &"%cmd
-        cmd2=j.dirs.replaceTxtDirVars(cmd2)
+        cmd2 = "nohup %s > /dev/null 2>&1 &" % cmd
+        cmd2 = j.dirs.replaceTxtDirVars(cmd2)
         print(cmd2)
         j.sal.process.executeWithoutPipe(cmd2)
 
     def executeScript(self, scriptName):
         """execute python script from shell/Interactive Window"""
-        self.logger.info('Excecuting script with name: %s'%scriptName)
+        self.logger.info('Excecuting script with name: %s' % scriptName)
         if scriptName is None:
             raise ValueError('Error, Script name in empty in system.process.executeScript')
         try:
-            script=self.fileGetContents(scriptName)
-            scriptc=compile(script, scriptName, 'exec')
+            script = self.fileGetContents(scriptName)
+            scriptc = compile(script, scriptName, 'exec')
             exec(scriptc)
         except Exception as err:
-            raise j.exceptions.RuntimeError('Failed to execute the specified script: %s, %s' % (scriptName,str(err)))
+            raise j.exceptions.RuntimeError('Failed to execute the specified script: %s, %s' % (scriptName, str(err)))
 
     def executeInSandbox(self, command, timeout=0):
         """Executes a command
         @param command: string (command to be executed)
         @param timeout: 0 means to ever, expressed in seconds
         """
-        self.logger.info('Executing command %s in sandbox'%command)
+        self.logger.info('Executing command %s in sandbox' % command)
         if command is None:
             raise j.exceptions.RuntimeError('Error, cannot execute command not specified')
         try:
             p = os.popen(command)
             output = p.read()
             exitcode = p.close() or 0
-            if exitcode !=0 and timeout:
-                raise j.exceptions.RuntimeError("Error durring execution!\nCommand: %s\nErrormessage: %s"%(command,output))
+            if exitcode != 0 and timeout:
+                raise j.exceptions.RuntimeError(
+                    "Error durring execution!\nCommand: %s\nErrormessage: %s" % (command, output))
             return exitcode, output
         except:
             raise j.exceptions.RuntimeError('Failed to execute the specified command: %s' % command)
 
-    def executeCode(self,code,params=None):
+    def executeCode(self, code, params=None):
         """
         execute a method (python code with def)
         use params=j.data.params.get() as input
         """
-        if params==None:
-            params=j.data.params.get()
+        if params == None:
+            params = j.data.params.get()
         codeLines = code.split("\n")
         if "def " not in codeLines[0]:
             raise ValueError("code to execute needs to start with def")
         def_indent = codeLines[0].find("def ")
         if def_indent:
-            #means we need to lower identation with 4
+            # means we need to lower identation with 4
             def unindent(line):
                 if len(line) >= def_indent:
                     return line[def_indent:]
@@ -1480,16 +1504,16 @@ class SystemProcess:
             out = "\n".join(map(unindent, codeLines))
             code = out
 
-        if len(j.tools.code.regex.findAll("^def",code))!=1:
+        if len(j.tools.code.regex.findAll("^def", code)) != 1:
             server.raiseError("Cannot find 1 def method in code to execute, code submitted was \n%s" % code)
 
-        code2=""
+        code2 = ""
         for line in code.split("\n"):
-            if line.find("def")==0:
-                line="def main("+"(".join(line.split("(")[1:])
-            code2+="%s\n" % line
+            if line.find("def") == 0:
+                line = "def main(" + "(".join(line.split("(")[1:])
+            code2 += "%s\n" % line
 
-        #try to load the code
+        # try to load the code
         print(code2)
         execContext = {}
         try:
@@ -1499,12 +1523,12 @@ class SystemProcess:
 
         main = execContext['main']
 
-        #try to execute the code
-        result={}
+        # try to execute the code
+        result = {}
         try:
-            result=main(params)
+            result = main(params)
         except Exception as e:
-            raise j.exceptions.RuntimeError("Error %s.\ncode submitted was \n%s" % (e,code))
+            raise j.exceptions.RuntimeError("Error %s.\ncode submitted was \n%s" % (e, code))
         return result
 
     def isPidAlive(self, pid):
@@ -1531,64 +1555,64 @@ class SystemProcess:
 
     kill = staticmethod(kill)
 
-    def getPidsByFilter(self,filterstr):
-        cmd="ps ax | grep '%s'"%filterstr
-        rcode,out=j.sal.process.execute(cmd)
+    def getPidsByFilter(self, filterstr):
+        cmd = "ps ax | grep '%s'" % filterstr
+        rcode, out = j.sal.process.execute(cmd)
         # print out
-        found=[]
+        found = []
         for line in out.split("\n"):
-            if line.find("grep")!=-1 or line.strip()=="":
+            if line.find("grep") != -1 or line.strip() == "":
                 continue
-            if line.strip()!="":
-                if line.find(filterstr)!=-1:
-                    line=line.strip()
+            if line.strip() != "":
+                if line.find(filterstr) != -1:
+                    line = line.strip()
                     # print "found pidline:%s"%line
                     found.append(int(line.split(" ")[0]))
         return found
 
-    def checkstart(self,cmd,filterstr,nrtimes=1,retry=1):
+    def checkstart(self, cmd, filterstr, nrtimes=1, retry=1):
         """
         @param cmd is which command to execute to start e.g. a daemon
         @param filterstr is what to check on if its running
         @param nrtimes is how many processes need to run
         """
 
-        found=self.getPidsByFilter(filterstr)
+        found = self.getPidsByFilter(filterstr)
         for i in range(retry):
-            if len(found)==nrtimes:
+            if len(found) == nrtimes:
                 return
             # print "START:%s"%cmd
             self.execute(cmd)
             time.sleep(1)
-            found=self.getPidsByFilter(filterstr)
-        if len(found)!=nrtimes:
-            raise j.exceptions.RuntimeError("could not start %s, found %s nr of instances. Needed %s."%(cmd,len(found),nrtimes))
+            found = self.getPidsByFilter(filterstr)
+        if len(found) != nrtimes:
+            raise j.exceptions.RuntimeError(
+                "could not start %s, found %s nr of instances. Needed %s." % (cmd, len(found), nrtimes))
 
-    def checkstop(self,cmd,filterstr,retry=1,nrinstances=0):
+    def checkstop(self, cmd, filterstr, retry=1, nrinstances=0):
         """
         @param cmd is which command to execute to start e.g. a daemon
         @param filterstr is what to check on if its running
         @param nrtimes is how many processes need to run
         """
 
-        found=self.getPidsByFilter(filterstr)
+        found = self.getPidsByFilter(filterstr)
         for i in range(retry):
-            if len(found)==nrinstances:
+            if len(found) == nrinstances:
                 return
             # print "START:%s"%cmd
-            self.execute(cmd,die=False)
+            self.execute(cmd, die=False)
             time.sleep(1)
-            found=self.getPidsByFilter(filterstr)
+            found = self.getPidsByFilter(filterstr)
             for item in found:
-                self.kill(int(item),9)
-            found=self.getPidsByFilter(filterstr)
+                self.kill(int(item), 9)
+            found = self.getPidsByFilter(filterstr)
 
-        if len(found)!=0:
-            raise j.exceptions.RuntimeError("could not stop %s, found %s nr of instances."%(cmd,len(found)))
-
+        if len(found) != 0:
+            raise j.exceptions.RuntimeError("could not stop %s, found %s nr of instances." % (cmd, len(found)))
 
     def getProcessPid(self, process):
-        if process==None:
+        if process == None:
             raise j.exceptions.RuntimeError("process cannot be None")
         if j.core.platformtype.myplatform.isUnix():
             # Need to set $COLUMNS such that we can grep full commandline
@@ -1596,7 +1620,8 @@ class SystemProcess:
             command = "env COLUMNS=300 ps -ef"
             (exitcode, output) = j.sal.process.execute(command, die=False, outputToStdout=False)
             pids = list()
-            co = re.compile("\s*(?P<uid>[a-z]+)\s+(?P<pid>[0-9]+)\s+(?P<ppid>[0-9]+)\s+(?P<cpu>[0-9]+)\s+(?P<stime>\S+)\s+(?P<tty>\S+)\s+(?P<time>\S+)\s+(?P<cmd>.+)")
+            co = re.compile(
+                "\s*(?P<uid>[a-z]+)\s+(?P<pid>[0-9]+)\s+(?P<ppid>[0-9]+)\s+(?P<cpu>[0-9]+)\s+(?P<stime>\S+)\s+(?P<tty>\S+)\s+(?P<time>\S+)\s+(?P<cmd>.+)")
             for line in output.splitlines():
                 match = co.search(line)
                 if not match:
@@ -1607,42 +1632,42 @@ class SystemProcess:
                 # print process
                 if isinstance(process, int) and gd['pid'] == process:
                     pids.append(gd['pid'])
-                elif gd['cmd'].find(process.strip())!=-1:
+                elif gd['cmd'].find(process.strip()) != -1:
                     pids.append(gd['pid'])
-            pids=[int(item) for item in pids]
+            pids = [int(item) for item in pids]
             return pids
         else:
-             raise NotImplementedError("getProcessPid is only implemented for unix")
+            raise NotImplementedError("getProcessPid is only implemented for unix")
 
     def getMyProcessObject(self):
         return self.getProcessObject(os.getpid())
 
-    def getProcessObject(self,pid):
+    def getProcessObject(self, pid):
         import psutil
         for process in psutil.process_iter():
-            if process.pid==pid:
+            if process.pid == pid:
                 return process
-        raise j.exceptions.RuntimeError("Could not find process with pid:%s"%pid)
+        raise j.exceptions.RuntimeError("Could not find process with pid:%s" % pid)
 
-    def getProcessPidsFromUser(self,user):
+    def getProcessPidsFromUser(self, user):
         import psutil
-        result=[]
+        result = []
         for process in psutil.process_iter():
-            if process.username==user:
+            if process.username == user:
                 result.append(process.pid)
         return result
 
-    def killUserProcesses(self,user):
+    def killUserProcesses(self, user):
         for pid in self.getProcessPidsFromUser(user):
             j.sal.process.kill(pid)
 
     def getSimularProcesses(self):
         import psutil
-        myprocess=self.getMyProcessObject()
-        result=[]
+        myprocess = self.getMyProcessObject()
+        result = []
         for item in psutil.process_iter():
             try:
-                if item.cmdline==myprocess.cmdline:
+                if item.cmdline == myprocess.cmdline:
                     result.append(item)
             except psutil.NoSuchProcess:
                 pass
@@ -1678,16 +1703,16 @@ class SystemProcess:
         """
         self.logger.info('Checking whether process with PID %d is actually %s' % (pid, process))
         if j.core.platformtype.myplatform.isUnix():
-            command = "ps -p %i"%pid
+            command = "ps -p %i" % pid
             (exitcode, output) = j.sal.process.execute(command, die=False, outputToStdout=False)
-            i=0
+            i = 0
             for line in output.splitlines():
                 if j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
                     match = re.match(".{23}.*(\s|\/)%s(\s|$).*" % process, line)
                 elif j.core.platformtype.myplatform.isSolaris():
                     match = re.match(".{22}.*(\s|\/)%s(\s|$).*" % process, line)
-                if match :
-                    i= i+1
+                if match:
+                    i = i + 1
             if i >= 1:
                 return 0
             return 1
@@ -1714,20 +1739,20 @@ class SystemProcess:
         """
         Returns pid of the process that is listening on the given port
         """
-        name=self.getProcessByPort(port)
-        if name==None:
+        name = self.getProcessByPort(port)
+        if name == None:
             return []
         # print "found name:'%s'"%name
-        pids=j.sal.process.getProcessPid(name)
+        pids = j.sal.process.getProcessPid(name)
         # print pids
         return pids
 
-    def killProcessByName(self,name,sig=None):
-        pids=self.getProcessPid(name)
+    def killProcessByName(self, name, sig=None):
+        pids = self.getProcessPid(name)
         for pid in pids:
-            kill(pid,sig)
+            kill(pid, sig)
 
-    def killProcessByPort(self,port):
+    def killProcessByPort(self, port):
         for pid in self.getPidsByPort(port):
             kill(pid)
 
@@ -1740,11 +1765,11 @@ class SystemProcess:
         @return: full process name
         @rtype: string
         """
-        if port==0:
+        if port == 0:
             return None
         if j.core.platformtype.myplatform.isLinux():
             command = "netstat -ntulp | grep ':%s '" % port
-            (exitcode, output) = j.sal.process.execute(command, die=False,outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, die=False, outputToStdout=False)
 
             # Not found if grep's exitcode  > 0
             if not exitcode == 0:
@@ -1775,7 +1800,8 @@ class SystemProcess:
             # Note: apparently this does not work on solaris
             command = "env COLUMNS=300 ps -ef"
             (exitcode, output) = j.sal.process.execute(command, die=False, outputToStdout=False)
-            co = re.compile("\s*(?P<uid>[a-z]+)\s+(?P<pid>[0-9]+)\s+(?P<ppid>[0-9]+)\s+(?P<cpu>[0-9]+)\s+(?P<stime>\S+)\s+(?P<tty>\S+)\s+(?P<time>\S+)\s+(?P<cmd>.+)")
+            co = re.compile(
+                "\s*(?P<uid>[a-z]+)\s+(?P<pid>[0-9]+)\s+(?P<ppid>[0-9]+)\s+(?P<cpu>[0-9]+)\s+(?P<stime>\S+)\s+(?P<tty>\S+)\s+(?P<time>\S+)\s+(?P<cmd>.+)")
             for line in output.splitlines():
                 match = co.search(line)
                 if not match:
@@ -1785,18 +1811,18 @@ class SystemProcess:
                     return gd['cmd'].strip()
             return None
         else:
-            #@todo needs to be validated on mac & windows
+            #TODO: needs to be validated on mac & windows
             import psutil
             for process in psutil.process_iter():
                 try:
-                    cc= [x for x in process.connections() if x.status == psutil.CONN_LISTEN]
+                    cc = [x for x in process.connections() if x.status == psutil.CONN_LISTEN]
                 except Exception as e:
-                    if str(e).find("psutil.AccessDenied")==-1:
+                    if str(e).find("psutil.AccessDenied") == -1:
                         raise j.exceptions.RuntimeError(str(e))
                     continue
-                if cc!=[]:
+                if cc != []:
                     for conn in cc:
-                        portfound=conn.laddr[1]
+                        portfound = conn.laddr[1]
                         if port == portfound:
                             return process
             return None
@@ -1806,13 +1832,13 @@ class SystemProcess:
     runScript = staticmethod(runScript)
     runDaemon = staticmethod(runDaemon)
 
-    def appCheckActive(self,appname):
-        return self.appNrInstances(appname)>0
+    def appCheckActive(self, appname):
+        return self.appNrInstances(appname) > 0
 
-    def appNrInstances(self,appname):
+    def appNrInstances(self, appname):
         return len(self.appGetPids(appname))
 
-    def appNrInstancesActive(self,appname):
+    def appNrInstancesActive(self, appname):
         return len(self.appGetPidsActive(appname))
 
     def getEnviron(self, pid):
@@ -1824,52 +1850,52 @@ class SystemProcess:
                 env[key] = value
         return env
 
-    def appGetPids(self,appname):
-        if j.core.db==None:
+    def appGetPids(self, appname):
+        if j.core.db == None:
             raise j.exceptions.RuntimeError("Redis was not running when applications started, cannot get pid's")
-        if not j.core.db.hexists("application",appname):
+        if not j.core.db.hexists("application", appname):
             return list()
         else:
-            pids=j.data.serializer.json.loads(j.core.db.hget("application",appname))
+            pids = j.data.serializer.json.loads(j.core.db.hget("application", appname))
             return pids
 
     def appsGetNames(self):
-        if j.core.db==None:
+        if j.core.db == None:
             raise j.exceptions.RuntimeError("Make sure redis is running for port 9999")
         return j.core.db.hkeys("application")
 
     def getDefunctProcesses(self):
-        rc,out=j.sal.process.execute("ps ax")
-        llist=[]
+        rc, out = j.sal.process.execute("ps ax")
+        llist = []
         for line in out.split("\n"):
-            if line.strip()=="":
+            if line.strip() == "":
                 continue
-            if line.find("<defunct>")!=-1:
+            if line.find("<defunct>") != -1:
                 # print "defunct:%s"%line
-                line=line.strip()
-                pid=line.split(" ",1)[0]
-                pid=int(pid.strip())
+                line = line.strip()
+                pid = line.split(" ", 1)[0]
+                pid = int(pid.strip())
                 llist.append(pid)
 
         return llist
 
     def appsGet(self):
 
-        defunctlist=self.getDefunctProcesses()
-        result={}
+        defunctlist = self.getDefunctProcesses()
+        result = {}
         for item in self.appsGetNames():
-            pids=self.appGetPidsActive(item)
-            pids=[pid for pid in pids if pid not in defunctlist]
+            pids = self.appGetPidsActive(item)
+            pids = [pid for pid in pids if pid not in defunctlist]
 
-            if pids==[]:
-                j.core.db.hdelete("application",item)
+            if pids == []:
+                j.core.db.hdelete("application", item)
             else:
-                result[item]=pids
+                result[item] = pids
         return result
 
-    def appGetPidsActive(self,appname):
-        pids=self.appGetPids(appname)
-        todelete=[]
+    def appGetPidsActive(self, appname):
+        pids = self.appGetPids(appname)
+        todelete = []
         for pid in pids:
             if not self.isPidAlive(pid):
                 todelete.append(pid)
@@ -1879,6 +1905,6 @@ class SystemProcess:
                     todelete.append(pid)
         for item in todelete:
             pids.remove(item)
-        j.core.db.hset("application",appname,j.data.serializer.json.dumps(pids))
+        j.core.db.hset("application", appname, j.data.serializer.json.dumps(pids))
 
         return pids

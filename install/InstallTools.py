@@ -13,76 +13,81 @@ import signal
 import asyncio
 from sys import argv
 from subprocess import Popen, PIPE
-import os, io
+import os
+import io
 import threading
 from threading import Thread, Lock
 import queue
+import os
+# import smtplib
 import re
 import inspect
 
+if sys.platform != 'cygwin':
+    import uvloop
 
 
-class InstallTools:
-    def __init__(self,debug=False):
+class InstallTools():
 
-        self.TMP=tempfile.gettempdir().replace("\\","/")
+    def __init__(self, debug=False):
 
-        self._whoami=None
+        self.TMP = tempfile.gettempdir().replace("\\", "/")
 
-        if platform.system().lower()=="windows":
-            self.TYPE="WIN"
-            self.BASE="%s/"%os.environ["JSBASE"].replace("\\","/")
+        self._whoami = None
 
-        elif platform.system().lower()=="cygwin_nt-10.0" :
-            self.TYPE="WIN"
-            self.BASE="%s/opt/jumpscale8"%os.environ["HOME"]
-            self.VARDIR="%s/optvar"%os.environ["HOME"]
+        if platform.system().lower() == "windows":
+            self.TYPE = "WIN"
+            self.BASE = "%s/" % os.environ["JSBASE"].replace("\\", "/")
+
+        elif platform.system().lower() == "cygwin_nt-10.0":
+            self.TYPE = "WIN"
+            self.BASE = "%s/opt/jumpscale8" % os.environ["HOME"]
+            self.VARDIR = "%s/optvar" % os.environ["HOME"]
 
         elif sys.platform.startswith("darwin"):
-            self.TYPE="OSX"
-            self.BASE="%s/opt/jumpscale8"%os.environ["HOME"]
-            self.VARDIR="%s/optvar"%os.environ["HOME"]
+            self.TYPE = "OSX"
+            self.BASE = "%s/opt/jumpscale8" % os.environ["HOME"]
+            self.VARDIR = "%s/optvar" % os.environ["HOME"]
 
         elif sys.platform.startswith("linux"):
-            self.BASE=os.environ.get("JSBASE", "/opt/jumpscale8")
-            self.TYPE="LINUX"
-            self.VARDIR="/optvar/"
+            self.BASE = os.environ.get("JSBASE", "/opt/jumpscale8")
+            self.TYPE = "LINUX"
+            self.VARDIR = "/optvar/"
             # self.TYPE=platform.linux_distribution(full_distribution_name=0)[0].upper()
             # if self.TYPE!="UBUNTU":
             #     raise RuntimeError("Jumpscale only supports windows 7+, macosx, ubuntu 12+")
         else:
             raise RuntimeError("Jumpscale only supports windows 7+, macosx, ubuntu 12+")
 
-        self.TYPE+=platform.architecture()[0][:2]
+        self.TYPE += platform.architecture()[0][:2]
 
         if "JSBASE" in os.environ:
-            self.BASE=os.environ["JSBASE"]
+            self.BASE = os.environ["JSBASE"]
 
         if "CODEDIR" in os.environ:
-            self.CODEDIR=os.environ["CODEDIR"]
+            self.CODEDIR = os.environ["CODEDIR"]
         else:
             if self.TYPE.startswith("WIN"):
-                self.CODEDIR="%s/opt/code"%os.environ["HOME"]
+                self.CODEDIR = "%s/opt/code" % os.environ["HOME"]
             elif self.TYPE.startswith("OSX"):
-                self.CODEDIR="%s/opt/code"%os.environ["HOME"]
+                self.CODEDIR = "%s/opt/code" % os.environ["HOME"]
             else:
-                self.CODEDIR="/opt/code"
+                self.CODEDIR = "/opt/code"
 
-        while self.BASE[-1]=="/":
-            self.BASE=self.BASE[:-1]
-        self.BASE+="/"
+        while self.BASE[-1] == "/":
+            self.BASE = self.BASE[:-1]
+        self.BASE += "/"
 
-        self.debug=debug
+        self.debug = debug
 
-        self._extratools=False
+        self._extratools = False
 
         # if str(sys.excepthook).find("apport_excepthook")!=-1:
-            #if we get here it means is std python excepthook (I hope)
-            # print ("OUR OWN EXCEPTHOOK")
-            # sys.excepthook = self.excepthook
+        # if we get here it means is std python excepthook (I hope)
+        # print ("OUR OWN EXCEPTHOOK")
+        # sys.excepthook = self.excepthook
 
         # self._initSSH_ENV()
-
 
     # def excepthook(self, ttype, exceptionObject, tb):
 
@@ -99,35 +104,35 @@ class InstallTools:
     #     from IPython import embed
     #     print((44))
     #     embed()
-    #     #@todo not working yet
+    #     #TODO: not working yet
 
-    def log(self,msg, level=None):
+    def log(self, msg, level=None):
         if self.debug:
             print(msg)
 
     def getBinDirSystem(self):
         return "/usr/local/bin/"
 
-    def getPythonLibSystem(self,jumpscale=False):
+    def getPythonLibSystem(self, jumpscale=False):
         PYTHONVERSION = platform.python_version()
-        do=self
+        do = self
         if do.TYPE.startswith("OSX"):
-            destjs="/usr/local/lib/python3.5/site-packages"
+            destjs = "/usr/local/lib/python3.5/site-packages"
         elif do.TYPE.startswith("WIN"):
             destjs = "/usr/lib/python3.4/site-packages"
         else:
             if PYTHONVERSION == '2':
-                destjs ="/usr/local/lib/python/dist-packages"
+                destjs = "/usr/local/lib/python/dist-packages"
             else:
-                destjs ="/usr/local/lib/python3.5/dist-packages"
+                destjs = "/usr/local/lib/python3.5/dist-packages"
 
         if jumpscale:
-            destjs+="/JumpScale/"
+            destjs += "/JumpScale/"
 
         self.createDir(destjs)
         return destjs
 
-    def readFile(self,filename):
+    def readFile(self, filename):
         """Read a file and get contents of that file
         @param filename: string (filename to open for reading )
         @rtype: string representing the file contents
@@ -136,48 +141,47 @@ class InstallTools:
             data = fp.read()
         return data
 
-    def touch(self,path):
-        self.writeFile(path,"")
+    def touch(self, path):
+        self.writeFile(path, "")
 
-    def textstrip(self,content,ignorecomments=False):
-        #remove all spaces at beginning & end of line when relevant
+    def textstrip(self, content, ignorecomments=False):
+        # remove all spaces at beginning & end of line when relevant
 
-        #find generic prepend for full file
-        minchars=9999
+        # find generic prepend for full file
+        minchars = 9999
         prechars = 0
         for line in content.split("\n"):
-            if line.strip()=="":
+            if line.strip() == "":
                 continue
             if ignorecomments:
                 if line.strip().startswith('#') and not line.strip().startswith("#!"):
                     continue
-            prechars=len(line)-len(line.lstrip())
+            prechars = len(line) - len(line.lstrip())
             # print ("'%s':%s:%s"%(line,prechars,minchars))
-            if prechars<minchars:
-                minchars=prechars
+            if prechars < minchars:
+                minchars = prechars
 
-        if minchars>0:
-            #remove the prechars
-            content="\n".join([line[minchars:] for line in content.split("\n")])
-
+        if minchars > 0:
+            # remove the prechars
+            content = "\n".join([line[minchars:] for line in content.split("\n")])
 
         return content
 
-    def writeFile(self,path,content,strip=True):
+    def writeFile(self, path, content, strip=True):
 
         self.createDir(self.getDirName(path))
 
         if strip:
-            content=self.textstrip(content,True)
+            content = self.textstrip(content, True)
 
         with open(path, "w") as fo:
             fo.write(content)
 
-    def delete(self,path,force=False):
+    def delete(self, path, force=False):
 
         self.removeSymlink(path)
 
-        if path.strip().rstrip("/") in ["","/","/etc","/root","/usr","/opt","/usr/bin","/usr/sbin",self.CODEDIR]:
+        if path.strip().rstrip("/") in ["", "/", "/etc", "/root", "/usr", "/opt", "/usr/bin", "/usr/sbin", self.CODEDIR]:
             raise RuntimeError('cannot delete protected dirs')
 
         # if not force and path.find(self.CODEDIR)!=-1:
@@ -187,43 +191,43 @@ class InstallTools:
             print(("delete: %s" % path))
         if os.path.exists(path) or os.path.islink(path):
             if os.path.isdir(path):
-                #print "delete dir %s" % path
+                # print "delete dir %s" % path
                 if os.path.islink(path):
                     os.remove(path)
                 else:
                     shutil.rmtree(path)
             else:
-                #print "delete file %s" % path
+                # print "delete file %s" % path
                 os.remove(path)
 
-    def joinPaths(self,*args):
+    def joinPaths(self, *args):
         return os.path.join(*args)
 
-    def copyTree(self, source, dest, keepsymlinks = False, deletefirst = False, \
-        overwriteFiles=True,ignoredir=[".egg-info",".dist-info"],ignorefiles=[".egg-info"],rsync=True,\
-        ssh=False,sshport=22,recursive=True,rsyncdelete=False, createdir=False):
+    def copyTree(self, source, dest, keepsymlinks=False, deletefirst=False,
+                 overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
+                 ssh=False, sshport=22, recursive=True, rsyncdelete=False, createdir=False):
         """
         if ssh format of source or dest is: remoteuser@remotehost:/remote/dir
         """
         if self.debug:
-            print(("copy %s %s" % (source,dest)))
+            print(("copy %s %s" % (source, dest)))
         if not ssh and not self.exists(source):
-            raise RuntimeError("copytree:Cannot find source:%s"%source)
+            raise RuntimeError("copytree:Cannot find source:%s" % source)
         if rsync:
-            excl=""
+            excl = ""
             for item in ignoredir:
-                excl+="--exclude '*%s*/' "%item
+                excl += "--exclude '*%s*/' " % item
             for item in ignorefiles:
-                excl+="--exclude '*%s*' "%item
-            excl+="--exclude '*.pyc' "
-            excl+="--exclude '*.bak' "
-            excl+="--exclude '*__pycache__*' "
+                excl += "--exclude '*%s*' " % item
+            excl += "--exclude '*.pyc' "
+            excl += "--exclude '*.bak' "
+            excl += "--exclude '*__pycache__*' "
 
             if self.isDir(source):
-                if dest[-1]!="/":
-                    dest+="/"
-                if source[-1]!="/":
-                    source+="/"
+                if dest[-1] != "/":
+                    dest += "/"
+                if source[-1] != "/":
+                    source += "/"
                 if ssh:
                     pass
                     # if dest.find(":")!=-1:
@@ -238,7 +242,7 @@ class InstallTools:
                 else:
                     self.createDir(dest)
             if dest.find(':') == -1:  # download
-                    self.createDir(self.getParent(dest))
+                self.createDir(self.getParent(dest))
 
             destpath = dest.split(':')[1] if ':' in dest else dest
 
@@ -259,18 +263,19 @@ class InstallTools:
             if createdir:
                 cmd += "--rsync-path='mkdir -p %s && rsync' " % self.getParent(destpath)
             cmd += " '%s' '%s'" % (source, dest)
-            print (cmd)
-            rc, out, err=self.execute(cmd)
-            print (rc)
-            print (out)
+            print(cmd)
+            rc, out, err = self.execute(cmd)
+            print(rc)
+            print(out)
             return
         else:
-            old_debug=self.debug
-            self.debug=False
-            self._copyTree(source, dest, keepsymlinks, deletefirst, overwriteFiles,ignoredir=ignoredir,ignorefiles=ignorefiles)
-            self.debug=  old_debug
+            old_debug = self.debug
+            self.debug = False
+            self._copyTree(source, dest, keepsymlinks, deletefirst, overwriteFiles,
+                           ignoredir=ignoredir, ignorefiles=ignorefiles)
+            self.debug = old_debug
 
-    def _copyTree(self, src, dst, keepsymlinks = False, deletefirst = False, overwriteFiles=True,ignoredir=[".egg-info","__pycache__"],ignorefiles=[".egg-info"]):
+    def _copyTree(self, src, dst, keepsymlinks=False, deletefirst=False, overwriteFiles=True, ignoredir=[".egg-info", "__pycache__"], ignorefiles=[".egg-info"]):
         """Recursively copy an entire directory tree rooted at src.
         The dst directory may already exist; if not,
         it will be created as well as missing parent directories
@@ -281,13 +286,14 @@ class InstallTools:
         @param overwriteFiles: if True will overwrite files, otherwise will not overwrite when destination exists
         """
 
-        self.log('Copy directory tree from %s to %s'% (src, dst),6)
+        self.log('Copy directory tree from %s to %s' % (src, dst), 6)
         if ((src is None) or (dst is None)):
-            raise TypeError('Not enough parameters passed in system.fs.copyTree to copy directory from %s to %s '% (src, dst))
+            raise TypeError(
+                'Not enough parameters passed in system.fs.copyTree to copy directory from %s to %s ' % (src, dst))
         if self.isDir(src):
-            if ignoredir!=[]:
+            if ignoredir != []:
                 for item in ignoredir:
-                    if src.find(item)!=-1:
+                    if src.find(item) != -1:
                         return
             names = os.listdir(src)
 
@@ -296,46 +302,47 @@ class InstallTools:
 
             errors = []
             for name in names:
-                #is only for the name
-                name2=name
+                # is only for the name
+                name2 = name
 
                 srcname = self.joinPaths(src, name)
                 dstname = self.joinPaths(dst, name2)
-                if deletefirst and self.exists( dstname ):
-                    if self.isDir( dstname , False ) :
-                        self.removeDirTree( dstname )
+                if deletefirst and self.exists(dstname):
+                    if self.isDir(dstname, False):
+                        self.removeDirTree(dstname)
                     if self.isLink(dstname):
-                        self.unlink( dstname )
+                        self.unlink(dstname)
 
                 if keepsymlinks and self.isLink(srcname):
                     linkto = self.readLink(srcname)
                     # self.symlink(linkto, dstname)#, overwriteFiles)
                     try:
-                        os.symlink(linkto,dstname)
+                        os.symlink(linkto, dstname)
                     except:
                         pass
-                        #@todo very ugly change
+                        # TODO: very ugly change
                 elif self.isDir(srcname):
-                    #print "1:%s %s"%(srcname,dstname)
-                    self.copyTree(srcname, dstname, keepsymlinks, deletefirst,overwriteFiles=overwriteFiles ,ignoredir=ignoredir)
+                    # print "1:%s %s"%(srcname,dstname)
+                    self.copyTree(srcname, dstname, keepsymlinks, deletefirst,
+                                  overwriteFiles=overwriteFiles, ignoredir=ignoredir)
                 else:
-                    #print "2:%s %s"%(srcname,dstname)
-                    extt=self.getFileExtension(srcname)
-                    if extt=="pyc" or extt=="egg-info":
+                    # print "2:%s %s"%(srcname,dstname)
+                    extt = self.getFileExtension(srcname)
+                    if extt == "pyc" or extt == "egg-info":
                         continue
-                    if ignorefiles!=[]:
+                    if ignorefiles != []:
                         for item in ignorefiles:
-                            if srcname.find(item)!=-1:
+                            if srcname.find(item) != -1:
                                 continue
                     self.copyFile(srcname, dstname, deletefirst=overwriteFiles)
         else:
-            raise RuntimeError('Source path %s in system.fs.copyTree is not a directory'% src)
+            raise RuntimeError('Source path %s in system.fs.copyTree is not a directory' % src)
 
-    def copyFile(self,source,dest,deletefirst=False,skipIfExists=False,makeExecutable=False):
+    def copyFile(self, source, dest, deletefirst=False, skipIfExists=False, makeExecutable=False):
         """
         """
         if self.isDir(dest):
-            dest=self.joinPaths(dest,self.getBaseName(source))
+            dest = self.joinPaths(dest, self.getBaseName(source))
 
         if skipIfExists:
             if self.exists(dest):
@@ -344,31 +351,31 @@ class InstallTools:
         if deletefirst:
             self.delete(dest)
         if self.debug:
-            print(("copy %s %s" % (source,dest)))
+            print(("copy %s %s" % (source, dest)))
 
-        shutil.copy(source,dest)
+        shutil.copy(source, dest)
 
         if makeExecutable:
-            self.chmod(dest,0o770)
+            self.chmod(dest, 0o770)
 
-    def createDir(self,path):
+    def createDir(self, path):
         if not os.path.exists(path) and not os.path.islink(path):
             os.makedirs(path)
 
-    def changeDir(self, path,create=False):
+    def changeDir(self, path, create=False):
         """Changes Current Directory
         @param path: string (Directory path to be changed to)
         """
-        self.log('Changing directory to: %s'%path,6)
+        self.log('Changing directory to: %s' % path, 6)
         if create:
             self.createDir(path)
         if self.exists(path):
             if self.isDir(path):
                 os.chdir(path)
             else:
-                raise ValueError("Path: %s in system.fs.changeDir is not a Directory"% path)
+                raise ValueError("Path: %s in system.fs.changeDir is not a Directory" % path)
         else:
-            raise RuntimeError("Path: %s in system.fs.changeDir does not exist"% path)
+            raise RuntimeError("Path: %s in system.fs.changeDir does not exist" % path)
 
     def isDir(self, path, followSoftlink=False):
         """Check if the specified Directory path exists
@@ -376,52 +383,52 @@ class InstallTools:
         @param followSoftlink: boolean
         @rtype: boolean (True if directory exists)
         """
-        if self.isLink(path) :
+        if self.isLink(path):
             if not followSoftlink:
                 return False
             else:
-                link=self.readLink(path)
+                link = self.readLink(path)
                 return self.isDir(link)
         else:
             return os.path.isdir(path)
 
-    def isExecutable(self,path):
-         stat.S_IXUSR & statobj.st_mode
+    def isExecutable(self, path):
+        stat.S_IXUSR & statobj.st_mode
 
-    def isFile(self, path, followSoftlink = False):
+    def isFile(self, path, followSoftlink=False):
         """Check if the specified file exists for the given path
         @param path: string
         @param followSoftlink: boolean
         @rtype: boolean (True if file exists for the given path)
         """
-        if self.isLink(path) :
+        if self.isLink(path):
             if not followSoftlink:
                 return False
             else:
-                link=self.readLink(path)
+                link = self.readLink(path)
                 return self.isFile(link)
         else:
             return os.path.isfile(path)
 
-    def isLink(self, path,checkJunction=False):
+    def isLink(self, path, checkJunction=False):
         """Check if the specified path is a link
         @param path: string
         @rtype: boolean (True if the specified path is a link)
         """
-        if path[-1]==os.sep:
-            path=path[:-1]
+        if path[-1] == os.sep:
+            path = path[:-1]
         if (path is None):
             raise TypeError('Link path is None in system.fs.isLink')
 
         if checkJunction and self.isWindows():
-            cmd="junction %s" % path
+            cmd = "junction %s" % path
             try:
                 rc, result, err = self.execute(cmd)
             except Exception as e:
-                raise RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s."%cmd)
+                raise RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s." % cmd)
             if rc != 0:
-                raise RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s."%cmd)
-            if result.lower().find("substitute name")!=-1:
+                raise RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s." % cmd)
+            if result.lower().find("substitute name") != -1:
                 return True
             else:
                 return False
@@ -432,88 +439,88 @@ class InstallTools:
         # self.log('path %s is not a link'%path,8)
         return False
 
-    def list(self,path):
+    def list(self, path):
         # self.log("list:%s"%path)
         if(self.isDir(path)):
-            s=["%s/%s"%(path,item) for item in os.listdir(path)]
+            s = ["%s/%s" % (path, item) for item in os.listdir(path)]
             s.sort()
             return s
         elif(self.isLink(path)):
-            link=self.readLink(path)
+            link = self.readLink(path)
             return self.list(link)
         else:
-            raise ValueError("Specified path: %s is not a Directory in self.listDir"% path)
+            raise ValueError("Specified path: %s is not a Directory in self.listDir" % path)
 
-    def exists(self,path):
+    def exists(self, path):
         return os.path.exists(path)
 
-    def findDependencies(self,path,deps={}):
-        excl=["libc.so","libpthread.so","libutil.so"]
-        out=self.installtools.execute("ldd %s"%path)
-        result=[]
-        for item in [item.strip() for item in out.split("\n") if item.strip()!=""]:
-            if item.find("=>")!=-1:
-                link=item.split("=>")[1].strip()
-                link=link.split("(")[0].strip()
+    def findDependencies(self, path, deps={}):
+        excl = ["libc.so", "libpthread.so", "libutil.so"]
+        out = self.installtools.execute("ldd %s" % path)
+        result = []
+        for item in [item.strip() for item in out.split("\n") if item.strip() != ""]:
+            if item.find("=>") != -1:
+                link = item.split("=>")[1].strip()
+                link = link.split("(")[0].strip()
                 if self.exists(link):
-                    name=os.path.basename(link)
+                    name = os.path.basename(link)
                     if name not in deps:
                         print(link)
-                        deps[name]=link
-                        deps=self.findDependencies(link)
+                        deps[name] = link
+                        deps = self.findDependencies(link)
         return deps
 
-    def copyDependencies(self,path,dest):
+    def copyDependencies(self, path, dest):
         self.installtools.createDir(dest)
-        deps=self.findDependencies(path)
+        deps = self.findDependencies(path)
         for name in list(deps.keys()):
-            path=deps[name]
-            self.installtools.copydeletefirst(path,"%s/%s"%(dest,name))
+            path = deps[name]
+            self.installtools.copydeletefirst(path, "%s/%s" % (dest, name))
 
-    def symlink(self,src,dest,delete=False):
+    def symlink(self, src, dest, delete=False):
         """
         dest is where the link will be created pointing to src
         """
         if self.debug:
-            print(("symlink: src:%s dest(islink):%s" % (src,dest)))
+            print(("symlink: src:%s dest(islink):%s" % (src, dest)))
 
         if self.isLink(dest):
             self.removeSymlink(dest)
 
         if delete:
-            if self.TYPE=="WIN":
+            if self.TYPE == "WIN":
                 self.removeSymlink(dest)
                 self.delete(dest)
             else:
                 self.delete(dest)
 
-        if self.TYPE=="WIN":
-            cmd="junction %s %s 2>&1 > null" % (dest,src)
+        if self.TYPE == "WIN":
+            cmd = "junction %s %s 2>&1 > null" % (dest, src)
             os.system(cmd)
             #raise RuntimeError("not supported on windows yet")
         else:
-            dest=dest.rstrip("/")
-            src=src.rstrip("/")
+            dest = dest.rstrip("/")
+            src = src.rstrip("/")
             if not self.exists(src):
-                raise RuntimeError("could not find src for link:%s"%src)
+                raise RuntimeError("could not find src for link:%s" % src)
             if not self.exists(dest):
-                os.symlink(src,dest)
+                os.symlink(src, dest)
 
-    def symlinkFilesInDir(self,src,dest,delete=True, includeDirs=False):
+    def symlinkFilesInDir(self, src, dest, delete=True, includeDirs=False):
         if includeDirs:
-            items = self.listFilesAndDirsInDir(src, recursive=False,followSymlinks=False,listSymlinks=False)
+            items = self.listFilesAndDirsInDir(src, recursive=False, followSymlinks=False, listSymlinks=False)
         else:
-            items = self.listFilesInDir(src, recursive=False,followSymlinks=True,listSymlinks=True)
+            items = self.listFilesInDir(src, recursive=False, followSymlinks=True, listSymlinks=True)
         for item in items:
-            dest2="%s/%s"%(dest,self.getBaseName(item))
-            dest2=dest2.replace("//","/")
-            print(("link %s:%s"%(item,dest2)))
-            self.symlink(item,dest2,delete=delete)
+            dest2 = "%s/%s" % (dest, self.getBaseName(item))
+            dest2 = dest2.replace("//", "/")
+            print(("link %s:%s" % (item, dest2)))
+            self.symlink(item, dest2, delete=delete)
 
-    def removeSymlink(self,path):
-        if self.TYPE=="WIN":
+    def removeSymlink(self, path):
+        if self.TYPE == "WIN":
             try:
-                cmd="junction -d %s 2>&1 > null" % (path)
+                cmd = "junction -d %s 2>&1 > null" % (path)
                 print(cmd)
                 os.system(cmd)
             except Exception as e:
@@ -530,24 +537,24 @@ class InstallTools:
         try:
             return os.path.basename(path.rstrip(os.path.sep))
         except Exception as e:
-            raise RuntimeError('Failed to get base name of the given path: %s, Error: %s'% (path,str(e)))
+            raise RuntimeError('Failed to get base name of the given path: %s, Error: %s' % (path, str(e)))
 
-    def checkDirOrLinkToDir(self,fullpath):
+    def checkDirOrLinkToDir(self, fullpath):
         """
         check if path is dir or link to a dir
         """
-        if fullpath==None or fullpath.strip=="":
+        if fullpath == None or fullpath.strip == "":
             raise RuntimeError("path cannot be empty")
 
         if not self.isLink(fullpath) and os.path.isdir(fullpath):
             return True
         if self.isLink(fullpath):
-            link=self.readLink(fullpath)
+            link = self.readLink(fullpath)
             if self.isDir(link):
                 return True
         return False
 
-    def getDirName(self, path,lastOnly=False,levelsUp=None):
+    def getDirName(self, path, lastOnly=False, levelsUp=None):
         """
         Return a directory name from pathname path.
         @param path the path to find a directory within
@@ -560,27 +567,28 @@ class InstallTools:
         # self.log('Get directory name of path: %s' % path,9)
         if path is None:
             raise TypeError('Path is not passed in system.fs.getDirName')
-        dname=os.path.dirname(path)
-        dname=dname.replace("/",os.sep)
-        dname=dname.replace("//",os.sep)
-        dname=dname.replace("\\",os.sep)
+        dname = os.path.dirname(path)
+        dname = dname.replace("/", os.sep)
+        dname = dname.replace("//", os.sep)
+        dname = dname.replace("\\", os.sep)
         if lastOnly:
-            dname=dname.split(os.sep)[-1]
+            dname = dname.split(os.sep)[-1]
             return dname
-        if levelsUp!=None:
-            parts=dname.split(os.sep)
-            if len(parts)-levelsUp>0:
-                return parts[len(parts)-levelsUp-1]
+        if levelsUp != None:
+            parts = dname.split(os.sep)
+            if len(parts) - levelsUp > 0:
+                return parts[len(parts) - levelsUp - 1]
             else:
-                raise RuntimeError ("Cannot find part of dir %s levels up, path %s is not long enough" % (levelsUp,path))
-        return dname+os.sep
+                raise RuntimeError("Cannot find part of dir %s levels up, path %s is not long enough" %
+                                   (levelsUp, path))
+        return dname + os.sep
 
     def readLink(self, path):
         """Works only for unix
         Return a string representing the path to which the symbolic link points.
         """
-        while path[-1]=="/" or path[-1]=="\\":
-            path=path[:-1]
+        while path[-1] == "/" or path[-1] == "\\":
+            path = path[:-1]
         # self.log('Read link with path: %s'%path,8)
         if path is None:
             raise TypeError('Path is not passed in system.fs.readLink')
@@ -589,20 +597,20 @@ class InstallTools:
         try:
             return os.readlink(path)
         except Exception as e:
-            raise RuntimeError('Failed to read link with path: %s \nERROR: %s'%(path, str(e)))
+            raise RuntimeError('Failed to read link with path: %s \nERROR: %s' % (path, str(e)))
 
-    def removeLinks(self,path):
+    def removeLinks(self, path):
         """
         find all links & remove
         """
         if not self.exists(path):
             return
-        items=self._listAllInDir(path=path, recursive=True, followSymlinks=False,listSymlinks=True)
-        items=[item for item in items[0] if self.isLink(item)]
+        items = self._listAllInDir(path=path, recursive=True, followSymlinks=False, listSymlinks=True)
+        items = [item for item in items[0] if self.isLink(item)]
         for item in items:
             self.unlink(item)
 
-    def _listInDir(self, path,followSymlinks=True):
+    def _listInDir(self, path, followSymlinks=True):
         """returns array with dirs & files in directory
         @param path: string (Directory path to list contents under)
         """
@@ -613,41 +621,41 @@ class InstallTools:
                 names = os.listdir(path)
                 return names
             else:
-                raise ValueError("Specified path: %s is not a Directory in system.fs.listDir"% path)
+                raise ValueError("Specified path: %s is not a Directory in system.fs.listDir" % path)
         else:
-            raise RuntimeError("Specified path: %s does not exist in system.fs.listDir"% path)
+            raise RuntimeError("Specified path: %s does not exist in system.fs.listDir" % path)
 
-    def listDirsInDir(self,path,recursive=False,dirNameOnly=False,findDirectorySymlinks=True):
+    def listDirsInDir(self, path, recursive=False, dirNameOnly=False, findDirectorySymlinks=True):
         """ Retrieves list of directories found in the specified directory
         @param path: string represents directory path to search in
         @rtype: list
         """
         # self.log('List directories in directory with path: %s, recursive = %s' % (path, str(recursive)),9)
 
-        #if recursive:
-            #if not self.exists(path):
-                #raise ValueError('Specified path: %s does not exist' % path)
-            #if not self.isDir(path):
-                #raise ValueError('Specified path: %s is not a directory' % path)
-            #result = []
-            #os.path.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
-            #return result
-        if path==None or path.strip=="":
+        # if recursive:
+        # if not self.exists(path):
+        #raise ValueError('Specified path: %s does not exist' % path)
+        # if not self.isDir(path):
+        #raise ValueError('Specified path: %s is not a directory' % path)
+        #result = []
+        #os.path.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
+        # return result
+        if path == None or path.strip == "":
             raise RuntimeError("path cannot be empty")
-        files=self._listInDir(path,followSymlinks=True)
-        filesreturn=[]
+        files = self._listInDir(path, followSymlinks=True)
+        filesreturn = []
         for file in files:
-            fullpath=os.path.join(path,file)
+            fullpath = os.path.join(path, file)
             if (findDirectorySymlinks and self.checkDirOrLinkToDir(fullpath)) or self.isDir(fullpath):
                 if dirNameOnly:
                     filesreturn.append(file)
                 else:
                     filesreturn.append(fullpath)
                 if recursive:
-                    filesreturn.extend(self.listDirsInDir(fullpath,recursive,dirNameOnly,findDirectorySymlinks))
+                    filesreturn.extend(self.listDirsInDir(fullpath, recursive, dirNameOnly, findDirectorySymlinks))
         return filesreturn
 
-    def listFilesInDir(self, path, recursive=False, filter=None, minmtime=None, maxmtime=None,depth=None, case_sensitivity='os',exclude=[],followSymlinks=True,listSymlinks=False):
+    def listFilesInDir(self, path, recursive=False, filter=None, minmtime=None, maxmtime=None, depth=None, case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=False):
         """Retrieves list of files found in the specified directory
         @param path:       directory path to search in
         @type  path:       string
@@ -663,17 +671,18 @@ class InstallTools:
         @Param exclude: list of std filters if matches then exclude
         @rtype: list
         """
-        if depth!=None:
-            depth=int(depth)
+        if depth != None:
+            depth = int(depth)
         # self.log('List files in directory with path: %s' % path,9)
-        if depth==0:
-            depth=None
+        if depth == 0:
+            depth = None
         # if depth != None:
         #     depth+=1
-        filesreturn,depth=self._listAllInDir(path, recursive, filter, minmtime, maxmtime,depth,type="f", case_sensitivity=case_sensitivity,exclude=exclude,followSymlinks=followSymlinks,listSymlinks=listSymlinks)
+        filesreturn, depth = self._listAllInDir(path, recursive, filter, minmtime, maxmtime, depth, type="f",
+                                                case_sensitivity=case_sensitivity, exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
         return filesreturn
 
-    def listFilesAndDirsInDir(self, path, recursive=False, filter=None, minmtime=None, maxmtime=None,depth=None,type="fd",followSymlinks=True,listSymlinks=False):
+    def listFilesAndDirsInDir(self, path, recursive=False, filter=None, minmtime=None, maxmtime=None, depth=None, type="fd", followSymlinks=True, listSymlinks=False):
         """Retrieves list of files found in the specified directory
         @param path:       directory path to search in
         @type  path:       string
@@ -689,17 +698,18 @@ class InstallTools:
         @param type is string with f & d inside (f for when to find files, d for when to find dirs)
         @rtype: list
         """
-        if depth!=None:
-            depth=int(depth)
-        self.log('List files in directory with path: %s' % path,9)
-        if depth==0:
-            depth=None
+        if depth != None:
+            depth = int(depth)
+        self.log('List files in directory with path: %s' % path, 9)
+        if depth == 0:
+            depth = None
         # if depth != None:
         #     depth+=1
-        filesreturn,depth=self._listAllInDir(path, recursive, filter, minmtime, maxmtime,depth,type=type,followSymlinks=followSymlinks,listSymlinks=listSymlinks)
+        filesreturn, depth = self._listAllInDir(
+            path, recursive, filter, minmtime, maxmtime, depth, type=type, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
         return filesreturn
 
-    def _listAllInDir(self, path, recursive, filter=None, minmtime=None, maxmtime=None,depth=None,type="df", case_sensitivity='os',exclude=[],followSymlinks=True,listSymlinks=True):
+    def _listAllInDir(self, path, recursive, filter=None, minmtime=None, maxmtime=None, depth=None, type="df", case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=True):
         """
         # There are 3 possible options for case-sensitivity for file names
         # 1. `os`: the same behavior as the OS
@@ -721,10 +731,9 @@ class InstallTools:
         for direntry in dircontent:
             fullpath = self.joinPaths(path, direntry)
 
-
             if followSymlinks:
                 if self.isLink(fullpath):
-                    fullpath=self.readLink(fullpath)
+                    fullpath = self.readLink(fullpath)
 
             if self.isFile(fullpath) and "f" in type:
                 includeFile = False
@@ -737,65 +746,66 @@ class InstallTools:
                     else:
                         includeFile = True
                 if includeFile:
-                    if exclude!=[]:
+                    if exclude != []:
                         for excludeItem in exclude:
                             if matcher(direntry, excludeItem):
-                                includeFile=False
+                                includeFile = False
                     if includeFile:
                         filesreturn.append(fullpath)
             elif self.isDir(fullpath):
                 if "d" in type:
-                    if not(listSymlinks==False and self.isLink(fullpath)):
+                    if not(listSymlinks == False and self.isLink(fullpath)):
                         filesreturn.append(fullpath)
                 if recursive:
-                    if depth!=None and depth!=0:
-                        depth=depth-1
-                    if depth==None or depth!=0:
-                        exclmatch=False
-                        if exclude!=[]:
+                    if depth != None and depth != 0:
+                        depth = depth - 1
+                    if depth == None or depth != 0:
+                        exclmatch = False
+                        if exclude != []:
                             for excludeItem in exclude:
                                 if matcher(fullpath, excludeItem):
-                                    exclmatch=True
-                        if exclmatch==False:
-                            if not(followSymlinks==False and self.isLink(fullpath)):
-                                r,depth = self._listAllInDir(fullpath, recursive, filter, minmtime, maxmtime,depth=depth,type=type,exclude=exclude,followSymlinks=followSymlinks,listSymlinks=listSymlinks)
+                                    exclmatch = True
+                        if exclmatch == False:
+                            if not(followSymlinks == False and self.isLink(fullpath)):
+                                r, depth = self._listAllInDir(fullpath, recursive, filter, minmtime, maxmtime, depth=depth,
+                                                              type=type, exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
                                 if len(r) > 0:
                                     filesreturn.extend(r)
-            elif self.isLink(fullpath) and followSymlinks==False and listSymlinks:
+            elif self.isLink(fullpath) and followSymlinks == False and listSymlinks:
                 filesreturn.append(fullpath)
 
-        return filesreturn,depth
+        return filesreturn, depth
 
     def getParent(self, path):
         """
         Returns the parent of the path:
         /dir1/dir2/file_or_dir -> /dir1/dir2/
         /dir1/dir2/            -> /dir1/
-        @todo why do we have 2 implementations which are almost the same see getParentDirName()
+        TODO: why do we have 2 implementations which are almost the same see getParentDirName()
         """
         parts = path.split(os.sep)
         if parts[-1] == '':
-            parts=parts[:-1]
-        parts=parts[:-1]
-        if parts==['']:
+            parts = parts[:-1]
+        parts = parts[:-1]
+        if parts == ['']:
             return os.sep
         return os.sep.join(parts)
 
-    def getFileExtension(self,path):
-        extcand=path.split(".")
-        if len(extcand)>0:
-            ext=extcand[-1]
+    def getFileExtension(self, path):
+        extcand = path.split(".")
+        if len(extcand) > 0:
+            ext = extcand[-1]
         else:
-            ext=""
+            ext = ""
         return ext
 
-    def chown(self,path,user):
+    def chown(self, path, user):
 
         from pwd import getpwnam
 
         getpwnam(user)[2]
-        uid=getpwnam(user).pw_uid
-        gid=getpwnam(user).pw_gid
+        uid = getpwnam(user).pw_uid
+        gid = getpwnam(user).pw_gid
         os.chown(path, uid, gid)
         for root, dirs, files in os.walk(path):
             for ddir in dirs:
@@ -803,47 +813,47 @@ class InstallTools:
                 try:
                     os.chown(path, uid, gid)
                 except Exception as e:
-                    if str(e).find("No such file or directory")==-1:
-                        raise RuntimeError("%s"%e)
+                    if str(e).find("No such file or directory") == -1:
+                        raise RuntimeError("%s" % e)
             for file in files:
                 path = os.path.join(root, file)
                 try:
                     os.chown(path, uid, gid)
                 except Exception as e:
-                    if str(e).find("No such file or directory")==-1:
-                        raise RuntimeError("%s"%e)
+                    if str(e).find("No such file or directory") == -1:
+                        raise RuntimeError("%s" % e)
 
-    def chmod(self,path,permissions):
+    def chmod(self, path, permissions):
         """
         @param permissions e.g. 0o660 (USE OCTAL !!!)
         """
-        os.chmod(path,permissions)
+        os.chmod(path, permissions)
         for root, dirs, files in os.walk(path):
             for ddir in dirs:
                 path = os.path.join(root, ddir)
                 try:
-                    os.chmod(path,permissions)
+                    os.chmod(path, permissions)
                 except Exception as e:
-                    if str(e).find("No such file or directory")==-1:
-                        raise RuntimeError("%s"%e)
+                    if str(e).find("No such file or directory") == -1:
+                        raise RuntimeError("%s" % e)
 
             for file in files:
                 path = os.path.join(root, file)
                 try:
-                    os.chmod(path,permissions)
+                    os.chmod(path, permissions)
                 except Exception as e:
-                    if str(e).find("No such file or directory")==-1:
-                        raise RuntimeError("%s"%e)
+                    if str(e).find("No such file or directory") == -1:
+                        raise RuntimeError("%s" % e)
 
-    def chdir(self,ddir=""):
+    def chdir(self, ddir=""):
         """
         if ddir=="" then will go to tmpdir
         """
-        if ddir=="":
-            ddir=self.TMP
+        if ddir == "":
+            ddir = self.TMP
         os.chdir(ddir)
 
-    #########NON FS
+    # NON FS
 
     def download(self, url, to="", overwrite=True, retry=3, timeout=0, login="", passwd="", minspeed=0, multithread=False, curl=False):
         """
@@ -857,12 +867,13 @@ class InstallTools:
             else:
                 handle = urlopen(url, timeout=timeout)
             nr = 0
-            while nr < retry+1:
+            while nr < retry + 1:
                 try:
                     with open(to, 'wb') as out:
                         while True:
                             data = handle.read(1024)
-                            if len(data) == 0: break
+                            if len(data) == 0:
+                                break
                             out.write(data)
                     handle.close()
                     out.close()
@@ -880,35 +891,35 @@ class InstallTools:
                     handle = urlopen(url)
                     nr += 1
 
-
         # os.chdir(self.TMP)
         print(('Downloading %s ' % (url)))
-        if to=="":
-            to=self.TMP+"/"+url.replace("\\","/").split("/")[-1]
+        if to == "":
+            to = self.TMP + "/" + url.replace("\\", "/").split("/")[-1]
 
         if overwrite:
             if self.exists(to):
                 self.delete(to)
-                self.delete("%s.downloadok"%to)
+                self.delete("%s.downloadok" % to)
         else:
-            if self.exists(to) and self.exists("%s.downloadok"%to):
+            if self.exists(to) and self.exists("%s.downloadok" % to):
                 # print "NO NEED TO DOWNLOAD WAS DONE ALREADY"
                 return to
 
         self.createDir(self.getDirName(to))
 
         if curl and self.checkInstalled("curl"):
-            minspeed=0
-            if minspeed!=0:
-                minsp="-y %s -Y 600"%(minspeed*1024)
+            minspeed = 0
+            if minspeed != 0:
+                minsp = "-y %s -Y 600" % (minspeed * 1024)
             else:
-                minsp=""
+                minsp = ""
             if login:
-                user="--user %s:%s "%(login,passwd)
+                user = "--user %s:%s " % (login, passwd)
             else:
-                user=""
+                user = ""
 
-            cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (url, to, user, minsp, retry, timeout)
+            cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (
+                url, to, user, minsp, retry, timeout)
             if self.exists(to):
                 cmd += " -C -"
             print(cmd)
@@ -916,7 +927,8 @@ class InstallTools:
             rc, out, err = self.execute(cmd, die=False)
             if rc == 33:  # resume is not support try again withouth resume
                 self.delete(to)
-                cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (url, to, user, minsp, retry, timeout)
+                cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (
+                    url, to, user, minsp, retry, timeout)
                 rc, out, err = self.execute(cmd, die=False)
             if rc:
                 raise RuntimeError("Could not download:{}.\nErrorcode: {}".format(url, rc))
@@ -931,76 +943,78 @@ class InstallTools:
         return to
 
     def isUnix(self):
-        if sys.platform.lower().find("linux")!=-1:
+        if sys.platform.lower().find("linux") != -1:
             return True
         return False
 
     def isWindows(self):
-        if sys.platform.startswith("win")==1:
+        if sys.platform.startswith("win") == 1:
             return True
         return False
 
-    def executeBashScript(self,content="",path=None,die=True,remote=None,sshport=22, showout=True, outputStderr=True, sshkey=""):
+    def executeBashScript(self, content="", path=None, die=True, remote=None, sshport=22, showout=True, outputStderr=True, sshkey=""):
         """
         @param remote can be ip addr or hostname of remote, if given will execute cmds there
         """
-        if path!=None:
-            content=self.readFile(path)
-        if content[-1]!="\n":
-            content+="\n"
+        if path != None:
+            content = self.readFile(path)
+        if content[-1] != "\n":
+            content += "\n"
 
-        if remote==None:
-            tmppath=self.getTmpPath("")
-            content="cd %s\n%s"%(tmppath,content)
+        if remote == None:
+            tmppath = self.getTmpPath("")
+            content = "cd %s\n%s" % (tmppath, content)
         else:
-            content="cd /tmp\n%s"%content
+            content = "cd /tmp\n%s" % content
 
         if die:
-            content="set -ex\n%s"%content
+            content = "set -ex\n%s" % content
 
-        path2=self.getTmpPath("do.sh")
-        self.writeFile(path2,content,strip=True)
+        path2 = self.getTmpPath("do.sh")
+        self.writeFile(path2, content, strip=True)
 
-        if remote!=None:
-            tmppathdest="/tmp/do.sh"
+        if remote != None:
+            tmppathdest = "/tmp/do.sh"
             if sshkey:
                 if not self.getSSHKeyPathFromAgent(sshkey, die=False):
                     self.execute('ssh-add %s' % sshkey)
                 sshkey = '-i %s ' % sshkey.replace('!', '\!')
-            self.execute("scp %s -oStrictHostKeyChecking=no -P %s %s root@%s:%s "%(sshkey, sshport, path2, remote, tmppathdest), die=die)
-            rc, res, err = self.execute("ssh %s -oStrictHostKeyChecking=no -A -p %s root@%s 'bash %s'" % (sshkey, sshport, remote, tmppathdest), die=die)
+            self.execute("scp %s -oStrictHostKeyChecking=no -P %s %s root@%s:%s " %
+                         (sshkey, sshport, path2, remote, tmppathdest), die=die)
+            rc, res, err = self.execute("ssh %s -oStrictHostKeyChecking=no -A -p %s root@%s 'bash %s'" %
+                                        (sshkey, sshport, remote, tmppathdest), die=die)
         else:
-            rc, res, err = self.execute("bash %s"%path2,die=die,  showout=showout, outputStderr=outputStderr)
+            rc, res, err = self.execute("bash %s" % path2, die=die,  showout=showout, outputStderr=outputStderr)
         return rc, res, err
 
-    def executeCmds(self,cmdstr, showout=True, outputStderr=True,useShell = True,log=True,cwd=None,timeout=120,captureout=True,die=True):
-        rc_=[]
-        out_=""
+    def executeCmds(self, cmdstr, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=120, captureout=True, die=True):
+        rc_ = []
+        out_ = ""
         for cmd in cmdstr.split("\n"):
-            if cmd.strip()=="" or cmd[0]=="#":
+            if cmd.strip() == "" or cmd[0] == "#":
                 continue
-            cmd=cmd.strip()
-            rc, out, err = self.execute(cmd, showout, outputStderr,useShell ,log,cwd,timeout,captureout,die)
+            cmd = cmd.strip()
+            rc, out, err = self.execute(cmd, showout, outputStderr, useShell, log, cwd, timeout, captureout, die)
             rc_.append(str(rc))
-            out_+=out
+            out_ += out
 
-        return rc_,out_
+        return rc_, out_
 
-    def sendmail(self,ffrom,to,subject,msg,smtpuser,smtppasswd,smtpserver="smtp.mandrillapp.com",port=587,html=""):
+    def sendmail(self, ffrom, to, subject, msg, smtpuser, smtppasswd, smtpserver="smtp.mandrillapp.com", port=587, html=""):
         from email.mime.multipart import MIMEMultipart
         from email.mime.text import MIMEText
 
         msg = MIMEMultipart('alternative')
 
         msg['Subject'] = subject
-        msg['From']    =ffrom
-        msg['To']      = to
+        msg['From'] = ffrom
+        msg['To'] = to
 
-        if msg!="":
+        if msg != "":
             part1 = MIMEText(str(msg), 'plain')
             msg.attach(part1)
 
-        if html!="":
+        if html != "":
             part2 = MIMEText(html, 'html')
             msg.attach(part2)
 
@@ -1011,9 +1025,8 @@ class InstallTools:
 
         s.quit()
 
-    def execute(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=None,
-                        captureout=True, die=True, async=False, executor=None):
-
+    def execute(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=1,
+                captureout=True, die=True, async=False, executor=None):
         """
         Execute command
         @param command: Command to be executed
@@ -1022,26 +1035,27 @@ class InstallTools:
         @param useShell: Execute command as a shell command
         @param log:
         @param cwd: If cwd is not None, the function changes the working directory to cwd before executing the child
-        @param timeout: If not None, raise TimeoutError if command execution time > timeout 
+        @param timeout: If not None, raise TimeoutError if command execution time > timeout
         @param captureout: If True, returns output of cmd. Else, it returns empty str
         @param die: If True, raises error if cmd failed. else, fails silently and returns error in the output
         @param async: If true, return Process object. DO CLOSE THE PROCESS AFTER FINISHING BY process.wait()
         @param executor: If not None returns output of executor.execute(....)
-        @return: (returncode, output, error). output and error defaults to empty string 
+        @return: (returncode, output, error). output and error defaults to empty string
         """
 
         if executor:
             return executor.execute(command, die=die, checkok=False, async=async,  showout=True, timeout=timeout)
 
+        executable = '/bin/bash' if useShell else None
+
         if async:
             os.environ["PYTHONUNBUFFERED"] = "1"
             ON_POSIX = 'posix' in sys.builtin_module_names
 
-            proc = Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX, \
-                    shell=useShell, env=os.environ, universal_newlines=True, cwd=cwd, bufsize=0)
+            proc = Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX,
+                         shell=useShell, env=os.environ, universal_newlines=True, cwd=cwd, bufsize=0, executable=executable)
             return proc
-        
-        
+
         @asyncio.coroutine
         def _read_stream(_showout, stream):
             """coroutine to read prints output based on stream"""
@@ -1051,7 +1065,7 @@ class InstallTools:
                 if not line:
                     break
 
-                _line = line.decode('UTF-8').strip()
+                _line = line.decode('UTF-8', errors='replace').strip()
                 if _showout:
                     print(_line)
                 if captureout:
@@ -1060,24 +1074,40 @@ class InstallTools:
 
         @asyncio.coroutine
         def _execute(cmd):
-            out = ''
-            err = ''
-
             # Create subprocess to execute command, and wait until it's created
-            proc = yield from asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+            proc = yield from asyncio.create_subprocess_shell(cmd,
+                                                              stdout=asyncio.subprocess.PIPE,
+                                                              stderr=asyncio.subprocess.PIPE,
+                                                              close_fds=True,
+                                                              executable=executable)
 
             out = yield from _read_stream(showout, proc.stdout)
-            err = yield from _read_stream(showout, proc.stderr)
-            
-            yield from asyncio.wait_for(proc.wait(), timeout)
-            return proc.returncode, out, err
+            err = yield from _read_stream(outputStderr, proc.stderr)
 
-        
-        # Get get and run coroutines using asyncio
-        loop = asyncio.get_event_loop()
-        rc, out, err = loop.run_until_complete(_execute(command))
-        loop.stop()
-        loop.run_forever()
+            try:
+                yield from asyncio.wait_for(proc.wait(), timeout)
+            except asyncio.TimeoutError:
+                if not out and err:
+                    return 124, out, err
+                return 0, out, err
+            else:
+                return proc.returncode, out, err
+
+        if sys.platform != 'cygwin':
+            # Get get and run coroutines using asyncio
+            try:
+                asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+                loop = asyncio.get_event_loop()
+            except Exception:
+                loop = uvloop.new_event_loop()
+                asyncio.set_event_loop(loop)
+            rc, out, err = loop.run_until_complete(_execute(command))
+            loop.close()
+        else:
+            loop = asyncio.get_event_loop()
+            rc, out, err = loop.run_until_complete(_execute(command))
+            loop.stop()
+            loop.run_forever()
 
         if rc > 0 and die:
             if err:
@@ -1087,32 +1117,32 @@ class InstallTools:
 
         return rc, out, err
 
-    def executeInteractive(self,command):
+    def executeInteractive(self, command):
         exitcode = os.system(command)
         return exitcode
 
-    def downloadExpandTarGz(self,url,destdir,deleteDestFirst=True,deleteSourceAfter=True):
+    def downloadExpandTarGz(self, url, destdir, deleteDestFirst=True, deleteSourceAfter=True):
         print((self.getBaseName(url)))
-        tmppath=self.getTmpPath(self.getBaseName(url))
-        self.download(url,tmppath)
-        self.expandTarGz(tmppath,destdir)
+        tmppath = self.getTmpPath(self.getBaseName(url))
+        self.download(url, tmppath)
+        self.expandTarGz(tmppath, destdir)
 
-    def expandTarGz(self,path,destdir,deleteDestFirst=True,deleteSourceAfter=False):
+    def expandTarGz(self, path, destdir, deleteDestFirst=True, deleteSourceAfter=False):
         import gzip
 
-        self.lastdir=os.getcwd()
+        self.lastdir = os.getcwd()
         os.chdir(self.TMP)
-        basename=os.path.basename(path)
-        if basename.find(".tar.gz")==-1:
-            raise RuntimeError("Can only expand a tar gz file now %s"%path)
-        tarfilename=".".join(basename.split(".gz")[:-1])
+        basename = os.path.basename(path)
+        if basename.find(".tar.gz") == -1:
+            raise RuntimeError("Can only expand a tar gz file now %s" % path)
+        tarfilename = ".".join(basename.split(".gz")[:-1])
         self.delete(tarfilename)
 
         if deleteDestFirst:
             self.delete(destdir)
 
-        if self.TYPE=="WIN":
-            cmd="gzip -d %s" % path
+        if self.TYPE == "WIN":
+            cmd = "gzip -d %s" % path
             os.system(cmd)
         else:
             handle = gzip.open(path)
@@ -1132,23 +1162,23 @@ class InstallTools:
             self.delete(path)
 
         os.chdir(self.lastdir)
-        self.lastdir=""
+        self.lastdir = ""
 
-    def getTmpPath(self,filename):
-        return "%s/jumpscaleinstall/%s"%(self.TMP,filename)
+    def getTmpPath(self, filename):
+        return "%s/jumpscaleinstall/%s" % (self.TMP, filename)
 
-    def downloadJumpScaleCore(self,dest):
-        #csid=getLastChangeSetBitbucket()
-        self.download ("https://bitbucket.org/jumpscale/jumpscale-core/get/default.tar.gz","%s/pl6core.tgz"%self.TMP)
-        self.expand("%s/pl6core.tgz"%self.TMP,dest)
+    def downloadJumpScaleCore(self, dest):
+        # csid=getLastChangeSetBitbucket()
+        self.download("https://bitbucket.org/jumpscale/jumpscale-core/get/default.tar.gz", "%s/pl6core.tgz" % self.TMP)
+        self.expand("%s/pl6core.tgz" % self.TMP, dest)
 
     def getPythonSiteConfigPath(self):
-        minl=1000000
-        result=""
+        minl = 1000000
+        result = ""
         for item in sys.path:
-            if len(item)<minl and item.find("python")!=-1:
-                result=item
-                minl=len(item)
+            if len(item) < minl and item.find("python") != -1:
+                result = item
+                minl = len(item)
         return result
 
     def getTimeEpoch(self):
@@ -1157,7 +1187,7 @@ class InstallTools:
         '''
         return int(time.time())
 
-    def rewriteGitRepoUrl(self, url="", login=None, passwd=None,ssh="auto"):
+    def rewriteGitRepoUrl(self, url="", login=None, passwd=None, ssh="auto"):
         """
         Rewrite the url of a git repo with login and passwd if specified
 
@@ -1171,35 +1201,36 @@ class InstallTools:
             (repository_host, repository_type, repository_account, repository_name, repository_url)
         """
 
-        if ssh=="auto":
-            ssh=self.checkSSHAgentAvailable()
+        if ssh == "auto":
+            ssh = self.checkSSHAgentAvailable()
 
         url_pattern_ssh = re.compile('^(git@)(.*?):(.*?)/(.*?)/?$')
-        sshmatch=url_pattern_ssh.match(url)
+        sshmatch = url_pattern_ssh.match(url)
         url_pattern_http = re.compile('^(https?://)(.*?)/(.*?)/(.*?)/?$')
-        httpmatch=url_pattern_http.match(url)
+        httpmatch = url_pattern_http.match(url)
         if not sshmatch:
-            match=httpmatch
+            match = httpmatch
         else:
-            match=sshmatch
+            match = sshmatch
 
         if not match:
-            raise RuntimeError("Url is invalid. Must be in the form of 'http(s)://hostname/account/repo' or 'git@hostname:account/repo'")
+            raise RuntimeError(
+                "Url is invalid. Must be in the form of 'http(s)://hostname/account/repo' or 'git@hostname:account/repo'")
 
         protocol, repository_host, repository_account, repository_name = match.groups()
-        if protocol.startswith("git") and ssh==False:
-            protocol="https://"
+        if protocol.startswith("git") and ssh == False:
+            protocol = "https://"
 
         if not repository_name.endswith('.git'):
             repository_name += '.git'
 
-        if login == 'ssh' or ssh==True:
+        if login == 'ssh' or ssh == True:
             repository_url = 'git@%(host)s:%(account)s/%(name)s' % {
                 'host': repository_host,
                 'account': repository_account,
                 'name': repository_name,
             }
-            protocol="ssh"
+            protocol = "ssh"
 
         elif login and login != 'guest':
             repository_url = '%(protocol)s%(login)s:%(password)s@%(host)s/%(account)s/%(repo)s' % {
@@ -1219,137 +1250,155 @@ class InstallTools:
                 'repo': repository_name,
             }
         if repository_name.endswith(".git"):
-            repository_name=repository_name[:-4]
+            repository_name = repository_name[:-4]
 
         return protocol, repository_host, repository_account, repository_name, repository_url
 
-    def parseGitConfig(self,repopath):
+    def parseGitConfig(self, repopath):
         """
         @param repopath is root path of git repo
         @return (giturl,account,reponame,branch,login,passwd)
         login will be ssh if ssh is used
         login & passwd is only for https
         """
-        path=self.joinPaths(dest,".git","config")
+        path = self.joinPaths(dest, ".git", "config")
         if not self.exists(path=path):
-            raise RuntimeError("cannot find %s"%path)
-        config=self.fileGetContents(path)
-        state="start"
+            raise RuntimeError("cannot find %s" % path)
+        config = self.fileGetContents(path)
+        state = "start"
         for line in config.split("\n"):
-            line2=line.lower().strip()
-            if state=="remote":
+            line2 = line.lower().strip()
+            if state == "remote":
                 if line.startswith("url"):
-                    url=line.split("=",1)[1]
-                    url=url.strip().strip("\"").strip()
-            if line2.find("[remote")!=-1:
-                state="remote"
+                    url = line.split("=", 1)[1]
+                    url = url.strip().strip("\"").strip()
+            if line2.find("[remote") != -1:
+                state = "remote"
             if line2.find("[branch"):
-                branch=line.split(" \"")[1].strip("]\" ").strip("]\" ").strip("]\" ")
+                branch = line.split(" \"")[1].strip("]\" ").strip("]\" ").strip("]\" ")
 
     def whoami(self):
-        if self._whoami!=None:
+        if self._whoami != None:
             return self._whoami
-        rc, result, err =self.execute("whoami",die=False,showout=False, outputStderr=False)
-        if rc>0:
-            #could not start ssh-agent
-            raise RuntimeError("Could not call whoami,\nstdout:%s\nstderr:%s\n"%(result,err))
+        rc, result, err = self.execute("whoami", die=False, showout=False, outputStderr=False)
+        if rc > 0:
+            # could not start ssh-agent
+            raise RuntimeError("Could not call whoami,\nstdout:%s\nstderr:%s\n" % (result, err))
         else:
-            self._whoami=result.strip()
+            self._whoami = result.strip()
         return self._whoami
 
-    def addSSHAgentToBashProfile(self,path=None):
-        if path==None:
-            if "root"==self.whoami():
-                if not self.exists('/root/.bash_profile'):
-                    self.execute('touch /root/.bash_profile')
-                return self.addSSHAgentToBashProfile(path="/root/.bash_profile")
-            path=self.joinPaths(os.environ["HOME"],".bash_profile")
-            self.createDir(path)
-            self.addSSHAgentToBashProfile(path=path)
-        else:
-            content=self.readFile(path)
-            out=""
-            for line in content.split("\n"):
-                if line.find("#JSSSHAGENT")!=-1:
-                    continue
-                if line.find("SSH_AUTH_SOCK")!=-1:
-                    continue
+    def _addSSHAgentToBashProfile(self, path=None):
 
-                out+="%s\n"%line
+        bashprofile_path = os.path.expanduser("~/.bash_profile")
+        if not self.exists(bashprofile_path):
+            self.execute('touch %s' % bashprofile_path)
 
-            out+="\njs 'j.do.loadSSHAgent()' #JSSSHAGENT\n"
-            socketpath="%s/sshagent_socket"%path.replace("/.bash_profile","")
-            # out+="export SSH_AUTH_SOCK=%s \n"%socketpath
-            out+="if [ -v $SSH_AUTH_SOCK ]; then export SSH_AUTH_SOCK=%s ; fi\n"%socketpath
-            out=out.replace("\n\n\n","\n\n")
-            out=out.replace("\n\n\n","\n\n")
-            self.writeFile(path,out)
+        content = self.readFile(bashprofile_path)
+        out = ""
+        for line in content.split("\n"):
+            if line.find("#JSSSHAGENT") != -1:
+                continue
+            if line.find("SSH_AUTH_SOCK") != -1:
+                continue
 
+            out += "%s\n" % line
 
-    def _initSSH_ENV(self,force=False):
+        if "SSH_AUTH_SOCK" in os.environ:
+            print("NO NEED TO ADD SSH_AUTH_SOCK to env")
+            self.writeFile(bashprofile_path, out)
+            return
+
+        # out += "\njs 'j.do._.loadSSHAgent()' #JSSSHAGENT\n"
+        out += "export SSH_AUTH_SOCK=%s" % self._getSSHSocketpath()
+        out = out.replace("\n\n\n", "\n\n")
+        out = out.replace("\n\n\n", "\n\n")
+        self.writeFile(bashprofile_path, out)
+
+    def _initSSH_ENV(self, force=False):
         if force or "SSH_AUTH_SOCK" not in os.environ:
-            os.putenv("SSH_AUTH_SOCK",self._getSSHSocketpath())
-            os.environ["SSH_AUTH_SOCK"]=self._getSSHSocketpath()
+            os.putenv("SSH_AUTH_SOCK", self._getSSHSocketpath())
+            os.environ["SSH_AUTH_SOCK"] = self._getSSHSocketpath()
 
     def _getSSHSocketpath(self):
+
+        if "SSH_AUTH_SOCK" in os.environ:
+            return(os.environ["SSH_AUTH_SOCK"])
 
         # if "root"==self.whoami():
         #     socketpath="/root/sshagent_socket"
         # else:
-        socketpath="%s/sshagent_socket"%os.environ["HOME"]
+        socketpath = "%s/sshagent_socket" % os.environ["HOME"]
         return socketpath
 
-    def loadSSHKeys(self,path=None,duration=3600*24,die=False):
+    def askItemsFromList(self, items, msg=""):
+        if len(items) == 0:
+            return []
+        if msg != "":
+            print(msg)
+        nr = 0
+        for item in items:
+            nr += 1
+            print(" - %s: %s" % (nr, item))
+        print("select item(s) from list (nr or comma separated list of nr, * is all)")
+        item = input()
+        if item.strip() == "*":
+            return items
+        elif item.find(",") != -1:
+            res = []
+            itemsselected = [item.strip() for item in item.split(",") if item.strip() != ""]
+            for item in itemsselected:
+                item = int(item) - 1
+                res.append(items[item])
+            return res
+        else:
+            item = int(item) - 1
+            return [items[item]]
+
+    def loadSSHKeys(self, path=None, duration=3600 * 24, die=False):
         """
+        will see if ssh-agent has been started
+        will check keys in home dir
+        will ask which keys to load
+        will adjust .profile file to make sure that env param is set to allow ssh-agent to find the keys
         """
         # print "loadsshkeys"
 
+        self._addSSHAgentToBashProfile()
 
-        if path!=None:
+        if path is None:
+            path = os.path.expanduser("~/.ssh")
+        self.createDir(path)
 
-            if "SSH_AUTH_SOCK" not in os.environ:
-                self._initSSH_ENV(True)
+        if "SSH_AUTH_SOCK" not in os.environ:
+            self._initSSH_ENV(True)
 
-            keysloaded=self.listSSHKeyFromAgent(keyIncluded=True)
+        self._loadSSHAgent()
 
-            keycontent=self.readFile(path+".pub")
+        keysloaded = [self.getBaseName(item) for item in self.listSSHKeyFromAgent()]
 
-            for path0,inmemcontent in keysloaded:
-                if keycontent.find(inmemcontent)!=-1:
-                    #means key is already loaded
-                    return
+        if self.isDir(path):
+            keysinfs = [self.getBaseName(item).replace(".pub", "") for item in self.listFilesInDir(
+                path, filter="*.pub") if self.exists(item.replace(".pub", ""))]
+            keysinfs = [item for item in keysinfs if item not in keysloaded]
 
-            #timeout after 24 h
-            print("load sshkey: %s"%path)
-            cmd="ssh-add -t %s %s "%(duration,path)
-            # print(cmd)
-            # rc,result,err=self.execute(cmd,die=False,showout=False, outputStderr=False)
-            self.executeInteractive(cmd)
-            # if rc>0:
-            #     raise RuntimeError("Could not add key to sshagent, something went wrong,\nstdout:%s\nstderr:%s\n"%(result,err))
+            res = self.askItemsFromList(
+                keysinfs, "select ssh keys to load, use comma separated list e.g. 1,4,3 and press enter.")
         else:
-            #no path specified need to find key paths
-            if "root"==self.whoami():
-                path="/root/.ssh"
-            else:
-                path=self.joinPaths(os.environ["HOME"],".ssh")
+            res = [self.getBaseName(path).replace(".pub", "")]
+            path = self.getParent(path)
 
-            keys=self.listFilesInDir(path,filter="*.pub")
+        for item in res:
+            pathkey = "%s/%s" % (path, item)
+            # timeout after 24 h
+            print("load sshkey: %s" % pathkey)
+            cmd = "ssh-add -t %s %s " % (duration, pathkey)
+            self.executeInteractive(cmd)
 
-
-            keysloaded=self.listSSHKeyFromAgent()
-            for keypath in keys:
-                keypath=keypath[:-4]
-                if keypath not in keysloaded:
-                    self.loadSSHKeys(keypath)
-                # else:
-                #     print("SSHKEY no need to load:%s"%keypath)
-
-
-    def getSSHKeyPathFromAgent(self,keyname,die=True):
+    def getSSHKeyPathFromAgent(self, keyname, die=True):
         try:
-            #@todo why do we use subprocess here and not self.execute?
-            out=subprocess.check_output(["ssh-add","-L"])
+            # TODO: why do we use subprocess here and not self.execute?
+            out = subprocess.check_output(["ssh-add", "-L"])
         except:
             return None
 
@@ -1357,31 +1406,31 @@ class InstallTools:
             delim = ("/%s" % keyname).encode()
 
             if line.endswith(delim):
-                line=line.strip()
-                keypath=line.split(" ".encode())[-1]
-                content=line.split(" ".encode())[-2]
+                line = line.strip()
+                keypath = line.split(" ".encode())[-1]
+                content = line.split(" ".encode())[-2]
                 if not self.exists(path=keypath):
-                    if self.exists("keys/%s"%keyname):
-                        keypath="keys/%s"%keyname
+                    if self.exists("keys/%s" % keyname):
+                        keypath = "keys/%s" % keyname
                     else:
-                        raise RuntimeError("could not find keypath:%s"%keypath)
+                        raise RuntimeError("could not find keypath:%s" % keypath)
                 return keypath.decode()
         if die:
-            raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l"%keyname)
+            raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l" % keyname)
         return None
 
-    def getSSHKeyFromAgentPub(self,keyname,die=True):
+    def getSSHKeyFromAgentPub(self, keyname, die=True):
         try:
-            #@todo why do we use subprocess here and not self.execute?
-            out=subprocess.check_output(["ssh-add","-L"])
+            # TODO: why do we use subprocess here and not self.execute?
+            out = subprocess.check_output(["ssh-add", "-L"])
         except:
             return None
 
         for line in out.splitlines():
             delim = (".ssh/%s" % keyname).encode()
             if line.endswith(delim):
-                content=line.strip()
-                content=content.decode()
+                content = line.strip()
+                content = content.decode()
                 return content
         if die:
             raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l" % keyname)
@@ -1393,6 +1442,7 @@ class InstallTools:
         """
         if "SSH_AUTH_SOCK" not in os.environ:
             self._initSSH_ENV(True)
+        self._loadSSHAgent()
         cmd = "ssh-add -L"
         rc, out, err = self.execute(cmd, False, False, die=False)
         if rc:
@@ -1405,16 +1455,10 @@ class InstallTools:
         else:
             return list(map(lambda key: key[2], keys))
 
-    def authorizeSSHKey(self,remoteipaddr,keyname=None,login="root",passwd=None,sshport=22,removeothers=False,keypathpub=None,allow_agent=True):
+    def authorizeSSHKey(self, remoteipaddr, keyname=None, login="root", passwd=None, sshport=22, removeothers=False):
         """
         this required ssh-agent to be loaded !!!
         the keyname is the name of the key as loaded in ssh-agent
-
-        or keypathpub needs to be used
-
-        if keyname==None and keypathpub==None:
-            keypathpub="/root/.ssh/id_rsa"
-
 
         if remoteothers==True: then other keys will be removed
         """
@@ -1422,82 +1466,78 @@ class InstallTools:
         # cmd="scp %s %s@%s:~/%s"%(keypath,login,remoteipaddr,self.getBaseName(keypath))
         # j.do.executeInteractive(cmd)
 
+        if not self.exists(keyname):
+            if login == "root":
+                rootpath = "/root/.ssh/"
+            else:
+                rootpath = "/home/%s/.ssh/"
+            fullpath = self.joinPaths(rootpath, keyname)
+            if self.exists(fullpath):
+                keyname = fullpath
 
         import paramiko
         paramiko.util.log_to_file("/tmp/paramiko.log")
         ssh = paramiko.SSHClient()
 
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        print("ssh connect:%s %s"%(remoteipaddr,login))
+        print("ssh connect:%s %s" % (remoteipaddr, login))
         #
         # env.no_keys = True
-        ssh.connect(remoteipaddr, username=login, password=passwd, allow_agent=allow_agent,look_for_keys=False)
+        if not self.listSSHKeyFromAgent(self.getBaseName(keyname)):
+            self.loadSSHKeys(self.getParent(keyname))
+        ssh.connect(remoteipaddr, username=login, password=passwd, allow_agent=True, look_for_keys=False)
         print("ok")
 
-        if keypathpub==None:
-            if keyname==None:
-                keypathpub="/root/.ssh/id_rsa"
-            else:
-                #get from ssh-agent
-                rc, out, err =self.execute("ssh-add -L")
-                for line in out.split("\n"):
-                    if line.endswith(".ssh/%s"%keyname):
-                        keypathpub=self.getTmpPath(keyname)
-                        self.writeFile(keypathpub,line)
-
-        if login=="root":
-            authkeypath="/root/.ssh/authorized_keys"
+        if login == "root":
+            authkeypath = "/root/.ssh/authorized_keys"
         else:
-            authkeypath="/home/%s/.ssh/authorized_keys"%(login)
+            authkeypath = "/home/%s/.ssh/authorized_keys" % (login)
 
-        if not self.exists(keypathpub):
-            raise RuntimeError("Cannot find keypath:%s"%keypathpub)
+        ftp = ssh.open_sftp()
 
-        ftp=ssh.open_sftp()
+        if login != "root":
+            basename = self.getBaseName(keyname)
+            tmpfile = "/home/%s/.ssh/%s" % (login, basename)
+            print("push key to /home/%s/.ssh/%s" % (login, basename))
+            ftp.put(keyname, tmpfile)
 
-        if login!="root":
-            basename=self.getBaseName(keypathpub)
-            tmpfile="/home/%s/.ssh/%s"%(login,basename)
-            print("push key to /home/%s/.ssh/%s"%(login,basename))
-            ftp.put(keypathpub,tmpfile)
-
-            #cannot upload directly to root dir
-            cmd="ssh %s@%s 'cat %s | sudo tee -a %s '"%(login,remoteipaddr,tmpfile,authkeypath)
-            print("do the following on the console\nsudo -s\ncat %s >> %s"%(tmpfile,authkeypath))
+            # cannot upload directly to root dir
+            cmd = "ssh %s@%s 'cat %s | sudo tee -a %s '" % (login, remoteipaddr, tmpfile, authkeypath)
+            print("do the following on the console\nsudo -s\ncat %s >> %s" % (tmpfile, authkeypath))
             print(cmd)
             self.executeInteractive(cmd)
 
         else:
 
-            tmppath="%s/authorized_keys"%self.TMP
+            tmppath = "%s/authorized_keys" % self.TMP
             self.delete(tmppath)
             try:
-                ftp.get(authkeypath,tmppath)
+                ftp.get(authkeypath, tmppath)
             except Exception as e:
-                if str(e).find("No such file")!=-1:
+                if str(e).find("No such file") != -1:
                     try:
-                        authkeypath+="2"
-                        ftp.get(authkeypath,tmppath)
+                        authkeypath += "2"
+                        ftp.get(authkeypath, tmppath)
                     except Exception as e:
-                        if str(e).find("No such file")!=-1:
-                            self.writeFile(tmppath,"")
+                        if str(e).find("No such file") != -1:
+                            self.writeFile(tmppath, "")
                         else:
-                            raise RuntimeError("Could not get authorized key,%s"%e)
+                            raise RuntimeError("Could not get authorized key,%s" % e)
 
-            C=self.readFile(tmppath)
-            out=""
-            Cnew=self.readFile(keypathpub)
-            key=Cnew.split(" ")[1]
-            if C.find(key)==-1:
-                C2="%s\n%s\n"%(C.strip(),Cnew)
-                C2=C2.strip()+"\n"
-                self.writeFile(tmppath,C2)
+            C = self.readFile(tmppath)
+            out = ""
+            Cnew = self.readFile(keyname)
+            key = Cnew.split(" ")[1]
+            if C.find(key) == -1:
+                C2 = "%s\n%s\n" % (C.strip(), Cnew)
+                C2 = C2.strip() + "\n"
+                self.writeFile(tmppath, C2)
                 print("sshauthorized adjusted")
-                ftp.put(tmppath,authkeypath)
+                ftp.put(tmppath, authkeypath)
             else:
                 print("ssh key was already authorized")
 
-    def loadSSHAgent(self,path=None,createkeys=False,keyname="id_rsa",killfirst=False):
+    def _loadSSHAgent(self, path=None, createkeys=False, killfirst=False):
         """
         check if ssh-agent is available & there is key loaded
 
@@ -1506,93 +1546,100 @@ class InstallTools:
         the primary key is 'id_rsa' and will be used as default e.g. if authorizing another node then this key will be used
 
         """
-        #check if more than 1 agent
+        # check if more than 1 agent
         socketpath = self._getSSHSocketpath()
-        res=[item for item in self.execute("ps aux|grep ssh-agent",False,False)[1].split("\n") if item.find("grep ssh-agent")==-1]
-        res=[item for item in res if item.strip()!=""]
-        res=[item for item in res if item[-2:]!="-l"]
+        res = [item for item in self.execute("ps aux|grep ssh-agent", False, False)
+               [1].split("\n") if item.find("grep ssh-agent") == -1]
+        res = [item for item in res if item.strip() != ""]
+        res = [item for item in res if item[-2:] != "-l"]
 
-        if len(res)>1:
-            print ("more than 1 ssh-agent, will kill all")
-            killfirst=True
-        if len(res)==1 and res[0].find("sshagent_socket")==-1:
-            #means not right agent was loaded
-            killfirst=True
-            print ("ssh-agent is not using sshagent_socket")
+        if len(res) > 1:
+            print("more than 1 ssh-agent, will kill all")
+            killfirst = True
+        if len(res) == 1 and res[0].find("sshagent_socket") == -1:
+            # means not right agent was loaded
+            killfirst = True
+            print("ssh-agent is not using sshagent_socket")
         if len(res) == 0 and self.exists(socketpath):
             self.delete(socketpath)
 
         if killfirst:
-            cmd="killall ssh-agent"
+            cmd = "killall ssh-agent"
             # print(cmd)
-            self.execute(cmd,showout=False, outputStderr=False,die=False)
-            #remove previous socketpath
+            self.execute(cmd, showout=False, outputStderr=False, die=False)
+            # remove previous socketpath
             self.delete(socketpath)
-            self.delete(self.joinPaths(self.TMP,"ssh-agent-pid"))
+            self.delete(self.joinPaths(self.TMP, "ssh-agent-pid"))
 
-        if path==None:
-            path2=self.joinPaths(os.environ["HOME"],".ssh",keyname)
-            if not self.exists(path2):
-                if createkeys:
-                    self.executeInteractive("ssh-keygen -t rsa -b 4096 -f %s"%path2)
-                    return self.loadSSHAgent(path=path2,createkeys=False)
-        else:
-            if not self.exists(path):
-                raise RuntimeError("Cannot find ssh key on %s"%path)
+        # if path == None:
+        #     path2 = self.joinPaths(os.environ["HOME"], ".ssh", keyname)
+        #     if not self.exists(path2):
+        #         if createkeys:
+        #             self.executeInteractive("ssh-keygen -t rsa -b 4096 -f %s" % path2)
+        #             return self._loadSSHAgent(path=path2, createkeys=False)
+        # else:
+        #     if not self.exists(path):
+        #         raise RuntimeError("Cannot find ssh key on %s" % path)
 
         if not self.exists(socketpath):
-            #ssh-agent not loaded
+            self.createDir(self.getParent(socketpath))
+            # ssh-agent not loaded
             print("load ssh agent")
-            rc, result, err = self.execute("ssh-agent -a %s"%socketpath,die=False,showout=False, outputStderr=False)
+            rc, result, err = self.execute("ssh-agent -a %s" % socketpath, die=False, showout=False, outputStderr=False)
 
-            if rc>0:
-                #could not start ssh-agent
-                raise RuntimeError("Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n"%(result,err))
+            if rc > 0:
+                # could not start ssh-agent
+                raise RuntimeError(
+                    "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
             else:
-                #get pid from result of ssh-agent being started
+                # get pid from result of ssh-agent being started
                 if not self.exists(socketpath):
-                    raise RuntimeError("Serious bug, ssh-agent not started while there was no error, should never get here")
-                piditems=[item for item in result.split("\n") if item.find("pid")!=-1]
+                    raise RuntimeError(
+                        "Serious bug, ssh-agent not started while there was no error, should never get here")
+                piditems = [item for item in result.split("\n") if item.find("pid") != -1]
                 # print(piditems)
-                if len(piditems)<1:
+                if len(piditems) < 1:
                     print("results was:")
                     print(result)
                     print("END")
                     raise RuntimeError("Cannot find items in ssh-add -l")
                 self._initSSH_ENV(True)
-                pid=int(piditems[-1].split(" ")[-1].strip("; "))
-                self.writeFile(self.joinPaths(self.TMP,"ssh-agent-pid"),str(pid))
-                self.addSSHAgentToBashProfile()
+                pid = int(piditems[-1].split(" ")[-1].strip("; "))
+                self.writeFile(self.joinPaths(self.TMP, "ssh-agent-pid"), str(pid))
+                self._addSSHAgentToBashProfile()
 
-                self.loadSSHKeys(path=path)
+                # self.loadSSHKeys(path=path)
 
-
-        #ssh agent should be loaded because ssh-agent socket has been found
+        # ssh agent should be loaded because ssh-agent socket has been found
         # pid=int(self.readFile(self.joinPaths(self.TMP,"ssh-agent-pid")))
         if os.environ.get("SSH_AUTH_SOCK") != socketpath:
             self._initSSH_ENV(True)
-        rc, result, err = self.execute("ssh-add -l",die=False,showout=False, outputStderr=False)
-        if rc==2:#>0 and err.find("not open a connection")!=-1:
-            #no ssh-agent found\
+        rc, result, err = self.execute("ssh-add -l", die=False, showout=False, outputStderr=False)
+        if rc == 2:  # >0 and err.find("not open a connection")!=-1:
+            # no ssh-agent found\
             print(result)
             raise RuntimeError("Could not connect to ssh-agent, this is bug, ssh-agent should be loaded by now")
-        elif rc==1:
-            #no keys but agent loaded
-            result=""
-        elif rc>0:
-            raise RuntimeError("Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n"%(result,err))
-
+        elif rc == 1:
+            # no keys but agent loaded
+            result = ""
+        elif rc > 0:
+            raise RuntimeError(
+                "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
 
     def checkSSHAgentAvailable(self):
+        if not self.exists(self._getSSHSocketpath()):
+            return False
         if "SSH_AUTH_SOCK" not in os.environ:
             self._initSSH_ENV(True)
-        rc, out, err = self.execute("ssh-add -l",showout=False, outputStderr=False,die=False)
-        if rc!=0:
+        rc, out, err = self.execute("ssh-add -l", showout=False, outputStderr=False, die=False)
+        if 'The agent has no identities.' in out:
+            return True
+        if rc != 0:
             return False
         else:
             return True
 
-    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False,branch=None,ssh="auto",codeDir=None, executor=None):
+    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False, branch=None, ssh="auto", codeDir=None, executor=None):
         """
         Extracts and returns data useful in cloning a Git repository.
 
@@ -1634,21 +1681,23 @@ class InstallTools:
             url can be empty, then the git params will be fetched out of the git configuration at that path
         """
 
-        if url=="":
-            if dest==None:
+        if url == "":
+            if dest == None:
                 raise RuntimeError("dest cannot be None (url is also '')")
             if not self.exists(dest):
-                raise RuntimeError("Could not find git repo path:%s, url was not specified so git destination needs to be specified."%(dest))
+                raise RuntimeError(
+                    "Could not find git repo path:%s, url was not specified so git destination needs to be specified." % (dest))
 
-        if login==None and url.find("github.com/")!=-1:
-            #can see if there if login & passwd in OS env
-            #if yes fill it in
+        if login == None and url.find("github.com/") != -1:
+            # can see if there if login & passwd in OS env
+            # if yes fill it in
             if "GITHUBUSER" in os.environ:
-                login=os.environ["GITHUBUSER"]
+                login = os.environ["GITHUBUSER"]
             if "GITHUBPASSWD" in os.environ:
-                passwd=os.environ["GITHUBPASSWD"]
+                passwd = os.environ["GITHUBPASSWD"]
 
-        protocol, repository_host, repository_account, repository_name, repository_url = self.rewriteGitRepoUrl(url=url,login=login,passwd=passwd,ssh=ssh)
+        protocol, repository_host, repository_account, repository_name, repository_url = self.rewriteGitRepoUrl(
+            url=url, login=login, passwd=passwd, ssh=ssh)
 
         repository_type = repository_host.split('.')[0] if '.' in repository_host else repository_host
 
@@ -1672,8 +1721,8 @@ class InstallTools:
 
         return repository_host, repository_type, repository_account, repository_name, dest, repository_url
 
-    def pullGitRepo(self,url="",dest=None,login=None,passwd=None,depth=1,ignorelocalchanges=False,\
-        reset=False,branch=None,revision=None, ssh="auto",executor=None,codeDir=None,onlyIfExists=False):
+    def pullGitRepo(self, url="", dest=None, login=None, passwd=None, depth=1, ignorelocalchanges=False,
+                    reset=False, branch=None, revision=None, ssh="auto", executor=None, codeDir=None, onlyIfExists=False):
         """
         will clone or update repo
         if dest == None then clone underneath: /opt/code/$type/$account/$repo
@@ -1682,18 +1731,19 @@ class InstallTools:
         @param ssh ==True means will checkout ssh
         @param ssh =="first" means will checkout sss first if that does not work will go to http
         """
-        if ssh=="first":
+        if ssh == "first":
             try:
-                return self.pullGitRepo(url,dest,login,passwd,depth,ignorelocalchanges,reset,branch,revision, True,executor)
+                return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges, reset, branch, revision, True, executor)
             except Exception:
-                return self.pullGitRepo(url,dest,login,passwd,depth,ignorelocalchanges,reset,branch,revision, False,executor)
+                return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges, reset, branch, revision, False, executor)
             raise RuntimeError("Could not checkout, needs to be with ssh or without.")
 
-        base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh,codeDir=codeDir,executor=executor)
+        base, provider, account, repo, dest, url = self.getGitRepoArgs(
+            url, dest, login, passwd, reset=reset, ssh=ssh, codeDir=codeDir, executor=executor)
 
         exists = self.exists(dest) if not executor else executor.exists(dest)
 
-        if onlyIfExists and exists==False:
+        if onlyIfExists and exists == False:
             return
 
         if dest is None and branch is None:
@@ -1713,57 +1763,59 @@ class InstallTools:
         exists = self.exists(checkdir) if not executor else executor.exists(checkdir)
         if exists:
             if ignorelocalchanges:
-                print(("git pull, ignore changes %s -> %s"%(url, dest)))
-                cmd="cd %s;git fetch"%dest
-                if depth!=None:
-                    cmd+=" --depth %s"%depth
+                print(("git pull, ignore changes %s -> %s" % (url, dest)))
+                cmd = "cd %s;git fetch" % dest
+                if depth != None:
+                    cmd += " --depth %s" % depth
                     self.execute(cmd, executor=executor)
-                if branch!=None:
-                    print("reset branch to:%s"%branch)
+                if branch != None:
+                    print("reset branch to:%s" % branch)
                     self.execute("cd %s;git reset --hard origin/%s" % (dest, branch), timeout=600, executor=executor)
             else:
-                #pull
-                print(("git pull %s -> %s"%(url,dest)))
-                if url.find("http")!=-1:
+                # pull
+                print(("git pull %s -> %s" % (url, dest)))
+                if url.find("http") != -1:
                     print("http")
-                    if branch!=None:
-                        cmd="cd %s;git pull origin %s"%(dest,branch)
+                    if branch != None:
+                        cmd = "cd %s;git -c http.sslVerify=false pull origin %s" % (dest, branch)
                     else:
-                        cmd="cd %s;git pull"%dest
+                        cmd = "cd %s;git -c http.sslVerify=false pull" % dest
                 else:
-                    if branch!=None:
-                        cmd="cd %s; git fetch ; git reset --hard origin/%s"%(dest,branch)
+                    if branch != None:
+                        cmd = "cd %s; git fetch ; git reset --hard origin/%s" % (dest, branch)
                     else:
-                        cmd="cd %s; git fetch ; git reset --hard origin/master"%dest
+                        cmd = "cd %s; git fetch ; git reset --hard origin/master" % dest
                 self.execute(cmd, timeout=600, executor=executor)
         else:
-            print(("git clone %s -> %s"%(url,dest)))
+            print(("git clone %s -> %s" % (url, dest)))
             extra = ""
-            if depth :
-                 extra = "--depth=%s" % depth
-            if url.find("http")!=-1:
-                if branch!=None:
-                    cmd="cd %s;git clone %s --single-branch -b %s %s %s"%(self.getParent(dest),extra, branch,url,dest)
+            if depth:
+                extra = "--depth=%s" % depth
+            if url.find("http") != -1:
+                if branch != None:
+                    cmd = "cd %s;git -c http.sslVerify=false clone %s --single-branch -b %s %s %s" % (
+                        self.getParent(dest), extra, branch, url, dest)
                 else:
-                    cmd="cd %s;git clone %s  %s %s"%(self.getParent(dest),extra,url,dest)
+                    cmd = "cd %s;git -c http.sslVerify=false clone %s  %s %s" % (self.getParent(dest), extra, url, dest)
             else:
-                if branch!=None:
-                    cmd="cd %s;git clone %s --single-branch -b %s %s %s"%(self.getParent(dest),extra, branch,url,dest)
+                if branch != None:
+                    cmd = "cd %s;git clone %s --single-branch -b %s %s %s" % (
+                        self.getParent(dest), extra, branch, url, dest)
                 else:
-                    cmd="cd %s;git clone %s  %s %s"%(self.getParent(dest),extra,url,dest)
+                    cmd = "cd %s;git clone %s  %s %s" % (self.getParent(dest), extra, url, dest)
 
             print(cmd)
 
             self.execute(cmd, timeout=600, executor=executor)
 
-        if revision!=None:
-            cmd="cd %s;git checkout %s"%(dest,revision)
+        if revision != None:
+            cmd = "cd %s;git checkout %s" % (dest, revision)
             print(cmd)
             self.execute(cmd, timeout=600, executor=executor)
 
         return dest
 
-    def checkInstalled(self,cmdname):
+    def checkInstalled(self, cmdname):
         """
         @param cmdname is cmd to check e.g. curl
         """
@@ -1773,56 +1825,56 @@ class InstallTools:
         else:
             return False
 
-    def getGitReposListLocal(self,provider="",account="",name="",errorIfNone=True):
-        repos={}
+    def getGitReposListLocal(self, provider="", account="", name="", errorIfNone=True):
+        repos = {}
         for top in self.listDirsInDir(self.CODEDIR, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
-            if provider!="" and provider!=top:
+            if provider != "" and provider != top:
                 continue
-            for accountfound in self.listDirsInDir("%s/%s"%(self.CODEDIR,top), recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
-                if account!="" and account!=accountfound:
+            for accountfound in self.listDirsInDir("%s/%s" % (self.CODEDIR, top), recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+                if account != "" and account != accountfound:
                     continue
-                accountfounddir="/%s/%s/%s"%(self.CODEDIR,top,accountfound)
-                for reponame in self.listDirsInDir("%s/%s/%s"%(self.CODEDIR,top,accountfound), recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
-                    if name!="" and name!=reponame:
+                accountfounddir = "/%s/%s/%s" % (self.CODEDIR, top, accountfound)
+                for reponame in self.listDirsInDir("%s/%s/%s" % (self.CODEDIR, top, accountfound), recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+                    if name != "" and name != reponame:
                         continue
-                    repodir="%s/%s/%s/%s"%(self.CODEDIR,top,accountfound,reponame)
-                    if self.exists(path="%s/.git"%repodir):
-                        repos[reponame]=repodir
-        if len(list(repos.keys()))==0:
-            raise RuntimeError("Cannot find git repo '%s':'%s':'%s'"%(provider,account,name))
+                    repodir = "%s/%s/%s/%s" % (self.CODEDIR, top, accountfound, reponame)
+                    if self.exists(path="%s/.git" % repodir):
+                        repos[reponame] = repodir
+        if len(list(repos.keys())) == 0:
+            raise RuntimeError("Cannot find git repo '%s':'%s':'%s'" % (provider, account, name))
         return repos
 
-    def pushGitRepos(self,message,name="",update=True,provider="",account=""):
+    def pushGitRepos(self, message, name="", update=True, provider="", account=""):
         """
         if name specified then will look under code dir if repo with path can be found
         if not or more than 1 there will be error
         @param provider e.g. git, github
         """
-        #@todo make sure we use gitlab or github account if properly filled in
-        repos=self.getGitReposListLocal(provider,account,name)
-        for name,path in list(repos.items()):
-            print(("push git repo:%s"%path))
-            cmd="cd %s;git add . -A"%(path)
+        # TODO: make sure we use gitlab or github account if properly filled in
+        repos = self.getGitReposListLocal(provider, account, name)
+        for name, path in list(repos.items()):
+            print(("push git repo:%s" % path))
+            cmd = "cd %s;git add . -A" % (path)
             self.executeInteractive(cmd)
-            cmd="cd %s;git commit -m \"%s\""%(path,message)
+            cmd = "cd %s;git commit -m \"%s\"" % (path, message)
             self.executeInteractive(cmd)
-            branch=self.getGitBranch(path)
+            branch = self.getGitBranch(path)
             if update:
-                cmd="cd %s;git pull origin %s"%(path,branch)
+                cmd = "cd %s;git pull origin %s" % (path, branch)
                 self.executeInteractive(cmd)
-            cmd="cd %s;git push origin %s"%(path,branch)
+            cmd = "cd %s;git push origin %s" % (path, branch)
             self.executeInteractive(cmd)
 
-    def updateGitRepos(self,provider="",account="",name="",message=""):
-        repos=self.getGitReposListLocal(provider,account,name)
-        for name,path in list(repos.items()):
-            print(("push git repo:%s"%path))
-            branch=self.getGitBranch(path)
-            cmd="cd %s;git add . -A"%(path)
+    def updateGitRepos(self, provider="", account="", name="", message=""):
+        repos = self.getGitReposListLocal(provider, account, name)
+        for name, path in list(repos.items()):
+            print(("push git repo:%s" % path))
+            branch = self.getGitBranch(path)
+            cmd = "cd %s;git add . -A" % (path)
             self.executeInteractive(cmd)
-            cmd="cd %s;git commit -m \"%s\""%(path,message)
+            cmd = "cd %s;git commit -m \"%s\"" % (path, message)
             self.executeInteractive(cmd)
-            cmd="cd %s;git pull origin %s"%(path,branch)
+            cmd = "cd %s;git pull origin %s" % (path, branch)
             self.executeInteractive(cmd)
 
     def getGitBranch(self, path):
@@ -1836,7 +1888,7 @@ class InstallTools:
             else:  # if we can't retreive current branch, use master as default
                 branch = 'master'
         except:
-                branch = 'master'
+            branch = 'master'
 
         return branch
 
@@ -1850,50 +1902,50 @@ class InstallTools:
         #     raise RuntimeError("could not find branch")
         # return branch
 
-    def changeLoginPasswdGitRepos(self,provider="",account="",name="",login="",passwd="",ssh=True,pushmessage=""):
+    def changeLoginPasswdGitRepos(self, provider="", account="", name="", login="", passwd="", ssh=True, pushmessage=""):
         """
         walk over all git repo's found in account & change login/passwd
         """
-        if ssh==False:
-            for reponame,repopath in list(self.getGitReposListLocal(provider,account,name).items()):
+        if ssh == False:
+            for reponame, repopath in list(self.getGitReposListLocal(provider, account, name).items()):
                 import re
-                configpath="%s/.git/config"%repopath
-                text=self.readFile(configpath)
-                text2=text
-                for item in re.findall(re.compile(r'//.*@%s'%provider), text):
-                    newitem="//%s:%s@%s"%(login,passwd,provider)
-                    text2=text.replace(item,newitem)
-                if text2.strip()!=text:
-                    self.writeFile(configpath,text2)
+                configpath = "%s/.git/config" % repopath
+                text = self.readFile(configpath)
+                text2 = text
+                for item in re.findall(re.compile(r'//.*@%s' % provider), text):
+                    newitem = "//%s:%s@%s" % (login, passwd, provider)
+                    text2 = text.replace(item, newitem)
+                if text2.strip() != text:
+                    self.writeFile(configpath, text2)
         else:
-            for reponame,repopath in list(self.getGitReposListLocal(provider,account,name).items()):
-                configpath="%s/.git/config"%repopath
-                text=self.readFile(configpath)
-                text2=""
-                change=False
+            for reponame, repopath in list(self.getGitReposListLocal(provider, account, name).items()):
+                configpath = "%s/.git/config" % repopath
+                text = self.readFile(configpath)
+                text2 = ""
+                change = False
                 for line in text.split("\n"):
-                    if line.replace(" ","").find("url=")!=-1:
+                    if line.replace(" ", "").find("url=") != -1:
                         # print line
-                        if line.find("@git")==-1:
+                        if line.find("@git") == -1:
                             # print 'REPLACE'
-                            provider2=line.split("//",1)[1].split("/",1)[0].strip()
-                            account2=line.split("//",1)[1].split("/",2)[1]
-                            name2=line.split("//",1)[1].split("/",2)[2].replace(".git","")
-                            line="\turl = git@%s:%s/%s.git"%(provider2,account2,name2)
-                            change=True
+                            provider2 = line.split("//", 1)[1].split("/", 1)[0].strip()
+                            account2 = line.split("//", 1)[1].split("/", 2)[1]
+                            name2 = line.split("//", 1)[1].split("/", 2)[2].replace(".git", "")
+                            line = "\turl = git@%s:%s/%s.git" % (provider2, account2, name2)
+                            change = True
                         # print line
-                    text2+="%s\n"%line
+                    text2 += "%s\n" % line
 
                 if change:
                     # print text
                     # print "===="
                     # print text2
                     # print "++++"
-                    print(("changed login/passwd/git on %s"%configpath))
-                    self.writeFile(configpath,text2)
+                    print(("changed login/passwd/git on %s" % configpath))
+                    self.writeFile(configpath, text2)
 
-        if pushmessage!="":
-            self.pushGitRepos(pushmessage,name=name,update=True,provider=provider,account=account)
+        if pushmessage != "":
+            self.pushGitRepos(pushmessage, name=name, update=True, provider=provider, account=account)
 
     def _initExtra(self):
         """
@@ -1901,66 +1953,67 @@ class InstallTools:
         """
         if not self._extratools:
             if not self.exists("ExtraTools.py"):
-                url="https://raw.githubusercontent.com/Jumpscale/jumpscale_core/master/install/ExtraTools.py"
-                self.download(url,"/tmp/ExtraTools.py")
+                url = "https://raw.githubusercontent.com/Jumpscale/jumpscale_core/master/install/ExtraTools.py"
+                self.download(url, "/tmp/ExtraTools.py")
                 if "/tmp" not in sys.path:
                     sys.path.append("/tmp")
             from ExtraTools import extra
-            self.extra=extra
-        self._extratools=True
+            self.extra = extra
+        self._extratools = True
 
     def getWalker(self):
         self._initExtra()
         return self.extra.getWalker(self)
 
-    def loadScript(self,path):
-        print(("load jumpscript: %s"%path))
+    def loadScript(self, path):
+        print(("load jumpscript: %s" % path))
         source = self.readFile(path)
-        out,tags=self._preprocess(source)
+        out, tags = self._preprocess(source)
+
         def md5_string(s):
             import hashlib
             s = s.encode('utf-8')
             impl = hashlib.new('md5', s)
             return impl.hexdigest()
-        md5sum=md5_string(out)
+        md5sum = md5_string(out)
         modulename = 'JumpScale.jumpscript_%s' % md5sum
 
-        codepath=self.joinPaths(self.getTmpPath(),"jumpscripts","%s.py"%md5sum)
-        self.writeFile(filename=codepath,contents=out)
+        codepath = self.joinPaths(self.getTmpPath(), "jumpscripts", "%s.py" % md5sum)
+        self.writeFile(filename=codepath, contents=out)
 
         linecache.checkcache(codepath)
         self.module = imp.load_source(modulename, codepath)
 
-        self.author=getattr(self.module, 'author', "unknown")
-        self.organization=getattr(self.module, 'organization', "unknown")
-        self.version=getattr(self.module, 'version', 0)
-        self.modtime=getattr(self.module, 'modtime', 0)
-        self.descr=getattr(self.module, 'descr', "")
+        self.author = getattr(self.module, 'author', "unknown")
+        self.organization = getattr(self.module, 'organization', "unknown")
+        self.version = getattr(self.module, 'version', 0)
+        self.modtime = getattr(self.module, 'modtime', 0)
+        self.descr = getattr(self.module, 'descr', "")
 
-        #identifies the actions & tags linked to it
-        self.tags=tags
+        # identifies the actions & tags linked to it
+        self.tags = tags
 
-        for name,val in list(tags.items()):
-            self.actions[name]=eval("self.module.%s"%name)
+        for name, val in list(tags.items()):
+            self.actions[name] = eval("self.module.%s" % name)
 
-    def installPackage(self,path):
+    def installPackage(self, path):
         pass
 
-do=InstallTools()
+do = InstallTools()
+
 
 class Installer():
 
     def __init__(self):
-        self._readonly=None
+        self._readonly = None
 
-    def installJSDocs(self,ssh=True):
+    def installJSDocs(self, ssh=True):
         print("install jsdocs")
-        do.pullGitRepo(url='git@github.com:Jumpscale/docs.git',ssh="first")
+        do.pullGitRepo(url='git@github.com:Jumpscale/docs.git', ssh="first")
 
-
-    def installJS(self,base="",clean=True,insystem=True,GITHUBUSER="",GITHUBPASSWD="",CODEDIR="",\
-        JSGIT="https://github.com/Jumpscale/jumpscale_core8.git",JSBRANCH="master",\
-        AYSGIT="https://github.com/Jumpscale/ays_jumpscale8",AYSBRANCH="master",SANDBOX='0',EMAIL="",FULLNAME=""):
+    def installJS(self, base="", clean=True, insystem=True, GITHUBUSER="", GITHUBPASSWD="", CODEDIR="",
+                  JSGIT="https://github.com/Jumpscale/jumpscale_core8.git", JSBRANCH="master",
+                  AYSGIT="https://github.com/Jumpscale/ays_jumpscale8", AYSBRANCH="master", SANDBOX='0', EMAIL="", FULLNAME=""):
         """
         @param insystem means use system packaging system to deploy dependencies like python & python packages
         @param codedir is the location where the code will be installed, code which get's checked out from github
@@ -1972,32 +2025,32 @@ class Installer():
         IMPORTANT: if env var's are set they get priority
 
         """
-        #everything else is dangerous now
-        copybinary=True
+        # everything else is dangerous now
+        copybinary = True
 
-        tmpdir=do.TMP
+        tmpdir = do.TMP
 
-        if base!="":
-            os.environ["JSBASE"]=base
+        if base != "":
+            os.environ["JSBASE"] = base
         else:
-            os.environ["JSBASE"]=do.BASE
+            os.environ["JSBASE"] = do.BASE
 
-        if CODEDIR!="":
-            os.environ["CODEDIR"]=CODEDIR
+        if CODEDIR != "":
+            os.environ["CODEDIR"] = CODEDIR
         else:
-            os.environ["CODEDIR"]=do.CODEDIR
+            os.environ["CODEDIR"] = do.CODEDIR
 
         if sys.platform.startswith('win'):
             raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
 
+        PYTHONVERSION = "3.5"
 
-        PYTHONVERSION="3.5"
+        print(("Install Jumpscale in %s" % os.environ["JSBASE"]))
 
-        print(("Install Jumpscale in %s"%os.environ["JSBASE"]))
-
-        #this means if env var's are set they get priority
-        args2=dict(map(lambda item: (item, ''), ["GITHUBUSER","GITHUBPASSWD","JSGIT","JSBRANCH","AYSGIT","AYSBRANCH","CODEDIR","SANDBOX","EMAIL","FULLNAME","JSBASE","PYTHONVERSION"]))
-        #walk over all var's & set defaults or get them from env
+        # this means if env var's are set they get priority
+        args2 = dict(map(lambda item: (item, ''), ["GITHUBUSER", "GITHUBPASSWD", "JSGIT", "JSBRANCH",
+                                                   "AYSGIT", "AYSBRANCH", "CODEDIR", "SANDBOX", "EMAIL", "FULLNAME", "JSBASE", "PYTHONVERSION"]))
+        # walk over all var's & set defaults or get them from env
         for var in args2.copy():
             if var in os.environ:
                 args2[var] = os.environ[var]
@@ -2006,78 +2059,77 @@ class Installer():
 
         os.environ.update(args2)
 
-        args2['SANDBOX']=int(args2['SANDBOX'])
+        args2['SANDBOX'] = int(args2['SANDBOX'])
 
-        if EMAIL!="":
-            self.gitConfig(FULLNAME,EMAIL)
+        if EMAIL != "":
+            self.gitConfig(FULLNAME, EMAIL)
 
         if clean:
             self.cleanSystem()
             do.delete(args2['JSBASE'])
 
-        self.debug=True
+        self.debug = True
 
-        self.prepare(SANDBOX=args2['SANDBOX'],base= args2['JSBASE'])
+        self.prepare(SANDBOX=args2['SANDBOX'], base=args2['JSBASE'])
 
         do.execute("mkdir -p %s/.ssh/" % os.environ["HOME"])
-        do.execute("ssh-keyscan github.com 2> /dev/null  >> {0}/.ssh/known_hosts; ssh-keyscan git.aydo.com 2> /dev/null >> {0}/.ssh/known_hosts".format(os.environ["HOME"]), showout=False)
-        print ("pull core")
-        do.pullGitRepo(args2['JSGIT'],branch=args2['JSBRANCH'], depth=1, ssh="first")
-        src="%s/github/jumpscale/jumpscale_core8/lib/JumpScale"%do.CODEDIR
-        self.debug=False
-
+        do.execute("ssh-keyscan github.com 2> /dev/null  >> {0}/.ssh/known_hosts; ssh-keyscan git.aydo.com 2> /dev/null >> {0}/.ssh/known_hosts".format(
+            os.environ["HOME"]), showout=False)
+        print("pull core")
+        do.pullGitRepo(args2['JSGIT'], branch=args2['JSBRANCH'], depth=1, ssh="first")
+        src = "%s/github/jumpscale/jumpscale_core8/lib/JumpScale" % do.CODEDIR
+        self.debug = False
 
         if do.TYPE.startswith("OSX"):
             do.delete("/usr/local/lib/python2.7/site-packages/JumpScale")
             do.delete("/usr/local/lib/python3.5/site-packages/JumpScale")
 
-
-        destjs=do.getPythonLibSystem(jumpscale=True)
+        destjs = do.getPythonLibSystem(jumpscale=True)
         do.delete(destjs)
         do.createDir(destjs)
 
-        base=args2["JSBASE"]
+        base = args2["JSBASE"]
 
-        do.createDir("%s/lib"%base)
-        do.createDir("%s/bin"%base)
+        do.createDir("%s/lib" % base)
+        do.createDir("%s/bin" % base)
         # do.createDir("%s/hrd/system"%base)
         # do.createDir("%s/hrd/apps"%base)
 
-        dest="%s/lib/JumpScale"%base
+        dest = "%s/lib/JumpScale" % base
         do.createDir(dest)
         do.symlinkFilesInDir(src, dest, includeDirs=True)
         do.symlinkFilesInDir(src, destjs, includeDirs=True)
 
-        for item in ["InstallTools","ExtraTools"]:
-            src="%s/github/jumpscale/jumpscale_core8/install/%s.py"%(do.CODEDIR,item)
-            dest2="%s/%s.py"%(dest,item)
+        for item in ["InstallTools", "ExtraTools"]:
+            src = "%s/github/jumpscale/jumpscale_core8/install/%s.py" % (do.CODEDIR, item)
+            dest2 = "%s/%s.py" % (dest, item)
             do.symlink(src, dest2)
-            dest2="%s/%s.py"%(destjs,item)
+            dest2 = "%s/%s.py" % (destjs, item)
             do.symlink(src, dest2)
 
-        src="%s/github/jumpscale/jumpscale_core8/shellcmds"%do.CODEDIR
-        desttest="/usr/local/bin/js"
+        src = "%s/github/jumpscale/jumpscale_core8/shellcmds" % do.CODEDIR
+        desttest = "/usr/local/bin/js"
         if insystem or not self.exists(desttest):
-            dest="/usr/local/bin"
+            dest = "/usr/local/bin"
             do.symlinkFilesInDir(src, dest)
 
-        dest="%s/bin"%base
+        dest = "%s/bin" % base
         do.symlinkFilesInDir(src, dest)
 
-        #create ays,jsdocker completion based on click magic variables
+        # create ays,jsdocker completion based on click magic variables
         with open(os.path.expanduser("~/.bashrc"), "a") as f:
             f.write('''
 eval "$(_AYS_COMPLETE=source ays)"
 eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
             ''')
 
-        #link python
-        src="/usr/bin/python3.5"
+        # link python
+        src = "/usr/bin/python3.5"
         if do.exists(src):
             # do.delete("/usr/bin/python")
             if not do.TYPE.startswith("OSX"):
                 # do.symlink(src, "%s/bin/python"%base)
-                do.symlink(src, "%s/bin/python3"%base)
+                do.symlink(src, "%s/bin/python3" % base)
                 # do.symlink(src, "/usr/bin/python")
 
         # if do.TYPE.startswith("OSX"):
@@ -2086,71 +2138,70 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
         #     do.symlink(src, "%s/bin/python3"%base)
         #     do.symlink(src, "%s/bin/python3.5"%base)
 
-        self.writeenv(basedir=base,insystem=insystem,CODEDIR=args2['CODEDIR'], SANDBOX=args2['SANDBOX'])
+        self.writeenv(basedir=base, insystem=insystem, CODEDIR=args2['CODEDIR'], SANDBOX=args2['SANDBOX'])
 
         if not insystem:
-            sys.path=[]
-        sys.path.insert(0,"%s/lib"%base)
+            sys.path = []
+        sys.path.insert(0, "%s/lib" % base)
 
         #from JumpScale import j
 
         print("Get atYourService metadata.")
         do.pullGitRepo(args2['AYSGIT'], branch=args2['AYSBRANCH'], depth=1, ssh="first")
 
-        print ("install was successfull")
+        print("install was successfull")
         # if pythonversion==2:
-        print ("to use do 'js'")
+        print("to use do 'js'")
 
     @property
     def readonly(self):
-        if self._readonly==None:
-            ppath="%s/bin/_writetest"%do.BASE
+        if self._readonly == None:
+            ppath = "%s/bin/_writetest" % do.BASE
             try:
-                do.writeFile(ppath,"")
-                self._readonly=False
+                do.writeFile(ppath, "")
+                self._readonly = False
             except:
-                self._readonly=True
+                self._readonly = True
             do.delete(ppath)
         return self._readonly
 
-
-    def writeenv(self,basedir="",insystem=False,CODEDIR="",vardir="",die=True, SANDBOX=0):
-        if basedir=="":
+    def writeenv(self, basedir="", insystem=False, CODEDIR="", vardir="", die=True, SANDBOX=0):
+        if basedir == "":
             # self.BASE
             try:
-                basedir=do.getParent(do.getParent(do.getParent(inspect.getabsfile(do.executeCmds))))
+                basedir = do.getParent(do.getParent(do.getParent(inspect.getabsfile(do.executeCmds))))
             except Exception as e:
                 raise RuntimeError("Please specify basedir, can not find.")
 
-        if basedir=="":
+        if basedir == "":
             raise RuntimeError("basedir cannot be empty")
 
-        print ("WRITENV TO:%s"%basedir)
+        print("WRITENV TO:%s" % basedir)
 
-        if CODEDIR=="":
-            CODEDIR=do.CODEDIR
+        if CODEDIR == "":
+            CODEDIR = do.CODEDIR
 
-        if vardir=="":
-            vardir=do.VARDIR
+        if vardir == "":
+            vardir = do.VARDIR
 
         try:
             do.createDir(vardir)
-            do.createDir("%s/hrd/system/"%vardir)
-            do.createDir("%s/hrd/apps/"%vardir)
-            do.createDir("%s/cfg"%vardir)
+            do.createDir("%s/hrd/system/" % vardir)
+            do.createDir("%s/hrd/apps/" % vardir)
+            do.createDir("%s/cfg" % vardir)
         except:
-            do.delete("%s/hrd/"%vardir)
+            do.delete("%s/hrd/" % vardir)
             do.createDir(vardir)
-            do.createDir("%s/hrd/system/"%vardir)
-            do.createDir("%s/hrd/apps/"%vardir)
-            do.createDir("%s/cfg"%vardir)
+            do.createDir("%s/hrd/system/" % vardir)
+            do.createDir("%s/hrd/apps/" % vardir)
+            do.createDir("%s/cfg" % vardir)
 
-        if self.readonly==False or die==True:
-            do.delete("%s/cfg"%basedir)
-            do.delete("%s/hrd"%basedir)
-            do.delete("%s/var"%basedir)
+        if self.readonly == False or die == True:
+            do.delete("%s/cfg" % basedir)
+            do.delete("%s/hrd" % basedir)
+            do.delete("%s/var" % basedir)
 
-        C="""
+        C = """
         paths.base=$base
         paths.bin=$base/bin
         paths.code=$CODEDIR
@@ -2170,13 +2221,12 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
         system.sandbox = 1
 
         """
-        C=C.replace("$base",basedir.rstrip("/"))
-        C=C.replace("$vardir",vardir.rstrip("/"))
+        C = C.replace("$base", basedir.rstrip("/"))
+        C = C.replace("$vardir", vardir.rstrip("/"))
         # C=C.replace("$sandbox",str(SANDBOX))
-        C=C.replace("$CODEDIR",CODEDIR)
+        C = C.replace("$CODEDIR", CODEDIR)
 
-        do.writeFile("%s/hrd/system/system.hrd"%vardir,C)
-
+        do.writeFile("%s/hrd/system/system.hrd" % vardir, C)
 
         #         C="""
         # email                   = @ASK descr:'email as used for github'
@@ -2185,39 +2235,39 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
         # git.passwd              = @ASK descr:'passwd for github'
         # """
 
-        C="""
+        C = """
         email                   = {EMAIL}
         fullname                = {FULLNAME}
         git.login               = {GITHUBUSER}
         git.passwd              = {GITHUBPASSWD}
         """
 
-        for item in ["EMAIL","FULLNAME","GITHUBUSER","GITHUBPASSWD","EMAIL","FULLNAME","AYSGIT","AYSBRANCH"]:
+        for item in ["EMAIL", "FULLNAME", "GITHUBUSER", "GITHUBPASSWD", "EMAIL", "FULLNAME", "AYSGIT", "AYSBRANCH"]:
             if item not in os.environ:
-                os.environ[item]=""
+                os.environ[item] = ""
 
-        C=C.format(**os.environ)
+        C = C.format(**os.environ)
 
-        hpath="%s/hrd/system/whoami.hrd"%vardir
+        hpath = "%s/hrd/system/whoami.hrd" % vardir
         if not do.exists(path=hpath):
-            do.writeFile(hpath,C)
+            do.writeFile(hpath, C)
 
-        C="""
+        C = """
         #here domain=jumpscale, change name for more domains
         metadata.jumpscale =
             url:'{AYSGIT}',
             branch:'{AYSBRANCH}',
 
         """
-        if "AYSGIT" not in os.environ or os.environ["AYSGIT"].strip()=="":
-            os.environ["AYSGIT"]="https://github.com/Jumpscale/ays_jumpscale8"
-        if "AYSBRANCH" not in os.environ or os.environ["AYSBRANCH"].strip()=="":
-            os.environ["AYSBRANCH"]="master"
-        C=C.format(**os.environ)
+        if "AYSGIT" not in os.environ or os.environ["AYSGIT"].strip() == "":
+            os.environ["AYSGIT"] = "https://github.com/Jumpscale/ays_jumpscale8"
+        if "AYSBRANCH" not in os.environ or os.environ["AYSBRANCH"].strip() == "":
+            os.environ["AYSBRANCH"] = "master"
+        C = C.format(**os.environ)
 
-        hpath="%s/hrd/system/atyourservice.hrd"%vardir
+        hpath = "%s/hrd/system/atyourservice.hrd" % vardir
         if not do.exists(path=hpath):
-            do.writeFile(hpath,C)
+            do.writeFile(hpath, C)
 
         C = """
         mode = 'DEV'
@@ -2230,9 +2280,7 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
         """
         do.writeFile("%s/hrd/system/logging.hrd" % vardir, C)
 
-
-
-        C="""
+        C = """
 
         deactivate () {
             export PATH=$_OLD_PATH
@@ -2263,6 +2311,8 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
 
         export PATH=$JSBASE/bin:$PATH
 
+        export LUA_PATH="/opt/jumpscale8/lib/lua/?.lua;./?.lua;/opt/jumpscale8/lib/lua/?/?.lua;/opt/jumpscale8/lib/lua/tarantool/?.lua;/opt/jumpscale8/lib/lua/?/init.lua"
+
         $pythonhome
         export PYTHONPATH=$pythonpath
 
@@ -2272,7 +2322,7 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
                 hash -r 2>/dev/null
         fi
         """
-        C=C.replace("$base",basedir)
+        C = C.replace("$base", basedir)
 
         if SANDBOX:
             C = C.replace('$pythonhome', 'export PYTHONHOME=$JSBASE/bin')
@@ -2280,78 +2330,73 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
             C = C.replace('$pythonhome', '')
 
         if do.TYPE.startswith("OSX"):
-            C=C.replace("$pythonpath",".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/plat-x86_64-linux-gnu:/usr/local/lib/python3.5/site-packages:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/plat-darwin:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload")
+            C = C.replace("$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/plat-x86_64-linux-gnu:/usr/local/lib/python3.5/site-packages:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/plat-darwin:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload")
         else:
-            C=C.replace("$pythonpath",".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu:$_OLD_PYTHONPATH")
-        envfile = "%s/env.sh"%basedir
+            C = C.replace(
+                "$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu:$_OLD_PYTHONPATH")
+        envfile = "%s/env.sh" % basedir
 
-        if self.readonly==False or die==True:
-            do.writeFile(envfile,C)
-
+        if self.readonly == False or die == True:
+            do.writeFile(envfile, C)
 
         # pythonversion = '3' if os.environ.get('PYTHONVERSION') == '3' else ''
 
-
-
-        C2="""#!/bin/bash
+        C2 = """#!/bin/bash
 # set -x
 source $base/env.sh
 exec $JSBASE/bin/python3 -q "$@"
         """
 
-        C2_insystem="""#!/bin/bash
+        C2_insystem = """#!/bin/bash
 # set -x
 source $base/env.sh
 exec python3 -q "$@"
         """
 
         # C2=C2.format(base=basedir, env=envfile)
-        if self.readonly==False or die==True:
+        if self.readonly == False or die == True:
 
-            do.delete("/usr/bin/jspython")#to remove link
-            do.delete("%s/bin/jspython"%basedir)
+            do.delete("/usr/bin/jspython")  # to remove link
+            do.delete("%s/bin/jspython" % basedir)
             do.delete("/usr/local/bin/jspython")
 
             if not insystem:
-                dest="%s/bin/jspython"%basedir
+                dest = "%s/bin/jspython" % basedir
                 C2 = C2.replace('$base', basedir)
-                do.writeFile(dest,C2)
+                do.writeFile(dest, C2)
             else:
-                #in system
-                dest="/usr/local/bin/jspython"
+                # in system
+                dest = "/usr/local/bin/jspython"
                 C2_insystem = C2_insystem.replace('$base', basedir)
-                do.writeFile(dest,C2_insystem)
+                do.writeFile(dest, C2_insystem)
             do.chmod(dest, 0o770)
 
-            #change site.py file
+            # change site.py file
             def changesite(path):
                 if do.exists(path=path):
-                    C=do.readFile(path)
-                    out=""
+                    C = do.readFile(path)
+                    out = ""
                     for line in C.split("\n"):
-                        if line.find("ENABLE_USER_SITE")==0:
-                            line="ENABLE_USER_SITE = False"
-                        if line.find("USER_SITE")==0:
-                            line="USER_SITE = False"
-                        if line.find("USER_BASE")==0:
-                            line="USER_BASE = False"
+                        if line.find("ENABLE_USER_SITE") == 0:
+                            line = "ENABLE_USER_SITE = False"
+                        if line.find("USER_SITE") == 0:
+                            line = "USER_SITE = False"
+                        if line.find("USER_BASE") == 0:
+                            line = "USER_BASE = False"
 
-                        out+="%s\n"%line
-                    do.writeFile(path,out)
-            changesite("%s/lib/site.py"%basedir)
+                        out += "%s\n" % line
+                    do.writeFile(path, out)
+            changesite("%s/lib/site.py" % basedir)
             # if insystem:
             #     changesite("/usr/local/lib/python3/dist-packages/site.py"%basedir)
 
-
-
-
-        ############# custom install items
+        # custom install items
 
     def cleanSystem(self):
         if do.TYPE.startswith("UBUNTU"):
             # pythonversion = os.environ.get('PYTHONVERSION', '')
             print("clean platform")
-            CMDS="""
+            CMDS = """
             pip uninstall JumpScale-core
             # killall tmux  #dangerous
             killall redis-server
@@ -2366,11 +2411,12 @@ exec python3 -q "$@"
             killall redis-server
             rm -rf /opt/redis/
             """
-            CMDS=CMDS.replace("$base",self.BASE)
-            do.executeCmds(CMDS,showout=False, outputStderr=False,useShell = True,log=False,cwd=None,timeout=60,errors=[],ok=[],captureout=False,die=False)
+            CMDS = CMDS.replace("$base", self.BASE)
+            do.executeCmds(CMDS, showout=False, outputStderr=False, useShell=True, log=False,
+                           cwd=None, timeout=60, errors=[], ok=[], captureout=False, die=False)
 
-            for PYTHONVERSION in ["3.5","3.4","3.3","2.7",""]:
-                CMDS="""
+            for PYTHONVERSION in ["3.5", "3.4", "3.3", "2.7", ""]:
+                CMDS = """
                 rm -rf /usr/local/lib/python%(pythonversion)s/dist-packages/jumpscale*
                 rm -rf /usr/local/lib/python%(pythonversion)s/site-packages/jumpscale*
                 rm -rf /usr/local/lib/python%(pythonversion)s/dist-packages/JumpScale*
@@ -2379,14 +2425,14 @@ exec python3 -q "$@"
                 rm -rf /usr/local/lib/python%(pythonversion)s/site-packages/jumpscale/
                 rm -rf /usr/local/lib/python%(pythonversion)s/dist-packages/JumpScale/
                 rm -rf /usr/local/lib/python%(pythonversion)s/dist-packages/jumpscale/
-                """% {'pythonversion': PYTHONVERSION}
-                do.executeCmds(CMDS,showout=False, outputStderr=False,useShell = True,log=False,cwd=None,timeout=60,errors=[],ok=[],captureout=False,die=False)
-
+                """ % {'pythonversion': PYTHONVERSION}
+                do.executeCmds(CMDS, showout=False, outputStderr=False, useShell=True, log=False,
+                               cwd=None, timeout=60, errors=[], ok=[], captureout=False, die=False)
 
     def updateOS(self):
 
         if self.TYPE.startswith("UBUNTU"):
-            CMDS="""
+            CMDS = """
             apt-get update
             apt-get autoremove
             apt-get -f install -y
@@ -2395,57 +2441,58 @@ exec python3 -q "$@"
             do.executeCmds(CMDS)
 
         elif self.TYPE.startswith("OSX"):
-            CMDS="""
+            CMDS = """
             brew update
             brew upgrade
             """
             do.executeCmds(CMDS)
 
     def installpip(self):
-        if not do.exists(do.joinPaths(do.TMP,"get-pip.py")):
+        if not do.exists(do.joinPaths(do.TMP, "get-pip.py")):
             if not do.TYPE.startswith("WIN"):
-                cmd="cd %s;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python get-pip.py"%do.TMP
+                cmd = "cd %s;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python get-pip.py" % do.TMP
                 do.execute(cmd)
 
-    def prepare(self,SANDBOX=0,base=""):
-        print ("prepare (sandbox:%s)"%SANDBOX)
-        if base=="":
-            base=do.BASE
-        if do.TYPE!=("UBUNTU64"):
-            SANDBOX=0
+    def prepare(self, SANDBOX=0, base=""):
+        print("prepare (sandbox:%s)" % SANDBOX)
+        if base == "":
+            base = do.BASE
+        if do.TYPE != ("UBUNTU64"):
+            SANDBOX = 0
 
-        if SANDBOX==1:
+        if SANDBOX == 1:
             raise RuntimeError("not supported yet, will use ays fuse")
 
         else:
             self.installpip()
-            cmds="""
+            cmds = """
             pip3 install ipython
             pip3 install redis
             pip3 install netaddr
+            pip3 install pycapnp
+            pip3 install path.py
+            pip3 install colored-traceback
+            pip3 install pudb
+            pip3 install colorlog
+            pip3 install msgpack-python
+            pip3 install pyblake2
             """
             do.executeCmds(cmds)
 
-            do.executeInteractive("pip3 install colored-traceback")
             #do.executeInteractive("pip3 install xonsh")
-            do.executeInteractive("pip3 install pudb")
-            do.executeInteractive("pip3 install tmuxp")
-            do.executeInteractive("pip3 install colorlog")
+            # do.executeInteractive("pip3 install tmuxp")
 
             if sys.platform.startswith('win'):
                 raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
             elif sys.platform.startswith('darwin'):
-                cmds="""
+                cmds = """
                 brew install tmux
                 brew install psutils
                 """
                 do.executeCmds(cmds)
 
-
-
-
     def updateUpgradeUbuntu(self):
-        CMDS="""
+        CMDS = """
         apt-get update
         apt-get autoremove
         apt-get -f install -y
@@ -2453,72 +2500,68 @@ exec python3 -q "$@"
         """
         do.executeCmds(CMDS)
 
-    def gitConfig(self,name,email):
-        if name=="":
-            name=email
-        if email=="":
+    def gitConfig(self, name, email):
+        if name == "":
+            name = email
+        if email == "":
             raise RuntimeError("email cannot be empty")
-        do.execute("git config --global user.email \"%s\""%email)
-        do.execute("git config --global user.name \"%s\""%name)
+        do.execute("git config --global user.email \"%s\"" % email)
+        do.execute("git config --global user.name \"%s\"" % name)
 
     def replacesitecustomize(self):
-        if not self.TYPE=="WIN":
-            ppath="/usr/lib/python%s/sitecustomize.py" % os.environ.get('PYTHONVERSION', '')
+        if not self.TYPE == "WIN":
+            ppath = "/usr/lib/python%s/sitecustomize.py" % os.environ.get('PYTHONVERSION', '')
             if ppath.find(ppath):
                 os.remove(ppath)
-            self.symlink("%s/utils/sitecustomize.py"%self.BASE,ppath)
+            self.symlink("%s/utils/sitecustomize.py" % self.BASE, ppath)
 
-            def do(path,dirname,names):
-                if path.find("sitecustomize")!=-1:
-                    self.symlink("%s/utils/sitecustomize.py"%self.BASE,path)
+            def do(path, dirname, names):
+                if path.find("sitecustomize") != -1:
+                    self.symlink("%s/utils/sitecustomize.py" % self.BASE, path)
             print("walk over /usr to find sitecustomize and link to new one")
-            os.path.walk("/usr", do,"")
-            os.path.walk("/etc", do,"")
-
+            os.path.walk("/usr", do, "")
+            os.path.walk("/etc", do, "")
 
     def develtools(self):
 
-        [do.delete(item) for item in do.listDirsInDir(do.getPythonLibSystem()) if item.find(".egg-info")!=-1]
+        [do.delete(item) for item in do.listDirsInDir(do.getPythonLibSystem()) if item.find(".egg-info") != -1]
         # [do.delete(item) for item in do.listDirsInDir(do.getPythonLibSystem()) if item.find(".dist-info")!=-1]
-        [do.delete(item) for item in do.listDirsInDir(do.getPythonLibSystem()) if item.find(".egg")!=-1]
+        [do.delete(item) for item in do.listDirsInDir(do.getPythonLibSystem()) if item.find(".egg") != -1]
 
-        do.execute("rm -rf %s/pip*"%do.getPythonLibSystem())
-        do.execute("rm -rf %s/pip*"%do.getBinDirSystem())
+        do.execute("rm -rf %s/pip*" % do.getPythonLibSystem())
+        do.execute("rm -rf %s/pip*" % do.getBinDirSystem())
 
         # do.pullGitRepo("https://github.com/pypa/pip")
         # do.execute("cd %s;python3 setup.py install"%do.getGitRepoArgs("https://github.com/pypa/pip")[4])
 
         "https://bootstrap.pypa.io/get-pip.py"
-        tmpfile=do.download("https://bootstrap.pypa.io/get-pip.py")
-        do.execute("python3 %s"%tmpfile)
+        tmpfile = do.download("https://bootstrap.pypa.io/get-pip.py")
+        do.execute("python3 %s" % tmpfile)
         do.execute("pip3 install --upgrade setuptools")
 
-
         #"pyvim"
-        items=["jedi","python-prompt-toolkit","ipython","ptpython","ptpdb","pymux","click"]
+        items = ["jedi", "python-prompt-toolkit", "ipython", "ptpython", "ptpdb", "pymux", "click"]
         for item in items:
-            do.pullGitRepo("git@github.com:Jumpscale/%s.git"%item)
-            path=do.joinPaths(do.CODEDIR,"github","jumpscale",item)
-            cmd="cd %s;python3 jsinstall.py"%path
-            print (cmd)
+            do.pullGitRepo("git@github.com:Jumpscale/%s.git" % item)
+            path = do.joinPaths(do.CODEDIR, "github", "jumpscale", item)
+            cmd = "cd %s;python3 jsinstall.py" % path
+            print(cmd)
             do.execute(cmd)
 
         do.pullGitRepo("https://github.com/vinta/awesome-python")
 
         if do.TYPE.startswith("OSX"):
-            dest="%s/Library/Application Support/Sublime Text 3/Packages"%os.environ["HOME"]
-            src="%s/opt/code/github/jumpscale/jumpscale_core8/tools/sublimetext/"%os.environ["HOME"]
+            dest = "%s/Library/Application Support/Sublime Text 3/Packages" % os.environ["HOME"]
+            src = "%s/opt/code/github/jumpscale/jumpscale_core8/tools/sublimetext/" % os.environ["HOME"]
         else:
-            print ("implement develtools")
+            print("implement develtools")
             import ipdb
             ipdb.set_trace()
         if do.exists(src) and do.exists(dest):
-            do.copyTree(src,dest)
+            do.copyTree(src, dest)
 
 
-
-
-do.installer=Installer()
+do.installer = Installer()
 
 if __name__ == '__main__':
     do.installer.installJS()

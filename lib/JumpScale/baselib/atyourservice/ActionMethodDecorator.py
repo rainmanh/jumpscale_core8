@@ -1,9 +1,9 @@
+import functools
+import sys
 
 from JumpScale import j
 import colored_traceback
 colored_traceback.add_hook(always=True)
-import functools
-import sys
 
 
 class ActionMethodDecorator:
@@ -79,7 +79,7 @@ class ActionMethodDecorator:
                     action0.hrd = service.hrd
                 action0._method = None
                 action0.save()
-                
+
                 service.logger.info("Execute Action:%s %s" % (service, func.__name__))
                 action0.execute()
 

@@ -7,6 +7,7 @@ import io
 
 class AggregatorClientTest:
     TEST_INFLUX_DB = "test"
+
     def __init__(self):
         self.logger = j.logger.get(self.__class__.__name__)
 
@@ -21,11 +22,12 @@ class AggregatorClientTest:
             t = time.strptime(point['time'], '%Y-%m-%dT%H:%M:%SZ')
             reported_values.append("%s: %g" % (time.ctime(time.mktime(t)), point['value']))
             if actual['avg'] != point['value']:
-                errors.append("[%s] Expected value: %g got %g" % (time.ctime(actual['stamp']), actual['avg'], point['value']))
+                errors.append("[%s] Expected value: %g got %g" %
+                              (time.ctime(actual['stamp']), actual['avg'], point['value']))
 
         buffer.write("#" * 20 + "\n")
         buffer.write("Minutes: %d\n" % len(actuals))
-        buffer.write("Avg Sample Rate: %d\n" % (total_rate/len(actuals)))
+        buffer.write("Avg Sample Rate: %d\n" % (total_rate / len(actuals)))
         buffer.write("Test result: %s\n" % ("ERROR" if errors else "OK"))
         buffer.write("#" * 20 + "\n")
         buffer.write("Expected values:\n")
@@ -97,7 +99,7 @@ class AggregatorClientTest:
                 # always use the `now` as time stamp so we have control which values are lying in this minute
                 aggregator.measure(key, "random", "mode:test", val, timestamp=stamp)
                 if time.time() - start > 5:
-                    self.logger.info("Injected %d%% points for minute %s", (i/points) * 100, minute)
+                    self.logger.info("Injected %d%% points for minute %s", (i / points) * 100, minute)
                     start = time.time()
 
             self.logger.info("Finished %s points for minute %s", points, minute)
@@ -105,7 +107,7 @@ class AggregatorClientTest:
             # 4b- Keep track of the actual reported values for comparison later on with the expected values.
             actuals.append({
                 'rate': rate,
-                'avg': totals/points,
+                'avg': totals / points,
                 'stamp': stamp,
             })
 
@@ -133,7 +135,7 @@ class AggregatorClientTest:
         # now we need to query the influx-db connection for data and then compare it with the expected results.
         influxdb.switch_database(self.TEST_INFLUX_DB)
         influx_key = "%s_%s_m" % (aggregator.nodename, key)
-        result = influxdb.query('select * from "%s" where time >= %ds and time <= %ds' % (influx_key, now-60, stamp))
+        result = influxdb.query('select * from "%s" where time >= %ds and time <= %ds' % (influx_key, now - 60, stamp))
 
         # build report
         return self._buildReport(actuals, result.get_points(influx_key))

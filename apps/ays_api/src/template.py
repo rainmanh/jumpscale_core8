@@ -41,7 +41,7 @@ def template_post():
     '''
     path = request.args.get('path')
     j.atyourservice.basepath = path
-    dest = os.path.join(path,'servicetemplates',request.json['name'])
+    dest = os.path.join(path,'actorTemplates',request.json['name'])
     j.sal.fs.createDir(dest)
     j.sal.fs.writeFile(os.path.join(dest, 'schema.hrd'),'')
     j.sal.fs.writeFile(os.path.join(dest, 'actions.py'),"""

@@ -3,6 +3,7 @@ from utils import get_msg_path
 
 
 class attrdict(dict):
+
     def __getattr__(self, k):
         return self[k]
 

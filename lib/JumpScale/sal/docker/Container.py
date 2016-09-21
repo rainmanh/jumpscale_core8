@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 from JumpScale import j
 import copy
-
+import tarfile
+import time
+from io import BytesIO
 
 
 class Container:
@@ -14,7 +16,7 @@ class Container:
 
         self.host = copy.copy(host)
         self.name = name
-        self.id=copy.copy(id)
+        self.id = copy.copy(id)
 
         self._ssh_port = None
 
@@ -25,26 +27,28 @@ class Container:
     @property
     def ssh_port(self):
         if self._ssh_port is None:
-            self._ssh_port = self.getPubPortForInternalPort( 22)
+            self._ssh_port = self.getPubPortForInternalPort(22)
         return self._ssh_port
 
     @property
     def sshclient(self):
         if self._sshclient is None:
-            self.executor.sshclient.get(addr=self.host, port=self.ssh_port, login='root', passwd="gig1234", timeout=10)
+            self.executor.sshclient.get(
+                addr=self.host, port=self.ssh_port, login='root', passwd="gig1234", timeout=10, usecache=False, allow_agent=True)
             self._sshclient = self.executor.sshclient
         return self._sshclient
 
     @property
     def executor(self):
         if self._executor is None:
-            self._executor = j.tools.executor.getSSHBased(addr=self.host, port=self.ssh_port, login='root', passwd="gig1234")
+            self._executor = j.tools.executor.getSSHBased(
+                addr=self.host, port=self.ssh_port, login='root', passwd="gig1234", usecache=False, allow_agent=True)
         return self._executor
 
     @property
     def cuisine(self):
         if self._cuisine is None:
-            self._cuisine = j.tools.cuisine.get(self.executor)
+            self._cuisine = j.tools.cuisine.get(self.executor, usecache=False)
         return self._cuisine
 
     def run(self, cmd):
@@ -76,7 +80,6 @@ class Container:
     #     self.run(cmd)
     #     j.sal.fs.remove(temp)
 
-
     @property
     def info(self):
         self.logger.info('read info of container %s:%s' % (self.name, self.id))
@@ -84,7 +87,7 @@ class Container:
         return info
 
     def isRunning(self):
-        return self.info["State"]["Running"]==True
+        return self.info["State"]["Running"] == True
 
     def getIp(self):
         return self.info['NetworkSettings']['IPAddress']
@@ -127,52 +130,68 @@ class Container:
 
     def getPubPortForInternalPort(self, port):
 
-        if not self.info["NetworkSettings"]["Ports"]==None:
-            for key,portsDict in self.info["NetworkSettings"]["Ports"].items():
+        if not self.info["NetworkSettings"]["Ports"] == None:
+            for key, portsDict in self.info["NetworkSettings"]["Ports"].items():
                 if key.startswith(str(port)):
                     # if "PublicPort" not in port2:
                     #     raise j.exceptions.Input("cannot find publicport for ssh?")
-                    portsfound=[int(item['HostPort']) for item in portsDict]
-                    if len(portsfound)>0:
+                    portsfound = [int(item['HostPort']) for item in portsDict]
+                    if len(portsfound) > 0:
                         return portsfound[0]
 
-        if  self.isRunning()==False:
-            raise j.exceptions.RuntimeError("docker %s is not running cannot get pub port."%self)
-        
+        if self.isRunning() == False:
+            raise j.exceptions.RuntimeError(
+                "docker %s is not running cannot get pub port." % self)
 
         raise j.exceptions.Input("cannot find publicport for ssh?")
 
     def pushSSHKey(self, keyname="", sshpubkey="", generateSSHKey=True):
         keys = set()
 
-        home=j.tools.cuisine.local.bash.home
+        home = j.tools.cuisine.local.bash.home
+        user_info = [j.tools.cuisine.local.user.check(user) for user in j.tools.cuisine.local.user.list()]
+        user = [i['name'] for i in user_info if i['home'] == home]
+        user = user[0] if user else 'root'
 
-        if sshpubkey!="" and sshpubkey!=None:
-            key=sshpubkey
+        if sshpubkey != "" and sshpubkey != None:
+            key = sshpubkey
         else:
             if not j.do.checkSSHAgentAvailable():
-                j.do.loadSSHAgent()
+                j.do._loadSSHAgent()
 
-            if keyname!="":
+            if keyname != "" and keyname is not None:
                 key = j.do.getSSHKeyFromAgentPub(keyname)
             else:
-                key = j.do.getSSHKeyFromAgentPub("docker_default",die=False)
-                if key==None:
-                    dir = j.tools.path.get('%s/.ssh'%home)
-                    if dir.listdir("docker_default.pub")==[]:
-                        #key does not exist, lets create one
-                        j.tools.cuisine.local.ssh.keygen(name="docker_default")
-                    key=j.sal.fs.readFile(filename="%s/.ssh/docker_default.pub"%home)
-                    #load the key
-                    j.tools.cuisine.local.core.run("ssh-add %s/.ssh/docker_default"%home)
+                key = j.do.getSSHKeyFromAgentPub("docker_default", die=False)
+                if key == None:
+                    dir = j.tools.path.get('%s/.ssh' % home)
+                    if dir.listdir("docker_default.pub") == []:
+                        # key does not exist, lets create one
+                        j.tools.cuisine.local.ssh.keygen(user=user, name="docker_default")
+                    key = j.sal.fs.readFile(
+                        filename="%s/.ssh/docker_default.pub" % home)
+                    # load the key
+                    j.tools.cuisine.local.core.run(
+                        "ssh-add %s/.ssh/docker_default" % home)
 
-        j.sal.fs.writeFile(filename="%s/.ssh/known_hosts"%home, contents="")
+        j.sal.fs.writeFile(filename="%s/.ssh/known_hosts" % home, contents="")
 
-        if key==None or key.strip()=="":
+        if key is None or key.strip() == "":
             raise j.exceptions.Input("ssh key cannot be empty (None)")
 
+        key_tarstream = BytesIO()
+        key_tar = tarfile.TarFile(fileobj=key_tarstream, mode='w')
+        tarinfo = tarfile.TarInfo(name='authorized_keys')
+        tarinfo.size = len(key)
+        tarinfo.mtime = time.time()
+        tarinfo.mode = 0o600
+        key_tar.addfile(tarinfo, BytesIO(key.encode()))
+        key_tar.close()
 
-        self.cuisine.ssh.authorize("root", key)
+        key_tarstream.seek(0)
+        exec_id = self.client.exec_create(self.id, "mkdir -p /root/.ssh/")
+        self.client.exec_start(exec_id['Id'])
+        self.client.put_archive(self.id, '/root/.ssh/', data=key_tarstream)
 
         return list(keys)
 
@@ -207,7 +226,7 @@ class Container:
     def restart(self):
         self.client.restart(self.id)
 
-    def commit(self, imagename, msg="", delete=True, force=False, push=False,**kwargs):
+    def commit(self, imagename, msg="", delete=True, force=False, push=False, **kwargs):
         """
         imagename: name of the image to commit. e.g: jumpscale/myimage
         delete: bool, delete current image before doing commit
@@ -227,7 +246,6 @@ class Container:
         if push:
             j.sal.docker.push(imagename)
 
-
     def uploadFile(self, source, dest):
         """
         put a file located at source on the host to dest into the container
@@ -239,24 +257,22 @@ class Container:
         get a file located at source in the host to dest on the host
 
         """
-        if not self.cuisine.core.file_exists(source):
+        if not self._cuisine.core.file_exists(source):
             raise j.exceptions.Input(msg="%s not found in container" % source)
         ddir = j.sal.fs.getDirName(dest)
         j.sal.fs.createDir(ddir)
-        content = self.cuisine.core.file_read(source)
+        content = self._cuisine.core.file_read(source)
         j.sal.fs.writeFile(dest, content)
 
-
     def __str__(self):
-        return "docker:%s"%self.name
+        return "docker:%s" % self.name
 
-    __repr__=__str__
-
+    __repr__ = __str__
 
     # def setHostName(self,name,hostname):
-    #     return #@todo
+    #     return # TODO:
     #     c=self.getSSH(name)
-    #     #@todo
+    #     # TODO:
     #     # c.run("echo '%s' > /etc/hostname;hostname %s"%(hostname,hostname))
     #
 
@@ -296,7 +312,6 @@ class Container:
     #     """
     #     ssh_port=self.getPubPortForInternalPort(name,22)
     #     j.do.executeBashScript(content=C2, remote="localhost", sshport=ssh_port)
-
 
     # def _btrfsExecute(self,cmd):
     #     cmd="btrfs %s"%cmd

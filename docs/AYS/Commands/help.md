@@ -1,4 +1,4 @@
-## Getting help on the usage
+# Getting help on the usage
 
 ```shell
 Usage: ays [OPTIONS] COMMAND [ARGS]...

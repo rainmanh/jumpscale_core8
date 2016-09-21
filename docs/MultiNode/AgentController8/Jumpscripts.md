@@ -1,7 +1,6 @@
-## Jumpscripts interface
+# Jumpscripts interface
 
-A jumpscript must define one method `action` that takes data. Data can be any json serializable object.
-The action can return a json serializable object as well
+A jumpscript must define one method `action` that takes data. Data can be any json serializable object. The action can return a json serializable object as well
 
 Let's assume we have this jumpscript wich increments any given number by 1
 
@@ -16,7 +15,7 @@ def action(data):
     return result
 ```
 
-Then place this file under in 
+Then place this file under in
 
 ```bash
 /opt/jumpscale8/apps/AgentController8/jumpscripts/test/incrementer.py
@@ -26,18 +25,15 @@ Then place this file under in
 
 > `test` is the domain name in that case
 
-> Also note that after placing the folder under `AgentController8/jumpscripts` it can take up to a minute until the
-script is distributed to all agents as descriped per [Scripts Distribution](ScriptsDistribution.md)
+> Also note that after placing the folder under `AgentController8/jumpscripts` it can take up to a minute until the script is distributed to all agents as descriped per [Scripts Distribution](ScriptsDistribution.md)
 
+# use of std client
 
-## use of std client
-
-#@todo
+# TODO:
 
 ## use client_advanced
 
-Now to execute your script do the following in a `js` shell. Make sure you have latest  AgentController8_client installed:
-
+Now to execute your script do the following in a `js` shell. Make sure you have latest AgentController8_client installed:
 
 ```python
 client =  j.clients.agentcontroller.get()

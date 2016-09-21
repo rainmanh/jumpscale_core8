@@ -7,7 +7,8 @@ from JumpScale.clients.racktivity.energyswitch.modelfactory.modelfactory import 
 
 
 class RackSal:
-    MODULE_INFO = (40031, 0, 1, Value(u"type='TYPE_VERSION_FULL'\nsize=4\nLength=4\nunit=''\nscale=0"))
+    MODULE_INFO = (40031, 0, 1, Value(
+        u"type='TYPE_VERSION_FULL'\nsize=4\nLength=4\nunit=''\nscale=0"))
 
     def __init__(self, username, password, hostname, port, rtf=None, moduleinfo=None):  # pylint: disable=W0622
         self.client = connection.Connect(username, password, hostname, port)
@@ -29,7 +30,8 @@ class RackSal:
     def master(self):
         if self.__master_inited is False:
             self.__master_inited = True
-            self.__master = self.__factory.get_master(self.__moduleinfo.get('M'))(self)
+            self.__master = self.__factory.get_master(
+                self.__moduleinfo.get('M'))(self)
         return self.__master
 
     @property
@@ -48,7 +50,8 @@ class RackSal:
         if self.__sensor_inited is False:
             self.__sensor_inited = True
             # sal does not handle now sensors with different versions
-            sensor_class = self.__factory.get_sensor(self.__moduleinfo.get('A'))
+            sensor_class = self.__factory.get_sensor(
+                self.__moduleinfo.get('A'))
             if sensor_class:
                 self.__sensor = sensor_class(self)
             else:
@@ -60,7 +63,8 @@ class RackSal:
         if self.__display_inited is False:
             self.__display_inited = True
             # sal does not handle now displays with different versions
-            display_class = self.__factory.get_display(self.__moduleinfo.get('D'))
+            display_class = self.__factory.get_display(
+                self.__moduleinfo.get('D'))
             if display_class:
                 self.__display = display_class(self)
             else:
@@ -72,7 +76,8 @@ class RackSal:
         if self.__slave_power_inited is False:
             self.__slave_power_inited = True
             # sal does not handle now slave_powers with different versions
-            slave_power_class = self.__factory.get_slave_power(self.__moduleinfo.get('Q'))
+            slave_power_class = self.__factory.get_slave_power(
+                self.__moduleinfo.get('Q'))
             if slave_power_class:
                 self.__slave_power = slave_power_class(self)
             else:
@@ -85,17 +90,18 @@ class RackSal:
         if count == 1:
             return convert.bin2value(data, valDef)
         if data[0] != "\0":  # pylint: disable=W1401
-            #This is an error code, return it
+            # This is an error code, return it
             return convert.bin2value(data, valDef)
-        #Remove the error byte
+        # Remove the error byte
         data = data[1:]
-        #get length of each port
+        # get length of each port
         length = len(data) / count
-        #Split the ports
+        # Split the ports
         data_list = convert.slice_string(data, length)
         result = []
         for data in data_list:
-            result.append(convert.bin2value(data, valDef, checkErrorByte=False)[1])
+            result.append(convert.bin2value(
+                data, valDef, checkErrorByte=False)[1])
         return 0, result
 
     def getModuleVersion(self, moduleID):
@@ -128,10 +134,12 @@ class RackSal:
                 result.append('"%s"' % value)
             elif isinstance(value, tuple):
                 result.append(str(round(value[0], 3)))
-                result.append('"%s"' % time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(value[1])))
+                result.append('"%s"' % time.strftime(
+                    "%Y-%m-%d %H:%M:%S", time.gmtime(value[1])))
             else:
                 if info[1].type == 'TYPE_TIMESTAMP':
-                    result.append('"%s"' % time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(value)))
+                    result.append('"%s"' % time.strftime(
+                        "%Y-%m-%d %H:%M:%S", time.gmtime(value)))
                 else:
                     result.append(str(round(value, 3)))
 
@@ -175,7 +183,7 @@ class RackSal:
 
         chunk = calculatePointerSize(paramInfo)
 
-        #prepare header information
+        # prepare header information
         lineData = []
         for idx, info in enumerate(paramInfo):
             if info[0] < 3:

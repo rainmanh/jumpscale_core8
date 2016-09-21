@@ -16,7 +16,6 @@ class TwilioSMSHandler(Handler):
             self.authurl = self._baseurl % accountinfo
             self.fromnr = j.application.config.get('twilio.from')
 
-
     def escalate(self, alert, users):
         if not self.authurl:
             return

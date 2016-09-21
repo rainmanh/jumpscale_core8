@@ -4,64 +4,66 @@ from servers.key_value_store.store import KeyValueStoreBase
 
 import plyvel
 
+
 class LevelDBInterface:
 
-    def __init__(self,namespace,basedir):
+    def __init__(self, namespace, basedir):
         j.sal.fs.createDir(basedir)
-        self.path="%s/%s"%(basedir,namespace)
-        self.db=plyvel.DB(self.path, create_if_missing=True, compression='snappy', bloom_filter_bits=10,lru_cache_size=100*1024*1024,write_buffer_size=1*1024*1024)
-        #write_buffer_size=None, max_open_files=None, lru_cache_size=None, block_size=None, block_restart_interval=None
+        self.path = "%s/%s" % (basedir, namespace)
+        self.db = plyvel.DB(self.path, create_if_missing=True, compression='snappy',
+                            bloom_filter_bits=10, lru_cache_size=100 * 1024 * 1024, write_buffer_size=1 * 1024 * 1024)
+        # write_buffer_size=None, max_open_files=None, lru_cache_size=None, block_size=None, block_restart_interval=None
 
     def repair(self):
-        plyvel.repair_db()#paranoid_checks=None, write_buffer_size=None, max_open_files=None, lru_cache_size=None, block_size=None, block_restart_interval=None, compression='snappy', bloom_filter_bits=0 )
+        plyvel.repair_db()  # paranoid_checks=None, write_buffer_size=None, max_open_files=None, lru_cache_size=None, block_size=None, block_restart_interval=None, compression='snappy', bloom_filter_bits=0 )
 
-    def setb(self,key,value):
+    def setb(self, key, value):
         # print "setb:%s"%key
-        self.db.put(key,value,sync=False)
+        self.db.put(key, value, sync=False)
 
-    def set(self,key,value):
+    def set(self, key, value):
         # print "set:%s"%key
-        val=j.data.serializer.serializers.getSerializerType('j').dumps(value)
-        self.setb(key,val)
+        val = j.data.serializer.serializers.getSerializerType('j').dumps(value)
+        self.setb(key, val)
 
-    def getb(self,key):
-        result= self.db.get(key,fill_cache=True,verify_checksums=True)
-        if result==None:
-            raise j.exceptions.RuntimeError("Cannot find object in db with key:%s"%key)
+    def getb(self, key):
+        result = self.db.get(key, fill_cache=True, verify_checksums=True)
+        if result == None:
+            raise j.exceptions.RuntimeError("Cannot find object in db with key:%s" % key)
         return result
 
-    def get(self,key):
-        value=self.getb(key)        
-        if value==None:
-            raise j.exceptions.RuntimeError("Cannot find object in db with key:%s"%key)
-        val=j.data.serializer.serializers.getSerializerType('j').loads(value)
+    def get(self, key):
+        value = self.getb(key)
+        if value == None:
+            raise j.exceptions.RuntimeError("Cannot find object in db with key:%s" % key)
+        val = j.data.serializer.serializers.getSerializerType('j').loads(value)
         return val
 
-    def exists(self,key):
-        val=self.db.get(key,default="NOTFOUND")
-        return val!="NOTFOUND"
+    def exists(self, key):
+        val = self.db.get(key, default="NOTFOUND")
+        return val != "NOTFOUND"
 
-    def delete(self,key):
-        self.db.delete(key)#,sync=False)
+    def delete(self, key):
+        self.db.delete(key)  # ,sync=False)
 
-    def prefix(self,prefix):
+    def prefix(self, prefix):
         """
         """
-        result=[]
+        result = []
         for key, value in self.db.iterator(prefix=prefix):
             result.append(key)
 
 
 class LevelDBKeyValueStore(KeyValueStoreBase):
 
-    def __init__(self, namespace=None,basedir="", serializers=None):
+    def __init__(self, namespace=None, basedir="", serializers=None):
         KeyValueStoreBase.__init__(self, serializers)
-        self.dbclient = LevelDBInterface(namespace,basedir)
+        self.dbclient = LevelDBInterface(namespace, basedir)
         self.categories = dict()
         if not self.exists("dbsystem", "categories"):
-            key=self._getCategoryKey("dbsystem", "categories")
+            key = self._getCategoryKey("dbsystem", "categories")
             self.dbclient.set(key, {})
-        self.categories=self.get("dbsystem", "categories")
+        self.categories = self.get("dbsystem", "categories")
 
     def getb(self, category, key):
         #self._assertExists(category, key)
@@ -71,7 +73,7 @@ class LevelDBKeyValueStore(KeyValueStoreBase):
 
     def setb(self, category, key, value, JSModelSerializer=None):
         if category not in self.categories:
-            self.categories[category]=True
+            self.categories[category] = True
             self.set("dbsystem", "categories", self.categories)
         categoryKey = self._getCategoryKey(category, key)
         self.dbclient.setb(categoryKey, self.serialize(value))
@@ -83,10 +85,10 @@ class LevelDBKeyValueStore(KeyValueStoreBase):
 
     def set(self, category, key, value, JSModelSerializer=None):
         if category not in self.categories:
-            self.categories[category]=True
+            self.categories[category] = True
             self.set("dbsystem", "categories", self.categories)
         categoryKey = self._getCategoryKey(category, key)
-        #create transactionlog
+        # create transactionlog
         self.dbclient.set(categoryKey, self.serialize(value))
 
     def delete(self, category, key):
@@ -100,12 +102,12 @@ class LevelDBKeyValueStore(KeyValueStoreBase):
     def list(self, category, prefix):
         categoryKey = self._getCategoryKey(category, prefix)
         fullKeys = self.dbclient.prefix(categoryKey)
-        if fullKeys==None:
+        if fullKeys == None:
             return []
         # from IPython import embed
         # print "DEBUG NOW list"
         # embed()
-        
+
         return self._stripCategory(fullKeys, category)
 
     def increment(self, incrementtype):
@@ -116,7 +118,7 @@ class LevelDBKeyValueStore(KeyValueStoreBase):
         key = self._getCategoryKey("increment", incrementtype)
         if not client.exists(key):
             client.set(key, "1")
-            incr=1
+            incr = 1
         else:
             rawOldIncr = client.get(key)
             if not rawOldIncr.isdigit():
@@ -135,7 +137,7 @@ class LevelDBKeyValueStore(KeyValueStoreBase):
 
     def _stripKey(self, catKey):
         if "." not in catKey:
-            raise ValueError("Could not find the category separator in %s" %catKey)
+            raise ValueError("Could not find the category separator in %s" % catKey)
         return catKey.split(".", 1)[0]
 
     def _getCategoryKey(self, category, key):

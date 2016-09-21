@@ -9,16 +9,15 @@ from JumpScale.baselib.atyourservice.ActionMethodDecorator import ActionMethodDe
 from JumpScale.baselib.atyourservice.Blueprint import Blueprint
 from JumpScale.baselib.atyourservice.AYSRun import AYSRun
 # from AYSdb import *
-
+import threading
 import colored_traceback
 colored_traceback.add_hook(always=True)
 
 
 class AtYourServiceRepo():
-
-    def __init__(self, name, path="",keephistory=True):
+    def __init__(self, name, path="", keephistory=True):
         self._init = False
-
+        self.lock = threading.RLock()
         # self._justinstalled = []
         self._type = None
 
@@ -173,16 +172,19 @@ class AtYourServiceRepo():
 
     @property
     def services(self):
+        self.lock.acquire()
         self._doinit()
         if self._services == {}:
             services_path = j.sal.fs.joinPaths(self.basepath, "services")
             if not j.sal.fs.exists(services_path):
+                self.lock.release()
                 return {}
             for hrd_path in j.sal.fs.listFilesInDir(services_path, recursive=True, filter="state.yaml",
                                                     case_sensitivity='os', followSymlinks=True, listSymlinks=False):
                 service_path = j.sal.fs.getDirName(hrd_path)
                 service = Service(self, path=service_path, args=None)
                 self._services[service.key] = service
+        self.lock.release()
         return self._services
 
     # def _nodechildren(self, service, parent=None, producers=[]):

@@ -22,7 +22,7 @@ class LoggerHandler:
 
     def on_sticker(self, tg, message):
         date = datetime.fromtimestamp(message.date)\
-                .strftime('%Y-%m-%d %H:%M:%S')
+            .strftime('%Y-%m-%d %H:%M:%S')
         self.file.write("[{}]{} sent a sticker (id:{}).\n"
                         .format(date,
                                 message.from_user.username,

@@ -1,6 +1,6 @@
-## Showparents
+# Showparents
 
-  Display the list of parent of a specific service instance.
+Display the list of parent of a specific service instance.
 
 ```
 ays showparents --help
@@ -10,5 +10,4 @@ Usage: ays showparents [OPTIONS] ROLE INSTANCE
 
 Options:
   --help  Show this message and exit.
-
 ```

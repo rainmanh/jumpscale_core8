@@ -11,7 +11,6 @@ class RsyncInstance:
         self.exclude = "*.pyc .git"
 
 
-
 class RsyncServer:
 
     """
@@ -24,7 +23,7 @@ class RsyncServer:
         self.pathsecrets = j.tools.path.get("%s/secrets.cfg" % self.root)
         self.pathusers = j.tools.path.get("%s/users.cfg" % self.root)
         if distrdir == "":
-            distrdir = "%s/apps/agentcontroller/distrdir/"%j.dirs.base
+            distrdir = "%s/apps/agentcontroller/distrdir/" % j.dirs.base
 
         self.distrdir = j.tools.path.get(distrdir)
 
@@ -169,8 +168,6 @@ list = no
                         #     destpathfile=j.sal.fs.joinPaths(destdir,relpath)
                         #     j.sal.fs.createDir(j.sal.fs.getDirName(destpathfile))
                         #     j.sal.fs.symlink(item, destpathfile, overwriteTarget=True)
-
-        
 
 
 class RsyncClient:

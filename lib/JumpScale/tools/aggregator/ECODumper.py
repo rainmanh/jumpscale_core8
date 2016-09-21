@@ -45,5 +45,5 @@ class ECODumper(Dumper.BaseDumper):
             for key in ('errormessage', 'errormessagepub', 'code', 'funcname', 'funcfilename', 'closetime',
                         'occurrences', 'lasttime', 'backtrace', 'level', 'type', 'tags', 'gid', 'nid'):
                 setattr(eco, key, obj.get(key))
-                
+
             eco.save()

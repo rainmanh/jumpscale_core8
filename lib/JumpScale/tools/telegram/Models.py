@@ -2,6 +2,7 @@
 
 
 class User:
+
     def __init__(self, *args):
         try:
             self.__dict__ = args[0]
@@ -10,6 +11,7 @@ class User:
 
 
 class GroupChat:
+
     def __init__(self, *args):
         try:
             self.__dict__ = args[0]
@@ -20,6 +22,7 @@ class GroupChat:
 # Todo? : Inheritance and create a File superclass
 # for all file-related classes?
 class PhotoSize:
+
     def __init__(self, data):
         if not data:
             return
@@ -30,6 +33,7 @@ class PhotoSize:
 
 
 class Audio:
+
     def __init__(self, data):
         self.file_id = data["file_id"]
         self.duration = data["duration"]
@@ -38,6 +42,7 @@ class Audio:
 
 
 class Document:
+
     def __init__(self, data):
         self.file_id = data["file_id"]
         self.thumb = PhotoSize(data["thumb"])
@@ -47,6 +52,7 @@ class Document:
 
 
 class Sticker:
+
     def __init__(self, data):
         self.file_id = data["file_id"]
         self.width = data["width"]
@@ -56,6 +62,7 @@ class Sticker:
 
 
 class Video:
+
     def __init__(self, data):
         self.file_id = data["file_id"]
         self.width = data["width"]
@@ -68,6 +75,7 @@ class Video:
 
 
 class Contact:
+
     def __init__(self, data):
         self.phone_number = data["phone_number"]
         self.first_name = data["first_name"]
@@ -76,12 +84,14 @@ class Contact:
 
 
 class Location:
+
     def __init__(self, data):
         self.longitude = data["longitude"]
         self.latitude = data["latitude"]
 
 
 class UserProfilePhotos:
+
     def __init__(self, data):
         self.total_count = data["total_count"]
         self.photos = []
@@ -90,6 +100,7 @@ class UserProfilePhotos:
 
 
 class ReplyKeyBoard:
+
     def __init__(self, **kwargs):
         self.selective = kwargs.get('selective', False)
 
@@ -130,6 +141,7 @@ replace_dict = {'forward_from': User,
 
 
 class Message:
+
     def __init__(self, *args):
         message_dict = {}
 

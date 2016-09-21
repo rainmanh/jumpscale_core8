@@ -1,8 +1,8 @@
-## Destroy
+# Destroy
 
 The `destroy` command is quite dangerous since it destroys AYS service instances.
 
-``` shell
+```shell
 ays destroy --help
 Usage: ays destroy [OPTIONS]
 

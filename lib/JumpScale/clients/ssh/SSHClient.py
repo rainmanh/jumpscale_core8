@@ -21,8 +21,8 @@ class SSHClientFactory:
             client.close()
         self.cache = {}
 
-    def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True, look_for_keys=True,
-            timeout=5, key_filename=None, passphrase=None, die=True, usecache=True):
+    def get(self, addr='', port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True,
+            look_for_keys=True, timeout=5, key_filename=None, passphrase=None, die=True, usecache=True):
         """
         gets an ssh client.
         @param addr: the server to connect to
@@ -40,29 +40,27 @@ class SSHClientFactory:
         @param usecache: use cached client. False to get a new connection
 
         If password is passed, sshclient will try to authenticated with login/passwd.
-        If key_filename is passed, it will override look_for_keys and allow_agent and try to connect with this key. 
+        If key_filename is passed, it will override look_for_keys and allow_agent and try to connect with this key.
         """
-        key = "%s_%s_%s_%s" % (addr, port, login, j.data.hash.md5_string(str(passwd)))
 
-        if key not in self.cache or usecache==False:
+        key = "%s_%s_%s_%s" % (
+            addr, port, login, j.data.hash.md5_string(str(passwd)))
+
+        if key in self.cache and usecache:
             try:
-                cl = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent, allow_agent=allow_agent,
-                               look_for_keys=look_for_keys,key_filename=key_filename, passphrase=passphrase, timeout=timeout)
-            except Exception as e:
-                err = "Cannot connect over ssh:%s %s" % (addr, port)
-                if die:
-                    raise e
-                else:
-                    self.logger.error(err)
-                    self.logger.error(e)
-                    return None
-
-            self.cache[key]=cl
+                if not self.cache[key].transport.is_active():
+                    usecache = False
+            except Exception:
+                usecache = False
+        if key not in self.cache or usecache is False:
+            self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent, allow_agent=allow_agent,
+                                        look_for_keys=look_for_keys, key_filename=key_filename, passphrase=passphrase, timeout=timeout)
 
         return self.cache[key]
 
     def removeFromCache(self, client):
-        key = "%s_%s_%s_%s" % (client.addr, client.port, client.login, j.data.hash.md5_string(str(client.passwd)))
+        key = "%s_%s_%s_%s" % (
+            client.addr, client.port, client.login, j.data.hash.md5_string(str(client.passwd)))
         if key in self.cache:
             self.cache.pop(key)
 
@@ -82,9 +80,11 @@ class SSHClientFactory:
                 line = line.strip()
                 paths.append(line.split(" ")[-1])
             if len(paths) == 0:
-                raise j.exceptions.RuntimeError("could not find loaded ssh-keys")
+                raise j.exceptions.RuntimeError(
+                    "could not find loaded ssh-keys")
 
-            path = j.tools.console.askChoice(paths, "Select ssh key to push (public part only).")
+            path = j.tools.console.askChoice(
+                paths, "Select ssh key to push (public part only).")
             keyname = j.sal.fs.getBaseName(path)
 
         for line in out.splitlines():
@@ -107,7 +107,7 @@ class SSHClientFactory:
 
 class SSHClient:
 
-    def __init__(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True,
+    def __init__(self, addr='', port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True,
                  look_for_keys=True, key_filename=None, passphrase=None, timeout=5.0):
         self.port = port
         self.addr = addr
@@ -115,15 +115,14 @@ class SSHClient:
         self.passwd = passwd
         self.stdout = stdout
         self.timeout = timeout
+        self.allow_agent = allow_agent
         if passwd is not None:
             self.forward_agent = False
-            self.allow_agent = False
             self.look_for_keys = False
             self.key_filename = None
             self.passphrase = None
         else:
             self.forward_agent = forward_agent
-            self.allow_agent = allow_agent
             self.look_for_keys = look_for_keys
             self.key_filename = key_filename
             self.passphrase = passphrase
@@ -148,60 +147,64 @@ class SSHClient:
     @property
     def transport(self):
         if self.client is None:
-            raise j.exceptions.RuntimeError("Could not connect to %s:%s" % (self.addr, self.port))
+            raise j.exceptions.RuntimeError(
+                "Could not connect to %s:%s" % (self.addr, self.port))
         return self.client.get_transport()
 
     @property
     def client(self):
         if self._client is None:
-            self.logger.info("Test connection to %s:%s" % (self.addr, self.port))
+            self.logger.info("Test connection to %s:%s:%s" %
+                             (self.addr, self.port, self.login))
             start = j.data.time.getTimeEpoch()
 
-
-
             if j.sal.nettools.waitConnectionTest(self.addr, self.port, self.timeout) is False:
-                self.logger.error("Cannot connect to ssh server %s:%s" % (self.addr, self.port))
+                self.logger.error("Cannot connect to ssh server %s:%s with login:%s and using sshkey:%s" % (
+                    self.addr, self.port, self.login, self.key_filename))
                 return None
-
             start = j.data.time.getTimeEpoch()
             while start + self.timeout > j.data.time.getTimeEpoch():
                 j.tools.console.hideOutput()
                 try:
                     self._client = paramiko.SSHClient()
-                    self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                    self._client.set_missing_host_key_policy(
+                        paramiko.AutoAddPolicy())
                     self.pkey = None
                     if self.key_filename:
-                        self.allow_agent = False
+                        # self.allow_agent = False
                         self.look_for_keys = False
-                        self.pkey = paramiko.RSAKey.from_private_key_file(self.key_filename, password=self.passphrase)
+                        self.pkey = paramiko.RSAKey.from_private_key_file(
+                            self.key_filename, password=self.passphrase)
+                        if not j.do.checkSSHAgentAvailable():
+                            j.do._.loadSSHAgent()
                         if not j.do.getSSHKeyPathFromAgent(self.key_filename, die=False):
-                            j.do.execute('ssh-add %s' % self.key_filename)
+                            j.do.loadSSHKeys(self.key_filename)
                     self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,
                                          pkey=self.pkey, allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,
                                          timeout=2.0, banner_timeout=3.0)
                     break
                 except (BadHostKeyException, AuthenticationException) as e:
-                    # Can't recover, no point in waiting. Exiting now
-                    self.logger.error("Authentification error. Aborting connection")
+                    self.logger.error(
+                        "Authentification error. Aborting connection")
                     self.logger.error(e)
                     raise j.exceptions.RuntimeError(str(e))
 
                 except (SSHException, socket.error) as e:
-                    self.logger.error("Unexpected error in socket connection for ssh. Aborting connection and try again.")
+                    self.logger.error(
+                        "Unexpected error in socket connection for ssh. Aborting connection and try again.")
                     self.logger.error(e)
                     self._client.close()
                     self.reset()
                     time.sleep(1)
                     continue
-
                 except Exception as e:
-                    from pudb import set_trace; set_trace() 
                     j.clients.ssh.removeFromCache(self)
-                    msg = "Could not connect to ssh on %s@%s:%s. Error was: %s" % (self.login, self.addr, self.port, e)
+                    msg = "Could not connect to ssh on %s@%s:%s. Error was: %s" % (
+                        self.login, self.addr, self.port, e)
                     raise j.exceptions.RuntimeError(msg)
-
             if self._client is None:
-                raise j.exceptions.RuntimeError('Impossible to create SSH connection to %s:%s' % (self.addr, self.port))
+                raise j.exceptions.RuntimeError(
+                    'Impossible to create SSH connection to %s:%s' % (self.addr, self.port))
 
         return self._client
 
@@ -220,7 +223,6 @@ class SSHClient:
         return: (retcode,out_err)
         """
         ch = self.transport.open_session()
-
         if self.forward_agent:
             paramiko.agent.AgentRequestHandler(ch)
 
@@ -257,7 +259,8 @@ class SSHClient:
         ch.exec_command(cmd)
         # indicate that we're not going to write to that channel anymore
         ch.shutdown_write()
-        # create file like object for stdout and stderr to read output of command
+        # create file like object for stdout and stderr to read output of
+        # command
         stdout = ch.makefile('r')
         stderr = ch.makefile_stderr('r')
 
@@ -282,14 +285,16 @@ class SSHClient:
                     elif line == 'E':
                         err_eof = True
                     continue
-                line=j.data.text.toAscii(line)
+                line = j.data.text.toAscii(line)
                 if chan == 'O':
                     if showout:
-                        print((line.strip()))
+                        print(line.rstrip())
+                        # print((line.strip()))
                     out += line
                 elif chan == 'E':
                     if showout:
-                        print((line.strip()))
+                        print(line.rstrip())
+                        # print((line.strip()))
                     err += line
             except queue.Empty:
                 pass
@@ -312,10 +317,11 @@ class SSHClient:
         rc = ch.recv_exit_status()
 
         if rc and die:
-            raise j.exceptions.RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, out, err))
+            raise j.exceptions.RuntimeError(
+                "Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, out, err))
 
-        if err:
-            self.logger.error(err)
+        # if err:
+        #     self.logger.error(err)
         return rc, out, err
 
     def close(self):
@@ -324,7 +330,8 @@ class SSHClient:
 
     def rsync_up(self, source, dest, recursive=True):
         if dest[0] != "/":
-            raise j.exceptions.RuntimeError("dest path should be absolute, need / in beginning of dest path")
+            raise j.exceptions.RuntimeError(
+                "dest path should be absolute, need / in beginning of dest path")
 
         dest = "%s@%s:%s" % (self.login, self.addr, dest)
         j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False,
@@ -333,7 +340,8 @@ class SSHClient:
 
     def rsync_down(self, source, dest, source_prefix="", recursive=True):
         if source[0] != "/":
-            raise j.exceptions.RuntimeError("source path should be absolute, need / in beginning of source path")
+            raise j.exceptions.RuntimeError(
+                "source path should be absolute, need / in beginning of source path")
         source = "%s@%s:%s" % (self.login, self.addr, source)
         j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False,
                              overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
@@ -342,7 +350,9 @@ class SSHClient:
     @property
     def cuisine(self):
         if self._cuisine is None:
-            executor = j.tools.executor.getSSHBased(self.addr, self.port, self.login, self.passwd)
+            executor = j.tools.executor.getSSHBased(self.addr, self.port, self.login, self.passwd, allow_agent=self.allow_agent,
+                                                    look_for_keys=self.look_for_keys, timeout=self.timeout,
+                                                    usecache=False)
             self._cuisine = executor.cuisine
         return self._cuisine
 

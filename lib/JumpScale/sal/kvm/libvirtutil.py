@@ -16,13 +16,15 @@ LOCKEXIST = 4
 
 
 class LibvirtUtil:
+
     def __init__(self, host='localhost'):
         self._host = host
         self.open()
         atexit.register(self.close)
         self.basepath = '/mnt/vmstor/kvm'
         self.templatepath = '/mnt/vmstor/kvm/images'
-        self.env = Environment(loader=FileSystemLoader(j.sal.fs.joinPaths(j.sal.fs.getParent(__file__), 'templates')))
+        self.env = Environment(loader=FileSystemLoader(
+            j.sal.fs.joinPaths(j.sal.fs.getParent(__file__), 'templates')))
 
     def open(self):
         uri = None
@@ -79,7 +81,7 @@ class LibvirtUtil:
             return True
         return domain.resume() == 0
 
-    def backup_machine_to_filesystem(self,machineid, backuppath):
+    def backup_machine_to_filesystem(self, machineid, backuppath):
         from shutil import make_archive
         if self.isCurrentStorageAction(machineid):
             raise Exception("Can't delete a locked machine")
@@ -95,8 +97,9 @@ class LibvirtUtil:
                     continue
                 poolpath = os.path.join(self.basepath, domain.name())
                 if os.path.exists(poolpath):
-                    archive_name = os.path.join(backuppath,'vm-%04x' % machineid)
-                    root_dir     = poolpath
+                    archive_name = os.path.join(
+                        backuppath, 'vm-%04x' % machineid)
+                    root_dir = poolpath
                     make_archive(archive_name, gztar, root_dir)
         return True
 
@@ -108,11 +111,12 @@ class LibvirtUtil:
         if domain:
             if domain.state(0)[0] != libvirt.VIR_DOMAIN_SHUTOFF:
                 domain.destroy()
-            domain.undefineFlags(libvirt.VIR_DOMAIN_UNDEFINE_SNAPSHOTS_METADATA)
+            domain.undefineFlags(
+                libvirt.VIR_DOMAIN_UNDEFINE_SNAPSHOTS_METADATA)
 
         poolpath = os.path.join(self.basepath, id)
         try:
-            diskpool =  self.connection.storagePoolLookupByName(id)
+            diskpool = self.connection.storagePoolLookupByName(id)
             for vol in diskpool.listAllVolumes():
                 vol.delete()
             diskpool.destroy()
@@ -154,9 +158,9 @@ class LibvirtUtil:
         for id in ids:
             dom = self.readonly.lookupByID(id)
             machinestate, maxmem, mem = dom.info()[0:3]
-            totalmax += maxmem/1000
+            totalmax += maxmem / 1000
             if machinestate == libvirt.VIR_DOMAIN_RUNNING:
-                totalrunningmax += maxmem/1000
+                totalrunningmax += maxmem / 1000
         return (hostmem, totalmax, totalrunningmax)
 
     def check_machine(self, machinexml):
@@ -173,7 +177,7 @@ class LibvirtUtil:
         domain = self._get_domain(id)
         flags = 0 if snapshottype == 'internal' else libvirt.VIR_DOMAIN_SNAPSHOT_CREATE_DISK_ONLY
         snap = domain.snapshotCreateXML(xml, flags)
-        return {'name':snap.getName(), 'xml':snap.getXMLDesc()}
+        return {'name': snap.getName(), 'xml': snap.getXMLDesc()}
 
     def listSnapshots(self, id):
         domain = self._get_domain(id)
@@ -181,7 +185,7 @@ class LibvirtUtil:
         for snapshot in domain.listAllSnapshots():
             xml = ElementTree.fromstring(snapshot.getXMLDesc())
             snap = {'name': xml.find('name').text,
-                    'epoch': int(xml.find('creationTime').text) }
+                    'epoch': int(xml.find('creationTime').text)}
             results.append(snap)
         return results
 
@@ -204,8 +208,10 @@ class LibvirtUtil:
         domain = self._get_domain(id)
         snapshot = domain.snapshotLookupByName(name, 0)
         xml = snapshot.getXMLDesc()
-        newxml = xml.replace('<name>%s</name>' % name, '<name>%s</name>' % newname)
-        domain.snapshotCreateXML(newxml, (libvirt.VIR_DOMAIN_SNAPSHOT_CREATE_REDEFINE or libvirt.VIR_DOMAIN_SNAPSHOT_CREATE_DISK_ONLY))
+        newxml = xml.replace('<name>%s</name>' %
+                             name, '<name>%s</name>' % newname)
+        domain.snapshotCreateXML(
+            newxml, (libvirt.VIR_DOMAIN_SNAPSHOT_CREATE_REDEFINE or libvirt.VIR_DOMAIN_SNAPSHOT_CREATE_DISK_ONLY))
         snapshot.delete(libvirt.VIR_DOMAIN_UNDEFINE_SNAPSHOTS_METADATA)
         return True
 
@@ -221,28 +227,33 @@ class LibvirtUtil:
         volumes = []
         todelete = []
         for snapshotfile in snapshotfiles:
-            is_root_volume = self._isRootVolume(domain, snapshotfile['file'].path)
+            is_root_volume = self._isRootVolume(
+                domain, snapshotfile['file'].path)
             if not is_root_volume:
-                print('Blockcommit from %s to %s' % (snapshotfile['file'].path, snapshotfile['file'].backing_file_path))
-                result = domain.blockCommit(snapshotfile['name'], snapshotfile['file'].backing_file_path, snapshotfile['file'].path)
+                print('Blockcommit from %s to %s' % (snapshotfile[
+                      'file'].path, snapshotfile['file'].backing_file_path))
+                result = domain.blockCommit(snapshotfile['name'], snapshotfile[
+                                            'file'].backing_file_path, snapshotfile['file'].path)
                 todelete.append(snapshotfile['file'].path)
                 volumes.append(snapshotfile['name'])
             else:
-                #we can't use blockcommit on topsnapshots
-                new_base = Qcow2(snapshotfile['file'].backing_file_path).backing_file_path
+                # we can't use blockcommit on topsnapshots
+                new_base = Qcow2(
+                    snapshotfile['file'].backing_file_path).backing_file_path
                 todelete.append(snapshotfile['file'].backing_file_path)
                 if not new_base:
                     continue
                 print('Blockrebase from %s' % new_base)
                 flags = libvirt.VIR_DOMAIN_BLOCK_REBASE_COPY | libvirt.VIR_DOMAIN_BLOCK_REBASE_REUSE_EXT | libvirt.VIR_DOMAIN_BLOCK_REBASE_SHALLOW
-                result = domain.blockRebase(snapshotfile['name'], new_base, flags)
+                result = domain.blockRebase(
+                    snapshotfile['name'], new_base, flags)
                 volumes.append(snapshotfile['name'])
 
         while not self._block_job_domain_info(domain, volumes):
             time.sleep(0.5)
 
-        #we can undefine the snapshot
-        snapshot.delete(flags = libvirt.VIR_DOMAIN_UNDEFINE_SNAPSHOTS_METADATA)
+        # we can undefine the snapshot
+        snapshot.delete(flags=libvirt.VIR_DOMAIN_UNDEFINE_SNAPSHOTS_METADATA)
         for disk in todelete:
             if os.path.exists(disk):
                 os.remove(disk)
@@ -252,23 +263,23 @@ class LibvirtUtil:
         domain = self._get_domain(domainid)
         if not domain:
             return False
-        #at this moment we suppose the machine is following the default naming of disks
+        # at this moment we suppose the machine is following the default naming
+        # of disks
         if domain.state()[0] not in [libvirt.VIR_DOMAIN_SHUTDOWN, libvirt.VIR_DOMAIN_SHUTOFF, libvirt.VIR_DOMAIN_CRASHED]:
-            status = domain.blockJobInfo('vda',0)
+            status = domain.blockJobInfo('vda', 0)
             if 'cur' in status:
                 return True
-        #check also that there is no qemu-img job running
+        # check also that there is no qemu-img job running
         if self.isLocked(domainid):
             return True
         return False
 
     def _getLockFile(self, domainid):
-        LOCKPATH = '%s/domain_locks'%j.dirs.varDir
+        LOCKPATH = '%s/domain_locks' % j.dirs.varDir
         if not j.sal.fs.exists(LOCKPATH):
             j.sal.fs.createDir(LOCKPATH)
         lockfile = '%s/%s.lock' % (LOCKPATH, domainid)
         return lockfile
-
 
     def _lockDomain(self, domainid):
         if self.isLocked(domainid):
@@ -351,7 +362,8 @@ class LibvirtUtil:
         else:
             domain.undefine()
             try:
-                domain.blockRebase(clonefrom, destination_path, 0, libvirt.VIR_DOMAIN_BLOCK_REBASE_COPY)
+                domain.blockRebase(clonefrom, destination_path,
+                                   0, libvirt.VIR_DOMAIN_BLOCK_REBASE_COPY)
                 rebasedone = False
                 while not rebasedone:
                     rebasedone = self._block_job_info(domain, clonefrom)
@@ -361,7 +373,6 @@ class LibvirtUtil:
                 raise
             self.connection.defineXML(domainconfig)
         return destination_path
-
 
     def _getImageId(self, path):
         return j.data.hash.sha1(path)
@@ -378,7 +389,7 @@ class LibvirtUtil:
                 raise Exception('Node image found for this machine')
         else:
             snapshotfiles = self._getSnapshotDisks(id, name)
-            #we just take the first one at this moment
+            # we just take the first one at this moment
             if len(snapshotfiles) > 0:
                 clonefrom = snapshotfiles[0]['file'].backing_file_path
             else:
@@ -401,7 +412,8 @@ class LibvirtUtil:
         for disk in disks:
             source = disk.find('source')
             if source is not None and disk.attrib['snapshot'] == 'external':
-                snapshotfiles.append({'name': disk.attrib['name'], 'file': Qcow2(source.attrib['file'])})
+                snapshotfiles.append(
+                    {'name': disk.attrib['name'], 'file': Qcow2(source.attrib['file'])})
         return snapshotfiles
 
     def _get_pool(self, poolname):
@@ -415,8 +427,10 @@ class LibvirtUtil:
             if not os.path.exists(poolpath):
                 os.makedirs(poolpath)
                 cmd = 'chattr +C %s ' % poolpath
-                j.sal.process.execute(cmd, die=False, outputToStdout=False, useShell=False, ignoreErrorOutput=False)
-            pool = self.env.get_template('pool.xml').render(poolname=poolname, basepath=self.basepath)
+                j.sal.process.execute(
+                    cmd, die=False, outputToStdout=False, useShell=False, ignoreErrorOutput=False)
+            pool = self.env.get_template('pool.xml').render(
+                poolname=poolname, basepath=self.basepath)
             self.connection.storagePoolCreateXML(pool, 0)
         return True
 
@@ -428,14 +442,15 @@ class LibvirtUtil:
     def _to_node(self, domain):
         state, max_mem, memory, vcpu_count, used_cpu_time = domain.info()
         locked = self.isCurrentStorageAction(domain.UUIDString())
-        extra = {'uuid': domain.UUIDString(), 'os_type': domain.OSType(), 'types': self.connection.getType(), 'used_memory': memory / 1024, 'vcpu_count': vcpu_count, 'used_cpu_time': used_cpu_time, 'locked': locked}
-        return {'id': domain.UUIDString(), 'name': domain.name(), 'state':state, 'extra': extra, 'XMLDesc': domain.XMLDesc(0)}
+        extra = {'uuid': domain.UUIDString(), 'os_type': domain.OSType(), 'types': self.connection.getType(
+        ), 'used_memory': memory / 1024, 'vcpu_count': vcpu_count, 'used_cpu_time': used_cpu_time, 'locked': locked}
+        return {'id': domain.UUIDString(), 'name': domain.name(), 'state': state, 'extra': extra, 'XMLDesc': domain.XMLDesc(0)}
 
     def _to_node_list(self, domain):
         state, max_mem, memory, vcpu_count, used_cpu_time = domain.info()
-        extra = {'uuid': domain.UUIDString(), 'os_type': domain.OSType(), 'types': self.connection.getType(), 'used_memory': memory / 1024, 'vcpu_count': vcpu_count, 'used_cpu_time': used_cpu_time}
-        return {'id': domain.UUIDString(), 'name': domain.name(), 'state':state, 'extra': extra}
-
+        extra = {'uuid': domain.UUIDString(), 'os_type': domain.OSType(), 'types': self.connection.getType(
+        ), 'used_memory': memory / 1024, 'vcpu_count': vcpu_count, 'used_cpu_time': used_cpu_time}
+        return {'id': domain.UUIDString(), 'name': domain.name(), 'state': state, 'extra': extra}
 
     def get_domain(self, uuid):
         domain = self.connection.lookupByUUIDString(uuid)
@@ -462,7 +477,7 @@ class LibvirtUtil:
         return diskfiles
 
     def _getPool(self, domain):
-        #poolname is by definition the machine name
+        # poolname is by definition the machine name
         return self.readonly.storagePoolLookupByName(domain.name())
 
     def _getTemplatePool(self, templatepoolname=None):
@@ -471,7 +486,8 @@ class LibvirtUtil:
         return self.readonly.storagePoolLookupByName(templatepoolname)
 
     def createNetwork(self, networkname, bridge):
-        networkxml = self.env.get_template('network.xml').render(networkname=networkname, bridge=bridge)
+        networkxml = self.env.get_template('network.xml').render(
+            networkname=networkname, bridge=bridge)
         self.connection.networkDefineXML(networkxml)
         nw = self.connection.networkLookupByName(networkname)
         nw.setAutostart(1)
@@ -485,7 +501,7 @@ class LibvirtUtil:
             return False
 
     def createVMStorSnapshot(self, name):
-        vmstor_snapshot_path = j.sal.fs.joinPaths(self.basepath,'snapshots')
+        vmstor_snapshot_path = j.sal.fs.joinPaths(self.basepath, 'snapshots')
         if not j.sal.fs.exists(vmstor_snapshot_path):
             j.sal.btrfs.subvolumeCreate(self.basepath, 'snapshots')
         vmstorsnapshotpath = j.sal.fs.joinPaths(vmstor_snapshot_path, name)
@@ -493,23 +509,24 @@ class LibvirtUtil:
         return True
 
     def deleteVMStorSnapshot(self, name):
-        vmstor_snapshot_path = j.sal.fs.joinPaths(self.basepath,'snapshots')
-        j.sal.btrfs.subvolumeDelete(vmstor_snapshot_path,name)
+        vmstor_snapshot_path = j.sal.fs.joinPaths(self.basepath, 'snapshots')
+        j.sal.btrfs.subvolumeDelete(vmstor_snapshot_path, name)
         return True
 
     def listVMStorSnapshots(self):
-        vmstor_snapshot_path = j.sal.fs.joinPaths(self.basepath,'snapshots')
+        vmstor_snapshot_path = j.sal.fs.joinPaths(self.basepath, 'snapshots')
         return j.sal.btrfs.subvolumeList(vmstor_snapshot_path)
 
     def _generateRandomMacAddress(self):
         """Generate a random MAC Address using the VM OUI code"""
-        rand_mac_addr = [0x52, 0x54, 0x00, random.randint(0x00, 0x7f), random.randint(0x00, 0xff), random.randint(0x00, 0xff)]
+        rand_mac_addr = [0x52, 0x54, 0x00, random.randint(
+            0x00, 0x7f), random.randint(0x00, 0xff), random.randint(0x00, 0xff)]
         return ':'.join(["%02x" % x for x in rand_mac_addr])
 
     def create_node(self, name, image, bridges=[], size=10, memory=512, cpu_count=1):
         diskname = self._create_disk(name, image, size)
         if not diskname or diskname == -1:
-            #not enough free capcity to create a disk on this node
+            # not enough free capcity to create a disk on this node
             return -1
         return self._create_node(name, diskname, bridges, size, memory, cpu_count)
 
@@ -518,7 +535,7 @@ class LibvirtUtil:
         macaddresses = [self._generateRandomMacAddress() for bridge in bridges]
         POOLPATH = '%s/%s' % (self.basepath, name)
         machinexml = machinetemplate.render({'machinename': name, 'diskname': diskname, 'memory': memory, 'nrcpu': cpucount, 'poolpath': POOLPATH,
-                    'macaddresses': macaddresses, 'bridges': bridges})
+                                             'macaddresses': macaddresses, 'bridges': bridges})
         self.create_machine(machinexml)
         #dnsmasq = DNSMasq()
         #nsid = '%04d' % networkid
@@ -530,7 +547,8 @@ class LibvirtUtil:
     def _create_disk(self, vm_id, image_name, size=10, disk_role='base'):
         disktemplate = self.env.get_template("disk.xml")
         diskname = vm_id + '-' + disk_role + '.qcow2'
-        diskbasevolume = j.sal.fs.joinPaths(self.templatepath, image_name, '%s.qcow2' % image_name)
+        diskbasevolume = j.sal.fs.joinPaths(
+            self.templatepath, image_name, '%s.qcow2' % image_name)
         diskxml = disktemplate.render({'diskname': diskname, 'diskbasevolume':
                                        diskbasevolume, 'disksize': size})
         self.create_disk(diskxml, vm_id)
@@ -541,5 +559,6 @@ class LibvirtUtil:
         diskfiles = self._get_domain_disk_file_names(domain)
         t = int(time.time())
         poolpath = '%s/%s' % (self.basepath, domain.name())
-        snapshot_xml = self.env.get_template('snapshot.xml').render(name=name, diskfiles=diskfiles, type=snapshottype, time=t, poolpath=poolpath)
+        snapshot_xml = self.env.get_template('snapshot.xml').render(
+            name=name, diskfiles=diskfiles, type=snapshottype, time=t, poolpath=poolpath)
         self._snapshot(machine_id, snapshot_xml, snapshottype)

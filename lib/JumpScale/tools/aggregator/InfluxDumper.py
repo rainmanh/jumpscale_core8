@@ -26,7 +26,7 @@ class InfluxDumper(Dumper.BaseDumper):
         """
         super(InfluxDumper, self).__init__(cidr, ports)
 
-        self.influxdb=influx
+        self.influxdb = influx
 
         if database is None:
             database = 'statistics'

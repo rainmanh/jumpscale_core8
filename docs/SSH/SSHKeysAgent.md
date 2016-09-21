@@ -1,8 +1,8 @@
-## SSH Agent Tips
+# SSH Agent Tips
 
 ```bash
 #load ssh-agent & all known keys
-js 'j.do.loadSSHAgent()'
+js 'j.do._.loadSSHAgent()'
 
 #if it's the first time you need to tell current session path to ssh-agent
 export SSH_AUTH_SOCK=~/sshagent_socket
@@ -19,15 +19,13 @@ ssh-agent -k
 
 Just add all the keys you require and the ssh-agent will remember them for you.
 
-
-### Generate keys
+## Generate keys
 
 ```
 ssh-keygen -t rsa -b 4096 -C "your_email@example.com -f ~/.ssh/mynewkey"
 ```
 
-
-### Authorize remote key
+## Authorize remote key
 
 At the CLI:
 
@@ -41,14 +39,13 @@ This will allow youme from yiur local server to login as root on the remote mach
 
 Using JumpScale:
 
-```py
+```python
 j.do.authorizeSSHKey(remoteipaddr,login="root",passwd=None)
 ```
 
 If `psswd=None` you will be asked for the password.
 
-
-### Varia
+## Varia
 
 ```bash
 #restart
@@ -58,8 +55,7 @@ If `psswd=None` you will be asked for the password.
 killall ssh-agent
 ```
 
-
-### Secure your sshd config
+## Secure your sshd config
 
 ```bash
 #create recovery user (if needed)
@@ -81,8 +77,7 @@ echo 'AllowUsers recovery' >> /etc/ssh/sshd_config
 /etc/init.d/ssh restart
 ```
 
-
-### Allow root to login
+## Allow root to login
 
 Dangerous do not do this, use sudo -s from normal user account""
 

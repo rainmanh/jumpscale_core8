@@ -2,7 +2,8 @@ from JumpScale import j
 
 import time
 
-#@TODO very early spec, needs to be done todo (*3*) despiegk
+# TODO: *3 despiegk very early spec, needs to be done todo
+
 
 class LogDumper:
     """

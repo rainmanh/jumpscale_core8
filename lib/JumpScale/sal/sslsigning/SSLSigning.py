@@ -4,9 +4,8 @@ import OpenSSL
 from socket import gethostname
 
 
-
-
 class SSLSigning:
+
     def __init__(self):
         self.__jslocation__ = "j.sal.ssl_signing"
 
@@ -39,7 +38,7 @@ class SSLSigning:
             import time
             cert.set_serial_number(int(time.time() * 1000000))
             cert.gmtime_adj_notBefore(0)
-            cert.gmtime_adj_notAfter(10*365*24*60*60)
+            cert.gmtime_adj_notAfter(10 * 365 * 24 * 60 * 60)
             cert.set_issuer(cert.get_subject())
             cert.set_pubkey(k)
 

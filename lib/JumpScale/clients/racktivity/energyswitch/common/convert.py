@@ -19,7 +19,8 @@ def int2float_ensure_precision(value, scale):
     if scale == 0 or value == 0:
         return value
 
-    # Add pow(10.0, -scale - 3) to ensure our smallest digit according to the scale is correct
+    # Add pow(10.0, -scale - 3) to ensure our smallest digit according to the
+    # scale is correct
     return (value * pow(10.0, -scale)) + pow(10.0, -scale - 3)
 
 
@@ -105,7 +106,7 @@ def value2bin(data, val_def):
 
     if data is None:
         raise ValueError("Invalid data")
-    #valdef represent the return of a get call, setting will be differeot for NumberWithTs types
+    # valdef represent the return of a get call, setting will be differeot for NumberWithTs types
 #    if val_def.type.endswith("NUMBER_WITH_TS"):
 #        val_def.size = 2
     if val_def.type in ("TYPE_UNSIGNED_NUMBER", "TYPE_TIMESTAMP", "TYPE_COMMAND", "TYPE_EVENTFLAGS"):
@@ -233,12 +234,12 @@ def bin2sint(data):
     """Convert a byte-string to a signed integer."""
 
     number = 0
-    #convert binary bytes into digits
+    # convert binary bytes into digits
     arr = list()
     for byte in data:
         arr.append(byte)
     byteslen = len(data)
-    #Now do the processing
+    # Now do the processing
     negative = False
     if arr[byteslen - 1] >= 128:
         negative = True
@@ -254,7 +255,7 @@ def bin2sint(data):
 def number2bin(number, size):
     """Convert a number to a byte-string."""
 
-    #If the number is > than maxSize, number = maxSize
+    # If the number is > than maxSize, number = maxSize
     if number > 2 ** (8 * size):
         number = (2 ** (8 * size)) - 1
     strval = hex(number)[2:]
@@ -282,7 +283,7 @@ def bin2int_and_stamp(data, val_def):
     return num, bin2int(stamp)
 
 
-#split string into array of strings, each len(string) <= length
+# split string into array of strings, each len(string) <= length
 def slice_string(data, length=None):
     """Split a string into an array of strings, each len(string) <= length."""
 
@@ -316,20 +317,20 @@ def pointer2values(data, params_info):
         "TYPE_ENUM": "size",
         "TYPE_COMMAND": "size"
     }
-    #Get the error code
+    # Get the error code
     #errorCode = bin2int(data[0])
-    #if errorCode:
+    # if errorCode:
     #    return errorCode,None
-    #Initialize variables
+    # Initialize variables
     val_list = []
     i = 0
 
     for _, val_def, count in params_info:  # guid not needed in
         size = 0
         if val_def.type in data_types:
-            #Get the size from the dictionary
+            # Get the size from the dictionary
             size = data_types[val_def.type]
-            #If size is not constant, get the attribute value
+            # If size is not constant, get the attribute value
             if isinstance(size, str):
                 size = getattr(val_def, size)
 

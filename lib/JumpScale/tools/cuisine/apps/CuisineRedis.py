@@ -1,28 +1,24 @@
 from JumpScale import j
 
 
-from ActionDecorator import ActionDecorator
+app = j.tools.cuisine._getBaseAppClass()
 
 
-"""
-please ensure that the start and build methods are separate and
-the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
-"""
+class CuisineRedis(app):
+    NAME = 'redis-server'
 
-class actionrun(ActionDecorator):
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.redis"
+    def build(self, reset=False):
+        raise NotImplementedError()
 
-base=j.tools.cuisine.getBaseClass()
-class Redis(base):
+    def install(self, reset=False):
+        if reset == False and self.isInstalled():
+            print('Redis is already installed, pass reset=True to reinstall.')
+            return
+        if self._cuisine.core.isUbuntu:
+            self._cuisine.package.update()
+            self._cuisine.package.install("build-essential")
 
-    @actionrun(action=True)
-    def build(self,name="main",ip="localhost", port=6379, maxram=200, appendonly=True,snapshot=False,slave=(),ismaster=False,passwd=None,unixsocket=True,start=True):
-        self.cuisine.installer.base()
-        if self.cuisine.core.isUbuntu:
-
-            C="""
+            C = """
             #!/bin/bash
             set -ex
 
@@ -30,53 +26,44 @@ class Redis(base):
 
             mkdir -p $tmpDir/build/redis
             cd $tmpDir/build/redis
-            wget http://download.redis.io/releases/redis-3.2.0.tar.gz
-            tar xzf redis-3.2.0.tar.gz
-            cd redis-3.2.0
+            wget http://download.redis.io/redis-stable.tar.gz
+            tar xzf redis-stable.tar.gz
+            cd redis-stable
             make
 
             rm -f /usr/local/bin/redis-server
             rm -f /usr/local/bin/redis-cli
 
             """
-            C=self.cuisine.bash.replaceEnvironInText(C)
-            C=self.cuisine.core.args_replace(C)
-            self.cuisine.core.run_script(C)
-            #move action
-            C="""
+            C = self._cuisine.bash.replaceEnvironInText(C)
+            C = self._cuisine.core.args_replace(C)
+            self._cuisine.core.execute_bash(C)
+
+            # move action
+            C = """
             set -ex
             mkdir -p $base/bin/
-            cp -f $tmpDir/build/redis/redis-3.2.0/src/redis-server $base/bin/
-            cp -f $tmpDir/build/redis/redis-3.2.0/src/redis-cli $base/bin/
+            cp -f $tmpDir/build/redis/redis-stable/src/redis-server $base/bin/
+            cp -f $tmpDir/build/redis/redis-stable/src/redis-cli $base/bin/
 
             rm -rf $base/apps/redis
             """
-            C=self.cuisine.bash.replaceEnvironInText(C)
-            C=self.cuisine.core.args_replace(C)
-            self.cuisine.core.run_script(C)
+            C = self._cuisine.bash.replaceEnvironInText(C)
+            C = self._cuisine.core.args_replace(C)
+            self._cuisine.core.execute_bash(C)
         else:
-            if self.cuisine.core.command_check("redis-server")==False:
-                if self.cuisine.core.isMac:
-                    self.cuisine.package.install("redis")
-                else:
-                    self.cuisine.package.install("redis-server")
-            cmd=self.cuisine.core.command_location("redis-server")
-            dest="%s/redis-server"%self.cuisine.core.dir_paths["binDir"]
-            if cmd!=dest:
-                self.cuisine.core.file_copy(cmd,dest)
+            raise j.exceptions.NotImplemented(
+                message="only ubuntu supported for building redis", level=1, source="", tags="", msgpub="")
 
-        self.cuisine.bash.addPath(j.sal.fs.joinPaths(self.cuisine.core.dir_paths["base"], "bin"))
+    def start(self, name="main", ip="localhost", port=6379, maxram=200, appendonly=True,
+              snapshot=False, slave=(), ismaster=False, passwd=None, unixsocket=True, start=True):
+        redis_cli = j.clients.redis.getInstance(self._cuisine)
+        redis_cli.configureInstance(name, ip, port, maxram=maxram, appendonly=appendonly,
+                                    snapshot=snapshot, slave=slave, ismaster=ismaster, passwd=passwd, unixsocket=False)
+        dpath, cpath = j.clients.redis._getPaths(name)
+        cmd = "$binDir/redis-server %s" % cpath
+        self._cuisine.processmanager.ensure(name="redis_%s" % name, cmd=cmd, env={}, path='$binDir')
 
-
-        redis_cli = j.clients.redis.getInstance(self.cuisine)
-        redis_cli.configureInstance(name, ip, port, maxram=maxram, appendonly=appendonly, \
-            snapshot=snapshot, slave=slave, ismaster=ismaster, passwd=passwd, unixsocket=False)
-
-        if start:
-            self.start(name)
-
-    @actionrun(force=True)
-    def start(self, name="main"):
-        dpath,cpath=j.clients.redis._getPaths(name)
-        cmd="$binDir/redis-server %s"%cpath
-        self.cuisine.processmanager.ensure(name="redis_%s" % name,cmd=cmd,env={},path='$binDir')
+        # Checking if redis is started correctly with port specified
+        if not redis_cli.isRunning(ip_address=ip, port=port, path='$binDir'):
+            raise j.exceptions.RuntimeError('Redis is failed to start correctly')

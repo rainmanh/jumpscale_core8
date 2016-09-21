@@ -12,9 +12,10 @@ class Guid(String):
     def __init__(self):
         String.__init__(self)
         self.NAME = 'guid'
-        self._RE = re.compile('^[0-9a-fA-F]{8}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{12}$')
+        self._RE = re.compile(
+            '^[0-9a-fA-F]{8}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{12}$')
 
-    def check(self,value):
+    def check(self, value):
         '''Check whether provided value is a valid GUID string'''
         if not j.data.types.string.check(value):
             return False
@@ -23,58 +24,61 @@ class Guid(String):
     def get_default(self):
         return j.data.idgenerator.generateGUID()
 
-    def fromString(self,v):
+    def fromString(self, v):
         if not j.data.types.string.check(v):
-            raise ValueError("Input needs to be string:%s"%v)
+            raise ValueError("Input needs to be string:%s" % v)
         if self.check(s):
             return s
         else:
-            raise ValueError("%s not properly formatted: '%s'"%(Guid.NAME,v))
+            raise ValueError("%s not properly formatted: '%s'" %
+                             (Guid.NAME, v))
 
-    toString=fromString
+    toString = fromString
 
 
 class Email(String):
     """
     """
+
     def __init__(self):
         String.__init__(self)
         self.NAME = 'email'
-        self._RE = re.compile('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+        self._RE = re.compile(
+            '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
 
-    def check(self,value):
+    def check(self, value):
         '''
         Check whether provided value is a valid tel nr
         '''
         if not j.data.types.string.check(value):
             return False
-        value=self.clean(value)
+        value = self.clean(value)
         return self._RE.fullmatch(value) is not None
 
-
-    def clean(self,v):
+    def clean(self, v):
         if not j.data.types.string.check(v):
-            raise ValueError("Input needs to be string:%s"%v)
-        v=v.lower()
+            raise ValueError("Input needs to be string:%s" % v)
+        v = v.lower()
         v.strip()
         return v
 
-
-    def fromString(self,v):
-        v=self.clean(v)
+    def fromString(self, v):
+        v = self.clean(v)
         if self.check(v):
             return v
         else:
-            raise ValueError("%s not properly formatted: '%s'"%(self.NAME,v))
+            raise ValueError("%s not properly formatted: '%s'" %
+                             (self.NAME, v))
 
-    toString=fromString
-
+    toString = fromString
 
     def get_default(self):
         return "changeme@example.com"
 
+
 class Path(String):
     '''Generic path type'''
+
     def __init__(self):
         Email.__init__(self)
         self.NAME = 'path'
@@ -83,6 +87,7 @@ class Path(String):
     def get_default():
         return ""
 
+
 class Tel(String):
     """
     format is e.g. +32 475.99.99.99x123
@@ -90,20 +95,21 @@ class Tel(String):
     the. & , and spaces will not be remembered
     and x stands for phone number extension
     """
+
     def __init__(self):
         Email.__init__(self)
         self.NAME = 'tel'
         self._RE = re.compile('^\+?[0-9]{6,15}(?:x[0-9]+)?$')
 
-    def clean(self,v):
+    def clean(self, v):
         if not j.data.types.string.check(v):
-            raise ValueError("Input needs to be string:%s"%v)
-        v=v.replace(".","")
-        v=v.replace(",","")
-        v=v.replace("-","")
-        v=v.replace("(","")
-        v=v.replace(")","")
-        v=v.replace(" ","")
+            raise ValueError("Input needs to be string:%s" % v)
+        v = v.replace(".", "")
+        v = v.replace(",", "")
+        v = v.replace("-", "")
+        v = v.replace("(", "")
+        v = v.replace(")", "")
+        v = v.replace(" ", "")
         v.strip()
         return v
 
@@ -114,17 +120,21 @@ class Tel(String):
 class IPRange(String):
     """
     """
+
     def __init__(self):
         Email.__init__(self)
         self.NAME = 'iprange'
-        self._RE = re.compile('[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/[0-9]{1,2}')
+        self._RE = re.compile(
+            '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/[0-9]{1,2}')
 
     def get_default(self):
         return "192.168.1.1/24"
 
+
 class IPAddress(String):
     """
     """
+
     def __init__(self):
         Email.__init__(self)
         self.NAME = 'ipaddress'
@@ -133,25 +143,27 @@ class IPAddress(String):
     def get_default(self):
         return "192.168.1.1"
 
+
 class IPPort(Integer):
     '''Generic IP port type'''
+
     def __init__(self):
         Email.__init__(self)
         self.NAME = 'ipport'
         self.BASETYPE = 'string'
 
-
-    def check(self,value):
+    def check(self, value):
         '''
         Check if the value is a valid port
         We just check if the value a single port or a range
         Values must be between 0 and 65535
         '''
-        if not Integer.check(self,value):
+        if not Integer.check(self, value):
             return False
         if 0 < value <= 65535:
             return True
         return False
+
 
 class Date(String):
     '''
@@ -164,6 +176,7 @@ class Date(String):
     +1w_end will be converted to 1 week from now at end of week (Saturday), 1 can be any int
     +1m_end will be converted to 1 week from now at end of month (last day of month), 1 can be any int
     '''
+
     def __init__(self):
         self.NAME = 'date'
         self._RE = re.compile('[0-9]{2}/[0-9]{2}/[0-9]{4}')
@@ -179,24 +192,24 @@ class Date(String):
         '''
         if not j.data.types.string.check(value):
             return False
-        value=self.clean(value)
-        if value in ["-1","+1","0",""]:
+        value = self.clean(value)
+        if value in ["-1", "+1", "0", ""]:
             return True
         return self._RE.fullmatch(value) is not None
 
     def clean(self, v):
         if j.data.types.string.check(v):
-            if v.count("-")>1:
-                v=v.replace("-",":")
+            if v.count("-") > 1:
+                v = v.replace("-", ":")
 
-        if v==-1:
-            v="-1"
-        elif v==1:
-            v="+1"
-        elif v==0:
-            v=="0"
+        if v == -1:
+            v = "-1"
+        elif v == 1:
+            v = "+1"
+        elif v == 0:
+            v == "0"
         elif not j.data.types.string.check(v):
-            raise ValueError("Input needs to be string:%s"%v)
+            raise ValueError("Input needs to be string:%s" % v)
         elif self._RE_days.fullmatch(value) is not None:
             j.application.break_into_jshell("DEBUG NOW day extra")
         elif self._RE_weeks.fullmatch(value) is not None:
@@ -221,12 +234,13 @@ class Duration(String):
     -1 is infinite
 
     '''
+
     def __init__(self):
         Email.__init__(self)
         self.NAME = 'duration'
         self._RE = re.compile('^(\d+)([wdhms]?)$')
 
-    def check(self,value):
+    def check(self, value):
         if isinstance(value, int):
             if value == -1:
                 return True
@@ -236,7 +250,6 @@ class Duration(String):
             if self.fullmatch(value):
                 return True
         return False
-
 
     def convertToSeconds(value):
         """Translate a string representation of a duration to an int
@@ -262,11 +275,11 @@ class Duration(String):
             amount, granularity = m.groups()
             amount = int(amount)
             if granularity == 'w':
-                multiplier = 60*60*24*7
+                multiplier = 60 * 60 * 24 * 7
             elif granularity == 'd':
-                multiplier = 60*60*24
+                multiplier = 60 * 60 * 24
             elif granularity == 'h':
-                multiplier = 60*60
+                multiplier = 60 * 60
             elif granularity == 'm':
                 multiplier = 60
             elif granularity == 's':
@@ -276,7 +289,6 @@ class Duration(String):
                 multiplier = 1
             return amount * multiplier
         return value
-
 
 
 # class DirPath(Path):

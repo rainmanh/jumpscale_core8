@@ -5,6 +5,7 @@ import socket
 
 
 class TipcTransport(Transport):
+
     def __init__(self, servaddr):
         self.servaddr = servaddr
         self._id = None

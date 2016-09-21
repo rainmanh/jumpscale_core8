@@ -14,7 +14,8 @@ def match(j, params, service, tags, tasklet):
     return True
 """
 
-class CodeGeneratorActorTasklets(CodeGeneratorBase):
+
+class CodeGeneratoractorTasklets(CodeGeneratorBase):
 
     def __init__(self, spec, typecheck=True, dieInGenCode=True, overwrite=False, codepath=None):
         overwrite = False  # can never overwrite
@@ -33,9 +34,10 @@ class CodeGeneratorActorTasklets(CodeGeneratorBase):
             j.sal.fs.createDir(path)
 
             path = j.sal.fs.joinPaths(self.codepath, "method_%s" % method.name,
-                                         "5_%s_%s.py" % (spec.actorname, method.name))
+                                      "5_%s_%s.py" % (spec.actorname, method.name))
 
-            path2 = j.sal.fs.joinPaths(self.codepath, "method_%s" % method.name, "5_main.py")
+            path2 = j.sal.fs.joinPaths(
+                self.codepath, "method_%s" % method.name, "5_main.py")
             if j.sal.fs.exists(path2):
                 j.sal.fs.moveFile(path2, path)
 
@@ -51,12 +53,15 @@ class CodeGeneratorActorTasklets(CodeGeneratorBase):
                     if tags.tagExists("tasklettemplate"):
                         templ = tags.tagGet("tasklettemplate").strip().lower()
                     if templ not in tasklets:
-                        raise j.exceptions.RuntimeError("Cannot find tasklet template %s in \n%s" % (templ, method))
+                        raise j.exceptions.RuntimeError(
+                            "Cannot find tasklet template %s in \n%s" % (templ, method))
                     content = tasklets[templ]
                     if templ.find("model") == 0:  # is used for templates for crud methods
                         content = content.replace("{appname}", spec.appname)
-                        content = content.replace("{actorname}", spec.actorname)
-                        content = content.replace("{modelname}", method.name.split("_", 2)[1])
+                        content = content.replace(
+                            "{actorname}", spec.actorname)
+                        content = content.replace(
+                            "{modelname}", method.name.split("_", 2)[1])
                     j.sal.fs.writeFile(path, content)
 
         return self.getContent()

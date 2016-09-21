@@ -8,22 +8,19 @@ class ExecutorLocal(ExecutorBase):
         ExecutorBase.__init__(
             self, dest_prefixes=dest_prefixes, debug=debug, checkok=debug)
         self.logger = j.logger.get("j.tools.executor.local")
-        self.type="local"
+        self.type = "local"
         self.id = 'localhost'
         self.addr = 'localhost'
+
+    def executeRaw(self, cmd, die=True, showout=False):
+        return self.execute(cmd, die=die, showout=showout)
 
     def execute(self, cmds, die=True, checkok=None, async=False, showout=True, outputStderr=False, timeout=0, env={}):
         if env:
             self.env.update(env)
-
-        if cmds.find('\n') == -1:
-            if self.debug:
-                print("EXECUTOR:%s" % cmds)
-            return j.do.execute(cmds, die=die, async=async, showout=showout, outputStderr=outputStderr)
         if self.debug:
-            print("EXECUTOR:\n%s\n" % cmds)
-
-        return j.sal.process.execute(command=cmds, die=die)
+            print("EXECUTOR:%s" % cmds)
+        return j.do.execute(cmds, die=die, async=async, showout=showout, outputStderr=outputStderr, timeout=timeout)
 
     def executeInteractive(self, cmds, die=True, checkok=None):
         cmds = self._transformCmds(cmds, die, checkok=checkok)
@@ -33,12 +30,12 @@ class ExecutorLocal(ExecutorBase):
         if dest_prefix != "":
             dest = j.sal.fs.joinPaths(dest_prefix, dest)
         j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False,
-                      overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
-                      ssh=False, recursive=recursive)
+                             overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
+                             ssh=False, recursive=recursive)
 
     def download(self, source, dest, source_prefix=""):
         if source_prefix != "":
             source = j.sal.fs.joinPaths(source_prefix, source)
         j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False,
-                      overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
-                      ssh=False)
+                             overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
+                             ssh=False)

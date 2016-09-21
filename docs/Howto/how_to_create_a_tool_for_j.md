@@ -1,19 +1,18 @@
-## Writing a tool for j.tools
+# Writing a tool for j.tools
 
 1- Switch to the tools directory:
 
-```cd jumpscale_core8/lib/JumpScale/tools```/
+`cd jumpscale_core8/lib/JumpScale/tools`/
 
 2- Create a package directory:
 
-```mkdir hello```
+`mkdir hello`
 
 3- Create the package files:
 
-```touch hello.py __init__.py```
+`touch hello.py __init__.py`
 
-4- Edit hello.py
-You have to set an alias for you tool
+4- Edit hello.py You have to set an alias for you tool
 
 ```python
 from JumpScale import j
@@ -40,11 +39,12 @@ class Hello(object):
 
     def manytimes(self, n):
         return (self.msg + " ")*n + "!!!"
-
 ```
+
 5- You will need j.core.db.flushall()/j.core.db.flushdb() to force it to reread the tools directory
 
 6- Use it
+
 ```python
 In [4]: h=j.tools.hello
 

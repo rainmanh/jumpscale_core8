@@ -26,13 +26,13 @@ if __name__ == '__main__':
         portalcfgpath = j.sal.fs.joinPaths(j.dirs.base, 'apps', 'cloudbroker', 'cfg', 'portal')
     j.apps = cl.actors
 
-    cl.getActor('system', 'contentmanager')
-    for actor in cl.actors.system.contentmanager.getActors():
+    cl.getactor('system', 'contentmanager')
+    for actor in cl.actors.system.contentmanager.getactors():
         space, actor = actor.split('__')
         if space != 'system':
             print('\rLoading', space, actor, end=' ')
             try:
-                cl.getActor(space,actor)
+                cl.getactor(space,actor)
             except:
                 print("\nFailed to load", space, actor)
     print('')

@@ -1,60 +1,59 @@
-## BindDNS
+# BindDNS
 
 `j.sal.bind` helps you with many tasks related to Bind9 service.
 
+## Usage
 
-### Usage
+- Starting
 
-* Starting
-
-```py
+```python
 j.sal.bind.start()
 ```
 
-* Stopping
+- Stopping
 
-```py
+```python
 j.sal.bind.stop()
 ```
 
-* Restarting
+- Restarting
 
-```py
+```python
 j.sal.bind.restart()
 ```
 
-* Update the IP of a host
+- Update the IP of a host
 
-```py
+```python
 j.sal.bind.updateHostIp(host, ip)
 ```
 
-* Add a record
+- Add a record
 
-```py
+```python
 addRecord(self, domain, host, ip, klass, type, ttl)
 ```
 
-* Delete a host
+- Delete a host
 
-```py
+```python
 deleteHost(host)
 ```
 
-* Listing all zones
+- Listing all zones
 
-```py
+```python
 j.sal.bind.zones
 ```
 
-* map of available zones
+- map of available zones
 
-```py
+```python
 j.sal.bind..map
 ```
 
-* a reverse map of available zones
+- a reverse map of available zones
 
-```py
+```python
 j.sal.bind.reversemap
 ```

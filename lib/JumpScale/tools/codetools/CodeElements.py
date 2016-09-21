@@ -4,12 +4,13 @@ from MethodDef import MethodDef
 from ClassDef import ClassDef
 from JumpScale import j
 
+
 class CodeElements:
-    
-    def __init__(self, filepath = ""):
-        self.body=""
+
+    def __init__(self, filepath=""):
+        self.body = ""
         self.classDefs = []
-        self.methodDefs = [] 
+        self.methodDefs = []
         self.license = ""
         self.imports = ""
         self.namespace = ""
@@ -21,7 +22,7 @@ class CodeElements:
         self.classDefs.append(classDef)
 
     def addMethodDef(self, methodDef):
-        self.methodDefs.append(methodDef)  
+        self.methodDefs.append(methodDef)
 
     def getClass(self, classname):
         """
@@ -29,7 +30,7 @@ class CodeElements:
         Returns None if the class can't be found.
         """
         for classDef in self.classDefs:
-            if classDef.name==classname:
+            if classDef.name == classname:
                 return classDef
         j.logger.log("Could not find class [%s]." % classname)
         return None

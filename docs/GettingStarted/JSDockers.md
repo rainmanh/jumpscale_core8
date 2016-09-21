@@ -1,7 +1,6 @@
+# Working with Docker
 
-## Working with Docker
-
-### Without having JumpScale pre-installed
+## Without having JumpScale pre-installed
 
 ```
 docker pull jumpscale/ubuntu1604_golang
@@ -20,16 +19,18 @@ You will now see a shell for JumpScale.
 An SSH server is installed in the Docker container, but you will have to remap port 22 to some other port on localhost, e.g. 2022.
 
 Here's how:
+
 ```
 docker rm -f js
 docker run --rm -i -t -p 2022:22 --name="js" jumpscale/ubuntu1604_golang /sbin/my_init -- bash -l
 ```
 
-### With JumpScale already installed (recommended way)
+## With JumpScale already installed (recommended way)
 
-#### install docker with cuisine
+### install docker with cuisine
 
 requirements
+
 - an ssh enabled ubuntu 16.04 server (here called myhost)
 
 ```
@@ -48,10 +49,10 @@ c.docker.install()
 
 #if jumpscale not installed yet
 c.install.jumpscale8() #will install jumpscale 8 using our virtual filesystem layer
-
 ```
 
 now login into the ubuntu and you can use following commands
+
 ```
 jsdocker create -n kds -i jumpscale/ubuntu1604_golang -k mykey
 
@@ -67,6 +68,7 @@ ssh localhost -p 9022
 ```
 
 To list the Dockers containers:
+
 ```
 jsdocker list
 
@@ -75,13 +77,12 @@ jsdocker list
  build                jumpscale/ubuntu1604      localhost            9022       Up 20 minutes
  owncloudproxy        owncloudproxy             localhost                       Up 24 hours
  owncloud             owncloud:live             localhost                       Up 24 hours
-
 ```
 
-### Build Docker images
+## Build Docker images
 
-- Checkout repo: https://github.com/Jumpscale/dockers
-- Go to https://github.com/Jumpscale/dockers/tree/master/js8/x86_64 and use the `buildall` command
+- Checkout repo: <https://github.com/Jumpscale/dockers>
+- Go to <https://github.com/Jumpscale/dockers/tree/master/js8/x86_64> and use the `buildall` command
 
 ```
 Usage: buildall.py [OPTIONS]
@@ -101,9 +102,7 @@ Options:
   --help               Show this message and exit.
 ```
 
-
-#### Example using a remote machine to build
-
+### Example using a remote machine to build
 
 For the example below:
 

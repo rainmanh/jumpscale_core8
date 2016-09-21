@@ -1,120 +1,120 @@
-## Docker
+# Docker
 
 This SAL helps you to manipulate docker containers and images.
 
-```py
+```python
 j.sal.docker
 ```
 
-### Usage
+## Usage
 
-* Create of a Docker container
+- Create of a Docker container
 
-```py
+```python
 j.sal.docker.create(name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1504", nameserver=["8.8.8.8"], replace=True, cpu=None, mem=0, jumpscale=False, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="", setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master")
 ```
 
-* Connect to a remote TCP host
+- Connect to a remote TCP host
 
-```py
+```python
 j.sal.docker.connectRemoteTCP(address,port)
 ```
 
-* Check if a container exists
+- Check if a container exists
 
-```py
+```python
 j.sal.docker.exists(name)
 ```
 
-* Searche for a container with a specific name and returned as a `Container` object
+- Searche for a container with a specific name and returned as a `Container` object
 
-```py
+```python
 j.sal.docker.get(name)
 ```
 
-* List all containers and their names
+- List all containers and their names
 
-```py
+```python
 j.sal.docker.containers()
 j.sal.docker.containerNames()
 ```
 
-* List all running containers and their names
+- List all running containers and their names
 
-```py
+```python
 j.sal.docker.containersRunning()
 j.sal.docker.containerNamesRunning()
 ```
 
-* Pull a Docker image from connected host
+- Pull a Docker image from connected host
 
-```py
+```python
 j.sal.docker.pull(imagename)
 ```
 
-* List all available Docker images
+- List all available Docker images
 
-```py
+```python
 j.sal.docker.getImages()
 ```
 
-* Delete a certain Docker image:
+- Delete a certain Docker image:
 
-```py
+```python
 j.sal.docker.removeImages(tag)
 ```
 
-* Destroy all Docker containers
+- Destroy all Docker containers
 
-```py
+```python
 j.sal.docker.destroyContainers()
 ```
 
-* Reset docker with all it's containers
+- Reset docker with all it's containers
 
-```py
+```python
 j.sal.docker.resetDocker()
 ```
 
-* Push a Docker image to connected host
+- Push a Docker image to connected host
 
-```py
+```python
 j.sal.docker.push(imagename)
 ```
 
-* Get summarized and detailed information about a certain Docker container
+- Get summarized and detailed information about a certain Docker container
 
-```py
+```python
 j.sal.docker.status()
 j.sal.docker.ps()
 ```
 
-* Export as TGZ tarball
+- Export as TGZ tarball
 
-```py
+```python
 j.sal.docker.exportTGZ(name,backupname)
 ```
 
-* Import from a tarball
+- Import from a tarball
 
-```py
+```python
 j.sal.docker.importTgz(self,backupname,name)
 ```
 
-* Export RSYNC
+- Export RSYNC
 
-```py
+```python
 j.sal.docker.exportRsync(name,backupname,key="pub")
 ```
 
-* Import RSync
+- Import RSync
 
-```py
+```python
 j.sal.docker.importRsync(self,backupname,name,basename="",key="pub")
 ```
 
-* Building a dockerfile
+- Building a dockerfile
 
-```py
+```python
 j.sal.docker.build(path, tag, output=True)
 ```

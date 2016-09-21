@@ -1,28 +1,23 @@
 #!/usr/bin/env jspython
 
 # Click library has some problems with python3 when it comes to unicode: http://click.pocoo.org/5/python3/#python3-surrogates
-# to fix this we need to set the environ varialbes to export the locales
+# to fix this we need to set the environ variables to export the locales
 
 import os
+from JumpScale import j
+import click
+
 os.environ['LC_ALL'] = 'C.UTF-8'
 os.environ['LANG'] = 'C.UTF-8'
 
-from JumpScale import j
-
-import click
-
-cwd = None
 atyourservice = None
+
 
 @click.group()
 @click.option('--nodebug', default=False, help='disable debug mode', is_flag=True)
 def cli(nodebug):
-    global cwd, atyourservice
-    cwd = j.sal.fs.getcwd()
-    try:
-        atyourservice = j.atyourservice.get(j.sal.fs.getBaseName(cwd), cwd)
-    except j.exceptions.Input:
-        raise j.exceptions.AYSNotFound("You're currently not in an AYS repo. Please cd into an AYS repo before performing an AYS action")
+    global atyourservice
+    atyourservice = j.atyourservice.get()
     atyourservice.debug = not nodebug
 
 # @click.command()
@@ -117,9 +112,9 @@ def showactions():
     shows all services with relevant actions
     """
     for key, service in atyourservice.services.items():
-        print ("%s" % service)
+        print("%s" % service)
         for key, action in service.action_methods.items():
-            print ("- %-20s %s" % (key, action))
+            print("- %-20s %s" % (key, action))
 
 
 # @click.command()
@@ -177,7 +172,8 @@ def simulate(action, role="", instance="", force=False, producerroles="*"):
     is like do only does not execute it,
     is ideal to figure out what would happen if you run a certain action
     """
-    run = atyourservice.getRun(role=role, instance=instance, action=action, force=force, producerRoles=producerroles, simulate=True)
+    run = atyourservice.getRun(role=role, instance=instance, action=action,
+                               force=force, producerRoles=producerroles, simulate=True)
     print(run)
 
 
@@ -214,7 +210,7 @@ def showproducers(role, instance):
     '''
     find the producers for this service & show
     '''
-    print ("producers:")
+    print("producers:")
     ays = atyourservice.getService(role, instance)
     ays.printProducersRecursive()
 
@@ -230,7 +226,7 @@ def showparents(role, instance):
     out = "parents:\n"
     for parent in ays.parents:
         out += "- %s\n" % parent
-    print (out)
+    print(out)
 
 
 @click.command()
@@ -256,7 +252,7 @@ def destroy():
     make sure to do a commit before you do a distroy, this will give you a chance to roll back.
 
     """
-    j.actions.resetAll()
+    # j.actions.resetAll()
     atyourservice.destroy(False)
     j.application.reset()
 
@@ -314,6 +310,17 @@ def runinfo(runid=0):
     print(run)
 
 
+@click.command()
+@click.option('--role', default="", help='optional role for ays instances execute an action on')
+@click.option('--instance', default="", help='optional name of instance')
+def state(role='', instance=''):
+    """
+    Print the state of the selected services. If not role or instances specified, all services from the repository are selected
+    """
+    for service in atyourservice.findServices(role=role, instance=instance):
+        print('State of service : %s' % service.key)
+        print(service.state)
+
 cli.add_command(runinfo)
 cli.add_command(simulate)
 cli.add_command(test)
@@ -332,6 +339,7 @@ cli.add_command(showproducers)
 cli.add_command(showparents)
 cli.add_command(showactions)
 cli.add_command(list)
+cli.add_command(state)
 # cli.add_command(debug)
 
 # print (sys.excepthook)

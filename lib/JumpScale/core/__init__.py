@@ -1,6 +1,3 @@
-
-from JumpScale import j
-
 import os
 
 
@@ -21,7 +18,8 @@ def _setup_stacktrace_hook():
 
         try:
             import sys
-            outputs.append((sys.stderr.write, sys.stderr.flush, lambda: None, ))
+            outputs.append(
+                (sys.stderr.write, sys.stderr.flush, lambda: None, ))
         except Exception:
             pass
 
@@ -61,8 +59,6 @@ def _setup_stacktrace_hook():
         not available, the given frame will be returned using the string
         '<unknown>' as thread ID.
         '''
-        if j.application.skipTraceback:
-            return None
         import sys
 
         # Using sys._current_frames for now
@@ -202,10 +198,7 @@ def _setup_stacktrace_hook():
 try:
     _setup_stacktrace_hook()
 except Exception as e:
-    print ("could not install stacktrace hook")
+    print("could not install stacktrace hook")
     pass
 # Remove the no longer needed function
 del _setup_stacktrace_hook
-
-
-

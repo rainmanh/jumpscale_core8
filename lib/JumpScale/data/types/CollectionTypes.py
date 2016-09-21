@@ -2,6 +2,7 @@
 
 from PrimitiveTypes import *
 
+
 class YAML():
     '''Generic dictionary type'''
 
@@ -30,10 +31,13 @@ class YAML():
     def toString(self, v):
         return j.data.serializer.yaml.dumps(v)
 
+
 class JSON():
+
     def __init__(self):
         self.NAME = 'json'
         self.BASETYPE = 'dictionary'
+
 
 class Dictionary:
     '''Generic dictionary type'''
@@ -64,7 +68,7 @@ class Dictionary:
             return s
 
     def toString(self, v):
-        return j.data.serializer.json.dumps(v,True,True)
+        return j.data.serializer.json.dumps(v, True, True)
 
 
 class List:
@@ -77,7 +81,7 @@ class List:
 
     def check(self, value):
         '''Check whether provided value is a list'''
-        return isinstance(value, list) or isinstance(value, tuple)
+        return isinstance(value, (list, tuple))
 
     def get_default(self):
         return list()

@@ -1,4 +1,4 @@
-## AYS Template Repo
+# AYS Template Repo
 
 AYS service template repositories contain all the metadata defining the lifecycle of a service, from pre-installation to monitoring.
 
@@ -17,25 +17,30 @@ metadata.jumpscale             =
 metadata.openvcloud        =
     branch: 'master',
     url:'https://git.aydo.com/0-complexity/openvcloud_ays',
-
 ```
 
 All metadata repositories are cloned as subdirectories of `/opt/code/$type/`:
 
-  - Repositories from GitHub are cloned into `/opt/code/github`
-    - So `https://github.com/Jumpscale/ays_jumpscale8` is cloned into `/opt/code/github/jumpscale/ays_jumpscale8`
-  - Reposotories from other Git systems are cloned into `/opt/code/git/`
+- Repositories from GitHub are cloned into `/opt/code/github`
 
+  - So `https://github.com/Jumpscale/ays_jumpscale8` is cloned into `/opt/code/github/jumpscale/ays_jumpscale8`
+
+- Reposotories from other Git systems are cloned into `/opt/code/git/`
 
 Each AYS service template has following files:
 
-* **schema.hrd**
-  * Which is the schema for the service instance metadata file (`instance.hrd`) relevant for an instance of the service
-  * Contains information about how services interact with each other through:
-      - Parenting, for more details see the section [Parents & Children](Definitions/Parents-Children.md)
-      - Consumption, for more details see the section [Producers & Consumers](Definitions/Products-Consumers.md)
-  * Has parameter definitions used to configure the service
-  * Example:
+- **schema.hrd**
+
+  - Which is the schema for the service instance metadata file (`instance.hrd`) relevant for an instance of the service
+  - Contains information about how services interact with each other through:
+
+    - Parenting, for more details see the section [Parents & Children](Definitions/Parents-Children.md)
+    - Consumption, for more details see the section [Producers & Consumers](Definitions/Products-Consumers.md)
+
+  - Has parameter definitions used to configure the service
+
+  - Example:
+
     ```
     image = type:str default:'ubuntu'
     build = type:bool default:False
@@ -50,8 +55,12 @@ Each AYS service template has following files:
     docker.local = type:bool default:False
     ```
 
-* **service.hrd** (optional)
-  * Containing information about recurring action methods, how to react on changes and how to run processes
-  * See [service.hrd](service.hrd) for more details
+- **service.hrd** (optional)
 
-* **actions.py** defines the behavior of the service (optional)
+  - Containing information about recurring action methods, how to react on changes and how to run processes
+  - See 
+
+    <service.hrd> for more details</service.hrd>
+
+
+- **actions.py** defines the behavior of the service (optional)

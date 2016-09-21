@@ -8,7 +8,6 @@ import time
 from urllib import parse
 
 
-
 class Docker:
 
     def __init__(self):
@@ -22,6 +21,8 @@ class Docker:
 
         if 'DOCKER_HOST' not in os.environ or os.environ['DOCKER_HOST'] == "":
             self.base_url = 'unix://var/run/docker.sock'
+        elif self.weaveIsActive:
+            self.base_url = self.weavesocket
         else:
             self.base_url = os.environ['DOCKER_HOST']
         self.client = docker.Client(base_url=self.base_url, timeout=120)
@@ -30,48 +31,47 @@ class Docker:
 
         j.do.execute("systemctl stop docker")
 
-        d=j.sal.disklayout.findDisk(mountpoint="/storage")
-        if d!=None:
-            #we found a disk, lets make sure its in fstab
+        d = j.sal.disklayout.findDisk(mountpoint="/storage")
+        if d != None:
+            # we found a disk, lets make sure its in fstab
             d.setAutoMount()
-            dockerpath="%s/docker"%d.mountpoint
-            dockerpath=dockerpath.replace("//",'/')
+            dockerpath = "%s/docker" % d.mountpoint
+            dockerpath = dockerpath.replace("//", '/')
             if dockerpath not in j.sal.btrfs.subvolumeList(d.mountpoint):
-                #have to create the dockerpath
+                # have to create the dockerpath
                 j.sal.btrfs.subvolumeCreate(dockerpath)
         # j.sal.fs.createDir("/storage/docker")
-        j.sal.fs.copyDirTree( "/var/lib/docker",dockerpath)                
-        j.sal.fs.symlink("/storage/docker", "/var/lib/docker", overwriteTarget=True)
+        j.sal.fs.copyDirTree("/var/lib/docker", dockerpath)
+        j.sal.fs.symlink("/storage/docker", "/var/lib/docker",
+                         overwriteTarget=True)
 
         j.do.execute("systemctl start docker")
 
-
-        self.weaveIsActive
-
     @property
     def weaveIsActive(self):
-        return self._weaveSocket!="" and self._weaveSocket!=None
-
+        return bool(self.weavesocket)
 
     @property
     def weavesocket(self):
-        if self._weaveSocket==None:
-            rc,self._weaveSocket=j.sal.process.execute("weave env",die=False)
-            if rc>0:
-                print("weave not found, do not forget to start if installed.")
-                self._weaveSocket=""
+        if self._weaveSocket is None:
+            if not j.tools.cuisine.local.core.command_check('weave'):
+                self.logger.warning("weave not found, do not forget to start if installed.")
+                self._weaveSocket = ""
             else:
-                self._weaveSocket=self._weaveSocket.split("=")[1]
-                self._weaveSocket=self._weaveSocket.strip()
-                # self.client = docker.Client(base_url=self._weaveSocket)
+                rc, self._weaveSocket = j.sal.process.execute("eval $(weave env) && echo $DOCKER_HOST", die=False)
+                if rc > 0:
+                    self.logger.warning("weave not found, do not forget to start if installed.")
+                    self._weaveSocket = ""
+
+                self._weaveSocket = self._weaveSocket.strip()
+
         return self._weaveSocket
 
-    def weaveInstall(self,ufw=False):
+    def weaveInstall(self, ufw=False):
         j.tools.cuisine.local.apps.weave.install(start=True)
         if ufw:
             j.tools.cuisine.local.ufw.allowIncoming(6783)
-            j.tools.cuisine.local.ufw.allowIncoming(6783,protocol="udp")  
-
+            j.tools.cuisine.local.ufw.allowIncoming(6783, protocol="udp")
 
     # def connectRemoteTCP(self, base_url):
     #     self.base_url = base_url
@@ -88,11 +88,12 @@ class Docker:
     def _execute(self, command):
         env = os.environ.copy()
         env.pop('PYTHONPATH', None)
-        (exitcode, stdout, stderr) = j.sal.process.run(command, showOutput=False, captureOutput=True, stopOnError=False, env=env)
+        (exitcode, stdout, stderr) = j.sal.process.run(
+            command, showOutput=False, captureOutput=True, stopOnError=False, env=env)
         if exitcode != 0:
-            raise j.exceptions.RuntimeError("Failed to execute %s: Error: %s, %s" % (command, stdout, stderr))
+            raise j.exceptions.RuntimeError(
+                "Failed to execute %s: Error: %s, %s" % (command, stdout, stderr))
         return stdout
-
 
     #
     # def copy(self, name, src, dest):
@@ -142,19 +143,19 @@ class Docker:
 
     @property
     def containersRunning(self):
-        res=[]
+        res = []
         for container in self.containers:
             if container.isRunning():
                 res.append(container)
         return res
 
-    def exists(self,name):
+    def exists(self, name):
         return name in self.containerNames
 
     @property
     def basepath(self):
-        self._basepath='/mnt/data/docker'
-        #@todo needs to fetch values out of hrd
+        self._basepath = '/mnt/data/docker'
+        # TODO: needs to fetch values out of hrd
         # if not self._basepath:
         #     if j.application.config.exists('docker.basepath'):
         #         self._basepath = j.application.config.get('docker.basepath')
@@ -162,23 +163,25 @@ class Docker:
         #         self._basepath="/mnt/vmstor/docker" #btrfs subvol create
         return self._basepath
 
-    def _getChildren(self,pid,children):
-        process=j.sal.process.getProcessObject(pid)
+    def _getChildren(self, pid, children):
+        process = j.sal.process.getProcessObject(pid)
         children.append(process)
         for child in process.get_children():
-            children=self._getChildren(child.pid,children)
+            children = self._getChildren(child.pid, children)
         return children
 
-    def _get_rootpath(self,name):
-        rootpath=j.sal.fs.joinPaths(self.basepath, '%s%s' % (self._prefix, name), 'rootfs')
+    def _get_rootpath(self, name):
+        rootpath = j.sal.fs.joinPaths(
+            self.basepath, '%s%s' % (self._prefix, name), 'rootfs')
         return rootpath
 
-    def _getMachinePath(self,machinename,append=""):
-        if machinename=="":
+    def _getMachinePath(self, machinename, append=""):
+        if machinename == "":
             raise j.exceptions.RuntimeError("Cannot be empty")
-        base = j.sal.fs.joinPaths( self.basepath,'%s%s' % (self._prefix, machinename))
-        if append!="":
-            base=j.sal.fs.joinPaths(base,append)
+        base = j.sal.fs.joinPaths(self.basepath, '%s%s' %
+                                  (self._prefix, machinename))
+        if append != "":
+            base = j.sal.fs.joinPaths(base, append)
         return base
 
     def status(self):
@@ -193,14 +196,15 @@ class Docker:
         for item in self.client.containers():
             name = item["Names"][0].strip(" /")
             sshport = ""
-            
+
             for port in item["Ports"]:
                 if port["PrivatePort"] == 22:
                     if "PublicPort" in port:
                         sshport = port["PublicPort"]
                     else:
-                        sshport=None
-            res.append([name, item["Image"], self.docker_host, sshport, item["Status"]])
+                        sshport = None
+            res.append([name, item["Image"], self.docker_host,
+                        sshport, item["Status"]])
 
         return res
 
@@ -213,25 +217,27 @@ class Docker:
 
     def get(self, name, die=True):
         for container in self.containers:
-            if container.name==name:
+            if container.name == name:
                 return container
         if die:
-            raise j.exceptions.RuntimeError("Container with name %s doesn't exists" % name)
+            raise j.exceptions.RuntimeError(
+                "Container with name %s doesn't exists" % name)
         else:
             return None
 
-    def exportRsync(self,name,backupname,key="pub"):
+    def exportRsync(self, name, backupname, key="pub"):
         raise j.exceptions.RuntimeError("not implemented")
         self.removeRedundantFiles(name)
-        ipaddr=j.application.config.get("jssync.addr")
-        path=self._getMachinePath(name)
+        ipaddr = j.application.config.get("jssync.addr")
+        path = self._getMachinePath(name)
         if not j.sal.fs.exists(path):
-            raise j.exceptions.RuntimeError("cannot find machine:%s"%path)
-        if backupname[-1]!="/":
-            backupname+="/"
-        if path[-1]!="/":
-            path+="/"
-        cmd="rsync -a %s %s::upload/%s/images/%s --delete-after --modify-window=60 --compress --stats  --progress --exclude '.Trash*'"%(path,ipaddr,key,backupname)
+            raise j.exceptions.RuntimeError("cannot find machine:%s" % path)
+        if backupname[-1] != "/":
+            backupname += "/"
+        if path[-1] != "/":
+            path += "/"
+        cmd = "rsync -a %s %s::upload/%s/images/%s --delete-after --modify-window=60 --compress --stats  --progress --exclude '.Trash*'" % (
+            path, ipaddr, key, backupname)
         j.sal.process.executeWithoutPipe(cmd)
 
     # def removeRedundantFiles(self,name):
@@ -242,59 +248,64 @@ class Docker:
     #     toremove="%s/rootfs/var/cache/apt/archives/"%basepath
     #     j.sal.fs.removeDirTree(toremove)
 
-    def importRsync(self,backupname,name,basename="",key="pub"):
+    def importRsync(self, backupname, name, basename="", key="pub"):
         """
         @param basename is the name of a start of a machine locally, will be used as basis and then the source will be synced over it
         """
         raise j.exceptions.RuntimeError("not implemented")
-        ipaddr=j.application.config.get("jssync.addr")
-        path=self._getMachinePath(name)
+        ipaddr = j.application.config.get("jssync.addr")
+        path = self._getMachinePath(name)
 
         self.btrfsSubvolNew(name)
 
         # j.sal.fs.createDir(path)
 
-        if backupname[-1]!="/":
-            backupname+="/"
-        if path[-1]!="/":
-            path+="/"
+        if backupname[-1] != "/":
+            backupname += "/"
+        if path[-1] != "/":
+            path += "/"
 
-        if basename!="":
-            basepath=self._getMachinePath(basename)
-            if basepath[-1]!="/":
-                basepath+="/"
+        if basename != "":
+            basepath = self._getMachinePath(basename)
+            if basepath[-1] != "/":
+                basepath += "/"
             if not j.sal.fs.exists(basepath):
-                raise j.exceptions.RuntimeError("cannot find base machine:%s"%basepath)
-            cmd="rsync -av -v %s %s --delete-after --modify-window=60 --size-only --compress --stats  --progress"%(basepath,path)
+                raise j.exceptions.RuntimeError(
+                    "cannot find base machine:%s" % basepath)
+            cmd = "rsync -av -v %s %s --delete-after --modify-window=60 --size-only --compress --stats  --progress" % (
+                basepath, path)
             self.logger.info(cmd)
             j.sal.process.executeWithoutPipe(cmd)
 
-        cmd="rsync -av -v %s::download/%s/images/%s %s --delete-after --modify-window=60 --compress --stats  --progress"%(ipaddr,key,backupname,path)
+        cmd = "rsync -av -v %s::download/%s/images/%s %s --delete-after --modify-window=60 --compress --stats  --progress" % (
+            ipaddr, key, backupname, path)
         self.logger.info(cmd)
         j.sal.process.executeWithoutPipe(cmd)
 
-    def exportTgz(self,name,backupname):
+    def exportTgz(self, name, backupname):
         raise j.exceptions.RuntimeError("not implemented")
         self.removeRedundantFiles(name)
-        path=self._getMachinePath(name)
-        bpath= j.sal.fs.joinPaths(self.basepath,"backups")
+        path = self._getMachinePath(name)
+        bpath = j.sal.fs.joinPaths(self.basepath, "backups")
         if not j.sal.fs.exists(path):
-            raise j.exceptions.RuntimeError("cannot find machine:%s"%path)
+            raise j.exceptions.RuntimeError("cannot find machine:%s" % path)
         j.sal.fs.createDir(bpath)
-        bpath= j.sal.fs.joinPaths(bpath,"%s.tgz"%backupname)
-        cmd="cd %s;tar Szcf %s ."%(path,bpath)
+        bpath = j.sal.fs.joinPaths(bpath, "%s.tgz" % backupname)
+        cmd = "cd %s;tar Szcf %s ." % (path, bpath)
         j.sal.process.executeWithoutPipe(cmd)
         return bpath
 
-    def importTgz(self,backupname,name):
+    def importTgz(self, backupname, name):
         raise j.exceptions.RuntimeError("not implemented")
-        path=self._getMachinePath(name)
-        bpath= j.sal.fs.joinPaths(self.basepath,"backups","%s.tgz"%backupname)
+        path = self._getMachinePath(name)
+        bpath = j.sal.fs.joinPaths(
+            self.basepath, "backups", "%s.tgz" % backupname)
         if not j.sal.fs.exists(bpath):
-            raise j.exceptions.RuntimeError("cannot find import path:%s"%bpath)
+            raise j.exceptions.RuntimeError(
+                "cannot find import path:%s" % bpath)
         j.sal.fs.createDir(path)
 
-        cmd="cd %s;tar xzvf %s -C ."%(path,bpath)
+        cmd = "cd %s;tar xzvf %s -C ." % (path, bpath)
         j.sal.process.executeWithoutPipe(cmd)
 
     def _init_aysfs(self, fs, dockname):
@@ -304,7 +315,8 @@ class Docker:
                 fs.start()
 
             else:
-                self.logger.info('skipping aysfs: %s (unique running)' % fs.getName())
+                self.logger.info(
+                    'skipping aysfs: %s (unique running)' % fs.getName())
 
         else:
             fs.setName('%s-%s' % (dockname, fs.getName()))
@@ -315,29 +327,29 @@ class Docker:
             fs.start()
 
     def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1604", nameserver=["8.8.8.8"],
-               replace=True, cpu=None, mem=0, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="",
-               setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master", aysfs=[], detach=False, privileged=False,getIfExists=True,weavenet=False):
+               replace=True, cpu=None, mem=0, ssh=True, myinit=True, sharecode=False, sshkeyname="", sshpubkey="",
+               setrootrndpasswd=True, rootpasswd="", jumpscalebranch="master", aysfs=[], detach=False, privileged=False, getIfExists=True, weavenet=False):
         """
         @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
         @param vols in format as follows "/var/insidemachine:/var/inhost # /var/1:/var/1 # ..."   '#' is separator
         @param sshkeyname : use ssh-agent (can even do remote through ssh -A) and then specify key you want to use in docker
-        #@todo (*1*) change way how we deal with ssh keys, put authorization file in filesystem before docker starts don't use ssh to push them, will be much faster and easier
         """
 
-        #check there is weave
+        # check there is weave
         self.weavesocket
 
         name = name.lower().strip()
         self.logger.info(("create:%s" % name))
 
         running = [item.name for item in self.containersRunning]
-      
+
         if not replace:
             if name in self.containerNamesRunning:
                 if getIfExists:
                     return self.get(name=name)
                 else:
-                    j.events.opserror_critical("Cannot create machine with name %s, because it does already exists.")
+                    j.events.opserror_critical(
+                        "Cannot create machine with name %s, because it does already exists.")
         else:
             if self.exists(name):
                 self.logger.info("remove existing container %s" % name)
@@ -354,7 +366,7 @@ class Docker:
 
         if mem is not None:
             if mem > 0:
-                mem = int(mem)*1024
+                mem = int(mem) * 1024
             elif mem <= 0:
                 mem = None
 
@@ -441,14 +453,16 @@ class Docker:
             self.logger.info(binds)
 
         hostname = None if self.weaveIsActive else name.replace('_', '-')
-        host_config = self.client.create_host_config(privileged=privileged) if privileged else None            
+        host_config = self.client.create_host_config(
+            privileged=privileged) if privileged else None
 
-        res = self.client.create_container(image=base, command=cmd, hostname=hostname, user="root", \
-                detach=detach, stdin_open=False, tty=True, mem_limit=mem, ports=list(portsdict.keys()), environment=None, volumes=volskeys,  \
-                network_disabled=False, name=name, entrypoint=None, cpu_shares=cpu, working_dir=None, domainname=None, memswap_limit=None, host_config=host_config)
+        res = self.client.create_container(image=base, command=cmd, hostname=hostname, user="root",
+                                           detach=detach, stdin_open=False, tty=True, mem_limit=mem, ports=list(portsdict.keys()), environment=None, volumes=volskeys,
+                                           network_disabled=False, name=name, entrypoint=None, cpu_shares=cpu, working_dir=None, domainname=None, memswap_limit=None, host_config=host_config)
 
         if res["Warnings"] is not None:
-            raise j.exceptions.RuntimeError("Could not create docker, res:'%s'" % res)
+            raise j.exceptions.RuntimeError(
+                "Could not create docker, res:'%s'" % res)
 
         id = res["Id"]
 
@@ -460,41 +474,50 @@ class Docker:
                 portsdict["%s/%s" % (k[0], k[1])] = v
                 portsdict.pop(k)
 
-
-        res = self.client.start(container=id, binds=binds, port_bindings=portsdict, lxc_conf=None, \
-            publish_all_ports=False, links=None, privileged=privileged, dns=nameserver, dns_search=None, \
-            volumes_from=None, network_mode=None)
-
+        res = self.client.start(container=id, binds=binds, port_bindings=portsdict, lxc_conf=None,
+                                publish_all_ports=False, links=None, privileged=privileged, dns=nameserver, dns_search=None,
+                                volumes_from=None, network_mode=None)
 
         container = Container(name, id, self.client, host=self.docker_host)
         self._containers[id] = container
 
         if ssh:
-            # time.sleep(0.5)  # give time to docker to start
-            if sshkeyname==None:
-                sshkeyname=""
-            if sshpubkey==None:
-                sshpubkey=""
-
             container.pushSSHKey(keyname=sshkeyname, sshpubkey=sshpubkey)
+
+            # Make sure docker is ready for executor
+            end_time = time.time() + 60
+            while time.time() < end_time:
+                rc, _, _ = container.executor.execute('ls /', die=False, showout=False)
+                if rc:
+                    time.sleep(0.1)
+                break
 
             if setrootrndpasswd:
                 if rootpasswd is None or rootpasswd == '':
-                    print("set default root passwd (gig1234)")
-                    container.executor.execute("echo \"root:gig1234\"|chpasswd",showout=False)
+                    self.logger.info("set default root passwd (gig1234)")
+                    container.executor.execute(
+                        "echo \"root:gig1234\"|chpasswd", showout=False)
                 else:
-                    print("set root passwd to %s" % rootpasswd)
-                    container.cexecutor.execute("echo \"root:%s\"|chpasswd" % rootpasswd,showout=False)
-            if not self.weaveIsActive:
-                container.setHostName(name)
+                    self.logger.info("set root passwd to %s" % rootpasswd)
+                    container.cexecutor.execute(
+                        "echo \"root:%s\"|chpasswd" % rootpasswd, showout=False)
+
+        if not self.weaveIsActive:
+            container.setHostName(name)
 
         return container
 
     def getImages(self):
-        images=[str(item["RepoTags"][0]).replace(":latest","") for item in self.client.images()]
+        images = []
+        for item in self.client.images():
+            if item['RepoTags'] is None:
+                continue
+            tags = str(item['RepoTags'][0])
+            tags = tags.replace(":latest", "")
+            images.append(tags)
         return images
 
-    def removeImages(self,tag="<none>:<none>"):
+    def removeImages(self, tag="<none>:<none>"):
         for item in self.client.images():
             if tag in item["RepoTags"]:
                 self.client.remove_image(item["Id"])
@@ -507,21 +530,20 @@ class Docker:
             return False
         return True
 
-    def destroyAll(self,removeimages=False):
+    def destroyAll(self, removeimages=False):
 
         for container in self.containers:
             if "weave" in container.name:
-                continue            
+                continue
             container.destroy()
 
         if removeimages:
             self.removeImages()
 
-
     def _destroyAllKill(self):
 
         if self.ping():
-        
+
             for container in self.containers:
                 container.destroy()
 
@@ -539,30 +561,29 @@ class Docker:
     def removeDocker(self):
         self._destroyAllKill()
 
-        rc,out=j.sal.process.execute("mount")
-        mountpoints=[]
+        rc, out = j.sal.process.execute("mount")
+        mountpoints = []
         for line in out.split("\n"):
-            if line.find("type btrfs")!=-1:
-                mountpoint=line.split("on ")[1].split("type")[0].strip()
+            if line.find("type btrfs") != -1:
+                mountpoint = line.split("on ")[1].split("type")[0].strip()
                 mountpoints.append(mountpoint)
 
         for mountpoint in mountpoints:
-            j.sal.btrfs.subvolumesDelete(mountpoint,"/docker/")
+            j.sal.btrfs.subvolumesDelete(mountpoint, "/docker/")
 
-        j.sal.btrfs.subvolumesDelete("/storage","docker")
+        j.sal.btrfs.subvolumesDelete("/storage", "docker")
 
         j.sal.process.execute("apt-get remove docker-engine -y")
         # j.sal.process.execute("rm -rf /var/lib/docker")
 
         j.sal.fs.removeDirTree("/var/lib/docker")
 
-
     def reInstallDocker(self):
 
         self.removeDocker()
 
         j.tools.cuisine.local.docker.install(force=True)
-        
+
         self.init()
 
     def pull(self, imagename):
@@ -573,7 +594,7 @@ class Docker:
         image: str, name of the image
         output: print progress as it pushes
         """
-        client=self.client
+        client = self.client
         previous_timeout = client.timeout
         client.timeout = 36000
         out = []
@@ -598,7 +619,7 @@ class Docker:
 
         return "\n".join(out)
 
-    def build(self, path, tag, output=True,force=False):
+    def build(self, path, tag, output=True, force=False):
         """
         path: path of the directory that contains the docker file
         tag: tag to give to the image. e.g: 'jumpscale/myimage'
@@ -606,11 +627,11 @@ class Docker:
 
         return: strint containing the stdout
         """
-        #@todo implement force
+        # TODO: implement force
         out = []
         if force:
-            nocache=True
-        for l in self.client.build(path=path, tag=tag,nocache=nocache):
+            nocache = True
+        for l in self.client.build(path=path, tag=tag, nocache=nocache):
             line = j.data.serializer.json.loads(l)
             if 'stream' in line:
                 line = line['stream'].strip()

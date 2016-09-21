@@ -19,6 +19,7 @@ ResultTuple = collections.namedtuple('ResultTuple', 'status stdout stderr')
 
 
 class ProcessInfo:
+
     def __init__(self, info):
         self._info = info
 
@@ -46,6 +47,7 @@ class Agent:
     """
     Represents an active agent (alive)
     """
+
     def __init__(self, client, gid, nid, roles):
         self._client = client
         self._gid = gid
@@ -69,7 +71,8 @@ class Agent:
 
     def _get_aggregated_stats(self, update=False):
         if self._aggr_stats is None or update:
-            self._aggr_stats = self._client.get_aggregated_stats(self.gid, self.nid)
+            self._aggr_stats = self._client.get_aggregated_stats(
+                self.gid, self.nid)
 
         return self._aggr_stats
 
@@ -148,6 +151,7 @@ class Result:
     """
     Represents a job result
     """
+
     def __init__(self, job):
         self._job = job
 
@@ -199,9 +203,11 @@ class Result:
             d = acclient.jsonLoads(critical)
             eco = j.errorconditionhandler.getErrorConditionObject(d)
         elif self.state == STATE_TIMEDOUT:
-            eco = j.errorconditionhandler.getErrorConditionObject(msg='Timedout waiting for job')
+            eco = j.errorconditionhandler.getErrorConditionObject(
+                msg='Timedout waiting for job')
         elif self.state != STATE_SUCCESS:
-            eco = j.errorconditionhandler.getErrorConditionObject(msg=self._error)
+            eco = j.errorconditionhandler.getErrorConditionObject(
+                msg=self._error)
 
         if eco is not None:
             eco.gid = self.gid
@@ -227,6 +233,7 @@ class Peer:
     """
     Represents a peer on a share
     """
+
     def __init__(self, gid, nid, peer, share):
         self._gid = gid
         self._nid = nid
@@ -255,7 +262,8 @@ class Peer:
         reliable because syncthing only detect changes every rescan cycle which
         can take up to a minute.
         """
-        need = self._sync_client._get_need(self.gid, self.nid, self._share.name)
+        need = self._sync_client._get_need(
+            self.gid, self.nid, self._share.name)
         if need['progress'] or need['queued'] or need['rest']:
             return False
         else:
@@ -276,6 +284,7 @@ class Share:
     """
     Represents a shared folder over syncthing
     """
+
     def __init__(self, gid, nid, folder, sync_client):
         self._gid = gid
         self._nid = nid
@@ -362,7 +371,8 @@ class Share:
         Gets the list of ignored patterns on this share.
         """
         if self._ignore is None:
-            self._ignore = self._sync_client._get_ingore(self.gid, self.nid, self.path)
+            self._ignore = self._sync_client._get_ingore(
+                self.gid, self.nid, self.path)
 
         return self._ignore
 
@@ -371,13 +381,17 @@ class Share:
         Attach a peer to this share.
         """
         remote_id = self._sync_client._get_id(gid, nid)
-        self._sync_client._add_device(self.gid, self.nid, '%d-%d' % (gid, nid), remote_id)
-        self._sync_client._add_device_to_share(self.gid, self.nid, remote_id, self.name)
+        self._sync_client._add_device(
+            self.gid, self.nid, '%d-%d' % (gid, nid), remote_id)
+        self._sync_client._add_device_to_share(
+            self.gid, self.nid, remote_id, self.name)
 
-        self._sync_client.create_share(gid, nid, self.name, path, readonly=False)
+        self._sync_client.create_share(
+            gid, nid, self.name, path, readonly=False)
         local_id = self._sync_client._get_id(self.gid, self.nid)
 
-        self._sync_client._add_device(gid, nid, '%d-%d' % (self.gid, self.nid), local_id)
+        self._sync_client._add_device(
+            gid, nid, '%d-%d' % (self.gid, self.nid), local_id)
         self._sync_client._add_device_to_share(gid, nid, local_id, self.name)
 
         share = self._sync_client.get_share(self.gid, self.nid, self.name)
@@ -398,7 +412,8 @@ class SyncClient:
         if (gid, nid) in self._ids_cache:
             return self._ids_cache[(gid, nid)]
 
-        runargs = acclient.RunArgs(name='get_id', max_time=SyncClient.API_TIMEOUT)
+        runargs = acclient.RunArgs(
+            name='get_id', max_time=SyncClient.API_TIMEOUT)
         command = self._client.cmd(gid, nid, 'sync', args=runargs)
         job = command.get_next_result(SyncClient.API_TIMEOUT)
         id = self._client._load_json_or_die(job)
@@ -407,21 +422,26 @@ class SyncClient:
         return id
 
     def _get_ingore(self, gid, nid, path):
-        runargs = acclient.RunArgs(name='get_share_ignore', max_time=SyncClient.API_TIMEOUT)
-        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps({'path': path}))
+        runargs = acclient.RunArgs(
+            name='get_share_ignore', max_time=SyncClient.API_TIMEOUT)
+        command = self._client.cmd(
+            gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps({'path': path}))
         job = command.get_next_result(SyncClient.API_TIMEOUT)
         return self._client._load_json_or_die(job).get('ignore', []) or []
 
     def _get_devices(self, gid, nid):
-        runargs = acclient.RunArgs(name='list_devices', max_time=SyncClient.API_TIMEOUT)
+        runargs = acclient.RunArgs(
+            name='list_devices', max_time=SyncClient.API_TIMEOUT)
         command = self._client.cmd(gid, nid, 'sync', args=runargs)
         job = command.get_next_result(SyncClient.API_TIMEOUT)
         devices = self._client._load_json_or_die(job)
         return dict([(d['deviceID'], d) for d in devices])
 
     def _get_need(self, gid, nid, folder_id):
-        runargs = acclient.RunArgs(name='get_share_need', max_time=SyncClient.API_TIMEOUT)
-        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps({'name': folder_id}))
+        runargs = acclient.RunArgs(
+            name='get_share_need', max_time=SyncClient.API_TIMEOUT)
+        command = self._client.cmd(
+            gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps({'name': folder_id}))
         job = command.get_next_result(SyncClient.API_TIMEOUT)
         return self._client._load_json_or_die(job)
 
@@ -431,8 +451,10 @@ class SyncClient:
             'id': id
         }
 
-        runargs = acclient.RunArgs(name='add_device', max_time=SyncClient.API_TIMEOUT)
-        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps(data))
+        runargs = acclient.RunArgs(
+            name='add_device', max_time=SyncClient.API_TIMEOUT)
+        command = self._client.cmd(
+            gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps(data))
         job = command.get_next_result(SyncClient.API_TIMEOUT)
         folder = self._client._load_json_or_die(job)
         return Share(gid, nid, folder, self)
@@ -443,8 +465,10 @@ class SyncClient:
             'folder_id': folder_id
         }
 
-        runargs = acclient.RunArgs(name='add_device_to_share', max_time=SyncClient.API_TIMEOUT)
-        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps(data))
+        runargs = acclient.RunArgs(
+            name='add_device_to_share', max_time=SyncClient.API_TIMEOUT)
+        command = self._client.cmd(
+            gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps(data))
         job = command.get_next_result(SyncClient.API_TIMEOUT)
         return self._client._load_json_or_die(job)
 
@@ -463,8 +487,10 @@ class SyncClient:
             'sub': sub,
         }
 
-        runargs = acclient.RunArgs(name='scan_share', max_time=SyncClient.API_TIMEOUT)
-        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps(data))
+        runargs = acclient.RunArgs(
+            name='scan_share', max_time=SyncClient.API_TIMEOUT)
+        command = self._client.cmd(
+            gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps(data))
         job = command.get_next_result(SyncClient.API_TIMEOUT)
         self._client._load_json_or_die(job)
 
@@ -488,8 +514,10 @@ class SyncClient:
             'name': name
         }
 
-        runargs = acclient.RunArgs(name='create_share', max_time=SyncClient.API_TIMEOUT)
-        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps(data))
+        runargs = acclient.RunArgs(
+            name='create_share', max_time=SyncClient.API_TIMEOUT)
+        command = self._client.cmd(
+            gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps(data))
         job = command.get_next_result(SyncClient.API_TIMEOUT)
         folder = self._client._load_json_or_die(job)
         return Share(gid, nid, folder, self)
@@ -498,7 +526,8 @@ class SyncClient:
         """
         List all shares on the node
         """
-        runargs = acclient.RunArgs(name='list_shares', max_time=SyncClient.API_TIMEOUT)
+        runargs = acclient.RunArgs(
+            name='list_shares', max_time=SyncClient.API_TIMEOUT)
         command = self._client.cmd(gid, nid, 'sync', args=runargs)
         job = command.get_next_result(SyncClient.API_TIMEOUT)
         return [Share(gid, nid, folder, self) for folder in self._client._load_json_or_die(job)]
@@ -515,11 +544,13 @@ class SyncClient:
 
 
 # TODO: Currently scheduler has to rebuild command structure for scheduling which is redoing
-# work of most of the 'shortcut' methods. We need to restructure this for better code reuse.
+# work of most of the 'shortcut' methods. We need to restructure this for
+# better code reuse.
 class SchedulerClient:
     """
     Scheduler interface
     """
+
     def __init__(self, client):
         self._simple = client
         self._client = client._client
@@ -569,7 +600,8 @@ class SchedulerClient:
 
         nid, roles, fanout = self._simple._get_route(nid, roles, allnodes)
 
-        runargs = acclient.RunArgs(max_time=timeout, working_dir=path, name=cmd, args=args)
+        runargs = acclient.RunArgs(
+            max_time=timeout, working_dir=path, name=cmd, args=args)
         return self._client.schedule_add(id=id, cron=cron, gid=gid, nid=nid, cmd=acclient.CMD_EXECUTE,
                                          args=runargs, roles=roles, fanout=fanout, data=data, tags=tags)
 
@@ -614,7 +646,8 @@ class SchedulerClient:
             assert name is not None, "name is required in case 'domain' is given"
         else:
             if not content and not path and not method:
-                raise ValueError('domain/name, content, or path must be supplied')
+                raise ValueError(
+                    'domain/name, content, or path must be supplied')
 
         runargs = acclient.RunArgs(max_time=timeout)
         if domain is not None:
@@ -659,6 +692,7 @@ class SimpleClient:
     """
     Simple client
     """
+
     def __init__(self, advanced_client):
         self._client = advanced_client
         self._sync = SyncClient(self)
@@ -676,7 +710,8 @@ class SimpleClient:
         """
         Gets a list of all active agents
         """
-        cmd = self._client.cmd(None, None, 'controller', acclient.RunArgs(name='list_agents'), roles=['*'])
+        cmd = self._client.cmd(None, None, 'controller', acclient.RunArgs(
+            name='list_agents'), roles=['*'])
         job = cmd.get_next_result()
 
         agents = self._client._load_json_or_die(job)
@@ -697,7 +732,8 @@ class SimpleClient:
                 buff.write('##RC: %s\n' % state)
                 buff.write('##ERROR:\n%s\n' % stderr)
 
-            buff.write('#######################################################\n\n')
+            buff.write(
+                '#######################################################\n\n')
         return buff.getvalue()
 
     def _process_exec_jobs(self, execjobs, die, timeout, fanout):
@@ -800,7 +836,8 @@ class SimpleClient:
         nid, roles, fanout = self._get_route(nid, roles, allnodes)
 
         runargs = acclient.RunArgs(max_time=timeout, working_dir=path)
-        command = self._client.cmd(gid, nid, 'bash', args=runargs, data=cmds, roles=roles, fanout=fanout, tags=tags)
+        command = self._client.cmd(
+            gid, nid, 'bash', args=runargs, data=cmds, roles=roles, fanout=fanout, tags=tags)
 
         return list(command.get_jobs().values())
 
@@ -818,7 +855,8 @@ class SimpleClient:
         source = inspect.getsource(func)
         source = textwrap.dedent(source)
         if func.__name__ != 'action':
-            source = re.sub('^def\s+%s\s*\(' % func.__name__, 'def action(', source, 1)
+            source = re.sub('^def\s+%s\s*\(' %
+                            func.__name__, 'def action(', source, 1)
         return source
 
     def executeJumpscript(self, domain=None, name=None, content=None, path=None, method=None,
@@ -895,7 +933,8 @@ class SimpleClient:
             assert name is not None, "name is required in case 'domain' is given"
         else:
             if not content and not path and not method:
-                raise ValueError('domain/name, content, or path must be supplied')
+                raise ValueError(
+                    'domain/name, content, or path must be supplied')
 
         runargs = acclient.RunArgs(max_time=timeout)
         if domain is not None:
@@ -921,7 +960,8 @@ class SimpleClient:
         nid, roles, fanout = self._get_route(nid, roles, allnodes)
 
         runargs = acclient.RunArgs()
-        command = self._client.cmd(gid, nid, 'reboot', args=runargs, roles=roles, fanout=fanout)
+        command = self._client.cmd(
+            gid, nid, 'reboot', args=runargs, roles=roles, fanout=fanout)
 
         return list(command.get_jobs().keys())
 
@@ -951,7 +991,8 @@ class SimpleClient:
                 break
 
         if not found:
-            raise acclient.AgentException('Remote end %s:%s is not alive!' % (remote_gid, remote_nid))
+            raise acclient.AgentException(
+                'Remote end %s:%s is not alive!' % (remote_gid, remote_nid))
 
         gateway = '%s.%s' % (remote_gid, remote_nid)
         return self._client.tunnel_open(gid, nid, local, gateway, ip, remote)

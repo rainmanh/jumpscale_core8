@@ -1,32 +1,32 @@
-## ATA over Ethernet (AoE)
+# ATA over Ethernet (AoE)
 
-```py
+```python
 j.sal.aoe.
 ```
 
-### This library enables the user to do the followig:
+## This library enables the user to do the followig:
 
-* Create a new vDisk
+- Create a new vDisk
 
-```py
+```python
 j.sal.aoe.create(storpath, size)
 ```
 
-* Expose a given storage(vDisk or image path) on a major(shelf):minor(slot) and a certain interface
+- Expose a given storage(vDisk or image path) on a major(shelf):minor(slot) and a certain interface
 
-```py
+```python
 j.sal.aoe.expose(storage, major, minor, interface)
 ```
 
-* Unexpose and delete a storage
+- Unexpose and delete a storage
 
-```py
+```python
 j.sal.aoe.unexpose(storage)
 j.sal.aoe.delete(path)
 ```
 
-* List all vDisks under a certain location
+- List all vDisks under a certain location
 
-```py
+```python
 j.sal.aoe.list(storpath)
 ```

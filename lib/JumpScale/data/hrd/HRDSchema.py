@@ -1,7 +1,9 @@
 from JumpScale import j
+import random
 
 
 class HRDType:
+
     def __init__(self):
         self.name = ""
         self.typeclass = None
@@ -30,9 +32,11 @@ class HRDType:
     def ask(self):
         # print ("ASKKKK:%s"%self)
         if self.description == "":
-            descr = "Please provide value for %s, type:%s" % (self.name, self.typeclass.NAME.lower())
+            descr = "Please provide value for %s, type:%s" % (
+                self.name, self.typeclass.NAME.lower())
         else:
-            descr = "%s, type:%s" % (self.description, self.typeclass.NAME.lower())
+            descr = "%s, type:%s" % (
+                self.description, self.typeclass.NAME.lower())
 
         ttype = self.typeclass.NAME
 
@@ -48,11 +52,13 @@ class HRDType:
 
         else:
             if ttype in ["string", "float"] or self.typeclass.BASETYPE == "string":
-                result = j.tools.console.askString(question=descr, defaultparam=self.default, regex=self.regex, retry=self.retry, validate=self.typeclass.check)
+                result = j.tools.console.askString(
+                    question=descr, defaultparam=self.default, regex=self.regex, retry=self.retry, validate=self.typeclass.check)
 
             elif ttype == "list":
                 print("specify a list: is comma separated items")
-                result = j.tools.console.askString(question=descr, defaultparam=self.default, regex=self.regex, retry=self.retry)
+                result = j.tools.console.askString(
+                    question=descr, defaultparam=self.default, regex=self.regex, retry=self.retry)
                 result = self.typeclass.fromString(result)
 
             elif ttype == "multiline":
@@ -74,19 +80,24 @@ class HRDType:
                     result = False
             elif ttype == "multichoice":
                 if self.multichoice == []:
-                    raise j.exceptions.Input("When type is multichoice in ask, then multichoice needs to be specified as well.")
-                result = j.tools.console.askChoiceMultiple(self.multichoice, descr=descr, sort=True)
+                    raise j.exceptions.Input(
+                        "When type is multichoice in ask, then multichoice needs to be specified as well.")
+                result = j.tools.console.askChoiceMultiple(
+                    self.multichoice, descr=descr, sort=True)
             elif ttype == "singlechoice":
                 if self.singlechoice == []:
-                    raise j.exceptions.Input("When type is singlechoice in ask, then singlechoice needs to be specified as well.")
-                result = j.tools.console.askChoice(self.singlechoice, descr=descr, sort=True)
+                    raise j.exceptions.Input(
+                        "When type is singlechoice in ask, then singlechoice needs to be specified as well.")
+                result = j.tools.console.askChoice(
+                    self.singlechoice, descr=descr, sort=True)
 
             elif ttype == 'dict':
                 print("format to define a dictionary is to per line enter key=value")
                 result = j.tools.console.askMultiline(question=descr)
                 result = self.typeclass.fromString(result)
             else:
-                raise j.exceptions.Input("Input type:%s is invalid (only: bool,int,str,string,dropdown,list,dict,float)" % ttype)
+                raise j.exceptions.Input(
+                    "Input type:%s is invalid (only: bool,int,str,string,dropdown,list,dict,float)" % ttype)
         return result
 
     def __str__(self):
@@ -97,6 +108,7 @@ class HRDType:
 
 
 class HRDSchema:
+
     def __init__(self, path="", content=""):
         if path != None:
             content = j.sal.fs.fileGetContents(path)
@@ -107,14 +119,15 @@ class HRDSchema:
         self.items = {}
         self.items_with_alias = {}
         self.content = content
+        self.fieldsforcapnp = {}
         if content != "":
             self.process(content)
 
     def _raiseError(self, msg):
         if self.path != "":
-            print ("ERROR in schema:%s" % self.path)
+            print("ERROR in schema:%s" % self.path)
         else:
-            print ("ERROR in schema:\n%s" % self.content)
+            print("ERROR in schema:\n%s" % self.content)
         raise j.exceptions.RuntimeError(msg)
 
     def process(self, content):
@@ -125,7 +138,8 @@ class HRDSchema:
             if line.startswith("#") or line == "":
                 continue
             if line.find("=") == -1:
-                raise ValueError("Hrd schema not properly formatted, should have =, see '%s'" % line)
+                raise ValueError(
+                    "Hrd schema not properly formatted, should have =, see '%s'" % line)
 
             name, tagstr = line.split("=", 1)
             name = name.strip()
@@ -146,13 +160,15 @@ class HRDSchema:
                 regex = None
 
             if regex != None and ttype != "str":
-                raise ValueError("Hrd schema not properly formatted, type can only be string when regex used, see '%s'" % line)
+                raise ValueError(
+                    "Hrd schema not properly formatted, type can only be string when regex used, see '%s'" % line)
 
             if tags.tagExists("minval") or tags.tagExists("maxval"):
                 if ttype == "str":
                     ttype = "int"
                 if ttype not in ["int", "integer", "float"]:
-                    raise ValueError("Hrd schema not properly formatted, when minval used type needs to be int or float, see '%s'" % line)
+                    raise ValueError(
+                        "Hrd schema not properly formatted, when minval used type needs to be int or float, see '%s'" % line)
 
             hrdtype = HRDType()
             hrdtype.name = name
@@ -165,9 +181,11 @@ class HRDSchema:
 
             if tags.tagExists("default"):
                 if hrdtype.list:
-                    hrdtype.default = j.data.types.list.fromString(tags.tagGet("default"), hrdtype.typeclass)
+                    hrdtype.default = j.data.types.list.fromString(
+                        tags.tagGet("default"), hrdtype.typeclass)
                 else:
-                    hrdtype.default = hrdtype.typeclass.fromString(tags.tagGet("default"))
+                    hrdtype.default = hrdtype.typeclass.fromString(
+                        tags.tagGet("default"))
             else:
                 if hrdtype.list == True:
                     hrdtype.default = []
@@ -210,19 +228,24 @@ class HRDSchema:
                 hrdtype.auto = True
 
             if tags.tagExists("minval"):
-                hrdtype.minVal = hrdtype.typeclass.fromString(tags.tagGet("minval"))
+                hrdtype.minVal = hrdtype.typeclass.fromString(
+                    tags.tagGet("minval"))
 
             if tags.tagExists("maxval"):
-                hrdtype.maxVal = hrdtype.typeclass.fromString(tags.tagGet("maxval"))
+                hrdtype.maxVal = hrdtype.typeclass.fromString(
+                    tags.tagGet("maxval"))
 
             if tags.tagExists("multichoice"):
-                hrdtype.multichoice = j.data.types.list.fromString(tags.tagGet("multichoice"), "str")
+                hrdtype.multichoice = j.data.types.list.fromString(
+                    tags.tagGet("multichoice"), "str")
 
             if tags.tagExists("singlechoice"):
-                hrdtype.singlechoice = j.data.types.list.fromString(tags.tagGet("singlechoice"), "str")
+                hrdtype.singlechoice = j.data.types.list.fromString(
+                    tags.tagGet("singlechoice"), "str")
 
             if tags.tagExists("alias"):
-                hrdtype.alias = j.data.types.list.fromString(tags.tagGet("alias"), "str")
+                hrdtype.alias = j.data.types.list.fromString(
+                    tags.tagGet("alias"), "str")
 
             if line.find("@ask") != -1 or line.find("@ASK") != -1:
                 hrdtype.doAsk = True
@@ -232,40 +255,62 @@ class HRDSchema:
             for alias in hrdtype.alias:
                 self.items_with_alias[alias] = hrdtype
 
-    def asCapnpSchema(self):
+    def _sanitize_key(self, key):
+        """
+        make sure the key of an HRD schema has a valid format for Capnp Schema
+        e.g.:
+            ssh.port becomes sshPort
+        """
+        separator = ['_', '.']
+        for sep in separator:
+            if key.find(sep) != -1:
+                ss = key.split(sep)
+                key = ss[0]
+                for s in ss[1:]:
+                    key += s.capitalize()
+        return key
+
+    @property
+    def capnpSchema(self):
+        """
+        create schema for capnp for this hrd schema
+        important
+        - order is respected (cannot change the id's of capnp schema)
+        - need to store a unique id in the hrd schema so we know that we need to reuse this
+        """
         typesmap = {
             'str': 'Text',
+            'multiline': 'Text',
             'int': 'UInt32',
             'integer': 'UInt32',
-            'bool'   : 'Bool',
-            'float'  : 'Float32',
-
+            'bool': 'Bool',
+            'float': 'Float32',
         }
         fid = 0
+        schema_id = j.data.idgenerator.generateCapnpID()
         serializeddata = ""
 
         for k, ttype in self.fieldsforcapnp.items():
+            k = self._sanitize_key(k)
 
-            if ttype.list != True:
-                serializeddata += "\t" + k + " @%d :%s;\n" % (fid, typesmap[ttype.hrd_ttype])
+            if ttype.list is not True:
+                serializeddata += "\t" + k + \
+                    " @%d :%s;\n" % (fid, typesmap[ttype.hrd_ttype])
             else:
-                serializeddata += "\t" + k + " @%d :List(%s);\n" % (fid, typesmap[ttype.hrd_ttype])
+                serializeddata += "\t" + k + \
+                    " @%d :List(%s);\n" % (fid, typesmap[ttype.hrd_ttype])
             fid += 1
 
+        if self.path:
+            actorname = j.sal.fs.getBaseName(j.sal.fs.getParent(self.path))
+            serializeddata += "\t actor @%d :Text;\n" % (fid)
 
-        template =  """
-
-@%s ;
-
-struct schema{
-
+        template = """
+@%s;
+struct Schema {
 %s
-
 }
-
-        """%(j.data.idgenerator.generateXCharID(20), serializeddata)
-
-
+""" % (schema_id, serializeddata)
         return template
 
     def hrdGet(self, hrd=None, args={}, path=None):
@@ -288,15 +333,20 @@ struct schema{
                     continue  # no need to further process, already exists in hrd
             if ttype.list:
                 try:
-                    val = j.data.types.list.fromString(val, ttype=ttype.typeclass)
+                    val = j.data.types.list.fromString(
+                        val, ttype=ttype.typeclass)
                     ttype.hrd_ttype = "list"
                 except Exception as e:
-                    msg = "Type '%s' check failed for LIST of values '%s'.\nError:%s" % (ttype.typeclass.NAME, val, e)
+                    msg = "Type '%s' check failed for LIST of values '%s'.\nError:%s" % (
+                        ttype.typeclass.NAME, val, e)
                     self._raiseError(msg)
             else:
 
                 if j.data.types.list.check(val) and len(val) == 1:
-                    val = val[0]  # this to resolve some customer types or yaml inconsistencies, if only 1 member we can use as a non list
+                    # this to resolve some customer types or yaml
+                    # inconsistencies, if only 1 member we can use as a non
+                    # list
+                    val = val[0]
                     #if not val.endswith(","): val = val +","
                 if j.data.types.string.check(val):
                     while len(val) > 0 and (val[0] in [" ['"] or val[-1] in ["' ]"]):
@@ -307,11 +357,15 @@ struct schema{
                 try:
                     val = ttype.typeclass.fromString(val)
                 except Exception as e:
-                    msg = "Type '%s' check failed for value '%s'.\nError:%s" % (ttype.typeclass.NAME, val, e)
+                    msg = "Type '%s' check failed for value '%s'.\nError:%s" % (
+                        ttype.typeclass.NAME, val, e)
                     self._raiseError(msg)
 
                 if j.data.types.list.check(val) and len(val) == 1:
-                    val = val[0]  # this to resolve some customer types or yaml inconsistencies, if only 1 member we can use as a non list
+                    # this to resolve some customer types or yaml
+                    # inconsistencies, if only 1 member we can use as a non
+                    # list
+                    val = val[0]
 
             hrd.set(ttype.name, val, ttype=ttype.hrd_ttype)
             if path == None:

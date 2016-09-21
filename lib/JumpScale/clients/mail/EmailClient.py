@@ -9,24 +9,26 @@ from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+
 class EmailClient:
+
     def __init__(self):
         self.__jslocation__ = "j.clients.email"
-        hrd=j.application.getAppInstanceHRD("mailclient","main")
-        self._server = hrd.getStr("instance.smtp.server",None)
-        self._port = hrd.getInt("instance.smtp.port",None)
+        hrd = j.application.getAppInstanceHRD("mailclient", "main")
+        self._server = hrd.getStr("instance.smtp.server", None)
+        self._port = hrd.getInt("instance.smtp.port", None)
         self._ssl = False
-        self._username = hrd.getStr("instance.smtp.login",None)
-        self._password = hrd.getStr("instance.smtp.passwd",None)
-        self._sender = hrd.getStr("instance.smtp.sender",'')
+        self._username = hrd.getStr("instance.smtp.login", None)
+        self._password = hrd.getStr("instance.smtp.passwd", None)
+        self._sender = hrd.getStr("instance.smtp.sender", '')
 
     def __str__(self):
-        out="server=%s\n"%(self._server)
-        out+="port=%s\n"%(self._port)
-        out+="username=%s\n"%(self._username)
+        out = "server=%s\n" % (self._server)
+        out += "port=%s\n" % (self._port)
+        out += "username=%s\n" % (self._username)
         return out
 
-    __repr__=__str__
+    __repr__ = __str__
 
     def send(self, recipients, sender="", subject="", message="", files=None, mimetype=None):
         """
@@ -43,11 +45,11 @@ class EmailClient:
         @param mimetype: Type of the body plain, html or None for autodetection
         @type mimetype: string
         """
-        if sender=="":
-            sender=self._sender 
+        if sender == "":
+            sender = self._sender
         if isinstance(recipients, str):
-            recipients = [ recipients ]
-        server = smtplib.SMTP(self._server, self._port) 
+            recipients = [recipients]
+        server = smtplib.SMTP(self._server, self._port)
         server.ehlo()
         if self._ssl:
             server.starttls()
@@ -61,7 +63,7 @@ class EmailClient:
                 mimetype = 'plain'
 
         msg = MIMEText(message, mimetype)
-        
+
         msg['Subject'] = subject
         msg['From'] = sender
         msg['To'] = ','.join(recipients)
@@ -97,7 +99,8 @@ class EmailClient:
                     # Encode the payload using Base64
                     encoders.encode_base64(attachement)
                 # Set the filename parameter
-                attachement.add_header('Content-Disposition', 'attachment', filename=filename)
+                attachement.add_header(
+                    'Content-Disposition', 'attachment', filename=filename)
                 msg.attach(attachement)
         server.sendmail(sender, recipients, msg.as_string())
         server.close()

@@ -1,29 +1,29 @@
-## Disklayout
+# Disklayout
 
 `j.sal.disklayout` helps you to gather a lot of information about the disks and partitions.
 
-* List of all available disks on machine
+- List of all available disks on machine
 
-```py
+```python
 j.sal.disklayout.getDisks()
 ```
 
-#### Disk API
+## Disk API
 
-* Each disk holds the following attributes:
+- Each disk holds the following attributes:
 
   - `disk.partitions`: lists of partitions on that disk
   - `disk.name`: device name (ex: /dev/sda)
   - `disk.size`: disk size in bytes
   - `disk.type`: type of disk
-  
-* Each disk has the following methods: 
+
+- Each disk has the following methods:
 
   - `disk.erase(force=True)` cleans up the disk by by deleting all non protected partitions and if force=True, deletes all partitions included protected
   - `disk.format(size, hrd)` creates new partition and formats it as configured in the HRD file
 
   **Note**: the HRD file must contain the following:
-  
+
   ```
   filesystem                     = '<fs-type>'
   mountpath                      = '<mount-path>'
@@ -43,7 +43,7 @@ disk.erase(force=True)
 disk.format(size, hrd)
 ```
 
-#### Partition API
+## Partition API
 
 Each disk has a list of attached partitions. The only way to create a new partition is to call `disk.format()` as explained above.
 
@@ -54,7 +54,7 @@ Each partition holds the following attributes:
 - `partition.fstype`: file system type
 - `partition.uuid`: file system UUID
 - `partition.mountpoint`: get the mount point of partition
-- `partition.hrd`: HRD instance used when creating the partition or None 
+- `partition.hrd`: HRD instance used when creating the partition or None
 - `partition.delete(force=False)`: deletes the partition and deletes protected partitions if force = True
 - `partition.format()`: formats the partition according to HRD
 - `partition.mount()`: mounts partition to mountpath defined in HRD

@@ -3,7 +3,7 @@ from JumpScale import j
 
 service_api = Blueprint('service_api', __name__)
 
-#@todo (*1*) to christope, queston, is this still required here (kristof), shouldn't this be in separate repo
+#TODO: *1 to christope, queston, is this still required here (kristof), shouldn't this be in separate repo
 
 def get_service_dict(service):
     return({

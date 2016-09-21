@@ -8,12 +8,12 @@ CMD_PS_PATTERN = re.compile(
 )
 
 
-
 class AOEError(Exception):
     pass
 
 
 class VDisk:
+
     def __init__(self, pid=None, major=None, minor=None, inf=None, path=None, size=0):
         self._pid = pid
         self._major = major
@@ -69,8 +69,9 @@ class VDisk:
 
 
 class AOEManager:
+
     def __init__(self):
-        self.__jslocation__="j.sal.aoe"           
+        self.__jslocation__ = "j.sal.aoe"
         self._local = j.tools.executor.getLocal()
 
     def list(self, storpath="/mnt/disktargets/"):
@@ -188,6 +189,7 @@ class AOEManager:
 
 
 class AOEFactory:
+
     def get(self):
         return AOEManager()
 

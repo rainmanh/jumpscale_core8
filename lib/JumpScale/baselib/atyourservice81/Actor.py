@@ -200,14 +200,7 @@ class Actor():
                 definition, args = linestrip.split("(", 1)
                 amDoc = ""
                 amSource = ""
-                args = args.rstrip('):')
-                for arg in args.split(','):
-                    if '=' in arg:
-                        argname, default = arg.split('=', 1)
-                    else:
-                        argname = arg
-                        default = ""
-                    amMethodArgs[argname.strip()] = default.strip()
+                amMethodArgs = args.rstrip('):')
                 amName = definition[4:].strip()
                 self.logger.debug('amName: %s' % amName)
                 if amDecorator == "":
@@ -250,47 +243,44 @@ class Actor():
                 # self.addAction(name=actionname, isDefaultMethod=True)
                 # not found
                 if actionname == "input":
-                    self._addAction(amName="input", amSource="", amDecorator="actor",
-                                    amMethodArgs={"service": "", "name": "", "role": "", "instance": ""}, amDoc="")
+                    amSource = "return {}"
+                    self._addAction(amName="input", amSource=amSource, amDecorator="actor",
+                                    amMethodArgs="self,job", amDoc="")
                 else:
                     self._addAction(amName=actionname, amSource="", amDecorator="service",
-                                    amMethodArgs={"service": ""}, amDoc="")
+                                    amMethodArgs="self,job", amDoc="")
 
     def _addAction(self, amName, amSource, amDecorator, amMethodArgs, amDoc):
+
+        if amSource == "":
+            amSource = "pass"
 
         amDoc = amDoc.strip()
         amSource = amSource.strip(" \n")
 
-        if not self.aysrepo.db.actionCode.exists(actionKey):
-            # need to create new object
-            ac = self.aysrepo.db.actionCode.new(key=actionKey)
-            ac.dbobj.code = amSource
-            ac.dbobj.actorName = self.model.name
-            ac.dbobj.doc = amDoc
-            ac.dbobj.name = amName
-            for key, val in amMethodArgs.items():
-                ac.argAdd(key, val)  # will check for duplicates
-            ac.dbobj.lastModDate = j.data.time.epoch
+        ac = j.core.jobcontroller.db.action.new()
+        ac.dbobj.code = amSource
+        ac.dbobj.actorName = self.model.name
+        ac.dbobj.doc = amDoc
+        ac.dbobj.name = amName
+        ac.dbobj.args = amMethodArgs
+        ac.dbobj.lastModDate = j.data.time.epoch
+        ac.dbobj.origin = "actoraction:%s:%s" % (self.model.dbobj.name, amName)
+
+        if not j.core.jobcontroller.db.action.exists(ac.key):
+            # will save in DB
             ac.save()
         else:
-            ac = self.aysrepo.db.actionCode.get(key=actionKey)
-            from IPython import embed
-            print("DEBUG NOW  _addAction exists")
-            embed()
-            raise RuntimeError("stop debug here")
-
-        if amName in ["init", "build"]:
-            atype = 'actor'
-        else:
-            atype = 'service'
+            ac = j.core.jobcontroller.db.action.get(key=ac.key)
 
         oldaction = self.model.actionGet(amName)
         if oldaction is None:
-            self.processChange("action_%s" % amName)
-            self.model.actionAdd(amName, actionCodeKey=actionKey, type=atype)
-        elif oldaction.actionCodeKey != actionKey:
-            self.processChange("action_%s" % amName)
-            oldaction.actionCodeKey = actionKey
+            self.processChange("action_new_%s" % amName)
+            self.model.actionAdd(amName, actionKey=ac.key)
+        elif oldaction.actionKey != ac.key:
+            # is a mod, need to remember the new key
+            self.processChange("action_mod_%s" % amName)
+            oldaction.actionKey = ac.key
 
     def processChange(self, changeCategory):
         """template action change e.g. action_install"""

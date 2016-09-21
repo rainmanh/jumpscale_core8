@@ -102,19 +102,11 @@ class ActorModel(ModelBase):
     def actionsSourceCode(self):
         out = ""
         for action in self.dbobj.actions:
-            actionCodeKey = action.actionCodeKey
-            actionCode = self._modelfactory.repo.db.actionCode.get(actionCodeKey)
+            actionKey = action.actionKey
+            actionCode = j.core.jobcontroller.db.action.get(actionKey)
             defstr = ""
             # defstr = "@%s\n" % action.type
-            defstr += "def %s (" % actionCode.dbobj.name
-            for arg in actionCode.dbobj.args:
-                default = ""
-                if arg.defval.decode().strip():
-                    default = "='%s'" % arg.defval.decode()
-                defstr += "%s%s, " % (arg.name, default)
-            defstr = defstr.rstrip(", ")
-            defstr += "):\n"
-
+            defstr += "def %s (%s):\n" % (actionCode.dbobj.name, actionCode.dbobj.args)
             if actionCode.dbobj.doc != "":
                 defstr += "    '''\n    %s\n    '''\n" % actionCode.dbobj.doc
 
@@ -133,18 +125,18 @@ class ActorModel(ModelBase):
                 return act
         return None
 
-    def actionAdd(self, name, actionCodeKey="", type="service"):
+    def actionAdd(self, name, actionKey="", type="service"):
         """
         name @0 :Text;
         #unique key for code of action (see below)
-        actionCodeKey @1 :Text;
+        actionKey @1 :Text;
         type: actor,node,service
         """
         if name in ["init", "build"]:
             type = "actor"
         obj = self.actionsNewObj()
         obj.name = name
-        obj.actionCodeKey = actionCodeKey
+        obj.actionKey = actionKey
         obj.type = type
         return obj
 
@@ -219,7 +211,7 @@ class ActorModel(ModelBase):
         out = self.dictJson + "\n"
         if self.dbobj.data not in ["", b""]:
             out += "CONFIG:\n"
-            out += self.configJSON
+            out += self.dataJSON
         return out
 
     __str__ = __repr__
@@ -247,7 +239,7 @@ class ActorModel(ModelBase):
     #             # put pointer to actionCode to actor model
     #             action = self.actionsServicesTemplateNew()
     #             action.name = name
-    #             action.actionCodeKey = guid
+    #             action.actionKey = guid
     #
     #             self._changes[name] = True
     #

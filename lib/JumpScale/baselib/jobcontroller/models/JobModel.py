@@ -109,7 +109,10 @@ class JobModel(ModelBase):
     def args(self):
         if self.dbobj.args == b"":
             return {}
-        return msgpack.loads(self.dbobj.args, encoding='utf-8')
+        res = msgpack.loads(self.dbobj.args, encoding='utf-8')
+        if res == None:
+            res = {}
+        return res
 
     @property
     def argsJons(self):
@@ -120,6 +123,22 @@ class JobModel(ModelBase):
     def args(self, val):
         args = msgpack.dumps(val)
         self.dbobj.args = args
+
+    @property
+    def result(self):
+        if self.dbobj.result == b"":
+            return {}
+        return msgpack.loads(self.dbobj.result, encoding='utf-8')
+
+    @property
+    def resultJons(self):
+        ddict2 = OrderedDict(self.result)
+        return j.data.serializer.json.dumps(ddict2, sort_keys=True, indent=True)
+
+    @args.setter
+    def result(self, val):
+        result = msgpack.dumps(val)
+        self.dbobj.result = result
 
     @property
     def actioncodeObj(self):

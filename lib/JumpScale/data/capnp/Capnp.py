@@ -42,7 +42,7 @@ class ModelFactory():
         self._index.destroy()
 
     def __str__(self):
-        return("modelfactory:%s:%s" % (self.repo.name, self.category))
+        return("modelfactory:%s" % (self.category))
 
     __repr__ = __str__
 
@@ -110,7 +110,7 @@ class Capnp:
                 configdata = schema.new_message(**args)
             except Exception as e:
                 if str(e).find("has no such member") != -1:
-                    msg = "cannot create data for schema from arguments, propery missing\n"
+                    msg = "cannot create data for schema from arguments, property missing\n"
                     msg += "arguments:\n%s\n" % j.data.serializer.json.dumps(args, sort_keys=True, indent=True)
                     msg += "schema:\n%s" % schemaInText
                     ee = str(e).split("stack:")[0]

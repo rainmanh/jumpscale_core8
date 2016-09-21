@@ -4,10 +4,10 @@ from JumpScale import j
 # import io
 # import imp
 # import sys
-import inspect
+# import inspect
 import capnp
 # from JumpScale.baselib.atyourservice81.models.ServiceModel import ServiceModel
-from collections import OrderedDict
+# from collections import OrderedDict
 
 
 def getProcessDicts(service, args={}):
@@ -93,11 +93,19 @@ class Service:
 
         dbobj.dataSchema = actor.model.dbobj.serviceDataSchema
 
-        dbobj.data = j.data.capnp.getBinaryData(j.data.capnp.getObj(dbobj.dataSchema, args=args))
-
         r = self.model.gitRepoAdd()
 
         r.url = self.aysrepo.git.remoteUrl
+
+        # actions
+        actions = dbobj.init("actions", len(actor.model.dbobj.actions))
+        counter = 0
+        for action in actor.model.dbobj.actions:
+            actionnew = actions[counter]
+            actionnew.state = "new"
+            actionnew.actionKey = action.actionKey
+            actionnew.name = action.name
+            counter += 1
 
         # parents/producers
         skey = "%s!%s" % (self.model.role, self.model.name)
@@ -122,7 +130,15 @@ class Service:
             relpath = j.sal.fs.joinPaths("services", skey)
         r.path = relpath
 
-        # self.init(args=args)  # first time init
+        # input will always happen in process
+        args = self.input(args=args)
+        if not j.data.types.dict.check(args):
+            raise j.exceptions.Input(message="result from input needs to be dict,service:%s" % self,
+                                     level=1, source="", tags="", msgpub="")
+
+        dbobj.data = j.data.capnp.getBinaryData(j.data.capnp.getObj(dbobj.dataSchema, args=args))
+
+        self.init()
 
         self.model.save()
 
@@ -221,51 +237,9 @@ class Service:
                     self.model.parent)
         return self._parent
 
-    # @property
-    # def hrd(self):
-    #     if self._hrd is None:
-    #         schema_path = j.sal.fs.joinPaths(self.path, 'schema.capnp')
-    #         if not j.sal.fs.exists(schema_path):
-    #             j.sal.fs.writeFile(schema_path, self.actor.schema.capnpSchema)
-    #             capnp_models = capnp.load(schema_path)
-    #             self._hrd = capnp_models.Schema.new_message()
-    #     return self._hrd
-        # if self._hrd == "EMPTY":
-        # return None
-        # if self._hrd is None:
-        #     hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
-        #     if not j.sal.fs.exists(path=hrdpath):
-        #         self._hrd == "EMPTY"
-        #         return None
-        #     self._hrd = j.data.hrd.get(path=hrdpath, prefixWithName=False)
-
-        # return self._hrd
-
-    # def hrdCreate(self):
-    #     hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
-    #     self._hrd = j.data.hrd.get(path=hrdpath, prefixWithName=False)
-
-    # @property
-    # def model(self):
-    #     if self._model is None:
-    #         model_path = j.sal.fs.joinPaths(self.path, "model.yaml")
-    #         if j.sal.fs.exists(model_path):
-    #             self._model = j.data.serializer.yaml.loads(
-    #                 j.sal.fs.fileGetContents(model_path))
-    #     return self._model
-    #
-    # @model.setter
-    # def model(self, model):
-    #     self._hrd = "EMPTY"
-    #     if j.data.types.dict.check(model):
-    #         self._model = model
-    #         model_path = j.sal.fs.joinPaths(self.path, "model.yaml")
-    #         j.data.serializer.yaml.dump(model_path, model)
-    #     else:
-    #         raise NotImplementedError("only support yaml format at the moment")
-
     @property
     def producers(self):
+        raise NotImplemented("")
         if self._producers is None:
             self._producers = {}
             for prod_model in self.model.producers:
@@ -288,6 +262,7 @@ class Service:
 
     @property
     def executor(self):
+        raise NotImplemented("")
         if self._executor is None:
             self._executor = self._getExecutor()
         return self._executor
@@ -300,67 +275,23 @@ class Service:
     def processChange(self, item):
         pass
 
-    def init(self, args={}):
+    def input(self, args={}):
+        job = self.getJob("input", args=args)
+        args = job.executeInProcess(service=self)
+        job.model.save()
+        return args
 
-        from IPython import embed
-        print("DEBUG NOW init service ")
-        embed()
-        raise RuntimeError("stop debug here")
-        self.logger.info('INIT service: %s' % self)
+    def init(self):
+        job = self.getJob(actionName="init")
+        job.executeInProcess(service=self)
+        job.model.save()
+        return job
 
-        # j.sal.fs.createDir(self.model.dbobj.origin.path)
-
-        # TODO: call init action
-
-        self.model.save()
-        args = self.actions.input(self, self.actor, self.role, self.instance, args)
-
-        originalhrd = j.data.hrd.get(content=str(self.hrd))
-
-        # apply args
-        if self._hrd == "EMPTY":
-            self._hrd = None
-        else:
-            if self.actor.template.schema is not None:
-                self._hrd = self.actor.template.schema.hrdGet(hrd=self.hrd, args=args)
-                self._hrd.path = j.sal.fs.joinPaths(self.path, "instance.hrd")
-            else:
-                if args != {}:
-                    for key, val in args.items():
-                        if self.hrd.exists(key) and self.hrd.get(key) != val:
-                            self.hrd.set(key, val)
-
-        # self._action_methods = None  # to make sure we reload the actions
-
-        if self.hrd is not None:
-            self.hrd.save()
-        self.model.save()
-        self._consumeFromSchema(args)
-        self.actions.init(service=self)
-
-        if self.hrd is not None:
-            newInstanceHrdHash = j.data.hash.md5_string(str(self.hrd))
-            if self.model.instanceHRDHash != newInstanceHrdHash:
-                self.actions.change_hrd_instance(
-                    service=self, originalhrd=originalhrd)
-                self.hrd.save()
-            self.model.instanceHRDHash = newInstanceHrdHash
-
-        if self.actor.template.hrd is not None:
-            if self._hrd == "EMPTY":
-                self._hrd = None
-            newTemplateHrdHash = j.data.hash.md5_string(
-                str(self.actor.template.hrd))
-            if self.model.templateHRDHash != newTemplateHrdHash:
-                # the template hash changed
-                if self.hrd is not None:
-                    self.hrd.applyTemplate(
-                        template=self.actor.template.hrd, args={}, prefix='')
-                    self.actions.change_hrd_template(
-                        service=self, originalhrd=originalhrd)
-                    self.hrd.save()
-                    self.model.templateHRDHash = newTemplateHrdHash
-        self.save()
+    def runAction(self, action, args={}):
+        job = self.getJob(actionName=action, args=args)
+        args = job.execute()
+        job.model.save()
+        return job
 
     def _consumeFromSchema(self, args):
 
@@ -616,53 +547,26 @@ class Service:
             return self.key == service
         return service.role == self.role and self.instance == service.instance
 
-    def __hash__(self):
-        return hash((self.instance, self.role))
+    def getJob(self, actionName, args={}):
+        action = self.getActionObj(actionName)
+        jobobj = j.core.jobcontroller.db.job.new()
+        jobobj.dbobj.actionKey = action.actionKey
+        jobobj.dbobj.actionName = action.name
+        jobobj.dbobj.actorName = self.model.dbobj.actorName
+        jobobj.dbobj.serviceName = self.model.dbobj.name
+        jobobj.dbobj.serviceKey = self.model.key
+        jobobj.dbobj.state = "new"
+        jobobj.dbobj.lastModDate = j.data.time.epoch
+        jobobj.args = args
+        job = j.core.jobcontroller.newJobFromModel(jobobj)
+        return job
 
-    def __repr__(self):
-        # return '%s|%s!%s(%s)' % (self.domain, self.name, self.instance,
-        # self.version)
-        return "service:%s!%s" % (self.model.role, self.model.name)
-        # return self.key
-
-    def __str__(self):
-        return self.__repr__()
-
-    @property
-    def actions(self):
-        return self.actor.get_actions(service=self)
-
-    def runAction(self, action):
-        a = self.getAction(action)
-        if a is None:
-            raise j.exceptions.Input(
-                "Cannot find action:%s on %s" % (action, self))
-
-        # when none means does not exist so does not have to be executed
-        if a is not None:
-            # if action not in ["init","input"]:
-            return a(service=self)
-
-    @property
-    def action_methods(self):
-        if self._action_methods is None:
-            self._action_methods = {key: action for key, action in inspect.getmembers(
-                self.actions, inspect.ismethod)}
-        return self._action_methods
-
-    def getAction(self, action):
-        """
-        @return None when not exist
-        """
-        if action not in self.action_methods:
-            return None
-        a = getattr(self.actions, action)
-        return a
-
-    def getActionSource(self, action):
-        if action not in self.action_methods:
-            return ""
-        return j.data.text.strip(inspect.getsource(self.action_methods[action]))
+    def getActionObj(self, actionName):
+        for action in self.model.dbobj.actions:
+            if action.name == actionName:
+                return action
+        raise j.exceptions.Input(message="Could not find action:%s in %s"(
+            actionName, self), level=1, source="", tags="", msgpub="")
 
     def _getDisabledProducers(self):
         producers = dict()
@@ -738,6 +642,18 @@ class Service:
                 j.sal.fs.fileGetContents(model_path))
 
         self.model.load()
+
+    def __hash__(self):
+        return hash((self.instance, self.role))
+
+    def __repr__(self):
+        # return '%s|%s!%s(%s)' % (self.domain, self.name, self.instance,
+        # self.version)
+        return "service:%s!%s" % (self.model.role, self.model.name)
+        # return self.key
+
+    def __str__(self):
+        return self.__repr__()
 
     # @property
     # def action_methods_node(self):

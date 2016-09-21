@@ -3,7 +3,7 @@ from JumpScale import j
 # from Worker import Worker
 
 import inspect
-import msgpack
+# import msgpack
 import time
 
 from JumpScale.baselib.jobcontroller.models import ModelsFactory
@@ -59,22 +59,6 @@ class JobController:
         # j.tools.performancetrace.profile("perftest()", globals=locals())
         # perftest()
 
-    def startWorkers(self, nrworkers=8):
-
-        curdir = j.sal.fs.getDirName(inspect.getsourcefile(self.__init__))
-
-        self._workerPath = j.sal.fs.joinPaths(curdir, "Worker.py")
-
-        self.tmux = j.sal.tmux.createPanes4x4("workers", "actions", False)
-
-        paneNames = [pane.name for pane in self.tmux.panes]
-        paneNames.sort()
-        for i in range(nrworkers):
-            name = paneNames[i]
-            pane = self.tmux.getPane(name)
-            cmd = "python3 %s -q worker%s" % (self._workerPath, i)
-            pane.execute(cmd)
-
     def newJobFromMethod(self, method, runKey="", **args):
         """
         method is link to method (function)
@@ -92,6 +76,10 @@ class JobController:
         job.args = args
 
         job0 = Job(model=job)
+        return job0
+
+    def newJobFromModel(self, model):
+        job0 = Job(model=model)
         return job0
 
     def getActionObjFromMethod(self, method):
@@ -147,6 +135,7 @@ class JobController:
         @param timeout: timeout in seconds
         @type timeout: int
         """
+        raise NotImplemented()
         guid = self.queue.get(timeout=timeout)
         return self.db.get(guid)
 
@@ -155,6 +144,7 @@ class JobController:
         will empty queue & abort all jobs
         abort means jobs will stay in db but state will be set
         """
+        raise NotImplemented()
         job = self.queue.get_nowait()
         while job is not None:
             job.state = "abort"
@@ -164,6 +154,7 @@ class JobController:
         """
         will empty queue & remove all jobs
         """
+        raise NotImplemented()
         job = self.queue.get_nowait()
         while job is not None:
             self.db.delete(job.dbobj.key)
@@ -250,3 +241,19 @@ class JobController:
         - getargspec: 40k/sec
         - getargspec: 200k/sec if own parser
         """
+
+    # def startWorkers(self, nrworkers=8):
+    #
+    #     curdir = j.sal.fs.getDirName(inspect.getsourcefile(self.__init__))
+    #
+    #     self._workerPath = j.sal.fs.joinPaths(curdir, "Worker.py")
+    #
+    #     self.tmux = j.sal.tmux.createPanes4x4("workers", "actions", False)
+    #
+    #     paneNames = [pane.name for pane in self.tmux.panes]
+    #     paneNames.sort()
+    #     for i in range(nrworkers):
+    #         name = paneNames[i]
+    #         pane = self.tmux.getPane(name)
+    #         cmd = "python3 %s -q worker%s" % (self._workerPath, i)
+    #         pane.execute(cmd)

@@ -108,3 +108,49 @@ struct Action {
 
 
 }
+
+
+struct Run {
+    #this object is hosted by actor based on FQDN
+
+    #which step is running right now, can only move to net one if previous one was completed
+    currentStep @0: UInt16;
+
+    #FQDN of a specific actor which can run multiple jobs & orchestrate work
+    aysControllerFQDN @1 :Text;
+
+    steps @2 :List(RunStep);
+    struct RunStep {
+      epoch @0: UInt32;
+      state @1 :State;
+      #list of jobs which need to be executed, key alone is enough to fetch the job info
+      jobs @2 :List(Job);
+      struct Job {
+          guid @0 :Text;
+
+          #NEXT IS CACHED INFO, THE MAIN SOURCE OF NEXT INFO IS IN Job
+          #BUT is good practice will make all run very much faster& allow fast vizualization
+          state @1 :State;
+          #e.g. node.ssh
+          actorName @2 :Text;
+          #name e.g. install
+          actionName @3 :Text;
+          #name of service run by actor e.g. myhost
+          serviceName @4 :Text;
+      }
+    }
+
+    #state of run in general
+    state @3 :State;
+    enum State {
+        new @0;
+        running @1;
+        ok @2;
+        error @3;
+    }
+
+    lastModDate @4: UInt32;
+
+
+
+}

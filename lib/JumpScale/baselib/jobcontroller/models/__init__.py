@@ -2,10 +2,11 @@ from JumpScale import j
 
 import capnp
 
-import model_capnp as ModelCapnp
+import model_job_capnp as ModelCapnp
 
 from .JobModel import JobModel
 from .ActionModel import ActionModel
+from .RunModel import RunModel
 
 
 class ModelsFactory():
@@ -18,7 +19,9 @@ class ModelsFactory():
 
         self.job = ModelFactory(self, "Job", JobModel)
         self.action = ModelFactory(self, "Action", ActionModel)
+        self.run = ModelFactory(self, "Run", RunModel)
 
     def destroy(self):
         self.job.destroy()
         self.action.destroy()
+        self.run.destroy()

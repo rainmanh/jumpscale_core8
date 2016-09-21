@@ -11,13 +11,6 @@ from pygments.formatters import get_formatter_by_name
 
 import importlib
 
-# try:
-#     from capturer import CaptureOutput
-# except:
-#     j.sal.process.execute("pip3 install capturer", die=True, outputToStdout=False, ignoreErrorOutput=False)
-#     from capturer import CaptureOutput
-#
-
 
 class Job():
     """
@@ -28,40 +21,7 @@ class Job():
         self.logger = j.atyourservice.logger
         self.model = model
         self._action = None
-
-    def _str_error(self, error):
-        out = ''
-        formatter = pygments.formatters.Terminal256Formatter(
-            style=pygments.styles.get_style_by_name("vim"))
-
-        if error.__str__() != "":
-            out += "\n*TRACEBACK*********************************************************************************\n"
-            # self.logger.error("\n*TRACEBACK*********************************************************************************\n")
-
-            lexer = pygments.lexers.get_lexer_by_name("pytb", stripall=True)
-            tb_colored = pygments.highlight(error.__str__(), lexer, formatter)
-            print(tb_colored)
-            out += tb_colored
-
-        # self.logger.error("\n\n******************************************************************************************\n")
-        out += "\n\n******************************************************************************************\n"
-        return out
-
-    # def run(self):
-    #     # for parallelized runs
-    #     try:
-    #         self.result = self.service.runAction(self.runstep.action)
-    #         self.logger.debug('running stepaction: %s' % self.service)
-    #         self.logger.debug('\tresult:%s' % self.result)
-    #         self.result_q.put(self.result)
-    #     except Exception as e:
-    #         self.logger.debug(
-    #             'running stepaction with error: %s' % self.service)
-    #         self.logger.debug('\tresult:%s' % self.result)
-    #         self.logger.debug('\error:%s' % self._str_error(e))
-    #         self.error_q.put(self._str_error(e))
-    #         self.result_q.put(self.result)
-    #         raise e
+        self._service = None
 
     @property
     def action(self):
@@ -102,6 +62,9 @@ class Job():
         j.do.writeFile(path, self.sourceToExecute)
         return path
 
+    def save(self):
+        self.model.save()
+
     @property
     def method(self):
         if not self.action.key in j.core.jobcontroller._methods:
@@ -111,39 +74,100 @@ class Job():
             j.core.jobcontroller._methods[self.action.key] = method
         return j.core.jobcontroller._methods[self.action.key]
 
-    def executeInProcess(self):
+    @property
+    def service(self):
+        if self._service == None:
+            # TODO: *3 is shortcut but will work for now, we need to see we are in right repo if multiple
+            repo = [item for item in j.atyourservice._repos.items()][-1][1]
+            serviceModel = repo.db.service.get(self.model.dbobj.serviceKey)
+            self._service = serviceModel.getObject()
+        return self._service
+
+    def processError(self, eco):
+        print(str(eco))
+        # TODO: *1 need to put in job & save
+
+    def executeInProcess(self, service=None):
         """
         execute the job in the process, capture output when possible
         if debug job then will not capture output so our debugging features work
         """
-        with CaptureOutput() as capturer:
-            try:
+
+        if self.model.dbobj.actorName != "":
+            if service == None:
+                service = self.service
+            else:
+                self._service = service
+
+        try:
+            if self.model.dbobj.actorName != "":
+                res = self.method(service, job=self)
+            else:
                 res = self.method(**self.model.args)
-            except Exception as e:
-                tb = e.__traceback__
-                value = e
-                type = None
+        except Exception as e:
+            eco = j.errorconditionhandler.processPythonExceptionObject(e)
+            self.processError(eco)
+            raise j.exceptions.RuntimeError("could not execute job:%s" % self)
 
-                tblist = traceback.format_exception(type, value, tb)
-                tblist.pop(1)
-                self.traceback = "".join(tblist)
+            # tb = e.__traceback__
+            # value = e
+            # type = None
+            #
+            # tblist = traceback.format_exception(type, value, tb)
+            # tblist.pop(1)
+            # self.traceback = "".join(tblist)
+            #
+            # err = ""
+            # for e_item in e.args:
+            #     if isinstance(e_item, (set, list, tuple)):
+            #         e_item = ' '.join(e_item)
+            #     err += "%s\n" % e_item
+            # print("ERROR:%s" % err)
+        self.model.result = res
+        return res
 
-                err = ""
-                for e_item in e.args:
-                    if isinstance(e_item, (set, list, tuple)):
-                        e_item = ' '.join(e_item)
-                    err += "%s\n" % e_item
-                print("ERROR:%s" % err)
-            print(3)
-            capturer.finish_capture()
-            # text = capturer.get_lines()
-            print(4)
+    def execute(self):
+        if self.model.dbobj.debug:
+            return self.executeInProcess()
+        else:
             from IPython import embed
-            print("DEBUG NOW sdsdsd")
+            print("DEBUG NOW execute job")
             embed()
             raise RuntimeError("stop debug here")
 
-        return res
+    # def _str_error(self, error):
+    #     out = ''
+    #     formatter = pygments.formatters.Terminal256Formatter(
+    #         style=pygments.styles.get_style_by_name("vim"))
+    #
+    #     if error.__str__() != "":
+    #         out += "\n*TRACEBACK*********************************************************************************\n"
+    #         # self.logger.error("\n*TRACEBACK*********************************************************************************\n")
+    #
+    #         lexer = pygments.lexers.get_lexer_by_name("pytb", stripall=True)
+    #         tb_colored = pygments.highlight(error.__str__(), lexer, formatter)
+    #         print(tb_colored)
+    #         out += tb_colored
+    #
+    #     # self.logger.error("\n\n******************************************************************************************\n")
+    #     out += "\n\n******************************************************************************************\n"
+    #     return out
+
+    # def run(self):
+    #     # for parallelized runs
+    #     try:
+    #         self.result = self.service.runAction(self.runstep.action)
+    #         self.logger.debug('running stepaction: %s' % self.service)
+    #         self.logger.debug('\tresult:%s' % self.result)
+    #         self.result_q.put(self.result)
+    #     except Exception as e:
+    #         self.logger.debug(
+    #             'running stepaction with error: %s' % self.service)
+    #         self.logger.debug('\tresult:%s' % self.result)
+    #         self.logger.debug('\error:%s' % self._str_error(e))
+    #         self.error_q.put(self._str_error(e))
+    #         self.result_q.put(self.result)
+    #         raise e
 
     # def __repr__(self):
     #     out = "runstep action: %s!%s (%s)\n" % (

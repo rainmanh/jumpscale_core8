@@ -65,7 +65,7 @@ class SSHClientFactory:
             self.cache.pop(key)
 
     def getSSHKeyFromAgentPub(self, keyname="", die=True):
-        rc, out, err = j.tools.cuisine.local.run("ssh-add -L", die=False)
+        rc, out, err = j.tools.cuisine.local.core.run("ssh-add -L", die=False)
         if rc > 1:
             err = "Error looking for key in ssh-agent: %s", out
             if die:
@@ -146,7 +146,8 @@ class SSHClient:
             return True
 
     def connectViaProxy(self, host, username, port, identityfile, proxycommand=None):
-        import pudb; pu.db
+        import pudb
+        pu.db
         self.usesproxy = True
         client = paramiko.SSHClient()
         client._policy = paramiko.WarningPolicy()
@@ -172,6 +173,7 @@ class SSHClient:
         self._client.connect(**cfg)
 
         return self._client
+
     @property
     def transport(self):
         if self.client is None:

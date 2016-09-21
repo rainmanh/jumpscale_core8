@@ -25,6 +25,9 @@ class Process():
         self.state = "init"
 
     def start(self):
+        if self.method == None:
+            raise j.exceptions.Input(message="cannot start process, method is not known.",
+                                     level=1, source="", tags="", msgpub="")
         rpipe, wpipe = os.pipe()
         pid = os.fork()
         if pid == -1:
@@ -208,13 +211,13 @@ class ProcessManagerFactory:
 
         j.core.db = Redis(unix_socket_path='/tmp/redis.sock')
 
-        def getQueue(self, size=1000):
-            """
-            can get this & give to startProcess in args (see test)
-            """
-            return multiprocessing.Queue(size)
+    def getQueue(self, size=1000):
+        """
+        can get this & give to startProcess in args (see test)
+        """
+        return multiprocessing.Queue(size)
 
-    def startProcess(self, method, args={}, name="", autoclear=True, autowait=True):
+    def getProcess(self, method=None, args={}, name="", autoclear=True, autowait=True):
         if name == "":
             name = "process_%s" % self._lastnr
             self._lastnr += 1
@@ -238,8 +241,12 @@ class ProcessManagerFactory:
                                          level=1, source="", tags="", msgpub="")
 
         p = Process(name, method, args)
-        p.start()
         self.processes[p.name] = p
+        return p
+
+    def startProcess(self, method, args={}, name="", autoclear=True, autowait=True):
+        p = self.getProcess(method=method, args=args, name=name, autoclear=autoclear, autowait=autowait)
+        p.start()
         return p
 
     def clear(self, error=False):
@@ -303,16 +310,23 @@ class ProcessManagerFactory:
             counter = 0
             print("QUEUE test")
             while True:
-                counter += 1
-                print(counter)
-                if counter == till:
-                    # raise j.exceptions.Input(message="issue", level=1, source="", tags="", msgpub="")
-                    return(x)
+                if not queue.empty():
+                    last = queue.get()
+                    counter += 1
+                    print("from queue:%s" % last)
+                    if last == "stop":
+                        # raise j.exceptions.Input(message="issue", level=1, source="", tags="", msgpub="")
+                        return(last)
+                    time.sleep(0.01)
 
-        from IPython import embed
-        print("DEBUG NOW queuetest")
-        embed()
-        raise RuntimeError("stop debug here")
+        q = self.getQueue()
+        q.put("test")
+        # queuetest(q)
+        p = self.startProcess(queuetest, {"queue": q})
+        for i in range(10):
+            print(p.process())
+
+        #@TODO: *1 it blocks
 
     def perftest(self):
 

@@ -25,12 +25,15 @@ class RedisFactory:
         self._redisq = {}
         self._config = {}
 
-    def get(self, ipaddr, port, password="", fromcache=True):
-        key = "%s_%s" % (ipaddr, port)
+    def get(self, ipaddr, port, password="", unixsocket=None, fromcache=True):
+        if unixsocket is not None:
+            key = unixsocket
+        else:
+            key = "%s_%s" % (ipaddr, port)
         if not fromcache:
-            return Redis(ipaddr, port, password=password)
+            return Redis(ipaddr, port, password=password, unix_socket_path=unixsocket)
         if key not in self._redis:
-            self._redis[key] = Redis(ipaddr, port, password=password)
+            self._redis[key] = Redis(ipaddr, port, password=password, unix_socket_path=unixsocket)
         return self._redis[key]
 
     def getQueue(self, ipaddr, port, name, namespace="queues", fromcache=True):

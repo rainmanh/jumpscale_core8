@@ -132,7 +132,7 @@ class StoreFactory:
     #     from servers.key_value_store.memory_store import MemoryKeyValueStore
     #     return MemoryKeyValueStore(name=name, namespace=namespace, changelog=changelog)
     #
-    def getRedisStore(self, name, namespace='db', host='localhost', port=6379, db=0, password='',
+    def getRedisStore(self, name, namespace='db', host='localhost', port=6379, unixsocket=None, db=0, password='',
                       serializers=None, masterdb=None, cache=None, changelog=None):
         '''
         Gets a memory key value store.
@@ -153,6 +153,7 @@ class StoreFactory:
                 namespace=namespace,
                 host=host,
                 port=port,
+                unixsocket=unixsocket,
                 db=db,
                 password=password,
                 serializers=serializers,

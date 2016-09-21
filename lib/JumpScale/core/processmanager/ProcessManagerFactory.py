@@ -7,7 +7,7 @@ import traceback
 import copy
 # don't do logging, slows down
 
-import multiprocessing
+# import multiprocessing
 
 
 class Process():
@@ -41,6 +41,7 @@ class Process():
                 os.dup2(wpipe, sys.stderr.fileno())
                 os.close(wpipe)
                 # print("ARGS:%s" % args)
+                j.core.processmanager.clearCaches()
                 res = self.method(**self.args)
             except Exception as e:
                 eco = j.errorconditionhandler.processPythonExceptionObject(e)
@@ -112,6 +113,9 @@ class Process():
             return
         while True:
             res = self.process1(waitInSecWhenNoData=waitInSecWhenNoData)
+            #when 0 we stay in the loop because there is more to process
+            #when 1 or 2 we are at end we should exit
+            #when 5 we just exit process to allow the controller to look at other processes
             if res in [2, 1, 5]:
                 if res in [2, 1]:
                     self.waitpid()

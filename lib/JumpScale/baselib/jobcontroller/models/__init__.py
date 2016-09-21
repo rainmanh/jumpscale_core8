@@ -11,7 +11,7 @@ from .RunModel import RunModel
 
 class ModelsFactory():
 
-    def __init__(self, aysrepo):
+    def __init__(self):
         self.namespacePrefix = "jobs"
         ModelFactory = j.data.capnp.getModelFactoryClass()
 

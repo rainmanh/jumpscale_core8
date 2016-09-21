@@ -294,6 +294,7 @@ class Service:
         return job
 
     def _consumeFromSchema(self, args):
+        raise NotImplemented()
 
         if self.actor.schema is None:
             return

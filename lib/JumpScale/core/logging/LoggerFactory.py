@@ -128,7 +128,7 @@ class LoggerFactory:
         self.set_mode(mode.upper())
         self.set_level(level)
         if filter:
-            self.handlerTemplates['console'].addFilter(ModuleFilter(filter))
+            self.handlers.consoleHandler.addFilter(ModuleFilter(filter))
 
     def get(self, name=None, enable_only_me=False):
         """

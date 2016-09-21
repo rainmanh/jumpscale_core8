@@ -12,6 +12,8 @@ class Stats(object):
         self.max = max
         self.total = total
 
+CHUNK_SIZE = 1000
+
 
 class InfluxDumper(Dumper.BaseDumper):
     QUEUE_MIN = 'queues:stats:min'
@@ -89,6 +91,8 @@ class InfluxDumper(Dumper.BaseDumper):
         :param redis:
         :return:
         """
+        points = []
+
         while True:
             data = redis.blpop(self.QUEUES, 1)
             if data is None:
@@ -111,7 +115,6 @@ class InfluxDumper(Dumper.BaseDumper):
 
             info['tags'] = j.data.tags.getObject(info.get('tags', []))
             info['tags'].tags['node'] = stats.node
-            points = []
 
             tags = info['tags'].tags
             if queue == self.QUEUE_MIN:
@@ -120,4 +123,6 @@ class InfluxDumper(Dumper.BaseDumper):
             else:
                 points.append(self._mk_point("%s|h" % (stats.key,), stats.epoch, stats.avg, stats.max, tags))
 
-            self.influxdb.write_points(points, database=self.database, time_precision='s')
+            if len(points) >= CHUNK_SIZE:
+                self.influxdb.write_points(points, database=self.database, time_precision='s')
+                points = []

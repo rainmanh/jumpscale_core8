@@ -522,8 +522,13 @@ class Docker:
         return container
 
     def getImages(self):
-        images = [str(item["RepoTags"][0]).replace(":latest", "")
-                  for item in self.client.images()]
+        images = []
+        for item in self.client.images():
+            if item['RepoTags'] is None:
+                continue
+            tags = str(item['RepoTags'][0])
+            tags = tags.replace(":latest", "")
+            images.append(tags)
         return images
 
     def removeImages(self, tag="<none>:<none>"):

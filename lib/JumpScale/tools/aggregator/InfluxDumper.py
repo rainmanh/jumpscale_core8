@@ -18,7 +18,7 @@ class InfluxDumper(Dumper.BaseDumper):
     QUEUE_HOUR = 'queues:stats:hour'
     QUEUES = [QUEUE_MIN, QUEUE_HOUR]
 
-    def __init__(self, influx, database=None, cidr='127.0.0.1', ports=[7777]):
+    def __init__(self, influx, database=None, cidr='127.0.0.1', ports=[7777], rentention_duration='5d'):
         """
         Create a new instance of influx dumper
 
@@ -45,6 +45,16 @@ class InfluxDumper(Dumper.BaseDumper):
                 break
         else:
             self.influxdb.create_database(database)
+
+        for policy in self.influxdb.get_list_retention_policies(database):
+            if policy['name'] == 'default':
+                if policy['duration'] != rentention_duration:
+                    self.influxdb.alter_retention_policy('default', database=database,
+                                                         duration=rentention_duration,
+                                                         replication='1', default=True)
+                break
+        else:
+            self.influx.create_retention_policy('default', rentention_duration, '1', database=database, default=True)
 
     def _parse_line(self, line):
         """

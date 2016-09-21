@@ -34,6 +34,7 @@ class InfluxDumper(Dumper.BaseDumper):
         :param port: Find all redis instances that listens on that port on the given CIDR
         """
         super(InfluxDumper, self).__init__(cidr, ports)
+        self._points = []
 
         self.influxdb = influx
 
@@ -85,17 +86,24 @@ class InfluxDumper(Dumper.BaseDumper):
     def _dump_hour(self, stats):
         print(stats)
 
+    def _flush(self):
+        if len(self._points) == 0:
+            return
+
+        self.influxdb.write_points(self._points, database=self.database, time_precision='s')
+        self._points = []
+
     def dump(self, redis):
         """
         Process redis connection until the queue is empty, then return None
         :param redis:
         :return:
         """
-        points = []
 
         while True:
             data = redis.blpop(self.QUEUES, 1)
             if data is None:
+                self._flush()
                 return
 
             queue, line = data
@@ -118,11 +126,10 @@ class InfluxDumper(Dumper.BaseDumper):
 
             tags = info['tags'].tags
             if queue == self.QUEUE_MIN:
-                points.append(self._mk_point("%s|m" % (stats.key,), stats.epoch, stats.avg, stats.max, tags))
-                points.append(self._mk_point("%s|t" % (stats.key,), stats.epoch, stats.total, stats.max, tags))
+                self._points.append(self._mk_point("%s|m" % (stats.key,), stats.epoch, stats.avg, stats.max, tags))
+                self._points.append(self._mk_point("%s|t" % (stats.key,), stats.epoch, stats.total, stats.max, tags))
             else:
-                points.append(self._mk_point("%s|h" % (stats.key,), stats.epoch, stats.avg, stats.max, tags))
+                self._points.append(self._mk_point("%s|h" % (stats.key,), stats.epoch, stats.avg, stats.max, tags))
 
-            if len(points) >= CHUNK_SIZE:
-                self.influxdb.write_points(points, database=self.database, time_precision='s')
-                points = []
+            if len(self._points) >= CHUNK_SIZE:
+                self._flush()

@@ -103,11 +103,13 @@ class Actor():
             self.model.dbobj.parent.minServices = 1
             self.model.dbobj.parent.maxServices = 1
 
-        if template.producers != []:
-            from IPython import embed
-            print("DEBUG NOW producers")
-            embed()
-            raise RuntimeError("stop debug here")
+        for i, producer in enumerate(template.producers):
+            self.model.dbobj.init('producers', len(template.producers))
+            prod = self.model.dbobj.producers[i]
+            prod.actorName = producer.model.name
+            prod.actorKey = producer.model.key
+            prod.minServices = producer.model.minServices
+            prod.maxServices = producer.model.maxServices
 
         #
         # producers_schema_info = actor.schemaServiceHRD.consumeSchemaItemsGet()
@@ -230,8 +232,7 @@ class Actor():
             if state == "DEF":
                 if linestrip != line[8:].strip():
                     # means we were not rightfully intented
-                    raise j.exceptions.Input(message="error in source of action (indentation):\nline:%s\n%s"(
-                        line, content), level=1, source="", tags="", msgpub="")
+                    raise j.exceptions.Input(message="error in source of action from %s (indentation):\nline:%s\n%s" % (self, line, content), level=1, source="", tags="", msgpub="")
                 amSource += "%s\n" % line[8:]
 
         # process the last one

@@ -76,7 +76,7 @@ class ServiceModel(ModelBase):
     def objectGet(self, aysrepo):
         actor = aysrepo.actorGet(self.dbobj.actorName, die=True)
         Service = aysrepo.getServiceClass()
-        return Service(name=self.dbobj.name, actor=actor, aysrepo=aysrepo, model=self)
+        return Service(name=self.dbobj.name, aysrepo=aysrepo, model=self)
 
     @classmethod
     def find(self, name="", actor="", state="", parent="", producer=""):

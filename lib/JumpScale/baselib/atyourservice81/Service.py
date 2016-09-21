@@ -110,15 +110,20 @@ class Service:
         # parents/producers
         skey = "%s!%s" % (self.model.role, self.model.name)
         if actor.model.dbobj.parent.actorKey is not "":
-            actorname = actor.model.dbobj.parent.actorName
-            res = self.aysrepo.db.service.find(actor=actorname)
+            actor_name = actor.model.dbobj.parent.actorName
+            actor_role = actor_name.split('.')[0]
+            # try to get the instance name from the args. Look for full actor name ('node.ssh') or just role (node)
+            # if none of the two is available in the args, don't use instance name and expect the parent service to be unique in the repo
+            parent_name = args.get(actor_name, args.get(actor_role, None))
+            res = self.aysrepo.servicesFind(name=parent_name, actor='%s.*' % actor_role)
             if len(res) == 0:
-                raise j.exceptions.Input(message="could not find parent:%s, found 0" %
-                                         actorname, level=1, source="", tags="", msgpub="")
+                raise j.exceptions.Input(message="could not find parent:%s for %s, found 0" %
+                                         (actor_name, self), level=1, source="", tags="", msgpub="")
             elif len(res) > 1:
-                raise j.exceptions.Input(message="could not find parent:%s, found more than 1." %
-                                         actorname, level=1, source="", tags="", msgpub="")
-            parentobj = res[0].objectGet(self.aysrepo)
+                raise j.exceptions.Input(message="could not find parent:%s for %s, found more than 1." %
+                                         (actor_name, self), level=1, source="", tags="", msgpub="")
+            parentobj = res[0]
+            self._parent = parentobj
             fullpath = j.sal.fs.joinPaths(parentobj.path, skey)
             relpath = j.sal.fs.pathRemoveDirPart(fullpath, self.aysrepo.path)
 
@@ -239,17 +244,15 @@ class Service:
 
     @property
     def producers(self):
-        raise NotImplemented("")
-        if self._producers is None:
-            self._producers = {}
-            for prod_model in self.model.producers:
+        producers = {}
+        for prod_model in self.model.producers:
 
-                if prod_model.dbobj.actorName not in self._producers:
-                    self._producers[prod_model.dbobj.actorName] = []
+            if prod_model.dbobj.actorName not in self._producers:
+                self._producers[prod_model.dbobj.actorName] = []
 
-                result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
-                for service in result:
-                    self._producers[prod_model.dbobj.actorName].append(service)
+            result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
+            for service in result:
+                self._producers[prod_model.dbobj.actorName].append(service)
 
         return self._producers
 

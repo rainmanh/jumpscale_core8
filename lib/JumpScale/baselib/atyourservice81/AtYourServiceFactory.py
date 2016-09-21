@@ -147,7 +147,7 @@ class AtYourServiceFactory:
 
     def actorTemplatesFind(self, name="", domain="", role=''):
         res = []
-        for template in self.actorTemplates:
+        for template in self.actorTemplates.values():
             if not(name == "" or template.name == name):
                 # no match continue
                 continue

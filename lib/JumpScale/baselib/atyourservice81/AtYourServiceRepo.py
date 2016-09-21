@@ -16,6 +16,8 @@ colored_traceback.add_hook(always=True)
 
 from JumpScale.baselib.atyourservice81.models import ModelsFactory
 
+VALID_ACTION_STATE = ['new', 'installing', 'ok', 'error', 'disabled', 'changed,']
+
 
 class AtYourServiceRepo():
 
@@ -178,6 +180,15 @@ class AtYourServiceRepo():
 
 # SERVICES
 
+    @property
+    def services(self):
+        services = {}
+        for item in self.db.service.find():
+            res = item.objectGet(aysrepo=self)
+            if res.model.dbobj.state != "disabled":
+                services[res.model.dbobj.name] = res
+        return services
+
     def serviceGet(self, role, instance, die=True):
         """
         Return service indentifier by role and instance
@@ -192,6 +203,7 @@ class AtYourServiceRepo():
                 raise j.exceptions.Input(message="Cannot find service %s:%s" %
                                          (role, instance), level=1, source="", tags="", msgpub="")
             return None
+        return objs[0]
 
     @property
     def serviceKeys(self):
@@ -222,30 +234,34 @@ class AtYourServiceRepo():
         self._servicesTree['producerconsumer'] = producers
         return self._servicesTree
 
-    def serviceSetState(self, actions=[], role="", instance="", state="DO"):
+    def serviceSetState(self, actions=[], role="", instance="", state="new"):
         """
         get run with self.runGet...
 
         will not mark if state in skipIfIn
 
         """
+        if state not in VALID_ACTION_STATE:
+            raise j.exceptions.Input(message='%s is not a valid state. Should one of %s' % (state, ', '.join(VALID_ACTION_STATE)))
+
         self._doinit()
         if "install" in actions:
             if "init" not in actions:
                 actions.insert(0, "init")
 
-        # TODO: *1 implement
-        raise RuntimeError()
         for action in actions:
             for key, service in self.services.items():
                 if role != "" and service.role != role:
                     continue
                 if instance != "" and service.instance != instance:
                     continue
-                if service.getAction(action) == None:
+                try:
+                    action_obj = service.getActionObj(action)
+                    action_obj.state = state
+                    service.save()
+                except j.exceptions.Input:
+                    # mean action with this name doesn't exist
                     continue
-                service.state.set(action, state)
-                service.state.save()
 
     def servicesFind(self, name="", actor="", state="", parent="", producer="", hasAction="",
                      includeDisabled=False, first=False):
@@ -434,8 +450,7 @@ class AtYourServiceRepo():
         if action not in ["init"]:
             for key, s in self.services.items():
                 if s.state.get("init") not in ["OK", "DO"]:
-                    error_msg = "Cannot get run: %s:%s:%s because found a service not properly inited yet.\n%s\n please rerun ays init" % (
-                        role, instance, action, s)
+                    error_msg = "Cannot get run: %s:%s:%s because found a service not properly inited yet.\n%s\n please rerun ays init" % (role, instance, action, s)
                     self.logger.error(error_msg)
                     raise j.exceptions.Input(error_msg, msgpub=error_msg)
         if force:
@@ -449,10 +464,8 @@ class AtYourServiceRepo():
 
         run = AYSRun(self, simulate=simulate)
         for action0 in actions:
-            scope = self.runFindActionScope(
-                action=action0, role=role, instance=instance, producerRoles=producerRoles)
-            todo = self._findTodo(
-                action=action0, scope=scope, run=run, producerRoles=producerRoles)
+            scope = self.runFindActionScope(action=action0, role=role, instance=instance, producerRoles=producerRoles)
+            todo = self._findTodo(action=action0, scope=scope, run=run, producerRoles=producerRoles)
             while todo != []:
                 newstep = True
                 for service in todo:
@@ -464,8 +477,7 @@ class AtYourServiceRepo():
                         step.addService(service)
                     if service in scope:
                         scope.remove(service)
-                todo = self._findTodo(
-                    action0, scope=scope, run=run, producerRoles=producerRoles)
+                todo = self._findTodo(action0, scope=scope, run=run, producerRoles=producerRoles)
 
         # these are destructive actions, they need to happens in reverse order
         # in the dependency tree
@@ -523,22 +535,22 @@ class AtYourServiceRepo():
         if role == "" and instance == "":
             self.reset()
 
-        self.serviceSetState(actions=["init"], role=role,
-                             instance=instance, state="INIT")
-        for key, actor in self.actors.items():
-            if role != "" and actor.role == role:
-                continue
-            actor.init()
-            for inst in actor.listInstances():
-                service = actor.aysrepo.getService(role=actor.role, instance=inst, die=False)
-                print("RESETTING SERVICE roles %s inst %s instance %s " % (actor.role, inst, instance))
-                service.update_hrd()
+        self.serviceSetState(actions=["init"], role=role, instance=instance, state="new")
 
-            #actor.newInstance(instance=key, args={})
+        # FIXME: what the goal here ?
+        # for key, actor in self.actors.items():
+        #     if role != "" and actor.role == role:
+        #         continue
+        #     actor.init()
+        #     for inst in actor.listInstances():
+        #         service = actor.aysrepo.getService(role=actor.role, instance=inst, die=False)
+        #         print("RESETTING SERVICE roles %s inst %s instance %s " % (actor.role, inst, instance))
+        #         service.update_hrd()
+        #
+        #     #actor.newInstance(instance=key, args={})
 
-        run = self.runGet(role=role, instance=instance,
-                          data=data, action="init")
-        run.execute()
+        # run = self.runGet(role=role, instance=instance, data=data, action="init")
+        # run.execute()
 
         print("init done")
 

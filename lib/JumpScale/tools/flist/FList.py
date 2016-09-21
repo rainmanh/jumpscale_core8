@@ -5,14 +5,18 @@ import grp
 import os
 import sys
 
-class FList(object):
+class FListFactory(object):
     def __init__(self):
         self.__jslocation__ = "j.tools.flist"
 
-    def get(self):
-        return FListData()
+    def create(self):
+        return FList()
+        
+    def load(self, flist):
+        # ...
+        return FList()
     
-class FListData(object):
+class FList(object):
     """
         FList (sometime "plist") files contains a plain/text representation of
     a complete file system tree

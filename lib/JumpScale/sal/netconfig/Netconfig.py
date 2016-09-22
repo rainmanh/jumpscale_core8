@@ -7,6 +7,7 @@ import netaddr
 
 class Netconfig:
     """
+    Helps you to configure the network.
     """
 
     def __init__(self):
@@ -18,6 +19,7 @@ class Netconfig:
     def chroot(self, root):
         """
         choose another root to manipulate the config files
+        @param root str: new root path for config files.
         """
         self.root = j.tools.path.get(root)
         if not self.root.exists():
@@ -30,6 +32,7 @@ class Netconfig:
         """
         find all interfaces and shut them all down with ifdown
         this is to remove all networking things going on
+        @param excludes list: excluded interfaces.
         """
         excludes.append("lo")
         for nic in j.sal.nic.nics:
@@ -56,6 +59,7 @@ class Netconfig:
     def interfaces_reset(self, shutdown=False):
         """
         empty config of /etc/network/interfaces
+        @param shutdown bool: shutsdown the network.
         """
         if shutdown:
             self.shutdownNetwork()
@@ -64,6 +68,9 @@ class Netconfig:
         path.write_text("auto lo\n\n")
 
     def interface_remove(self, dev, apply=True):
+        """
+        Remove an interface.
+        """
         path = self._getInterfacePath()
         ed = j.tools.code.getTextFileEditor(path)
         ed.removeSection(dev)
@@ -73,6 +80,8 @@ class Netconfig:
 
     def nameserver_set(self, addr):
         """
+        Set nameserver
+        @param addr string: nameserver address.
         resolvconf will be disabled
         """
         cmd = "resolvconf --disable-updates"
@@ -86,6 +95,7 @@ class Netconfig:
     def hostname_set(self, hostname):
         """
         change hostname
+        @param hostname str: new hostname.
         """
         hostnameFile = j.tools.path.get('/etc/hostname')
         old = hostnameFile.text()
@@ -94,6 +104,10 @@ class Netconfig:
         self._executor.execute(cmd)
 
     def interface_configure_dhcp(self, dev="eth0", apply=True):
+        """
+        Configure interface to use dhcp
+        @param dev str: interface name.
+        """
         return self.interface_configure(dev=dev, dhcp=True, apply=apply)
 
     def interface_configure_dhcp_bridge(self, dev="eth0", bridgedev=None, apply=True):
@@ -172,6 +186,10 @@ class Netconfig:
     #     self.enableInterfaceBridge(dev=dev,bridgedev=bridgedev,apply=apply)
 
     def interfaces_restart(self, dev=None):
+        """
+        Restart an interface
+        @param dev str: interface name.
+        """
         if dev is None:
             # TODO: (***) loop over devs
             pass
@@ -215,6 +233,7 @@ class Netconfig:
 
     def interface_configure_dhcp_waitdown(self, interface="eth0", ipaddr=None, gw=None, mask=24, config=True):
         """
+        Bringing all bridges down and set specified interface with an IP address or on dhcp if no IP address, is provided
         @param config if True then will be stored in linux configuration files
         """
         import pynetlinux
@@ -270,6 +289,10 @@ class Netconfig:
         print("default gw up:%s" % gw)
 
     def interface_remove_ipaddr(self, network="192.168.1"):
+        """
+        Removing interfaces from a certain network by deleting their IP addresses
+        @param network str: network address
+        """
         for item in j.sal.nettools.getNetworkInfo():
             for ip in item["ip"]:
                 if ip.startswith(network):

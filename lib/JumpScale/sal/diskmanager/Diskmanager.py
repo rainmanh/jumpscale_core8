@@ -95,6 +95,9 @@ class Diskmanager:
         return self._parted
 
     def partitionAdd(self, disk, free, align=None, length=None, fs_type=None, type=None):
+        """
+        Add a partition on a disk
+        """
         if type is None:
             type = self.parted.PARTITION_NORMAL
         start = free.start
@@ -148,8 +151,12 @@ class Diskmanager:
                        initialize=False, forceinitialize=False):
         """
         looks for disks which are know to be data disks & are formatted ext4
-        return [[$partpath,$size,$free,$ssd]]
+
+        @param ttype is a string variable defining the format type
+        @param minsize is an int variable indicating the minimum partition size and defaulted to 5
+        @param mazsize is an int variable indicating the minimum partition size and defaulted to 5000
         @param ssd if None then ssd and other
+        :return [[$partpath,$size,$free,$ssd]]
         """
         import psutil
         result = []

@@ -75,6 +75,10 @@ class Docker:
 
     @property
     def docker_host(self):
+        """
+        Get the docker hostname.
+        """
+
         u = parse.urlparse(self.base_url)
         if u.scheme == 'unix':
             return 'localhost'
@@ -124,6 +128,9 @@ class Docker:
 
     @property
     def containerNamesRunning(self):
+        """
+        List all running containers names
+        """
         res = []
         for container in self.containers:
             if container.isRunning():
@@ -132,6 +139,9 @@ class Docker:
 
     @property
     def containerNames(self):
+        """
+        List all containers names
+        """
         res = []
         for container in self.containers:
             res.append(container.name)
@@ -139,6 +149,9 @@ class Docker:
 
     @property
     def containersRunning(self):
+        """
+        List of all running container objects
+        """
         res = []
         for container in self.containers:
             if container.isRunning():
@@ -212,6 +225,10 @@ class Docker:
         return self.client.containers()
 
     def get(self, name, die=True):
+        """
+        Get a container object by name
+        @param name string: container name
+        """
         for container in self.containers:
             if container.name == name:
                 return container
@@ -514,6 +531,9 @@ class Docker:
         return images
 
     def removeImages(self, tag="<none>:<none>"):
+        """
+        Delete a certain Docker image using tag
+        """
         for item in self.client.images():
             if tag in item["RepoTags"]:
                 self.client.remove_image(item["Id"])
@@ -527,7 +547,10 @@ class Docker:
         return True
 
     def destroyAll(self, removeimages=False):
-
+        """
+        Destroy all containers.
+        @param removeimages bool: to remove all images.
+        """
         for container in self.containers:
             if "weave" in container.name:
                 continue
@@ -575,7 +598,9 @@ class Docker:
         j.sal.fs.removeDirTree("/var/lib/docker")
 
     def reInstallDocker(self):
-
+        """
+        ReInstall docker on your system
+        """
         self.removeDocker()
 
         j.tools.cuisine.local.docker.install(force=True)
@@ -583,6 +608,10 @@ class Docker:
         self.init()
 
     def pull(self, imagename):
+        """
+        pull a certain image.
+        @param imagename string: image
+        """
         self.client.import_image_from_image(imagename)
 
     def push(self, image, output=True):

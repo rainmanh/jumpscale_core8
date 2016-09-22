@@ -121,14 +121,21 @@ class Process():
 
     def _readAvailable(self, fd):
         temp = ""
-        for block in iter(lambda: fd.read(4), ""):
+        for block in iter(lambda: fd.read(8), ""):
             temp += block
 
         return temp
 
+    def isDone(self):
+        return (self.state != "running" and self.state != "init")
+
     def sync(self):
         if self.pid == None:
-            return
+            return self.state
+
+        # nothing to do more if the process is done
+        if self.isDone():
+            return self.state
 
         temp = self._readAvailable(self.outpipe)
         self._syncStd()
@@ -156,9 +163,6 @@ class Process():
     def _update(self, data):
         self.state = data['status']
 
-        if data['status'] != 'running':
-            self.pid = None
-
         if data['status'] == 'running':
             return
 
@@ -175,7 +179,8 @@ class Process():
 
         try:
             data = os.waitpid(self.pid, 0)
-            self.sync()
+            if self.sync() != "running":
+                self.pid = None
 
         except Exception as e:
             # print("waitpid: ", e)
@@ -197,10 +202,15 @@ class Process():
         self.sync()
         self.outpipe.close()
 
+        # clear child if process is done
+        if self.isDone():
+            self.wait()
+
+        # kill child if still running
         if self.state == "running":
             j.sal.process.kill(self.pid)
-            self.wait()
             self._syncStd()
+            self.wait()
             self.state = "killed"
 
         self.pid = None

@@ -67,7 +67,7 @@ class CuisineOpenvSwitch(app):
         # do checks if openvswitch installed & configured properly if not
         # install
 
-    def networkCreate(self, network_name, bridge_name, interfaces=None):
+    def networkCreate(self, network_name, bridge_name=None, interfaces=None):
         """
         Create a network interface using libvirt and open v switch.
 

@@ -8,6 +8,6 @@
     </bandwidth>
     {% endif %}
     <virtualport type='openvswitch'>
-    <parameters profileid='{{name}}'/>
+        <parameters profileid='{{name}}'/>
     </virtualport>
 </interface>

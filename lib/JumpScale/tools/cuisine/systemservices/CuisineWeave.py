@@ -13,7 +13,7 @@ class CuisineWeave(app):
         self._executor = executor
         self._cuisine = cuisine
 
-    def install(self, start=True, peer=None, jumpscalePath=True, reset=False):
+    def _install(self, jumpscalePath=True, reset=False):
         if reset is False and self.isInstalled():
             return
         if jumpscalePath:
@@ -27,10 +27,13 @@ class CuisineWeave(app):
         curl -L git.io/weave -o {binPath} && sudo chmod a+x {binPath}
         '''.format(binPath=binPath)
         C = self._cuisine.core.args_replace(C)
-        self._cuisine.docker.install()
+        self._cuisine.systemservices.docker.install()
         self._cuisine.package.ensure('curl')
         self._cuisine.core.execute_bash(C, profile=True)
         self._cuisine.bash.addPath(j.sal.fs.getParent(binPath))
+
+    def install(self, start=True, peer=None, jumpscalePath=True, reset=False):
+        self._install(jumpscalePath=jumpscalePath, reset=reset)
         if start:
             self.start(peer)
 
@@ -47,6 +50,7 @@ class CuisineWeave(app):
         for entry in ss:
             splitted = entry.split('=')
             if len(splitted) == 2:
+                # TODO: it will creash if a the machine is restarted cause weave socket doesn't exist
                 self._cuisine.bash.environSet(splitted[0], splitted[1])
             elif len(splitted) > 0:
                 self._cuisine.bash.environSet(splitted[0], '')

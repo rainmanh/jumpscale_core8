@@ -56,7 +56,7 @@ class Disk(BaseKVMComponent):
         disktemplate = self.controller.get_template('disk.xml')
         if self.image_name:
             diskbasevolume = self.controller.executor.cuisine.core.joinpaths(
-                self.controller.base_path, "images", '%s.qcow2' % self.image_name)
+                self.controller.base_path, "images", '%s' % self.image_name)
         else:
             diskbasevolume = ''
         diskpath = self.controller.executor.cuisine.core.joinpaths(self.pool.poolpath, '%s.qcow2' % self.name)

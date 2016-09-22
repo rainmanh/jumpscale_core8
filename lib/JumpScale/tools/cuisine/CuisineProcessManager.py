@@ -70,7 +70,7 @@ class CuisineSystemd(ProcessManagerBase):
 
     def remove(self, prefix):
         self.stop(prefix)
-        for name, status in self.list(prefix):
+        for name in self.list(prefix):
             self.stop(name)
 
             for item in self._cuisine.core.fs_find("/etc/systemd", True, "*%s.service" % name):

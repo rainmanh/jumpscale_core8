@@ -2,6 +2,7 @@ from JumpScale import j
 from xml.etree import ElementTree
 from BaseKVMComponent import BaseKVMComponent
 import random
+import re
 
 
 class Interface(BaseKVMComponent):
@@ -40,6 +41,7 @@ class Interface(BaseKVMComponent):
         if not (interface_rate is None) and burst is None:
             self.burst = str(int(interface_rate * 0.1))
         self.mac = mac if mac else Interface.generate_mac()
+        self._ip = None
 
     def destroy(self):
         """
@@ -76,7 +78,8 @@ class Interface(BaseKVMComponent):
         @param xml str: xml string of machine to be created.
         """
         interface = ElementTree.fromstring(xml)
-        name = interface.find('virtualport').find(
+        #TODO fix if no virtual port
+        name = 'lxcbr0' or interface.find('virtualport').find(
             'parameters').get('profileid')
         bridge_name = interface.find('source').get('bridge')
         bridge = j.sal.kvm.Network(controller, bridge_name)
@@ -86,9 +89,21 @@ class Interface(BaseKVMComponent):
             burst = bandwidth[0].find('inbound').get('burst')
         else:
             interface_rate = burst = None
-        mac = interface.findall('mac')[0].get('address')
+        mac = interface.find('mac').get('address')
         return cls(controller, name, bridge, mac, interface_rate=interface_rate, burst=burst)
 
+    @property
+    def ip(self):
+        if not self._ip:
+            bridge_name = self.bridge.name
+            mac = self.mac
+            rc, ip, err = self.controller.executor.cuisine.core.run(
+                "nmap -n -sn $(ip r | grep %s | grep -v default | awk '{print $1}') | grep -iB 2 '%s' | head -n 1 | awk '{print $NF}'" % (bridge_name, mac))
+            ip_pat = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
+            m = ip_pat.search(ip)
+            if m:
+                self._ip = m.group()
+        return self._ip
     def to_xml(self):
         """
         Return libvirt's xml string representation of the interface.

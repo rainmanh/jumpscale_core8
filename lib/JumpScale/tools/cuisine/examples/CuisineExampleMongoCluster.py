@@ -13,7 +13,7 @@ class CuisineExampleMongoCluster(base):
         self._cuisine = cuisine
 
     def install(self, pubkey=None):
-        c = self.cuisine
+        c = self._cuisine
 
         # TODO: for this to work we need small KVM image somewhere in which docker
         # is preconfigured & jumpscale inside with our G8OS fuse layer (to keep

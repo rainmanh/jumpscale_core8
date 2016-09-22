@@ -75,7 +75,7 @@ class CuisinePackage(base):
     def install(self, package, allow_unauthenticated=False):
 
         if self._cuisine.core.isUbuntu:
-            cmd = "apt-get install -y "
+            cmd = "apt-get install -y --assume-yes "
             if allow_unauthenticated:
                 cmd += ' --allow-unauthenticated '
             cmd += package

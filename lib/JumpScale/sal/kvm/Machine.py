@@ -3,7 +3,7 @@ from JumpScale import j
 import libvirt
 import yaml
 from BaseKVMComponent import BaseKVMComponent
-import re
+from time import sleep
 
 
 class Machine(BaseKVMComponent):
@@ -127,17 +127,14 @@ class Machine(BaseKVMComponent):
         Retrun IP of this instance of the machine if started.
         """
         if not self._ip:
-            for nic in self.nics:
-                bridge_name = nic.bridge.name
-                mac = nic.mac
-                rc, ip, err = self.controller.executor.execute(
-                    "nmap -sn $(ip r | grep %s | grep -v default | awk '{print $1}') | grep -iB 2 '%s' | head -n 1 | awk '{print $NF}'" % (bridge_name, mac))
-                ip_pat = re.compile("\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}")
-                m = ip_pat.search(ip)
-                if m:
-                    self._ip = m.group()
-                if self._ip:
-                    break
+            for i in range(3):
+                for nic in self.nics:
+                    ip = nic.ip
+                    if ip:
+                        self._ip = ip
+                        return ip
+                if i != 2:
+                    sleep(5)
         return self._ip
 
     @property
@@ -146,12 +143,8 @@ class Machine(BaseKVMComponent):
         Return Executor obj where the conrtoller is connected.
         """
         if self.cloud_init and not self._executor:
-            self._executor = self.controller.executor.getSSHViaProxy(self.controller.executor.addr,
-                                                                     getattr(self.controller.executor.cuisine, 'login',
-                                                                             'root'
-                                                                             ), self.ip,
-                                                                     "cloudscalers", 22, "/root/.ssh/libvirt"
-                                                                     )
+            self._executor = self.controller.executor.jumpto(addr=self.ip,
+                login="cloudscalers", port=22, identityfile="/root/.ssh/libvirt")
         return self._executor
 
     @property
@@ -176,11 +169,11 @@ class Machine(BaseKVMComponent):
             userdata += yaml.dump({'chpasswd': {'expire': False},
                                    'ssh_pwauth': True,
                                    'users': [{'lock-passwd': False,
-                                              'name': 'cloudscalers',
-                                              'plain_text_passwd': 'gig1234',
+                                              'name': username,
+                                              'plain_text_passwd': passwd,
                                               'shell': '/bin/bash',
                                               'ssh-authorized-keys': [self.controller.pubkey],
-                                              'sudo': 'ALL=(ALL) ALL'}]
+                                              'sudo': 'ALL=(ALL) NOPASSWD: ALL'}]
                                    })
             metadata = '{"local-hostname":"vm-%s"}' % self.name
             userdata_path = "%s/metadata/%s/user-data" % (self.controller.base_path, self.name)

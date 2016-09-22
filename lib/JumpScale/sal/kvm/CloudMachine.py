@@ -43,6 +43,7 @@ class CloudMachine(Machine):
         @param controller object(j.sal.kvm.KVMController): controller object to use.
         @param source  str: xml string of machine to be created.
         """
+        # TODO fix
         m = Machine.from_xml(controller, xml)
         return cls(m.controller, m.name, m.disks and m.disks[0].image_name,
                    list(map(lambda disk: disk.size, m.disks)), list(map(lambda nic: nic.name, m.nics)),
@@ -55,8 +56,11 @@ class CloudMachine(Machine):
         @param username  str: set the username to be set in the machine on boot.
         @param passwd str: set the passwd to be set in the machine on boot.
         """
-        [disk.create() for disk in self.disks if not disk.is_created]
-        return super().create() if not self.is_created else False
+        if self.is_created:
+            return False
+        else:
+            [disk.create() for disk in self.disks if not disk.is_created]
+            return super().create()
 
     def start(self):
         """

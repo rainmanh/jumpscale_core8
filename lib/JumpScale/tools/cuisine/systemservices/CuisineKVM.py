@@ -92,19 +92,10 @@ class CuisineKVM(base):
         path = j.sal.fs.joinPaths(self._controller.base_path, 'images', name)
         self._controller.executor.cuisine.core.file_download(url, path, overwrite=True)
 
-    def machine(self, name, os, disks, nics, memory, cpucount, uuid=None, cloud_init=True):
-        return j.sal.kvm.CloudMachine(self._controller, name, os, disks, nics,
-                                      memory, cpucount, uuid=None, cloud_init=True)
-
-    def create_pool(self, name):
+    def poolCreate(self, name):
         pool = j.sal.kvm.Pool(self._controller, name)
         pool.create()
         return pool
-
-    def create_network(self, name):
-        network = j.sal.kvm.Network(self._controller, name)
-        network.create()
-        return network
 
     def prepare(self):
         self.install()
@@ -166,7 +157,8 @@ class CuisineKVM(base):
         disks = storagecontroller.list_disks()
         return disks
 
-    def machineCreate(self, name, disks, nics, mem, pubkey=None):
+    def machineCreate(self, name, os='xenial-server-cloudimg-amd64-uefi1.img', disks=[10],
+            nics=['vms1'], memory=2000, cpucount=4, cloud_init=True):
         """
         @param disks is array of disk names (after using diskCreate)
         @param nics is array of nic names (after using nicCreate)
@@ -185,7 +177,15 @@ class CuisineKVM(base):
         # NEED TO MAKE SURE WE CAN GET ACCESS TO THIS KVM WITHOUT OPENING PORTS
         # ON KVM HOST (which is current cuisine)
 
-        return KVMMachineObj
+        machine = j.sal.kvm.CloudMachine(self._controller, name, os, disks,
+            nics, memory, cpucount, cloud_init=cloud_init)
+
+        machine.create()
+
+        return machine
+
+    def get_machine_by_name(self, name):
+        return j.sal.kvm.Machine.get_by_name(self._controller, name)
 
     def vnicQOS(self, name, **kwargs):
         """

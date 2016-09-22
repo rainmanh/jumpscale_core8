@@ -1,8 +1,5 @@
 
 
-dependencies.global            = mongodb,influxdb
-dependencies.node              = portal_lib,influxdb_client,mongodb_client,redis
-
 
 #known var's are: $root,$base,$cfg,$jslib,$pylib,$lib
 git.export.1                   =
@@ -24,24 +21,10 @@ git.export.3                   =
     source:'apps/osis/tests/*',
     url:'https://github.com/Jumpscale/jumpscale_core8/',
 
-param.base                     = '$(system.paths.base)/apps/osis'
 
 #name of packages which need to be installed locally
 platform.supported             =
     'linux64',
 
-#source $(system.paths.base)/env.sh;/$(system.paths.base)/bin/
-process.1=
-    cmd:'$(system.paths.base)/bin/jspython',
-    args:'osisServerStart.py $(instance)',
-    prio:10,
-    cwd:'$(param.base)',
-    timeout_start:10,
-    timeout_stop:10,
-    ports:5544,,
-    startupmanager:tmux,
-    filterstr:''
-
 
 platform.supported=linux64,
-

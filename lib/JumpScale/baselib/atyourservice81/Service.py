@@ -215,6 +215,7 @@ class Service:
 
     @property
     def producers(self):
+        #@TODO: *1
         producers = {}
         for prod_model in self.model.producers:
 
@@ -227,15 +228,9 @@ class Service:
 
         return self._producers
 
-    def remove_producer(self, role, instance):
-        raise NotImplemented("")
-        # TODO: *1
-        key = "%s!%s" % (role, instance)
-        self.model.remove_producer(role, instance)
-        self._producers[role].remove(key)
 
     def serviceFindProducer(self, producercategory, instancename):
-        raise NotImplemented("TODO: *1 move to service obj")
+        raise NotImplemented("TODO: *1 ")
         for item in self.servicesFind(instance=instancename):
             if producercategory in item.categories:
                 return item
@@ -244,7 +239,7 @@ class Service:
         """
         @return set of services that consumes target
         """
-        raise NotImplemented("TODO: *1 move to service obj")
+        raise NotImplemented("TODO: *1 ")
         result = set()
         for service in self.servicesFind():
             if target.isConsumedBy(service):
@@ -255,7 +250,7 @@ class Service:
         """
         @return set of services that consumes target, recursivlely
         """
-        raise NotImplemented("TODO: *1 move to service obj")
+        raise NotImplemented("TODO: *1 ")
         for service in self.findConsumers(target):
             out.add(service)
             self.findConsumersRecursive(service, out)
@@ -386,87 +381,7 @@ class Service:
     #         consumer.enable()
     #         consumer.start()
     #
-    # def reload(self):
-    #     # reload instance.hrd
-    #     hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
-    #     if not j.sal.fs.exists(path=hrdpath):
-    #         self._hrd == "EMPTY"
-    #     self._hrd = j.data.hrd.get(path=hrdpath, prefixWithName=False)
-    #
-    #     # reload model if any
-    #     model_path = j.sal.fs.joinPaths(self.path, "model.yaml")
-    #     if j.sal.fs.exists(model_path):
-    #         self._model = j.data.serializer.yaml.loads(
-    #             j.sal.fs.fileGetContents(model_path))
-    #
-    #     self.model.load()
 
-    # def _consumeFromSchema(self, args):
-    #     raise NotImplemented()
-    #
-    #     if self.actor.schema is None:
-    #         return
-    #
-    #     self.logger.debug('[_consumeFromSchema] args %s' % args)
-    #
-    #     # manipulate the HRD's to mention the consume's to producers
-    #     consumes = self.actor.schema.consumeSchemaItemsGet()
-    #     if consumes:
-    #         for consumeitem in consumes:
-    #             # parent exists
-    #             role = consumeitem.consume_link
-    #             consumename = consumeitem.name
-    #
-    #             instancenames = []
-    #             if consumename in args:
-    #                 # args[consumename] can be a list or a string, we need to
-    #                 # convert it to a list
-    #                 if type(args[consumename]) == str:
-    #                     instancenames = [args[consumename]]
-    #                 else:
-    #                     instancenames = args[consumename]
-    #
-    #             ays_s = list()
-    #             candidates = self.aysrepo.findServices(
-    #                 role=consumeitem.consume_link)
-    #             if len(candidates) > 0:
-    #                 if len(instancenames) > 0:
-    #                     ays_s = [
-    #                         candidate for candidate in candidates if candidate.instance in instancenames]
-    #                 else:
-    #                     self.logger.debug(
-    #                         '[_consumeFromSchema] No instance specificed for consumed service %s' % consumename)
-    #                     ays_s = candidates
-    #
-    #             # autoconsume
-    #             if len(candidates) < int(consumeitem.consume_nr_min) and consumeitem.auto:
-    #                 for instance in range(len(candidates), int(consumeitem.consume_nr_min)):
-    #                     consumable = self.aysrepo.new(
-    #                         name=consumeitem.consume_link, instance='auto_%i' % instance, parent=self.parent)
-    #                     ays_s.append(consumable)
-    #
-    #             if len(ays_s) > int(consumeitem.consume_nr_max):
-    #                 raise j.exceptions.RuntimeError("Found too many services with role '%s' which we are relying upon for service '%s, max:'%s'" % (
-    #                     role, self, consumeitem.consume_nr_max))
-    #             if len(ays_s) < int(consumeitem.consume_nr_min):
-    #                 msg = "Found not enough services with role '%s' which we are relying upon for service '%s, min:'%s'" % (
-    #                     role, self, consumeitem.consume_nr_min)
-    #                 if len(ays_s) > 0:
-    #                     msg += "Require following instances:%s" % self.args[
-    #                         consumename]
-    #                 raise j.exceptions.RuntimeError(msg)
-    #
-    #             # if producer has been removed from service, we need to remove
-    #             # it from the state
-    #             to_consume = set(ays_s)
-    #             current_producers = self.producers.get(
-    #                 consumeitem.consume_link, [])
-    #             to_unconsume = set(current_producers).difference(to_consume)
-    #             for ays in to_consume:
-    #                 self.model.consume(aysi=ays)
-    #             for ays in to_unconsume:
-    #                 self.model.remove_producer(ays.role, ays.instance)
-    #         self.model.save()
     #
     # def consume(self, input):
     #     """
@@ -554,48 +469,7 @@ class Service:
     #             return parent
     #     return None
     #
-    # def isOnNode(self, node=None):
-    #     mynode = self.getNode()
-    #     if mynode is None:
-    #         return False
-    #     return mynode.key == node.key
     #
-    # def getTCPPorts(self, processes=None, *args, **kwargs):
-    #     ports = set()
-    #     if processes is None:
-    #         processes = self.getProcessDicts()
-    #     for process in self.getProcessDicts():
-    #         for item in process.get("ports", []):
-    #             if isinstance(item, str):
-    #                 moreports = item.split(";")
-    #             elif isinstance(item, int):
-    #                 moreports = [item]
-    #             for port in moreports:
-    #                 if isinstance(port, int) or port.isdigit():
-    #                     ports.add(int(port))
-    #     return list(ports)
-    #
-    # def getPriority(self):
-    #     processes = self.getProcessDicts()
-    #     if processes:
-    #         return processes[0].get('prio', 100)
-    #     return 199
-    #
-    # def getProcessDicts(self, args={}):
-    #     return getProcessDicts(self, args={})
-    #
-    # def _downloadFromNode(self):
-    #     # if 'os' not in self.producers or self.executor is None:
-    #     if not self.parent or self.parent.role != 'ssh':
-    #         return
-    #
-    #     hrd_root = "/etc/ays/local/"
-    #     remotePath = j.sal.fs.joinPaths(
-    #         hrd_root, j.sal.fs.getBaseName(self.path), 'instance.hrd')
-    #     dest = self.path.rstrip("/") + "/" + "instance.hrd"
-    #     self.logger.info("downloading %s '%s'->'%s'" %
-    #                      (self.key, remotePath, self.path))
-    #     self.executor.download(remotePath, self.path)
     #
     # def _getExecutor(self):
     #     executor = None
@@ -648,82 +522,3 @@ class Service:
     #             "cannot find producer with category:%s" % producercategory)
     #     instances = self.producers[producercategory]
     #     return instances
-
-    # @property
-    # def action_methods_node(self):
-    #     if self._action_methods_node is None or not self._rememberActions:
-    #         if j.sal.fs.exists(path=self.actor.path_actions_node):
-    #             action_methods_node = self._loadActions(self.actor.path_actions_node,"node")
-    #         else:
-    #             action_methods_node = j.atyourservice.getActionsBaseClassNode()()
-
-    #         self._action_methods_node=action_methods_node
-
-    #     return self._action_methods_node
-
-    # def getAction(self, name, printonly=False):
-    #     if name not in self._actionlog:
-    #         action = self._setAction(name, printonly=printonly)
-    #         print("new action:%s (get)" % action)
-    #     else:
-    #         action=self._actionlog[name]
-    #     action.printonly = printonly
-    #     self.action_current = action
-    #     return action
-
-    # def runAction(self,name,printonly=False):
-    #     """
-    #     look for action & run, there are no arguments
-    #     """
-    #     method=self._getActionMethodMgmt(name)
-    #     if method==None:
-    #         return None
-    #     action=j.actions.add(method, kwargs={"ayskey":self.key}, die=True, stdOutput=False, \
-    #             errorOutput=False, executeNow=True,force=True, showout=False, actionshow=True,selfGeneratorCode='selfobj=None')
-    #     j.application.break_into_jshell("DEBUG NOW runaction")
-
-    #     return action
-
-    # def runActionNode(self,name,*args,**kwargs):
-    #     """
-    #     run on node, need to pass all arguments required
-    #     there are no arguments given by default
-    #     """
-    #     method=self._getActionMethodNode(name)
-    #     if method==None:
-    #         return None
-    #     j.application.break_into_jshell("DEBUG NOW runaction node")
-    #     return action
-
-    # def _getActionMethodMgmt(self,action):
-    #     try:
-    #         method=eval("self.action_methods_mgmt.%s"%action)
-    #     except Exception as e:
-    #         if str(e).find("has no attribute")!=-1:
-    #             return None
-    #         raise j.exceptions.RuntimeError(e)
-    #     return method
-
-    # def _getActionMethodNode(self,action):
-    #     try:
-    #         method=eval("self.action_methods_node.%s"%action)
-    #     except Exception as e:
-    #         if str(e).find("has no attribute")!=-1:
-    #             return None
-    #         raise j.exceptions.RuntimeError(e)
-    #     return method
-
-    # # ACTIONS
-    # # def _executeOnNode(self, actionName, cmd=None, reinstall=False):
-    # def _executeOnNode(self, actionName):
-    #     if not self.parent or self.parent.role != 'ssh':
-    #     # if 'os' not in self.producers or self.executor is None:
-    #         return False
-    #     self._uploadToNode()
-
-    #     execCmd = 'source /opt/jumpscale8/env.sh; aysexec do %s %s %s' % (actionName, self.role, self.instance)
-
-    #     executor = self.executor
-    #     executor.execute(execCmd, die=True, showout=True)
-
-    #     return True

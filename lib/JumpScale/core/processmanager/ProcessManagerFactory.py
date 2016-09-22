@@ -25,6 +25,9 @@ class Process():
         self.outpipe = None
         self.state = "init"
 
+        self.new_stdout = ""
+        self.new_stderr = ""
+
         self._stdout = {'read': None, 'write': None, 'fd': None}
         self._stderr = {'read': None, 'write': None, 'fd': None}
 
@@ -111,7 +114,10 @@ class Process():
             fcntl.fcntl(self.outpipe, fcntl.F_SETFL, os.O_NONBLOCK)
 
             self._stdout['fd'] = os.fdopen(self._stdout['read'])
+            fcntl.fcntl(self._stdout['fd'], fcntl.F_SETFL, os.O_NONBLOCK)
+
             self._stderr['fd'] = os.fdopen(self._stderr['read'])
+            fcntl.fcntl(self._stderr['fd'], fcntl.F_SETFL, os.O_NONBLOCK)
 
     def sync(self):
         if self.pid == None:
@@ -122,6 +128,8 @@ class Process():
         for block in iter(lambda: self.outpipe.read(4), ""):
             temp += block
 
+        self._syncStd()
+
         # if the pipe is empty, the process is still running
         if temp == "":
             data = {"status": "running"}
@@ -129,18 +137,23 @@ class Process():
         # otherwise, process is ended and we know the result
         else:
             data = j.data.serializer.json.loads(temp)
-            data = self._syncStd(data)
 
         # update local class with data
         self._update(data)
 
-        return data
+        return data['status']
 
-    def _syncStd(self, data):
-        data['stdout'] = self._stdout['fd'].read()
-        data['stderr'] = self._stderr['fd'].read()
+    def _syncStd(self):
+        self.new_stdout = ""
+        for block in iter(lambda: self._stdout['fd'].read(4), ""):
+            self.new_stdout += block
 
-        return data
+        self.new_stderr = ""
+        for block in iter(lambda: self._stderr['fd'].read(4), ""):
+            self.new_stderr += block
+
+        self.stdout += self.new_stdout
+        self.stderr += self.new_stderr
 
     def _update(self, data):
         self.state = data['status']
@@ -152,8 +165,8 @@ class Process():
             return
 
         self.value = data['return']
-        self.stdout = data['stdout']
-        self.stderr = data['stderr']
+        # self.stdout = data['stdout']
+        # self.stderr = data['stderr']
 
         if data['status'] == 'exception':
             self.error = data['eco']
@@ -191,10 +204,7 @@ class Process():
         if self.state == "running":
             j.sal.process.kill(self.pid)
             self.wait()
-
-            data = self._syncStd({})
-            self.stdout = data['stdout']
-            self.stderr = data['stderr']
+            self._syncStd()
             self.state = "killed"
 
         self.pid = None
@@ -364,6 +374,32 @@ class ProcessManagerFactory:
             print(p)
 
         print(" * Queue done.")
+
+        print(" * Testing slow process")
+
+        def slowprocess(till):
+            print("Init slow process")
+            x = 0
+            while x < till:
+                print("Waiting %d" % x)
+                time.sleep(1)
+                x += 1
+
+            return 0
+
+        p = self.startProcess(slowprocess, {'till': 5})
+        while p.sync() == "running":
+            if p.new_stdout:
+                print("OUT: %s" % p.new_stdout)
+
+            if p.new_stderr:
+                print("ERR: %s" % p.new_stderr)
+
+            time.sleep(2)
+
+        print(p)
+
+        print(" * Slow process done.")
 
         print(" * Testing prematured close")
 

@@ -86,6 +86,7 @@ class ActorTemplate():
                     raise j.exceptions.RuntimeError('Found more then one actor template with name %s' % name)
             return j.data.hrd.get(content="")
 
+    # Move into actor ??
     @property
     def parentActor(self):
         parent = self.schemaHrd.parentSchemaItemGet()
@@ -103,6 +104,7 @@ class ActorTemplate():
             return parentobj
         return None
 
+    # Move into actor ??
     @property
     def producers(self):
         consumes = self.schemaHrd.consumeSchemaItemsGet()

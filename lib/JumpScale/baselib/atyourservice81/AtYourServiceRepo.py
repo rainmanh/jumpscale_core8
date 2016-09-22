@@ -235,6 +235,7 @@ class AtYourServiceRepo():
         will not mark if state in skipIfIn
 
         """
+        # import ipdb; ipdb.set_trace()
         if state not in VALID_ACTION_STATE:
             raise j.exceptions.Input(message='%s is not a valid state. Should one of %s' % (state, ', '.join(VALID_ACTION_STATE)))
 
@@ -245,6 +246,7 @@ class AtYourServiceRepo():
 
         for action in actions:
             for key, service in self.services.items():
+
                 if role != "" and service.role != role:
                     continue
                 if instance != "" and service.instance != instance:
@@ -290,33 +292,6 @@ class AtYourServiceRepo():
                 raise j.exceptions.Input("cannot find service %s|%s:%s" % (self.name, actor, name), "ays.servicesFind")
             return res[0]
         return res
-
-    def serviceFindProducer(self, producercategory, instancename):
-        raise NotImplemented("TODO: *1 move to service obj")
-        for item in self.servicesFind(instance=instancename):
-            if producercategory in item.categories:
-                return item
-
-    def serviceFindConsumers(self, target):
-        """
-        @return set of services that consumes target
-        """
-        raise NotImplemented("TODO: *1 move to service obj")
-        result = set()
-        for service in self.servicesFind():
-            if target.isConsumedBy(service):
-                result.add(service)
-        return result
-
-    def serviceFindConsumersRecursive(self, target, out=set()):
-        """
-        @return set of services that consumes target, recursivlely
-        """
-        raise NotImplemented("TODO: *1 move to service obj")
-        for service in self.findConsumers(target):
-            out.add(service)
-            self.findConsumersRecursive(service, out)
-        return out
 
 # BLUEPRINTS
 

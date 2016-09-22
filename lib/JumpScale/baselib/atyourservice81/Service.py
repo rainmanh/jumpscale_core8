@@ -14,6 +14,7 @@ class Service:
         self._schema = None
         self._producers = None
         self._name = name
+        self._parent = None
 
         self.aysrepo = aysrepo
         self.logger = j.atyourservice.logger
@@ -91,6 +92,26 @@ class Service:
         else:
             relpath = j.sal.fs.joinPaths("services", skey)
         r.path = relpath
+
+        self.model.dbobj.init('producers', len(actor.model.dbobj.producers))
+        for i, producer_model in enumerate(actor.model.dbobj.producers):
+            producer = self.model.dbobj.producers[i]
+            name = producer_model.actorName
+            role = actor_name.split('.')[0]
+            instance = args.get(actor_name, args.get(actor_role, None))
+
+            res = self.aysrepo.servicesFind(name=instance, actor='%s.*' % role)
+            if len(res) == 0:
+                raise j.exceptions.Input(message="could not find producer:%s for %s, found 0" %
+                                         (name, self), level=1, source="", tags="", msgpub="")
+            elif len(res) > 1:
+                raise j.exceptions.Input(message="could not find producer:%s for %s, found more than 1." %
+                                         (name, self), level=1, source="", tags="", msgpub="")
+            producer_obj = res[0]
+            producer.actorName = actor_name
+            producer.key = producer_obj.model.name
+            producer.serviceName = producer_obj.model.name
+
 
         # input will always happen in process
         args = self.input(args=args)
@@ -177,27 +198,20 @@ class Service:
         self._schema = ""
 
     @property
-    def parents(self):
-        raise NotImplemented("")
-        # TODO: *1
-        if self._parentChain is None:
-            chain = []
-            parent = self.parent
-            while parent is not None:
-                chain.append(parent)
-                parent = parent.parent
-            self._parentChain = chain
-        return self._parentChain
+    def parent(self):
+        if self._parent is None:
+            if self.model.parent is not None:
+                self._parent = self.model.parent.objectGet(self.aysrepo)
+        return self._parent
 
     @property
-    def parent(self):
-        raise NotImplemented("")
-        # TODO: *1
-        if self._parent is None:
-            if self.model.parent != "":
-                self._parent = self.aysrepo.getServiceFromKey(
-                    self.model.parent)
-        return self._parent
+    def parents(self):
+        chain = []
+        parent = self.parent
+        while parent is not None:
+            chain.append(parent)
+            parent = parent.parent
+        return chain
 
     @property
     def producers(self):
@@ -219,6 +233,33 @@ class Service:
         key = "%s!%s" % (role, instance)
         self.model.remove_producer(role, instance)
         self._producers[role].remove(key)
+
+    def serviceFindProducer(self, producercategory, instancename):
+        raise NotImplemented("TODO: *1 move to service obj")
+        for item in self.servicesFind(instance=instancename):
+            if producercategory in item.categories:
+                return item
+
+    def serviceFindConsumers(self, target):
+        """
+        @return set of services that consumes target
+        """
+        raise NotImplemented("TODO: *1 move to service obj")
+        result = set()
+        for service in self.servicesFind():
+            if target.isConsumedBy(service):
+                result.add(service)
+        return result
+
+    def serviceFindConsumersRecursive(self, target, out=set()):
+        """
+        @return set of services that consumes target, recursivlely
+        """
+        raise NotImplemented("TODO: *1 move to service obj")
+        for service in self.findConsumers(target):
+            out.add(service)
+            self.findConsumersRecursive(service, out)
+        return out
 
     @property
     def executor(self):

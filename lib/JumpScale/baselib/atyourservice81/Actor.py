@@ -29,6 +29,10 @@ class Actor():
     def path(self):
         return j.sal.fs.joinPaths(self.aysrepo.path, "actors", self.model.name)
 
+    @property
+    def name(self):
+        return self.model.dbobj.name
+
     def loadFromFS(self):
         """
         get content from fs and load in object
@@ -96,8 +100,8 @@ class Actor():
             self.model.dbobj.parent.minServices = 1
             self.model.dbobj.parent.maxServices = 1
 
+        self.model.dbobj.init('producers', len(template.producers))
         for i, producer in enumerate(template.producers):
-            self.model.dbobj.init('producers', len(template.producers))
             prod = self.model.dbobj.producers[i]
             prod.actorName = producer.model.name
             prod.actorKey = producer.model.key

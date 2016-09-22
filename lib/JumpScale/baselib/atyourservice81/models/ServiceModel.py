@@ -68,7 +68,7 @@ class ServiceModel(ModelBase):
             #@TODO: *1 test
             index = {}
             for producer in self.dbobj.producers:
-                producer2 = "%s!%s" % (producer.actorName, producer.name)
+                producer2 = "%s!%s" % (producer.actorName, producer.serviceName)
                 ind = "%s:%s:%s:%s:%s" % (self.dbobj.name, self.dbobj.actorName, self.dbobj.state, parent, producer2)
                 index[ind] = self.key
             self._index.index(index)
@@ -267,19 +267,16 @@ class ServiceModel(ModelBase):
 
     @property
     def parent(self):
-        raise NotImplemented
-        return self._model["parent"]
+        if self.dbobj.parent.serviceName == '' or self.dbobj.parent.actorName == '':
+            return None
 
-    @parent.setter
-    def parent(self, parent):
-        raise NotImplemented
-        # will check if service exists
-        self.service.aysrepo.getServiceFromKey(parent)
-        if self._model["parent"] != parent:
-            self._model["parent"] = parent
-            self.consume(parent)
-            self.changed = True
-            self.service.reset()
+        parentModels = self.find(name=self.dbobj.parent.serviceName, actor=self.dbobj.parent.actorName)
+        if len(parentModels) <= 0:
+            return None
+        elif len(parentModels) > 1:
+            raise j.exceptions.RuntimeError("More then one parent model found for model %s:%s" % (self.dbobj.actorName, self.dbobj.name))
+
+        return parentModels[0]
 
     @property
     def producers(self):

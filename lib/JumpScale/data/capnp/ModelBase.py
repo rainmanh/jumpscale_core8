@@ -26,6 +26,7 @@ class ModelBase():
             # will get from db
             if self._db.exists(key):
                 self.load(key=key)
+                self._key = key
             else:
                 raise j.exceptions.Input(message="Cannot find object:%s!%s" % (
                     modelfactory.category, key), level=1, source="", tags="", msgpub="")

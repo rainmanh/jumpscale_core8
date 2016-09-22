@@ -349,11 +349,7 @@ class ProcessManagerFactory:
                     if last == "stop":
                         # raise j.exceptions.Input(message="issue", level=1, source="", tags="", msgpub="")
                         return last
-
-                else:
-                    return "empty"
-
-                return "got something on queue"
+                time.sleep(0.01)
 
         q = self.getQueue()
         q.put("test1")
@@ -361,13 +357,18 @@ class ProcessManagerFactory:
         q.put("test3")
         q.put("test4")
         q.put("test5")
-        q.put("stop")
+        # q.put("stop")
 
         # queuetest(q)
-        for i in range(10):
-            p = self.startProcess(queuetest, {"queue": q})
-            p.wait()
-            print(p)
+        p = self.startProcess(queuetest, {"queue": q})
+
+        q.put("test6")
+
+        #need this wait otherwise we can get empty result because process not running yet
+        time.sleep(0.2)
+
+        p.sync()
+        print (p.stdout)
 
         print(" * Queue done.")
 

@@ -103,13 +103,22 @@ class AtomEditor:
         snippetspath = os.path.join(os.path.dirname(inspect.getfile(self.__class__)), "snippets.cson")
         if j.sal.fs.exists(snippets_existing_path, followlinks=True):
             snippets_existing = j.sal.fs.fileGetContents(snippets_existing_path)
-            merged = cson.loads(snippets_existing)
-            with open(snippetspath) as jssnippets:
-                snippets = cson.load(jssnippets)
-                for k, v in snippets.items():
-                    if k in merged:
-                        merged[k].update(snippets[k])
-            content = cson.dumps(merged, indent=4, sort_keys=True)
+            snippets_existing2=""
+            for line in snippets_existing.split("\n"):
+                if line.startswith("#") or line.strip=="":
+                    continue
+                snippets_existing2+=line
+
+            if snippets_existing2.strip=="":
+                merged = cson.loads(snippets_existing2)
+                with open(snippetspath) as jssnippets:
+                    snippets = cson.load(jssnippets)
+                    for k, v in snippets.items():
+                        if k in merged:
+                            merged[k].update(snippets[k])
+                content = cson.dumps(merged, indent=4, sort_keys=True)
+            else:
+                content = j.sal.fs.fileGetContents(snippetspath)
             j.sal.fs.writeFile(os.path.expanduser("~/.atom/snippets.cson"), content)
         else:
             nc = j.sal.fs.fileGetContents(snippetspath)

@@ -25,15 +25,12 @@ class RedisFactory:
         self._redisq = {}
         self._config = {}
 
-    def get(self, ipaddr, port, password="", unixsocket=None, fromcache=True):
-        if unixsocket is not None:
-            key = unixsocket
-        else:
-            key = "%s_%s" % (ipaddr, port)
+    def get(self, ipaddr, port, password="", fromcache=True):
+        key = "%s_%s" % (ipaddr, port)
         if not fromcache:
-            return Redis(ipaddr, port, password=password, unix_socket_path=unixsocket)
+            return Redis(ipaddr, port, password=password)
         if key not in self._redis:
-            self._redis[key] = Redis(ipaddr, port, password=password, unix_socket_path=unixsocket)
+            self._redis[key] = Redis(ipaddr, port, password=password)
         return self._redis[key]
 
     def getQueue(self, ipaddr, port, name, namespace="queues", fromcache=True):
@@ -99,6 +96,11 @@ class RedisFactory:
             os.system(cmd2)
         # Wait until redis is up
 
+        counter=1
         while j.core.db is None:
             self.init4jscore(j, tmpdir)
-            time.sleep(0.1)
+            time.sleep(0.5)
+            counter+=1
+            if counter==20:
+                print ("could not start redis server.")
+                sys.exit(1)

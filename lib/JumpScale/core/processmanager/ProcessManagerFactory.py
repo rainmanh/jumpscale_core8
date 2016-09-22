@@ -272,13 +272,13 @@ class ProcessManagerFactory:
         # print(len(keys))
         for key in keys:
             p = self.processes[key]
-            s = p.sync()
+            status = p.sync()
 
-            if s['status'] == "error" and error:
+            if status == "error" and error:
                 p.close()
                 self.processes.pop(p.name)
 
-            if s['status'] == "success":
+            if status == "success":
                 p.close()
                 self.processes.pop(p.name)
 
@@ -408,11 +408,7 @@ class ProcessManagerFactory:
 
         p = self.startProcess(prematured, {'timewait': 5})
         time.sleep(1)
-        p.sync()
-        print(p)
         p.close()
-        p.wait()
-        p.sync()
 
         print(p)
 

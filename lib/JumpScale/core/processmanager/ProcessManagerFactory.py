@@ -278,32 +278,38 @@ class ProcessManagerFactory:
         return p
 
     def clear(self, error=False):
+        # print("clearing process list")
         keys = [item for item in self.processes.keys()]
+        cleared = 0
+
         # print(len(keys))
         for key in keys:
             p = self.processes[key]
             status = p.sync()
 
-            if status == "error" and error:
+            if (status == "error" and error) or status == "success":
                 p.close()
                 self.processes.pop(p.name)
+                cleared += 1
 
-            if status == "success":
-                p.close()
-                self.processes.pop(p.name)
+        return cleared
+
+
 
     def test(self):
-
+        """
+        Simple test, spaw, processes and wait for them
+        """
         def amethod(x=None, till=1):
             counter = 0
-            print("ID: %s" % x)
+            print("OK:%s" % x)
             while True:
                 counter += 1
                 sys.stderr.write("Counter: %d\n" % counter)
-                time.sleep(0.2)
+                time.sleep(0.1)
+
                 if counter == till:
-                    # raise j.exceptions.Input(message="issue", level=1, source="", tags="", msgpub="")
-                    return(x)
+                    return x
 
         r = {}
         nr = 10
@@ -319,24 +325,16 @@ class ProcessManagerFactory:
 
         print(" * Simple method done.")
 
+        """
+        Simple error managemebt.
+        """
         print(" * Testing error")
 
-        def eco_errortest():
-            try:
-                raise RuntimeError("myerror")
-            except Exception as e:
-                eco = j.errorconditionhandler.processPythonExceptionObject(e)
-                jsontext = eco.toJson()
-                eco2 = j.errorconditionhandler.getErrorConditionObject(ddict=j.data.serializer.json.loads(jsontext))
-            print(eco2)
-
-        # eco_errortest()
-
         def anerror(x=None, till=1):
-            print("a line")
-            print("a line2")
+            print("a line - normal")
+            print("a line2 - normal")
             j.logger.log("testlog")
-            raise RuntimeError("this is generic python error")
+            raise RuntimeError("raised, generic python error")
 
         p = self.startProcess(anerror, {"x": i, "till": 1})
         p.wait()
@@ -346,6 +344,9 @@ class ProcessManagerFactory:
 
         print(" * Error done.")
 
+        """
+        Test a process which waits for data from a queue and stop on specific value
+        """
         print(" * Testing queue")
 
         def queuetest(queue):
@@ -357,9 +358,12 @@ class ProcessManagerFactory:
                     counter += 1
                     print("From queue: %s" % last)
                     if last == "stop":
-                        # raise j.exceptions.Input(message="issue", level=1, source="", tags="", msgpub="")
                         return last
-                time.sleep(0.01)
+
+                    time.sleep(0.1)
+
+                else:
+                    return "empty"
 
         q = self.getQueue()
         q.put("test1")
@@ -367,20 +371,20 @@ class ProcessManagerFactory:
         q.put("test3")
         q.put("test4")
         q.put("test5")
-        # q.put("stop")
+        q.put("stop")   # remove me to test the queue²
 
-        # queuetest(q)
         p = self.startProcess(queuetest, {"queue": q})
 
-        q.put("test6")
+        # fill the queue here
 
-        #need this wait otherwise we can get empty result because process not running yet
-        time.sleep(0.2)
-
-        p.sync()
-        print (p.stdout)
+        p.wait()
+        print(p)
 
         print(" * Queue done.")
+
+        """
+        Simple slow process, and fetch asynchronously stdout and stderr
+        """
 
         print(" * Testing slow process")
 
@@ -397,17 +401,21 @@ class ProcessManagerFactory:
         p = self.startProcess(slowprocess, {'till': 10})
         while p.sync() == "running":
             if p.new_stdout:
-                print("OUT: %s" % p.new_stdout)
+                print("stdout >> %s" % p.new_stdout)
 
             if p.new_stderr:
-                print("ERR: %s" % p.new_stderr)
+                print("stderr >> %s" % p.new_stderr)
 
             time.sleep(2)
 
+        p.wait()
         print(p)
 
         print(" * Slow process done.")
 
+        """
+        Spawn a process and kill it before it ends
+        """
         print(" * Testing prematured close")
 
         def prematured(timewait):
@@ -419,7 +427,6 @@ class ProcessManagerFactory:
         p = self.startProcess(prematured, {'timewait': 5})
         time.sleep(1)
         p.close()
-
         print(p)
 
         print(" * Prematured test done.")
@@ -430,12 +437,13 @@ class ProcessManagerFactory:
 
         def amethod(x=None, till=1):
             print("I'm process %d" % x)
-            return(x)
+            return x
 
         r = {}
-        nr = 4000
+        nr = 1500
         start = time.time()
-        print("START")
+        print("Starting benchmark, launching %d processes" % nr)
+
         for i in range(nr):
             r[i] = self.startProcess(amethod, {"x": i, "till": 1})
 
@@ -443,7 +451,10 @@ class ProcessManagerFactory:
             r[i].wait()
 
         print(r[100])
-        self.clear()
+        cl = self.clear()
+        print("Process cleared at the end: %d" % cl)
 
-        stop = time.time()
-        print("nr of processes done per sec: %s (%d, %d)" % (int(nr / (stop - start)), nr, (stop - start)))
+        diff = time.time() - start
+        pps = int(nr / diff)
+
+        print("Number of processes per seconds: %s (%d process in %d seconds)" % (pps, nr, diff))

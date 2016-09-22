@@ -10,6 +10,46 @@ import copy
 
 import multiprocessing
 
+"""
+Process Manager
+---------------
+
+This class helps you to run a python method in a separate process and keep control over it.
+
+For exemple, here is a method:
+
+def MyMethod(hello):
+    ....
+    return [something]
+
+You can execute this method in a separate process invoking the process manager like this.
+Please note, arguments need to be passed as dictionary.
+
+    p = j.core.processmanager.startProcess(MyMethod, {"hello": 42})
+
+To keep stuff clean, you need to wait the end of a process
+or clear the Process Manager queue when you are done:
+
+    p.wait()
+    -- or --
+    j.core.processmanager.clear()
+
+To keep your Process object up-to-date with the child process, you need
+to explicitly syncronise with 'sync' method (or call a wait or close method):
+
+    p.sync()
+    print(p.stdout)
+
+When invoking a sync, you can grab changes from stdout/stderr _since last sync request_.
+The stdout and stderr variable contains the full buffer:
+
+    p.sync()
+    print(p.new_stdout)    # will gives you stdout
+    p.sync()
+    print(p.new_stdout)    # will gives you only new buffer since last sync
+    print(p.stdout)        # contains the full stdout since process start
+
+"""
 
 class Process():
 

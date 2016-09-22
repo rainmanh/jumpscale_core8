@@ -66,7 +66,7 @@ class RedisKeyValueStore(KeyValueStoreBase):
         regex is regex on the index, will return matched keys
         e.g. .*:new:.* would match all actors with state new
         """
-        res = []
+        res = set()
         for item in self.redisclient.hkeys(self._indexkey):
             item = item.decode()
             if re.match(regex, item) is not None:
@@ -74,16 +74,16 @@ class RedisKeyValueStore(KeyValueStoreBase):
                 if returnIndex == False:
                     if "," in key:
                         for key2 in key.split(","):
-                            res.append(key2)
+                            res.add(key2)
                     else:
-                        res.append(key)
+                        res.add(key)
                 else:
                     if "," in key:
                         for key2 in key.split(","):
-                            res.append((item, key2))
+                            res.add((item, key2))
                     else:
-                        res.append((item, key))
-        return res
+                        res.add((item, key))
+        return list(res)
 
     def _getQueueNameKey(self, name):
         return "%s:queue:%s" % (self.namespace, name)

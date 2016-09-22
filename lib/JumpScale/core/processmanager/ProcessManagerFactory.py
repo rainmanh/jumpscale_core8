@@ -109,7 +109,7 @@ class Process():
             os.close(self._stderr['write'])
             self.pid = pid
 
-            # setting pipe in non-block, to catch "running" later
+            # setting pipes in non-block, to catch "running" later
             self.outpipe = os.fdopen(rpipe)
             fcntl.fcntl(self.outpipe, fcntl.F_SETFL, os.O_NONBLOCK)
 
@@ -119,15 +119,18 @@ class Process():
             self._stderr['fd'] = os.fdopen(self._stderr['read'])
             fcntl.fcntl(self._stderr['fd'], fcntl.F_SETFL, os.O_NONBLOCK)
 
+    def _readAvailable(self, fd):
+        temp = ""
+        for block in iter(lambda: fd.read(4), ""):
+            temp += block
+
+        return temp
+
     def sync(self):
         if self.pid == None:
             return
 
-        temp = ""
-
-        for block in iter(lambda: self.outpipe.read(4), ""):
-            temp += block
-
+        temp = self._readAvailable(self.outpipe)
         self._syncStd()
 
         # if the pipe is empty, the process is still running
@@ -144,13 +147,8 @@ class Process():
         return data['status']
 
     def _syncStd(self):
-        self.new_stdout = ""
-        for block in iter(lambda: self._stdout['fd'].read(4), ""):
-            self.new_stdout += block
-
-        self.new_stderr = ""
-        for block in iter(lambda: self._stderr['fd'].read(4), ""):
-            self.new_stderr += block
+        self.new_stdout = self._readAvailable(self._stdout['fd'])
+        self.new_stderr = self._readAvailable(self._stderr['fd'])
 
         self.stdout += self.new_stdout
         self.stderr += self.new_stderr
@@ -165,8 +163,6 @@ class Process():
             return
 
         self.value = data['return']
-        # self.stdout = data['stdout']
-        # self.stderr = data['stderr']
 
         if data['status'] == 'exception':
             self.error = data['eco']
@@ -387,7 +383,7 @@ class ProcessManagerFactory:
 
             return 0
 
-        p = self.startProcess(slowprocess, {'till': 5})
+        p = self.startProcess(slowprocess, {'till': 10})
         while p.sync() == "running":
             if p.new_stdout:
                 print("OUT: %s" % p.new_stdout)

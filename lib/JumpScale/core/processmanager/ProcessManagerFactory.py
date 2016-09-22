@@ -4,10 +4,11 @@ import os
 import sys
 import time
 import traceback
+import fcntl
 import copy
 # don't do logging, slows down
 
-# import multiprocessing
+import multiprocessing
 
 
 class Process():
@@ -16,183 +17,187 @@ class Process():
         self.name = name
         self.method = method
         self.args = args
-        self._result = ""
-        self._state = "start"
+
+        self.value = None
         self.error = None
-        self.result = None
-        self.out = ""
+        self.stdout = ""
+        self.stderr = ""
         self.outpipe = None
         self.state = "init"
 
+        self._stdout = {'read': None, 'write': None, 'fd': None}
+        self._stderr = {'read': None, 'write': None, 'fd': None}
+
+    def _flush(self):
+        sys.stdout.flush()
+        sys.stderr.flush() # should be not necessary, stderr is unbuffered by default
+
+    def _close(self):
+        sys.stdout.close()
+        sys.stderr.close()
+
+    def _clean(self):
+        self._flush()
+        self._close()
+
+    def _setResult(self, value):
+        self.outpipe.write(j.data.serializer.json.dumps(value) + "\n")
+        self.outpipe.flush()
+
+    def _setSuccess(self, retval):
+        self._state = "success"
+        self._setResult({"status": self._state, "return": retval})
+
+    def _setPanic(self):
+        self._state = "panic"
+        self._setResult({"status": self._state, "return": -1})
+
+    def _setException(self, exception):
+        self._state = "exception"
+        self._setResult({"status": self._state, "return": -1, "eco": exception})
+
     def start(self):
         if self.method == None:
-            raise j.exceptions.Input(message="cannot start process, method is not known.",
-                                     level=1, source="", tags="", msgpub="")
+            msg = "Cannot start process, method not set."
+            raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
+
         rpipe, wpipe = os.pipe()
+        self._stdout['read'], self._stdout['write'] = os.pipe()
+        self._stderr['read'], self._stderr['write'] = os.pipe()
+
         pid = os.fork()
         if pid == -1:
-            raise RuntimeError("Failed to fork() in prepare_test_dir")
+            raise RuntimeError("Failed to fork()")
+
+        res = None
 
         if pid == 0:
             # Child -- do the copy, print log to pipe and exit
             try:
                 os.close(rpipe)
-                os.dup2(wpipe, sys.stdout.fileno())
-                os.dup2(wpipe, sys.stderr.fileno())
-                os.close(wpipe)
+                os.dup2(self._stdout['write'], sys.stdout.fileno())
+                os.dup2(self._stderr['write'], sys.stderr.fileno())
+                self.outpipe = os.fdopen(wpipe, 'w')
+
                 # print("ARGS:%s" % args)
-                j.core.processmanager.clearCaches()
+                # j.core.processmanager.clearCaches()
+                self._state = "running"
                 res = self.method(**self.args)
+
             except Exception as e:
                 eco = j.errorconditionhandler.processPythonExceptionObject(e)
-                jsontext = eco.toJson()
-                print("***ERROR***")
-                # error = {}
-                # error["tb"] = traceback.print_exc(30, sys.stderr)
-                # error["error"] = str(e)
-                # print(j.data.serializer.json.dumps(res))
-                print(jsontext)
-                print("***END***")
-                sys.stdout.flush()
-                sys.stderr.flush()
-                sys.stdout.close()
+
+                self._setException(eco.toJson())
+                self._clean()
                 os._exit(1)
+
             finally:
-                print("***RESULTS***")
-                print(j.data.serializer.json.dumps(res))
-                print("***END***")
-                sys.stdout.flush()
-                sys.stderr.flush()
-                sys.stdout.close()
+                self._setSuccess(res)
+                self._clean()
                 os._exit(0)
 
-            print("***PANIC***")
-            print(res)
-            sys.stdout.flush()
-            sys.stderr.flush()
-            os._exit(0)
+            # should never arrive here
+            self._setPanic()
+            os._exit(1)
 
         else:
             os.close(wpipe)
-            self.outpipe = os.fdopen(rpipe)
+            os.close(self._stdout['write'])
+            os.close(self._stderr['write'])
             self.pid = pid
-            self.state = "running"
-            # print(self)
 
-    def waitpid(self):
-        # print("wait child pid")
-        try:
-            os.waitpid(self.pid, os.WNOHANG)
-        except:
-            pass
+            # setting pipe in non-block, to catch "running" later
+            self.outpipe = os.fdopen(rpipe)
+            fcntl.fcntl(self.outpipe, fcntl.F_SETFL, os.O_NONBLOCK)
+
+            self._stdout['fd'] = os.fdopen(self._stdout['read'])
+            self._stderr['fd'] = os.fdopen(self._stderr['read'])
+
+    def sync(self):
+        if self.pid == None:
+            return
+
+        temp = ""
+
+        for block in iter(lambda: self.outpipe.read(4), ""):
+            temp += block
+
+        # if the pipe is empty, the process is still running
+        if temp == "":
+            data = {"status": "running"}
+
+        # otherwise, process is ended and we know the result
+        else:
+            data = j.data.serializer.json.loads(temp)
+            data = self._syncStd(data)
+
+        # update local class with data
+        self._update(data)
+
+        return data
+
+    def _syncStd(self, data):
+        data['stdout'] = self._stdout['fd'].read()
+        data['stderr'] = self._stderr['fd'].read()
+
+        return data
+
+    def _update(self, data):
+        self.state = data['status']
+
+        if data['status'] != 'running':
+            self.pid = None
+
+        if data['status'] == 'running':
+            return
+
+        self.value = data['return']
+        self.stdout = data['stdout']
+        self.stderr = data['stderr']
+
+        if data['status'] == 'exception':
+            self.error = data['eco']
+
 
     def wait(self):
-        """
-        will return 0 if no error
-        will return 1 if error
-
-        results in self.result & self.error
-
-        """
+        # wait until a process the process is finished
         if self.pid == None:
             return
-        while True:
-            res = self.process(waitInSecWhenNoData=0.1)
-            if res in [2, 1]:
-                self.waitpid()
-                return res
 
-    def process(self, waitInSecWhenNoData=0):
-        """
-        returns
-            1= ok
-            2= error
-            5= no data, waiting for next time we call this
-        """
-        if self.pid == None:
-            return
-        while True:
-            res = self.process1(waitInSecWhenNoData=waitInSecWhenNoData)
-            #when 0 we stay in the loop because there is more to process
-            #when 1 or 2 we are at end we should exit
-            #when 5 we just exit process to allow the controller to look at other processes
-            if res in [2, 1, 5]:
-                if res in [2, 1]:
-                    self.waitpid()
-                return res
+        try:
+            data = os.waitpid(self.pid, 0)
+            self.sync()
 
-    def process1(self, waitInSecWhenNoData=0):
-        """
-        processes 1 readline out of
-
-        returns
-            1= ok
-            2= error
-            5= no data
-            0= need next round of process 1
-
-        """
-        out = self.outpipe.readline()
-        out = out.rstrip()
-        if out == "":
-            # wait little bit when nothing returned, otherwise will not be empty
-            if waitInSecWhenNoData > 0:
-                print("WAIT")
-                time.sleep(waitInSecWhenNoData)
-            # print("nodata")
-            return 5
-
-        if self._state == "start" and out == "***RESULTS***":
-            self._state = "result"
-            self.state = "getresult"
-            self._result = ""
-            return 0
-        if self._state == "result":
-            if out == "***END***":
-                self.result = j.data.serializer.json.loads(self._result)
-                self.state = "ok"
-                return 1
-            else:
-                self._result += out
-                # go for next lines untill ***END***
-                return self.process()
-
-        if self._state == "start" and out == "***ERROR***":
-            self._state = "error"
-            self.state = "error"
-            self._result = ""
-            return 0
-        if self._state == "error":
-            if out == "***END***":
-                error = j.data.serializer.json.loads(self._result)
-                self.error = j.errorconditionhandler.getErrorConditionObject(error)
-                return 2
-            else:
-                self._result += out
-                # go for next lines untill ***END***
-                return self.process()
-
-        # print(self)
-        self.out += "%s\n" % out
-        return 0
+        except Exception as e:
+            # print("waitpid: ", e)
+            pass
 
     def __repr__(self):
-        out = "name:%s\n (%s)" % (self.name, self.state)
-        if self.result != None:
-            out += "res:\n%s\n" % self.result
-        if self.out != "":
-            out += "out:\n%s\n" % self.out
-        if self.error != None:
-            print("**ERROR**")
-            print(self.error.__str__)
+        out = "Process name: %s, status: %s, return: %s" % (self.name, self.state, self.value)
+
+        if self.state != "running":
+            out += "\n== Stdout ==\n%s" % self.stdout
+            out += "\n== Stderr ==\n%s" % self.stderr
+
+        if self.state == "exception":
+            out += "\nError:\n%s" % self.error
+
         return out
 
     def close(self):
-        self.waitpid()
+        self.sync()
         self.outpipe.close()
-        self.pid = None
-        if self.state != "ok":
+
+        if self.state == "running":
             j.sal.process.kill(self.pid)
+            self.wait()
+
+            data = self._syncStd({})
+            self.stdout = data['stdout']
+            self.stderr = data['stderr']
+            self.state = "killed"
+
+        self.pid = None
 
     __str__ = __repr__
 
@@ -213,7 +218,7 @@ class ProcessManagerFactory:
         j.clients.redis._redisq = {}
         j.clients.postgres.clients = {}
 
-        j.core.db = Redis(unix_socket_path='/tmp/redis.sock')
+        # j.core.db = Redis(unix_socket_path='/tmp/redis.sock')
 
     def getQueue(self, size=1000):
         """
@@ -225,9 +230,12 @@ class ProcessManagerFactory:
         if name == "":
             name = "process_%s" % self._lastnr
             self._lastnr += 1
+
         if len(self.processes) > 100 and autoclear:
             self.clear()
+
         if len(self.processes) > 100:
+            print("no clear")
 
             if autowait:
                 if autoclear == False:
@@ -241,7 +249,7 @@ class ProcessManagerFactory:
                     if len(self.processes) < 100:
                         break
             else:
-                raise j.exceptions.Input(message="cannot launch more than 200 sub processes",
+                raise j.exceptions.Input(message="cannot launch more than 100 sub processes",
                                          level=1, source="", tags="", msgpub="")
 
         p = Process(name, method, args)
@@ -255,14 +263,16 @@ class ProcessManagerFactory:
 
     def clear(self, error=False):
         keys = [item for item in self.processes.keys()]
-        print(len(keys))
+        # print(len(keys))
         for key in keys:
             p = self.processes[key]
-            p.process()
-            if p.state == "ok":
+            s = p.sync()
+
+            if s['status'] == "error" and error:
                 p.close()
                 self.processes.pop(p.name)
-            if p.state == "error" and error:
+
+            if s['status'] == "success":
                 p.close()
                 self.processes.pop(p.name)
 
@@ -270,22 +280,30 @@ class ProcessManagerFactory:
 
         def amethod(x=None, till=1):
             counter = 0
-            print("ID:%s" % x)
+            print("ID: %s" % x)
             while True:
                 counter += 1
-                print(counter)
-                time.sleep(1)
+                sys.stderr.write("Counter: %d\n" % counter)
+                time.sleep(0.2)
                 if counter == till:
                     # raise j.exceptions.Input(message="issue", level=1, source="", tags="", msgpub="")
                     return(x)
 
         r = {}
         nr = 10
+
+        print(" * Testing simple method x%d" % nr)
+
         for i in range(nr):
             r[i] = self.startProcess(amethod, {"x": i, "till": 1})
 
         for i in range(nr):
             r[i].wait()
+            print(r[i])
+
+        print(" * Simple method done.")
+
+        print(" * Testing error")
 
         def eco_errortest():
             try:
@@ -310,37 +328,73 @@ class ProcessManagerFactory:
         # next should print the error & the log
         print(p)
 
+        print(" * Error done.")
+
+        print(" * Testing queue")
+
         def queuetest(queue):
             counter = 0
-            print("QUEUE test")
+            print("Queue Inner test")
             while True:
                 if not queue.empty():
                     last = queue.get()
                     counter += 1
-                    print("from queue:%s" % last)
+                    print("From queue: %s" % last)
                     if last == "stop":
                         # raise j.exceptions.Input(message="issue", level=1, source="", tags="", msgpub="")
-                        return(last)
-                    time.sleep(0.01)
+                        return last
+
+                else:
+                    return "empty"
+
+                return "got something on queue"
 
         q = self.getQueue()
-        q.put("test")
-        # queuetest(q)
-        p = self.startProcess(queuetest, {"queue": q})
-        for i in range(10):
-            print(p.process())
+        q.put("test1")
+        q.put("test2")
+        q.put("test3")
+        q.put("test4")
+        q.put("test5")
+        q.put("stop")
 
-        #@TODO: *1 it blocks
+        # queuetest(q)
+        for i in range(10):
+            p = self.startProcess(queuetest, {"queue": q})
+            p.wait()
+            print(p)
+
+        print(" * Queue done.")
+
+        print(" * Testing prematured close")
+
+        def prematured(timewait):
+            print("Waiting %.2f seconds" % timewait)
+            time.sleep(timewait)
+            print("Timewait elapsed")
+            return 0
+
+        p = self.startProcess(prematured, {'timewait': 5})
+        time.sleep(1)
+        p.sync()
+        print(p)
+        p.close()
+        p.wait()
+        p.sync()
+
+        print(p)
+
+        print(" * Prematured test done.")
 
     def perftest(self):
 
         # can run more than 1000 process per sec
 
         def amethod(x=None, till=1):
+            print("I'm process %d" % x)
             return(x)
 
         r = {}
-        nr = 5000
+        nr = 4000
         start = time.time()
         print("START")
         for i in range(nr):
@@ -350,6 +404,7 @@ class ProcessManagerFactory:
             r[i].wait()
 
         print(r[100])
+        self.clear()
 
         stop = time.time()
-        print("nr of processes done per sec:%s" % int(nr / (stop - start)))
+        print("nr of processes done per sec: %s (%d, %d)" % (int(nr / (stop - start)), nr, (stop - start)))

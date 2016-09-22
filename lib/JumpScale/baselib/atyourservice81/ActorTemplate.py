@@ -86,53 +86,6 @@ class ActorTemplate():
                     raise j.exceptions.RuntimeError('Found more then one actor template with name %s' % name)
             return j.data.hrd.get(content="")
 
-    # Move into actor ??
-    @property
-    def parentActor(self):
-        parent = self.schemaHrd.parentSchemaItemGet()
-        if parent is not None:
-            parentrole = parent.parent
-
-            res = self.aysrepo.db.actor.find(name="%s.*" % parentrole)
-            if res == []:
-                raise j.exceptions.Input(message="could not find parent:%s for %s" % (
-                    parentrole, self), level=1, source="", tags="", msgpub="")
-            elif len(res) > 1:
-                raise j.exceptions.Input(message="found more than 1 parent:%s for %s" % (
-                    parentrole, self), level=1, source="", tags="", msgpub="")
-            parentobj = res[0].objectGet(self.aysrepo)
-            return parentobj
-        return None
-
-    # Move into actor ??
-    @property
-    def producers(self):
-        consumes = self.schemaHrd.consumeSchemaItemsGet()
-        consume_services = []
-        if consumes != []:
-            for consume_info in consumes:
-                consume_obj = None
-                consume_name = consume_info.consume_link
-                res = self.aysrepo.db.actor.find(name="%s.*" % consume_name)
-                if res == []:
-                    if consume_info.auto is True:
-                        # we have to automaticly create the actor if it doesn't exists
-                        if not self.aysrepo.templateExists(consume_name):
-                            raise j.exceptions.Input(message="Cannot find actor:%s" % consume_name, level=1, source="", tags="", msgpub="")
-
-                        consume_obj = self.aysrepo.actorCreate(name=consume_name)
-                    else:
-                        raise j.exceptions.Input(message="could not find actor:%s for %s" % (consume_name, self), level=1, source="", tags="", msgpub="")
-                elif len(res) > 1:
-                    raise j.exceptions.Input(message="found more than 1 actor:%s for %s" % (consume_name, self), level=1, source="", tags="", msgpub="")
-
-                if consume_obj is None:
-                    consume_obj = res[0].objectGet(self.aysrepo)
-                consume_obj.model.minServices = int(consume_info.consume_nr_min)
-                consume_obj.model.maxServices = int(consume_info.consume_nr_max)
-                consume_services.append(consume_obj)
-        return consume_services
-
     @property
     def configDict(self):
         path = j.sal.fs.joinPaths(self.path, "actor.json")

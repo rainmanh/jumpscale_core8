@@ -12,7 +12,7 @@ class Service:
         self._schema = None
         self._path = ""
         self._schema = None
-        self._producers = None
+        self._producers = {}
         self._name = name
         self._parent = None
 
@@ -67,51 +67,14 @@ class Service:
 
         # parents/producers
         skey = "%s!%s" % (self.model.role, self.model.name)
-        if actor.model.dbobj.parent.actorKey is not "":
-            actor_name = actor.model.dbobj.parent.actorName
-            actor_role = actor_name.split('.')[0]
-            # try to get the instance name from the args. Look for full actor name ('node.ssh') or just role (node)
-            # if none of the two is available in the args, don't use instance name and expect the parent service to be unique in the repo
-            parent_name = args.get(actor_name, args.get(actor_role, None))
-            res = self.aysrepo.servicesFind(name=parent_name, actor='%s.*' % actor_role)
-            if len(res) == 0:
-                raise j.exceptions.Input(message="could not find parent:%s for %s, found 0" %
-                                         (actor_name, self), level=1, source="", tags="", msgpub="")
-            elif len(res) > 1:
-                raise j.exceptions.Input(message="could not find parent:%s for %s, found more than 1." %
-                                         (actor_name, self), level=1, source="", tags="", msgpub="")
-            parentobj = res[0]
-            self._parent = parentobj
-            fullpath = j.sal.fs.joinPaths(parentobj.path, skey)
-            relpath = j.sal.fs.pathRemoveDirPart(fullpath, self.aysrepo.path)
-
-            self.model.dbobj.parent.actorName = parentobj.model.dbobj.actorName
-            self.model.dbobj.parent.key = parentobj.model.key
-            self.model.dbobj.parent.serviceName = parentobj.model.dbobj.name
-
+        parent = self._initParent(actor, args)
+        if parent is not None:
+            fullpath = j.sal.fs.joinPaths(parent.path, skey)
+            r.path = j.sal.fs.pathRemoveDirPart(fullpath, self.aysrepo.path)
         else:
-            relpath = j.sal.fs.joinPaths("services", skey)
-        r.path = relpath
+            r.path = j.sal.fs.joinPaths("services", skey)
 
-        self.model.dbobj.init('producers', len(actor.model.dbobj.producers))
-        for i, producer_model in enumerate(actor.model.dbobj.producers):
-            producer = self.model.dbobj.producers[i]
-            name = producer_model.actorName
-            role = actor_name.split('.')[0]
-            instance = args.get(actor_name, args.get(actor_role, None))
-
-            res = self.aysrepo.servicesFind(name=instance, actor='%s.*' % role)
-            if len(res) == 0:
-                raise j.exceptions.Input(message="could not find producer:%s for %s, found 0" %
-                                         (name, self), level=1, source="", tags="", msgpub="")
-            elif len(res) > 1:
-                raise j.exceptions.Input(message="could not find producer:%s for %s, found more than 1." %
-                                         (name, self), level=1, source="", tags="", msgpub="")
-            producer_obj = res[0]
-            producer.actorName = actor_name
-            producer.key = producer_obj.model.name
-            producer.serviceName = producer_obj.model.name
-
+        self._initProducers(actor, args)
 
         # input will always happen in process
         args = self.input(args=args)
@@ -151,6 +114,73 @@ class Service:
         #         self.model.removeRecurring(action)
         #
         # self.model.save()
+
+    def _initParent(self, actor, args):
+        if actor.model.dbobj.parent.actorRole is not "":
+            parent_role = actor.model.dbobj.parent.actorRole
+
+            # try to get the instance name from the args. Look for full actor name ('node.ssh') or just role (node)
+            # if none of the two is available in the args, don't use instance name and expect the parent service to be unique in the repo
+            parent_name = args.get(parent_role, None)
+            res = self.aysrepo.servicesFind(name=parent_name, actor='%s.*' % parent_role)
+            if len(res) == 0:
+                raise j.exceptions.Input(message="could not find parent:%s for %s, found 0" %
+                                         (actor_name, self), level=1, source="", tags="", msgpub="")
+            elif len(res) > 1:
+                raise j.exceptions.Input(message="could not find parent:%s for %s, found more than 1." %
+                                         (actor_name, self), level=1, source="", tags="", msgpub="")
+            parentobj = res[0]
+            self._parent = parentobj
+
+            self.model.dbobj.parent.actorName = parentobj.model.dbobj.actorName
+            self.model.dbobj.parent.key = parentobj.model.key
+            self.model.dbobj.parent.serviceName = parent_name
+
+            return parentobj
+
+        return None
+
+    def _initProducers(self, actor, args):
+        if self._producers is None:
+            self._producers = []
+
+        producers_size = len(actor.model.dbobj.producers)
+        # the parent is also considered an producers
+        # we need this to be able to build the dependency tree
+        if self.parent is not None:
+            producers_size += 1
+
+        self.model.dbobj.init('producers', producers_size)
+        for i, producer_model in enumerate(actor.model.dbobj.producers):
+            producer_role = producer_model.actorRole
+
+            instance = args.get(producer_role, "")
+            res = self.aysrepo.servicesFind(name=instance, actor='%s.*' % producer_role)
+            if len(res) == 0:
+                if producer_model.auto is False:
+                    raise j.exceptions.Input(message="could not find producer:%s for %s, found 0" %
+                                             (producer_role, self), level=1, source="", tags="", msgpub="")
+                else:
+                    auto_actor = self.aysrepo.actorGet(producer_role)
+                    # TODO: generate incremental instance name
+                    res.append(auto_actor.serviceCreate(instance="auto", args=args))
+            elif len(res) > 1:
+                raise j.exceptions.Input(message="could not find producer:%s for %s, found more than 1." %
+                                         (producer_role, self), level=1, source="", tags="", msgpub="")
+
+            producer = self.model.dbobj.producers[i]
+            producer_obj = res[0]
+
+            producer.actorName = producer_obj.model.dbobj.actorName
+            producer.key = producer_obj.model.key
+            producer.serviceName = producer_obj.model.name
+
+        # add the parent to the producers
+        if self.parent is not None:
+            producer = self.model.dbobj.producers[producers_size - 1]
+            producer.actorName = self.parent.model.dbobj.actorName
+            producer.key = self.parent.model.key
+            producer.serviceName = self.parent.model.name
 
     def loadFromFS(self):
         """
@@ -214,47 +244,103 @@ class Service:
         return chain
 
     @property
+    def children(self):
+        res = []
+        for service in self.aysrepo.services:
+            if service.parent == self:
+                res.append(service)
+        return res
+
+    @property
     def producers(self):
-        #@TODO: *1
-        producers = {}
-        for prod_model in self.model.producers:
+        if self._producers == {}:
+            for prod_model in self.model.producers:
 
-            if prod_model.dbobj.actorName not in self._producers:
-                self._producers[prod_model.dbobj.actorName] = []
+                if prod_model.dbobj.actorName not in self._producers:
+                    self._producers[prod_model.dbobj.actorName] = []
 
-            result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
-            for service in result:
-                self._producers[prod_model.dbobj.actorName].append(service)
+                result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
+                for service in result:
+                    self._producers[prod_model.dbobj.actorName].append(service)
 
         return self._producers
 
+    def findProducer(self, role, name):
+        if role in self.producers:
+            for producer in self.producers[role]:
+                if producer.model.name in name:
+                    return producer
+        return None
 
-    def serviceFindProducer(self, producercategory, instancename):
-        raise NotImplemented("TODO: *1 ")
-        for item in self.servicesFind(instance=instancename):
-            if producercategory in item.categories:
-                return item
+    @property
+    def consumers(self):
+        consumers = list()
+        services = self.aysrepo.servicesFind()
+        for service in services:
+            if self.isConsumedBy(service):
+                consumers.append(service)
+        return consumers
 
-    def serviceFindConsumers(self, target):
-        """
-        @return set of services that consumes target
-        """
-        raise NotImplemented("TODO: *1 ")
-        result = set()
-        for service in self.servicesFind():
-            if target.isConsumedBy(service):
-                result.add(service)
-        return result
+    def isConsumedBy(self, service):
+        if self.model.role in service.producers:
+            for s in service.producers[self.model.role]:
+                if s.model.key == self.model.key:
+                    return True
+        return False
 
-    def serviceFindConsumersRecursive(self, target, out=set()):
+    def findConsumersRecursive(self, target=None, out=set()):
         """
         @return set of services that consumes target, recursivlely
         """
-        raise NotImplemented("TODO: *1 ")
+        if target is None:
+            target = self
         for service in self.findConsumers(target):
             out.add(service)
             self.findConsumersRecursive(service, out)
         return out
+
+    def getProducersRecursive(self, producers=set(), callers=set(), action="", producerRoles="*"):
+        for role, producers_list in self.producers.items():
+            for producer in producers_list:
+                if action == "" or action in producer.model.methods.keys():
+                    if producerRoles == "*" or producer.model.role in producerRoles:
+                        producers.add(producer)
+                producers = producer.getProducersRecursive(
+                    producers=producers, callers=callers, action=action, producerRoles=producerRoles)
+        return producers.symmetric_difference(callers)
+
+    def printProducersRecursive(self, prefix=""):
+        for role, producers2 in self.producers.items():
+            # print ("%s%s"%(prefix,role))
+            for producer in producers2:
+                print("%s- %s" % (prefix, producer))
+                producer.printProducersRecursive(prefix + "  ")
+
+    def getProducersWaiting(self, action="install", producersChanged=set(), scope=None):
+        """
+        return list of producers which are waiting to be executing the action
+        """
+
+        for producer in self.getProducersRecursive(set(), set()):
+            # check that the action exists, no need to wait for other actions,
+            # appart from when init or install not done
+
+            if producer.model.methods['init'] != "ok":
+                producersChanged.add(producer)
+
+            if producer.model.methods['install'] != "ok":
+                producersChanged.add(producer)
+
+            if action not in producer.model.methods.keys():
+                continue
+
+            if producer.model.methods[action] != "ok":
+                producersChanged.add(producer)
+
+        if scope is not None:
+            producersChanged = producersChanged.intersection(scope)
+
+        return producersChanged
 
     @property
     def executor(self):
@@ -308,12 +394,10 @@ class Service:
     def __eq__(self, service):
         if not service:
             return False
-        if isinstance(service, str):
-            return self.key == service
-        return service.role == self.role and self.instance == service.instance
+        return service.model.key == self.model.key
 
     def __hash__(self):
-        return hash((self.instance, self.role))
+        return hash(self.model.key)
 
     def __repr__(self):
         return "service:%s!%s" % (self.model.role, self.model.name)
@@ -321,28 +405,19 @@ class Service:
     def __str__(self):
         return self.__repr__()
 
-    # def _getDisabledProducers(self):
-    #     producers = dict()
-    #     for key, items in self.hrd.getDictFromPrefix("producer").items():
-    #         producers[key] = [self.aysrepo.getServiceFromKey(
-    #             item.strip(), include_disabled=True) for item in items]
-    #     return producers
-    #
-    # def _getConsumers(self, include_disabled=False):
-    #     consumers = list()
-    #     services = j.atyourservice.findServices(
-    #         include_disabled=True, first=False)
-    #     for service in services:
-    #         producers = service._getDisabledProducers(
-    #         ) if include_disabled else service.producers
-    #         if self.role in producers and self in producers[self.role]:
-    #             consumers.append(service)
-    #     return consumers
-    #
+    def _getDisabledProducers(self):
+        disabled = []
+        for producers_list in self.producers.values():
+            for producer in producers_list:
+                if producer.model.dbobj.state == 'disabled':
+                    disabled.append(producer)
+        return disabled
+
+
+
     # def disable(self):
-    #     self.stop()
-    #     for consumer in self._getConsumers():
-    #         candidates = self.aysrepo.findServices(role=self.role, first=False)
+    #     for consumer in self.getConsumers():
+    #         candidates = self.aysrepo.findServices(role=self.model.role, first=False)
     #         if len(candidates) > 1:
     #             # Other candidates available. Should link consumer to new
     #             # candidate
@@ -417,51 +492,7 @@ class Service:
     #         for ays in toConsume:
     #             self.model.consume(aysi=ays)
 
-    # def getProducersRecursive(self, producers=set(), callers=set(), action="", producerRoles="*"):
-    #     for role, producers2 in self.producers.items():
-    #         for producer in producers2:
-    #             if action == "" or producer.getAction(action) != None:
-    #                 if producerRoles == "*" or producer.role in producerRoles:
-    #                     producers.add(producer)
-    #             producers = producer.getProducersRecursive(
-    #                 producers=producers, callers=callers, action=action, producerRoles=producerRoles)
-    #     return producers.symmetric_difference(callers)
-    #
-    # def printProducersRecursive(self, prefix=""):
-    #     for role, producers2 in self.producers.items():
-    #         # print ("%s%s"%(prefix,role))
-    #         for producer in producers2:
-    #             print("%s- %s" % (prefix, producer))
-    #             producer.printProducersRecursive(prefix + "  ")
-    #
-    # def getProducersWaiting(self, action="install", producersChanged=set(), scope=None):
-    #     """
-    #     return list of producers which are waiting to be executing the action
-    #     """
-    #
-    #     # print ("producerswaiting:%s"%self)
-    #     for producer in self.getProducersRecursive(set(), set()):
-    #         # check that the action exists, no need to wait for other actions,
-    #         # appart from when init or install not done
-    #
-    #         if producer.state.getObject("init").state != "OK":
-    #             producersChanged.add(producer)
-    #
-    #         if producer.state.getObject("install").state != "OK":
-    #             producersChanged.add(producer)
-    #
-    #         if producer.getAction(action) is None:
-    #             continue
-    #
-    #         actionrunobj = producer.state.getSetObject(action)
-    #         # print (actionrunobj)
-    #         if actionrunobj.state != "OK":
-    #             producersChanged.add(producer)
-    #
-    #     if scope is not None:
-    #         producersChanged = producersChanged.intersection(scope)
-    #
-    #     return producersChanged
+
 
     # def getNode(self):
     #     for parent in self.parents:
@@ -484,41 +515,3 @@ class Service:
     # def log(self, msg, level=0):
     #     self.action_current.log(msg)
     #
-    # def listChildren(self):
-    #
-    #     childDirs = j.sal.fs.listDirsInDir(self.path)
-    #     childs = {}
-    #     for path in childDirs:
-    #         if path.endswith('__pycache__'):
-    #             continue
-    #         child = j.sal.fs.getBaseName(path)
-    #         name, instance = child.split("!")
-    #         if name not in childs:
-    #             childs[name] = []
-    #         childs[name].append(instance)
-    #     return childs
-    #
-    # @property
-    # def children(self):
-    #     res = []
-    #     for key, service in self.aysrepo.services.items():
-    #         if service.parent == self:
-    #             res.append(service)
-    #     return res
-    #
-    # def isConsumedBy(self, service):
-    #     if self.role in service.producers:
-    #         for s in service.producers[self.role]:
-    #             if s.key == self.key:
-    #                 return True
-    #     return False
-    #
-    # def get_consumers(self):
-    #     return [service for service in list(self.aysrepo.services.values()) if self.isConsumedBy(service)]
-    #
-    # def getProducers(self, producercategory):
-    #     if producercategory not in self.producers:
-    #         raise j.exceptions.Input(
-    #             "cannot find producer with category:%s" % producercategory)
-    #     instances = self.producers[producercategory]
-    #     return instances

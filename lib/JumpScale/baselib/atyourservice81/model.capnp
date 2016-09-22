@@ -21,10 +21,10 @@ struct Actor {
   producers @4 :List(ActorPointer);
 
   struct ActorPointer {
-    actorKey @0 :Text;
-    actorName @1 :Text;
-    minServices @2 :UInt8;
-    maxServices @3 :UInt8;
+    actorRole @0 :Text;
+    minServices @1 :UInt8;
+    maxServices @2 :UInt8;
+    auto @3 :Bool;
   }
 
   actions @5 :List(Action);

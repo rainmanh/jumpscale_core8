@@ -93,24 +93,37 @@ class Actor():
         self.model.dbobj.origin.gitUrl = template.aysrepo.git.remoteUrl
         self.model.dbobj.origin.path = template.pathRelative
 
-        if template.parentActor is not None:
-            parentobj = template.parentActor
-            self.model.dbobj.parent.actorName = parentobj.model.name
-            self.model.dbobj.parent.actorKey = parentobj.model.key
-            self.model.dbobj.parent.minServices = 1
-            self.model.dbobj.parent.maxServices = 1
-
-        self.model.dbobj.init('producers', len(template.producers))
-        for i, producer in enumerate(template.producers):
-            prod = self.model.dbobj.producers[i]
-            prod.actorName = producer.model.name
-            prod.actorKey = producer.model.key
-            prod.minServices = producer.model.minServices
-            prod.maxServices = producer.model.maxServices
+        self._initParent(template)
+        self._initProducers(template)
 
         self._processActionsFile(template=template)
 
         self.saveToFS()
+
+    def _initParent(self, template):
+        parent = template.schemaHrd.parentSchemaItemGet()
+        if parent is not None:
+            parent_name = parent.parent
+            parent_role = parent_name.split('.')[0]
+
+            self.model.dbobj.parent.actorRole = parent_role
+            self.model.dbobj.parent.minServices = 1
+            self.model.dbobj.parent.maxServices = 1
+            self.model.dbobj.parent.auto = bool(parent.auto)
+
+    def _initProducers(self, template):
+        consumed_actors = template.schemaHrd.consumeSchemaItemsGet()
+        self.model.dbobj.init('producers', len(consumed_actors))
+
+        for i, consume_info in enumerate(consumed_actors):
+            actor_name = consume_info.consume_link
+            actor_role = actor_name.split('.')[0]
+
+            producer = self.model.dbobj.producers[i]
+            producer.actorRole = actor_role
+            producer.minServices = int(consume_info.consume_nr_min)
+            producer.maxServices = int(consume_info.consume_nr_max)
+            producer.auto = bool(consume_info.auto)
 
     def _processActionsFile(self, template):
         self._out = ""

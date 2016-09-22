@@ -2,7 +2,6 @@ from JumpScale import j
 
 from JumpScale.baselib.atyourservice81.ActorTemplate import ActorTemplate
 from JumpScale.baselib.atyourservice81.ActionsBase import ActionsBase
-from JumpScale.baselib.atyourservice81.ActionMethodDecorator import ActionMethodDecorator
 from JumpScale.baselib.atyourservice81.AtYourServiceRepo import AtYourServiceRepo
 from JumpScale.baselib.atyourservice81.AtYourServiceTester import AtYourServiceTester
 

@@ -176,11 +176,11 @@ class AtYourServiceRepo():
 
     @property
     def services(self):
-        services = {}
+        services = []
         for item in self.db.service.find():
             res = item.objectGet(aysrepo=self)
             if res.model.dbobj.state != "disabled":
-                services[res.model.dbobj.name] = res
+                services.append(res)
         return services
 
     def serviceGet(self, role, instance, die=True):
@@ -245,7 +245,7 @@ class AtYourServiceRepo():
                 actions.insert(0, "init")
 
         for action in actions:
-            for key, service in self.services.items():
+            for service in self.services:
 
                 if role != "" and service.role != role:
                     continue

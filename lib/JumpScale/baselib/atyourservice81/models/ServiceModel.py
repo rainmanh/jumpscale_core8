@@ -207,18 +207,16 @@ class ServiceModel(ModelBase):
 
     @property
     def methods(self):
-        raise NotImplemented
         """
         return dict
             key = action name
             val = state
-        state = 'INIT', 'ERROR', 'OK', 'DISABLED', 'DO', 'CHANGED', 'CHANGEDHRD', 'RUNNING'
-        DO means: execute the action method as fast as you can
-        INIT means it has not been started yet ever
+        state = 'new', 'installing', 'ok', 'error', 'disabled', 'changed'
         """
-        methos = {}
+        methods = {}
         for action in self.dbobj.actions:
-            methos[action.name] = action.state
+            methods[action.name] = action.state
+        return methods
 
     @property
     def recurring(self):
@@ -282,7 +280,7 @@ class ServiceModel(ModelBase):
     def producers(self):
         producers = []
         for prod in self.dbobj.producers:
-            producers.extend(self.find(name=prod.name, actor=prod.actorName))
+            producers.extend(self.find(name=prod.serviceName, actor=prod.actorName))
         return producers
 
     def producerAdd(self, actorName, name, key):

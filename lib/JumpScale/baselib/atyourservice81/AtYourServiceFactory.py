@@ -1,22 +1,13 @@
 from JumpScale import j
 
-# from JumpScale.baselib.atyourservice81.Actor import Actor
-# from JumpScale.baselib.atyourservice81.Service import Service, loadmodule
 from JumpScale.baselib.atyourservice81.ActorTemplate import ActorTemplate
-
 from JumpScale.baselib.atyourservice81.ActionsBase import ActionsBase
 from JumpScale.baselib.atyourservice81.ActionMethodDecorator import ActionMethodDecorator
-
 from JumpScale.baselib.atyourservice81.AtYourServiceRepo import AtYourServiceRepo
-
 from JumpScale.baselib.atyourservice81.AtYourServiceTester import AtYourServiceTester
 
-
 import colored_traceback
-
 import os
-
-
 import sys
 if "." not in sys.path:
     sys.path.append(".")
@@ -37,13 +28,9 @@ class AtYourServiceFactory:
         self._templateRepos = {}
         self._repos = {}
 
-        # self._sandboxer = None
-
         self._type = None
 
         self.indocker = False
-
-        # self.sync = AtYourServiceSync()
 
         self.debug = j.core.db.get("atyourservice.debug") == 1
 
@@ -330,48 +317,3 @@ class AtYourServiceFactory:
 
     def getActionMethodDecorator(self):
         return ActionMethodDecorator
-
-    # def telegramBot(self, token, start=True):
-    #     from JumpScale.baselib.atyourservice81.telegrambot.TelegramAYS import TelegramAYS
-    #     bot = TelegramAYS(token)
-    #     if start:
-    #         bot.run()
-    #     return bot
-
-    # def _parseKey(self, key):
-    #     """
-    #     @return (domain,name,instance,role)
-    #     """
-    #     key = key.lower()
-    #     if key.find("|") != -1:
-    #         domain, name = key.split("|")
-    #     else:
-    #         domain = ""
-    #         name = key
-
-    #     if name.find("@") != -1:
-    #         name, role = name.split("@", 1)
-    #         role = role.strip()
-    #     else:
-    #         role = ""
-
-    #     if name.find("!") != -1:
-    #         # found instance
-    #         name, instance = name.split("!", 1)
-    #         instance = instance.strip()
-    #         if domain == '':
-    #             role = name
-    #             name = ''
-    #     else:
-    #         instance = ""
-
-    #     name = name.strip()
-
-    #     if role == "":
-    #         if name.find('.') != -1:
-    #             role = name.split(".", 1)[0]
-    #         else:
-    #             role = name
-
-    #     domain = domain.strip()
-    #     return (domain, name, instance, role)

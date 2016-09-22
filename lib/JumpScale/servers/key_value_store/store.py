@@ -9,6 +9,9 @@ import collections
 try:
     import snappy
 except:
+    # this is ugly.
+    rc, out = j.sal.process.execute("apt-get install libsnappy-dev", die=True,
+                                    outputToStdout=False, ignoreErrorOutput=False)
     rc, out = j.sal.process.execute("pip3 install python-snappy", die=True,
                                     outputToStdout=False, ignoreErrorOutput=False)
     import snappy

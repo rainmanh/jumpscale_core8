@@ -1,7 +1,5 @@
 import msgpack
 from collections import OrderedDict
-
-
 from JumpScale import j
 
 ModelBase = j.data.capnp.getModelBaseClassWithData()
@@ -61,6 +59,9 @@ class ActorModel(ModelBase):
         return res
 
     def objectGet(self, aysrepo):
+        """
+        returns an Actor object created from this model
+        """
         Actor = aysrepo.getActorClass()
         return Actor(aysrepo=aysrepo, model=self)
 
@@ -215,52 +216,3 @@ class ActorModel(ModelBase):
         return out
 
     __str__ = __repr__
-
-    # def addMethod(self, name="", source="", isDefaultMethod=False):
-    #     if source != "":
-    #         if name in ["input", "init"] and source.find("$(") != -1:
-    #             raise j.exceptions.Input(
-    #                 "Action method:%s should not have template variable '$(...' in sourcecode for init or input method." % self)
-    #
-    #         guid = j.data.hash.md5_string(self.actor.name + source)
-    #
-    #         # if new method or new code
-    #         if not j.atyourservice.db.action_code.exists(guid):
-    #             # create new actionCode model
-    #             action_code = j.atyourservice.db.action_code.new()
-    #             action_code.model.guid = guid
-    #             action_code.model.name = name
-    #             action_code.model.actorName = self.actor.name
-    #             action_code.model.code = source
-    #             action_code.model.lastModDate = j.data.time.epoch
-    #             # save action_code into db
-    #             action_code.save()
-    #
-    #             # put pointer to actionCode to actor model
-    #             action = self.actionsServicesTemplateNew()
-    #             action.name = name
-    #             action.actionKey = guid
-    #
-    #             self._changes[name] = True
-    #
-    #             self.logger.debug('action %s added to db' % name)
-
-    # def methodChanged(self, name):
-    #     if name in self._changes:
-    #         return True
-    #     return False
-    #
-    # @property
-    # def isChanged(self):
-    #     for v in self._changes.values():
-    #         if v is True:
-    #             return True
-    #     return False
-    #
-    # def __repr__(self):
-    #     out = ""
-    #     for item in self.methodslist:
-    #         out += "%s\n" % item
-    #     return out
-
-    # __str__ = __repr__

@@ -1,13 +1,10 @@
 from JumpScale import j
 
 import capnp
-
 import model_capnp as ModelCapnp
 
 from .ActorModel import ActorModel
 from .ServiceModel import ServiceModel
-
-# JobModel
 
 
 class ModelsFactory():

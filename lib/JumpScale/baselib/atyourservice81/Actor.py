@@ -1,15 +1,8 @@
 from JumpScale import j
-from collections import OrderedDict
-
-# import copy
-# import inspect
-# import imp
-# import sys
-import msgpack
-
-# from JumpScale.baselib.atyourservice81.models.ActorModel import ActorModel
-# from JumpScale.baselib.atyourservice81.ActorTemplate import ActorTemplate
 from JumpScale.baselib.atyourservice81.Service import Service
+
+from collections import OrderedDict
+import msgpack
 
 
 class Actor():
@@ -110,36 +103,6 @@ class Actor():
             prod.actorKey = producer.model.key
             prod.minServices = producer.model.minServices
             prod.maxServices = producer.model.maxServices
-
-        #
-        # producers_schema_info = actor.schemaServiceHRD.consumeSchemaItemsGet()
-        # if producers_schema_info != []:
-        #     for producer_schema_info in producers_schema_info:
-        #
-        #         producer_role = producer_schema_info.consume_link
-        #         if producer_role in args:
-        #             # instance name of the comusmption is specified
-        #             instance = args[producer_role]
-        #         else:
-        #             instance = ''
-        #
-        #         res = self.aysrepo.db.service.find(name=instance, actor="%s.*" % producer_role)
-        #         producer_obj = None
-        #         if len(res) > 1:
-        #             raise j.exceptions.Input(message="found more than 1 producer:%s!%s for %s" % (
-        #                                      producer_role, instance, self), level=1, source="", tags="", msgpub="")
-        #
-        #         elif len(res) <= 0:
-        #             if producer_schema_info.auto is True:  # auto creation of the producer is enabled
-        #                 actor = self.aysrepo.actorGet(producer_role, reload=False)
-        #                 producer_obj = actor.serviceCreate(instance='auto', args={})
-        #             else:
-        #                 raise j.exceptions.Input(message="could not find producer:%s!%s for %s" % (
-        #                                          producer_role, instance, self), level=1, source="", tags="", msgpub="")
-        #
-        #         if producer_obj is None:
-        #             producer_obj = res[0].objectGet(self.aysrepo)
-        #         self.model.producerAdd(producer_obj.actor.name, producer_obj.name, producer_obj.key)
 
         self._processActionsFile(template=template)
 
@@ -291,19 +254,13 @@ class Actor():
 # SERVICE
 
     def serviceCreate(self, instance="main", args={}):
-        """
-        """
-
         instance = instance.lower()
 
         service = self.aysrepo.serviceGet(role=self.model.role, instance=instance, die=False)
-
         if service is not None:
-            # print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))
             return service
-        else:
-            service = Service(aysrepo=self.aysrepo, actor=self, name=instance, args=args)
 
+        service = Service(aysrepo=self.aysrepo, actor=self, name=instance, args=args)
         return service
 
     @property
@@ -315,120 +272,5 @@ class Actor():
 
 
 # GENERIC
-    # def upload2AYSfs(self, path):
-    #     """
-    #     tell the ays filesystem about this directory which will be uploaded to ays filesystem
-    #     """
-    #     j.tools.sandboxer.dedupe(
-    #         path, storpath="/tmp/aysfs", name="md", reset=False, append=True)
-
     def __repr__(self):
         return "actor: %-15s" % (self.model.name)
-
-    # def downloadfiles(self):
-    #     """
-    #     this method download any required files for this actor as defined in the template.hrd
-    # Use this method when building a service to have all the files ready to
-    # sandboxing
-
-    #     @return list of tuples containing the source and destination of the files defined in the actoritem
-    #             [(src, dest)]
-    #     """
-    #     dirList = []
-    #     # download
-    #     for actoritem in self.hrd_template.getListFromPrefix("web.export"):
-    #         if "dest" not in actoritem:
-    # j.events.opserror_critical(msg="could not find dest in hrditem for %s
-    # %s" % (actoritem, self), category="ays.actorTemplate")
-
-    #         fullurl = "%s/%s" % (actoritem['url'],
-    #                              actoritem['source'].lstrip('/'))
-    #         dest = actoritem['dest']
-    #         dest = j.application.config.applyOnContent(dest)
-    #         destdir = j.sal.fs.getDirName(dest)
-    #         j.sal.fs.createDir(destdir)
-    #         # validate md5sum
-    #         if actoritem.get('checkmd5', 'false').lower() == 'true' and j.sal.fs.exists(dest):
-    #             remotemd5 = j.sal.nettools.download(
-    #                 '%s.md5sum' % fullurl, '-').split()[0]
-    #             localmd5 = j.data.hash.md5(dest)
-    #             if remotemd5 != localmd5:
-    #                 j.sal.fs.remove(dest)
-    #             else:
-    #                 continue
-    #         elif j.sal.fs.exists(dest):
-    #             j.sal.fs.remove(dest)
-    #         j.sal.nettools.download(fullurl, dest)
-
-    #     for actoritem in self.hrd_template.getListFromPrefix("git.export"):
-    #         if "platform" in actoritem:
-    #             if not j.core.platformtype.myplatform.checkMatch(actoritem["platform"]):
-    #                 continue
-
-    #         # pull the required repo
-    #         dest0 = self.aysrepo._getRepo(actoritem['url'], actoritem=actoritem)
-    #         src = "%s/%s" % (dest0, actoritem['source'])
-    #         src = src.replace("//", "/")
-    #         if "dest" not in actoritem:
-    #             j.events.opserror_critical(msg="could not find dest in hrditem for %s %s" % (actoritem, self), category="ays.actorTemplate")
-    #         dest = actoritem['dest']
-
-    #         dest = j.application.config.applyOnContent(dest)
-    #         src = j.application.config.applyOnContent(src)
-
-    #         if "link" in actoritem and str(actoritem["link"]).lower() == 'true':
-    #             # means we need to only list files & one by one link them
-    #             link = True
-    #         else:
-    #             link = False
-
-    #         if src[-1] == "*":
-    #             src = src.replace("*", "")
-    #             if "nodirs" in actoritem and str(actoritem["nodirs"]).lower() == 'true':
-    #                 # means we need to only list files & one by one link them
-    #                 nodirs = True
-    #             else:
-    #                 nodirs = False
-
-    #             items = j.sal.fs.listFilesInDir(
-    #                 path=src, recursive=False, followSymlinks=False, listSymlinks=False)
-    #             if nodirs is False:
-    #                 items += j.sal.fs.listDirsInDir(
-    # path=src, recursive=False, dirNameOnly=False,
-    # findDirectorySymlinks=False)
-
-    #             raise RuntimeError("getshort_key does not even exist")
-    #             items = [(item, "%s/%s" % (dest, j.sal.fs.getshort_key(item)), link)
-    #                      for item in items]
-    #         else:
-    #             items = [(src, dest, link)]
-
-    #         out = []
-    #         for src, dest, link in items:
-    #             delete = actoritem.get('overwrite', 'true').lower() == "true"
-    #             if dest.strip() == "":
-    #                 raise j.exceptions.RuntimeError(
-    #                     "a dest in codeactor cannot be empty for %s" % self)
-    #             if dest[0] != "/":
-    #                 dest = "/%s" % dest
-    #             else:
-    #                 if link:
-    #                     if not j.sal.fs.exists(dest):
-    #                         j.sal.fs.createDir(j.sal.fs.getParent(dest))
-    #                         j.sal.fs.symlink(src, dest)
-    #                     elif delete:
-    #                         j.sal.fs.remove(dest)
-    #                         j.sal.fs.symlink(src, dest)
-    #                 else:
-    #                     print(("copy: %s->%s" % (src, dest)))
-    #                     if j.sal.fs.isDir(src):
-    #                         j.sal.fs.createDir(j.sal.fs.getParent(dest))
-    #                         j.sal.fs.copyDirTree(
-    #                             src, dest, eraseDestination=False, overwriteFiles=delete)
-    #                     else:
-    #                         j.sal.fs.copyFile(
-    #                             src, dest, True, overwriteFile=delete)
-    #             out.append((src, dest))
-    #             dirList.extend(out)
-
-    #     return dirList

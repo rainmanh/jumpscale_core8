@@ -352,8 +352,8 @@ class Docker:
         # filesystem before docker starts don't use ssh to push them, will be much
         # faster and easier
         """
-    if ssh is True and myinit is False:
-            raise ValueError("SSH can't be enabled without myinit.")
+        if ssh is True and myinit is False:
+                raise ValueError("SSH can't be enabled without myinit.")
         # check there is weave
         self.weavesocket
 

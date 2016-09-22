@@ -126,10 +126,13 @@ class ProcessManager():
 
         j.processmanager = self
 
+        hrd = j.data.hrd.get(j.sal.fs.joinPaths(j.dirs.hrd, 'grid.hrd'))
+        hrd.set('id', opts.gid)
+        j.application._initWhoAmI(reload=True)
         # self.hrd = j.application.instanceconfig
         if opts.ip != "":
             # processmanager enabled
-            while j.sal.nettools.waitConnectionTest(opts.ip, opts.port, 2) == False:
+            while j.sal.nettools.waitConnectionTest(opts.ip, opts.port, 2) is False:
                 self.log.info("cannot connect to agentcontroller, will retry forever: '%s:%s'" % (opts.ip, opts.port))
 
             # now register to agentcontroller
@@ -138,8 +141,6 @@ class ProcessManager():
                                              machineguid=j.application.getUniqueMachineId())
 
             nid = res["node"]["id"]
-            hrd = j.data.hrd.get(j.sal.fs.joinPaths(j.dirs.hrd, 'grid.hrd'))
-            hrd.set('id', opts.gid)
             hrd.set('node.id', nid)
             j.application._initWhoAmI(reload=True)
 
@@ -183,9 +184,7 @@ class ProcessManager():
         i = 0
         while True:
             i += 1
-            # self.log.info "NEXT:%s\n"%i    
             for p in self.processes[:]:
-                # p.refresh()        
                 if p.p != None:
                     if not p.is_running():
                         if p.restart:

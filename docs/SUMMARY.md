@@ -33,7 +33,10 @@
     - [Use the Shell & Debug](Howto/how_to_use_the_shell_and_debug.md)
     - [Add a New SAL](Howto/how_to_add_a_new_SAL.md)
 
-
+* [Internals](Internals/Internals.md)
+    - [Redis Usage](Internals/Redis.md)
+    - [Logging](Internals/Logging.md)
+    - [JumpScale Config Files](Internals/jumpscaleconfigfiles.md)
 * [SALs](SAL/SAL.md)
 
 

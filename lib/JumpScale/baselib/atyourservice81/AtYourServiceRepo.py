@@ -3,7 +3,7 @@ from JumpScale import j
 from JumpScale.baselib.atyourservice81.Actor import Actor
 from JumpScale.baselib.atyourservice81.Service import Service
 from JumpScale.baselib.atyourservice81.Blueprint import Blueprint
-from JumpScale.baselib.atyourservice81.AYSRun import AYSRun
+# from JumpScale.baselib.atyourservice81.AYSRun import AYSRun
 from JumpScale.baselib.atyourservice81.models import ModelsFactory
 
 import colored_traceback
@@ -237,7 +237,8 @@ class AtYourServiceRepo():
         """
         # import ipdb; ipdb.set_trace()
         if state not in VALID_ACTION_STATE:
-            raise j.exceptions.Input(message='%s is not a valid state. Should one of %s' % (state, ', '.join(VALID_ACTION_STATE)))
+            raise j.exceptions.Input(message='%s is not a valid state. Should one of %s' %
+                                     (state, ', '.join(VALID_ACTION_STATE)))
 
         self._doinit()
         if "install" in actions:

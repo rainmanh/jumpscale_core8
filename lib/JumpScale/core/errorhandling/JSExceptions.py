@@ -68,6 +68,14 @@ class Input(BaseJSException):
         self.codetrace = True
 
 
+class NotImplemented(BaseJSException):
+
+    def __init__(self, message="", level=1, source="", actionkey="", eco=None, tags="", msgpub=""):
+        super().__init__(message, level, source, actionkey, eco, tags, msgpub)
+        self.type = "notimplemented"
+        self.codetrace = True
+
+
 class BUG(BaseJSException):
 
     def __init__(self, message="", level=1, source="", actionkey="", eco=None, tags="", msgpub=""):

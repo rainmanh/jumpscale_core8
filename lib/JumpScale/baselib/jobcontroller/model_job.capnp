@@ -68,6 +68,8 @@ struct Job {
 
   lastModDate @13: UInt32;
 
+  simulate @14: Bool;
+
 }
 
 #is one specific piece of code which can be executed
@@ -126,7 +128,7 @@ struct Run {
       #list of jobs which need to be executed, key alone is enough to fetch the job info
       jobs @2 :List(Job);
       struct Job {
-          guid @0 :Text;
+          key @0 :Text;
 
           #NEXT IS CACHED INFO, THE MAIN SOURCE OF NEXT INFO IS IN Job
           #BUT is good practice will make all run very much faster& allow fast vizualization
@@ -137,6 +139,8 @@ struct Run {
           actionName @3 :Text;
           #name of service run by actor e.g. myhost
           serviceName @4 :Text;
+
+          serviceKey @5:Text;
       }
     }
 

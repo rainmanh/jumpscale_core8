@@ -140,12 +140,11 @@ class JobModel(ModelBase):
         result = msgpack.dumps(val)
         self.dbobj.result = result
 
-    @property
-    def actioncodeObj(self):
-        from IPython import embed
-        print("DEBUG NOW actioncodeobj")
-        embed()
-        raise RuntimeError("stop debug here")
+    def objectGet(self, aysrepo):
+        """
+        returns an Job object created from this model
+        """
+        return j.core.jobcontroller.newJobFromModel(self)
 
     @property
     def actionMethod(self):

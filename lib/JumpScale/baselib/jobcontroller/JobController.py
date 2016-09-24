@@ -8,6 +8,7 @@ import time
 
 from JumpScale.baselib.jobcontroller.models import ModelsFactory
 from JumpScale.baselib.jobcontroller.Job import Job
+from JumpScale.baselib.jobcontroller.Run import Run
 
 
 class JobController:
@@ -59,6 +60,21 @@ class JobController:
         # j.tools.performancetrace.profile("perftest()", globals=locals())
         # perftest()
 
+        # LETS NOW TEST a RUN which is a set of jobs
+
+        def jobStepMethod(msg):
+            print(msg)
+            return msg
+
+        run = self.newRun(simulate=True)
+        for stepnr in range(5):
+            step = run.newStep()
+            for i in range(10):
+                job = self.newJobFromMethod(jobStepMethod, msg="step:%s method:%s" % (stepnr, i))
+                step.addJob(job)
+
+        print(run)
+
     def newJobFromMethod(self, method, runKey="", **args):
         """
         method is link to method (function)
@@ -81,6 +97,16 @@ class JobController:
     def newJobFromModel(self, model):
         job0 = Job(model=model)
         return job0
+
+    def newRunFromModel(self, model):
+        run0 = Run(model=model)
+        return run0
+
+    def newRun(self, simulate=False):
+        model = self.db.run.new()
+        run = Run(model=model)
+        run.model.dbobj.lastModDate = j.data.time.getTimeEpoch()
+        return run
 
     def getActionObjFromMethod(self, method):
         path = inspect.getsourcefile(method)

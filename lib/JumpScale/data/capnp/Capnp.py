@@ -12,8 +12,8 @@ class ModelFactory():
     def __init__(self, parentfactory, category, classItem):
         self.category = category
         namespace = "%s:%s" % (parentfactory.namespacePrefix, self.category.lower())
-        unixsocket = j.sal.fs.joinPaths(os.environ["TMP"], 'redis.sock')
-        self._db = j.servers.kvs.getRedisStore(namespace, namespace, unixsocket=unixsocket, changelog=False)
+        # unixsocket = j.sal.fs.joinPaths(os.environ["TMP"], 'redis.sock')
+        self._db = j.servers.kvs.getRedisStore(namespace, namespace, unixsocket=None, changelog=False)
         # for now we do index same as database
         self._index = j.servers.kvs.getRedisStore(namespace, namespace, changelog=False)
         self._modelClass = classItem  # eval(self.category + "Model." + self.category + "Model")

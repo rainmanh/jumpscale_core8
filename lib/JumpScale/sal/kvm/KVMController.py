@@ -6,7 +6,7 @@ from JumpScale import j
 
 class KVMController:
 
-    def __init__(self, host='localhost', executor=None):
+    def __init__(self, host='localhost', executor=None, base_path=None):
         self.executor = executor
         self._host = host
         self.user = host.split('@')[0] if '@' in host else 'root'
@@ -16,7 +16,8 @@ class KVMController:
             self.executor = j.tools.executor.getLocal()
         self.template_path = j.sal.fs.joinPaths(
             j.sal.fs.getParent(__file__), 'templates')
-        self.base_path = "/tmp/base"
+        self.base_path = base_path or "/tmp/base"
+        self.executor._cuisine.core.dir_ensure(self.base_path)
         self._env = Environment(loader=FileSystemLoader(self.template_path))
 
     def open(self):

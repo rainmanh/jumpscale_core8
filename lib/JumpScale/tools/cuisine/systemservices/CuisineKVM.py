@@ -3,61 +3,12 @@ from JumpScale import j
 
 base = j.tools.cuisine._getBaseClass()
 
-# TODO: *1 implement & test & document (test on packet.net)
-
 # TODO: to implement this good first make sure there is a KVM SAL, then create jskvm just like ther eis a jsdocker
 # see how we did for docker, we need same approach, make sure that in sal
 # we expose all kvm/qemu properties e.g. limits from IOPS, ...
 # make sure use click for the jskvm
-# make sure we can also create/delete/list disks &
-
-# use openvswitch inside (can use the sal directly in jskvm)
 
 # this cuisine obj required jumpscale installed remotely otherwise jskvm is not accessible
-
-
-# will have to change the kvm existing sal to be more modular for disks &
-# nics (like we spec here) as well as use openvswitch
-
-class CuisineKVMMachineObj():
-
-    def __init__(self, kvm, name):
-        self.kvm = kvm
-        self._executor = kvm._executor
-        self.cuisine = kvm._cuisine
-        self.name = name
-        self.vdiskNames = [...]
-        self.vnicNames = [...]
-
-    @property
-    def mem(self):
-        # get from reality
-        raise NotImplemented()
-
-    def start(self):
-        # TODO:
-        raise NotImplemented()
-
-    def stop(self):
-        # TODO:
-        raise NotImplemented()
-
-    def restart(self):
-        # TODO:
-        raise NotImplemented()
-
-    @property
-    def cuisine(self):
-        # TODO: get cuisine connection into VM
-        raise NotImplemented()
-
-    def qos(self, **kwargs):
-        """
-        set vmachine QOS settings at runtime e.g. pinning to core?
-        """
-        # TODO: spec further
-        raise NotImplemented()
-
 
 class CuisineKVM(base):
     """
@@ -97,37 +48,25 @@ class CuisineKVM(base):
         pool.create()
         return pool
 
-    def prepare(self):
-        self.install()
-
-        # check openvswitch properly configured
-
     def install(self):
         if not self._cuisine.core.isUbuntu or self._cuisine.platformtype.osversion != '16.04':
             raise RuntimeError("only support ubuntu 16.04")
         self._libvirt()
-        # check if kvm there if yes, don't do anything
-        # do other required checks
 
     @property
     def path(self):
-        if self._path is None:
-            # look for btrfs fs kvm, is where all vm & disk info will be
-            # TODO *1
-            j.sal.fs.createDir(j.sal.fs.joinPaths(self._path, "vm"))
-            j.sal.fs.createDir(j.sal.fs.joinPaths(self._path, "disk"))
-        return self._path
+        return self._controller.base_path
 
     def vmGetPath(self, name):
-        return j.sal.fs.joinPaths(self.path, "vm", name)
+        return j.sal.fs.joinPaths(self.path, "vms", name)
 
-    def diskGetPath(self, name):
-        return j.sal.fs.joinPaths(self.path, "disk", name)
+    def iamgeGetPath(self, name):
+        return j.sal.fs.joinPaths(self.path, "images", name)
 
     def _libvirt(self):
         """
+        Install required packages for kvm
         """
-        # TODO: *1 need to check and exit if required are met
         self._cuisine.package.install('libvirt-bin')
         self._cuisine.package.install('libvirt-dev')
         self._cuisine.package.install('qemu-system-x86')
@@ -136,14 +75,14 @@ class CuisineKVM(base):
         self._cuisine.development.pip.install("libvirt-python==1.3.2", upgrade=False)
 
     def vdiskBootCreate(self, name, image='http://fs.aydo.com/kvm/ub_small.img'):
-        path = j.sal.fs.joinPaths(self.diskStorPath, name)
-        # create qcow2 image disk on the right path
+        path = j.sal.fs.joinPaths(self._controller.base_path, 'images', name)
+        self._controller.executor.cuisine.core.file_download(image, path, overwrite=True)
 
     def vdiskCreate(self, pool, name, size=100, image_name=""):
         """
+        create an empty disk we can attachl
         @param size in GB
         """
-        # create an empty disk we can attachl
         disk = j.sal.kvm.Disk(self._controller, pool, name, size, image_name)
         disk.create()
 
@@ -158,7 +97,7 @@ class CuisineKVM(base):
         return disks
 
     def machineCreate(self, name, os='xenial-server-cloudimg-amd64-uefi1.img', disks=[10],
-            nics=['vms1'], memory=2000, cpucount=4, cloud_init=True):
+            nics=['vms1'], memory=2000, cpucount=4, cloud_init=True, resetPassword=True):
         """
         @param disks is array of disk names (after using diskCreate)
         @param nics is array of nic names (after using nicCreate)
@@ -168,36 +107,24 @@ class CuisineKVM(base):
 
         @param pubkey is the key which will be used to get access to this kvm, if none then use the std ssh key as used for docker
         """
-        # TODO: *1 implement & test
-
-        # TODO: *1 test can access over ssh & push the ssh key, then change the std passwd
-
-        # TODO: *1 create ssh portforward from this cuisine to localhost to allow access to ssh used by this kvm
-
-        # NEED TO MAKE SURE WE CAN GET ACCESS TO THIS KVM WITHOUT OPENING PORTS
-        # ON KVM HOST (which is current cuisine)
-
         machine = j.sal.kvm.CloudMachine(self._controller, name, os, disks,
             nics, memory, cpucount, cloud_init=cloud_init)
 
         machine.create()
 
+        if resetPassword:
+            sudomode = self._cuisine.core.sudomode
+            self._cuisine.core.sudomode = False
+            try:
+                out = self.run('whoami', showout=False)[1].strip()
+            finally:
+                self._cuisine.core.sudomode = sudomode
+            self._cuisine.core.sudo('echo ' + out + ''':$(</dev/urandom tr -dc "'"'1234567890 !@#$%^&*()"[]{};:?/\,.<>|abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' | head -c10) | chpasswd''')
+
         return machine
 
     def get_machine_by_name(self, name):
         return j.sal.kvm.Machine.get_by_name(self._controller, name)
-
-    def vnicQOS(self, name, **kwargs):
-        """
-        set vnic QOS settings at runtime
-        """
-        raise NotImplemented()
-
-    def vdiskQOS(self, name, **kwargs):
-        """
-        set vdisk QOS settings at runtime
-        """
-        raise NotImplemented()
 
     def vpoolCreate(self, name):
         pool = j.sal.kvm.StorageController(self._controller).get_or_create_pool(name)

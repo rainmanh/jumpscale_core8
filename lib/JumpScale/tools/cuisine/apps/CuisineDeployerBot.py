@@ -59,7 +59,7 @@ class CuisineDeployerBot(app):
 
     def link_code(self):
         self._cuisine.core.dir_ensure("$appDir")
-        self._cuisine.core.file_link('$codeDir/github/jumpscale/jscockpit/deploy_bot/', '$appDir/deployer_bot')
+        self._cuisine.core.file_link('$codeDir/github/jumpscale/jscockpit/deployer_bot/', '$appDir/deployer_bot')
 
     def create_config(self, token=None, g8_addresses=None, dns=None, oauth=None):
         """

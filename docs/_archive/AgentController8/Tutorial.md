@@ -1,30 +1,10 @@
 > WORK IN PROGRESS
 
-# Installation under JS
 
-> For testing make sure to install `singlenode_grid` (`ays install -n singlenode_grid`) which will provide redis and influxdb to be able to go through the coming tutorial. Make sure that [Jumpscale is installed](../../GettingStarted/Install.md)
-
-# Installing needed packages
-
-```bash
-ays install -n AgentController8
-# make sure to provide redis password "rooter" (if needed)
-
-ays install -n agent2
-# accept the defaults
-
-ays install -n AgentController8_client
-# python client and js extension
-```
-
-If everything went smooth, test your installation by starting a `jumpscale shell` and then do the following
+If everything went smooth, test your installation by starting a `js` and then do the following
 
 ```python
-client = j.clients.ac.get(password='rooter')
-#OR
-client = j.client.ac.getByInstance('main')
-
-client.get_os_info(1, 1)
+j.clients.agentcontroller.get(address='localhost', port=6379, password=None)
 ```
 
 This should return something like
@@ -68,7 +48,7 @@ def cmd(self, gid, nid, cmd, args, data=None, id=None):
 - `args` are the run arguments and must be instance of `RunArgs`. you can get `args` like
 
   ```python
-  runargs = j.clients.ac.runArgs(domain='jumpscale', name='ls', args=['-l', '/opt'])
+  runargs = j.clients.agentcontroller.runArgs(domain='jumpscale', name='ls', args=['-l', '/opt'])
   ```
 
 - `data` Optional data is passed to the executed command over `stdin`
@@ -80,14 +60,14 @@ def cmd(self, gid, nid, cmd, args, data=None, id=None):
 ## Starting nginx (long running process)
 
 ```python
-args = j.clients.ac.getRunArgs(domain='js', name='nginx', args=['-c', '/etc/nginx/nginx.conf'], max_time=-1)
-client = j.clients.ac.get(password='<redis-password>')
+args = j.clients.agentcontroller.getRunArgs(domain='js', name='nginx', args=['-c', '/etc/nginx/nginx.conf'], max_time=-1)
+client = j.clients.agentcontroller.get(password='<redis-password>')
 
 cmd = client.cmd(gid, nid, 'execute', args)
 
 #Same can be approached by doing the following
-args = j.clients.ac.getRunArgs(domain='js', max_time=-1)
-client = j.clients.ac.get(password='<redis-password>')
+args = j.clients.agentcontroller.getRunArgs(domain='js', max_time=-1)
+client = j.clients.agentcontroller.get(password='<redis-password>')
 
 cmd = client.execute(gid, nid, 'nginx', ['-c', '/etc/nginx/nginx.conf'], args)
 ```
@@ -152,7 +132,7 @@ drwxr-xr-x 1 root root 436 Jul 15 12:00 statsd-master
 An alternative approach would be enabling stdout capturing by setting `loglevels_db` `runargs`
 
 ```python
-args = j.clients.ac.getRunArgs(loglevels_db='1')
+args = j.clients.agentcontroller.getRunArgs(loglevels_db='1')
 cmd = client.execute(1, 1, 'bash', ['-c', 'ls -l /opt'], args=args)
 job = cmd.get_next_result()
 print job.state # should be SUCCESS
@@ -202,5 +182,5 @@ print ':::'
 Running the command
 
 ```python
-cmd = client.cmd(1, 1, 'execute_js_py', j.clients.ac.getRunArgs(name='test.py'))
+cmd = client.cmd(1, 1, 'execute_js_py', j.clients.agentcontroller.getRunArgs(name='test.py'))
 ```

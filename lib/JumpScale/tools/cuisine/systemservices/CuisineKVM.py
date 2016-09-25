@@ -97,7 +97,7 @@ class CuisineKVM(base):
         return disks
 
     def machineCreate(self, name, os='xenial-server-cloudimg-amd64-uefi1.img', disks=[10],
-            nics=['vms1'], memory=2000, cpucount=4, cloud_init=True, resetPassword=True):
+            nics=['vms1'], memory=2000, cpucount=4, cloud_init=True, start=True, resetPassword=True):
         """
         @param disks is array of disk names (after using diskCreate)
         @param nics is array of nic names (after using nicCreate)
@@ -112,14 +112,12 @@ class CuisineKVM(base):
 
         machine.create()
 
-        if resetPassword:
-            sudomode = self._cuisine.core.sudomode
-            self._cuisine.core.sudomode = False
-            try:
-                out = self.run('whoami', showout=False)[1].strip()
-            finally:
-                self._cuisine.core.sudomode = sudomode
-            self._cuisine.core.sudo('echo ' + out + ''':$(</dev/urandom tr -dc "'"'1234567890 !@#$%^&*()"[]{};:?/\,.<>|abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' | head -c10) | chpasswd''')
+        if start:
+            machine.start()
+            if resetPassword:
+                machine.cuisine.core.sudo("echo '%s:%s' | chpasswd"%(
+                    getattr(machine.executor, 'login', 'root'),
+                    j.data.idgenerator.generatePasswd(10).replace("'", "'\"'\"'")))
 
         return machine
 

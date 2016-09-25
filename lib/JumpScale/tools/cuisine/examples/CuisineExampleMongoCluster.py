@@ -41,14 +41,15 @@ class CuisineExampleMongoCluster(base):
 
         # create a virutal machine kvm1 with the default settings
         kvm1 = c.systemservices.kvm.machineCreate("kvm1")
-        kvm1.start()
         # create a virutal machine kvm2 with the default settings
         kvm2 = c.systemservices.kvm.machineCreate("kvm2")
-        kvm2.start()
 
         # enable sudo mode
         kvm1.cuisine.core.sudomode=True
         kvm2.cuisine.core.sudomode=True
+
+        kvm1.cuisine.development.js8.install()
+        kvm2.cuisine.development.js8.install()
 
         # TODO docker is preconfigured & jumpscale inside with our G8OS fuse 
         # layer (to keep image small), host this image & use as standard

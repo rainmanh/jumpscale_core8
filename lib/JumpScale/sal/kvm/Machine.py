@@ -126,14 +126,15 @@ class Machine(BaseKVMComponent):
         """
         Retrun IP of this instance of the machine if started.
         """
+        tries = 7
         if not self._ip:
-            for i in range(3):
+            for i in range(tries):
                 for nic in self.nics:
                     ip = nic.ip
                     if ip:
                         self._ip = ip
                         return ip
-                if i != 2:
+                if i != tries - 1:
                     sleep(5)
         return self._ip
 
@@ -142,9 +143,15 @@ class Machine(BaseKVMComponent):
         """
         Return Executor obj where the conrtoller is connected.
         """
+        port = 22
         if self.cloud_init and not self._executor:
+            for i in range(5):
+                rc = self.controller.executor.cuisine.core.run('echo | nc %s %s'%(self.ip, port))[0]
+                if rc == 0:
+                    break
+                sleep(5)
             self._executor = self.controller.executor.jumpto(addr=self.ip,
-                login="cloudscalers", port=22, identityfile="/root/.ssh/libvirt")
+                login="cloudscalers", port=port, identityfile="/root/.ssh/libvirt")
         return self._executor
 
     @property

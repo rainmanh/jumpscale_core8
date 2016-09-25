@@ -30,6 +30,7 @@ IPMasquerade={ipmasquerade}
         targetfile = '/etc/systemd/network/{interface}.network'.format(interface=interface)
         self._cuisine.core.file_write(targetfile, content=conf)
         if masquerading:
+            # TODO: check if the rule exists
             self._cuisine.core.run('iptables -t nat -A POSTROUTING -s {ipaddr}/{cidr} ! -d \
                               {ipaddr}/{cidr} -j MASQUERADE'.format(ipaddr=ipaddr, cidr=cidr))
             self._cuisine.package.install('iptables-persistent')

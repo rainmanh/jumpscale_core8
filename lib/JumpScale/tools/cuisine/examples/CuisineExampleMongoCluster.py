@@ -15,26 +15,54 @@ class CuisineExampleMongoCluster(base):
     def install(self, pubkey=None):
         c = self._cuisine
 
-        # TODO: for this to work we need small KVM image somewhere in which docker
-        # is preconfigured & jumpscale inside with our G8OS fuse layer (to keep
-        # image small), host this image & use as standard when creating KVM
-        # this image is autobuilded using our docker build system !!!
+        if not c.core.isUbuntu or c.platformtype.osversion != '16.04':
+            raise RuntimeError("only support ubuntu 16.04")
 
-        # check is ubuntu TODO:
+        # install kvm
+        c.systemservices.kvm.install()
 
-        # make sure kvm gets installed on the node
-        c.systemservices.kvm.install()  # give size, ...
+        # install OpenVswitch
+        c.systemservices.openvswitch.install()
 
+        # create bridge vms1
+        c.systemservices.openvswitch.networkCreate("vms1")
+        # configure the network and the natting
+        c.net.netconfig('vms1', '10.0.4.1', 24, masquerading=True, dhcp=True)
+        c.processmanager.start('systemd-networkd')
+        # add a dhcp sercer to the bridge
+        c.apps.dnsmasq.config('vms1')
+        c.apps.dnsmasq.install()
+
+        # create a pool for the images and virtual disks
+        c.systemservices.kvm.poolCreate("vms")
+
+        # get xenial server cloud image
+        c.systemservices.kvm.download_image("https://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-uefi1.img")
+
+        # create a virutal machine kvm1 with the default settings
         kvm1 = c.systemservices.kvm.machineCreate("kvm1")
+        kvm1.start()
+        # create a virutal machine kvm2 with the default settings
         kvm2 = c.systemservices.kvm.machineCreate("kvm2")
+        kvm2.start()
 
-        # create dockers which will be used to create mongocluster with
+        # enable sudo mode
+        kvm1.cuisine.core.sudomode=True
+        kvm2.cuisine.core.sudomode=True
+
+        # TODO docker is preconfigured & jumpscale inside with our G8OS fuse 
+        # layer (to keep image small), host this image & use as standard
+        # when creating KVM this image is autobuilded using our docker
+        # build system !!!
+
+        # create docker containers
         nodes = []
         for i in range(5):
-            nodes.append(kvm1.systemservices.docker.start("n%s" % i, pubkey=pubkey, weave=True))
-        for i in range(5):
-            nodes.append(kvm2.systemservices.docker.start("n%s" % i, pubkey=pubkey, weave=True))
+            nodes.append(kvm1.cuisine.systemservices.docker.dockerStart(
+                "n%s" % i, ports='', pubkey=pubkey, weave=True, ssh=False)._executor)
+        for i in range(5, 10):
+            nodes.append(kvm2.cuisine.systemservices.docker.dockerStart(
+                "n%s" % i, ports='', pubkey=pubkey, weave=True, ssh=False, weavePeer=kvm1.ip)._executor)
 
-        # result is 10 nodes which are connected over weave & they can tak to each other over weave
-
-        # TODO: complete example to create a mongo cluster over these 10 nodes
+        # create mongo cluster on the docker containers
+        j.tools.cuisine.local.solutions.mongocluster.createCluster(nodes)

@@ -20,6 +20,8 @@ class DNSMasq:
         self._cuisine.processmanager.remove("dnsmasq")
         self._cuisine.process.kill("dnsmasq")
         self._cuisine.package.install("dnsmasq")
+        if not self._cuisine.core.file_exist("/etc/dnsmasq.conf"):
+            self.config()
         if start:
             cmd = self._cuisine.bash.cmdGetPath("dnsmasq")
             self._cuisine.processmanager.ensure("dnsmasq", "%s -d"%(cmd,))

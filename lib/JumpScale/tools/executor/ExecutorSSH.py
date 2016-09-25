@@ -81,6 +81,7 @@ class ExecutorSSH(ExecutorBase):
             proxycommand = """ssh -A -i {identityfile} -q {jmpuser}@{jumphost} nc -q0 {host} {port}""".format(
                 **locals())
         self._sshclient.connectViaProxy(host, username, port, identityfile, proxycommand)
+        self.id = 'jump:%s:%s:%i' % (jumphost, host, port)
         return self
 
     def jumpto(self, addr='', port=22, dest_prefixes={}, login="root",

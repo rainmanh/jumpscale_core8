@@ -76,6 +76,7 @@ class Service:
             r.path = j.sal.fs.joinPaths("services", skey)
 
         self._initProducers(actor, args)
+        self._initRecurringActions(actor)
 
         # input will always happen in process
         args = self.input(args=args)
@@ -182,6 +183,16 @@ class Service:
             producer.actorName = self.parent.model.dbobj.actorName
             producer.key = self.parent.model.key
             producer.serviceName = self.parent.model.name
+
+    def _initRecurringActions(self, actor):
+        self.model.dbobj.init('recurringActions', len(actor.model.dbobj.recurringActions))
+
+        for i, reccuring_info in enumerate(actor.model.dbobj.recurringActions):
+            recurring = self.model.dbobj.recurringActions[i]
+            recurring.action = reccuring_info.action
+            recurring.period = reccuring_info.period
+            recurring.log = reccuring_info.log
+            recurring.lastRun = 0
 
     def loadFromFS(self):
         """

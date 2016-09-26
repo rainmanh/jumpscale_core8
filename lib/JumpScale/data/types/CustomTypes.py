@@ -251,7 +251,7 @@ class Duration(String):
                 return True
         return False
 
-    def convertToSeconds(value):
+    def convertToSeconds(self, value):
         """Translate a string representation of a duration to an int
         representing the amount of seconds.
 
@@ -269,7 +269,7 @@ class Duration(String):
         """
         if not isinstance(value, str):
             return value
-        m = DURATION_RE.matchall(value)
+        m = self._RE.match(value)
         if m:
             # Ok, valid format
             amount, granularity = m.groups()

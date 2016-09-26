@@ -40,10 +40,10 @@ struct Actor {
     }
   }
 
-  recurringTemplate @6 :List(Recurring);
+  recurringActions @6 :List(Recurring);
   struct Recurring {
-    #period in seconds
     action @0 :Text;
+    #period in seconds
     period @1 :UInt32;
     #if True then will keep log of what happened, otherwise only when error
     log @2 :Bool;
@@ -111,13 +111,12 @@ struct Service {
     state @2: State;
   }
 
-  recurring @6 :List(Recurring);
+  recurringActions @6 :List(Recurring);
   struct Recurring {
     #period in seconds
     action @0 :Text;
     period @1 :UInt32;
     lastRun @2: UInt32;
-    # needs to be bool
     # if True then will keep log of what happened, otherwise only when error
     log @3: Bool;
   }

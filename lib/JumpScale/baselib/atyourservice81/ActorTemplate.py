@@ -108,6 +108,10 @@ class ActorTemplate():
             return j.sal.fs.fileGetContents(path)
         return ""
 
+    @property
+    def recurringDict(self):
+        return self._hrd.getDictFromPrefix('recurring')
+
     def actorGet(self, aysrepo):
         Actor = self.aysrepo.getActorClass()
         actor = Actor(aysrepo)

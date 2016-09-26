@@ -95,6 +95,7 @@ class Actor():
 
         self._initParent(template)
         self._initProducers(template)
+        self._initRecurring(template)
 
         self._processActionsFile(template=template)
 
@@ -124,6 +125,16 @@ class Actor():
             producer.minServices = int(consume_info.consume_nr_min)
             producer.maxServices = int(consume_info.consume_nr_max)
             producer.auto = bool(consume_info.auto)
+
+    def _initRecurring(self, template):
+        self.model.dbobj.init('recurringActions', len(template.recurringDict))
+
+        for i, action in enumerate(template.recurringDict):
+            reccuring_info = template.recurringDict[action]
+            recurring = self.model.dbobj.recurringActions[i]
+            recurring.action = action
+            recurring.period = j.data.types.duration.convertToSeconds(reccuring_info['period'])
+            recurring.log = j.data.types.bool.fromString(reccuring_info['log'])
 
     def _processActionsFile(self, template):
         self._out = ""

@@ -32,9 +32,10 @@ class Network(BaseKVMComponent):
                 return []
         return self._interfaces
 
-    def create(self, autostart=True, start=True):
+    def create(self, start=True, autostart=True):
         '''
-        @param autostart true will autostart Network on host boot
+        @param start bool: will start the network after creating it
+        @param autostart bool: will autostart Network on host boot
         create and start network
         '''
         nics = [interface for interface in self.interfaces]

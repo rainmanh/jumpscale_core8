@@ -22,7 +22,7 @@ class Machine(BaseKVMComponent):
         8: "last"
     }
 
-    def __init__(self, controller, name, disks, nics, memory, cpucount, uuid=None, cloud_init=False):
+    def __init__(self, controller, name, disks, nics, memory, cpucount, cloud_init=False):
         """
         Machine object instance.
 
@@ -102,10 +102,7 @@ class Machine(BaseKVMComponent):
         will be available if machine has been created at some point.
         """
         if not self._domain:
-            if self._uuid:
-                self._domain = self.controller.connection.lookupByUUIDString(self._uuid)
-            else:
-                self._domain = self.controller.connection.lookupByName(self.name)
+            self._domain = self.controller.connection.lookupByName(self.name)
         return self._domain
 
     @domain.setter

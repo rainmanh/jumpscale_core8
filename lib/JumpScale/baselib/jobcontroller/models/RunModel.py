@@ -27,7 +27,7 @@ class RunModel(ModelBase):
 
     def index(self):
         # put indexes in db as specified
-        ind = "%s:%s" % (self.dbobj.state,  self.dbobj.lastModDate)
+        ind = "%s:%s" % (self.dbobj.state, self.dbobj.lastModDate)
         self._index.index({ind: self.key})
 
     @classmethod

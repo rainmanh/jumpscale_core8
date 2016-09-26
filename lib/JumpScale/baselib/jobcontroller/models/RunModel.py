@@ -14,7 +14,7 @@ class RunModel(ModelBase):
             state = ".*"
         epoch = ".*"
         regex = "%s:%s" % (state, epoch)
-        res0 = j.atyourservice.db.job._index.list(regex, returnIndex=True)
+        res0 = self._index.list(regex, returnIndex=True)
         res1 = []
         for index, key in res0:
             epoch = int(index.split(":")[-1])

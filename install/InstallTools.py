@@ -1463,77 +1463,45 @@ class InstallTools():
         else:
             return list(map(lambda key: key[2], keys))
 
-    def authorizeSSHKey(self, remoteipaddr, keyname=None, login="root", passwd=None, sshport=22, removeothers=False):
-        """
-        this required ssh-agent to be loaded !!!
-        the keyname is the name of the key as loaded in ssh-agent
-
-        if remoteothers==True: then other keys will be removed
-        """
-
-        # cmd="scp %s %s@%s:~/%s"%(keypath,login,remoteipaddr,self.getBaseName(keypath))
-        # j.do.executeInteractive(cmd)
-
+    def ensure_keyname(self, keyname="", username="root"):
         if not self.exists(keyname):
-            if login == "root":
-                rootpath = "/root/.ssh/"
-            else:
-                rootpath = "/home/%s/.ssh/"
+            rootpath = "/root/.ssh/" if username == "root" else "/home/%s/.ssh/"
             fullpath = self.joinPaths(rootpath, keyname)
             if self.exists(fullpath):
-                keyname = fullpath
+                return fullpath
+        return keyname
 
-        import paramiko
-        paramiko.util.log_to_file("/tmp/paramiko.log")
-        ssh = paramiko.SSHClient()
+    def authorize_user(self, sftp_client, ip_address, keyname, username):
+        basename = self.getBaseName(keyname)
+        tmpfile = "/home/%s/.ssh/%s" % (username, basename)
+        print("push key to /home/%s/.ssh/%s" % (username, basename))
+        sftp_client.put(keyname, tmpfile)
 
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        print("ssh connect:%s %s" % (remoteipaddr, login))
-        #
-        # env.no_keys = True
-        if not self.listSSHKeyFromAgent(self.getBaseName(keyname)):
-            self.loadSSHKeys(self.getParent(keyname))
-        ssh.connect(remoteipaddr, username=login, password=passwd, allow_agent=True, look_for_keys=False)
-        print("ok")
+        # cannot upload directly to root dir
+        auth_key_path = "/home/%s/.ssh/authorized_keys" % username
+        cmd = "ssh %s@%s 'cat %s | sudo tee -a %s '" % username, ip_address, tmpfile, auth_key_path
+        print("do the following on the console\nsudo -s\ncat %s >> %s" % (tmpfile, auth_key_path))
+        print(cmd)
+        self.executeInteractive(cmd)
 
-        if login == "root":
-            authkeypath = "/root/.ssh/authorized_keys"
-        else:
-            authkeypath = "/home/%s/.ssh/authorized_keys" % (login)
-
-        ftp = ssh.open_sftp()
-
-        if login != "root":
-            basename = self.getBaseName(keyname)
-            tmpfile = "/home/%s/.ssh/%s" % (login, basename)
-            print("push key to /home/%s/.ssh/%s" % (login, basename))
-            ftp.put(keyname, tmpfile)
-
-            # cannot upload directly to root dir
-            cmd = "ssh %s@%s 'cat %s | sudo tee -a %s '" % (login, remoteipaddr, tmpfile, authkeypath)
-            print("do the following on the console\nsudo -s\ncat %s >> %s" % (tmpfile, authkeypath))
-            print(cmd)
-            self.executeInteractive(cmd)
-
-        else:
-
-            tmppath = "%s/authorized_keys" % self.TMP
-            self.delete(tmppath)
-            try:
-                ftp.get(authkeypath, tmppath)
-            except Exception as e:
-                if str(e).find("No such file") != -1:
-                    try:
-                        authkeypath += "2"
-                        ftp.get(authkeypath, tmppath)
-                    except Exception as e:
-                        if str(e).find("No such file") != -1:
-                            self.writeFile(tmppath, "")
-                        else:
-                            raise RuntimeError("Could not get authorized key,%s" % e)
+    def authorize_root(self, sftp_client, ip_address, keyname):
+        tmppath = "%s/authorized_keys" % self.TMP
+        auth_key_path = "/root/.ssh/authorized_keys"
+        self.delete(tmppath)
+        try:
+            sftp_client.get(auth_key_path, tmppath)
+        except Exception as e:
+            if str(e).find("No such file") != -1:
+                try:
+                    auth_key_path += "2"
+                    sftp_client.get(auth_key_path, tmppath)
+                except Exception as e:
+                    if str(e).find("No such file") != -1:
+                        self.writeFile(tmppath, "")
+                    else:
+                        raise RuntimeError("Could not get authorized key,%s" % e)
 
             C = self.readFile(tmppath)
-            out = ""
             Cnew = self.readFile(keyname)
             key = Cnew.split(" ")[1]
             if C.find(key) == -1:
@@ -1541,9 +1509,36 @@ class InstallTools():
                 C2 = C2.strip() + "\n"
                 self.writeFile(tmppath, C2)
                 print("sshauthorized adjusted")
-                ftp.put(tmppath, authkeypath)
+                sftp_client.put(tmppath, auth_key_path)
             else:
                 print("ssh key was already authorized")
+
+    def authorizeSSHKey(self, remoteipaddr, keyname, login="root", passwd=None, sshport=22, removeothers=False):
+        """
+        this required ssh-agent to be loaded !!!
+        the keyname is the name of the key as loaded in ssh-agent
+
+        if remoteothers==True: then other keys will be removed
+        """
+        keyname = self.ensure_keyname(keyname=keyname, username=login)
+        import paramiko
+        paramiko.util.log_to_file("/tmp/paramiko.log")
+        ssh = paramiko.SSHClient()
+
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        print("ssh connect:%s %s" % (remoteipaddr, login))
+
+        if not self.listSSHKeyFromAgent(self.getBaseName(keyname)):
+            self.loadSSHKeys(self.getParent(keyname))
+        ssh.connect(remoteipaddr, username=login, password=passwd, allow_agent=True, look_for_keys=False)
+        print("ok")
+
+        ftp = ssh.open_sftp()
+
+        if login != "root":
+            self.authorize_user(sftp_client=ftp, ip_address=remoteipaddr, keyname=keyname, username=login)
+        else:
+            self.authorize_root(sftp_client=ftp, ip_address=remoteipaddr, keyname=keyname)
 
     def _loadSSHAgent(self, path=None, createkeys=False, killfirst=False):
         """

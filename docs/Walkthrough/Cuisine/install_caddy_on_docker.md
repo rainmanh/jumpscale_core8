@@ -5,9 +5,9 @@ This is a continuation on the walkthrough documentation on [Working with Docker 
 Now that you have created the Docker container through JumpScale you have the object wrapper of that container which includes a Cuisine property. This property is a Cuisine remote executor from your current host onto the container. This allows you to manage the machine, execute commands, and most importantly build and install services.  
 
 To install Caddy through the Cuisine object is done in 3 steps:
-* [Step 1: Get the Docker container up and running](#step1getthedockercontainerupandrunning)
-* [Step 2: Get the Cuisine remote executor property](#step2:getthecuisineremoteexecutorproperty)
-* [Step 3: Install Caddy](#Step3InstallCaddy)
+* Step 1: Get the Docker container up and running
+* Step 2: Get the Cuisine remote executor property
+* Step 3: Install Caddy
 
 
 <a id="step-1"></a>

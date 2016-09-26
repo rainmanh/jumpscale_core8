@@ -9,22 +9,14 @@ import platform
 import subprocess
 import time
 import fnmatch
-import signal
 import asyncio
-from sys import argv
-from subprocess import Popen, PIPE
-import os
-import io
-import threading
-from threading import Thread, Lock
-import queue
-import os
-# import smtplib
+from subprocess import Popen
 import re
 import inspect
 
 if sys.platform != 'cygwin':
     import uvloop
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 
 class InstallTools():
@@ -1102,15 +1094,8 @@ class InstallTools():
                 return proc.returncode, out, err
 
         if sys.platform != 'cygwin':
-            # Get get and run coroutines using asyncio
-            try:
-                asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-                loop = asyncio.get_event_loop()
-            except Exception:
-                loop = uvloop.new_event_loop()
-                asyncio.set_event_loop(loop)
+            loop = asyncio.get_event_loop()
             rc, out, err = loop.run_until_complete(_execute(command))
-            loop.close()
         else:
             loop = asyncio.get_event_loop()
             rc, out, err = loop.run_until_complete(_execute(command))

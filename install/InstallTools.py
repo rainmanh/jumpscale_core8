@@ -9,17 +9,8 @@ import platform
 import subprocess
 import time
 import fnmatch
-import signal
 import asyncio
-from sys import argv
-from subprocess import Popen, PIPE
-import os
-import io
-import threading
-from threading import Thread, Lock
-import queue
-import os
-# import smtplib
+from subprocess import Popen
 import re
 import inspect
 

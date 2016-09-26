@@ -65,7 +65,7 @@ class IDGenerator:
         out = ""
         for i in range(0, x):
             p = self.generateRandomInt(0, l - 1)
-            out += al[p]
+            out += r[p]
         return out
 
     def generatePasswd(self, x, al=string.printable):

@@ -15,6 +15,7 @@ class Service:
         self._producers = {}
         self._name = name
         self._parent = None
+        self._executor = None
 
         self.aysrepo = aysrepo
         self.logger = j.atyourservice.logger
@@ -344,10 +345,20 @@ class Service:
 
     @property
     def executor(self):
-        raise NotImplemented("")
         if self._executor is None:
             self._executor = self._getExecutor()
         return self._executor
+
+    def _getExecutor(self):
+        executor = None
+        tocheck = [self]
+        tocheck.extend(self.parents)
+        for service in tocheck:
+            if 'getExecutor' in service.model.methodsState.keys():
+                job = service.getJob('getExecutor')
+                executor = job.method(job)
+                return executor
+        return j.tools.executor.getLocal()
 
     def processChange(self, item):
         # TODO
@@ -413,8 +424,6 @@ class Service:
                 if producer.model.dbobj.state == 'disabled':
                     disabled.append(producer)
         return disabled
-
-
 
     # def disable(self):
     #     for consumer in self.getConsumers():

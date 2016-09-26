@@ -1,5 +1,11 @@
 from JumpScale import j
 
+import pygments.lexers
+from pygments.formatters import get_formatter_by_name
+import colored_traceback
+colored_traceback.add_hook(always=True)
+
+
 
 class RunStep:
 
@@ -9,6 +15,7 @@ class RunStep:
         self.run = run
         self.dbobj = dbobj
         self.dbobj.number = nr
+        self.logger = j.atyourservice.logger
 
     @property
     def state(self):
@@ -52,7 +59,7 @@ class RunStep:
     def execute(self):
         processes = {}
         for job in self.jobs:
-            print('exectute %s' % job)
+            self.logger.info('exectute %s' % job)
             processes[job] = job.execute()
             job.model.dbobj.state = 'running'
 
@@ -190,8 +197,12 @@ class Run:
                 step.execute()
                 if step.state == 'error':
                     self.state = 'error'
-                    import ipdb; ipdb.set_trace()
-                    raise j.exceptions.RuntimeError("Error during execution of step %s" % step)
+                    for job in step.jobs:
+                        if job.model.state == 'error':
+                            log = job.model.dbobj.logs[-1]
+                            job.str_error(log.log)
+                    raise j.exceptions.RuntimeError("Error during execution of step %d\n See stacktrace above to identify the issue" % step.dbobj.number)
+
             self.state = 'ok'
         finally:
             self.save()

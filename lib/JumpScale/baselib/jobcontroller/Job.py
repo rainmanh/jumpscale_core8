@@ -80,7 +80,7 @@ class Job():
 
         logObj = self.model.logObjNew()
         logObj.epoch = eco['epoch']
-        logObj.log = eco['errormessage']
+        logObj.log = eco['_traceback']
         logObj.level = int(eco['level'])
         logObj.tags = eco['tags']
 
@@ -120,23 +120,22 @@ class Job():
         else:
             return j.core.processmanager.startProcess(self.method, {'job': self})
 
-    # def _str_error(self, error):
-    #     out = ''
-    #     formatter = pygments.formatters.Terminal256Formatter(
-    #         style=pygments.styles.get_style_by_name("vim"))
-    #
-    #     if error.__str__() != "":
-    #         out += "\n*TRACEBACK*********************************************************************************\n"
-    #         # self.logger.error("\n*TRACEBACK*********************************************************************************\n")
-    #
-    #         lexer = pygments.lexers.get_lexer_by_name("pytb", stripall=True)
-    #         tb_colored = pygments.highlight(error.__str__(), lexer, formatter)
-    #         print(tb_colored)
-    #         out += tb_colored
-    #
-    #     # self.logger.error("\n\n******************************************************************************************\n")
-    #     out += "\n\n******************************************************************************************\n"
-    #     return out
+    def str_error(self, error):
+        out = ''
+        formatter = pygments.formatters.Terminal256Formatter(style=pygments.styles.get_style_by_name("vim"))
+
+        if error.__str__() != "":
+            out += "\n*TRACEBACK*********************************************************************************\n"
+            # self.logger.error("\n*TRACEBACK*********************************************************************************\n")
+
+            lexer = pygments.lexers.get_lexer_by_name("pytb", stripall=True)
+            tb_colored = pygments.highlight(error.__str__(), lexer, formatter)
+            print(tb_colored)
+            out += tb_colored
+
+        # self.logger.error("\n\n******************************************************************************************\n")
+        out += "\n\n******************************************************************************************\n"
+        return out
 
     def __repr__(self):
         out = "job: %s!%s (%s)\n" % (

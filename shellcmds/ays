@@ -315,9 +315,12 @@ def state(role='', instance=''):
     """
     Print the state of the selected services. If not role or instances specified, all services from the repository are selected
     """
-    for service in atyourservice.findServices(role=role, instance=instance):
-        print('State of service : %s' % service.key)
-        print(service.state)
+    services = atyourservice.servicesFind(name=instance, actor='%s.*' % role)
+    services = sorted(services, key=lambda s: s.model.dbobj.actorName)
+    for service in services:
+        print('State of service : %s!%s' % (service.model.dbobj.actorName, service.model.dbobj.name))
+        for actionName, state in service.model.methodsState.items():
+            print("\t%-25s : %s" % (actionName, state))
 
 cli.add_command(runinfo)
 cli.add_command(simulate)

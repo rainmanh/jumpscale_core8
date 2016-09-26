@@ -198,7 +198,7 @@ class AtYourServiceRepo():
                 raise j.exceptions.Input(message="Cannot find service %s:%s" %
                                          (role, instance), level=1, source="", tags="", msgpub="")
             return None
-        return objs[0]
+        return objs[0].objectGet(self)
 
     @property
     def serviceKeys(self):
@@ -381,23 +381,7 @@ class AtYourServiceRepo():
             else:
                 producerroles = [producerroles.strip()]
         return producerroles
-    #
-    # @property
-    # def runs(self):
-    #     from IPython import embed
-    #     print("DEBUG NOW do")
-    #     embed()
-    #
-    #     runs = AYSRun(self).list()
-    #     return runs
-    #
-    # # def getSource(self, hash):
-    # #     raise j.exceptions.RuntimeError("should not be like thios")
-    # #     return AYSRun(self).getFile('source', hash)
-    #
-    # # def getHRD(self, hash):
-    # #     raise j.exceptions.RuntimeError("should not be like thios")
-    # #     return AYSRun(self).getFile('hrd', hash)
+
 
     def runGet(self, role="", instance="", action="install", force=False, producerRoles="*", data=None, key=0, simulate=False):
         """

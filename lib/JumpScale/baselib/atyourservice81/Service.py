@@ -343,6 +343,18 @@ class Service:
 
         return producersChanged
 
+    def consume(self, service):
+        """
+        consume another service dynamicly
+        """
+        if service in self.producers:
+            return
+
+        self.model.producerAdd(
+            actorName=service.model.dbobj.actorName,
+            serviceName=service.model.name,
+            key=service.model.key)
+
     @property
     def executor(self):
         if self._executor is None:
@@ -465,63 +477,4 @@ class Service:
     #     for consumer in self._getConsumers(include_disabled=True):
     #         consumer.enable()
     #         consumer.start()
-    #
-
-    #
-    # def consume(self, input):
-    #     """
-    #     @input is comma separate list of ayskeys or a Service object or list of Service object
-    #
-    #     ayskeys in format $domain|$name:$instance@role ($version)
-    #
-    #     example
-    #     ```
-    #     @input $domain|$name!$instance,$name2!$instance2,$name2,$role4
-    #     ```
-    #
-    #     """
-    #     if input is not None and input is not '':
-    #         toConsume = set()
-    #         if j.data.types.string.check(input):
-    #             entities = [item for item in input.split(
-    #                 ",") if item.strip() != ""]
-    #             for entry in entities:
-    #                 service = self.aysrepo.getServiceFromKey(entry.strip())
-    #                 toConsume.add(service)
-    #
-    #         elif j.data.types.list.check(input):
-    #             for service in input:
-    #                 toConsume.add(service)
-    #
-    #         elif isinstance(input, Service):
-    #             toConsume.add(input)
-    #         else:
-    #             raise j.exceptions.Input("Type of input to consume not valid. Only support list, string or Service object",
-    #                                      category='AYS.consume', msgpub='Type of input to consume not valid. Only support list, string or Service object')
-    #
-    #         for ays in toConsume:
-    #             self.model.consume(aysi=ays)
-
-
-
-    # def getNode(self):
-    #     for parent in self.parents:
-    #         if 'ssh' == parent.role:
-    #             return parent
-    #     return None
-    #
-    #
-    #
-    # def _getExecutor(self):
-    #     executor = None
-    #     tocheck = [self]
-    #     tocheck.extend(self.parents)
-    #     for service in tocheck:
-    #         if hasattr(service.actions, 'getExecutor'):
-    #             executor = service.actions.getExecutor(service=service)
-    #             return executor
-    #     return j.tools.executor.getLocal()
-    #
-    # def log(self, msg, level=0):
-    #     self.action_current.log(msg)
     #

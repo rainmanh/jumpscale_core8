@@ -296,25 +296,9 @@ class ServiceModel(ModelBase):
             producers.extend(self.find(name=prod.serviceName, actor=prod.actorName))
         return producers
 
-    def producerAdd(self, actorName, name, key):
+    def producerAdd(self, actorName, serviceName, key):
         p = self._producersAdd()
         p.actorName = actorName
-        p.name = name
+        p.serviceName = serviceName
         p.key = key
         self.save()
-
-    def consume(self, producerkey="", aysi=None):
-        """
-        """
-        raise NotImplemented
-        # will check if service exists
-        if aysi is None:
-            aysi = self.service.aysrepo.getServiceFromKey(producerkey)
-        if aysi.role not in self._model["producers"]:
-            self._model["producers"][aysi.role] = []
-            self.changed = True
-        if aysi.key not in self._model["producers"][aysi.role]:
-            self._model["producers"][aysi.role].append(aysi.key)
-            self._model["producers"][aysi.role].sort()
-            self.changed = True
-            self.service.reset()

@@ -55,12 +55,37 @@
   - [AYS Examples](AYS/Examples/Home.md)
 
 
-* [Agent & Agent Controller](AAC/AAC.md)
+* [Agent & Agent Controller]
+  - [Agent Configuration](AgentController8/AgentConfiguration.md)
+  - [Controller8](AgentController8/AgentController8.md)
+  - [Command Syntax](AgentController8/Command-Syntax.md)
+  - [Configurations](AgentController8/Configuration.md)
+  - [Controller Configuration](AgentController8/ControllerConfiguration.md)
+  - [EasyClient](AgentController8/EasyClient.md)
+  - [Install](AgentController8/Install.md)
+  - [Internals](AgentController8/Internals.md)
+  - [Jumpscripts](AgentController8/Jumpscripts.md)
+  - [LogLevels](AgentController8/LogLevels.md)
+  - [Manual Installation](AgentController8/ManualInstall.md)
+  - [MS1 Driver](AgentController8/MS1driver.md)
+  - [Port forwarding](AgentController8/Port-forwarding.md)
+  - [Python Client](AgentController8/PythonClient.md)
+  - [Scripts Distribution](AgentController8/ScriptsDistribution.md)
+  - [Security](AgentController8/Security.md)
+  - [Stats](AgentController8/Stats.md)
+  - [Tutorial](AgentController8/Tutorial.md)
 
+* [Cookbook](Cookbook/Home.md)
+    - [TelegramBot](Cookbook/Bots.md)
+    - [Cloud Automation](Cookbook/CloudAutomation.md)
+    - [Databases](Cookbook/DB.md)
 
 * [Complete Walkthrough](Walkthrough/Walkthrough.md)
   * [Working with Docker using the Docker SAL](Walkthrough/SAL/Docker.md)
   * [Installing Caddy using Cuisine](Walkthrough/Cuisine/install_caddy_on_docker.md)
 
+* [SSH](SSH/Home.md)
+    - [SSH Basics](SSH/SSHBasics.md)
+    - [SSH Agent](SSH/SSHKeysAgent.md)
 
 * [JumpScale API](JumpscaleAPI/SUMMARY.md)

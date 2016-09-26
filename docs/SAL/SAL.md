@@ -26,4 +26,4 @@ As part of JumpScale 8 following SALs are included:
 - [Ubuntu](Ubuntu.md)
 - [rsync](rsync.md)
 
-You can find [more SALs](https://github.com/Jumpscale/jumpscale_core8/tree/master/lib/JumpScale/sal) for Windows, Unix, SSL, SSL Signing, TLS, NGINX and QEMU images.
+You can find [more SALs](../JumpscaleAPI/SUMMARY.md#L185) for Windows, Unix, SSL, SSL Signing, TLS, NGINX and QEMU images.

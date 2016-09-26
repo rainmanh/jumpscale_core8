@@ -302,7 +302,7 @@ class Service:
     def getProducersRecursive(self, producers=set(), callers=set(), action="", producerRoles="*"):
         for role, producers_list in self.producers.items():
             for producer in producers_list:
-                if action == "" or action in producer.model.methods.keys():
+                if action == "" or action in producer.model.methodsState.keys():
                     if producerRoles == "*" or producer.model.role in producerRoles:
                         producers.add(producer)
                 producers = producer.getProducersRecursive(
@@ -325,16 +325,16 @@ class Service:
             # check that the action exists, no need to wait for other actions,
             # appart from when init or install not done
 
-            if producer.model.methods['init'] != "ok":
+            if producer.model.methodsState['init'] != "ok":
                 producersChanged.add(producer)
 
-            if producer.model.methods['install'] != "ok":
+            if producer.model.methodsState['install'] != "ok":
                 producersChanged.add(producer)
 
-            if action not in producer.model.methods.keys():
+            if action not in producer.model.methodsState.keys():
                 continue
 
-            if producer.model.methods[action] != "ok":
+            if producer.model.methodsState[action] != "ok":
                 producersChanged.add(producer)
 
         if scope is not None:
@@ -350,6 +350,7 @@ class Service:
         return self._executor
 
     def processChange(self, item):
+        # TODO
         pass
 
     def input(self, args={}):

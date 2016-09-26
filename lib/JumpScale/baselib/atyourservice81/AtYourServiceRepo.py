@@ -3,7 +3,7 @@ from JumpScale import j
 from JumpScale.baselib.atyourservice81.Actor import Actor
 from JumpScale.baselib.atyourservice81.Service import Service
 from JumpScale.baselib.atyourservice81.Blueprint import Blueprint
-# from JumpScale.baselib.atyourservice81.AYSRun import AYSRun
+from JumpScale.baselib.jobcontroller.Run import Run
 from JumpScale.baselib.atyourservice81.models import ModelsFactory
 
 import colored_traceback
@@ -60,6 +60,7 @@ class AtYourServiceRepo():
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "services"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "recipes"))  # for old time sake
         self.db.destroy()
+        j.core.jobcontroller.db.destroy()
 
 # ACTORS
 
@@ -235,7 +236,6 @@ class AtYourServiceRepo():
         will not mark if state in skipIfIn
 
         """
-        # import ipdb; ipdb.set_trace()
         if state not in VALID_ACTION_STATE:
             raise j.exceptions.Input(message='%s is not a valid state. Should one of %s' %
                                      (state, ', '.join(VALID_ACTION_STATE)))
@@ -279,15 +279,14 @@ class AtYourServiceRepo():
         """
         res = []
 
-        for aysi in self.db.service.find(name=name, actor=actor, state=state, parent=parent, producer=producer):
-
-            if hasAction != "" and aysi.getAction(hasAction) is None:
+        for service_model in self.db.service.find(name=name, actor=actor, state=state, parent=parent, producer=producer):
+            if hasAction != "" and hasAction not in service_model.methodsState.keys():
                 continue
 
-            if includeDisabled is False and aysi.dbobj.state == "disabled":
+            if includeDisabled is False and service_model.dbobj.state == "disabled":
                 continue
 
-            res.append(aysi.objectGet(self))
+            res.append(service_model.objectGet(self))
         if first:
             if len(res) == 0:
                 raise j.exceptions.Input("cannot find service %s|%s:%s" % (self.name, actor, name), "ays.servicesFind")
@@ -354,38 +353,34 @@ class AtYourServiceRepo():
 
 # RUN related
 
-    # def runFindActionScope(self, action, role="", instance="", producerRoles="*"):
-    #     """
-    #     find all services from role & instance and their producers
-    #     only find producers wich have at least one of the actions
-    #     """
-    #     # create a scope in which we need to find work
-    #     producerRoles = self._processProducerRoles(producerRoles)
-    #     scope = set(self.servicesFind(
-    #         role=role, instance=instance, hasAction=action))
-    #     for service in scope:
-    #         producer_candidates = service.getProducersRecursive(
-    #             producers=set(), callers=set(), action=action, producerRoles=producerRoles)
-    #         if producerRoles != '*':
-    #             producer_valid = [
-    #                 item for item in producer_candidates if item.role in producerRoles]
-    #         else:
-    #             producer_valid = producer_candidates
-    #         scope = scope.union(producer_valid)
-    #     return scope
-    #
-    # def _processProducerRoles(self, producerroles):
-    #     if j.data.types.string.check(producerroles):
-    #         if producerroles == "*":
-    #             return "*"
-    #         elif producerroles == "":
-    #             producerroles = []
-    #         elif producerroles.find(",") != -1:
-    #             producerroles = [item for item in producerroles.split(
-    #                 ",") if item.strip() != ""]
-    #         else:
-    #             producerroles = [producerroles.strip()]
-    #     return producerroles
+    def runFindActionScope(self, action, role="", instance="", producerRoles="*"):
+        """
+        find all services from role & instance and their producers
+        only find producers wich have at least one of the actions
+        """
+        # create a scope in which we need to find work
+        producerRoles = self._processProducerRoles(producerRoles)
+        scope = set(self.servicesFind(actor="%s.*" % role, name=instance, hasAction=action))
+        for service in scope:
+            producer_candidates = service.getProducersRecursive(producers=set(), callers=set(), action=action, producerRoles=producerRoles)
+            if producerRoles != '*':
+                producer_valid = [item for item in producer_candidates if item.role in producerRoles]
+            else:
+                producer_valid = producer_candidates
+            scope = scope.union(producer_valid)
+        return scope
+
+    def _processProducerRoles(self, producerroles):
+        if j.data.types.string.check(producerroles):
+            if producerroles == "*":
+                return "*"
+            elif producerroles == "":
+                producerroles = []
+            elif producerroles.find(",") != -1:
+                producerroles = [item for item in producerroles.split(",") if item.strip() != ""]
+            else:
+                producerroles = [producerroles.strip()]
+        return producerroles
     #
     # @property
     # def runs(self):
@@ -403,87 +398,87 @@ class AtYourServiceRepo():
     # # def getHRD(self, hash):
     # #     raise j.exceptions.RuntimeError("should not be like thios")
     # #     return AYSRun(self).getFile('hrd', hash)
+
+    def runGet(self, role="", instance="", action="install", force=False, producerRoles="*", data=None, key=0, simulate=False):
+        """
+        get a new run
+        if key !=0 then the run will be loaded from DB
+        """
+        self._doinit()
+
+        if key != 0:
+            return j.core.jobcontroller.db.run.get(key)
+
+        producerRoles = self._processProducerRoles(producerRoles)
+        if action not in ["init"]:
+            for s in self.services:
+                if s.model.methodsState['init'] not in ["new", "ok"]:
+                    error_msg = "Cannot get run: %s:%s:%s because found a service not properly inited yet.\n%s\n please rerun ays init" % (role, instance, action, s)
+                    self.logger.error(error_msg)
+                    raise j.exceptions.Input(error_msg, msgpub=error_msg)
+        # if force:
+        #     self.setState(actions=[action], role=role,
+        #                   instance=instance, state="DO")
+
+        if action == "init":
+            actions = ["init"]
+        else:
+            actions = ["install", action]
+
+        run = j.core.jobcontroller.newRun(simulate=simulate)
+        for action0 in actions:
+            scope = self.runFindActionScope(action=action0, role=role, instance=instance, producerRoles=producerRoles)
+            todo = self._findTodo(action=action0, scope=scope, run=run, producerRoles=producerRoles)
+            while todo != []:
+                newStep = True
+                for service in todo:
+                    if service.model.methodsState[action0] != 'ok':
+                        print("DO:%s %s" % (action0, service))
+                        if newStep:
+                            step = run.newStep()
+                            newStep = False
+                        job = service.getJob(action0)
+                        step.addJob(job)
+
+                    if service in scope:
+                        scope.remove(service)
+
+                todo = self._findTodo(action0, scope=scope, run=run, producerRoles=producerRoles)
+
+        # these are destructive actions, they need to happens in reverse order
+        # in the dependency tree
+        if action in ['uninstall', 'removedata', 'cleanup', 'halt', 'stop']:
+            run.reverse()
+
+        return run
+
+    def _findTodo(self, action, scope, run, producerRoles):
+        if action == "" or action is None:
+            raise j.exceptions.Input("action cannot be empty")
+
+        if scope == []:
+            return []
+
+        todo = []
+        waiting = False
+        for service in scope:
+            if run.hasServiceForAction(service, action):
+                continue
+            producersWaiting = service.getProducersRecursive(producers=set(), callers=set(), action=action, producerRoles=producerRoles)
+            # remove the ones which are already in previous runs
+            producersWaiting = [item for item in producersWaiting if run.hasServiceForAction(item, action) is False]
+            # remove action that has alredy status ok
+            producersWaiting = [item for item in producersWaiting if item.model.methodsState[action] != "ok"]
+
+            if len(producersWaiting) == 0:
+                todo.append(service)
+
+        if todo == [] and waiting:
+            raise RuntimeError(
+                "cannot find todo's for action:%s in scope:%s.\n\nDEPENDENCY ERROR: could not resolve dependency chain." % (action, scope))
+        return todo
     #
-    # def runGet(self, role="", instance="", action="install", force=False, producerRoles="*", data=None, id=0, simulate=False):
-    #     """
-    #     get a new run
-    #     if id !=0 then the run will be loaded from DB
-    #     """
-    #     self._doinit()
-    #
-    #     if id != 0:
-    #         run = AYSRun(self, id=id)
-    #         return run
-    #
-    #     producerRoles = self._processProducerRoles(producerRoles)
-    #
-    #     if action not in ["init"]:
-    #         for key, s in self.services.items():
-    #             if s.state.get("init") not in ["OK", "DO"]:
-    #                 error_msg = "Cannot get run: %s:%s:%s because found a service not properly inited yet.\n%s\n please rerun ays init" % (role, instance, action, s)
-    #                 self.logger.error(error_msg)
-    #                 raise j.exceptions.Input(error_msg, msgpub=error_msg)
-    #     if force:
-    #         self.setState(actions=[action], role=role,
-    #                       instance=instance, state="DO")
-    #
-    #     if action == "init":
-    #         actions = ["init"]
-    #     else:
-    #         actions = ["install", action]
-    #
-    #     run = AYSRun(self, simulate=simulate)
-    #     for action0 in actions:
-    #         scope = self.runFindActionScope(action=action0, role=role, instance=instance, producerRoles=producerRoles)
-    #         todo = self._findTodo(action=action0, scope=scope, run=run, producerRoles=producerRoles)
-    #         while todo != []:
-    #             newstep = True
-    #             for service in todo:
-    #                 if service.state.get(action0, die=False) != "OK":
-    #                     print("DO:%s %s" % (action, service))
-    #                     if newstep:
-    #                         step = run.newStep(action=action0)
-    #                         newstep = False
-    #                     step.addService(service)
-    #                 if service in scope:
-    #                     scope.remove(service)
-    #             todo = self._findTodo(action0, scope=scope, run=run, producerRoles=producerRoles)
-    #
-    #     # these are destructive actions, they need to happens in reverse order
-    #     # in the dependency tree
-    #     if action in ['uninstall', 'removedata', 'cleanup', 'halt', 'stop']:
-    #         run.reverse()
-    #
-    #     return run
-    #
-    # def _findTodo(self, action, scope, run, producerRoles):
-    #     if action == "" or action is None:
-    #         raise RuntimeError("action cannot be empty")
-    #     if scope == []:
-    #         return []
-    #     todo = list()
-    #     waiting = False
-    #     for service in scope:
-    #         if run.exists(service, action):
-    #             continue
-    #         producersWaiting = service.getProducersRecursive(
-    #             producers=set(), callers=set(), action=action, producerRoles=producerRoles)
-    #         # remove the ones which are already in previous runs
-    #         producersWaiting = [
-    #             item for item in producersWaiting if run.exists(item, action) == False]
-    #         producersWaiting = [item for item in producersWaiting if item.state.get(
-    #             action, die=False) != "OK"]
-    #
-    #         if len(producersWaiting) == 0:
-    #             todo.append(service)
-    #         elif j.application.debug:
-    #             waiting = True
-    #
-    #     if todo == [] and waiting:
-    #         raise RuntimeError(
-    #             "cannot find todo's for action:%s in scope:%s.\n\nDEPENDENCY ERROR: could not resolve dependency chain." % (action, scope))
-    #     return todo
-    #
+
     # def _getChangedServices(self, action=None):
     #     changed = list()
     #     if not action:
@@ -505,9 +500,7 @@ class AtYourServiceRepo():
         if role == "" and instance == "":
             self.reset()
 
-        self.serviceSetState(actions=["init"], role=role, instance=instance, state="new")
-
-        # FIXME: what the goal here ?
+        # self.serviceSetState(actions=["init"], role=role, instance=instance, state="new")
         # for key, actor in self.actors.items():
         #     if role != "" and actor.role == role:
         #         continue
@@ -519,8 +512,8 @@ class AtYourServiceRepo():
         #
         #     #actor.newInstance(instance=key, args={})
 
-        # run = self.runGet(role=role, instance=instance, data=data, action="init")
-        # run.execute()
+        run = self.runGet(role=role, instance=instance, data=data, action="init")
+        run.execute()
 
         print("init done")
 

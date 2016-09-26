@@ -206,7 +206,7 @@ class ServiceModel(ModelBase):
     __str__ = __repr__
 
     @property
-    def methods(self):
+    def methodsState(self):
         """
         return dict
             key = action name
@@ -216,6 +216,19 @@ class ServiceModel(ModelBase):
         methods = {}
         for action in self.dbobj.actions:
             methods[action.name] = action.state
+        return methods
+
+    @property
+    def methodsCode(self):
+        """
+        return dict
+            key = action name
+            val = source code of the action
+        """
+        methods = {}
+        for action in self.dbobj.actions:
+            action_model = j.core.jobcontroller.db.action.get(action.actionKey)
+            methods[action.name] = action_model.code
         return methods
 
     @property

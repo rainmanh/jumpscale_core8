@@ -7,12 +7,23 @@ class RunStep:
         """
         """
         self.run = run
-        self.nr = nr
         self.dbobj = dbobj
+        self.dbobj.number = nr
 
     @property
     def state(self):
         return self.dbobj.state
+
+    @state.setter
+    def state(self, state):
+        self.dbobj.state = state
+
+    @property
+    def services(self):
+        res = []
+        for job in self.jobs:
+            res.append(job.service)
+        return res
 
     def addJob(self, job):
         job.model.dbobj.runKey = self.run.model.key
@@ -34,25 +45,40 @@ class RunStep:
     def jobs(self):
         res = []
         for obj in self.dbobj.jobs:
-            res.append(j.core.jobcontroller.db.job.get(obj.key))
+            job_model = j.core.jobcontroller.db.job.get(obj.key)
+            res.append(job_model.objectGet())
         return res
 
     def execute(self):
-        # TODO: *1
-        from IPython import embed
-        print("DEBUG NOW implement execute on runstep")
-        embed()
-        raise RuntimeError("stop debug here")
+        processes = {}
+        for job in self.jobs:
+            print('exectute %s' % job)
+            processes[job] = job.execute()
+            job.model.dbobj.state = 'running'
+
+        for job, process in processes.items():
+            process.wait()
+            service_action_obj = job.service.getActionObj(job.model.dbobj.actionName)
+            if process.isDone() and process.state != 'success':
+                self.state = 'error'
+                job.model.dbobj.state = 'error'
+                service_action_obj.state = 'error'
+
+                job.processError(process.error)
+            else:
+                self.state = 'ok'
+                job.model.dbobj.state = 'ok'
+                service_action_obj.state = 'ok'
+                print(process.stdout)
+
+            job.model.save()
+            job.service.model.save()
 
     def __repr__(self):
-        out = "step:%s (%s)\n" % (self.nr, self.state)
+        out = "step:%s (%s)\n" % (self.dbobj.number, self.state)
         for job in self.jobs:
-            from IPython import embed
-            print("DEBUG NOW repr")
-            embed()
-            raise RuntimeError("stop debug here")
-            out += "- %-50s ! %-15s %s \n" % (service,
-                                              self.action, stepaction.state)
+            out += "- %-25s %-25s ! %-15s %s \n" % \
+                (job.model.dbobj.actorName, job.model.dbobj.serviceName, job.model.dbobj.actionName, job.model.dbobj.state)
         return out
 
     __str__ = __repr__
@@ -63,14 +89,25 @@ class Run:
     def __init__(self, model):
         """
         """
-        self.steps = []
         self.lastnr = 0
         self.logger = j.atyourservice.logger
         self.model = model
 
     @property
+    def steps(self):
+        res = []
+        for dbobj in self.model.dbobj.steps:
+            step = RunStep(self, dbobj.number, dbobj=dbobj)
+            res.append(step)
+        return res
+
+    @property
     def state(self):
-        return self.model.state
+        return self.model.dbobj.state
+
+    @state.setter
+    def state(self, state):
+        self.model.dbobj.state = state
 
     @property
     def key(self):
@@ -90,7 +127,6 @@ class Run:
         self.lastnr += 1
         dbobj = self.model.stepNew()
         step = RunStep(self, self.lastnr, dbobj=dbobj)
-        self.steps.append(step)
         return step
 
     # def sort(self):
@@ -106,21 +142,21 @@ class Run:
     #             res.append(items[key])
     #         step.services = res
 
-    # @property
-    # def services(self):
-    #     res = []
-    #     for step in self.steps:
-    #         for service in step.services:
-    #             res.append(service)
-    #     return res
-    #
-    # @property
-    # def action_services(self):
-    #     res = []
-    #     for step in self.steps:
-    #         for service in step.services:
-    #             res.append((step.action, service))
-    #     return res
+    @property
+    def services(self):
+        res = []
+        for step in self.steps:
+            res.exetend(step.services)
+        return res
+
+    def hasServiceForAction(self, service, action):
+        for step in self.steps:
+            for job in step.jobs:
+                if job.model.dbobj.actionName != action:
+                    continue
+                if job.service == service:
+                    return True
+        return False
 
     @property
     def error(self):
@@ -144,29 +180,27 @@ class Run:
         self.steps.reverse()
 
     def save(self):
-        if self.db is not None:
-            # will remember in KVS
-            self.db.set("run %s" % str(self.id),
-                        j.data.serializer.json.dumps(self.model))
-            self.db.set("run_index %s" % str(self.id), "%s|%s" %
-                        (self.timestamp, self.state))
+        self.model.save()
 
     def execute(self):
-        # j.actions.setRunId("ays_run_%s"%self.id)
-        for step in self.steps:
-            step.execute()
-            if self.state == "ERROR":
-                # means there was error in this run, then we need to stop
-                self.save()
-                raise j.exceptions.RuntimeError(self.error)
-        self.state = "OK"
-        self.save()
+        self.state = 'running'
+
+        try:
+            for step in self.steps:
+                step.execute()
+                if step.state == 'error':
+                    self.state = 'error'
+                    import ipdb; ipdb.set_trace()
+                    raise j.exceptions.RuntimeError("Error during execution of step %s" % step)
+            self.state = 'ok'
+        finally:
+            self.save()
 
     def __repr__(self):
         out = "RUN:%s\n" % (self.key)
         out += "-------\n"
         for step in self.steps:
-            out += "## step:%s\n\n" % step.nr
+            out += "## step:%s\n\n" % step.dbobj.number
             out += "%s\n" % step
         return out
 

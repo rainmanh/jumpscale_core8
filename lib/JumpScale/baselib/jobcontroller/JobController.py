@@ -94,6 +94,20 @@ class JobController:
         job0 = Job(model=job)
         return job0
 
+    def newJobFromActionKey(self, key, runKey="", **args):
+        action = j.core.jobcontroller.db.action.get(key)
+        job = j.core.jobcontroller.db.job.new()
+        job.dbobj.actionKey = action.key
+        job.dbobj.actionName = action.dbobj.name
+        job.dbobj.actorName = action.dbobj.actorName
+        job.dbobj.runKey = runKey
+        job.dbobj.state = "new"
+        job.dbobj.lastModDate = j.data.time.getTimeEpoch()
+        job.args = args
+
+        job0 = Job(model=job)
+        return job0
+
     def newJobFromModel(self, model):
         job0 = Job(model=model)
         return job0
@@ -106,6 +120,7 @@ class JobController:
         model = self.db.run.new()
         run = Run(model=model)
         run.model.dbobj.lastModDate = j.data.time.getTimeEpoch()
+        run.state = 'new'
         return run
 
     def getActionObjFromMethod(self, method):

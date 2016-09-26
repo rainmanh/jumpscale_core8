@@ -70,6 +70,8 @@ struct Job {
 
   simulate @14: Bool;
 
+  debug @15: Bool;
+
 }
 
 #is one specific piece of code which can be executed
@@ -106,16 +108,13 @@ struct Action {
   logStdout @11: Bool;
 
   remember @12: Bool;
-
-
-
 }
 
 
 struct Run {
     #this object is hosted by actor based on FQDN
 
-    #which step is running right now, can only move to net one if previous one was completed
+    #which step is running right now, can only move to next one if previous one was completed
     currentStep @0: UInt16;
 
     #FQDN of a specific actor which can run multiple jobs & orchestrate work
@@ -125,8 +124,10 @@ struct Run {
     struct RunStep {
       epoch @0: UInt32;
       state @1 :State;
+      # number of the step in the run
+      number @2 :UInt32;
       #list of jobs which need to be executed, key alone is enough to fetch the job info
-      jobs @2 :List(Job);
+      jobs @3 :List(Job);
       struct Job {
           key @0 :Text;
 
@@ -154,7 +155,4 @@ struct Run {
     }
 
     lastModDate @4: UInt32;
-
-
-
 }

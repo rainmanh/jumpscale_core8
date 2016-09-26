@@ -140,7 +140,7 @@ class JobModel(ModelBase):
         result = msgpack.dumps(val)
         self.dbobj.result = result
 
-    def objectGet(self, aysrepo):
+    def objectGet(self):
         """
         returns an Job object created from this model
         """

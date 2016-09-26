@@ -78,12 +78,6 @@ def init(role="", instance="", data=""):
 
     atyourservice.init(role=role, instance=instance, data=data)
 
-    from IPython import embed
-    print("DEBUG NOW init in ays shell script")
-    embed()
-    raise RuntimeError("stop debug here")
-
-
 @click.command()
 @click.argument('path', default='')
 @click.option('--role', '-r', default="", help='optional role for ays instances to init')
@@ -160,7 +154,6 @@ def install(role="", instance="", force=False, producerroles="*", ask=False):
     make it reality
     if you want more finegrained controle please use the do cmd
     """
-    # atyourservice.do("install",role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
     run = atyourservice.runGet(role=role, instance=instance, action="install", force=force, producerRoles=producerroles)
     print(run)
     run.execute()

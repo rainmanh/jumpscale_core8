@@ -156,7 +156,8 @@ class Actor():
         lines = content.splitlines()
         for line in lines:
             linestrip = line.strip()
-            if state == "INIT" and linestrip.startswith("class Actions"):
+            # if state == "INIT" and linestrip.startswith("class Actions"):
+            if state == "INIT" and linestrip != '':
                 state = "MAIN"
                 continue
 
@@ -184,7 +185,6 @@ class Actor():
                 amSource = ""
                 amMethodArgs = args.rstrip('):')
                 amName = definition[4:].strip()
-                self.logger.debug('amName: %s' % amName)
                 if amDecorator == "":
                     if amName in actorMethods:
                         amDecorator = "@actor"
@@ -196,24 +196,24 @@ class Actor():
             if state == "DEF" and line.strip() == "":
                 continue
 
-            if state == "DEF" and line[8:12] in ["'''", "\"\"\""]:
+            if state == "DEF" and line[4:8] in ["'''", "\"\"\""]:
                 state = "DEFDOC"
                 amDoc = ""
                 continue
 
-            if state == "DEFDOC" and line[8:12] in ["'''", "\"\"\""]:
+            if state == "DEFDOC" and line[4:8] in ["'''", "\"\"\""]:
                 state = "DEF"
                 continue
 
             if state == "DEFDOC":
-                amDoc += "%s\n" % line[8:]
+                amDoc += "%s\n" % line[4:]
                 continue
 
             if state == "DEF":
-                if linestrip != line[8:].strip():
+                if linestrip != line[4:].strip():
                     # means we were not rightfully intented
                     raise j.exceptions.Input(message="error in source of action from %s (indentation):\nline:%s\n%s" % (self, line, content), level=1, source="", tags="", msgpub="")
-                amSource += "%s\n" % line[8:]
+                amSource += "%s\n" % line[4:]
 
         # process the last one
         if amName != "":
@@ -225,11 +225,9 @@ class Actor():
                 # not found
                 if actionname == "input":
                     amSource = "return {}"
-                    self._addAction(amName="input", amSource=amSource, amDecorator="actor",
-                                    amMethodArgs="self,job", amDoc="")
+                    self._addAction(amName="input", amSource=amSource, amDecorator="actor", amMethodArgs="job", amDoc="")
                 else:
-                    self._addAction(amName=actionname, amSource="", amDecorator="service",
-                                    amMethodArgs="self,job", amDoc="")
+                    self._addAction(amName=actionname, amSource="", amDecorator="service", amMethodArgs="job", amDoc="")
 
     def _addAction(self, amName, amSource, amDecorator, amMethodArgs, amDoc):
 

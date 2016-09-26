@@ -1,15 +1,13 @@
 from JumpScale import j
 import traceback
+import importlib
 import colored_traceback
-
 from multiprocessing import Process, Queue
-
-colored_traceback.add_hook(always=True)
-
 import pygments.lexers
 from pygments.formatters import get_formatter_by_name
 
-import importlib
+
+colored_traceback.add_hook(always=True)
 
 
 class Job():
@@ -25,7 +23,7 @@ class Job():
 
     @property
     def action(self):
-        if self._action == None:
+        if self._action is None:
             self._action = j.core.jobcontroller.db.action.get(self.model.dbobj.actionKey)
         return self._action
 
@@ -44,13 +42,6 @@ class Job():
         code = j.data.text.indent(code, 4)
 
         s = s.replace("$source", code)
-        # s = s.replace("$name", self.name)
-
-        # argsstr = ""
-        # for key, val in self.action.args.items():
-        #     argsstr += "%s = %s," % (key, val)
-        # argsstr = argsstr.rstrip(",")
-
         s = s.replace("$args", self.action.argsText)
 
         return s
@@ -67,7 +58,7 @@ class Job():
 
     @property
     def method(self):
-        if not self.action.key in j.core.jobcontroller._methods:
+        if self.action.key not in j.core.jobcontroller._methods:
             loader = importlib.machinery.SourceFileLoader(self.action.key, self.sourceToExecutePath)
             handle = loader.load_module(self.action.key)
             method = eval("handle.action")
@@ -76,16 +67,24 @@ class Job():
 
     @property
     def service(self):
-        if self._service == None:
+        if self._service is None:
             # TODO: *3 is shortcut but will work for now, we need to see we are in right repo if multiple
             repo = [item for item in j.atyourservice._repos.items()][-1][1]
             serviceModel = repo.db.service.get(self.model.dbobj.serviceKey)
-            self._service = serviceModel.getObject()
+            self._service = serviceModel.objectGet(repo)
         return self._service
 
     def processError(self, eco):
-        print(str(eco))
-        # TODO: *1 need to put in job & save
+        if j.data.types.string.check(eco):
+            eco = j.data.serializer.json.loads(eco)
+
+        logObj = self.model.logObjNew()
+        logObj.epoch = eco['epoch']
+        logObj.log = eco['errormessage']
+        logObj.level = int(eco['level'])
+        logObj.tags = eco['tags']
+
+        self.model.save()
 
     def executeInProcess(self, service=None):
         """
@@ -94,14 +93,14 @@ class Job():
         """
 
         if self.model.dbobj.actorName != "":
-            if service == None:
+            if service is None:
                 service = self.service
             else:
                 self._service = service
 
         try:
             if self.model.dbobj.actorName != "":
-                res = self.method(service, job=self)
+                res = self.method(job=self)
             else:
                 res = self.method(**self.model.args)
         except Exception as e:
@@ -109,31 +108,17 @@ class Job():
             self.processError(eco)
             raise j.exceptions.RuntimeError("could not execute job:%s" % self)
 
-            # tb = e.__traceback__
-            # value = e
-            # type = None
-            #
-            # tblist = traceback.format_exception(type, value, tb)
-            # tblist.pop(1)
-            # self.traceback = "".join(tblist)
-            #
-            # err = ""
-            # for e_item in e.args:
-            #     if isinstance(e_item, (set, list, tuple)):
-            #         e_item = ' '.join(e_item)
-            #     err += "%s\n" % e_item
-            # print("ERROR:%s" % err)
         self.model.result = res
         return res
 
     def execute(self):
+        """
+        can be execute in paralle so we don't wait for end of execution here.
+        """
         if self.model.dbobj.debug:
             return self.executeInProcess()
         else:
-            from IPython import embed
-            print("DEBUG NOW execute job")
-            embed()
-            raise RuntimeError("stop debug here")
+            return j.core.processmanager.startProcess(self.method, {'job': self})
 
     # def _str_error(self, error):
     #     out = ''
@@ -153,31 +138,9 @@ class Job():
     #     out += "\n\n******************************************************************************************\n"
     #     return out
 
-    # def run(self):
-    #     # for parallelized runs
-    #     try:
-    #         self.result = self.service.runAction(self.runstep.action)
-    #         self.logger.debug('running stepaction: %s' % self.service)
-    #         self.logger.debug('\tresult:%s' % self.result)
-    #         self.result_q.put(self.result)
-    #     except Exception as e:
-    #         self.logger.debug(
-    #             'running stepaction with error: %s' % self.service)
-    #         self.logger.debug('\tresult:%s' % self.result)
-    #         self.logger.debug('\error:%s' % self._str_error(e))
-    #         self.error_q.put(self._str_error(e))
-    #         self.result_q.put(self.result)
-    #         raise e
+    def __repr__(self):
+        out = "job: %s!%s (%s)\n" % (
+            (self.model.dbobj.actorName, self.model.dbobj.serviceName, self.model.dbobj.actionName))
+        return out
 
-    # def __repr__(self):
-    #     out = "runstep action: %s!%s (%s)\n" % (
-    #         self.service.key, self.name, self.state)
-    #     if self.service_model != "":
-    #         out += "model:\n%s\n\n" % j.data.text.indent(self.service_model)
-    #     if self.service_hrd != "":
-    #         out += "hrd:\n%s\n\n" % j.data.text.indent(self.service_hrd)
-    #     if self.source != "":
-    #         out += "source:\n%s\n\n" % j.data.text.indent(self.source)
-    #     return out
-
-    # __str__ = __repr__
+    __str__ = __repr__

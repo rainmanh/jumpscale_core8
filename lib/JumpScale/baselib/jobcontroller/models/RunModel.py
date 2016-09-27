@@ -1,4 +1,5 @@
 from JumpScale import j
+from JumpScale.baselib.jobcontroller.Run import Run
 
 ModelBase = j.data.capnp.getModelBaseClass()
 
@@ -9,7 +10,7 @@ class RunModel(ModelBase):
     """
 
     @classmethod
-    def list(self, state="", fromEpoch=0, toEpoch=999999999, returnIndex=False):
+    def list(self, state="", fromEpoch=0, toEpoch=9999999999999, returnIndex=False):
         if state == "":
             state = ".*"
         epoch = ".*"
@@ -18,7 +19,7 @@ class RunModel(ModelBase):
         res1 = []
         for index, key in res0:
             epoch = int(index.split(":")[-1])
-            if fromEpoch < epoch and epoch < toEpoch:
+            if fromEpoch < epoch < toEpoch:
                 if returnIndex:
                     res1.append((index, key))
                 else:
@@ -64,6 +65,9 @@ class RunModel(ModelBase):
                 setattr(job, k, v)
 
         return job
+
+    def objectGet(self):
+        return Run(model=self)
 
     # def __repr__(self):
     #     out = ""

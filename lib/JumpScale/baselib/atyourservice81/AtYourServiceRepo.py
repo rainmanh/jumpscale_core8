@@ -391,7 +391,8 @@ class AtYourServiceRepo():
         self._doinit()
 
         if key != 0:
-            return j.core.jobcontroller.db.run.get(key)
+            run_model = j.core.jobcontroller.db.run.get(key)
+            return run_model.objectGet()
 
         producerRoles = self._processProducerRoles(producerRoles)
         if action not in ["init"]:

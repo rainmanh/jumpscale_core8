@@ -662,7 +662,6 @@ class Console:
             self.stdout = TextIOWrapper(BytesIO(), sys.stdout.encoding)
         if self.stderr == None or reset:
             self.stderr = TextIOWrapper(BytesIO(), sys.stderr.encoding)
-        sys.stdout =
 
     def printOutput(self):
         pass

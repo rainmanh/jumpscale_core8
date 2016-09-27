@@ -382,7 +382,6 @@ class AtYourServiceRepo():
                 producerroles = [producerroles.strip()]
         return producerroles
 
-
     def runGet(self, role="", instance="", action="install", force=False, producerRoles="*", data=None, key=0, simulate=False):
         """
         get a new run
@@ -480,7 +479,7 @@ class AtYourServiceRepo():
 
 # ACTIONS
 
-    def init(self, role="", instance="", hasAction="", include_disabled=False, data=""):
+    def init(self, role="", instance="", hasAction="", includeDisabled=False, data=""):
         self._doinit()
         if role == "" and instance == "":
             self.reset()
@@ -496,9 +495,9 @@ class AtYourServiceRepo():
         #         service.update_hrd()
         #
         #     #actor.newInstance(instance=key, args={})
-
-        run = self.runGet(role=role, instance=instance, data=data, action="init")
-        run.execute()
+        for service in self.servicesFind(name=instance, actor='%s.*' % role, hasAction=hasAction, includeDisabled=includeDisabled):
+            self.logger.info('init service: %s' % service)
+            service.init()
 
         print("init done")
 

@@ -95,7 +95,8 @@ class Actor():
 
         self._initParent(template)
         self._initProducers(template)
-        self._initRecurring(template)
+        self._initRecurringActions(template)
+        self._initEventActions(template)
 
         self._processActionsFile(template=template)
 
@@ -126,7 +127,7 @@ class Actor():
             producer.maxServices = int(consume_info.consume_nr_max)
             producer.auto = bool(consume_info.auto)
 
-    def _initRecurring(self, template):
+    def _initRecurringActions(self, template):
         self.model.dbobj.init('recurringActions', len(template.recurringDict))
 
         for i, action in enumerate(template.recurringDict):
@@ -135,6 +136,18 @@ class Actor():
             recurring.action = action
             recurring.period = j.data.types.duration.convertToSeconds(reccuring_info['period'])
             recurring.log = j.data.types.bool.fromString(reccuring_info['log'])
+
+    def _initEventActions(self, template):
+        # TODO format for event in hrd is ugly, need better
+        self.model.dbobj.init('eventActions', len(template.eventDict))
+
+        for i, item in enumerate(template.eventDict):
+            event, action = item.split('.')
+            eventObj = self.model.dbobj.eventActions[i]
+            eventObj.action = action
+            eventObj.event = event
+            log = template.eventDict[item]['log']
+            eventObj.log = j.data.types.bool.fromString(log)
 
     def _processActionsFile(self, template):
         self._out = ""

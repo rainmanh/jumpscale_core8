@@ -49,9 +49,18 @@ struct Actor {
     log @2 :Bool;
   }
 
+  eventActions @7 :List(Event);
+  struct Event {
+    action @0 :Text;
+    # name of the event to register to
+    event @1 :Text;
+    # if True then will keep log of what happened, otherwise only when error
+    log @2: Bool;
+  }
+
 
   #where does the template compe from
-  origin @7 :Origin;
+  origin @8 :Origin;
   struct Origin {
     #link to git which hosts this template for the actor
     gitUrl @0 :Text;
@@ -60,15 +69,15 @@ struct Actor {
   }
 
   #python script which interactively asks for the information when not filled in
-  serviceDataUI @8 :Text;
+  serviceDataUI @9 :Text;
 
-  serviceDataSchema @9 :Text;
+  serviceDataSchema @10 :Text;
 
-  data @10 :Data; #is msgpack dict
+  data @11 :Data; #is msgpack dict
 
-  dataUI @11 :Text;
+  dataUI @12 :Text;
 
-  gitRepo @12 :GitRepo;
+  gitRepo @13 :GitRepo;
   struct GitRepo {
     #git url
     url @0 :Text;
@@ -113,15 +122,25 @@ struct Service {
 
   recurringActions @6 :List(Recurring);
   struct Recurring {
-    #period in seconds
     action @0 :Text;
+    #period in seconds
     period @1 :UInt32;
     lastRun @2: UInt32;
     # if True then will keep log of what happened, otherwise only when error
     log @3: Bool;
   }
 
-  state @7 :State;
+  eventActions @7 :List(Event);
+  struct Event {
+    action @0 :Text;
+    # name of the event to register to
+    event @1 :Text;
+    lastRun @2: UInt32;
+    # if True then will keep log of what happened, otherwise only when error
+    log @3: Bool;
+  }
+
+  state @8 :State;
   enum State {
     new @0;
     installing @1;
@@ -131,13 +150,13 @@ struct Service {
     changed @5;
   }
 
-  data @8 :Data;
+  data @9 :Data;
   # bytes version of the content of schema.hrd after translation to canpn
 
   #schema of config data in textual format
-  dataSchema @9 :Text;
+  dataSchema @10 :Text;
 
-  gitRepos @10 :List(GitRepo);
+  gitRepos @11 :List(GitRepo);
   struct GitRepo {
     #git url
     url @0 :Text;
@@ -145,6 +164,6 @@ struct Service {
     path @1 :Text;
   }
 
-  actorKey @11 :Text;
+  actorKey @12 :Text;
 
 }

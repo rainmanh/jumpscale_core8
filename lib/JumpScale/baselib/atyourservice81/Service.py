@@ -77,6 +77,7 @@ class Service:
 
         self._initProducers(actor, args)
         self._initRecurringActions(actor)
+        self._initEventActions(actor)
 
         # input will always happen in process
         args = self.input(args=args)
@@ -193,6 +194,16 @@ class Service:
             recurring.period = reccuring_info.period
             recurring.log = reccuring_info.log
             recurring.lastRun = 0
+
+    def _initEventActions(self, actor):
+        self.model.dbobj.init('eventActions', len(actor.model.dbobj.eventActions))
+
+        for i, event_info in enumerate(actor.model.dbobj.eventActions):
+            event = self.model.dbobj.eventActions[i]
+            event.action = event_info.action
+            event.event = event_info.event
+            event.log = event_info.log
+            event.lastRun = 0
 
     def loadFromFS(self):
         """

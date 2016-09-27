@@ -112,6 +112,10 @@ class ActorTemplate():
     def recurringDict(self):
         return self._hrd.getDictFromPrefix('recurring')
 
+    @property
+    def eventDict(self):
+        return self._hrd.getDictFromPrefix('event')
+
     def actorGet(self, aysrepo):
         Actor = self.aysrepo.getActorClass()
         actor = Actor(aysrepo)

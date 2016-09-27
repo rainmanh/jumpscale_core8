@@ -1,4 +1,5 @@
 from JumpScale import j
+from JumpScale.core.errorhandling.ErrorConditionObject import ErrorConditionObject
 import traceback
 import importlib
 import colored_traceback
@@ -75,14 +76,33 @@ class Job():
         return self._service
 
     def processError(self, eco):
+        logObj = self.model.logObjNew()
+
         if j.data.types.string.check(eco):
+            # case it comes from the result of the processmanager
             eco = j.data.serializer.json.loads(eco)
 
-        logObj = self.model.logObjNew()
-        logObj.epoch = eco['epoch']
-        logObj.log = eco['_traceback']
-        logObj.level = int(eco['level'])
-        logObj.tags = eco['tags']
+            logObj.epoch = eco['epoch']
+            if eco['_traceback'] != '':
+                logObj.log = eco['_traceback']
+            elif eco['errormessage'] != '':
+                logObj.log = eco['errormessage']
+            else:
+                # TODO
+                pass
+            logObj.level = int(eco['level'])
+            logObj.tags = eco['tags']
+        elif isinstance(eco, ErrorConditionObject):
+            logObj.epoch = eco.epoch
+            if eco._traceback != '':
+                logObj.log = eco._traceback
+            elif eco.errormessage != '':
+                logObj.log = eco.errormessage
+            else:
+                # TODO
+                pass
+            logObj.level = eco.level
+            logObj.tags = eco.tags
 
         self.model.save()
 

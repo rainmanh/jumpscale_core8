@@ -93,31 +93,6 @@ class Service:
 
         self.saveToFS()
 
-        # TODO *1*
-        # # Set subscribed event into state
-        # if self.actor.template.hrd is not None:
-        #     for event, actions in self.actor.template.hrd.getDictFromPrefix('events').items():
-        #         self.model.setEvents(event, actions)
-        #     # Set recurring into state
-        #     for action, period in self.actor.template.hrd.getDictFromPrefix('recurring').items():
-        #         self.model.setRecurring(action, period)
-        #
-        #     # if service.hrd has remove some event action, update state to
-        #     # reflect that
-        #     actual = set(self.actor.template.hrd.getDictFromPrefix('events').keys())
-        #     total = set(self.model.events.keys())
-        #     for action in total.difference(actual):
-        #         self.model.removeEvent(action)
-        #
-        #     # if service.hrd has remove some recurring action, update state to
-        #     # reflect that
-        #     actual = set(self.actor.template.hrd.getDictFromPrefix('recurring').keys())
-        #     total = set(self.model.recurring.keys())
-        #     for action in total.difference(actual):
-        #         self.model.removeRecurring(action)
-        #
-        # self.model.save()
-
     def _initParent(self, actor, args):
         if actor.model.dbobj.parent.actorRole is not "":
             parent_role = actor.model.dbobj.parent.actorRole

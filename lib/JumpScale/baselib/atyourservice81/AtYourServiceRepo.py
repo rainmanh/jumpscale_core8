@@ -34,6 +34,7 @@ class AtYourServiceRepo():
         self._blueprints = {}
         self._templates = {}
         self._actors = {}
+        self._services = []
 
         self.db = ModelsFactory(self)
 
@@ -177,12 +178,12 @@ class AtYourServiceRepo():
 
     @property
     def services(self):
-        services = []
-        for item in self.db.service.find():
-            res = item.objectGet(aysrepo=self)
-            if res.model.dbobj.state != "disabled":
-                services.append(res)
-        return services
+        if self._services == []:
+            for item in self.db.service.find():
+                res = item.objectGet(aysrepo=self)
+                if res.model.dbobj.state != "disabled":
+                    self._services.append(res)
+        return self._services
 
     def serviceGet(self, role, instance, die=True):
         """

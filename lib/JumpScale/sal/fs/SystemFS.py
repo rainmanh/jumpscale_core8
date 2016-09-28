@@ -1402,6 +1402,20 @@ class SystemFS:
         self.logger.debug('File %s is closed after reading' % filename)
         return data
 
+    def fileGetBinaryContents(self, filename):
+        """Read a file in binary mode and get contents of that file
+        @param filename: string (filename to open for reading )
+        @rtype: string representing the file contents
+        """
+        if filename is None:
+            raise TypeError('File name is None in system.fs.fileGetContents')
+        self.logger.debug('Opened file %s for reading' % filename)
+        self.logger.debug('Reading file %s' % filename)
+        with open(filename, mode='rb') as fp:
+            data = fp.read()
+        self.logger.debug('File %s is closed after reading' % filename)
+        return data
+
     def readFile(self, filename):
         """
         Get contents as string from filename.
@@ -1474,9 +1488,13 @@ class SystemFS:
         else:
             fp = open(filename, "ab")
         self.logger.debug('Writing contents in file %s' % filename)
-        fp.write(bytes(contents, 'UTF-8'))
+        if j.data.types.string.check(contents):
+            fp.write(bytes(contents, 'UTF-8'))
+        else:
+            fp.write(contents)
         # fp.write(contents)
         fp.close()
+
 
     def fileSize(self, filename):
         """Get Filesize of file in bytes
@@ -1999,7 +2017,7 @@ class SystemFS:
         """
         Gunzip gzip sourcefile into destination file
 
-        @param sourceFile str: path to gzip file to be unzipped. 
+        @param sourceFile str: path to gzip file to be unzipped.
         @param destFile str: path to destination folder to unzip folder.
         """
         import gzip

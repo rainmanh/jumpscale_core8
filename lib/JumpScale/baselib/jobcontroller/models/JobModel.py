@@ -181,8 +181,10 @@ class JobModel(ModelBase):
     @property
     def dictFiltered(self):
         ddict = self.dbobj.to_dict()
-        if "args" in ddict:
-            ddict.pop("args")
+        to_filter = ['args', 'result', 'profileData']
+        for key in to_filter:
+            if key in ddict:
+                del ddict[key]
         return ddict
 
     def __repr__(self):

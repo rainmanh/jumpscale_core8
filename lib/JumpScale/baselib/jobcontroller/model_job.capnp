@@ -72,6 +72,9 @@ struct Job {
 
   debug @15: Bool;
 
+  profile @16: Bool;
+  profileData @17: Data;
+
 }
 
 #is one specific piece of code which can be executed

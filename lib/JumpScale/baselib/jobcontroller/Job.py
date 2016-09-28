@@ -6,7 +6,7 @@ import colored_traceback
 from multiprocessing import Process, Queue
 import pygments.lexers
 from pygments.formatters import get_formatter_by_name
-
+import cProfile
 
 colored_traceback.add_hook(always=True)
 
@@ -142,6 +142,7 @@ class Job():
             else:
                 res = self.method(**self.model.args)
                 self.model.dbobj.state = 'ok'
+
         except Exception as e:
             self.model.dbobj.state = 'error'
             eco = j.errorconditionhandler.processPythonExceptionObject(e)
@@ -162,9 +163,23 @@ class Job():
 
         # can be execute in paralle so we don't wait for end of execution here.
         if self.model.dbobj.debug:
-            return self.executeInProcess()
+            if self.model.dbobj.profile:
+                pr = cProfile.Profile()
+                pr.enable()
+
+            process = self.executeInProcess()
+
+            if self.model.dbobj.profile:
+                pr.create_stats()
+                stat_file = j.sal.fs.getTempFileName()
+                pr.dump_stats(stat_file)
+                self.model.dbobj.profileData = j.sal.fs.fileGetBinaryContents(stat_file)
+                self.model.save()
+                j.sal.fs.remove(stat_file)
         else:
             return j.core.processmanager.startProcess(self.method, {'job': self})
+
+        return process
 
     def str_error(self, error):
         out = ''

@@ -45,13 +45,13 @@ class JobModel(ModelBase):
         self._index.index({ind: self.key})
 
     @classmethod
-    def find(self, actor="", service="", action="", state="", serviceKey="", fromEpoch=0, toEpoch=999999999):
+    def find(self, actor="", service="", action="", state="", serviceKey="", fromEpoch=0, toEpoch=9999999999999):
         res = []
         for key in self.list(actor, service, action, state, serviceKey, fromEpoch, toEpoch):
             res.append(self._modelfactory.get(key))
         return res
 
-    def log(self, msg, level=5, category="msg", epoch=None, tags=None):
+    def log(self, msg, level=5, category="msg", epoch=None, tags=''):
         """
         category:
               out @0; #std out from executing in console

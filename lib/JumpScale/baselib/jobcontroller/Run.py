@@ -64,25 +64,28 @@ class RunStep:
 
             if job.model.dbobj.debug is False:
                 processes[job] = process
-            else:
-                processes[job] = None
 
         for job, process in processes.items():
-            if process is None:
-                continue
-
             process.wait()
+
             service_action_obj = job.service.getActionObj(job.model.dbobj.actionName)
+
             if process.isDone() and process.state != 'success':
                 self.state = 'error'
                 job.model.dbobj.state = 'error'
                 service_action_obj.state = 'error'
-
+                # processError creates the logs entry in job object
                 job.processError(process.error)
             else:
                 self.state = 'ok'
                 job.model.dbobj.state = 'ok'
                 service_action_obj.state = 'ok'
+
+                log_enable = j.core.jobcontroller.db.action.get(service_action_obj.actionKey).dbobj.log
+                if log_enable:
+                    job.model.log(msg=process.stdout, level=5, category='out')
+                    job.model.log(msg=process.stderr, level=5, category='err')
+
                 print(process.stdout)
 
             job.model.save()

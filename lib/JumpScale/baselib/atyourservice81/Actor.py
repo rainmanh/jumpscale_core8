@@ -278,9 +278,19 @@ class Actor():
             oldaction.actionKey = ac.key
 
     def processChange(self, changeCategory):
-        """template action change e.g. action_install"""
-        # TODO: implement change mgmt
-        pass
+        """
+        template action change
+        categories :
+            - dataschema
+            - ui
+            - config
+            - action_new_actionname
+            - action_mod_actionname
+        """
+        # TODO: implement different pre-define action for each category
+        self.logger.debug('process change for %s (%s)' % (self, changeCategory))
+        for service in self.aysrepo.servicesFind(actor=self.model.name):
+            service.processChange(actor=self, changeCategory=changeCategory)
 
 # SERVICE
 

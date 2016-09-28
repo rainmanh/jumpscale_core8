@@ -370,9 +370,8 @@ class Service:
                 return executor
         return j.tools.executor.getLocal()
 
-    def processChange(self, item):
-        # TODO
-        pass
+    def processChange(self, actor, changeCategory):
+        self.logger.debug('process change for %s (%s)' % (self, changeCategory))
 
     def input(self, args={}):
         job = self.getJob("input", args=args)

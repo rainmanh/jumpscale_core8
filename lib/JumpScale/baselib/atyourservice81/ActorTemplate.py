@@ -46,6 +46,10 @@ class ActorTemplate():
         self.aysrepo = aysrepo
 
     @property
+    def role(self):
+        return self.name.split('.')[0]
+
+    @property
     def schemaHrd(self):
         """
         returns capnp schema as text

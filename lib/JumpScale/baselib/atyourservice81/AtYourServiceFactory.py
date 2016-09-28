@@ -175,7 +175,7 @@ class AtYourServiceFactory:
 
         if isValidTemplate(path):
             templ = ActorTemplate(gitrepo, path, aysrepo=aysrepo)
-            if aysrepo == None:  # no need to check if in repo because then there can be doubles
+            if aysrepo is None:  # no need to check if in repo because then there can be doubles
                 if templ.name in self._templates:
                     if path != self._templates[templ.name].path:
                         self.logger.debug('found %s in %s and %s' %
@@ -266,36 +266,30 @@ class AtYourServiceFactory:
         returns repo we are in
         """
         path = j.sal.fs.getcwd()
-        return self.repoGet(path)
+        return self.repoGet(path=path)
 
-    def repoGet(self, path="", name=""):
+    def repoGet(self, path):
         """
+        if repo doesn't exist at path, try to create one
+
         @return:    @AtYourServiceRepo object
         """
         self._doinit()
-        if name is not "":
-            if name not in self._repos:
-                raise j.exceptions.Input(message="Could not find repo:%s" %
-                                         name, level=1, source="", tags="", msgpub="")
-            return self._repos[name]
-        elif path is not "":
+
+        def findRepo(path):
             for key, repo in self._repos.items():
                 if repo.path == path:
                     return repo
+            return None
+
+        repo = findRepo(path)
+        if repo is None:
             # repo does not exist yet
             self._repoLoad(path)
-            for key, repo in self._repos.items():
-                if repo.path == path:
-                    return repo
-            raise j.exceptions.Input(message="Could not find repo in path:%s" %
-                                     path, level=1, source="", tags="", msgpub="")
-        else:
-            if len(self._repos.keys()) == 1:
-                for key, item in self._repos.items():
-                    return item
-            else:
-                raise j.exceptions.Input(
-                    message="found more than 1 repo, cannot define which one to use", level=1, source="", tags="", msgpub="")
+        repo = findRepo(path)
+        if repo is None:
+            raise j.exceptions.Input(message="Could not find repo in path:%s" % path, level=1, source="", tags="", msgpub="")
+        return repo
 
 # FACTORY
 

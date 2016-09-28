@@ -9,12 +9,70 @@ VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 class ServiceModel(ModelBase):
 
     @property
-    def name(self):
-        return self.dbobj.name
-
-    @property
     def role(self):
         return self.dbobj.actorName.split(".")[0]
+
+    @property
+    def parent(self):
+        if self.dbobj.parent.serviceName == '' or self.dbobj.parent.actorName == '':
+            return None
+
+        parentModels = self.find(name=self.dbobj.parent.serviceName, actor=self.dbobj.parent.actorName)
+        if len(parentModels) <= 0:
+            return None
+        elif len(parentModels) > 1:
+            raise j.exceptions.RuntimeError("More then one parent model found for model %s:%s" % (self.dbobj.actorName, self.dbobj.name))
+
+        return parentModels[0]
+
+    @property
+    def producers(self):
+        producers = []
+        for prod in self.dbobj.producers:
+            producers.extend(self.find(name=prod.serviceName, actor=prod.actorName))
+        return producers
+
+    @property
+    def methodsState(self):
+        """
+        return dict
+            key = action name
+            val = state
+        state = 'new', 'installing', 'ok', 'error', 'disabled', 'changed'
+        """
+        methods = {}
+        for action in self.dbobj.actions:
+            methods[action.name] = action.state
+        return methods
+
+    @property
+    def methodsCode(self):
+        """
+        return dict
+            key = action name
+            val = source code of the action
+        """
+        methods = {}
+        for action in self.dbobj.actions:
+            action_model = j.core.jobcontroller.db.action.get(action.actionKey)
+            methods[action.name] = action_model.code
+        return methods
+
+    @property
+    def recurring(self):
+        raise NotImplemented
+        """
+        return dict
+            key = action name
+            val = (period,lastrun)
+
+        lastrun = epoch
+        period = e.g. 1h, 1d, ...
+        """
+        recurrings = {}
+        for recurring in self.dbobj.recurring:
+            recurrings[recurring.name] = (recurring.period, recurring.lastRun)
+        return recurrings
 
     @classmethod
     def list(self, name="", actor="", state="", parent="", producer="", returnIndex=False):
@@ -73,14 +131,6 @@ class ServiceModel(ModelBase):
                 index[ind] = self.key
             self._index.index(index)
 
-    def objectGet(self, aysrepo):
-        """
-        returns an Service object created from this model
-        """
-        actor = aysrepo.actorGet(self.dbobj.actorName, die=True)
-        Service = aysrepo.getServiceClass()
-        return Service(name=self.dbobj.name, aysrepo=aysrepo, model=self)
-
     @classmethod
     def find(self, name="", actor="", state="", parent="", producer=""):
         """
@@ -103,14 +153,22 @@ class ServiceModel(ModelBase):
             res.append(self._modelfactory.get(key))
         return res
 
-    def _producersAdd(self):
+    def objectGet(self, aysrepo):
+        """
+        returns an Service object created from this model
+        """
+        actor = aysrepo.actorGet(self.dbobj.actorName, die=True)
+        Service = aysrepo.getServiceClass()
+        return Service(name=self.dbobj.name, aysrepo=aysrepo, model=self)
+
+    def _producerNewObj(self):
         olditems = [item.to_dict() for item in self.dbobj.producers]
         newlist = self.dbobj.init("producers", len(olditems) + 1)
         for i, item in enumerate(olditems):
             newlist[i] = item
         return newlist[-1]
 
-    def actionsAdd(self):
+    def _actionsNewObj(self):
         olditems = [item.to_dict() for item in self.dbobj.actions]
         newlist = self.dbobj.init("actions", len(olditems) + 1)
         for i, item in enumerate(olditems):
@@ -123,7 +181,7 @@ class ServiceModel(ModelBase):
                 return action
         raise j.exceptions.NotFound("Can't find method with name %s" % name)
 
-    def _recurringAdd(self):
+    def _recurringNewObj(self):
         olditems = [item.to_dict() for item in self.dbobj.recurring]
         newlist = self.dbobj.init("recurring", len(olditems) + 1)
         for i, item in enumerate(olditems):
@@ -136,7 +194,7 @@ class ServiceModel(ModelBase):
                 return recurring
         raise j.exceptions.NotFound("Can't find recurring with name %s" % action_name)
 
-    def gitRepoAdd(self):
+    def _gitRepoNowObj(self):
         olditems = [item.to_dict() for item in self.dbobj.gitRepos]
         newlist = self.dbobj.init("gitRepos", len(olditems) + 1)
         for i, item in enumerate(olditems):
@@ -192,60 +250,12 @@ class ServiceModel(ModelBase):
             ddict.pop("dataSchema")
         return ddict
 
-    def __repr__(self):
-        # TODO: *1 to put back on self.wiki
-        out = self.dictJson + "\n"
-        if self.dbobj.dataSchema not in ["", b""]:
-            out += "SCHEMA:\n"
-            out += self.dbobj.dataSchema
-        if self.dbobj.data not in ["", b""]:
-            out += "DATA:\n"
-            out += self.dataJSON
-        return out
-
-    __str__ = __repr__
-
-    @property
-    def methodsState(self):
-        """
-        return dict
-            key = action name
-            val = state
-        state = 'new', 'installing', 'ok', 'error', 'disabled', 'changed'
-        """
-        methods = {}
-        for action in self.dbobj.actions:
-            methods[action.name] = action.state
-        return methods
-
-    @property
-    def methodsCode(self):
-        """
-        return dict
-            key = action name
-            val = source code of the action
-        """
-        methods = {}
-        for action in self.dbobj.actions:
-            action_model = j.core.jobcontroller.db.action.get(action.actionKey)
-            methods[action.name] = action_model.code
-        return methods
-
-    @property
-    def recurring(self):
-        raise NotImplemented
-        """
-        return dict
-            key = action name
-            val = (period,lastrun)
-
-        lastrun = epoch
-        period = e.g. 1h, 1d, ...
-        """
-        recurrings = {}
-        for recurring in self.dbobj.recurring:
-            recurrings[recurring.name] = (recurring.period, recurring.lastRun)
-        return recurrings
+    def producerAdd(self, actorName, serviceName, key):
+        p = self._producerNewObj()
+        p.actorName = actorName
+        p.serviceName = serviceName
+        p.key = key
+        self.save()
 
     def recurringAdd(self, name, period):
         """
@@ -270,35 +280,27 @@ class ServiceModel(ModelBase):
         #     del self._model['recurring'][name]
         #     self.changed = True
 
+    def repoAdd(self, url, path):
+        repo = self._gitRepoNowObj()
+        repo.url = url
+        repo.path = path
+        self.save()
+
     def check(self):
         """
         walks over the recurring items and if too old will execute
         """
         j.application.break_into_jshell("DEBUG NOW check recurring")
 
-    @property
-    def parent(self):
-        if self.dbobj.parent.serviceName == '' or self.dbobj.parent.actorName == '':
-            return None
+    def __repr__(self):
+        # TODO: *1 to put back on self.wiki
+        out = self.dictJson + "\n"
+        if self.dbobj.dataSchema not in ["", b""]:
+            out += "SCHEMA:\n"
+            out += self.dbobj.dataSchema
+        if self.dbobj.data not in ["", b""]:
+            out += "DATA:\n"
+            out += self.dataJSON
+        return out
 
-        parentModels = self.find(name=self.dbobj.parent.serviceName, actor=self.dbobj.parent.actorName)
-        if len(parentModels) <= 0:
-            return None
-        elif len(parentModels) > 1:
-            raise j.exceptions.RuntimeError("More then one parent model found for model %s:%s" % (self.dbobj.actorName, self.dbobj.name))
-
-        return parentModels[0]
-
-    @property
-    def producers(self):
-        producers = []
-        for prod in self.dbobj.producers:
-            producers.extend(self.find(name=prod.serviceName, actor=prod.actorName))
-        return producers
-
-    def producerAdd(self, actorName, serviceName, key):
-        p = self._producersAdd()
-        p.actorName = actorName
-        p.serviceName = serviceName
-        p.key = key
-        self.save()
+    __str__ = __repr__

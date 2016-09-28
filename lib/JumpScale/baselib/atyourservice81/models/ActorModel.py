@@ -21,6 +21,29 @@ class ActorModel(ModelBase):
     def role(self):
         return self.dbobj.name.split(".")[0]
 
+    @property
+    def actionsSortedList(self):
+        """
+        Sorted methods of the actor
+        """
+        if len(self.dbobj.actions) == 0:
+            return []
+        keys = sorted([item.name for item in self.dbobj.actions])
+        return keys
+
+    @property
+    def actionsCode(self):
+        """
+        return dict
+            key = action name
+            val = source code of the action
+        """
+        methods = {}
+        for action in self.dbobj.actions:
+            action_model = j.core.jobcontroller.db.action.get(action.actionKey)
+            methods[action.name] = action_model.code
+        return methods
+
     @classmethod
     def list(self, name="", state="", returnIndex=False):
         """
@@ -64,16 +87,6 @@ class ActorModel(ModelBase):
         """
         Actor = aysrepo.getActorClass()
         return Actor(aysrepo=aysrepo, model=self)
-
-    @property
-    def actionsSortedList(self):
-        """
-        Sorted methods of the actor
-        """
-        if len(self.dbobj.actions) == 0:
-            return []
-        keys = sorted([item.name for item in self.dbobj.actions])
-        return keys
 
     def recurringTemplateAdd(self, name, period=3600, log=True):
         """
@@ -121,6 +134,10 @@ class ActorModel(ModelBase):
         return out
 
     def actionGet(self, name):
+        """
+        return the action model for the action named 'name'
+        if no action with name `name`, returns None
+        """
         for act in self.dbobj.actions:
             if act.name == name:
                 return act
@@ -135,13 +152,13 @@ class ActorModel(ModelBase):
         """
         if name in ["init", "build"]:
             type = "actor"
-        obj = self.actionsNewObj()
+        obj = self._actionsNewObj()
         obj.name = name
         obj.actionKey = actionKey
         obj.type = type
         return obj
 
-    def actionsNewObj(self):
+    def _actionsNewObj(self):
         olditems = [item.to_dict() for item in self.dbobj.actions]
         newlist = self.dbobj.init("actions", len(olditems) + 1)
         for i, item in enumerate(olditems):
@@ -149,18 +166,12 @@ class ActorModel(ModelBase):
         action = newlist[-1]
         return action
 
-    def parentSet(self, name, actorFQDN="", actorKey=""):
-        """
-        name @0 :Text;
-        actorFQDN :Text;
-        actorKey  :Text;
-        """
-        obj = self.parent
-        obj.maxServices = 1
-        obj.actorFQDN = actorFQDN
-        obj.actorKey = actorKey
-        obj.name = name
-        return obj
+    def parentSet(self, role, auto):
+        self.dbobj.parent.actorRole = role
+        self.dbobj.parent.minServices = 1
+        self.dbobj.parent.maxServices = 1
+        self.dbobj.parent.auto = auto
+        return self.dbobj.parent
 
 # producers
     def producerAdd(self, name, maxServices=1, actorFQDN="", actorKey=""):
@@ -177,7 +188,7 @@ class ActorModel(ModelBase):
         obj.name = name
         return obj
 
-    def producerNewObj(self):
+    def _producerNewObj(self):
         olditems = [item.to_dict() for item in self.dbobj.producers]
         newlist = self.dbobj.init("producers", len(olditems) + 1)
         for i, item in enumerate(olditems):

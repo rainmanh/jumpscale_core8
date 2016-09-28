@@ -29,10 +29,6 @@ class Actor():
     def path(self):
         return j.sal.fs.joinPaths(self.aysrepo.path, "actors", self.model.name)
 
-    @property
-    def name(self):
-        return self.model.dbobj.name
-
     def loadFromFS(self):
         """
         get content from fs and load in object
@@ -107,11 +103,7 @@ class Actor():
         if parent is not None:
             parent_name = parent.parent
             parent_role = parent_name.split('.')[0]
-
-            self.model.dbobj.parent.actorRole = parent_role
-            self.model.dbobj.parent.minServices = 1
-            self.model.dbobj.parent.maxServices = 1
-            self.model.dbobj.parent.auto = bool(parent.auto)
+            self.model.parentSet(role=parent_role, auto=bool(parent.auto))
 
     def _initProducers(self, template):
         consumed_actors = template.schemaHrd.consumeSchemaItemsGet()

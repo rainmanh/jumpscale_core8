@@ -46,7 +46,7 @@ class ActionModel(ModelBase):
     @argsText.setter
     def argsText(self, val):
         # args = msgpack.dumps(val)
-        if j.data.types.string.check(val) == False:
+        if j.data.types.string.check(val) is False:
             raise j.exceptions.Input(message="args input need to be string", level=1, source="", tags="", msgpub="")
         val = val.rstrip(":) ")
         val = val.rstrip(":) ")

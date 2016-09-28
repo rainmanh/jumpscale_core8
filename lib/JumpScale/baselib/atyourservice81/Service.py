@@ -53,7 +53,7 @@ class Service:
         dbobj.state = "new"
         dbobj.dataSchema = actor.model.dbobj.serviceDataSchema
 
-        r = self.model.gitRepoAdd()
+        r = self.model._gitRepoNowObj()
         r.url = self.aysrepo.git.remoteUrl
 
         # actions
@@ -67,7 +67,7 @@ class Service:
             counter += 1
 
         # parents/producers
-        skey = "%s!%s" % (self.model.role, self.model.name)
+        skey = "%s!%s" % (self.model.role, self.model.dbobj.name)
         parent = self._initParent(actor, args)
         if parent is not None:
             fullpath = j.sal.fs.joinPaths(parent.path, skey)
@@ -151,14 +151,14 @@ class Service:
 
             producer.actorName = producer_obj.model.dbobj.actorName
             producer.key = producer_obj.model.key
-            producer.serviceName = producer_obj.model.name
+            producer.serviceName = producer_obj.model.dbobj.name
 
         # add the parent to the producers
         if self.parent is not None:
             producer = self.model.dbobj.producers[producers_size - 1]
             producer.actorName = self.parent.model.dbobj.actorName
             producer.key = self.parent.model.key
-            producer.serviceName = self.parent.model.name
+            producer.serviceName = self.parent.model.dbobj.name
 
     def _initRecurringActions(self, actor):
         self.model.dbobj.init('recurringActions', len(actor.model.dbobj.recurringActions))
@@ -179,6 +179,7 @@ class Service:
             event.event = event_info.event
             event.log = event_info.log
             event.lastRun = 0
+
 
     def loadFromFS(self):
         """
@@ -255,11 +256,11 @@ class Service:
             for prod_model in self.model.producers:
 
                 if prod_model.dbobj.actorName not in self._producers:
-                    self._producers[prod_model.dbobj.actorName] = []
+                    self._producers[prod_model.role] = []
 
                 result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
                 for service in result:
-                    self._producers[prod_model.dbobj.actorName].append(service)
+                    self._producers[prod_model.role].append(service)
 
         return self._producers
 
@@ -421,7 +422,7 @@ class Service:
         return hash(self.model.key)
 
     def __repr__(self):
-        return "service:%s!%s" % (self.model.role, self.model.name)
+        return "service:%s!%s" % (self.model.role, self.model.dbobj.name)
 
     def __str__(self):
         return self.__repr__()

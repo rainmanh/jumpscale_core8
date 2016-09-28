@@ -21,6 +21,7 @@ class Job():
         self.model = model
         self._action = None
         self._service = None
+        self._source = None
 
     @property
     def action(self):
@@ -30,22 +31,23 @@ class Job():
 
     @property
     def sourceToExecute(self):
-        s = """
-        $imports
-        from JumpScale import j
+        if self._source is None:
+            s = """
+            $imports
+            from JumpScale import j
 
-        def action($args):
-        $source
-        """
-        s = j.data.text.strip(s)
-        s = s.replace("$imports", '\n'.join(self.action.imports))
-        code = self.action.dbobj.code
-        code = j.data.text.indent(code, 4)
+            def action($args):
+            $source
+            """
+            s = j.data.text.strip(s)
+            s = s.replace("$imports", '\n'.join(self.action.imports))
+            code = self.action.dbobj.code
+            code = j.data.text.indent(code, 4)
 
-        s = s.replace("$source", code)
-        s = s.replace("$args", self.action.argsText)
-
-        return s
+            s = s.replace("$source", code)
+            s = s.replace("$args", self.action.argsText)
+            self._source = s
+        return self._source
 
     @property
     def sourceToExecutePath(self):
@@ -76,33 +78,49 @@ class Job():
         return self._service
 
     def processError(self, eco):
-        logObj = self.model.logObjNew()
+        logObj = self.model._logObjNew()
 
         if j.data.types.string.check(eco):
             # case it comes from the result of the processmanager
             eco = j.data.serializer.json.loads(eco)
 
-            logObj.epoch = eco['epoch']
+            epoch = eco['epoch']
             if eco['_traceback'] != '':
-                logObj.log = eco['_traceback']
+                category = 'trace'
+                msg = eco['_traceback']
             elif eco['errormessage'] != '':
-                logObj.log = eco['errormessage']
+                category = 'errormsg'
+                msg = eco['errormessage']
             else:
                 # TODO
-                pass
-            logObj.level = int(eco['level'])
-            logObj.tags = eco['tags']
+                print("error message empty")
+                import ipdb; ipdb.set_trace()
+
+            level = int(eco['level'])
+            tags = eco['tags']
+
         elif isinstance(eco, ErrorConditionObject):
-            logObj.epoch = eco.epoch
+            epoch = eco.epoch
             if eco._traceback != '':
-                logObj.log = eco._traceback
+                category = 'trace'
+                msg = eco._traceback
             elif eco.errormessage != '':
-                logObj.log = eco.errormessage
+                category = 'errormsg'
+                msg = eco.errormessage
             else:
                 # TODO
-                pass
-            logObj.level = eco.level
-            logObj.tags = eco.tags
+                print("error message empty")
+                import ipdb; ipdb.set_trace()
+
+            level = eco.level
+            tags = eco.tags
+
+        self.model.log(
+            msg=msg,
+            level=level,
+            category=category,
+            epoch=epoch,
+            tags=tags)
 
         self.model.save()
 
@@ -123,18 +141,26 @@ class Job():
                 res = self.method(job=self)
             else:
                 res = self.method(**self.model.args)
+                self.model.dbobj.state = 'ok'
         except Exception as e:
+            self.model.dbobj.state = 'error'
             eco = j.errorconditionhandler.processPythonExceptionObject(e)
             self.processError(eco)
             raise j.exceptions.RuntimeError("could not execute job:%s" % self)
 
         self.model.result = res
+        self.model.save()
         return res
 
     def execute(self):
-        """
-        can be execute in paralle so we don't wait for end of execution here.
-        """
+        self.model.dbobj.state = 'running'
+
+        # TODO improve debug detection
+        debugInCode = self.sourceToExecute.find('ipdb') != -1 or self.sourceToExecute.find('IPython') != -1
+        if debugInCode:
+            self.model.dbobj.debug = debugInCode
+
+        # can be execute in paralle so we don't wait for end of execution here.
         if self.model.dbobj.debug:
             return self.executeInProcess()
         else:

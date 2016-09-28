@@ -142,7 +142,7 @@ class Blueprint:
             self.active = False
 
     def enable(self):
-        if self.active == False:
+        if self.active is False:
             base = j.sal.fs.getBaseName(self.path)
             if base.startswith("_"):
                 base = base[1:]

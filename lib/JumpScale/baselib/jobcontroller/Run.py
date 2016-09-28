@@ -60,10 +60,17 @@ class RunStep:
         processes = {}
         for job in self.jobs:
             self.logger.info('exectute %s' % job)
-            processes[job] = job.execute()
-            job.model.dbobj.state = 'running'
+            process = job.execute()
+
+            if job.model.dbobj.debug is False:
+                processes[job] = process
+            else:
+                processes[job] = None
 
         for job, process in processes.items():
+            if process is None:
+                continue
+
             process.wait()
             service_action_obj = job.service.getActionObj(job.model.dbobj.actionName)
             if process.isDone() and process.state != 'success':

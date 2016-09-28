@@ -32,7 +32,7 @@ class RunModel(ModelBase):
         self._index.index({ind: self.key})
 
     @classmethod
-    def find(self, state="", fromEpoch=0, toEpoch=999999999):
+    def find(self, state="", fromEpoch=0, toEpoch=9999999999999):
         res = []
         for key in self.list(state, fromEpoch, toEpoch):
             res.append(self._modelfactory.get(key))

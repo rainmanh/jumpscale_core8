@@ -6,6 +6,7 @@ import time
 import traceback
 import fcntl
 import copy
+from io import StringIO
 # don't do logging, slows down
 
 import multiprocessing
@@ -99,6 +100,50 @@ class Process():
         self._state = "exception"
         self._setResult({"status": self._state, "return": -1, "eco": exception})
 
+    def startSync(self):
+        if self.method == None:
+            msg = "Cannot start process, method not set."
+            raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
+        
+        # saving output
+        oldout = sys.stdout
+        olderr = sys.stderr
+        
+        rpipe, wpipe = os.pipe()
+        self.outpipe = os.fdopen(wpipe, 'w')
+        self.inpipe = os.fdopen(rpipe, 'r')
+        
+        sys.stdout = StringIO()
+        sys.stderr = StringIO()
+
+        self._stdout['fd'] = sys.stdout
+        self._stderr['fd'] = sys.stderr
+        
+        # clearing pid, not used
+        self.pid = None
+        
+        try:
+            self._state = "running"
+            res = self.method(**self.args)
+            self._setSuccess(res)
+
+        except Exception as e:
+            eco = j.errorconditionhandler.processPythonExceptionObject(e)
+            self._setException(eco.toJson())
+
+        finally:
+            os.close(wpipe)
+
+            temp = self.inpipe.read()
+            data = j.data.serializer.json.loads(temp)
+
+            self._update(data)
+            self.stdout = self._stdout['fd'].getvalue()
+            self.stderr = self._stderr['fd'].getvalue()
+            
+            sys.stdout = oldout
+            sys.stderr = olderr
+        
     def start(self):
         if self.method == None:
             msg = "Cannot start process, method not set."
@@ -312,9 +357,15 @@ class ProcessManagerFactory:
         self.processes[p.name] = p
         return p
 
-    def startProcess(self, method, args={}, name="", autoclear=True, autowait=True):
+    def startProcess(self, method, args={}, name="", autoclear=True, autowait=True, sync=False):
         p = self.getProcess(method=method, args=args, name=name, autoclear=autoclear, autowait=autowait)
-        p.start()
+
+        if sync:
+            p.startSync()
+
+        else:
+            p.start()
+
         return p
 
     def clear(self, error=False):
@@ -335,6 +386,53 @@ class ProcessManagerFactory:
         return cleared
 
 
+    def testSync(self):
+        """
+        Simple test, spaw, processes and wait for them
+        """
+        def amethod(x=None, till=1):
+            counter = 0
+            print("OK:%s" % x)
+            while True:
+                counter += 1
+                sys.stderr.write("Counter: %d\n" % counter)
+                time.sleep(0.1)
+
+                if counter == till:
+                    return x
+        
+        r = {}
+        nr = 10
+
+        print(" * Testing simple method (sync) x%d" % nr)
+
+        for i in range(nr):
+            print("Running process %d" % i)
+            r[i] = self.startProcess(amethod, {"x": i, "till": 1}, sync=True)
+
+        for i in range(nr):
+            print(r[i])
+
+        print(" * Simple method (sync) done.")
+        
+        """
+        Simple error managemebt.
+        """
+        print(" * Testing error")
+
+        def anerror(x=None, till=1):
+            print("a line - normal")
+            print("a line2 - normal")
+            j.logger.log("testlog")
+            raise RuntimeError("raised, generic python error")
+
+        p = self.startProcess(anerror, {"x": i, "till": 1}, sync=True)
+        p.wait()
+
+        # next should print the error & the log
+        print(p)
+
+        print(" * Error done.")
 
     def test(self):
         """

@@ -101,6 +101,9 @@ class Process():
         self._setResult({"status": self._state, "return": -1, "eco": exception})
 
     def startSync(self):
+        """
+        Run the process in the same process
+        """
         if self.method == None:
             msg = "Cannot start process, method not set."
             raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
@@ -115,7 +118,6 @@ class Process():
         
         sys.stdout = StringIO()
         sys.stderr = StringIO()
-
         self._stdout['fd'] = sys.stdout
         self._stderr['fd'] = sys.stderr
         
@@ -140,11 +142,16 @@ class Process():
             self._update(data)
             self.stdout = self._stdout['fd'].getvalue()
             self.stderr = self._stderr['fd'].getvalue()
+            self.new_stdout = self.stdout # new will be the full buffer, there is no sync
+            self.new_stderr = self.stderr
             
             sys.stdout = oldout
             sys.stderr = olderr
         
     def start(self):
+        """
+        Spawn the method in a new process
+        """
         if self.method == None:
             msg = "Cannot start process, method not set."
             raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")

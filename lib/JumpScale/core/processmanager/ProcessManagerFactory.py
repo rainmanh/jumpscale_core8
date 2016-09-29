@@ -52,6 +52,21 @@ The stdout and stderr variable contains the full buffer:
 
 """
 
+class StdDuplicate(object):
+    def __init__(self, original):
+        self.redirect = original
+        self.buffer = StringIO()
+
+    def write(self, message):
+        self.redirect.write(message)
+        self.buffer.write(message)
+
+    def getBuffer(self):
+        return self.buffer.getvalue()
+
+    def restore(self):
+        return self.redirect
+
 class Process():
 
     def __init__(self, name="", method=None, args={}):
@@ -116,10 +131,8 @@ class Process():
         self.outpipe = os.fdopen(wpipe, 'w')
         self.inpipe = os.fdopen(rpipe, 'r')
         
-        sys.stdout = StringIO()
-        sys.stderr = StringIO()
-        self._stdout['fd'] = sys.stdout
-        self._stderr['fd'] = sys.stderr
+        sys.stdout = StdDuplicate(sys.stdout)
+        sys.stderr = StdDuplicate(sys.stderr)
         
         # clearing pid, not used
         self.pid = None
@@ -140,13 +153,15 @@ class Process():
             data = j.data.serializer.json.loads(temp)
 
             self._update(data)
-            self.stdout = self._stdout['fd'].getvalue()
-            self.stderr = self._stderr['fd'].getvalue()
-            self.new_stdout = self.stdout # new will be the full buffer, there is no sync
+            self.stdout = sys.stdout.getBuffer()
+            self.stderr = sys.stderr.getBuffer()
+            
+            # new will be the full buffer, there is no sync
+            self.new_stdout = self.stdout
             self.new_stderr = self.stderr
             
-            sys.stdout = oldout
-            sys.stderr = olderr
+            sys.stdout = sys.stdout.restore()
+            sys.stderr = sys.stderr.restore()
         
     def start(self):
         """

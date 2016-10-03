@@ -1,0 +1,37 @@
+from JumpScale import j
+from time import sleep
+
+
+app = j.tools.cuisine._getBaseAppClass()
+
+
+class CuisineNodeJS(app):
+    NAME = 'nodejs'
+
+    def __init__(self, executor, cuisine):
+        self._executor = executor
+        self._cuisine = cuisine
+
+    def _build(self):
+        # TODO: *3 optional
+        # build nginx
+
+    def install(self, start=True):
+        """
+        can install through ubuntu
+
+        """
+        # TODO: *1
+        if start:
+            self.start("?")
+
+    def build(self, start=True, install=True):
+        self._build()
+        if install:
+            self.install(start)
+
+    def start(self, name="???"):
+        # TODO:*1
+
+    def test(self):
+        # host a file test can be reached

@@ -101,14 +101,19 @@ class Service:
 
             # try to get the instance name from the args. Look for full actor name ('node.ssh') or just role (node)
             # if none of the two is available in the args, don't use instance name and expect the parent service to be unique in the repo
-            parent_name = args.get(parent_role, None)
+            parent_name = args.get(parent_role, '')
             res = self.aysrepo.servicesFind(name=parent_name, actor='%s.*' % parent_role)
             if len(res) == 0:
-                raise j.exceptions.Input(message="could not find parent:%s for %s, found 0" %
-                                         (actor_name, self), level=1, source="", tags="", msgpub="")
+                if actor.model.dbobj.parent.auto is False:
+                    raise j.exceptions.Input(message="could not find parent:%s for %s, found 0" %
+                                             (parent_name, self), level=1, source="", tags="", msgpub="")
+                else:
+                    auto_actor = self.aysrepo.actorGet(parent_role)
+                    # TODO: generate incremental instance name
+                    res.append(auto_actor.serviceCreate(instance="auto", args={}))
             elif len(res) > 1:
                 raise j.exceptions.Input(message="could not find parent:%s for %s, found more than 1." %
-                                         (actor_name, self), level=1, source="", tags="", msgpub="")
+                                         (parent_name, self), level=1, source="", tags="", msgpub="")
             parentobj = res[0]
             self._parent = parentobj
 
@@ -143,7 +148,7 @@ class Service:
                 else:
                     auto_actor = self.aysrepo.actorGet(producer_role)
                     # TODO: generate incremental instance name
-                    res.append(auto_actor.serviceCreate(instance="auto", args=args))
+                    res.append(auto_actor.serviceCreate(instance="auto", args={}))
             elif len(res) > 1:
                 raise j.exceptions.Input(message="could not find producer:%s for %s, found more than 1." %
                                          (producer_role, self), level=1, source="", tags="", msgpub="")

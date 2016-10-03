@@ -71,7 +71,7 @@ class RedisKeyValueStore(KeyValueStoreBase):
             item = item.decode()
             if re.match(regex, item) is not None:
                 key = self.redisclient.hget(self._indexkey, item).decode()
-                if returnIndex == False:
+                if returnIndex is False:
                     if "," in key:
                         for key2 in key.split(","):
                             res.add(key2)

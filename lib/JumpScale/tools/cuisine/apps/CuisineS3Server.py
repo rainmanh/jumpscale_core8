@@ -15,6 +15,7 @@ class CuisineS3Server(app):
     def _build(self):
         # TODO: *1
         # build
+        raise NotImplementedError
 
     def install(self, start=True):
         """
@@ -34,6 +35,8 @@ class CuisineS3Server(app):
 
     def start(self, name="???"):
         # TODO:*1
+        raise NotImplementedError
 
     def test(self):
         # host a file test can be reached
+        raise NotImplementedError

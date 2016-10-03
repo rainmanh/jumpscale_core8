@@ -72,7 +72,9 @@ class CuisineRedis(app):
             print('Redis is already running!')
             return
 
-        _, cpath = j.clients.redis._getPaths(name)
+        dpath = j.sal.fs.joinPaths(self._cuisine.core.dir_paths["varDir"], 'redis', name)
+        cpath = j.sal.fs.joinPaths(dpath, "redis.conf")
+        
         cmd = "$binDir/redis-server %s" % cpath
         self._cuisine.processmanager.ensure(name="redis_%s" % name, cmd=cmd, env={}, path='$binDir')
 

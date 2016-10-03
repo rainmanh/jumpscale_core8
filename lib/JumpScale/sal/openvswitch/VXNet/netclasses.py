@@ -94,7 +94,7 @@ class VXNameSpace(NameSpace):
 class NetID:
 
     def __init__(self, oid):
-        if type(oid) is str:
+        if isinstance(oid, str):
             self.oid = int(oid, 16)
         else:
             self.oid = oid

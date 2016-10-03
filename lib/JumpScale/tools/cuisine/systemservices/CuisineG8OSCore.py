@@ -51,7 +51,7 @@ class CuisineG8OSCore(app):
         self._cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
         self._cuisine.core.file_copy("%s/g8os.toml" % sourcepath, "$tmplsDir/cfg/core")
         self._cuisine.core.dir_ensure("$tmplsDir/cfg/core/conf/")
-        config_source = '{0}basic.jumpscripts.toml {0}basic.syncthing.toml'.format(sourcepath+"/conf/")
+        config_source = '{0}basic.jumpscripts.toml {0}basic.syncthing.toml'.format(sourcepath + "/conf/")
         config_destination = '$tmplsDir/cfg/core/conf/'
         self._cuisine.core.file_copy(config_source, config_destination, recursive=True)
         if self._cuisine.core.isArch:

@@ -4,6 +4,7 @@ import time
 
 base = j.tools.cuisine._getBaseClass()
 
+
 class CuisinePortal(base):
 
     def __init__(self, executor, cuisine):
@@ -12,7 +13,8 @@ class CuisinePortal(base):
         self.portal_dir = self._cuisine.core.args_replace('$appDir/portals/')
         self.main_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'main')
 
-    def _install(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
+    def _install(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1",
+                 influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
         """
         grafanaip and port should be the external ip of the machine
         Portal install will only install the portal and libs. No spaces but the system ones will be add by default.
@@ -195,7 +197,8 @@ class CuisinePortal(base):
                                       'varDir'], 'cfg', 'portals', 'main', 'base', actorname)
         self._cuisine.core.file_link(actorpath, dest_dir)
 
-    def serviceconnect(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, grafanaip="127.0.0.1", grafanaport=3000):
+    def serviceconnect(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1",
+                       influxport=8086, grafanaip="127.0.0.1", grafanaport=3000):
         dest = j.sal.fs.joinPaths(self._cuisine.core.dir_paths['varDir'], 'cfg', "portals")
         dest_cfg = j.sal.fs.joinPaths(dest, 'main', 'config.hrd')
         self._cuisine.core.dir_ensure(dest)

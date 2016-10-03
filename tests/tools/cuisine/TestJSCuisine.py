@@ -9,7 +9,9 @@ from JumpScale.tools.cuisine.JSCuisine import JSCuisine
 import JumpScale
 from JumpScale.tools.cuisine.ProcessManagerFactory import ProcessManagerFactory
 
+
 class TestJSCuisine(unittest.TestCase):
+
     def setUp(self):
         self._local_executor = j.tools.executor.getLocal()
         self.JSCuisine = JSCuisine(self._local_executor)
@@ -65,7 +67,6 @@ class TestJSCuisine(unittest.TestCase):
         Test accessing pip property
         """
         self.assertIsNotNone(self.JSCuisine.development.pip)
-
 
     def test_create_cuisine2_fw(self):
         """
@@ -147,13 +148,11 @@ class TestJSCuisine(unittest.TestCase):
         """
         self.assertIsNotNone(self.JSCuisine.group)
 
-
     def test_create_cuisine2_git(self):
         """
         Test accessing git property
         """
         self.assertIsNotNone(self.JSCuisine.development.git)
-
 
     @mock.patch('JumpScale.tools.cuisine.ProcessManagerFactory.ProcessManagerFactory')
     def test_create_cuisine2_processmanager(self, processmanager_mock):

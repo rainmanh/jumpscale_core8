@@ -65,8 +65,6 @@ docker run -d -p 9022:22 -v /opt/code/:/opt/code myimage /sbin/my_init
 
 Here is an example script on how to use `JumpScale` Docker extension to manage your docker machines.
 
-[do.py](https://github.com/Jumpscale/play7/blob/master/docker_jumpscale_development/do.py)
-
 ```python
 from JumpScale import j
 

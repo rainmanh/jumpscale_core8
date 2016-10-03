@@ -146,8 +146,6 @@ class SSHClient:
             return True
 
     def connectViaProxy(self, host, username, port, identityfile, proxycommand=None):
-        import pudb
-        pu.db
         self.usesproxy = True
         client = paramiko.SSHClient()
         client._policy = paramiko.WarningPolicy()
@@ -206,7 +204,7 @@ class SSHClient:
                         self.pkey = paramiko.RSAKey.from_private_key_file(
                             self.key_filename, password=self.passphrase)
                         if not j.do.checkSSHAgentAvailable():
-                            j.do._.loadSSHAgent()
+                            j.do._loadSSHAgent()
                         if not j.do.getSSHKeyPathFromAgent(self.key_filename, die=False):
                             j.do.loadSSHKeys(self.key_filename)
                     self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,

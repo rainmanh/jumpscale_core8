@@ -4,6 +4,7 @@ PORT = 4444
 
 
 class AgentControllerFactory(object):
+
     def __init__(self):
         self.__jslocation__ = "j.legacy.agentcontroller"
 
@@ -25,6 +26,7 @@ class AgentControllerFactory(object):
 
 
 class AgentControllerProxyClient:
+
     def __init__(self, category, agentControllerIP, port, login, passwd):
         self.category = category
 
@@ -48,6 +50,7 @@ class AgentControllerProxyClient:
 
 
 class AgentControllerClient:
+
     def __init__(self, addr, port=PORT, login='root', passwd=None):
         if isinstance(addr, str):
             connections = list()
@@ -73,7 +76,7 @@ class AgentControllerClient:
         errorReportOnServer = errorreport
         if wait == True:
             errorReportOnServer = False
-        result = self.executeJumpscript(organization, name, gid=gid, nid=nid, role=role, args=args, timeout=timeout, \
+        result = self.executeJumpscript(organization, name, gid=gid, nid=nid, role=role, args=args, timeout=timeout,
                                         wait=wait, queue=queue, errorreport=errorReportOnServer)
         if wait and result['state'] != 'OK':
             if result['state'] == 'NOWORK' and dieOnFailure:
@@ -89,7 +92,7 @@ class AgentControllerClient:
                     eco.process()
 
                 msg = "%s\n\nCould not execute %s %s for role:%s, jobid was:%s\n" % (
-                eco, organization, name, role, result["id"])
+                    eco, organization, name, role, result["id"])
 
                 if errorreport:
                     j.logger.log(msg)

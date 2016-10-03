@@ -6,6 +6,7 @@ app = j.tools.cuisine._getBaseAppClass()
 
 class CuisineXRDP(app):
     NAME = "rdp.sh"
+
     def build(self, reset=False):
         """
         builds a full xrdp, this can take a while

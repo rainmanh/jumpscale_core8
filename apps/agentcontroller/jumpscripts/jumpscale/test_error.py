@@ -13,7 +13,4 @@ roles = []
 
 
 def action():
-    return 5/0
-
-
-
+    return 5 / 0

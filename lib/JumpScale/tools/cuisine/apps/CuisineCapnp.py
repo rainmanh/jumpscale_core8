@@ -2,9 +2,11 @@ from JumpScale import j
 
 app = j.tools.cuisine._getBaseAppClass()
 
+
 class CuisineCapnp(app):
 
     NAME = "capnp"
+
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine

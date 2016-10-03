@@ -1,7 +1,8 @@
 
 from JumpScale import j
 
-#TODO: P2 S4 :eduard TextLineEditor tool does not work any more, is a pitty because ideal to parse config files on a filesystem (id:83)
+# TODO: P2 S4 :eduard TextLineEditor tool does not work any more, is a
+# pitty because ideal to parse config files on a filesystem (id:83)
 
 
 class TextLineEditor:
@@ -26,14 +27,15 @@ class TextLineEditor:
     def getBlockNames(self):
         return list(self._higestblocknr.keys())
 
-    def matchBlocks(self, blockname, blockStartPatterns=['.*'], blockStartPatternsNegative=[], blockStopPatterns=[], blockStopPatternsNegative=[], blockfilter=""):
+    def matchBlocks(self, blockname, blockStartPatterns=[
+                    '.*'], blockStartPatternsNegative=[], blockStopPatterns=[], blockStopPatternsNegative=[], blockfilter=""):
         """
         walk over blocks which are marked as matched and split blocks in more blocks depending criteria
         can be usefull to do this multiple times (sort of iterative) e.g. find class and then in class remove comments
         @param blockfilter will always match beginning of blockname e.g. can use userauth.sites  then change userauth.sites  will match all sites
         look for blocks starting with line which matches one of patterns in blockStartPatterns and not matching one of patterns in blockStartPatternsNegative
         block will stop when line found which matches one of patterns in blockStopPatterns and not in blockStopPatternsNegative or when next match for start is found
-        example pattern: '^class ' looks for class at beginning of line with space behind 
+        example pattern: '^class ' looks for class at beginning of line with space behind
 
         """
 
@@ -58,7 +60,8 @@ class TextLineEditor:
                     self._processLine(lineObject, blockname)  # add last line
                 return
 
-            if state == "foundblock" and j.tools.code.regex.matchMultiple(blockStopPatterns, line) and not j.tools.code.regex.matchMultiple(blockStopPatternsNegative, line):
+            if state == "foundblock" and j.tools.code.regex.matchMultiple(
+                    blockStopPatterns, line) and not j.tools.code.regex.matchMultiple(blockStopPatternsNegative, line):
                 # found end of block
                 state = "scan"  # can continue to scan for next line
                 self._processLine(lineObject, blockname)
@@ -67,7 +70,8 @@ class TextLineEditor:
             if state == "foundblock":  # still in found block so add the last line
                 self._processLine(lineObject, blockname)  # add last line
 
-            if j.tools.code.regex.matchMultiple(blockStartPatterns, line) and not j.tools.code.regex.matchMultiple(blockStartPatternsNegative, line):
+            if j.tools.code.regex.matchMultiple(blockStartPatterns, line) and not j.tools.code.regex.matchMultiple(
+                    blockStartPatternsNegative, line):
                 # found beginning of block
                 state = "foundblock"
                 self._processLine(lineObject, blockname, next=True)
@@ -211,7 +215,7 @@ class TextLineEditor:
 class LTLine:
 
     def __init__(self, line, blockname="", blocknr=0):
-        """        
+        """
         @param no blockname means ignore
         """
         self.block = blockname

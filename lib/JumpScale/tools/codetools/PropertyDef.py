@@ -1,7 +1,8 @@
 
 class PropertyDef:
 
-    def __init__(self, classDef, name="", defaultVal="", type="", comments="", isArray=False, isDict=False, dictKey="", decorators=None):
+    def __init__(self, classDef, name="", defaultVal="", type="", comments="",
+                 isArray=False, isDict=False, dictKey="", decorators=None):
         if name.startswith("__"):
             self.name = name[2:]
             self.modifier = "property"

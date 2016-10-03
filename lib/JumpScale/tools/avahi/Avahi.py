@@ -23,7 +23,6 @@ class Avahi:
         b.executor = executor
         return b
 
-    
     def install(self):
         if self._cuisine.core.isUbuntu:
             self._cuisine.package.install("avahi-daemon")
@@ -93,9 +92,9 @@ class Avahi:
         else:
             pre = "/usr"
         self._cuisine.core.file_link(source="%s/lib/systemd/system/avahi-daemon.service",
-                                    destination="/etc/systemd/system/multi-user.target.wants/avahi-daemon.service", symbolic=True, mode=None, owner=None, group=None)
+                                     destination="/etc/systemd/system/multi-user.target.wants/avahi-daemon.service", symbolic=True, mode=None, owner=None, group=None)
         self._cuisine.core.file_link(source="%s/lib/systemd/system/docker.socket",
-                                    destination="/etc/systemd/system/sockets.target.wants/docker.socket", symbolic=True, mode=None, owner=None, group=None)
+                                     destination="/etc/systemd/system/sockets.target.wants/docker.socket", symbolic=True, mode=None, owner=None, group=None)
 
         self._cuisine.systemd.start("avahi-daemon")
 
@@ -129,19 +128,16 @@ class Avahi:
 
         self.reload()
 
-    
     def reload(self):
         cmd = "avahi-daemon --reload"
         self._cuisine.core.run(cmd)
 
-    
     def removeService(self, servicename):
         path = self._servicePath(servicename)
         # if self._cuisine.core.dir_exists(path=path):
         self._cuisine.core.dir_remove(path)
         self.reload()
 
-    
     def getServices(self):
         cmd = "avahi-browse -a -r -t"
         result, output, err = self._cuisine.core.run(cmd, die=False, force=True)
@@ -176,7 +172,6 @@ class Avahi:
             avahiservices._add(s)
         return avahiservices
 
-    
     def resolveAddress(self, ipAddress):
         """
         Resolve the ip address to its hostname
@@ -245,7 +240,8 @@ class AvahiServices:
             return False
         result = []
         for service in self.services:
-            if check1(service, hostname) and check2(service, partofdescription) and check3(service, port) and check4(service, partofname):
+            if check1(service, hostname) and check2(service, partofdescription) and check3(
+                    service, port) and check4(service, partofname):
                 result.append(service)
         return result
 
@@ -271,7 +267,8 @@ class AvahiService:
         self.domain = ""
 
     def __str__(self):
-        return "descr:%s name:%s hostname:%s address:%s port:%s" % (self.description, self.servicename, self.hostname, self.address, self.port)
+        return "descr:%s name:%s hostname:%s address:%s port:%s" % (
+            self.description, self.servicename, self.hostname, self.address, self.port)
 
     def __repr__(self):
         return self.__str__()

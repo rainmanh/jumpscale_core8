@@ -149,7 +149,7 @@ class FileSystemKeyValueStoreTestCase(unittest.TestCase,
         self.cleanUp()
 
         self._store = FileSystemKeyValueStore(self.STORE_NAME,
-                                              self.STORE_NAMESPACE,  self._storeBaseDir)
+                                              self.STORE_NAMESPACE, self._storeBaseDir)
 
     def tearDown(self):
         self.cleanUp()

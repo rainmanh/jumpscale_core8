@@ -2,6 +2,7 @@ from JumpScale import j
 
 app = j.tools.cuisine._getBaseAppClass()
 
+
 class CuisineLua(app):
 
     NAME = "tarantool"
@@ -10,9 +11,8 @@ class CuisineLua(app):
         self._executor = executor
         self._cuisine = cuisine
 
-
     def installLua51(self):
-        
+
         self._cuisine.package.install("lua5.1")
         self._cuisine.package.install("luarocks")
 

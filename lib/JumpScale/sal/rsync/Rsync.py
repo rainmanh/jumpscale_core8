@@ -198,7 +198,7 @@ class RsyncClient:
         dest = self._pad(dest)
         if src == dest:
             return
-        cmd = "rsync -av %s %s %s" % (src,  dest, self.options)
+        cmd = "rsync -av %s %s %s" % (src, dest, self.options)
         print(cmd)
         self._local.execute(cmd)
 

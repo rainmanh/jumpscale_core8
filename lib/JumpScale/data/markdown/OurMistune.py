@@ -34,7 +34,7 @@ class MDRenderer:
         :param lang: language of the given code.
         """
         code = """
-        
+
         ```$lang
         $code
         ```

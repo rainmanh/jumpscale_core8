@@ -97,7 +97,8 @@ class WordReplacer:
         for syn in self.synonyms:
             print(syn)
 
-    def synonymAdd(self, name='', simpleSearch='', regexFind='', regexFindForReplace='', replaceWith='', replaceExclude='', addConfluenceLinkTags=False):
+    def synonymAdd(self, name='', simpleSearch='', regexFind='', regexFindForReplace='',
+                   replaceWith='', replaceExclude='', addConfluenceLinkTags=False):
         """
         Adds a new synonym to this replacer
         @param name: Synonym name
@@ -126,7 +127,7 @@ class WordReplacer:
         master?daemon:ApplicationServer
         application?server:ApplicationServer
         'application[ -_]+server':'application[ -_]+server':ApplicationServer
-        '\[application[ -_]+server\]':'application[ -_]+server':ApplicationServer        
+        '\[application[ -_]+server\]':'application[ -_]+server':ApplicationServer
         ******
         @param addConfluenceLinkTags id True then replaced items will be surrounded by [] (Boolean)
         """

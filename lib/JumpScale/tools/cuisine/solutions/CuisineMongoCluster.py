@@ -1,10 +1,12 @@
 from JumpScale import j
 from time import sleep
 
+
 class Startable:
     """
     This class to ensure that things get installed and started only once
     """
+
     def __init__(self):
         self.installed = False
         self.started = False
@@ -48,7 +50,9 @@ class MongoInstance(Startable):
     """
     This class represents a mongo instance
     """
-    def __init__(self, cuisine, addr=None, private_port=27021, public_port=None, type_="shard", replica='', configdb='', dbdir=None):
+
+    def __init__(self, cuisine, addr=None, private_port=27021, public_port=None,
+                 type_="shard", replica='', configdb='', dbdir=None):
         super().__init__()
         self._cuisine = cuisine
         if not addr:
@@ -199,7 +203,8 @@ class MongoReplica(Startable):
 
     def _prepare_json_all(self):
         reprs = [repr(i) for i in self.all]
-        return ", ".join(["{ _id: %s, host: \"%s\" , priority: %f}" % (i, k, 1.0 / (i + 1)) for i, k in enumerate(reprs)])
+        return ", ".join(["{ _id: %s, host: \"%s\" , priority: %f}" % (i, k, 1.0 / (i + 1))
+                          for i, k in enumerate(reprs)])
 
     def _prepare_init(self):
         cfg = "configsvr: true,version:1," if self.configsvr else ""
@@ -263,10 +268,9 @@ class CuisineMongoCluster(base):
                 'dbdir': None
             }
         return self._mongoCluster(map(construct_dict, shards_nodes),
-            map(construct_dict, config_nodes),
-            map(construct_dict, mongos_nodes),
-            shards_replica_set_counts)
-
+                                  map(construct_dict, config_nodes),
+                                  map(construct_dict, mongos_nodes),
+                                  shards_replica_set_counts)
 
     def _mongoCluster(self, shards_nodes, config_nodes, mongos_nodes, shards_replica_set_counts=1, unique=""):
         args = []
@@ -276,8 +280,8 @@ class CuisineMongoCluster(base):
                 cuisines.append(MongoInstance(j.tools.cuisine.get(k['executor']), addr=k.get('addr', None), private_port=k['private_port'],
                                               public_port=k.get('public_port'), dbdir=k.get('dbdir')))
             args.append(cuisines)
-        return self.__mongoCluster(args[0], args[1], args[2], shards_replica_set_counts=shards_replica_set_counts, unique=unique)
-
+        return self.__mongoCluster(args[0], args[1], args[2],
+                                   shards_replica_set_counts=shards_replica_set_counts, unique=unique)
 
     def __mongoCluster(self, shards_css, config_css, mongos_css, shards_replica_set_counts=1, unique=""):
         shards_replicas = [shards_css[i:i + shards_replica_set_counts]
@@ -315,4 +319,3 @@ class CuisineMongoCluster(base):
             executors[numbers[0] + numbers[1]:numbers[0] + numbers[1] + numbers[2]],
             numbers[3]
         )
-

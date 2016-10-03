@@ -510,7 +510,7 @@ class RemoteSystemFS(_remoteSystemObject):
         - destination: string (path directory to be copied to...should not already exist)
           if destination no specified will use same location as source
         """
-        #TODO: check and fix
+        # TODO: check and fix
         raise j.exceptions.RuntimeError("not fully implemented yet")
         if destination == "":
             destination = source

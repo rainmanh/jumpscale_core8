@@ -112,12 +112,10 @@ class RedisDBList:
     @property
     def list(self):
         if self._expiration or not self._list:
-            keys = self.db.hkeys(self.path)
-            keys.sort()
+            keys = sorted(self.db.hkeys(self.path))
             for name in keys:
                 self._list[name] = RedisDBObj(self, self.path, name)
-        keys = list(self._list.keys())
-        keys.sort()
+        keys = sorted(self._list.keys())
         res = []
         for key in keys:
             res.append(self._list[key])

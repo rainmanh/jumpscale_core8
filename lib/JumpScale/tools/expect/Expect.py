@@ -401,7 +401,7 @@ class Expect:
         j.logger.log("stdout:%s" % out, 9)
         return out
 
-        #TODO: P2 not right,can never work, needs to check if expect or popen or, ...
+        # TODO: P2 not right,can never work, needs to check if expect or popen or, ...
 
     def _receiveError(self):  # windows only
         """
@@ -414,7 +414,7 @@ class Expect:
         self._add2lastError(err)
         return err
 
-        #TODO: P2 not right,can never work, needs to check if expect or popen or, ...
+        # TODO: P2 not right,can never work, needs to check if expect or popen or, ...
 
     def pprint(self):
         """

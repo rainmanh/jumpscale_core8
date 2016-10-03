@@ -66,7 +66,7 @@ class Time_:
         return timestr
 
     def getLocalTimeHRForFilesystem(self):
-        #TODO: check if correct implementation
+        # TODO: check if correct implementation
         return time.strftime("%d_%b_%Y_%H_%M_%S", time.gmtime())
 
     def formatTime(self, epoch, formatstr='%Y/%m/%d %H:%M:%S', local=True):

@@ -95,6 +95,7 @@ class Profile:
 
 
 class Bash:
+
     def __init__(self):
         self.__jslocation__ = "j.tools.bash"
         self._profilePath = ""
@@ -210,6 +211,7 @@ class Bash:
             self._cuisine.core.file_write(self._profilePath, self.profile.dump())
             self.setOurProfile()
             self._profile = None
+            self._profilePath = j.sal.fs.joinPaths(self.home, ".profile_js")
         return self._profilePath
 
     @property

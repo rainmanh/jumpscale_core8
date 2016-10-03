@@ -16,4 +16,4 @@ def action():
     return j.sal.nettools.getNetworkInfo()
 
 if __name__ == "__main__":
-    print (action())
+    print(action())

@@ -4,6 +4,7 @@ Tests for AtYourServiceFactory
 import unittest
 from unittest import mock
 
+
 class TestAtYourServiceFactory(unittest.TestCase):
 
     def setUp(self):
@@ -25,7 +26,6 @@ class TestAtYourServiceFactory(unittest.TestCase):
             self.assertTrue(j.core.db.get.called)
             self.assertTrue(j.logger.get.called)
 
-
     def test_findAYSRepos(self):
         """
         Test finding ays repos
@@ -37,7 +37,8 @@ class TestAtYourServiceFactory(unittest.TestCase):
                 JumpScale.baselib.atyourservice81.AtYourServiceFactory.j = j
                 from JumpScale.baselib.atyourservice81.AtYourServiceFactory import AtYourServiceFactory
                 ays_factory = AtYourServiceFactory()
-                walk_mock.return_value = (('/opt/code/test1/test', [], ['.ays']), ('/opt/code/test2/test', [], ['.ays']), ('/opt/code/test3/test', [], []))
+                walk_mock.return_value = (('/opt/code/test1/test', [], ['.ays']),
+                                          ('/opt/code/test2/test', [], ['.ays']), ('/opt/code/test3/test', [], []))
                 actual_result = ays_factory.findAYSRepos()
                 self.assertEquals(len(list(actual_result)), 2)
 

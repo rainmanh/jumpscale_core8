@@ -2,6 +2,17 @@
 
 We will go through `j.sal.docker` to manage Docker related operations using JumpScale framework.
 
+Below you'll see how to:
+- [Check the available images](#get-images)
+- [Create a Docker container](#create-container)
+- [Check whether the container is running](#check-running)
+- [Get info about a container](#get-info)
+- [Get the names of all containers](#get-names)
+- [Get the names of the running containers](#get-names2)
+- [Get detailed information](#docker-ps)
+
+
+<a id="get-images"></a>
 Let's check what images we have on the system:
 
 ```ipython
@@ -34,6 +45,8 @@ Out[14]:
  'hello-world']
 ```
 
+
+<a id="create-container"></a>
 So let's create a container based on the latest Ubuntu image:
 
 ```
@@ -44,6 +57,8 @@ Here we are creating a container named `mytest1` based on the latest `ubuntu` im
 
 **myinit** is a special entry command for the image but we're not using it here, and we don't want `ssh` as well.
 
+
+<a id="check-running"></a>
 Let's check if it's running:
 
 ```
@@ -52,6 +67,8 @@ In [4]: c1.isRunning()
 
 Out[4]: True
 ```
+
+<a id="get-info"></a>
 Let's get more info on that container:
 
 ```
@@ -193,6 +210,8 @@ Out[9]:
   'Status': 'running'}}
 ```
 
+
+<a id="get-names"></a>
 We can check for the container names:
 
 ```
@@ -263,6 +282,8 @@ Out[7]:
  'gopyrubytest1']
 ```
 
+
+<a id="get-names2"></a>
 Checking for the names of the running containers:
 
 ```
@@ -270,6 +291,8 @@ In [8]: j.sal.docker.containersRunning
 Out[8]: [docker:mytest1, docker:mytest]
 ```
 
+
+<a id="docker-ps"></a>
 We can also get detailed information:
 
 ```

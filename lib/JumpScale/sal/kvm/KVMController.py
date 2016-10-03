@@ -3,19 +3,25 @@ import libvirt
 import atexit
 from JumpScale import j
 
+
 class KVMController:
 
-    def __init__(self, host='localhost', executor=None):
+    def __init__(self, executor=None, base_path=None):
+        if executor is None:
+            executor = j.tools.executor.getLocal()
         self.executor = executor
+        if self.executor._cuisine.id == 'localhost':
+            host = 'localhost'
+        else:
+            host = '%s@%s' % (getattr(self.executor, '_login', 'root'), self.executor._cuisine.id)
         self._host = host
         self.user = host.split('@')[0] if '@' in host else 'root'
         self.open()
         atexit.register(self.close)
-        if executor is None:
-            self.executor = j.tools.executor.getLocal()
         self.template_path = j.sal.fs.joinPaths(
             j.sal.fs.getParent(__file__), 'templates')
-        self.base_path = "/tmp/base"
+        self.base_path = base_path or "/tmp/base"
+        self.executor._cuisine.core.dir_ensure(self.base_path)
         self._env = Environment(loader=FileSystemLoader(self.template_path))
 
     def open(self):
@@ -24,7 +30,7 @@ class KVMController:
         j.tools.cuisine.local.ssh.keygen(name='libvirt')
         self.pubkey = j.tools.cuisine.local.core.file_read('/root/.ssh/libvirt.pub')
         if self._host != 'localhost':
-            self.authorized = not self.executor.cuisine.ssh.authorize(self.user, self.pubkey)        
+            self.authorized = not self.executor.cuisine.ssh.authorize(self.user, self.pubkey)
             uri = 'qemu+ssh://%s/system?no_tty=1&keyfile=/root/.ssh/libvirt&no_verify=1' % self._host
         self.connection = libvirt.open(uri)
         self.readonly = libvirt.openReadOnly(uri)

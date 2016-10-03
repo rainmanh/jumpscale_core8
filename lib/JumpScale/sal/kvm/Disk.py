@@ -3,12 +3,13 @@ from xml.etree import ElementTree
 from BaseKVMComponent import BaseKVMComponent
 from Storage import Storage
 
+
 class Disk(BaseKVMComponent):
     """
     Wrapper class around libvirt's storage volume object , to use with jumpscale libs.
     """
 
-    def __init__(self, controller, pool, name, size, image_name=""):
+    def __init__(self, controller, pool, name, size, image_name="", disk_iops=None):
         """
         Disk object instance.
 
@@ -17,12 +18,14 @@ class Disk(BaseKVMComponent):
         @param name str: name of the disk.
         @param size int: size of disk in Mb.
         @param image_name  str: name of image to load on disk  if available.
+        @param disk_iops int: total throughput limit in bytes per second.
         """
         self.size = size
         self.image_name = image_name
         self.controller = controller
         self.pool = pool
         self.name = name
+        self.disk_iops = int(disk_iops) if disk_iops else None
 
     @classmethod
     def from_xml(cls, controller, diskxml):
@@ -43,7 +46,7 @@ class Disk(BaseKVMComponent):
             image_name = path.split("/")[-1].split('.')[0]
         else:
             image_name = ''
-        return cls(controller, pool, name, size,image_name)
+        return cls(controller, pool, name, size, image_name)
 
     def to_xml(self):
         """
@@ -52,11 +55,13 @@ class Disk(BaseKVMComponent):
 
         disktemplate = self.controller.get_template('disk.xml')
         if self.image_name:
-            diskbasevolume = self.controller.executor.cuisine.core.joinpaths(self.controller.base_path, "images", '%s.qcow2' % self.image_name)
+            diskbasevolume = self.controller.executor.cuisine.core.joinpaths(
+                self.controller.base_path, "images", '%s' % self.image_name)
         else:
             diskbasevolume = ''
         diskpath = self.controller.executor.cuisine.core.joinpaths(self.pool.poolpath, '%s.qcow2' % self.name)
-        diskxml = disktemplate.render({'diskname':self.name, 'diskpath': diskpath, 'disksize':self.size, 'diskbasevolume':diskbasevolume})
+        diskxml = disktemplate.render({'diskname': self.name, 'diskpath': diskpath,
+                                       'disksize': self.size, 'diskbasevolume': diskbasevolume})
         return diskxml
 
     def create(self):
@@ -65,7 +70,7 @@ class Disk(BaseKVMComponent):
         """
 
         volume = self.pool.lvpool.createXML(self.to_xml(), 0)
-        #return libvirt volume obj
+        # return libvirt volume obj
         return volume
 
     @property
@@ -94,7 +99,7 @@ class Disk(BaseKVMComponent):
         """
         Clone the disk
         """
-        
+
         volume = self.get_volume(self.name, pool)
         cloned_volume = self.pool.createXMLFrom(new_disk.to_xml(), disk, 0)
         return cloned_volume

@@ -68,7 +68,8 @@ class ErrorConditionHandler:
         return self._blacklist
 
     def toolStripNonAsciFromText(text):
-        return string.join([char for char in str(text) if ((ord(char) > 31 and ord(char) < 127) or ord(char) == 10)], "")
+        return string.join([char for char in str(text) if (
+            (ord(char) > 31 and ord(char) < 127) or ord(char) == 10)], "")
 
     def setExceptHook(self):
         sys.excepthook = self.excepthook
@@ -77,7 +78,8 @@ class ErrorConditionHandler:
     def getLevelName(self, level):
         return LEVELMAP.get(level, 'UNKNOWN')
 
-    def getErrorConditionObject(self, ddict={}, msg="", msgpub="", category="", level=1, type="UNKNOWN", tb=None, tags=""):
+    def getErrorConditionObject(self, ddict={}, msg="", msgpub="", category="",
+                                level=1, type="UNKNOWN", tb=None, tags=""):
         """
         @data is dict with fields of errorcondition obj
         returns only ErrorConditionObject which should be used in jumpscale to define an errorcondition (or potential error condition)

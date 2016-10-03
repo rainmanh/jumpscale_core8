@@ -7,6 +7,7 @@ app = j.tools.cuisine._getBaseAppClass()
 
 class CuisineDocker(app):
     NAME = "docker"
+
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
@@ -65,7 +66,8 @@ class CuisineDocker(app):
         # change passwd
         dockerCuisineObject.user.passwd("root", j.data.idgenerator.generateGUID())
 
-    def dockerStart(self, name="ubuntu1", image='jumpscale/ubuntu1604_all', ports='', volumes=None, pubkey=None, weave=False):
+    def dockerStart(self, name="ubuntu1", image='jumpscale/ubuntu1604_all',
+                    ports='', volumes=None, pubkey=None, weave=False, ssh=True, weavePeer=None):
         """
         will return dockerCuisineObj: is again a cuisine obj on which all kinds of actions can be executed
 
@@ -76,11 +78,11 @@ class CuisineDocker(app):
 
         """
         if weave:
-            self._cuisine.systemservices.weave.install(start=True)
+            self._cuisine.systemservices.weave.install(start=True, peer=weavePeer)
 
         self._init()
 
-        if not '22:' in ports:
+        if ssh and not '22:' in ports:
             port = "2202"
             while port in ports:
                 port = random.randint(1000, 9999)
@@ -116,16 +118,29 @@ class CuisineDocker(app):
         pass
 
 
-
 class Cuisinedockerobj:
+
     def __init__(self, name, addr, port, cuisineDockerHost):
-        self.id = addr
+        self.id = 'docker:%s:%s' % (cuisineDockerHost.id, name)
+        self.addr = addr
         self.port = port
         self.name = name
+        self.login = "root"
         self._cuisineDockerHost = cuisineDockerHost
+        self._cuisine = None
 
     def execute(self, cmds, die=True, checkok=None, async=False, showout=True, timeout=0, env={}):
-        return self._cuisineDockerHost.core.run("docker exec %s  %s" % (self.name, cmds))
+        return self._cuisineDockerHost.core.run("docker exec %s bash -c '%s'" % (self.name, cmds.replace("'", "'\"'\"'")),
+            die=die, checkok=checkok, showout=showout, env=env)
+
+    executeRaw = execute
+
+    @property
+    def cuisine(self):
+        if not self._cuisine:
+            return j.tools.cuisine.get(self)
+        return self._cuisine
+    
 
 # def archBuild(self):
 #     C = """

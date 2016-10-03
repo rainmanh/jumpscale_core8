@@ -56,7 +56,7 @@ class TLS:
 
         return (path_to_cert, path_to_key)
         """
-        if type(subjects) != list:
+        if not isinstance(subjects, list):
             subjects = [subjects]
 
         commonName = ""
@@ -99,7 +99,7 @@ class TLS:
 
         return (path_to_csr, path_to_key)
         """
-        if type(subjects) != list:
+        if not isinstance(subjects, list):
             subjects = [subjects]
 
         commonName = ""
@@ -164,7 +164,7 @@ class TLS:
 
         return (path_to_csr, path_to_key)
         """
-        if type(subjects) != list:
+        if not isinstance(subjects, list):
             subjects = [subjects]
 
         commonName = ""

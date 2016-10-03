@@ -9,13 +9,14 @@ author = "deboeckj@codscalers.com"
 license = "bsd"
 version = "1.0"
 category = "tools"
-async=True
+async = True
 roles = []
-log=True
+log = True
+
 
 def action(cmd="hostname -a"):
     return j.sal.process.execute(cmd, die=False)
 
 
 if __name__ == "__main__":
-    print (action())
+    print(action())

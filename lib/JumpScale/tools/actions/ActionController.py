@@ -112,7 +112,7 @@ class ActionController:
             needs to be done selfobj=....  ... is whatever code which fill filling selfobj
             BE VERY CAREFUL TO USE THIS, DO NEVER USE IN GEVENT OR ANY OTHER ASYNC FRAMEWORK
 
-        @param dynamicArguments are arguments which will be executed before calling the method e.g. 
+        @param dynamicArguments are arguments which will be executed before calling the method e.g.
            dargs={}
            dargs["service"]="j.atyourservice.getService(\"%s\")"%kwargs["service"]
         '''

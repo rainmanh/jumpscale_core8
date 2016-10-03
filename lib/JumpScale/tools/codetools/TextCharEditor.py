@@ -33,7 +33,7 @@ class TextCharEditor:
         return list(self._higestblocknr.keys())
 
     def matchBlocksPattern(self, startpattern, stoppattern, blockname):
-        """        
+        """
         will look for startpattern, then scan for stoppattern
         will only work on text which is not part of known blocks yet
         example to find comments which are full line based startpattern='^[ \t]*%%'  stoppattern="\n"
@@ -49,7 +49,8 @@ class TextCharEditor:
                 raise j.exceptions.RuntimeError("could not find stoppattern %s" % stoppattern)
             end = result2.matches[0].end
             skip = False
-            for pos in range(match.start, match.start + end):  # scan first time if somewhere there is already a char part of a block
+            for pos in range(match.start, match.start +
+                             end):  # scan first time if somewhere there is already a char part of a block
                 if self.chars[pos][1] != "":
                     skip = True
                     #j.logger.log("Could not match the pattern because as part of result there was already another block found, posstart:%s posstop%s" % (match.start,match.start+end-1),5)
@@ -61,7 +62,7 @@ class TextCharEditor:
 #            ipshell()
 
     def matchBlocksDelimiter(self, startpattern, blockname, delimiteropen="{", delimiterclose="}"):
-        """        
+        """
         will look for startpattern, then scan for delimeropen and then start counting, block will stop when asmany closes are found as open delimiters
         ideal find e.g. a code block which is not line based
         will only work on text which is not part of known blocks yet
@@ -116,14 +117,14 @@ class TextCharEditor:
             self.lines.append(LTLine(line, blockname, blocknr))
 
     def deleteBlocks(self, blockname):
-        """        
+        """
         """
         self.chars = [char for char in self.chars if char[1] != blockname]
 
     def deleteBlock(self, blockname, blocknr=None):
         """
         delete 1 specified block
-        @param blocknr 
+        @param blocknr
         """
         self.chars = [char for char in self.chars if not (char[1] == blockname and char[2] == blocknr)]
 

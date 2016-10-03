@@ -9,7 +9,7 @@ app = j.tools.cuisine._getBaseAppClass()
 class CuisineAydoStor(app):
 
     NAME = 'stor'
-    
+
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine

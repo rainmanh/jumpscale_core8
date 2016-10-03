@@ -4,11 +4,9 @@
 
 An AYS service template defines the full life cycle from pre-installation and installation to upgrades and monitoring of a service.
 
-More specifically an AYS service template describes:
+  More specifically an AYS service template describes:
 
 - The parameters to configure a service
-- How to start/stop the service
-- How to monitor the service
 - How to configure the service
 - How to get stats from the service
 - How to export/import the data

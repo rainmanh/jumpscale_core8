@@ -32,12 +32,12 @@ class GCC_Mgmt():
     def install(self):
         """
         """
-        #TODO: use cuisine which is on each node to do all required actions
+        # TODO: use cuisine which is on each node to do all required actions
 
     def healthcheck(self):
         """
         """
-        #TODO: implement some healthchecks done over agentcontrollers
+        # TODO: implement some healthchecks done over agentcontrollers
         #- check diskpace
         #- check cpu
         #- check that 3 are there
@@ -65,7 +65,7 @@ class GCC_Nameserver():
 
     def ns_addHost(addr, dnsinfo....):  # to be further defined
 
-        #TODO: use https over caddy to speak to etcd to configure skydns, maybe clients do already exist?
+        # TODO: use https over caddy to speak to etcd to configure skydns, maybe clients do already exist?
 
 
 class GCC_aydostor():
@@ -78,4 +78,4 @@ class GCC_aydostor():
 
     def ns_addHost(addr, dnsinfo....):  # to be further defined
 
-        #TODO: use https over caddy to speak to etcd to configure skydns
+        # TODO: use https over caddy to speak to etcd to configure skydns

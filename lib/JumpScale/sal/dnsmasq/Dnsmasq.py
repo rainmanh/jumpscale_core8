@@ -17,20 +17,21 @@ class DNSMasq:
 
         @param start=True: start dnsmasq
         """
-        self._cuisine.systemd.remove("dnsmasq")
+        self._cuisine.processmanager.remove("dnsmasq")
         self._cuisine.process.kill("dnsmasq")
         self._cuisine.package.install("dnsmasq")
-        self.config()
+        if not self._cuisine.core.file_exists("/etc/dnsmasq.conf"):
+            self.config()
         if start:
             cmd = self._cuisine.bash.cmdGetPath("dnsmasq")
-            self._cuisine.systemd.ensure("dnsmasq", cmd)
+            self._cuisine.processmanager.ensure("dnsmasq", "%s -d"%(cmd,))
 
     def restart(self):
         """
         Restarts Dnsmasq.
 
         """
-        self._cuisine.systemd.restart("dnsmasq")
+        self._cuisine.processmanager.restart("dnsmasq")
 
     def setConfigPath(self, config_path=None):
         """
@@ -208,7 +209,7 @@ class DNSMasq:
         # want dnsmasq to really bind only the interfaces it is listening on,
         # uncomment this option. About the only time you may need this is when
         # running another nameserver on the same machine.
-        #bind-interfaces
+        bind-interfaces
 
         # If you don't want dnsmasq to read /etc/hosts, uncomment the
         # following line.
@@ -426,6 +427,8 @@ class DNSMasq:
         # default (1, 3, 6, 12, 28) the same line will send a zero-length option
         # for all other option numbers.
         #dhcp-option=3
+
+        dhcp-option=6,8.8.8.8
 
         # Set the NTP time server addresses to 192.168.0.4 and 10.10.0.5
         #dhcp-option=option:ntp-server,192.168.0.4,10.10.0.5

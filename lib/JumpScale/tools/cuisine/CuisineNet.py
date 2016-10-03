@@ -12,7 +12,8 @@ class CuisineNet(base):
         self._executor = executor
         self._cuisine = cuisine
 
-    def netconfig(self, interface, ipaddr, cidr=24, gateway=None, dns="8.8.8.8", masquerading=False):
+    def netconfig(self, interface, ipaddr, cidr=24, gateway=None, dns="8.8.8.8", masquerading=False,
+                 dhcp=False):
         conf = """
 [Match]
 Name={interface}
@@ -21,10 +22,21 @@ Name={interface}
 DNS={dns}
 Address={ipaddr}/{cidr}
 Gateway={gateway}
-        """.format(ipaddr=ipaddr, dns=dns, cidr=cidr, gateway=gateway)
+IPForward={ipmasquerade}
+IPMasquerade={ipmasquerade}
+        """.format(interface=interface, ipaddr=ipaddr, dns=dns, cidr=cidr, gateway=gateway,
+                   ipmasquerade=("yes" if masquerading else "no"), dhcp=("yes" if dhcp else "no"))
 
-        targetfile='/etc/systemd/network/{interface}.network'.format(interface=interface)
-        self._cuisine.core.write_file(targetfile, content=conf)
+        targetfile = '/etc/systemd/network/{interface}.network'.format(interface=interface)
+        self._cuisine.core.file_write(targetfile, content=conf)
+        if masquerading:
+            # TODO: check if the rule exists
+            self._cuisine.core.run('iptables -t nat -A POSTROUTING -s {ipaddr}/{cidr} ! -d \
+                              {ipaddr}/{cidr} -j MASQUERADE'.format(ipaddr=ipaddr, cidr=cidr))
+            self._cuisine.package.install('iptables-persistent')
+            self._cuisine.core.run('iptables-save > /etc/iptables/rules.v4')
+            self._cuisine.core.run('ip6tables-save > /etc/iptables/rules.v6')
+
 
     @property
     def nics(self):

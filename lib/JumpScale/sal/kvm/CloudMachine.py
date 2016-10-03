@@ -1,11 +1,14 @@
 from JumpScale import j
 from Machine import Machine
 
+
 class CloudMachine(Machine):
     """
     Wrapper class around our machine object , to use with jumpscale libs.
     """
-    def __init__(self, controller, name, os, disks, nics, memory, cpucount, poolname='vms', uuid=None, cloud_init=False):
+
+    def __init__(self, controller, name, os, disks, nics, memory,
+                 cpucount, poolname='vms', uuid=None, cloud_init=False):
         """
         Machine object instance.
 
@@ -16,12 +19,13 @@ class CloudMachine(Machine):
         @param nics [str]: name of networks to be used with machine.
         @param memory int: disk memory in Mb.
         @param cpucount int: number of cpus to use.
-        @param cloud_init bool: option to use cloud_init passing creating and passing ssh_keys, user name and passwd to the image
+        @param cloud_init bool: option to use cloud_init passing creating and passing ssh_keys, user name and passwd to
+        the image
         """
         self.pool = j.sal.kvm.Pool(controller, poolname)
         self.os = os
         new_nics = list(map(lambda x: j.sal.kvm.Interface(controller, x,
-            j.sal.kvm.Network(controller, x, x, [])), nics))
+                                                          j.sal.kvm.Network(controller, x, x, [])), nics))
         if disks:
             new_disks = [j.sal.kvm.Disk(controller, self.pool, "%s-base.qcow2" % name, disks[0], os)]
             for i, disk in enumerate(disks[1:]):
@@ -36,14 +40,15 @@ class CloudMachine(Machine):
         """
         Instantiate a cloud Machine object using the provided xml source and kvm controller object.
 
-        @param controller object(j.sal.kvm.KVMController): controller object to use. 
+        @param controller object(j.sal.kvm.KVMController): controller object to use.
         @param source  str: xml string of machine to be created.
         """
+        # TODO fix
         m = Machine.from_xml(controller, xml)
         return cls(m.controller, m.name, m.disks and m.disks[0].image_name,
-            list(map(lambda disk:disk.size, m.disks)), list(map(lambda nic:nic.name, m.nics)),
-            m.memory, m.cpucount, m.disks and m.disks[0].pool.name, cloud_init=m.cloud_init)
- 
+                   list(map(lambda disk: disk.size, m.disks)), list(map(lambda nic: nic.name, m.nics)),
+                   m.memory, m.cpucount, m.disks and m.disks[0].pool.name, cloud_init=m.cloud_init)
+
     def create(self):
         """
         Create and define the instanse of the machine xml onto libvirt.
@@ -51,8 +56,11 @@ class CloudMachine(Machine):
         @param username  str: set the username to be set in the machine on boot.
         @param passwd str: set the passwd to be set in the machine on boot.
         """
-        [disk.create() for disk in self.disks if not disk.is_created]
-        return super().create() if not self.is_created else False
+        if self.is_created:
+            return False
+        else:
+            [disk.create() for disk in self.disks if not disk.is_created]
+            return super().create()
 
     def start(self):
         """

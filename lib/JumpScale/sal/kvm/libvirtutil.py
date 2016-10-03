@@ -265,7 +265,8 @@ class LibvirtUtil:
             return False
         # at this moment we suppose the machine is following the default naming
         # of disks
-        if domain.state()[0] not in [libvirt.VIR_DOMAIN_SHUTDOWN, libvirt.VIR_DOMAIN_SHUTOFF, libvirt.VIR_DOMAIN_CRASHED]:
+        if domain.state()[0] not in [libvirt.VIR_DOMAIN_SHUTDOWN,
+                                     libvirt.VIR_DOMAIN_SHUTOFF, libvirt.VIR_DOMAIN_CRASHED]:
             status = domain.blockJobInfo('vda', 0)
             if 'cur' in status:
                 return True
@@ -346,7 +347,8 @@ class LibvirtUtil:
         domainconfig = domain.XMLDesc()
         name = '%s_%s.qcow2' % (name, time.time())
         destination_path = os.path.join(self.templatepath, name)
-        if domain.state()[0] in [libvirt.VIR_DOMAIN_SHUTDOWN, libvirt.VIR_DOMAIN_SHUTOFF, libvirt.VIR_DOMAIN_CRASHED, libvirt.VIR_DOMAIN_PAUSED] or not self._isRootVolume(domain, clonefrom):
+        if domain.state()[0] in [libvirt.VIR_DOMAIN_SHUTDOWN, libvirt.VIR_DOMAIN_SHUTOFF,
+                                 libvirt.VIR_DOMAIN_CRASHED, libvirt.VIR_DOMAIN_PAUSED] or not self._isRootVolume(domain, clonefrom):
             if not self.isLocked(id):
                 lock = self._lockDomain(id)
                 if lock != LOCKCREATED:
@@ -444,7 +446,8 @@ class LibvirtUtil:
         locked = self.isCurrentStorageAction(domain.UUIDString())
         extra = {'uuid': domain.UUIDString(), 'os_type': domain.OSType(), 'types': self.connection.getType(
         ), 'used_memory': memory / 1024, 'vcpu_count': vcpu_count, 'used_cpu_time': used_cpu_time, 'locked': locked}
-        return {'id': domain.UUIDString(), 'name': domain.name(), 'state': state, 'extra': extra, 'XMLDesc': domain.XMLDesc(0)}
+        return {'id': domain.UUIDString(), 'name': domain.name(), 'state': state,
+                'extra': extra, 'XMLDesc': domain.XMLDesc(0)}
 
     def _to_node_list(self, domain):
         state, max_mem, memory, vcpu_count, used_cpu_time = domain.info()

@@ -205,9 +205,8 @@ self.appname="{appname}"
             # else:
             mainMethods[method.name] = method
 
-        mainMethods_list = list(mainMethods.keys())
+        mainMethods_list = sorted(mainMethods.keys())
         # osisMethods_list = osisMethods.keys()
-        mainMethods_list.sort()
         # osisMethods_list.sort()
 
         # OSIS methods

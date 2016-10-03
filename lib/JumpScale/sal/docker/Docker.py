@@ -54,12 +54,8 @@ class Docker:
     @property
     def weavesocket(self):
         if self._weaveSocket is None:
-            rc, self._weaveSocket = j.sal.process.execute(
-                "eval $(weave env) && echo $DOCKER_HOST", die=False)
-            if rc > 0:
-                print("weave not found, do not forget to start if installed.")
-            # if not j.tools.cuisine.local.core.command_check('weave'):
-            #     self.logger.warning("weave not found, do not forget to start if installed.")
+            if not j.tools.cuisine.local.core.command_check('weave'):
+                self.logger.warning("weave not found, do not forget to start if installed.")
                 self._weaveSocket = ""
             else:
                 rc, self._weaveSocket = j.sal.process.execute("eval $(weave env) && echo $DOCKER_HOST", die=False)
@@ -83,6 +79,10 @@ class Docker:
 
     @property
     def docker_host(self):
+        """
+        Get the docker hostname.
+        """
+
         u = parse.urlparse(self.base_url)
         if u.scheme == 'unix':
             return 'localhost'
@@ -132,6 +132,9 @@ class Docker:
 
     @property
     def containerNamesRunning(self):
+        """
+        List all running containers names
+        """
         res = []
         for container in self.containers:
             if container.isRunning():
@@ -140,6 +143,9 @@ class Docker:
 
     @property
     def containerNames(self):
+        """
+        List all containers names
+        """
         res = []
         for container in self.containers:
             res.append(container.name)
@@ -147,6 +153,9 @@ class Docker:
 
     @property
     def containersRunning(self):
+        """
+        List of all running container objects
+        """
         res = []
         for container in self.containers:
             if container.isRunning():
@@ -220,6 +229,10 @@ class Docker:
         return self.client.containers()
 
     def get(self, name, die=True):
+        """
+        Get a container object by name
+        @param name string: container name
+        """
         for container in self.containers:
             if container.name == name:
                 return container
@@ -488,13 +501,6 @@ class Docker:
         self._containers[id] = container
 
         if ssh:
-            if sshkeyname is None:
-                sshkeyname = ""
-            if sshpubkey is None:
-                sshpubkey = ""
-            container.run("apt-get update")
-            container.run("apt-get install openssh-server -y")
-            container.run("service ssh start")
             container.pushSSHKey(keyname=sshkeyname, sshpubkey=sshpubkey)
 
             # Make sure docker is ready for executor
@@ -507,17 +513,16 @@ class Docker:
 
             if setrootrndpasswd:
                 if rootpasswd is None or rootpasswd == '':
-                    print("set default root passwd (gig1234)")
-                    container.run(
-                        "echo \"root:gig1234\"|chpasswd")
+                    self.logger.info("set default root passwd (gig1234)")
+                    container.executor.execute(
+                        "echo \"root:gig1234\"|chpasswd", showout=False)
                 else:
-                    print("set root passwd to %s" % rootpasswd)
-                    container.run(
-                        "echo \"root:%s\"|chpasswd" % rootpasswd)
-            if not self.weaveIsActive:
-                container.setHostName(name)
-        else:
-            self.container._executor = DockerExecObj(name)
+                    self.logger.info("set root passwd to %s" % rootpasswd)
+                    container.executor.execute(
+                        "echo \"root:%s\"|chpasswd" % rootpasswd, showout=False)
+
+        if not self.weaveIsActive:
+            container.setHostName(name)
 
         return container
 
@@ -532,8 +537,11 @@ class Docker:
         return images
 
     def removeImages(self, tag="<none>:<none>"):
+        """
+        Delete a certain Docker image using tag
+        """
         for item in self.client.images():
-            try:
+            if tag in item["RepoTags"]:
                 self.client.remove_image(item["Id"])
             except Exception as e:
                 print("COULD NOT REMOVE DOCKER IMAGE:\n%s\n" % item)
@@ -548,7 +556,10 @@ class Docker:
         return True
 
     def destroyAll(self, removeimages=False):
-
+        """
+        Destroy all containers.
+        @param removeimages bool: to remove all images.
+        """
         for container in self.containers:
             if "weave" in container.name:
                 continue
@@ -596,7 +607,9 @@ class Docker:
         j.sal.fs.removeDirTree("/var/lib/docker")
 
     def reInstallDocker(self):
-
+        """
+        ReInstall docker on your system
+        """
         self.removeDocker()
 
         j.tools.cuisine.local.docker.install(force=True)
@@ -604,6 +617,10 @@ class Docker:
         self.init()
 
     def pull(self, imagename):
+        """
+        pull a certain image.
+        @param imagename string: image
+        """
         self.client.import_image_from_image(imagename)
 
     def push(self, image, output=True):

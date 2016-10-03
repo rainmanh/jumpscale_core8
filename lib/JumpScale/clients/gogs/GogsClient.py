@@ -64,7 +64,8 @@ class GogsClient:
     def get_url(self, *args):
         return j.sal.fs.joinPaths(self.base_url, *args)
 
-    def organization_create(self, org_name, full_name=None, user_name=None, description=None, website=None, location=None):
+    def organization_create(self, org_name, full_name=None, user_name=None,
+                            description=None, website=None, location=None):
         """
         create an organization by user with name
         """
@@ -266,7 +267,8 @@ class GogsClient:
         else:
             raise NotFoundException()
 
-    def repository_create(self, repo_name, organization=None, user_name=None, description="", private=True, readme=True):
+    def repository_create(self, repo_name, organization=None, user_name=None,
+                          description="", private=True, readme=True):
         """
         create repository logged in  username
         """
@@ -411,7 +413,7 @@ class GogsClient:
         get json representation of issue
         owner can be user or organization
         """
-        if type(index) == int:
+        if isinstance(index, int):
             index = str(index)
 
         if not owner:
@@ -457,7 +459,7 @@ class GogsClient:
     def issue_close(self, repo_name, index, owner=None):
         """ close issue """
 
-        if type(index) == int:
+        if isinstance(index, int):
             index = str(index)
 
         if not owner:

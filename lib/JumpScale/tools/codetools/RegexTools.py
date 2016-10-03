@@ -9,7 +9,7 @@ class RegexTemplates_FindLines:
     """
     regexexamples which find lines
     """
-    #TODO: for all methods do input checking  (id:20)
+    # TODO: for all methods do input checking  (id:20)
 
     def findCommentlines(self):
         return "^( *#).*"
@@ -66,7 +66,7 @@ class RegexMatch:
 
 
 class RegexTools:
-    #TODO: doe some propper error handling with re, now obscure errors  (id:21)
+    # TODO: doe some propper error handling with re, now obscure errors  (id:21)
 
     def __init__(self):
         self.templates = Empty()
@@ -257,7 +257,7 @@ class RegexTools:
 
     def removeLines(self, pattern, text):
         """
-        remove lines based on pattern  
+        remove lines based on pattern
         """
         if pattern == "" or text == "":
             raise j.exceptions.RuntimeError(
@@ -325,7 +325,7 @@ class RegexTools:
         testarray = 1,2,4,5
         '
         getINIAlikeVariable("test",text) will return 'something'
-        @isArray when True and , in result will make array out of 
+        @isArray when True and , in result will make array out of
         getINIAlikeVariable("testarray",text,True) will return [1,2,4,5]
         """
         line = self.findLine("^%s *=" % variableName, text)
@@ -342,7 +342,8 @@ class RegexTools:
                 return val
         return ""
 
-    def extractFirstFoundBlock(self, text, blockStartPatterns, blockStartPatternsNegative=[], blockStopPatterns=[], blockStopPatternsNegative=[], linesIncludePatterns=[".*"], linesExcludePatterns=[], includeMatchingLine=True):
+    def extractFirstFoundBlock(self, text, blockStartPatterns, blockStartPatternsNegative=[], blockStopPatterns=[
+    ], blockStopPatternsNegative=[], linesIncludePatterns=[".*"], linesExcludePatterns=[], includeMatchingLine=True):
         result = self.extractBlocks(text, blockStartPatterns, blockStartPatternsNegative, blockStopPatterns,
                                     blockStopPatternsNegative, linesIncludePatterns, linesExcludePatterns, includeMatchingLine)
         if len(result) > 0:
@@ -350,12 +351,13 @@ class RegexTools:
         else:
             return ""
 
-    def extractBlocks(self, text, blockStartPatterns=['.*'], blockStartPatternsNegative=[], blockStopPatterns=[], blockStopPatternsNegative=[], linesIncludePatterns=[".*"], linesExcludePatterns=[], includeMatchingLine=True):
+    def extractBlocks(self, text, blockStartPatterns=['.*'], blockStartPatternsNegative=[], blockStopPatterns=[
+    ], blockStopPatternsNegative=[], linesIncludePatterns=[".*"], linesExcludePatterns=[], includeMatchingLine=True):
         """
         look for blocks starting with line which matches one of patterns in blockStartPatterns and not matching one of patterns in blockStartPatternsNegative
         block will stop when line found which matches one of patterns in blockStopPatterns and not in blockStopPatternsNegative or when next match for start is found
         in block lines matching linesIncludePatterns will be kept and reverse for linesExcludePatterns
-        example pattern: '^class ' looks for class at beginning of line with space behind 
+        example pattern: '^class ' looks for class at beginning of line with space behind
         """
         # check types of input
         if type(blockStartPatterns).__name__ != 'list' or type(blockStartPatternsNegative).__name__ != 'list' or type(blockStopPatterns).__name__ != 'list' \
@@ -402,7 +404,8 @@ class RegexTools:
                 if addLine:
                     block = "%s%s\n" % (block, line)
 
-            if state == "scan" and self.matchMultiple(blockStartPatterns, line) and not self.matchMultiple(blockStartPatternsNegative, line):
+            if state == "scan" and self.matchMultiple(
+                    blockStartPatterns, line) and not self.matchMultiple(blockStartPatternsNegative, line):
                 # found beginning of block
                 state = "foundblock"
                 blockstartline = t

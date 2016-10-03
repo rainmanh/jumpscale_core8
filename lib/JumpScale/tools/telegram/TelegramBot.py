@@ -29,7 +29,7 @@ class TelegramBot:
     #     self.api.add_handler(loggerHandler)
 
     def addDemoHandler(self):
-        """        
+        """
         """
         handler = DemoHandler()
         self.api.add_handler(handler)

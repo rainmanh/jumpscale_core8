@@ -69,7 +69,7 @@ class CuisineSSHReflector(base):
         _, cpath, _ = self._cuisine.core.run("which dropbear")
 
         cmd = "%s -R -F -E -p 9222 -w -s -g -K 20 -I 60" % cpath
-        #self._cuisine.processmanager.e
+        # self._cuisine.processmanager.e
         self._cuisine.processmanager.ensure("reflector", cmd, descr='')
 
         # self._cuisine.package.start(package)
@@ -235,6 +235,7 @@ class CuisineSSHReflector(base):
         print(out)
 
     def __str__(self):
-        return "cuisine.reflector:%s:%s" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
+        return "cuisine.reflector:%s:%s" % (getattr(self._executor, 'addr', 'local'),
+                                            getattr(self._executor, 'port', ''))
 
     __repr__ = __str__

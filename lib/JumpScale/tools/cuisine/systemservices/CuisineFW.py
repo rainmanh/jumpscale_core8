@@ -30,13 +30,14 @@ class CuisineFW(base):
         """as alternative on ufw"""
         if self._cuisine.core.isMac:
             return
-        self._cuisine.core.run("nft add rule filter input {protocol} dport {port} log accept".format(protocol=protocl, port=port))
+        self._cuisine.core.run(
+            "nft add rule filter input {protocol} dport {port} log accept".format(protocol=protocl, port=port))
 
     def denyIncoming(self, port):
         if self._cuisine.core.isMac:
             return
-        self._cuisine.core.run("nft add rule filter input {protocol} dport {port} log reject".format(protocol=protocl, port=port))
-
+        self._cuisine.core.run(
+            "nft add rule filter input {protocol} dport {port} log reject".format(protocol=protocl, port=port))
 
     def flush(self, permanent=False):
         self._cuisine.core.run("nft flush ruleset")
@@ -57,7 +58,6 @@ class CuisineFW(base):
         rc, currentruleset, err = self._cuisine.core.run("nft list ruleset")
         if ruleset in currentruleset:
             return
-
 
         pscript = """
         C='''

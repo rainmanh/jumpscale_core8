@@ -56,7 +56,8 @@ class Sandboxer:
 
     def _ldd(self, path, result={}):
 
-        if j.sal.fs.getFileExtension(path) in ["py", "pyc", "cfg", "hrd", "bak", "txt", "png", "gif", "css", "js", "wiki", "spec", "sh", "jar", "xml", "lua"]:
+        if j.sal.fs.getFileExtension(path) in ["py", "pyc", "cfg", "hrd", "bak", "txt",
+                                               "png", "gif", "css", "js", "wiki", "spec", "sh", "jar", "xml", "lua"]:
             return result
 
         if path not in self._done:
@@ -166,7 +167,8 @@ class Sandboxer:
     def sandbox_python3(self):
         j.tools.cuisine.local.builder.sandbox_python()
 
-    def dedupe(self, path, storpath, name, excludeFiltersExt=["pyc", "bak"], append=False, reset=False, removePrefix="", compress=True, delete=False, excludeDirs=[]):
+    def dedupe(self, path, storpath, name, excludeFiltersExt=[
+               "pyc", "bak"], append=False, reset=False, removePrefix="", compress=True, delete=False, excludeDirs=[]):
         def copy2dest(src, removePrefix):
             if j.sal.fs.isLink(src):
                 srcReal = j.sal.fs.readlink(src)
@@ -247,7 +249,8 @@ class Sandboxer:
         if not j.sal.fs.isDir(path):
             out += copy2dest(path, removePrefix)
         else:
-            for src in j.sal.fs.listFilesInDir(path, recursive=True, exclude=["*.pyc", "*.git*"], followSymlinks=True, listSymlinks=True):
+            for src in j.sal.fs.listFilesInDir(path, recursive=True, exclude=[
+                                               "*.pyc", "*.git*"], followSymlinks=True, listSymlinks=True):
                 if skipDir(src):
                     continue
                 out += copy2dest(src, removePrefix)

@@ -1,6 +1,7 @@
 from JumpScale import j
 from BaseKVMComponent import BaseKVMComponent
 
+
 class Storage(BaseKVMComponent):
 
     def __init__(self, controller):
@@ -23,11 +24,10 @@ class Storage(BaseKVMComponent):
         Create pool in libvirt
         """
 
-        self.controller.executor.cuisine.core.dir_ensure (pool.poolpath)
+        self.controller.executor.cuisine.core.dir_ensure(pool.poolpath)
         cmd = 'chattr +C %s ' % pool.poolpath
         self.controller.executor.execute(cmd)
         self.controller.connection.storagePoolCreateXML(pool.to_xml(), 0)
-
 
     def delete_pool(self, pootname):
         """
@@ -36,7 +36,7 @@ class Storage(BaseKVMComponent):
 
         pool = self.get_pool(pool_name)
         if not pool is None:
-            #destroy the pool
+            # destroy the pool
             pool.undefined()
 
     def get_or_create_pool(self, pool_name):

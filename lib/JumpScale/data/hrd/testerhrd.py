@@ -10,8 +10,10 @@ with open("hrdtest.hrd", 'w') as f:
 hrddata = j.data.hrd.get("hrdtest.hrd")
 print(hrddata.getList("tok1"))  # ['sawerfgkjbnqerbgzaRGSRTGBER:Aefrvwejltrnbsd:fbj;kwfbs']
 print(hrddata.getList("tok2"))  # ['sertgjnehrea:aerlghnqetrhq4haergtgq:rgearjgasrhgqwrger']
-print(hrddata.getList("tok3"))  # ['edsrfvkwejhstbrgdzarbgasetbafbdfvadrgss:adFBGSALEKRBGAFVA', 'AESKRJFHBAERVASERFAWEFQE:LWEJHKRBGARVAwerghw:Aerfa']
-print(hrddata.getList("tok4"))  # ['aerlgvhwbetrbgdzsjktrnaseFGSDTL:TEG:GESRGArgaergjwenrgkwf', 'arelgiiwbenrgkajdnrgae:arewfgiwerbgsearbgzsdawefrg']
+# ['edsrfvkwejhstbrgdzarbgasetbafbdfvadrgss:adFBGSALEKRBGAFVA', 'AESKRJFHBAERVASERFAWEFQE:LWEJHKRBGARVAwerghw:Aerfa']
+print(hrddata.getList("tok3"))
+# ['aerlgvhwbetrbgdzsjktrnaseFGSDTL:TEG:GESRGArgaergjwenrgkwf', 'arelgiiwbenrgkajdnrgae:arewfgiwerbgsearbgzsdawefrg']
+print(hrddata.getList("tok4"))
 
 os.remove("hrdtest.hrd")
 # this shuold print

@@ -22,7 +22,8 @@ class ErrorConditionObject(BaseException):
     @param level #1:critical, 2:warning, 3:info see j.enumerators.ErrorConditionLevel
     """
 
-    def __init__(self, ddict={}, msg="", msgpub="", category="", level=1, type="UNKNOWN", tb=None, data=None, tags="", limit=30):
+    def __init__(self, ddict={}, msg="", msgpub="", category="", level=1,
+                 type="UNKNOWN", tb=None, data=None, tags="", limit=30):
         if ddict != {}:
             self.__dict__ = ddict
         else:
@@ -301,7 +302,8 @@ class ErrorConditionObject(BaseException):
         try:
             k = "%s" % k
             v = "%s" % v
-            if k in ["re", "q", "jumpscale", "pprint", "qexec", "jshell", "Shell", "__doc__", "__file__", "__name__", "__package__", "i", "main", "page"]:
+            if k in ["re", "q", "jumpscale", "pprint", "qexec", "jshell", "Shell",
+                     "__doc__", "__file__", "__name__", "__package__", "i", "main", "page"]:
                 return False
             if v.find("<module") != -1:
                 return False

@@ -81,7 +81,8 @@ class CuisineController(app):
             listen.append({'address': addr})
 
         cfgDir = self._cuisine.core.dir_paths['cfgDir']
-        cfg["events"]["python_path"] = self._cuisine.core.joinpaths(cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
+        cfg["events"]["python_path"] = self._cuisine.core.joinpaths(
+            cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
         cfg['events']['enabled'] = True
         cfg["processor"]["python_path"] = self._cuisine.core.joinpaths(
             cfgDir, "/controller/extensions:/opt/jumpscale8/lib")

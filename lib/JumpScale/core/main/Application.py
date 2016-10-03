@@ -324,9 +324,8 @@ class Application:
         repos = []
         for path in j.atyourservice.findAYSRepos(j.dirs.codeDir):
             repos.append(j.atyourservice.get(path=path))
-        names = [service.instance for aysrepo in repos for service in list(
-            aysrepo.services.values()) if service.templatename == name]
-        names.sort()
+        names = sorted([service.instance for aysrepo in repos for service in list(
+            aysrepo.services.values()) if service.templatename == name])
         return names
 
     def getCPUUsage(self):

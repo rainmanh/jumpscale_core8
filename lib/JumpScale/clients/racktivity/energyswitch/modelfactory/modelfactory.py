@@ -271,7 +271,7 @@ class ModelFactory:
                 mm = self._get_module_model(module_id, "Display")
                 if mm:
                     return mm
-            except (RuntimeError, AttributeError)as e:
+            except (RuntimeError, AttributeError) as e:
                 logging.warning("Failed to get module info of %s",
                                 module_id, exc_info=e)
 
@@ -287,7 +287,7 @@ class ModelFactory:
                 mm = self._get_module_model(module_id, "SlavePower")
                 if mm:
                     return mm
-            except (RuntimeError, AttributeError)as e:
+            except (RuntimeError, AttributeError) as e:
                 logging.warning("Failed to get module info of %s",
                                 module_id, exc_info=e)
 

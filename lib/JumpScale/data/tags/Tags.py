@@ -34,7 +34,7 @@ class Tags:
         go from string to Tag class filled in
 
         @param tagstring: example "important customer:kristof"
-        @type tagstring: string        
+        @type tagstring: string
         """
 
         tagstring = j.data.text.hrd2machinetext(tagstring)
@@ -61,7 +61,7 @@ class Tags:
         build string representation from tags
 
         @return: string representation from tags
-        @rtype: string                
+        @rtype: string
         """
         labelsString = " ".join([quote(label) for label in self.labels])
         tagsString = " ".join(["%s:%s" % (quote(k), quote(v))
@@ -84,7 +84,7 @@ class Tags:
 
     def getValues(self, **kwargs):
         """
-        for each item given as named argument check it is in the tags & and if not use it 
+        for each item given as named argument check it is in the tags & and if not use it
         e.g. args=self.getValues(id=1,name="test")
         will return a dict with id & name and these values unless if they were set in the tags already
 
@@ -112,9 +112,9 @@ class Tags:
     def tagGet(self, tagname, default=None):
         """
         @param tagname: e.g customer
-        @type tagname: string 
+        @type tagname: string
 
-        @return: value behind tag 
+        @return: value behind tag
         @rtype: string
         """
         if tagname in self.tags:
@@ -130,7 +130,7 @@ class Tags:
         check whether tagname exists in the tags dictionary
 
         @return: true if tag exists
-        @rtype: boolean        
+        @rtype: boolean
         """
         return tagname in self.tags
 
@@ -142,10 +142,10 @@ class Tags:
 
     def labelExists(self, labelname):
         """
-        check whether labelname exists in the labels 
+        check whether labelname exists in the labels
 
         @return: true if label exists
-        @rtype: boolean        
+        @rtype: boolean
         """
         return self.labels.issuperset(set([labelname]))
 
@@ -154,7 +154,7 @@ class Tags:
         delete tag, raise error if not existing
 
         @param tagname: e.g customer
-        @type tagname: string        
+        @type tagname: string
 
         """
         if tagname in self.tags:
@@ -170,7 +170,7 @@ class Tags:
         delete label, raise error if not existing
 
         @param labelname: e.g important
-        @type labelname: string 
+        @type labelname: string
         """
         if not self.labelExists(labelname):
             raise Exception('label %s does not exist' % labelname)
@@ -181,11 +181,11 @@ class Tags:
         """
         add new key value tag
 
-        @param tagName: e.g customer        
-        @type tagName: string 
+        @param tagName: e.g customer
+        @type tagName: string
 
         @param tagValue: e.g kristof
-        @type tagValue: string        
+        @type tagValue: string
         """
         self.tags[tagName] = str(tagValue)
         self._toString()

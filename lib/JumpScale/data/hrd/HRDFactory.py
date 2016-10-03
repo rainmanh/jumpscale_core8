@@ -30,7 +30,8 @@ class HRDFactory:
                     "HRD of directory cannot be build with as input content (should be empty)")
             return HRDTree(path, prefixWithName=prefixWithName, keepformat=keepformat)
         else:
-            return HRD(path=path, content=content, prefixWithName=prefixWithName, keepformat=keepformat, args=args, templates=templates)
+            return HRD(path=path, content=content, prefixWithName=prefixWithName,
+                       keepformat=keepformat, args=args, templates=templates)
 
     def getHRDFromMongoObject(self, mongoObject, prefixRootObjectType=True):
         txt = j.data.serializer.serializers.hrd.dumps(mongoObject.to_dict())

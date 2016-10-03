@@ -5,7 +5,9 @@ import disks
 
 
 class DiskManager:
-
+    """
+     helps you to gather a lot of information about the disks and partitions.
+    """
     def __init__(self):
         self.__jslocation__ = "j.sal.disklayout"
         self.disks = []

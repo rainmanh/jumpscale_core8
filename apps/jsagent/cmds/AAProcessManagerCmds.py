@@ -61,7 +61,7 @@ class AAProcessManagerCmds():
         if session is not None:
             self._adminAuth(session.user, session.passwd)
 
-        if not j.core.processmanager.monObjects.__dict__.has_key(name):
+        if name not in j.core.processmanager.monObjects.__dict__:
             raise RuntimeError("Could not find factory for monitoring object:%s" % name)
 
         if lastcheck == 0:

@@ -19,7 +19,8 @@ class ActionsBase:
         service.state.set(methodname, "CHANGED")
         service.state.save()
 
-    def ask_telegram(self, username=None, message='', keyboard=[], expect_response=True, timeout=120, redis=None, channel=None):
+    def ask_telegram(self, username=None, message='', keyboard=[],
+                     expect_response=True, timeout=120, redis=None, channel=None):
         """
         username: str, telegram username of the person you want to send the message to
         channel: str, telegram channel where the bot is an admin

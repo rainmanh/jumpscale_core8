@@ -2,6 +2,7 @@
 from JumpScale import j
 import random
 import sys
+import string
 
 
 class IDGenerator:
@@ -12,6 +13,7 @@ class IDGenerator:
 
     def __init__(self):
         self.__jslocation__ = "j.data.idgenerator"
+        self.cryptogen = random.SystemRandom()
 
     def generateRandomInt(self, fromInt, toInt):
         """
@@ -64,6 +66,14 @@ class IDGenerator:
         for i in range(0, x):
             p = self.generateRandomInt(0, l - 1)
             out += r[p]
+        return out
+
+    def generatePasswd(self, x, al=string.printable):
+        l = len(al)
+        out = ""
+        for i in range(0, x):
+            p = self.cryptogen.randrange(0, l - 1)
+            out += al[p]
         return out
 
     def generateCapnpID(self):

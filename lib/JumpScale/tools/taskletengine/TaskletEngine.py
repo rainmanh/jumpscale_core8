@@ -189,8 +189,7 @@ class TaskletEngine:
                     prios[prio].append([name, path2])
                 else:
                     prios[prio] = [[name, path2]]
-        prios2 = list(prios.keys())
-        prios2.sort()
+        prios2 = sorted(prios.keys())
         result = []
         for prio in prios2:
             for name, item in prios[prio]:

@@ -61,7 +61,7 @@ class Connection:
     def get(self, url, data=None, headers=None, **params):
         """
         @params is parameters as used in get e.g. name="kds",color="red"
-        @headers e.g. headers={'content-type':'text/plain'}  (this is the default)        
+        @headers e.g. headers={'content-type':'text/plain'}  (this is the default)
         """
         response = self._http_request(
             url, headers=headers, method='GET', **params)  # TODO: P1 fix & check

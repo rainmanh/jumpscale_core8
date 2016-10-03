@@ -81,7 +81,7 @@ class NetConfigFactory:
 
     def newBridge(self, name, interface=None):
         """
-        @param interface ['interface'] can take multiple interfaces where to connect this bridge 
+        @param interface ['interface'] can take multiple interfaces where to connect this bridge
         """
         br = netcl.Bridge(name)
         br.create()
@@ -91,14 +91,12 @@ class NetConfigFactory:
     def vnicQOS(self, limit, interface, burst_limit=None):
         """
         @param limit apply Qos policing to limit the rate throught a
-        @param burst_limit most the maximum amount of data (in Kb) that 
+        @param burst_limit most the maximum amount of data (in Kb) that
                this interface can send beyond the policing rate.default to 10% of rate
         """
         if not burst_limit:
             burst_limit = 0.1 * limit
         netcl.limit_interface_rate(limit, interface, burst_limit)
-
-
 
     def newVlanBridge(self, name, parentbridge, vlanid, mtu=None):
         addVlanPatch(parentbridge, name, vlanid, mtu=mtu)
@@ -277,7 +275,8 @@ iface $iname inet manual
         ed.setSection(backplanename, C)
         ed.save()
 
-    def setBackplaneWithBond(self, bondname, bondinterfaces, backplanename='backplane', ipaddr="192.168.10.10/24", gw=""):
+    def setBackplaneWithBond(self, bondname, bondinterfaces, backplanename='backplane',
+                             ipaddr="192.168.10.10/24", gw=""):
         """
         DANGEROUS, will remove old configuration
         """
@@ -336,7 +335,7 @@ iface $bondname inet manual
             self._exec("ifdown %s" % backplanename, failOnError=False)
             # self._exec("ifup %s"%backplanename, failOnError=True)
 
-        #TODO: need to do more checks here that it came up and retry couple of times if it did not
+        # TODO: need to do more checks here that it came up and retry couple of times if it did not
         #@ can do this by investigating self.getConfigFromSystem
 
         self._executor.execute("/etc/init.d/openvswitch-switch restart")

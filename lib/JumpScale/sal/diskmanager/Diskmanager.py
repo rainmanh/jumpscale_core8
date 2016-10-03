@@ -56,7 +56,8 @@ class Disk:
         self.type = []
 
     def __str__(self):
-        return "%s %s %s free:%s ssd:%s fs:%s model:%s id:%s" % (self.path, self.mountpoint, self.size, self.free, self.ssd, self.fs, self.model, self.id)
+        return "%s %s %s free:%s ssd:%s fs:%s model:%s id:%s" % (
+            self.path, self.mountpoint, self.size, self.free, self.ssd, self.fs, self.model, self.id)
 
     __repr__ = __str__
 
@@ -94,6 +95,9 @@ class Diskmanager:
         return self._parted
 
     def partitionAdd(self, disk, free, align=None, length=None, fs_type=None, type=None):
+        """
+        Add a partition on a disk
+        """
         if type is None:
             type = self.parted.PARTITION_NORMAL
         start = free.start
@@ -147,8 +151,12 @@ class Diskmanager:
                        initialize=False, forceinitialize=False):
         """
         looks for disks which are know to be data disks & are formatted ext4
-        return [[$partpath,$size,$free,$ssd]]
+
+        @param ttype is a string variable defining the format type
+        @param minsize is an int variable indicating the minimum partition size and defaulted to 5
+        @param mazsize is an int variable indicating the minimum partition size and defaulted to 5000
         @param ssd if None then ssd and other
+        :return [[$partpath,$size,$free,$ssd]]
         """
         import psutil
         result = []
@@ -224,7 +232,8 @@ class Diskmanager:
                             size = disko.size / 1024
                             disko.free = int(disko.free)
 
-                            if (ttype is None or fs == ttype) and size > minsize and (maxsize is None or size < maxsize):
+                            if (ttype is None or fs == ttype) and size > minsize and (
+                                    maxsize is None or size < maxsize):
                                 if ssd is None or disko.ssd == ssd:
                                     # print disko
                                     hrdpath = "%s/disk.hrd" % mountpoint

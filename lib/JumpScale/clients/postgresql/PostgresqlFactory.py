@@ -135,7 +135,8 @@ class PostgresClient:
                 args)
             j.sal.process.execute(cmd, outputToStdout=False)
 
-        for item in j.sal.fs.listFilesInDir(path, recursive=False, filter="*.sql", followSymlinks=True, listSymlinks=True):
+        for item in j.sal.fs.listFilesInDir(path, recursive=False, filter="*.sql",
+                                            followSymlinks=True, listSymlinks=True):
             name = j.sal.fs.getBaseName(item).replace(".sql", "")
             if name.find("_") == 0:
                 continue

@@ -1,6 +1,6 @@
 from JumpScale import j
 
-#TODO: can we make all of this lazy loading *2
+# TODO: can we make all of this lazy loading *2
 
 from JumpScale.data.serializers.SerializerInt import SerializerInt
 from JumpScale.data.serializers.SerializerTime import SerializerTime
@@ -39,7 +39,7 @@ class SerializersFactory:
     def get(self, serializationstr, key=""):
         """
         serializationstr FORMATS SUPPORTED FOR NOW
-            m=MESSAGEPACK 
+            m=MESSAGEPACK
             c=COMPRESSION WITH BLOSC
             b=blowfish
             s=snappy
@@ -53,7 +53,7 @@ class SerializersFactory:
 
          example serializationstr "mcb" would mean first use messagepack serialization then compress using blosc then encrypt (key will be used)
 
-        this method returns 
+        this method returns
         """
         k = "%s_%s" % (serializationstr, key)
         if k not in self._cache:
@@ -71,7 +71,7 @@ class SerializersFactory:
     def getSerializerType(self, type, key=""):
         """
         serializationstr FORMATS SUPPORTED FOR NOW
-            m=MESSAGEPACK 
+            m=MESSAGEPACK
             c=COMPRESSION WITH BLOSC
             b=blowfish
             s=snappy

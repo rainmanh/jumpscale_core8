@@ -355,7 +355,8 @@ class TelegramAYS:
             bluelist.append('/blueprint delete %s' % blueprint)
 
         if len(bluelist) == 0:
-            return bot.sendMessage(chat_id=update.message.chat_id, text="Sorry, this repository doesn't contains blueprint for now, upload me some of them !")
+            return bot.sendMessage(chat_id=update.message.chat_id,
+                                   text="Sorry, this repository doesn't contains blueprint for now, upload me some of them !")
 
         bluelist.append("I'm done")
 

@@ -445,7 +445,7 @@ def load(fp, charset='utf-8', errors=default_errors, decode_strings=False,
 
     def _read_until(delim):
         buf = []
-        while 1:
+        while True:
             char = fp.read(1)
             if char == delim:
                 break

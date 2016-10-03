@@ -293,7 +293,7 @@ class ErrorConditionHandler:
         if eco.traceback != "":
             print("\n**** TRACEBACK ***")
             eco.printTraceback()
-        print(eco)
+        # print(eco)
 
     def checkErrorIgnore(self, eco):
         if j.application.debug:

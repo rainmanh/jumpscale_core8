@@ -543,9 +543,6 @@ class Docker:
         for item in self.client.images():
             if tag in item["RepoTags"]:
                 self.client.remove_image(item["Id"])
-            except Exception as e:
-                print("COULD NOT REMOVE DOCKER IMAGE:\n%s\n" % item)
-                print(e)
 
     def ping(self):
         self.weavesocket

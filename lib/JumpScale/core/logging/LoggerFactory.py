@@ -204,10 +204,7 @@ class LoggerFactory:
         self.logging.setLevel(logging.DEBUG)
         self.logging.propagate = False
         logging.lastResort = None
-        for k, h in self.handlers.items():
-            if k == 'console' and self._quiet:
-                continue
-            self._logger.addHandler(h)
+        self.enableConsoleHandler()
 
     def __fileRotateHandler(self, name='jumpscale'):
         if not j.do.exists("%s/log/" % j.do.VARDIR):

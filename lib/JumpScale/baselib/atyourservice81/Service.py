@@ -109,8 +109,8 @@ class Service:
                                              (parent_name, self), level=1, source="", tags="", msgpub="")
                 else:
                     auto_actor = self.aysrepo.actorGet(parent_role)
-                    # TODO: generate incremental instance name
-                    res.append(auto_actor.serviceCreate(instance="auto", args={}))
+                    instance = j.data.idgenerator.generateIncrID('parent_%s' % parent_role)
+                    res.append(auto_actor.serviceCreate(instance="auto_%d" % instance, args={}))
             elif len(res) > 1:
                 raise j.exceptions.Input(message="could not find parent:%s for %s, found more than 1." %
                                          (parent_name, self), level=1, source="", tags="", msgpub="")
@@ -147,8 +147,8 @@ class Service:
                                              (producer_role, self), level=1, source="", tags="", msgpub="")
                 else:
                     auto_actor = self.aysrepo.actorGet(producer_role)
-                    # TODO: generate incremental instance name
-                    res.append(auto_actor.serviceCreate(instance="auto", args={}))
+                    instance = j.data.idgenerator.generateIncrID('service_%s' % producer_role)
+                    res.append(auto_actor.serviceCreate(instance="auto_%d" % instance, args={}))
             elif len(res) > 1:
                 raise j.exceptions.Input(message="could not find producer:%s for %s, found more than 1." %
                                          (producer_role, self), level=1, source="", tags="", msgpub="")

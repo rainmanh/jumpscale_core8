@@ -21,7 +21,7 @@ class IDGenerator:
         """
         return random.randint(fromInt, toInt)
 
-    def generateIncrID(self, incrTypeId, service, reset=False):
+    def generateIncrID(self, incrTypeId, reset=False):
         """
         type is like agent, job, jobstep
         needs to be a unique type, can only work if application service is known
@@ -29,26 +29,22 @@ class IDGenerator:
         @reset if True means restart from 1
         """
         key = "incrementor_%s" % incrTypeId
-        if service.db.exists(key) and reset is False:
-            lastid = int(service.db.get(key))
-            service.db.testAndSet(key, str(lastid), str(lastid + 1))
-            return lastid + 1
-        else:
-            service.db.set(key, "1")
-            return 1
+        if reset:
+            j.core.db.delete(key)
+        return j.core.db.incr(key)
 
-    def getID(self, incrTypeId, objectUniqueSeedInfo, service, reset=False):
+    def getID(self, incrTypeId, objectUniqueSeedInfo, reset=False):
         """
         get a unique id for an object uniquely identified
         remembers previously given id's
         """
         key = "idint_%s_%s" % (incrTypeId, objectUniqueSeedInfo)
-        if service.db.exists(key) and reset is False:
-            id = int(service.db.get(key))
+        if j.core.db.exists(key) and reset is False:
+            id = int(j.core.db.get(key))
             return id
         else:
-            id = self.generateIncrID(incrTypeId, service)
-            service.db.set(key, str(id))
+            id = self.generateIncrID(incrTypeId)
+            j.core.db.set(key, str(id))
             return id
 
     def generateGUID(self):

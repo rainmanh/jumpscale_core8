@@ -340,7 +340,7 @@ class Docker:
         @param vols in format as follows "/var/insidemachine:/var/inhost # /var/1:/var/1 # ..."   '#' is separator
         @param sshkeyname : use ssh-agent (can even do remote through ssh -A) and then specify key you want to use in docker
         """
-    if ssh is True and myinit is False:
+        if ssh is True and myinit is False:
             raise ValueError("SSH can't be enabled without myinit.")
         # check there is weave
         self.weavesocket
@@ -533,8 +533,11 @@ class Docker:
 
     def removeImages(self, tag="<none>:<none>"):
         for item in self.client.images():
-            if tag in item["RepoTags"]:
+            try:
                 self.client.remove_image(item["Id"])
+            except Exception as e:
+                print("COULD NOT REMOVE DOCKER IMAGE:\n%s\n" % item)
+                print(e)
 
     def ping(self):
         self.weavesocket
@@ -654,7 +657,6 @@ class Docker:
                 out.append(line)
 
         return "\n".join(out)
-
 
     class DockerExecObj:
 

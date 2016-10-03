@@ -655,6 +655,8 @@ class Console:
         return ""
 
     def hideOutput(self, reset=False):
+        return
+        # TODO: *3
         # setup the environment
         self._old_stdout = sys.stdout
         self._old_stderr = sys.stderr

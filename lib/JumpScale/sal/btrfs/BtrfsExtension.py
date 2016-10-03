@@ -63,7 +63,7 @@ class BtrfsExtension:
         """
         full path to volume
         """
-        if not self.subvolumeExists(path):
+        if self.subvolumeExists(path):
             self.__btrfs("subvolume", "delete", path)
 
     def subvolumeExists(self, path):
@@ -85,7 +85,7 @@ class BtrfsExtension:
 
         return True
 
-    def subvolumeList(self, path, filter=""):
+    def subvolumeList(self, path, filter="", filterExclude=""):
         """
         List the snapshot/subvolume of a filesystem.
         """
@@ -101,20 +101,25 @@ class BtrfsExtension:
             if filter != "":
                 if path2.find(filter) == -1:
                     continue
+            if filterExclude != "":
+                if path2.find(filterExclude) != -1:
+                    continue
             result.append(path2)
         return result
 
-    def subvolumesDelete(self, path, filter=""):
+    def subvolumesDelete(self, path, filter="", filterExclude=""):
         """
         delete all subvols starting from path
         filter e.g. /docker/
         """
-        for path2 in self.subvolumeList(path, filter=filter):
-            print("delete:%s" % path2)
-            try:
-                self.subvolumeDelete(path2)
-            except:
-                pass
+        for i in range(4):
+            # ugly for now, but cannot delete subvols, by doing this, it words brute force
+            for path2 in self.subvolumeList(path, filter=filter, filterExclude=filterExclude):
+                print("delete:%s" % path2)
+                try:
+                    self.subvolumeDelete(path2)
+                except:
+                    pass
 
     def deviceAdd(self, path, dev):
         """

@@ -66,16 +66,18 @@ class RunStep:
                 processes[job] = process
 
         for job, process in processes.items():
-            process.wait()
+
+            while not process.isDone():
+                process.wait()
 
             service_action_obj = job.service.getActionObj(job.model.dbobj.actionName)
 
-            if process.isDone() and process.state != 'success':
+            if process.state != 'success':
                 self.state = 'error'
                 job.model.dbobj.state = 'error'
                 service_action_obj.state = 'error'
                 # processError creates the logs entry in job object
-                job.processError(process.error)
+                job._processError(process.error)
             else:
                 self.state = 'ok'
                 job.model.dbobj.state = 'ok'

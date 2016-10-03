@@ -180,6 +180,17 @@ class Service:
             event.log = event_info.log
             event.lastRun = 0
 
+    def migrate(self, actor):
+        """
+        Migrate updates the connection of this service to the actor passed in argument.
+        this method relink the relation between the service and the actor and the services and the actions
+        """
+        self.model.dbobj.actorKey = actor.model.key
+        for actor_action in actor.model.dbobj.actions:
+            for service_action in self.model.dbobj.actions:
+                if actor_action.name == service_action.name:
+                    service_action.actionKey = actor_action.actionKey
+        self.model.save()
 
     def loadFromFS(self):
         """
@@ -264,13 +275,6 @@ class Service:
 
         return self._producers
 
-    def findProducer(self, role, name):
-        if role in self.producers:
-            for producer in self.producers[role]:
-                if producer.model.name in name:
-                    return producer
-        return None
-
     @property
     def consumers(self):
         consumers = list()
@@ -293,7 +297,7 @@ class Service:
         """
         if target is None:
             target = self
-        for service in self.findConsumers(target):
+        for service in target.consumers:
             out.add(service)
             self.findConsumersRecursive(service, out)
         return out
@@ -301,7 +305,7 @@ class Service:
     def getProducersRecursive(self, producers=set(), callers=set(), action="", producerRoles="*"):
         for role, producers_list in self.producers.items():
             for producer in producers_list:
-                if action == "" or action in producer.model.methodsState.keys():
+                if action == "" or action in producer.model.actionsState.keys():
                     if producerRoles == "*" or producer.model.role in producerRoles:
                         producers.add(producer)
                 producers = producer.getProducersRecursive(
@@ -324,16 +328,16 @@ class Service:
             # check that the action exists, no need to wait for other actions,
             # appart from when init or install not done
 
-            if producer.model.methodsState['init'] != "ok":
+            if producer.model.actionsState['init'] != "ok":
                 producersChanged.add(producer)
 
-            if producer.model.methodsState['install'] != "ok":
+            if producer.model.actionsState['install'] != "ok":
                 producersChanged.add(producer)
 
-            if action not in producer.model.methodsState.keys():
+            if action not in producer.model.actionsState.keys():
                 continue
 
-            if producer.model.methodsState[action] != "ok":
+            if producer.model.actionsState[action] != "ok":
                 producersChanged.add(producer)
 
         if scope is not None:
@@ -364,14 +368,76 @@ class Service:
         tocheck = [self]
         tocheck.extend(self.parents)
         for service in tocheck:
-            if 'getExecutor' in service.model.methodsState.keys():
+            if 'getExecutor' in service.model.actionsState.keys():
                 job = service.getJob('getExecutor')
                 executor = job.method(job)
                 return executor
         return j.tools.executor.getLocal()
 
     def processChange(self, actor, changeCategory):
-        self.logger.debug('process change for %s (%s)' % (self, changeCategory))
+        """
+        template action change
+        categories :
+            - dataschema
+            - ui
+            - config
+            - action_new_actionname
+            - action_mod_actionname
+        """
+        # TODO: implement different pre-define action for each category
+        # self.logger.debug('process change for %s (%s)' % (self, changeCategory))
+
+        if changeCategory == 'dataschema':
+            # TODO
+            pass
+        elif changeCategory == 'ui':
+            # TODO
+            pass
+        elif changeCategory == 'config':
+            # update the recurrin and event actions
+            # then set the lastrun to the value it was before update
+            recurring_lastrun = {}
+            event_lastrun = {}
+
+            for event in self.model.actionsEvent:
+                event_lastrun[event.action] = event.lastRun
+            for recurring in self.model.actionsRecurring:
+                recurring_lastrun[recurring.action] = recurring.lastRun
+
+            self._initRecurringActions(actor)
+            self._initEventActions(actor)
+
+            for action, lastRun in event_lastrun.item():
+                self.model.actionsEvent[action].lastRun = lastrun
+            for action, lastRun in recurring_lastrun.item():
+                self.model.actionsRecurring[action].lastRun = lastrun
+
+        elif changeCategory.find('action_new') != -1:
+            action_name = changeCategory.split('action_new_')[1]
+            actor_action_pointer = actor.model.actions[action_name]
+            self.model.actionAdd(actor_action_pointer.actionKey, action_name)
+
+        elif changeCategory.find('action_mod') != -1:
+            # update state and pointer of the action pointer in service model
+            action_name = changeCategory.split('action_mod_')[1]
+            action_actor_pointer = actor.model.actions[action_name]
+            service_action_pointer = self.model.actions[action_name]
+            service_action_pointer.state = 'changed'
+            service_action_pointer.actionKey = action_actor_pointer.actionKey
+
+            # update the lastModDate of the action object
+            action = j.core.jobcontroller.db.action.get(key=service_action_pointer.actionKey)
+            action.dbobj.lastModDate = j.data.time.epoch
+            action.save()
+
+        # execute the processChange method if it exists
+        if 'processChange' in self.model.actions.keys():
+            job = self.getJob("processChange", args={'changeCategory': changeCategory})
+            args = job.executeInProcess(service=self)
+            job.model.save()
+            # self.runAction('processChange', args={'changeCategory': changeCategory})
+
+        self.model.save()
 
     def input(self, args={}):
         job = self.getJob("input", args=args)
@@ -387,8 +453,33 @@ class Service:
 
     def runAction(self, action, args={}):
         job = self.getJob(actionName=action, args=args)
-        args = job.execute()
+        p = job.execute()
+
+        while not p.isDone():
+            p.wait()
+
+        service_action_obj = self.getActionObj(action)
+
+        if p.state != 'success':
+            job.model.dbobj.state = 'error'
+            service_action_obj.state = 'error'
+            # processError creates the logs entry in job object
+            job._processError(p.error)
+        else:
+            job.model.dbobj.state = 'ok'
+            service_action_obj.state = 'ok'
+
+            log_enable = j.core.jobcontroller.db.action.get(service_action_obj.actionKey).dbobj.log
+            if log_enable:
+                job.model.log(msg=p.stdout, level=5, category='out')
+                job.model.log(msg=p.stderr, level=5, category='err')
+
+            if p.stdout != '':
+                print(p.stdout)
+
         job.model.save()
+        self.model.save()
+
         return job
 
     def getJob(self, actionName, args={}):

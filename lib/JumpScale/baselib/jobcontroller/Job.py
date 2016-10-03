@@ -85,7 +85,7 @@ class Job():
             self._service = serviceModel.objectGet(repo)
         return self._service
 
-    def processError(self, eco):
+    def _processError(self, eco):
         logObj = self.model._logObjNew()
 
         if j.data.types.string.check(eco):
@@ -123,6 +123,7 @@ class Job():
             level = eco.level
             tags = eco.tags
 
+        print(msg)
         self.model.log(
             msg=msg,
             level=level,
@@ -144,21 +145,27 @@ class Job():
             else:
                 self._service = service
 
+        service_action_obj = self.service.getActionObj(self.model.dbobj.actionName)
+
         try:
             if self.model.dbobj.actorName != "":
                 res = self.method(job=self)
             else:
                 res = self.method(**self.model.args)
-                self.model.dbobj.state = 'ok'
+
+            service_action_obj.state = 'ok'
+            self.model.dbobj.state = 'ok'
 
         except Exception as e:
+            service_action_obj.state = 'error'
             self.model.dbobj.state = 'error'
             eco = j.errorconditionhandler.processPythonExceptionObject(e)
-            self.processError(eco)
+            self._processError(eco)
             raise j.exceptions.RuntimeError("could not execute job:%s" % self)
 
         self.model.result = res
         self.model.save()
+        self.service.model.save()
         return res
 
     def execute(self):

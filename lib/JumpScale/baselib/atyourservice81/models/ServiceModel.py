@@ -33,46 +33,66 @@ class ServiceModel(ModelBase):
         return producers
 
     @property
-    def methodsState(self):
+    def actions(self):
+        """
+        return dict
+            key = action name
+            val = action model
+        """
+        actions = {}
+        for action in self.dbobj.actions:
+            actions[action.name] = action
+        return actions
+
+    @property
+    def actionsState(self):
         """
         return dict
             key = action name
             val = state
         state = 'new', 'installing', 'ok', 'error', 'disabled', 'changed'
         """
-        methods = {}
+        actions = {}
         for action in self.dbobj.actions:
-            methods[action.name] = action.state
-        return methods
+            actions[action.name] = action.state
+        return actions
 
     @property
-    def methodsCode(self):
+    def actionsCode(self):
         """
         return dict
             key = action name
             val = source code of the action
         """
-        methods = {}
+        actions = {}
         for action in self.dbobj.actions:
             action_model = j.core.jobcontroller.db.action.get(action.actionKey)
-            methods[action.name] = action_model.code
-        return methods
+            actions[action.name] = action_model.code
+        return actions
 
     @property
-    def recurring(self):
-        raise NotImplemented
+    def actionsRecurring(self):
         """
         return dict
             key = action name
-            val = (period,lastrun)
-
-        lastrun = epoch
-        period = e.g. 1h, 1d, ...
+            val = recurring model
         """
         recurrings = {}
-        for recurring in self.dbobj.recurring:
-            recurrings[recurring.name] = (recurring.period, recurring.lastRun)
+        for recurring in self.dbobj.recurringActions:
+            recurrings[recurring.action] = recurring
         return recurrings
+
+    @property
+    def actionsEvent(self):
+        """
+        return dict
+            key = action name
+            val = event model
+        """
+        events = {}
+        for event in self.dbobj.eventActions:
+            events[event.action] = event
+        return events
 
     @classmethod
     def list(self, name="", actor="", state="", parent="", producer="", returnIndex=False):
@@ -249,6 +269,14 @@ class ServiceModel(ModelBase):
         if "dataSchema" in ddict:
             ddict.pop("dataSchema")
         return ddict
+
+    def actionAdd(self, key, name):
+        action_obj = self._actionsNewObj()
+        action_obj.state = "new"
+        action_obj.actionKey = key
+        action_obj.name = name
+        self.save()
+        return action_obj
 
     def producerAdd(self, actorName, serviceName, key):
         p = self._producerNewObj()

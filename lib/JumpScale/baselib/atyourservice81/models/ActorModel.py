@@ -133,15 +133,17 @@ class ActorModel(ModelBase):
             out += defstr
         return out
 
-    def actionGet(self, name):
+    @property
+    def actions(self):
         """
-        return the action model for the action named 'name'
-        if no action with name `name`, returns None
+        return dict of action pointer model
+        key = action name
+        value = action pointer model
         """
+        actions = {}
         for act in self.dbobj.actions:
-            if act.name == name:
-                return act
-        return None
+            actions[act.name] = act
+        return actions
 
     def actionAdd(self, name, actionKey="", type="service"):
         """
@@ -156,7 +158,32 @@ class ActorModel(ModelBase):
         obj.name = name
         obj.actionKey = actionKey
         obj.type = type
+        self.save()
         return obj
+
+    @property
+    def actionsRecurring(self):
+        """
+        return dict of reccuring action pointer model
+        key = action name
+        value = action pointer model
+        """
+        actions = {}
+        for act in self.dbobj.recurringActions:
+            actions[act.action] = act
+        return actions
+
+    @property
+    def actionsEvent(self):
+        """
+        return dict of event action pointer model
+        key = action name
+        value = action pointer model
+        """
+        actions = {}
+        for act in self.dbobj.eventActions:
+            actions[act.action] = act
+        return actions
 
     def _actionsNewObj(self):
         olditems = [item.to_dict() for item in self.dbobj.actions]

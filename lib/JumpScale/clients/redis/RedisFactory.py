@@ -26,14 +26,16 @@ class RedisFactory:
         self._config = {}
 
     def get(self, ipaddr="localhost", port=6379, password="", fromcache=True, unixsocket=None):
-        if unixsocket == None:
+        if unixsocket is None:
             key = "%s_%s" % (ipaddr, port)
         else:
-            raise RuntimeError("unixsocket not implemented")
             key = unixsocket
         if key not in self._redis or not fromcache:
-            # TODO *1 implement using unix sockets
-            self._redis[key] = Redis(ipaddr, port, password=password)  # , unixsocket=unixsocket)
+            if unixsocket is None:
+                self._redis[key] = Redis(ipaddr, port, password=password)  # , unixsocket=unixsocket)
+            else:
+                self._redis[key] = Redis(unixsocket=unixsocket, password=password)
+
         return self._redis[key]
 
     def getQueue(self, ipaddr, port, name, namespace="queues", fromcache=True):

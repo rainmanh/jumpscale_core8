@@ -16,6 +16,7 @@ class Actor():
         self.logger = j.atyourservice.logger
         self._schema = None
         self.db = aysrepo.db.actor
+        self.model = None
 
         if template is not None:
             self._initFromTemplate(template)
@@ -60,24 +61,23 @@ class Actor():
         self.saveToFS()
 
     def _initFromTemplate(self, template):
-        self.model = self.db.new()
-
-        self.model.dbobj.name = template.name
-
-        self.model.dbobj.state = "new"
+        if self.model is None:
+            self.model = self.db.new()
+            self.model.dbobj.name = template.name
+            self.model.dbobj.state = "new"
 
         # hrd schema to capnp
         if self.model.dbobj.serviceDataSchema != template.schemaCapnpText:
-            self.processChange("dataschema")
             self.model.dbobj.serviceDataSchema = template.schemaCapnpText
+            self.processChange("dataschema")
 
         if self.model.dbobj.dataUI != template.dataUI:
-            self.processChange("ui")
             self.model.dbobj.dataUI = template.dataUI
+            self.processChange("ui")
 
         if self.model.dataJSON != template.configJSON:
-            self.processChange("config")
             self.model.dbobj.data = msgpack.dumps(template.configDict)
+            self.processChange("config")
 
         # git location of actor
         self.model.dbobj.gitRepo.url = self.aysrepo.git.remoteUrl
@@ -97,6 +97,7 @@ class Actor():
         self._processActionsFile(template=template)
 
         self.saveToFS()
+        self.model.save()
 
     def _initParent(self, template):
         parent = template.schemaHrd.parentSchemaItemGet()
@@ -268,14 +269,14 @@ class Actor():
         else:
             ac = j.core.jobcontroller.db.action.get(key=ac.key)
 
-        oldaction = self.model.actionGet(amName)
+        oldaction = self.model.actions.get(amName, None)
         if oldaction is None:
-            self.processChange("action_new_%s" % amName)
             self.model.actionAdd(amName, actionKey=ac.key)
+            self.processChange("action_new_%s" % amName)
         elif oldaction.actionKey != ac.key:
             # is a mod, need to remember the new key
-            self.processChange("action_mod_%s" % amName)
             oldaction.actionKey = ac.key
+            self.processChange("action_mod_%s" % amName)
 
     def processChange(self, changeCategory):
         """
@@ -287,8 +288,27 @@ class Actor():
             - action_new_actionname
             - action_mod_actionname
         """
-        # TODO: implement different pre-define action for each category
-        self.logger.debug('process change for %s (%s)' % (self, changeCategory))
+        # self.logger.debug('process change for %s (%s)' % (self, changeCategory))
+
+        if changeCategory == 'dataschema':
+            # TODO
+            pass
+
+        elif changeCategory == 'ui':
+            # TODO
+            pass
+
+        elif changeCategory == 'config':
+            # TODO
+            pass
+
+        elif changeCategory.find('action_new') != -1:
+            # TODO
+            pass
+        elif changeCategory.find('action_mod') != -1:
+            # TODO
+            pass
+
         for service in self.aysrepo.servicesFind(actor=self.model.name):
             service.processChange(actor=self, changeCategory=changeCategory)
 

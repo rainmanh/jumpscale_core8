@@ -153,32 +153,6 @@ class JobModel(ModelBase):
         return j.core.jobcontroller.newJobFromModel(self)
 
     @property
-    def actionMethod(self):
-        """
-        is python method which can be executed
-        """
-        if self.source == "":
-            raise j.exceptions.RuntimeError("source cannot be empty")
-        if self._method is None:
-            # j.sal.fs.changeDir(basepath)
-            loader = importlib.machinery.SourceFileLoader(self.name, self.sourceToExecutePath)
-            handle = loader.load_module(self.name)
-            self._method = eval("handle.%s" % self.name)
-
-        return self._method
-
-    # @actionMethod.setter
-    # def actionMethod(self, val):
-    #     """
-    #     will inspect the method
-    #     """
-    #
-    #     from IPython import embed
-    #     print("DEBUG NOW actionMethod")
-    #     embed()
-    #     raise RuntimeError("stop debug here")
-
-    @property
     def dictFiltered(self):
         ddict = self.dbobj.to_dict()
         to_filter = ['args', 'result', 'profileData']

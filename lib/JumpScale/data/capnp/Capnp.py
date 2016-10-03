@@ -78,7 +78,6 @@ class Capnp:
         schemaInText = schemaInText.strip() + "\n"
         schemaId = self.getId(schemaInText)
         if schemaId not in self._cache:
-            print("load schema:%s" % schemaId)
             nameOnFS = "schema_%s.capnp" % (schemaId)
             path = j.sal.fs.joinPaths(self._capnpVarDir, nameOnFS)
             j.sal.fs.writeFile(filename=path, contents=schemaInText, append=False)

@@ -17,7 +17,7 @@ repo = None
 @click.option('--nodebug', default=False, help='disable debug mode', is_flag=True)
 def cli(nodebug):
     global repo
-    repo = j.atyourservice.repoGet()
+    repo = j.atyourservice.get()
     repo.debug = not nodebug
 
 # @click.command()
@@ -79,6 +79,24 @@ def init(role="", instance="", data=""):
     repo.init(role=role, instance=instance, data=data)
 
 @click.command()
+@click.option('--name', '-n', default=None, help='name of the actor to migrate')
+def migrate(name):
+    names = []
+    if name is None:
+        names = repo.templates.keys()
+    else:
+        names = [name]
+
+    for n in names:
+        template = repo.templateGet(name=n)
+        try:
+            actor = repo.actorGet(name=n)
+        except:
+            import ipdb; ipdb.set_trace()
+        actor._initFromTemplate(template)
+
+
+@click.command()
 @click.argument('path', default='')
 @click.option('--role', '-r', default="", help='optional role for ays instances to init')
 @click.option('--instance', '-i', default="", help='optional name of instance')
@@ -112,7 +130,7 @@ def showactions():
     """
     for service in repo.services:
         print("%s" % service)
-        for action, state in service.model.methodsState.items():
+        for action, state in service.model.actionsState.items():
             print("- %-20s" % action)
 
 
@@ -123,7 +141,7 @@ def showactions():
 @click.option('--force', default=False, is_flag=True, help='force execution even if no change')
 @click.option('--producerroles', default="*", help='roles of producers which will be taken into consideration, if * all')
 @click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
-def do(role="", instance="", force=False, producerroles="*", ask=False):
+def do(action, role, instance, force, producerroles, ask):
     """
     call an action (which is a method in the action file e.g. start/stop/export/...)
     """
@@ -149,7 +167,11 @@ def install(role="", instance="", force=False, producerroles="*", ask=False):
     if you want more finegrained controle please use the do cmd
     """
     run = repo.runGet(role=role, instance=instance, action="install", force=force, producerRoles=producerroles)
-    print(run)
+    if len(run.steps) <= 0:
+        print("Nothing to do.")
+        return
+    else:
+        print(run)
     if ask:
         resp = j.tools.console.askYesNo('Do you want to execute this run ?')
         if resp is False:
@@ -324,7 +346,7 @@ def state(role='', instance=''):
     services = sorted(services, key=lambda s: s.model.dbobj.actorName)
     for service in services:
         print('State of service : %s!%s' % (service.model.dbobj.actorName, service.model.dbobj.name))
-        for actionName, state in service.model.methodsState.items():
+        for actionName, state in service.model.actionsState.items():
             print("\t%-25s : %s" % (actionName, state))
 
 cli.add_command(runinfo)
@@ -337,6 +359,7 @@ cli.add_command(blueprint)
 # cli.add_command(new)
 cli.add_command(destroy)
 cli.add_command(init)
+cli.add_command(migrate)
 cli.add_command(install)
 cli.add_command(uninstall)
 cli.add_command(do)

@@ -281,7 +281,7 @@ class AtYourServiceRepo():
         res = []
 
         for service_model in self.db.service.find(name=name, actor=actor, state=state, parent=parent, producer=producer):
-            if hasAction != "" and hasAction not in service_model.methodsState.keys():
+            if hasAction != "" and hasAction not in service_model.actionsState.keys():
                 continue
 
             if includeDisabled is False and service_model.dbobj.state == "disabled":
@@ -397,7 +397,7 @@ class AtYourServiceRepo():
         producerRoles = self._processProducerRoles(producerRoles)
         if action not in ["init"]:
             for s in self.services:
-                if s.model.methodsState['init'] not in ["new", "ok"]:
+                if s.model.actionsState['init'] not in ["new", "ok"]:
                     error_msg = "Cannot get run: %s:%s:%s because found a service not properly inited yet.\n%s\n please rerun ays init" % (role, instance, action, s)
                     self.logger.error(error_msg)
                     raise j.exceptions.Input(error_msg, msgpub=error_msg)
@@ -417,7 +417,7 @@ class AtYourServiceRepo():
             while todo != []:
                 newStep = True
                 for service in todo:
-                    if service.model.methodsState[action0] != 'ok':
+                    if service.model.actionsState[action0] != 'ok':
                         print("DO:%s %s" % (action0, service))
                         if newStep:
                             step = run.newStep()
@@ -453,7 +453,7 @@ class AtYourServiceRepo():
             # remove the ones which are already in previous runs
             producersWaiting = [item for item in producersWaiting if run.hasServiceForAction(item, action) is False]
             # remove action that has alredy status ok
-            producersWaiting = [item for item in producersWaiting if item.model.methodsState[action] != "ok"]
+            producersWaiting = [item for item in producersWaiting if item.model.actionsState[action] != "ok"]
 
             if len(producersWaiting) == 0:
                 todo.append(service)

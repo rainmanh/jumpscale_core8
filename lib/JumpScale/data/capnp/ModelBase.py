@@ -13,6 +13,8 @@ class ModelBase():
         self._db = modelfactory._db
         self._index = modelfactory._index
         self._key = ""
+        self.dbobj = None
+
         if key != "":
             if len(key) != 16 and len(key) != 32:
                 raise j.exceptions.Input("Key needs to be length 32")

@@ -115,15 +115,14 @@ class SSHClient:
         self.passwd = passwd
         self.stdout = stdout
         self.timeout = timeout
+        self.allow_agent = allow_agent
         if passwd is not None:
             self.forward_agent = False
-            self.allow_agent = False
             self.look_for_keys = False
             self.key_filename = None
             self.passphrase = None
         else:
             self.forward_agent = forward_agent
-            self.allow_agent = allow_agent
             self.look_for_keys = look_for_keys
             self.key_filename = key_filename
             self.passphrase = passphrase

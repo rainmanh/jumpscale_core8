@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 from JumpScale import j
 import copy
+import tarfile
+import time
+from io import BytesIO
 
 
 class Container:
@@ -39,7 +42,7 @@ class Container:
     def sshclient(self):
         if self._sshclient is None:
             self.executor.sshclient.get(
-                addr=self.host, port=self.ssh_port, login='root', passwd="gig1234", timeout=10, usecache=False)
+                addr=self.host, port=self.ssh_port, login='root', passwd="gig1234", timeout=10, usecache=False, allow_agent=True)
             self._sshclient = self.executor.sshclient
         return self._sshclient
 
@@ -47,7 +50,7 @@ class Container:
     def executor(self):
         if self._executor is None:
             self._executor = j.tools.executor.getSSHBased(
-                addr=self.host, port=self.ssh_port, login='root', passwd="gig1234", usecache=False)
+                addr=self.host, port=self.ssh_port, login='root', passwd="gig1234", usecache=False, allow_agent=True)
         return self._executor
 
     @property
@@ -193,7 +196,7 @@ class Container:
             if not j.do.checkSSHAgentAvailable():
                 j.do._loadSSHAgent()
 
-            if keyname != "":
+            if keyname != "" and keyname is not None:
                 key = j.do.getSSHKeyFromAgentPub(keyname)
             else:
                 key = j.do.getSSHKeyFromAgentPub("docker_default", die=False)
@@ -213,7 +216,19 @@ class Container:
         if key is None or key.strip() == "":
             raise j.exceptions.Input("ssh key cannot be empty (None)")
 
-        self.cuisine.ssh.authorize("root", key)
+        key_tarstream = BytesIO()
+        key_tar = tarfile.TarFile(fileobj=key_tarstream, mode='w')
+        tarinfo = tarfile.TarInfo(name='authorized_keys')
+        tarinfo.size = len(key)
+        tarinfo.mtime = time.time()
+        tarinfo.mode = 0o600
+        key_tar.addfile(tarinfo, BytesIO(key.encode()))
+        key_tar.close()
+
+        key_tarstream.seek(0)
+        exec_id = self.client.exec_create(self.id, "mkdir -p /root/.ssh/")
+        self.client.exec_start(exec_id['Id'])
+        self.client.put_archive(self.id, '/root/.ssh/', data=key_tarstream)
 
         return list(keys)
 

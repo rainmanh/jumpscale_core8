@@ -30,7 +30,7 @@ class CuisinePIP(base):
             """
         C = self._cuisine.core.args_replace(C)
         self._cuisine.core.execute_bash(C)
-        C = "cd $tmpDir/;python3 get-pip.py"
+        C = "python3 $tmpDir/get-pip.py"
         C = self._cuisine.core.args_replace(C)
         self._cuisine.core.run(C)
 

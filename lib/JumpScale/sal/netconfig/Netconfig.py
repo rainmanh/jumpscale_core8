@@ -1,7 +1,7 @@
 from JumpScale import j
 import netaddr
+import time
 
-# TODO: rewrite all to use the executor and only the executor *3
 # MAYBE WE SHOULD STANDARDISE ON ARCH LINUX & USE SYSTEMDNETWORKING
 
 
@@ -15,6 +15,7 @@ class Netconfig:
         self.root = j.tools.path.get("/")
         self._executor = j.tools.executor.getLocal()
         self._interfaceChanged = False
+        self.log = j.logger.get("j.sal.netconfig")
 
     def chroot(self, root):
         """
@@ -62,7 +63,7 @@ class Netconfig:
         @param shutdown bool: shutsdown the network.
         """
         if shutdown:
-            self.shutdownNetwork()
+            self.interfaces_shutdown()
         path = j.tools.path.get(self._getInterfacePath())
         self._backup(path)
         path.write_text("auto lo\n\n")
@@ -98,7 +99,6 @@ class Netconfig:
         @param hostname str: new hostname.
         """
         hostnameFile = j.tools.path.get('/etc/hostname')
-        old = hostnameFile.text()
         hostnameFile.write_text(hostname, append=False)
         cmd = 'hostname %s' % hostname
         self._executor.execute(cmd)
@@ -174,7 +174,7 @@ class Netconfig:
 
         path = self._getInterfacePath()
         ed = j.tools.code.getTextFileEditor(path)
-        ed.setSection(devToApplyTo, C)
+        ed.setSection(dev, C)
 
         if apply:
             self.interfaces_restart(dev)
@@ -191,17 +191,12 @@ class Netconfig:
         @param dev str: interface name.
         """
         if dev is None:
-            # TODO: (***) loop over devs
-            pass
-
-        self.log("restart:%s" % devToApplyTo)
-        cmd = "ifdown %s" % devToApplyTo
-        self._executor.execute(cmd)
-        cmd = "ifup %s" % devToApplyTo
-        self._executor.execute(cmd)
-
-        if not devToApplyTo.startswith(dev):
-            print(("restart:%s" % dev))
+            for nic in j.sal.nic.nics:
+                cmd = "ifdown %s --force" % nic
+                print("shutdown:%s" % nic)
+                self._executor.execute(cmd, die=False)
+        else:
+            self.log("restart:%s" % dev)
             cmd = "ifdown %s" % dev
             self._executor.execute(cmd)
             cmd = "ifup %s" % dev
@@ -230,6 +225,15 @@ class Netconfig:
             proxy_support = urllib.request.ProxyHandler()
             opener = urllib.request.build_opener(proxy_support)
             urllib.request.install_opener(opener)
+
+    def interface_remove_ipaddr(self, network="192.168.1"):
+        for item in j.sal.nettools.getNetworkInfo():
+            for ip in item["ip"]:
+                if ip.startswith(network):
+                    # remove ip addr from this interface
+                    cmd = "ip addr flush dev %s" % item["name"]
+                    print(cmd)
+                    j.sal.process.execute(cmd)
 
     def interface_configure_dhcp_waitdown(self, interface="eth0", ipaddr=None, gw=None, mask=24, config=True):
         """
@@ -288,20 +292,7 @@ class Netconfig:
         self.resetDefaultGateway(gw)
         print("default gw up:%s" % gw)
 
-    def interface_remove_ipaddr(self, network="192.168.1"):
-        """
-        Removing interfaces from a certain network by deleting their IP addresses
-        @param network str: network address
-        """
-        for item in j.sal.nettools.getNetworkInfo():
-            for ip in item["ip"]:
-                if ip.startswith(network):
-                    # remove ip addr from this interface
-                    cmd = "ip addr flush dev %s" % item["name"]
-                    print(cmd)
-                    j.sal.process.execute(cmd)
-
-    def interface_configure_dhcp_waitdown(self, interface="eth0"):
+    def interface_configure_dhcp_waitdown2(self, interface="eth0"):
         """
         this will bring all bridges down and set specified interface on dhcp (dangerous)
         """

@@ -35,6 +35,10 @@ class CuisineAlba(base):
 
         # OPAM
         self.opam_root = self._cuisine.core.args_replace('$tmpDir/OPAM')
+        
+        # profile fix
+        if not self._cuisine.core.file_exists('/root/.profile_js'):
+            self._cuisine.core.file_write('/root/.profile_js', "")
 
         # profile fix
         if not self._cuisine.core.file_exists('/root/.profile_js'):

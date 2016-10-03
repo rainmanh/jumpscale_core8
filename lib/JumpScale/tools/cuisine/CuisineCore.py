@@ -1017,7 +1017,7 @@ class CuisineCore(base):
             self.sudomode = False
 
         if self.sudomode:
-            cmd = self.sudo_cmd(cmd)
+            cmd = self.sudo_cmd(cmd, shell=shell)
         elif shell:  # only when shell is asked for
             cmd = 'bash -c "%s"' % cmd
 
@@ -1041,16 +1041,18 @@ class CuisineCore(base):
 
         return rc, out, err
 
-    def sudo_cmd(self, command, force_sudo=False):
+    def sudo_cmd(self, command, shell=False, force_sudo=False):
         if not force_sudo and getattr(self._executor, 'login', '') == "root":
             cmd = command
         passwd = self._executor.passwd if hasattr(self._executor, "passwd") else ''
-        # Install sudo if sudo not installed
+        passwd = passwd or "\'\'"
+        if shell:
+            command = 'bash -c "%s"' % command
         rc, out, err = self._executor.execute("which sudo", die=False, showout=False)
-        if rc or out.strip() == '**OK**':  # Work around: SSH executor adds **OK** for some reason
-            cmd = 'apt-get install sudo && echo %s | sudo -H -SE -p "" bash -c "%s"' % (passwd, command.replace('"', '\\"'))
+        if rc or out.strip() == '**OK**':  # Work around: SSH executor adds **OK** 
+            cmd = 'apt-get install sudo && echo %s | sudo -H -SE -p \'\' bash -c "%s"' % (passwd, command.replace('"', '\\"'))
         else:
-            cmd = 'echo %s | sudo -H -SE -p "" bash -c "%s"' % (passwd, command.replace('"', '\\"'))
+            cmd = 'echo %s | sudo -H -SE -p \'\' bash -c "%s"' % (passwd, command.replace('"', '\\"'))
         return cmd
 
     def cd(self, path):

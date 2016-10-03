@@ -54,12 +54,16 @@ class Docker:
     @property
     def weavesocket(self):
         if self._weaveSocket is None:
-            rc, self._weaveSocket = j.sal.process.execute(
-                "eval $(weave env) && echo $DOCKER_HOST", die=False)
-            if rc > 0:
-                print("weave not found, do not forget to start if installed.")
+            if not j.tools.cuisine.local.core.command_check('weave'):
+                self.logger.warning("weave not found, do not forget to start if installed.")
                 self._weaveSocket = ""
-            self._weaveSocket = self._weaveSocket.strip()
+            else:
+                rc, self._weaveSocket = j.sal.process.execute("eval $(weave env) && echo $DOCKER_HOST", die=False)
+                if rc > 0:
+                    self.logger.warning("weave not found, do not forget to start if installed.")
+                    self._weaveSocket = ""
+
+                self._weaveSocket = self._weaveSocket.strip()
 
         return self._weaveSocket
 
@@ -348,9 +352,6 @@ class Docker:
         @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
         @param vols in format as follows "/var/insidemachine:/var/inhost # /var/1:/var/1 # ..."   '#' is separator
         @param sshkeyname : use ssh-agent (can even do remote through ssh -A) and then specify key you want to use in docker
-        # TODO: *1 change way how we deal with ssh keys, put authorization file in
-        # filesystem before docker starts don't use ssh to push them, will be much
-        # faster and easier
         """
         if ssh is True and myinit is False:
                 raise ValueError("SSH can't be enabled without myinit.")
@@ -500,34 +501,39 @@ class Docker:
         self._containers[id] = container
 
         if ssh:
-            if sshkeyname is None:
-                sshkeyname = ""
-            if sshpubkey is None:
-                sshpubkey = ""
-            container.run("apt-get update")
-            container.run("apt-get install openssh-server -y")
-            container.run("service ssh start")
             container.pushSSHKey(keyname=sshkeyname, sshpubkey=sshpubkey)
+
+            # Make sure docker is ready for executor
+            end_time = time.time() + 60
+            while time.time() < end_time:
+                rc, _, _ = container.executor.execute('ls /', die=False, showout=False)
+                if rc:
+                    time.sleep(0.1)
+                break
 
             if setrootrndpasswd:
                 if rootpasswd is None or rootpasswd == '':
-                    print("set default root passwd (gig1234)")
-                    container.run(
-                        "echo \"root:gig1234\"|chpasswd")
+                    self.logger.info("set default root passwd (gig1234)")
+                    container.executor.execute(
+                        "echo \"root:gig1234\"|chpasswd", showout=False)
                 else:
-                    print("set root passwd to %s" % rootpasswd)
-                    container.run(
-                        "echo \"root:%s\"|chpasswd" % rootpasswd)
-            if not self.weaveIsActive:
-                container.setHostName(name)
-        else:
-            self.container._executor = DockerExecObj(name)
+                    self.logger.info("set root passwd to %s" % rootpasswd)
+                    container.executor.execute(
+                        "echo \"root:%s\"|chpasswd" % rootpasswd, showout=False)
+
+        if not self.weaveIsActive:
+            container.setHostName(name)
 
         return container
 
     def getImages(self):
-        images = [str(item["RepoTags"][0]).replace(":latest", "")
-                  for item in self.client.images()]
+        images = []
+        for item in self.client.images():
+            if item['RepoTags'] is None:
+                continue
+            tags = str(item['RepoTags'][0])
+            tags = tags.replace(":latest", "")
+            images.append(tags)
         return images
 
     def removeImages(self, tag="<none>:<none>"):

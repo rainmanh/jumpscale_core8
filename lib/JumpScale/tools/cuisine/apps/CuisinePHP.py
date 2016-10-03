@@ -15,6 +15,7 @@ class CuisinePHP(app):
     def _build(self):
         # TODO: *3 (optional)
         # build php with web modules
+        raise NotImplementedError
 
     def install(self, start=True):
         """
@@ -42,6 +43,8 @@ class CuisinePHP(app):
 
     def start(self, name="???"):
         # TODO:*1
+        raise NotImplementedError
 
     def test(self):
         # some php script, see it works
+        raise NotImplementedError

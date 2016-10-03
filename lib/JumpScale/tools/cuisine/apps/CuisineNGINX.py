@@ -15,6 +15,7 @@ class CuisineNGINX(app):
     def _build(self):
         # TODO: *3 optional
         # build nginx
+        raise NotImplementedError
 
     def install(self, start=True):
         """
@@ -32,6 +33,8 @@ class CuisineNGINX(app):
 
     def start(self, name="???"):
         # TODO:*1
+        raise NotImplementedError
 
     def test(self):
         # host a file test can be reached
+        raise NotImplementedError

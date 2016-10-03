@@ -17,6 +17,7 @@ class CuisineTIDB(app):
         # SEE: https://github.com/pingcap/tidb
         # deploy on top of tikv (which is distributed database backend on top of paxos)
         # WILL BE BACKEND FOR e.g. OWNCLOUD / GOGS
+        raise NotImplementedError
 
     def install(self, start=True):
         """
@@ -41,6 +42,7 @@ class CuisineTIDB(app):
         self._cuisine.processmanager.ensure("mongod", cmd=cmd, env={}, path="")
 
     def test(self):
+        raise NotImplementedError
         # do some basic test to show how it works
         # deploy 3 instances of tikv and then put behind tidb
         # use standard mysql python client to do a test

@@ -114,11 +114,11 @@ class Run:
 
     @property
     def steps(self):
-        res = []
+        steps = []
         for dbobj in self.model.dbobj.steps:
             step = RunStep(self, dbobj.number, dbobj=dbobj)
-            res.append(step)
-        return res
+            steps.append(step)
+        return steps
 
     @property
     def state(self):
@@ -147,19 +147,6 @@ class Run:
         dbobj = self.model.stepNew()
         step = RunStep(self, self.lastnr, dbobj=dbobj)
         return step
-
-    # def sort(self):
-    #     for step in self.steps:
-    #         keys = []
-    #         items = {}
-    #         res = []
-    #         for service in step.services:
-    #             items[service.key] = service
-    #             keys.append(service.key)
-    #         keys.sort()
-    #         for key in keys:
-    #             res.append(items[key])
-    #         step.services = res
 
     @property
     def services(self):
@@ -192,11 +179,17 @@ class Run:
         return out
 
     def reverse(self):
-        i = len(self.steps)
-        for step in self.steps:
-            step.nr = i
-            i -= 1
-        self.steps.reverse()
+        ordered = []
+        for i, _ in enumerate(self.model.dbobj.steps):
+            orphan = self.model.dbobj.steps.disown(i)
+            ordered.append(orphan)
+
+        count = len(ordered)
+        for i, step in enumerate(reversed(ordered)):
+            self.model.dbobj.steps.adopt(i, step)
+            self.model.dbobj.steps[i].number = i + 1
+
+        self.model.save()
 
     def save(self):
         self.model.save()

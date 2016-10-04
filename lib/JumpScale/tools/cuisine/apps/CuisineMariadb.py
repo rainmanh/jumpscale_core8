@@ -25,4 +25,7 @@ class CuisineMariadb(app):
             self.start()
 
     def start(self):
-        pass
+        cmd = "/usr/sbin/mysqld --basedir=/usr --datadir=/data/db \
+                --plugin-dir=/usr/lib/mysql/plugin --log-error=/dev/log/mysql/error.log \
+                --pid-file=/var/run/mysqld/mysqld.pid --socket=/var/run/mysqld/mysqld.sock --port=3306"
+        self._cuisine.core.run(cmd)

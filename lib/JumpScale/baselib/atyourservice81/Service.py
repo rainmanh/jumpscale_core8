@@ -13,7 +13,7 @@ class Service:
         self._path = ""
         self._schema = None
         self._producers = {}
-        self._name = name
+        self.name = name
         self._parent = None
         self._executor = None
 
@@ -119,7 +119,7 @@ class Service:
 
             self.model.dbobj.parent.actorName = parentobj.model.dbobj.actorName
             self.model.dbobj.parent.key = parentobj.model.key
-            self.model.dbobj.parent.serviceName = parent_name
+            self.model.dbobj.parent.serviceName = parentobj.name
 
             return parentobj
 

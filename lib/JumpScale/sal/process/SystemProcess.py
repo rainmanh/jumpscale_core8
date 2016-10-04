@@ -1210,7 +1210,8 @@ class SystemProcess:
 
         return exitcode
 
-    def executeAsync(self, command, args=[], printCommandToStdout=False, redirectStreams=True, argsInCommand=False, useShell=None, outputToStdout=True):
+    def executeAsync(self, command, args=[], printCommandToStdout=False, redirectStreams=True,
+                     argsInCommand=False, useShell=None, outputToStdout=True):
         """ Execute command asynchronous. By default, the input, output and error streams of the command will be piped to the returned Popen object. Be sure to call commands that don't expect user input, or send input to the stdin parameter of the returning Popen object.
         @param command: Command to execute. (string)
         @param args: [Optional, [] by default] Arguments to be passed to the command. (Array of string)
@@ -1220,7 +1221,7 @@ class SystemProcess:
         @param useShell: [Optional, False by default on Windows, True by default on Linux] Indicates if the command should be executed throug the shell.
         @return: If redirectStreams is true, this function returns a subprocess.Popen object representing the started process. Otherwise, it will return the pid-number of the started process.
         """
-        if useShell == None:  # The default value depends on which platform we're using.
+        if useShell is None:  # The default value depends on which platform we're using.
             if j.core.platformtype.myplatform.isUnix():
                 useShell = True
             elif j.core.platformtype.myplatform.isWindows():
@@ -1416,7 +1417,7 @@ class SystemProcess:
                         output = output + stdoutData
                         (OUT_LINE, ERR_LINE) = _logoutput(stdoutData, OUT_LINE, ERR_LINE)
                     else:  # Did not read any data on channel
-                        if childprocess.poll() != None:  # Will return a number if the process has ended, or None if it's running.
+                        if childprocess.poll() is not None:  # Will return a number if the process has ended, or None if it's running.
                             childRunning = False
 
                 exitcode = childprocess.returncode
@@ -1487,7 +1488,7 @@ class SystemProcess:
         execute a method (python code with def)
         use params=j.data.params.get() as input
         """
-        if params == None:
+        if params is None:
             params = j.data.params.get()
         codeLines = code.split("\n")
         if "def " not in codeLines[0]:
@@ -1612,7 +1613,7 @@ class SystemProcess:
             raise j.exceptions.RuntimeError("could not stop %s, found %s nr of instances." % (cmd, len(found)))
 
     def getProcessPid(self, process):
-        if process == None:
+        if process is None:
             raise j.exceptions.RuntimeError("process cannot be None")
         if j.core.platformtype.myplatform.isUnix():
             # Need to set $COLUMNS such that we can grep full commandline
@@ -1740,7 +1741,7 @@ class SystemProcess:
         Returns pid of the process that is listening on the given port
         """
         name = self.getProcessByPort(port)
-        if name == None:
+        if name is None:
             return []
         # print "found name:'%s'"%name
         pids = j.sal.process.getProcessPid(name)
@@ -1811,7 +1812,7 @@ class SystemProcess:
                     return gd['cmd'].strip()
             return None
         else:
-            #TODO: needs to be validated on mac & windows
+            # TODO: needs to be validated on mac & windows
             import psutil
             for process in psutil.process_iter():
                 try:
@@ -1851,7 +1852,7 @@ class SystemProcess:
         return env
 
     def appGetPids(self, appname):
-        if j.core.db == None:
+        if j.core.db is None:
             raise j.exceptions.RuntimeError("Redis was not running when applications started, cannot get pid's")
         if not j.core.db.hexists("application", appname):
             return list()
@@ -1860,7 +1861,7 @@ class SystemProcess:
             return pids
 
     def appsGetNames(self):
-        if j.core.db == None:
+        if j.core.db is None:
             raise j.exceptions.RuntimeError("Make sure redis is running for port 9999")
         return j.core.db.hkeys("application")
 

@@ -9,19 +9,21 @@ author = "hamdy.farag@codscalers.com"
 license = "bsd"
 version = "1.0"
 category = "tools"
-async=True
+async = True
 roles = []
-log=True
+log = True
 
 
 """
 import psutil
 result = psutil.cpu_precent()
 """
+
+
 def action(cmd="result = 'It wrked'"):
     result = None
     exec(cmd)
     return result
 
 if __name__ == "__main__":
-    print (action())
+    print(action())

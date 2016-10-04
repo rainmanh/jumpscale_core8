@@ -69,7 +69,7 @@ class Tasklet:
         return params
 
     def checkExecute4method(self, args={}, params={}, actor=None, tags=None):
-        if tags != None:
+        if tags is not None:
             if j.data.types.string.check(tags):
                 tags = j.data.tags.getObject(tags)
 
@@ -189,8 +189,7 @@ class TaskletEngine:
                     prios[prio].append([name, path2])
                 else:
                     prios[prio] = [[name, path2]]
-        prios2 = list(prios.keys())
-        prios2.sort()
+        prios2 = sorted(prios.keys())
         result = []
         for prio in prios2:
             for name, item in prios[prio]:

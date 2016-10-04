@@ -7,7 +7,7 @@
                 <capacity unit='GB'>{{disksize}}</capacity>
                 <allocation unit='GB'>{{disksize}}</allocation>
                 <target>
-                    <path>{{diskname}}</path>
+                    <path>{{diskpath}}</path>
                     <format type='qcow2'/>
                     <permissions>
                         <mode>0660</mode>
@@ -16,9 +16,11 @@
                     </permissions>
                     <compat>1.1</compat>
                 </target>
-                <backingStore>
-                    <format type='qcow2'/>
-                    <path>{{diskbasevolume}}</path>
-                </backingStore>
+                {% if diskbasevolume %}
+                    <backingStore>
+                        <format type='qcow2'/>
+                        <path>{{diskbasevolume}}</path>
+                    </backingStore>
+                {% endif %}
  </volume> 
 

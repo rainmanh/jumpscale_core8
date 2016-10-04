@@ -438,7 +438,7 @@ class RemoteSystemFS(_remoteSystemObject):
         @raise RuntimeError: failed to create directory
         """
         self.logger.info('Creating directory if not exists %s' % newdir.encode("utf-8"), 8)
-        if newdir == '' or newdir == None:
+        if newdir == '' or newdir is None:
             raise TypeError('The newdir-parameter of system.fs.createDir() is None or an empty string.')
         try:
             if self.exists(newdir):
@@ -510,7 +510,7 @@ class RemoteSystemFS(_remoteSystemObject):
         - destination: string (path directory to be copied to...should not already exist)
           if destination no specified will use same location as source
         """
-        #TODO: check and fix
+        # TODO: check and fix
         raise j.exceptions.RuntimeError("not fully implemented yet")
         if destination == "":
             destination = source

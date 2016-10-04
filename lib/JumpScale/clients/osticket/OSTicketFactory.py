@@ -57,7 +57,7 @@ WHERE ticketID=$id;
         self.client.deleteRow("ost_ticket_thread", "ticket_id=%s" % id)
         attachid = self.client.select1(
             "ost_ticket_attachment", "file_id", "ticket_id=%s" % id)
-        if attachid != None:
+        if attachid is not None:
             self.client.deleteRow("ost_file", "file_id=%s" % attachid)
             self.client.deleteRow("ost_file_chunk", "file_id=%s" % attachid)
         self.client.deleteRow("ost_ticket", "ticket_id=%s" % id)

@@ -32,7 +32,7 @@ class Docker:
         j.do.execute("systemctl stop docker")
 
         d = j.sal.disklayout.findDisk(mountpoint="/storage")
-        if d != None:
+        if d is not None:
             # we found a disk, lets make sure its in fstab
             d.setAutoMount()
             dockerpath = "%s/docker" % d.mountpoint
@@ -79,6 +79,10 @@ class Docker:
 
     @property
     def docker_host(self):
+        """
+        Get the docker hostname.
+        """
+
         u = parse.urlparse(self.base_url)
         if u.scheme == 'unix':
             return 'localhost'
@@ -128,6 +132,9 @@ class Docker:
 
     @property
     def containerNamesRunning(self):
+        """
+        List all running containers names
+        """
         res = []
         for container in self.containers:
             if container.isRunning():
@@ -136,6 +143,9 @@ class Docker:
 
     @property
     def containerNames(self):
+        """
+        List all containers names
+        """
         res = []
         for container in self.containers:
             res.append(container.name)
@@ -143,6 +153,9 @@ class Docker:
 
     @property
     def containersRunning(self):
+        """
+        List of all running container objects
+        """
         res = []
         for container in self.containers:
             if container.isRunning():
@@ -216,6 +229,10 @@ class Docker:
         return self.client.containers()
 
     def get(self, name, die=True):
+        """
+        Get a container object by name
+        @param name string: container name
+        """
         for container in self.containers:
             if container.name == name:
                 return container
@@ -330,11 +347,14 @@ class Docker:
                replace=True, cpu=None, mem=0, ssh=True, myinit=True, sharecode=False, sshkeyname="", sshpubkey="",
                setrootrndpasswd=True, rootpasswd="", jumpscalebranch="master", aysfs=[], detach=False, privileged=False, getIfExists=True, weavenet=False):
         """
+        Creates a new container.
+
         @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
         @param vols in format as follows "/var/insidemachine:/var/inhost # /var/1:/var/1 # ..."   '#' is separator
         @param sshkeyname : use ssh-agent (can even do remote through ssh -A) and then specify key you want to use in docker
         """
-
+        if ssh is True and myinit is False:
+                raise ValueError("SSH can't be enabled without myinit.")
         # check there is weave
         self.weavesocket
 
@@ -473,7 +493,6 @@ class Docker:
             if type(k) == tuple and len(k) == 2:
                 portsdict["%s/%s" % (k[0], k[1])] = v
                 portsdict.pop(k)
-
         res = self.client.start(container=id, binds=binds, port_bindings=portsdict, lxc_conf=None,
                                 publish_all_ports=False, links=None, privileged=privileged, dns=nameserver, dns_search=None,
                                 volumes_from=None, network_mode=None)
@@ -499,7 +518,7 @@ class Docker:
                         "echo \"root:gig1234\"|chpasswd", showout=False)
                 else:
                     self.logger.info("set root passwd to %s" % rootpasswd)
-                    container.cexecutor.execute(
+                    container.executor.execute(
                         "echo \"root:%s\"|chpasswd" % rootpasswd, showout=False)
 
         if not self.weaveIsActive:
@@ -518,6 +537,9 @@ class Docker:
         return images
 
     def removeImages(self, tag="<none>:<none>"):
+        """
+        Delete a certain Docker image using tag
+        """
         for item in self.client.images():
             if tag in item["RepoTags"]:
                 self.client.remove_image(item["Id"])
@@ -531,7 +553,10 @@ class Docker:
         return True
 
     def destroyAll(self, removeimages=False):
-
+        """
+        Destroy all containers.
+        @param removeimages bool: to remove all images.
+        """
         for container in self.containers:
             if "weave" in container.name:
                 continue
@@ -579,7 +604,9 @@ class Docker:
         j.sal.fs.removeDirTree("/var/lib/docker")
 
     def reInstallDocker(self):
-
+        """
+        ReInstall docker on your system
+        """
         self.removeDocker()
 
         j.tools.cuisine.local.docker.install(force=True)
@@ -587,6 +614,10 @@ class Docker:
         self.init()
 
     def pull(self, imagename):
+        """
+        pull a certain image.
+        @param imagename string: image
+        """
         self.client.import_image_from_image(imagename)
 
     def push(self, image, output=True):
@@ -640,3 +671,13 @@ class Docker:
                 out.append(line)
 
         return "\n".join(out)
+
+
+    class DockerExecObj:
+
+        def __init__(self, name):
+            self.name = name
+            self.id = "docker:%s" % name
+
+        def execute(self, cmds, die=True, checkok=None, async=False, showout=True, timeout=0, env={}):
+            return self._cuisineDockerHost.core.run("docker exec %s  %s" % (self.name, cmds))

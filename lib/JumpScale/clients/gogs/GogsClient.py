@@ -52,7 +52,8 @@ class GogsClient:
     def get_url(self, *args):
         return j.sal.fs.joinPaths(self.base_url, *args)
 
-    def organization_create(self, org_name, full_name=None, user_name=None, description=None, website=None, location=None):
+    def organization_create(self, org_name, full_name=None, user_name=None,
+                            description=None, website=None, location=None):
         """
         create an organization by user with name
         """
@@ -254,7 +255,8 @@ class GogsClient:
         else:
             raise NotFoundException()
 
-    def repository_create(self, repo_name, organization=None, user_name=None, description="", private=True, readme=True):
+    def repository_create(self, repo_name, organization=None, user_name=None,
+                          description="", private=True, readme=True):
         """
         create repository logged in  username
         """
@@ -395,11 +397,11 @@ class GogsClient:
             raise NotFoundException("User or repo does not exist")
 
     def issue_get(self, repo_name, index, owner=None):
-        """ 
+        """
         get json representation of issue
         owner can be user or organization
         """
-        if type(index) == int:
+        if isinstance(index, int):
             index = str(index)
 
         if not owner:
@@ -415,11 +417,12 @@ class GogsClient:
         else:
             raise NotFoundException("User or repo does not exist")
 
-    def issue_create(self, repo_name, title, owner=None, description=None, assignee=None, milestone=None, labels=None, closed=None):
-        """ 
-        create issue 
+    def issue_create(self, repo_name, title, owner=None, description=None,
+                     assignee=None, milestone=None, labels=None, closed=None):
+        """
+        create issue
         @milestone  = int
-        @id = int 
+        @id = int
         owner can be user or organization
         """
 
@@ -445,7 +448,7 @@ class GogsClient:
     def issue_close(self, repo_name, index, owner=None):
         """ close issue """
 
-        if type(index) == int:
+        if isinstance(index, int):
             index = str(index)
 
         if not owner:

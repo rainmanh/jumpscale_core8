@@ -117,7 +117,7 @@ class MS1:
         return auth_key
 
     def sendUserMessage(self, msg, level=2, html=False, args={}):
-        if self.action != None:
+        if self.action is not None:
             self.action.sendUserMessage(msg, html=html)
         else:
             print(msg)
@@ -292,7 +292,8 @@ class MS1:
         self.sendUserMessage(
             "to connect from inside cloudspace do: 'ssh %s -p %s'" % (self.vars["machine.ip.addr"], 22))
 
-        return machine_id, self.vars["space.ip.pub"], (int(self.vars["machine.last.tcp.port"]) if self.vars["machine.last.tcp.port"] else 22)
+        return machine_id, self.vars["space.ip.pub"], (int(self.vars["machine.last.tcp.port"]) if self.vars[
+                                                       "machine.last.tcp.port"] else 22)
 
     def getMachineObject(self, spacesecret, name, **args):
         api, machine_id, cloudspace_id = self._getMachineApiactorId(

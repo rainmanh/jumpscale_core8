@@ -9,17 +9,8 @@ import platform
 import subprocess
 import time
 import fnmatch
-import signal
 import asyncio
-from sys import argv
-from subprocess import Popen, PIPE
-import os
-import io
-import threading
-from threading import Thread, Lock
-import queue
-import os
-# import smtplib
+from subprocess import Popen
 import re
 import inspect
 
@@ -181,7 +172,8 @@ class InstallTools():
 
         self.removeSymlink(path)
 
-        if path.strip().rstrip("/") in ["", "/", "/etc", "/root", "/usr", "/opt", "/usr/bin", "/usr/sbin", self.CODEDIR]:
+        if path.strip().rstrip("/") in ["", "/", "/etc", "/root", "/usr",
+                                        "/opt", "/usr/bin", "/usr/sbin", self.CODEDIR]:
             raise RuntimeError('cannot delete protected dirs')
 
         # if not force and path.find(self.CODEDIR)!=-1:
@@ -275,7 +267,8 @@ class InstallTools():
                            ignoredir=ignoredir, ignorefiles=ignorefiles)
             self.debug = old_debug
 
-    def _copyTree(self, src, dst, keepsymlinks=False, deletefirst=False, overwriteFiles=True, ignoredir=[".egg-info", "__pycache__"], ignorefiles=[".egg-info"]):
+    def _copyTree(self, src, dst, keepsymlinks=False, deletefirst=False, overwriteFiles=True,
+                  ignoredir=[".egg-info", "__pycache__"], ignorefiles=[".egg-info"]):
         """Recursively copy an entire directory tree rooted at src.
         The dst directory may already exist; if not,
         it will be created as well as missing parent directories
@@ -442,8 +435,7 @@ class InstallTools():
     def list(self, path):
         # self.log("list:%s"%path)
         if(self.isDir(path)):
-            s = ["%s/%s" % (path, item) for item in os.listdir(path)]
-            s.sort()
+            s = sorted(["%s/%s" % (path, item) for item in os.listdir(path)])
             return s
         elif(self.isLink(path)):
             link = self.readLink(path)
@@ -543,7 +535,7 @@ class InstallTools():
         """
         check if path is dir or link to a dir
         """
-        if fullpath == None or fullpath.strip == "":
+        if fullpath is None or fullpath.strip == "":
             raise RuntimeError("path cannot be empty")
 
         if not self.isLink(fullpath) and os.path.isdir(fullpath):
@@ -574,7 +566,7 @@ class InstallTools():
         if lastOnly:
             dname = dname.split(os.sep)[-1]
             return dname
-        if levelsUp != None:
+        if levelsUp is not None:
             parts = dname.split(os.sep)
             if len(parts) - levelsUp > 0:
                 return parts[len(parts) - levelsUp - 1]
@@ -640,7 +632,7 @@ class InstallTools():
         #result = []
         #os.path.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
         # return result
-        if path == None or path.strip == "":
+        if path is None or path.strip == "":
             raise RuntimeError("path cannot be empty")
         files = self._listInDir(path, followSymlinks=True)
         filesreturn = []
@@ -655,7 +647,8 @@ class InstallTools():
                     filesreturn.extend(self.listDirsInDir(fullpath, recursive, dirNameOnly, findDirectorySymlinks))
         return filesreturn
 
-    def listFilesInDir(self, path, recursive=False, filter=None, minmtime=None, maxmtime=None, depth=None, case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=False):
+    def listFilesInDir(self, path, recursive=False, filter=None, minmtime=None, maxmtime=None,
+                       depth=None, case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=False):
         """Retrieves list of files found in the specified directory
         @param path:       directory path to search in
         @type  path:       string
@@ -671,18 +664,19 @@ class InstallTools():
         @Param exclude: list of std filters if matches then exclude
         @rtype: list
         """
-        if depth != None:
+        if depth is not None:
             depth = int(depth)
         # self.log('List files in directory with path: %s' % path,9)
         if depth == 0:
             depth = None
-        # if depth != None:
+        # if depth is not None:
         #     depth+=1
         filesreturn, depth = self._listAllInDir(path, recursive, filter, minmtime, maxmtime, depth, type="f",
                                                 case_sensitivity=case_sensitivity, exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
         return filesreturn
 
-    def listFilesAndDirsInDir(self, path, recursive=False, filter=None, minmtime=None, maxmtime=None, depth=None, type="fd", followSymlinks=True, listSymlinks=False):
+    def listFilesAndDirsInDir(self, path, recursive=False, filter=None, minmtime=None,
+                              maxmtime=None, depth=None, type="fd", followSymlinks=True, listSymlinks=False):
         """Retrieves list of files found in the specified directory
         @param path:       directory path to search in
         @type  path:       string
@@ -698,18 +692,19 @@ class InstallTools():
         @param type is string with f & d inside (f for when to find files, d for when to find dirs)
         @rtype: list
         """
-        if depth != None:
+        if depth is not None:
             depth = int(depth)
         self.log('List files in directory with path: %s' % path, 9)
         if depth == 0:
             depth = None
-        # if depth != None:
+        # if depth is not None:
         #     depth+=1
         filesreturn, depth = self._listAllInDir(
             path, recursive, filter, minmtime, maxmtime, depth, type=type, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
         return filesreturn
 
-    def _listAllInDir(self, path, recursive, filter=None, minmtime=None, maxmtime=None, depth=None, type="df", case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=True):
+    def _listAllInDir(self, path, recursive, filter=None, minmtime=None, maxmtime=None, depth=None,
+                      type="df", case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=True):
         """
         # There are 3 possible options for case-sensitivity for file names
         # 1. `os`: the same behavior as the OS
@@ -754,24 +749,24 @@ class InstallTools():
                         filesreturn.append(fullpath)
             elif self.isDir(fullpath):
                 if "d" in type:
-                    if not(listSymlinks == False and self.isLink(fullpath)):
+                    if not(listSymlinks is False and self.isLink(fullpath)):
                         filesreturn.append(fullpath)
                 if recursive:
-                    if depth != None and depth != 0:
+                    if depth is not None and depth != 0:
                         depth = depth - 1
-                    if depth == None or depth != 0:
+                    if depth is None or depth != 0:
                         exclmatch = False
                         if exclude != []:
                             for excludeItem in exclude:
                                 if matcher(fullpath, excludeItem):
                                     exclmatch = True
-                        if exclmatch == False:
-                            if not(followSymlinks == False and self.isLink(fullpath)):
+                        if exclmatch is False:
+                            if not(followSymlinks is False and self.isLink(fullpath)):
                                 r, depth = self._listAllInDir(fullpath, recursive, filter, minmtime, maxmtime, depth=depth,
                                                               type=type, exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
                                 if len(r) > 0:
                                     filesreturn.extend(r)
-            elif self.isLink(fullpath) and followSymlinks == False and listSymlinks:
+            elif self.isLink(fullpath) and followSymlinks is False and listSymlinks:
                 filesreturn.append(fullpath)
 
         return filesreturn, depth
@@ -855,7 +850,8 @@ class InstallTools():
 
     # NON FS
 
-    def download(self, url, to="", overwrite=True, retry=3, timeout=0, login="", passwd="", minspeed=0, multithread=False, curl=False):
+    def download(self, url, to="", overwrite=True, retry=3, timeout=0, login="",
+                 passwd="", minspeed=0, multithread=False, curl=False):
         """
         @return path of downloaded file
         @param minspeed is kbytes per sec e.g. 50, if less than 50 kbytes during 10 min it will restart the download (curl only)
@@ -952,16 +948,17 @@ class InstallTools():
             return True
         return False
 
-    def executeBashScript(self, content="", path=None, die=True, remote=None, sshport=22, showout=True, outputStderr=True, sshkey=""):
+    def executeBashScript(self, content="", path=None, die=True, remote=None,
+                          sshport=22, showout=True, outputStderr=True, sshkey=""):
         """
         @param remote can be ip addr or hostname of remote, if given will execute cmds there
         """
-        if path != None:
+        if path is not None:
             content = self.readFile(path)
         if content[-1] != "\n":
             content += "\n"
 
-        if remote == None:
+        if remote is None:
             tmppath = self.getTmpPath("")
             content = "cd %s\n%s" % (tmppath, content)
         else:
@@ -973,7 +970,7 @@ class InstallTools():
         path2 = self.getTmpPath("do.sh")
         self.writeFile(path2, content, strip=True)
 
-        if remote != None:
+        if remote is not None:
             tmppathdest = "/tmp/do.sh"
             if sshkey:
                 if not self.getSSHKeyPathFromAgent(sshkey, die=False):
@@ -984,10 +981,11 @@ class InstallTools():
             rc, res, err = self.execute("ssh %s -oStrictHostKeyChecking=no -A -p %s root@%s 'bash %s'" %
                                         (sshkey, sshport, remote, tmppathdest), die=die)
         else:
-            rc, res, err = self.execute("bash %s" % path2, die=die,  showout=showout, outputStderr=outputStderr)
+            rc, res, err = self.execute("bash %s" % path2, die=die, showout=showout, outputStderr=outputStderr)
         return rc, res, err
 
-    def executeCmds(self, cmdstr, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=120, captureout=True, die=True):
+    def executeCmds(self, cmdstr, showout=True, outputStderr=True, useShell=True,
+                    log=True, cwd=None, timeout=120, captureout=True, die=True):
         rc_ = []
         out_ = ""
         for cmd in cmdstr.split("\n"):
@@ -1000,7 +998,8 @@ class InstallTools():
 
         return rc_, out_
 
-    def sendmail(self, ffrom, to, subject, msg, smtpuser, smtppasswd, smtpserver="smtp.mandrillapp.com", port=587, html=""):
+    def sendmail(self, ffrom, to, subject, msg, smtpuser, smtppasswd,
+                 smtpserver="smtp.mandrillapp.com", port=587, html=""):
         from email.mime.multipart import MIMEMultipart
         from email.mime.text import MIMEText
 
@@ -1044,7 +1043,7 @@ class InstallTools():
         """
 
         if executor:
-            return executor.execute(command, die=die, checkok=False, async=async,  showout=True, timeout=timeout)
+            return executor.execute(command, die=die, checkok=False, async=async, showout=True, timeout=timeout)
 
         executable = '/bin/bash' if useShell else None
 
@@ -1218,7 +1217,7 @@ class InstallTools():
                 "Url is invalid. Must be in the form of 'http(s)://hostname/account/repo' or 'git@hostname:account/repo'")
 
         protocol, repository_host, repository_account, repository_name = match.groups()
-        if protocol.startswith("git") and ssh == False:
+        if protocol.startswith("git") and ssh is False:
             protocol = "https://"
 
         if not repository_name.endswith('.git'):
@@ -1278,7 +1277,7 @@ class InstallTools():
                 branch = line.split(" \"")[1].strip("]\" ").strip("]\" ").strip("]\" ")
 
     def whoami(self):
-        if self._whoami != None:
+        if self._whoami is not None:
             return self._whoami
         rc, result, err = self.execute("whoami", die=False, showout=False, outputStderr=False)
         if rc > 0:
@@ -1455,77 +1454,45 @@ class InstallTools():
         else:
             return list(map(lambda key: key[2], keys))
 
-    def authorizeSSHKey(self, remoteipaddr, keyname=None, login="root", passwd=None, sshport=22, removeothers=False):
-        """
-        this required ssh-agent to be loaded !!!
-        the keyname is the name of the key as loaded in ssh-agent
-
-        if remoteothers==True: then other keys will be removed
-        """
-
-        # cmd="scp %s %s@%s:~/%s"%(keypath,login,remoteipaddr,self.getBaseName(keypath))
-        # j.do.executeInteractive(cmd)
-
+    def ensure_keyname(self, keyname="", username="root"):
         if not self.exists(keyname):
-            if login == "root":
-                rootpath = "/root/.ssh/"
-            else:
-                rootpath = "/home/%s/.ssh/"
+            rootpath = "/root/.ssh/" if username == "root" else "/home/%s/.ssh/"
             fullpath = self.joinPaths(rootpath, keyname)
             if self.exists(fullpath):
-                keyname = fullpath
+                return fullpath
+        return keyname
 
-        import paramiko
-        paramiko.util.log_to_file("/tmp/paramiko.log")
-        ssh = paramiko.SSHClient()
+    def authorize_user(self, sftp_client, ip_address, keyname, username):
+        basename = self.getBaseName(keyname)
+        tmpfile = "/home/%s/.ssh/%s" % (username, basename)
+        print("push key to /home/%s/.ssh/%s" % (username, basename))
+        sftp_client.put(keyname, tmpfile)
 
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        print("ssh connect:%s %s" % (remoteipaddr, login))
-        #
-        # env.no_keys = True
-        if not self.listSSHKeyFromAgent(self.getBaseName(keyname)):
-            self.loadSSHKeys(self.getParent(keyname))
-        ssh.connect(remoteipaddr, username=login, password=passwd, allow_agent=True, look_for_keys=False)
-        print("ok")
+        # cannot upload directly to root dir
+        auth_key_path = "/home/%s/.ssh/authorized_keys" % username
+        cmd = "ssh %s@%s 'cat %s | sudo tee -a %s '" % username, ip_address, tmpfile, auth_key_path
+        print("do the following on the console\nsudo -s\ncat %s >> %s" % (tmpfile, auth_key_path))
+        print(cmd)
+        self.executeInteractive(cmd)
 
-        if login == "root":
-            authkeypath = "/root/.ssh/authorized_keys"
-        else:
-            authkeypath = "/home/%s/.ssh/authorized_keys" % (login)
-
-        ftp = ssh.open_sftp()
-
-        if login != "root":
-            basename = self.getBaseName(keyname)
-            tmpfile = "/home/%s/.ssh/%s" % (login, basename)
-            print("push key to /home/%s/.ssh/%s" % (login, basename))
-            ftp.put(keyname, tmpfile)
-
-            # cannot upload directly to root dir
-            cmd = "ssh %s@%s 'cat %s | sudo tee -a %s '" % (login, remoteipaddr, tmpfile, authkeypath)
-            print("do the following on the console\nsudo -s\ncat %s >> %s" % (tmpfile, authkeypath))
-            print(cmd)
-            self.executeInteractive(cmd)
-
-        else:
-
-            tmppath = "%s/authorized_keys" % self.TMP
-            self.delete(tmppath)
-            try:
-                ftp.get(authkeypath, tmppath)
-            except Exception as e:
-                if str(e).find("No such file") != -1:
-                    try:
-                        authkeypath += "2"
-                        ftp.get(authkeypath, tmppath)
-                    except Exception as e:
-                        if str(e).find("No such file") != -1:
-                            self.writeFile(tmppath, "")
-                        else:
-                            raise RuntimeError("Could not get authorized key,%s" % e)
+    def authorize_root(self, sftp_client, ip_address, keyname):
+        tmppath = "%s/authorized_keys" % self.TMP
+        auth_key_path = "/root/.ssh/authorized_keys"
+        self.delete(tmppath)
+        try:
+            sftp_client.get(auth_key_path, tmppath)
+        except Exception as e:
+            if str(e).find("No such file") != -1:
+                try:
+                    auth_key_path += "2"
+                    sftp_client.get(auth_key_path, tmppath)
+                except Exception as e:
+                    if str(e).find("No such file") != -1:
+                        self.writeFile(tmppath, "")
+                    else:
+                        raise RuntimeError("Could not get authorized key,%s" % e)
 
             C = self.readFile(tmppath)
-            out = ""
             Cnew = self.readFile(keyname)
             key = Cnew.split(" ")[1]
             if C.find(key) == -1:
@@ -1533,9 +1500,36 @@ class InstallTools():
                 C2 = C2.strip() + "\n"
                 self.writeFile(tmppath, C2)
                 print("sshauthorized adjusted")
-                ftp.put(tmppath, authkeypath)
+                sftp_client.put(tmppath, auth_key_path)
             else:
                 print("ssh key was already authorized")
+
+    def authorizeSSHKey(self, remoteipaddr, keyname, login="root", passwd=None, sshport=22, removeothers=False):
+        """
+        this required ssh-agent to be loaded !!!
+        the keyname is the name of the key as loaded in ssh-agent
+
+        if remoteothers==True: then other keys will be removed
+        """
+        keyname = self.ensure_keyname(keyname=keyname, username=login)
+        import paramiko
+        paramiko.util.log_to_file("/tmp/paramiko.log")
+        ssh = paramiko.SSHClient()
+
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        print("ssh connect:%s %s" % (remoteipaddr, login))
+
+        if not self.listSSHKeyFromAgent(self.getBaseName(keyname)):
+            self.loadSSHKeys(self.getParent(keyname))
+        ssh.connect(remoteipaddr, username=login, password=passwd, allow_agent=True, look_for_keys=False)
+        print("ok")
+
+        ftp = ssh.open_sftp()
+
+        if login != "root":
+            self.authorize_user(sftp_client=ftp, ip_address=remoteipaddr, keyname=keyname, username=login)
+        else:
+            self.authorize_root(sftp_client=ftp, ip_address=remoteipaddr, keyname=keyname)
 
     def _loadSSHAgent(self, path=None, createkeys=False, killfirst=False):
         """
@@ -1571,7 +1565,7 @@ class InstallTools():
             self.delete(socketpath)
             self.delete(self.joinPaths(self.TMP, "ssh-agent-pid"))
 
-        # if path == None:
+        # if path is None:
         #     path2 = self.joinPaths(os.environ["HOME"], ".ssh", keyname)
         #     if not self.exists(path2):
         #         if createkeys:
@@ -1639,7 +1633,8 @@ class InstallTools():
         else:
             return True
 
-    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False, branch=None, ssh="auto", codeDir=None, executor=None):
+    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False,
+                       branch=None, ssh="auto", codeDir=None, executor=None):
         """
         Extracts and returns data useful in cloning a Git repository.
 
@@ -1682,13 +1677,13 @@ class InstallTools():
         """
 
         if url == "":
-            if dest == None:
+            if dest is None:
                 raise RuntimeError("dest cannot be None (url is also '')")
             if not self.exists(dest):
                 raise RuntimeError(
                     "Could not find git repo path:%s, url was not specified so git destination needs to be specified." % (dest))
 
-        if login == None and url.find("github.com/") != -1:
+        if login is None and url.find("github.com/") != -1:
             # can see if there if login & passwd in OS env
             # if yes fill it in
             if "GITHUBUSER" in os.environ:
@@ -1725,7 +1720,7 @@ class InstallTools():
                     reset=False, branch=None, revision=None, ssh="auto", executor=None, codeDir=None, onlyIfExists=False):
         """
         will clone or update repo
-        if dest == None then clone underneath: /opt/code/$type/$account/$repo
+        if dest is None then clone underneath: /opt/code/$type/$account/$repo
         will ignore changes !!!!!!!!!!!
 
         @param ssh ==True means will checkout ssh
@@ -1733,9 +1728,11 @@ class InstallTools():
         """
         if ssh == "first":
             try:
-                return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges, reset, branch, revision, True, executor)
+                return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
+                                        reset, branch, revision, True, executor)
             except Exception:
-                return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges, reset, branch, revision, False, executor)
+                return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
+                                        reset, branch, revision, False, executor)
             raise RuntimeError("Could not checkout, needs to be with ssh or without.")
 
         base, provider, account, repo, dest, url = self.getGitRepoArgs(
@@ -1743,7 +1740,7 @@ class InstallTools():
 
         exists = self.exists(dest) if not executor else executor.exists(dest)
 
-        if onlyIfExists and exists == False:
+        if onlyIfExists and exists is False:
             return
 
         if dest is None and branch is None:
@@ -1765,10 +1762,10 @@ class InstallTools():
             if ignorelocalchanges:
                 print(("git pull, ignore changes %s -> %s" % (url, dest)))
                 cmd = "cd %s;git fetch" % dest
-                if depth != None:
+                if depth is not None:
                     cmd += " --depth %s" % depth
                     self.execute(cmd, executor=executor)
-                if branch != None:
+                if branch is not None:
                     print("reset branch to:%s" % branch)
                     self.execute("cd %s;git reset --hard origin/%s" % (dest, branch), timeout=600, executor=executor)
             else:
@@ -1776,12 +1773,12 @@ class InstallTools():
                 print(("git pull %s -> %s" % (url, dest)))
                 if url.find("http") != -1:
                     print("http")
-                    if branch != None:
+                    if branch is not None:
                         cmd = "cd %s;git -c http.sslVerify=false pull origin %s" % (dest, branch)
                     else:
                         cmd = "cd %s;git -c http.sslVerify=false pull" % dest
                 else:
-                    if branch != None:
+                    if branch is not None:
                         cmd = "cd %s; git fetch ; git reset --hard origin/%s" % (dest, branch)
                     else:
                         cmd = "cd %s; git fetch ; git reset --hard origin/master" % dest
@@ -1792,13 +1789,13 @@ class InstallTools():
             if depth:
                 extra = "--depth=%s" % depth
             if url.find("http") != -1:
-                if branch != None:
+                if branch is not None:
                     cmd = "cd %s;git -c http.sslVerify=false clone %s --single-branch -b %s %s %s" % (
                         self.getParent(dest), extra, branch, url, dest)
                 else:
                     cmd = "cd %s;git -c http.sslVerify=false clone %s  %s %s" % (self.getParent(dest), extra, url, dest)
             else:
-                if branch != None:
+                if branch is not None:
                     cmd = "cd %s;git clone %s --single-branch -b %s %s %s" % (
                         self.getParent(dest), extra, branch, url, dest)
                 else:
@@ -1808,7 +1805,7 @@ class InstallTools():
 
             self.execute(cmd, timeout=600, executor=executor)
 
-        if revision != None:
+        if revision is not None:
             cmd = "cd %s;git checkout %s" % (dest, revision)
             print(cmd)
             self.execute(cmd, timeout=600, executor=executor)
@@ -1830,11 +1827,13 @@ class InstallTools():
         for top in self.listDirsInDir(self.CODEDIR, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
             if provider != "" and provider != top:
                 continue
-            for accountfound in self.listDirsInDir("%s/%s" % (self.CODEDIR, top), recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+            for accountfound in self.listDirsInDir("%s/%s" % (self.CODEDIR, top),
+                                                   recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
                 if account != "" and account != accountfound:
                     continue
                 accountfounddir = "/%s/%s/%s" % (self.CODEDIR, top, accountfound)
-                for reponame in self.listDirsInDir("%s/%s/%s" % (self.CODEDIR, top, accountfound), recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+                for reponame in self.listDirsInDir(
+                        "%s/%s/%s" % (self.CODEDIR, top, accountfound), recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
                     if name != "" and name != reponame:
                         continue
                     repodir = "%s/%s/%s/%s" % (self.CODEDIR, top, accountfound, reponame)
@@ -1902,11 +1901,12 @@ class InstallTools():
         #     raise RuntimeError("could not find branch")
         # return branch
 
-    def changeLoginPasswdGitRepos(self, provider="", account="", name="", login="", passwd="", ssh=True, pushmessage=""):
+    def changeLoginPasswdGitRepos(self, provider="", account="", name="",
+                                  login="", passwd="", ssh=True, pushmessage=""):
         """
         walk over all git repo's found in account & change login/passwd
         """
-        if ssh == False:
+        if ssh is False:
             for reponame, repopath in list(self.getGitReposListLocal(provider, account, name).items()):
                 import re
                 configpath = "%s/.git/config" % repopath
@@ -2155,7 +2155,7 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
 
     @property
     def readonly(self):
-        if self._readonly == None:
+        if self._readonly is None:
             ppath = "%s/bin/_writetest" % do.BASE
             try:
                 do.writeFile(ppath, "")
@@ -2196,7 +2196,7 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
             do.createDir("%s/hrd/apps/" % vardir)
             do.createDir("%s/cfg" % vardir)
 
-        if self.readonly == False or die == True:
+        if self.readonly is False or die == True:
             do.delete("%s/cfg" % basedir)
             do.delete("%s/hrd" % basedir)
             do.delete("%s/var" % basedir)
@@ -2336,7 +2336,7 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
                 "$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu:$_OLD_PYTHONPATH")
         envfile = "%s/env.sh" % basedir
 
-        if self.readonly == False or die == True:
+        if self.readonly is False or die == True:
             do.writeFile(envfile, C)
 
         # pythonversion = '3' if os.environ.get('PYTHONVERSION') == '3' else ''
@@ -2354,7 +2354,7 @@ exec python3 -q "$@"
         """
 
         # C2=C2.format(base=basedir, env=envfile)
-        if self.readonly == False or die == True:
+        if self.readonly is False or die == True:
 
             do.delete("/usr/bin/jspython")  # to remove link
             do.delete("%s/bin/jspython" % basedir)
@@ -2476,6 +2476,7 @@ exec python3 -q "$@"
             pip3 install colorlog
             pip3 install msgpack-python
             pip3 install pyblake2
+            pip3 install click
             """
             do.executeCmds(cmds)
 

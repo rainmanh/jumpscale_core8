@@ -143,8 +143,7 @@ class Test:
         for key, val in list(self.db.__dict__.items()):
             if key[0] != "_" and key not in ["source", "output"]:
                 out += "%-35s :  %s\n" % (key, val)
-        items = out.split("\n")
-        items.sort()
+        items = sorted(out.split("\n"))
         return "\n".join(items)
 
     __repr__ = __str__
@@ -176,7 +175,7 @@ class TestEngine:
 
     def runTests(self, testrunname=None, debug=False):
 
-        if testrunname == None:
+        if testrunname is None:
             testrunname = j.data.time.getLocalTimeHRForFilesystem()
 
         for path in self.paths:
@@ -192,8 +191,7 @@ class TestEngine:
             if test.db.priority not in priority:
                 priority[test.db.priority] = []
             priority[test.db.priority].append(test)
-        prio = list(priority.keys())
-        prio.sort()
+        prio = sorted(priority.keys())
         results = list()
         for key in prio:
             for test in priority[key]:

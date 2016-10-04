@@ -47,7 +47,8 @@ class Client:
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)
 
-    def users_byUsernameorganizations_byGlobalidrolesrole_delete(self, globalid, role, username, headers=None, query_params=None):
+    def users_byUsernameorganizations_byGlobalidrolesrole_delete(
+            self, globalid, role, username, headers=None, query_params=None):
         """
         Reject membership invitation in an organization.
         It is method for DELETE /users/{username}/organizations/{globalid}/roles/{role}

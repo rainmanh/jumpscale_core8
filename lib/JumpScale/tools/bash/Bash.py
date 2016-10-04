@@ -32,7 +32,7 @@ class Profile:
         else:
             _path = set()
             # self._path.add('${PATH}')
-            if binDir != None:
+            if binDir is not None:
                 _path.add(binDir)
 
         for item in _path:
@@ -211,6 +211,7 @@ class Bash:
             self._cuisine.core.file_write(self._profilePath, self.profile.dump())
             self.setOurProfile()
             self._profile = None
+            self._profilePath = j.sal.fs.joinPaths(self.home, ".profile_js")
         return self._profilePath
 
     @property

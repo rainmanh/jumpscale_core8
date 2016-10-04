@@ -24,19 +24,10 @@ import re
 import copy
 import base64
 import hashlib
-import os
-import string
-import tempfile
-import subprocess
-import types
-import threading
 import sys
-import functools
-import platform
 
 from JumpScale import j
-import pygments.lexers
-from pygments.formatters import get_formatter_by_name
+import pygments
 
 NOTHING = base64
 
@@ -213,7 +204,7 @@ class CuisineCore(base):
     def getenv(self, refresh=False):
         def get():
             res = {}
-            rc, out, err = self._cuisine.core.run("printenv", profile=False, showout=False, replaceArgs=False)
+            _, out, _ = self._cuisine.core.run("printenv", profile=False, showout=False, replaceArgs=False)
             for line in out.splitlines():
                 if '=' in line:
                     name, val = line.split("=", 1)
@@ -244,11 +235,11 @@ class CuisineCore(base):
                     res["base"] = "/opt/jumpscale8/"
             if self.isMac or self.isCygwin:
                 res["codeDir"] = "%s/opt/code/" % env["HOME"]
-            else:
-                res["codeDir"] = "/opt/code/"
-            if self.isMac or self.isCygwin:
+                res["optDir"] = "%s/opt/" % env["HOME"]
                 res["varDir"] = "%s/optvar/" % env["HOME"]
             else:
+                res["codeDir"] = "/opt/code/"
+                res["optDir"] = "/opt/"
                 res["varDir"] = "/optvar/"
             res["appDir"] = "%s/apps" % res["base"]
             res['tmplsDir'] = "%s/templates" % res["base"]
@@ -261,10 +252,6 @@ class CuisineCore(base):
             res["pidDir"] = "%s/pid" % res["varDir"]
             res["tmpDir"] = "%s/tmp" % res["varDir"]
             res["hrdDir"] = "%s/hrd" % res["varDir"]
-            if self.isMac or self.isCygwin:
-                res["optDir"] = "%s/opt/" % env["HOME"]
-            else:
-                res["optDir"] = "/opt/"
 
             res["goDir"] = "%sgo/" % res["varDir"]
 
@@ -373,7 +360,8 @@ class CuisineCore(base):
         x = self.args_replace(x)
         return x
 
-    def file_download(self, url, to, overwrite=True, retry=3, timeout=0, login="", passwd="", minspeed=0, multithread=False, expand=False):
+    def file_download(self, url, to, overwrite=True, retry=3, timeout=0, login="",
+                      passwd="", minspeed=0, multithread=False, expand=False):
         """
         download from url
         @return path of downloaded file
@@ -456,7 +444,7 @@ class CuisineCore(base):
         location = self.args_replace(location)
         cmd += ' %s' % location
         rc, out, err = self.run(cmd, showout=False, die=False)
-        return not rc and not err
+        return not rc
 
     def file_exists(self, location):
         """Tests if there is a *remote* file at the given location."""
@@ -665,8 +653,8 @@ class CuisineCore(base):
             content_base64 = base64.b64encode(content2).decode()
 
             # if sig != self.file_md5(location):
-            cmd = 'bash -c \'echo "%s" | openssl base64 -A -d > %s\'\n' % (content_base64, location)
-            res = self._executor.executeRaw(cmd, showout=False)
+            cmd = 'echo "%s" | openssl base64 -A -d > %s' % (content_base64, location)
+            res = self.run(cmd, showout=False)
             if check:
                 file_sig = self.file_md5(location)
                 assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (
@@ -823,7 +811,8 @@ class CuisineCore(base):
         # be on the safe side.
         location = self.args_replace(location)
         if self.file_exists(location):
-            return self.run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(self.shell_safe((location))), debug=False, checkok=False, showout=False)[1]
+            return self.run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(
+                self.shell_safe((location))), debug=False, checkok=False, showout=False)[1]
         else:
             return None
         # else:
@@ -867,7 +856,7 @@ class CuisineCore(base):
             self.logger.debug('set dir attributes:%s"%location')
         recursive = recursive and "-R " or ""
         if mode:
-            self.run('chmod %s %s %s' % (recursive, mode,  location), showout=False)
+            self.run('chmod %s %s %s' % (recursive, mode, location), showout=False)
         if owner:
             self.run('chown %s %s %s' % (recursive, owner, location), showout=False)
         if group:
@@ -995,12 +984,15 @@ class CuisineCore(base):
             self.sudomode = sudomode
 
     def run(self, cmd, die=True, debug=None, checkok=False, showout=True, profile=False, replaceArgs=True,
-            shell=False):
+            shell=False, env=None):
+
+        showout=True
         """
         @param profile, execute the bash profile first
         """
         # print (cmd)
-        env = {}
+        if not env:
+            env = {}
         if replaceArgs:
             cmd = self.args_replace(cmd)
         self._executor.curpath = self.cd
@@ -1021,7 +1013,7 @@ class CuisineCore(base):
         if shell and '"' in cmd:
             cmd = cmd.replace('"', '\\"')
 
-        if "cygwin" in self._executor.execute("uname -a", showout=False)[1].lower():
+        if "cygwin" in self.uname:
             self.sudomode = False
 
         if self.sudomode:
@@ -1029,14 +1021,16 @@ class CuisineCore(base):
         elif shell:  # only when shell is asked for
             cmd = 'bash -c "%s"' % cmd
 
-        path = self._executor.execute("echo $PATH", showout=False)[1]
-        if "/usr/local/bin" not in path:
-            env = {"PATH": "%s:/usr/local/bin" % path}
+        # old_path = self._executor.execute("echo $PATH", showout=False)[2]
+        # if "/usr/local/bin" not in old_path:
+        #     path = ['/usr/local/bin']
+        #     path += [old_path] if old_path else []
+        #     path += env.get("PATH", [])
+        #     env = {"PATH": ":".join(path)}
         rc, out, err = self._executor.execute(cmd, checkok=checkok, die=False, showout=showout, env=env)
 
         out = self._clean(out)
 
-        # If command fails and die is true, raise error
         if rc and die:
             raise j.exceptions.RuntimeError('%s, %s' % (cmd, err))
 
@@ -1047,20 +1041,22 @@ class CuisineCore(base):
 
         return rc, out, err
 
-    def sudo_cmd(self, command, shell=False):
+    def sudo_cmd(self, command, shell=False, force_sudo=False):
+        if not force_sudo and getattr(self._executor, 'login', '') == "root":
+            cmd = command
         passwd = self._executor.passwd if hasattr(self._executor, "passwd") else ''
         passwd = passwd or "\'\'"
         if shell:
             command = 'bash -c "%s"' % command
         rc, out, err = self._executor.execute("which sudo", die=False, showout=False)
-        if rc or out.strip() == '**OK**':
-            # Install sudo if sudo not installed
-            cmd = 'apt-get install sudo && echo %s | sudo -SE -p \'\' %s' % (passwd, command)
+        if rc or out.strip() == '**OK**':  # Work around: SSH executor adds **OK** 
+            cmd = 'apt-get install sudo && echo %s | sudo -H -SE -p \'\' bash -c "%s"' % (passwd, command.replace('"', '\\"'))
         else:
-            cmd = 'echo %s | sudo -SE -p \'\' %s' % (passwd, command)
+            cmd = 'echo %s | sudo -H -SE -p \'\' bash -c "%s"' % (passwd, command.replace('"', '\\"'))
         return cmd
 
     def cd(self, path):
+        """cd to the given path"""
         path = self.args_replace(path)
         self.cd = path
 
@@ -1111,7 +1107,12 @@ class CuisineCore(base):
         else:
             self.file_write(location=path, content=content, mode=0o770, owner="root", group="root", showout=False)
 
-        cmd = "cd $tmpDir;%s %s" % (interpreter, path)
+        cmd = "%s %s" % (interpreter, path)
+
+        if self.sudomode:
+            cmd = self.sudo_cmd(cmd)
+
+        cmd = "cd $tmpDir; %s" % (cmd, )
         cmd = self.args_replace(cmd)
         if tmux:
             rc, out = self._cuisine.tmux.executeInScreen("cmd", "cmd", cmd, wait=True, die=False)
@@ -1209,9 +1210,15 @@ class CuisineCore(base):
     def _cgroup(self):
         def get():
             if self.isMac:
-                return ""
-            return self.file_read("/proc/1/cgroup")
+                return "none"
+            return self.file_read("/proc/1/cgroup", "none")
         return self._cache.get("cgroup", get)
+
+    @property
+    def uname(self):
+        if not hasattr(self, '_uname'):
+            self._uname = self._executor.execute("uname -a", showout=False)[1].lower()
+        return self._uname
 
     @property
     def isDocker(self):

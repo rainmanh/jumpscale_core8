@@ -42,7 +42,7 @@ class Process():
     def start(self):
         if self.cmds != []:
             self._spawnProcess()
-        if self.pythonCode != None:
+        if self.pythonCode is not None:
             if self.sync:
                 self.do()
             else:
@@ -56,7 +56,7 @@ class Process():
         self.p = psutil.Process(self.pid)
 
     def kill(self):
-        if self.p != None:
+        if self.p is not None:
             self.p.kill()
 
     def is_running(self):
@@ -64,9 +64,9 @@ class Process():
         return mem.vms != 0
 
     def _spawnProcess(self):
-        if self.logpath == None:
+        if self.logpath is None:
             self.logpath = j.sal.fs.joinPaths(j.dirs.logDir, "processmanager", "logs",
-                                                 "%s_%s.log" % (self.domain, self.name))
+                                              "%s_%s.log" % (self.domain, self.name))
             j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.logDir, "processmanager", "logs"))
             stdout = open(self.logpath, 'w')
         else:
@@ -85,7 +85,7 @@ class Process():
             self.log.error("could not execute:%s\nError:\n%s" % (self, e))
 
         time.sleep(0.1)
-        if self.is_running() == False:
+        if self.is_running() is False:
             self.log.warning("could not execute:%s\n" % (self))
             if j.sal.fs.exists(path=self.logpath):
                 log = j.sal.fs.fileGetContents(self.logpath)
@@ -93,7 +93,7 @@ class Process():
 
     def do(self):
         self.log.info('A new child %s' % self.name, os.getpid())
-        if self.pythonCode != None:
+        if self.pythonCode is not None:
             exec(self.pythonCode)
 
         os._exit(0)
@@ -136,7 +136,8 @@ class ProcessManager():
                 self.log.info("cannot connect to agentcontroller, will retry forever: '%s:%s'" % (opts.ip, opts.port))
 
             # now register to agentcontroller
-            self.acclient = j.legacy.agentcontroller.get(opts.ip, port=opts.port, login='root', passwd=opts.password, new=True)
+            self.acclient = j.legacy.agentcontroller.get(
+                opts.ip, port=opts.port, login='root', passwd=opts.password, new=True)
             res = self.acclient.registerNode(hostname=socket.gethostname(),
                                              machineguid=j.application.getUniqueMachineId())
 
@@ -175,7 +176,8 @@ class ProcessManager():
             p.name = '%s' % qname
             p.workingdir = pwd
             p.env = os.environ
-            p.cmds = ['python3.5', 'worker.py', '-q', qname, '--controller-ip', self.opts.ip, '--controller-port', str(self.opts.port)]
+            p.cmds = ['python3.5', 'worker.py', '-q', qname, '--controller-ip',
+                      self.opts.ip, '--controller-port', str(self.opts.port)]
             p.restart = True
             p.start()
             self.processes.append(p)
@@ -185,7 +187,7 @@ class ProcessManager():
         while True:
             i += 1
             for p in self.processes[:]:
-                if p.p != None:
+                if p.p is not None:
                     if not p.is_running():
                         if p.restart:
                             self.log.info("%s:%s was stopped restarting" % (p.domain, p.name))
@@ -216,6 +218,8 @@ opts = parser.parse_args()
 
 # first start processmanager with all required stuff
 pm = ProcessManager(opts)
+
+
 @atexit.register
 def kill_subprocesses():
     for p in pm.processes:

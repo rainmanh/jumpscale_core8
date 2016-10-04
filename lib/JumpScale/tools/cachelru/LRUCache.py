@@ -76,7 +76,7 @@ class LRUCache:
         # Check arguments
         if size <= 0:
             raise ValueError(size)
-        elif type(size) is not type(0):
+        elif not isinstance(size, type(0)):
             raise TypeError(size)
         object.__init__(self)
         self.__heap = []

@@ -49,7 +49,7 @@ class WCache:
         # Check arguments
         if size <= 0:
             raise ValueError(size)
-        elif type(size) is not type(0):
+        elif not isinstance(size, type(0)):
             raise TypeError(size)
         object.__init__(self)
         self.__dict = {}
@@ -59,7 +59,7 @@ class WCache:
         self.writermethod = writermethod
 
     def flush(self):
-        if len(list(self.__dict.keys())) >= self.size and self.writermethod == None:
+        if len(list(self.__dict.keys())) >= self.size and self.writermethod is None:
             raise j.exceptions.RuntimeError("Write cache full.")
 
         now = time.time()

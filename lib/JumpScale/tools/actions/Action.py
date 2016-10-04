@@ -40,7 +40,7 @@ class Action:
         self.logger = j.logger.get("j.actions")
         # self.logger.debug("OPEN ACTION:%s"%action)
 
-        if key == "" and action == None:
+        if key == "" and action is None:
             raise j.exceptions.RuntimeError("need to specify key or action")
 
         self._args = ""
@@ -83,7 +83,7 @@ class Action:
 
         self.runid = str(runid)
 
-        if action != None:
+        if action is not None:
 
             self.serviceObj = serviceObj
             self.selfGeneratorCode = selfGeneratorCode
@@ -100,15 +100,15 @@ class Action:
 
             self.method = action
 
-            if actionRecover != None:
+            if actionRecover is not None:
                 self._actionRecover = actionRecover.key
 
         if key == "":
-            if deps != None:
+            if deps is not None:
                 # remove deps which are None
-                deps = [dep for dep in deps if dep != None]
+                deps = [dep for dep in deps if dep is not None]
 
-            if deps != None and deps != []:
+            if deps is not None and deps != []:
                 # means they are specified
                 self._deps = deps
                 self._depkeys = [dep.key for dep in deps]
@@ -122,7 +122,7 @@ class Action:
             #     self._depkeys=[dep.key for dep in deps ]
             #     self._deps=deps
             else:
-                if deps == None:
+                if deps is None:
                     deps = []
                 self._deps = deps
                 self._depkeys = [dep.key for dep in deps]
@@ -172,7 +172,7 @@ class Action:
         return res
 
     def _getDepsAll(self, res=None):
-        if res == None:
+        if res is None:
             res = []
         for key in self._depkeys:
             if key not in res:
@@ -237,7 +237,7 @@ class Action:
         # print('load key %s' % self.key)
         data = j.core.db.hget("actions.%s" % self.runid, self.key)
 
-        if data != None:
+        if data is not None:
             data2 = j.data.serializer.json.loads(data)
 
             if "_hrd" not in data2:
@@ -263,7 +263,7 @@ class Action:
 
     @property
     def actionRecover(self):
-        if self._actionRecover == None or self._actionRecover == "":
+        if self._actionRecover is None or self._actionRecover == "":
             return None
         return j.actions.get(self._actionRecover)
 
@@ -282,7 +282,7 @@ class Action:
     def method(self):
         if self.source == "":
             raise j.exceptions.RuntimeError("source cannot be empty")
-        if self._method == None:
+        if self._method is None:
             # j.sal.fs.changeDir(basepath)
             loader = importlib.machinery.SourceFileLoader(self.name, self.sourceToExecutePath)
             handle = loader.load_module(self.name)
@@ -412,7 +412,7 @@ class Action:
 
     @property
     def result(self):
-        if self._result == "" or self._result == None:
+        if self._result == "" or self._result is None:
             return None
         return j.data.serializer.json.loads(self._result)
 
@@ -430,7 +430,7 @@ class Action:
 
     @hrd.setter
     def hrd(self, hrd):
-        #TODO: need to check if hrd or text and convert
+        # TODO: need to check if hrd or text and convert
         self._hrd = hrd.getHRDAsDict()
 
     @property
@@ -519,7 +519,7 @@ class Action:
 
     @property
     def selfobj(self):
-        if self.selfGeneratorCode == None or self.selfGeneratorCode.lower().strip() == "none":
+        if self.selfGeneratorCode is None or self.selfGeneratorCode.lower().strip() == "none":
             return None
         if self.selfGeneratorCode != "":  # this is the code which needs to generate a selfobj
             try:
@@ -544,7 +544,7 @@ class Action:
         j.actions.addToStack(self)
 
         if "showout" in self.kwargs:
-            if self.kwargs["showout"] == False:
+            if self.kwargs["showout"] is False:
                 self.actionshow = False
 
         if self.state == "OK" and not self.force:
@@ -558,20 +558,20 @@ class Action:
             args2print = self._args10line
             self.logger.info("  * %-20s: %-80s" % (self.name, args2print))
 
-        if self._stdOutput == False:
+        if self._stdOutput is False:
             j.tools.console.hideOutput()
 
         if self.force:
             self.state = "NEW"
 
-        if j.actions.showonly == False:
+        if j.actions.showonly is False:
             rcode = 0
             output = ""
             counter = 0
             ok = False
             err = ''
 
-            while ok == False and counter < self.retry + 1:
+            while ok is False and counter < self.retry + 1:
 
                 kwargs = self.kwargs
 
@@ -631,7 +631,7 @@ class Action:
                         err = err.replace("**NOSTACK**", "")
 
             # we did the retries, rcode will be >0 if error
-            if self._stdOutput == False:
+            if self._stdOutput is False:
                 j.tools.console.enableOutput()
                 self.stdouterr += j.tools.console.getOutput()
 
@@ -646,7 +646,7 @@ class Action:
                         # print (action)
                         action.save()
 
-                if self.actionRecover != None:
+                if self.actionRecover is not None:
                     self.actionRecover.execute()
 
                 if self.state == "ERRORCHILD":
@@ -743,7 +743,7 @@ class Action:
             msg += "OUTPUT:\n%s" % j.data.text.indent(self.stdouterr)
             if msg[-1] != "\n":
                 msg += "\n"
-        if self.result != None:
+        if self.result is not None:
             msg += "RESULT:\n%s" % j.data.text.indent(str(self.result))
         if self.error != "":
             msg += "ERROR:\n%s" % j.data.text.indent(str(self.error))

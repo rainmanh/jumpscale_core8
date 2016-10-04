@@ -61,7 +61,8 @@ class Rogerthat:
     def checkFlag(self, flags, flag):
         return flags & flag == flag
 
-    def send_message(self, message, members=None, flags=0, parent_message_key=None, answers=None, dismiss_button_ui_flags=0, alert_flags=0, branding=None, tag=None, context=None, ui_flags=None):
+    def send_message(self, message, members=None, flags=0, parent_message_key=None, answers=None,
+                     dismiss_button_ui_flags=0, alert_flags=0, branding=None, tag=None, context=None, ui_flags=None):
         members = members or list()
         answers = answers or list()
         params = {'message': message, 'members': members, 'flags': flags}
@@ -76,7 +77,8 @@ class Rogerthat:
             params['ui_flags'] = ui_flags
         return self._raw_request('messaging.send', params)
 
-    def send_broadcast(self, broadcast_type, message, flags=0, parent_message_key=None, answers=None, dismiss_button_ui_flags=0, alert_flags=0, branding=None, tag=None, context=None):
+    def send_broadcast(self, broadcast_type, message, flags=0, parent_message_key=None, answers=None,
+                       dismiss_button_ui_flags=0, alert_flags=0, branding=None, tag=None, context=None):
         params = {'message': message, 'flags': flags}
         params['parent_message_key'] = parent_message_key
         params['answers'] = answers or []

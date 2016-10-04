@@ -142,7 +142,7 @@ class SQLAlchemy:
         self._initsql()
 
     def _initsql(self):
-        if self.engine == None:
+        if self.engine is None:
             if self.sqlitepath != "":
                 if not j.sal.fs.exists(path=self.sqlitepath):
                     self.engine = self.resetDB()

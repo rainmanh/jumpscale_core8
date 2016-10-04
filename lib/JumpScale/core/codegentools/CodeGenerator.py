@@ -200,10 +200,10 @@ class CodeGenerator:
         if not returnClass:
             return
 
-        if classpath != None:
+        if classpath is not None:
             path = classpath
 
-        if classpath != None and j.sal.fs.exists(path):
+        if classpath is not None and j.sal.fs.exists(path):
             pass
         else:
             j.sal.fs.writeFile(path, code)
@@ -222,13 +222,13 @@ class CodeGenerator:
             # means there is more than 1 class generated
             for subitem in cg.subitems:
                 classs = self._import(name, cg.getClassName(subitem), path)
-                if classs != None:
+                if classs is not None:
                     result[subitem] = classs
                 self.generated[name + "_%s" %
                                subitem] = cg.getClassName(subitem)
 
         else:
-            if classpath != None:
+            if classpath is not None:
                 result = self._import(
                     cg.getClassName(), cg.getClassName(), path)
             else:

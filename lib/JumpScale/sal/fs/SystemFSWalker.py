@@ -30,7 +30,8 @@ class SystemFSWalker:
         if contentRegexIncludes == [] and contentRegexExcludes == []:
             return True
         content = j.sal.fs.fileGetContents(path)
-        if j.tools.code.regex.matchMultiple(patterns=contentRegexIncludes, text=content) and not j.tools.code.regex.matchMultiple(patterns=contentRegexExcludes, text=content):
+        if j.tools.code.regex.matchMultiple(patterns=contentRegexIncludes, text=content) and not j.tools.code.regex.matchMultiple(
+                patterns=contentRegexExcludes, text=content):
             return True
         return False
 
@@ -39,7 +40,8 @@ class SystemFSWalker:
         arg.append(path)
 
     @staticmethod
-    def find(root, recursive=True, includeFolders=False, pathRegexIncludes=[".*"], pathRegexExcludes=[], contentRegexIncludes=[], contentRegexExcludes=[], depths=[]):
+    def find(root, recursive=True, includeFolders=False, pathRegexIncludes=[
+             ".*"], pathRegexExcludes=[], contentRegexIncludes=[], contentRegexExcludes=[], depths=[]):
         listfiles = []
         SystemFSWalker.walk(root, SystemFSWalker._findhelper, listfiles, recursive, includeFolders,
                             pathRegexIncludes, pathRegexExcludes, contentRegexIncludes, contentRegexExcludes, depths)
@@ -91,12 +93,12 @@ class SystemFSWalker:
         @param includeFolders: Whether to call C{callable} for folders as well (bool)
         @param pathRegexIncludes / Excludes  match paths to array of regex expressions (array(strings))
         @param contentRegexIncludes / Excludes match content of files to array of regex expressions (array(strings))
-        @param depths array of depth values e.g. only return depth 0 & 1 (would mean first dir depth and then 1 more deep) (array(int)) 
+        @param depths array of depth values e.g. only return depth 0 & 1 (would mean first dir depth and then 1 more deep) (array(int))
 
         '''
         if not j.sal.fs.isDir(root):
             raise ValueError('Root path for walk should be a folder')
-        if recursive == False:
+        if recursive is False:
             depths = [0]
         # We want to work with full paths, even if a non-absolute path is
         # provided
@@ -139,15 +141,17 @@ class SystemFSWalker:
                         if SystemFSWalker._checkDepth(path2, depths, path) and \
                                 SystemFSWalker._checkContent(path2, contentRegexIncludes, contentRegexExcludes):
                             result = callback(arg, path2)
-                    if result == False:
+                    if result is False:
                         continue  # do not recurse go to next dir
                 # recurse
                 j.sal.fs.walker._walk(path2, callback, arg, includeFolders, pathRegexIncludes, pathRegexExcludes,
                                       contentRegexIncludes, contentRegexExcludes, depths, followlinks)
 
             if j.sal.fs.isFile(path2, followlinks):
-                if j.tools.code.regex.matchMultiple(patterns=pathRegexIncludes, text=path2) and not j.tools.code.regex.matchMultiple(patterns=pathRegexExcludes, text=path):
-                    if SystemFSWalker._checkDepth(path2, depths, path) and SystemFSWalker._checkContent(path2, contentRegexIncludes, contentRegexExcludes):
+                if j.tools.code.regex.matchMultiple(patterns=pathRegexIncludes, text=path2) and not j.tools.code.regex.matchMultiple(
+                        patterns=pathRegexExcludes, text=path):
+                    if SystemFSWalker._checkDepth(path2, depths, path) and SystemFSWalker._checkContent(
+                            path2, contentRegexIncludes, contentRegexExcludes):
                         callback(arg, path2)
 
     @staticmethod
@@ -197,25 +201,24 @@ class SystemFSWalker:
             root, callbackFunctionFile, callbackFunctionDir, arg, callbackForMatchDir, callbackForMatchFile)
 
     @staticmethod
-    def _walkFunctional(path, callbackFunctionFile=None, callbackFunctionDir=None, arg="", callbackForMatchDir=None, callbackForMatchFile=None):
+    def _walkFunctional(path, callbackFunctionFile=None, callbackFunctionDir=None,
+                        arg="", callbackForMatchDir=None, callbackForMatchFile=None):
 
-        paths = j.sal.fs.listFilesInDir(path, listSymlinks=True)
-        paths.sort()
+        paths = sorted(j.sal.fs.listFilesInDir(path, listSymlinks=True))
         for path2 in paths:
-            if callbackForMatchFile == False:
+            if callbackForMatchFile is False:
                 continue
-            if callbackForMatchFile == None or callbackForMatchFile(path2, arg):
+            if callbackForMatchFile is None or callbackForMatchFile(path2, arg):
                 # execute
                 callbackFunctionFile(path2, arg)
 
-        paths = j.sal.fs.listDirsInDir(path)
-        paths.sort()
+        paths = sorted(j.sal.fs.listDirsInDir(path))
         for path2 in paths:
             # print "walker dirpath:%s"% path2
-            if callbackForMatchDir == None or callbackForMatchDir(path2, arg):
+            if callbackForMatchDir is None or callbackForMatchDir(path2, arg):
                 # recurse
                 # print "walker matchdir:%s"% path2
-                if callbackFunctionDir == None:
+                if callbackFunctionDir is None:
                     j.sal.fs.walker._walkFunctional(
                         path2, callbackFunctionFile, callbackFunctionDir, arg, callbackForMatchDir, callbackForMatchFile)
                 else:

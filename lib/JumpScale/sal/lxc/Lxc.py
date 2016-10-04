@@ -13,6 +13,11 @@ class Lxc:
         self._basepath = None
 
     def execute(self, command):
+        """
+        Execute command.
+
+        @param command str: command to run
+        """
         env = os.environ.copy()
         env.pop('PYTHONPATH', None)
         (exitcode, stdout, stderr) = j.sal.process.run(
@@ -79,6 +84,10 @@ class Lxc:
         return (running, stopped)
 
     def getIp(self, name, fail=True):
+        """
+        Get IP of container
+        @param name str: containername.
+        """
         hrd = self.getConfig(name)
         return hrd.get("ipaddr")
 
@@ -107,6 +116,7 @@ ipaddr=
 
     def getProcessList(self, name, stdout=True):
         """
+        Get process list on a container.
         @return [["$name",$pid,$mem,$parent],....,[$mem,$cpu]]
         last one is sum of mem & cpu
         """
@@ -238,6 +248,11 @@ ipaddr=
         j.sal.process.executeWithoutPipe(cmd)
 
     def exportTgz(self, name, backupname):
+        """
+        Export a container to a tarball
+        @param backupname str: backupname
+        @param name str: container name.
+        """
         self.removeRedundantFiles(name)
         path = self._getMachinePath(name)
         bpath = j.sal.fs.joinPaths(self.basepath, "backups")
@@ -250,6 +265,11 @@ ipaddr=
         return bpath
 
     def importTgz(self, backupname, name):
+        """
+        Import a container from a tarball
+        @param backupname str: backupname
+        @param name str: container name.
+        """
         path = self._getMachinePath(name)
         bpath = j.sal.fs.joinPaths(self.basepath, "backups", "%s.tgz" % backupname)
         if not j.sal.fs.exists(bpath):
@@ -261,7 +281,9 @@ ipaddr=
 
     def create(self, name="", stdout=True, base="base", start=False, nameserver="8.8.8.8", replace=True):
         """
+        Create new container
         @param name if "" then will be an incremental nr
+        @param start bool: start the container after creation.
         """
         print(("create:%s" % name))
         if replace:
@@ -349,6 +371,10 @@ ipaddr=
         return self.getIp(name)
 
     def setHostName(self, name):
+        """
+        Set hostname on the container
+        @param name: new hostname
+        """
         lines = j.sal.fs.fileGetContents("/etc/hosts")
         out = ""
         for line in lines.split("\n"):
@@ -359,6 +385,10 @@ ipaddr=
         j.sal.fs.writeFile(filename="/etc/hosts", contents=out)
 
     def pushSSHKey(self, name):
+        """
+        Push sshkey
+        @param name str: keyname
+        """
         path = j.sal.fs.joinPaths(self._get_rootpath(name), "root", ".ssh", "authorized_keys")
         content = j.sal.fs.fileGetContents("/root/.ssh/id_dsa.pub")
         j.sal.fs.writeFile(filename=path, contents="%s\n" % content)
@@ -366,12 +396,19 @@ ipaddr=
         j.sal.fs.writeFile(filename=path, contents="")
 
     def destroyAll(self):
+        """
+        Destroy all running containers.
+        """
         running, stopped = self.list()
         alll = running + stopped
         for item in alll:
             self.destroy(item)
 
     def destroy(self, name):
+        """
+        Destroy container by name
+        @param name str: name
+        """
         running, stopped = self.list()
         alll = running + stopped
         print(("running:%s" % ",".join(running)))
@@ -390,11 +427,19 @@ ipaddr=
         # #TODO: put timeout in
 
     def stop(self, name):
+        """
+        Stop a container by name
+        @param name str: container name.
+        """
         # cmd="lxc-stop -n %s%s"%(self._prefix,name)
         cmd = "lxc-stop -P %s -n %s%s" % (self.basepath, self._prefix, name)
         self.execute(cmd)
 
     def start(self, name, stdout=True, test=True):
+        """
+        Start container
+        @param name str: container name.
+        """
         print(("start:%s" % name))
         cmd = "lxc-start -d -P %s -n %s%s" % (self.basepath, self._prefix, name)
         print(cmd)
@@ -411,7 +456,7 @@ ipaddr=
             time.sleep(0.2)
             now = time.time()
 
-        if found == False:
+        if found is False:
             msg = "could not start new machine, did not start in 20 sec."
             if stdout:
                 print(msg)

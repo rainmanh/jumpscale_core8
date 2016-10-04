@@ -130,13 +130,14 @@ class OpenWRTManager:
 class OpenWRTFactory:
 
     def _getFactoryEnabledClasses(self):
-        return (("", "UCI", UCI()), ("", "DNS", DNS()), ("", "DHCP", DHCP()), ("", "PureFTP", PureFTP()), ("", "Network", Network()), ("", "Firewall", Firewall()), ("", "OpenWRTManager", OpenWRTManager()))
+        return (("", "UCI", UCI()), ("", "DNS", DNS()), ("", "DHCP", DHCP()), ("", "PureFTP", PureFTP()),
+                ("", "Network", Network()), ("", "Firewall", Firewall()), ("", "OpenWRTManager", OpenWRTManager()))
 
     def get(self, connection=None):
         """
         Return disk manager for that cuisine connection.
         """
-        if connection == None:
+        if connection is None:
             connection = j.ssh.connection
 
         return OpenWRTManager(connection)

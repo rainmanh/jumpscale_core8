@@ -9,12 +9,13 @@ from JumpScale.legacy.jumpscripts.JumpscriptFactory import Jumpscript
 
 
 class JumpscriptsCmds():
+
     def __init__(self, daemon=None):
         self.log = j.logger.get('j.legacy.agent.jumpscriptsCmds')
         self.ORDER = 1
         self._name = "jumpscripts"
 
-        if daemon == None:
+        if daemon is None:
             return
 
         self.daemon = daemon
@@ -87,7 +88,7 @@ class JumpscriptsCmds():
             name = jumpscript.name
             self.jumpscripts["%s_%s" % (organization, name)] = jumpscript
 
-            self.log.info ("found jumpscript:%s_%s " % (organization, name))
+            self.log.info("found jumpscript:%s_%s " % (organization, name))
             # self.jumpscripts["%s_%s" % (organization, name)] = jumpscript
             period = jumpscript.period
             if period is not None:
@@ -128,7 +129,7 @@ class JumpscriptsCmds():
             jumpscript.execute()
 
     def _run(self, period=None, redisw=None):
-        if period == None:
+        if period is None:
             for period in self.jumpscriptsByPeriod.keys():
                 self._run(period)
 

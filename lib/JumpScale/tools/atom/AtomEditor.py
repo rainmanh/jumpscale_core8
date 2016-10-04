@@ -124,11 +124,11 @@ class AtomEditor:
         new_config_content = j.sal.fs.fileGetContents(new_config_path)
         new_config = cson.loads(new_config_content)
 
-        for k,v in new_config.items():
+        for k, v in new_config.items():
             if k in merged:
                 merged[k].update(new_config[k])
             else:
-                merged[k]=v
+                merged[k] = v
         content = cson.dumps(merged, indent=4, sort_keys=True)
         j.sal.fs.writeFile(os.path.expanduser("~/.atom/config.cson"), content)
 

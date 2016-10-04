@@ -56,7 +56,8 @@ class Disk:
         self.type = []
 
     def __str__(self):
-        return "%s %s %s free:%s ssd:%s fs:%s model:%s id:%s" % (self.path, self.mountpoint, self.size, self.free, self.ssd, self.fs, self.model, self.id)
+        return "%s %s %s free:%s ssd:%s fs:%s model:%s id:%s" % (
+            self.path, self.mountpoint, self.size, self.free, self.ssd, self.fs, self.model, self.id)
 
     __repr__ = __str__
 
@@ -69,7 +70,7 @@ class Diskmanager:
 
     @property
     def parted(self):
-        if self._parted == None:
+        if self._parted is None:
             try:
                 import parted
             except:
@@ -94,7 +95,10 @@ class Diskmanager:
         return self._parted
 
     def partitionAdd(self, disk, free, align=None, length=None, fs_type=None, type=None):
-        if type == None:
+        """
+        Add a partition on a disk
+        """
+        if type is None:
             type = self.parted.PARTITION_NORMAL
         start = free.start
         if length:
@@ -147,8 +151,12 @@ class Diskmanager:
                        initialize=False, forceinitialize=False):
         """
         looks for disks which are know to be data disks & are formatted ext4
-        return [[$partpath,$size,$free,$ssd]]
+
+        @param ttype is a string variable defining the format type
+        @param minsize is an int variable indicating the minimum partition size and defaulted to 5
+        @param mazsize is an int variable indicating the minimum partition size and defaulted to 5000
         @param ssd if None then ssd and other
+        :return [[$partpath,$size,$free,$ssd]]
         """
         import psutil
         result = []
@@ -166,7 +174,7 @@ class Diskmanager:
             # size = (geom[0] * geom[1] * geom[2] * ssize) / 1000 / 1000 / 1000;
             # size2=dev.getSize()
 
-            if devbusy == None or dev.busy == devbusy:
+            if devbusy is None or dev.busy == devbusy:
                 if path.startswith("/dev/%s" % prefix):
                     try:
                         disk = self.parted.Disk(dev)
@@ -189,14 +197,14 @@ class Diskmanager:
                         disko.fs = fs
                         partfound = getpsutilpart(disko.path)
                         mountpoint = None
-                        if partfound == None and mounted != True:
+                        if partfound is None and mounted != True:
                             mountpoint = "/mnt/tmp"
                             cmd = "mount %s /mnt/tmp" % partition.path
                             rcode, output = j.sal.process.execute(
                                 cmd, ignoreErrorOutput=False, die=False,)
                             if rcode != 0:
                                 # mount did not work
-                                mountpoint == None
+                                mountpoint is None
 
                             disko.mountpoint = None
                             disko.mounted = False
@@ -215,7 +223,7 @@ class Diskmanager:
                         disko.ssd = ssd0
                         result.append(disko)
 
-                        if mountpoint != None:
+                        if mountpoint is not None:
                             print(("mountpoint:%s" % mountpoint))
                             size, used, free, percent = psutil.disk_usage(
                                 mountpoint)
@@ -224,8 +232,9 @@ class Diskmanager:
                             size = disko.size / 1024
                             disko.free = int(disko.free)
 
-                            if (ttype == None or fs == ttype) and size > minsize and (maxsize is None or size < maxsize):
-                                if ssd == None or disko.ssd == ssd:
+                            if (ttype is None or fs == ttype) and size > minsize and (
+                                    maxsize is None or size < maxsize):
+                                if ssd is None or disko.ssd == ssd:
                                     # print disko
                                     hrdpath = "%s/disk.hrd" % mountpoint
 

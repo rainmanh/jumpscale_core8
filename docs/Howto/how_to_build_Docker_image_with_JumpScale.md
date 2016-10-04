@@ -24,56 +24,45 @@ git submodule init
 > Note: The `git submodule init` is only required once the first time you clone the repository. No need to rerun this command for the future builds.
 
 ```bash
-cd ./images
-ls -l
+total 12                                                                                                                                                                                                   
+drwxr-xr-x  3 khaled khaled 4096 18 16:17 armhf                                                                                                                                                        
+drwxrwxr-x  5 khaled khaled 4096 31 15:43 test                                                                                                                                                         
+drwxr-xr-x 20 khaled khaled 4096 أ31 15:43 x86_64
 ```
 
-```raw
-total 0
-drwxr-xr-x 1 azmy azmy 54 Sep  8 15:59 AgentController8
-drwxr-xr-x 1 azmy azmy 54 Sep  8 15:29 ubuntu15.04
-drwxr-xr-x 1 azmy azmy 54 Sep  8 13:19 ubuntu15.10
-```
+We have 3 directories that contains multiple images:
 
-We have 2 base images:
-
-- ubuntu 15.04
-- ubuntu 15.10
+- armhf
+- test
+- x86_64
 
 Each has the following pre-configuration:
 
+- Python3
 - Working SSH
-- Root password set to `js007`
-- Latest JumpScale8 (at the time of the build) pre-installed
-- Auto starts all installed `@ys` services
-- System Redis
+- Root password set to `gig1234`
 
 We also have the `AgentController8` as an example of a custom image that uses `ubuntu15.04` image to pre-install some services. If you need to build a custom image that pre-installs your apps and services you can use this one as a guide. Note that this image won't build unless `ubuntu15.04` was build already.
 
 Now to build the base images do the following:
 
 ```bash
-cd dockers/images/ubuntu15.04
-make
+cd dockers/js8/x86_64/31_ubuntu1604_js8/
+docker build -t jumpscale/ubuntu1604 --no-cache .
 ```
 
-Make will take care of everything and will take sometime, but when it's done you will have the `jumpscale/ubuntu15.04` image ready.
-
-```bash
-docker images
-```
 
 Will have this in its output
 
 ```raw
 REPOSITORY                   TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
-jumpscale/ubuntu             15.04               6cc68f352eb8        20 hours ago        630.4 MB
+jumpscale/ubuntu1604           latest              54236fee1523        2 minutes ago       357 MB
 ```
 
 ## Running the image
 
 ```bash
-docker run --rm -ti --name test jumpscale/ubuntu:15.04
+docker run --rm -ti --name test jumpscale/ubuntu1604
 ```
 
 > You can use -d instead to run in the background, but the `-ti` option is good for testing so you can see the boot sequence
@@ -87,25 +76,15 @@ docker inspect test | grep IPAddress
 
 ```bash
 ssh root@172.17.0.1
-# Password: js007
+# Password: gig1234
 ```
-
-```bash
-test:/# ays status
-DOMAIN          NAME                 Instance   Prio Status   Ports
-======================================================================
-
-jumpscale       redis                main          1 RUNNING  9999
-```
-
-> Installed AYS services already running.
 
 ## To run the image with jsdocker
 
 JumpScale comes with a command line tool that abstract working with dockers. To run a new jsdocker image simply do the following:
 
 ```bash
-jsdocker new -n test -b jumpscale/AgentController8:15.04
+jsdocker create -i jumpscale/ubuntu1604 -n test
 ```
 
 This will output something like
@@ -119,7 +98,7 @@ MAP:
 install docker with name 'jumpscale/AgentController8:15.04'
 test docker internal port:22 on ext port:9022
 connect ssh2
-[localhost:9022] Login password for 'root': js007
+[localhost:9022] Login password for 'root': gig1234
 ```
 
 Note that `jsdocker` will auto map container ssh port to a free local port (9022 in this example) so to connect to the new running container simply do:

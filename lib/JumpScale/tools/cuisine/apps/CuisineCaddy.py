@@ -12,7 +12,14 @@ class CuisineCaddy(app):
         self._cuisine = cuisine
 
     def install(self, ssl=False, start=True, dns=None, reset=False):
+        """
+        Move binaries and required configs to assigned location.
 
+        @param ssl str:  this tells the firewall to allow port 443 as well as 80 and 22 to support ssl.
+        @param start bool: after installing the service this option is true will add the service to the default proccess manager an strart it .
+        @param dns str: default address to run caddy on.
+        @param reset bool:  if True this will install even if the service is already installed.
+        """
         if reset is False and self.isInstalled():
             return
         caddy_url = 'https://github.com/mholt/caddy/releases/download/v0.8.2/caddy_linux_amd64.tar.gz'

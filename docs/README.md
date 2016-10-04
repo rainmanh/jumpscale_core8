@@ -1,20 +1,10 @@
-# About JumpScale
+# What is JumpScale
 
 [JumpScale](http://www.jumpscale.com/) is an extensible and easy to use cloud automation solution, providing a huge library that supports executing a wide range of system operations. [JumpScale](http://www.jumpscale.com/) is the evolution of Pylabs which was the basic building block for cloud automation originally developed by [Q-Layer](http://incubaid.com/successes/Q-Layer/), and acquired by Sun Microsystems in 2009\. The current release of JumpScale is version 8.
 
-## Main features
-
-- A comprehensive library of convenient functions for system automation operations
-- A system abstraction layer (SAL) that allows managing different types of applications and services
-- A SSH management layer
-- A full life cycle management system for applications and services
-- Management of grid of thousands remote nodes
-- A port forwarding system to allow secure access to all your services
-
-## How to get started
-
-- [Installation](GettingStarted/Installation.md)
-- [Getting Started](GettingStarted/Home.md)
+- [Why Using JumpScale](Introduction/WhyJumpScale.md)
+- [Solutions Built with JumpScale](Introduction/JumpScaleSolutions.md)
+- [Getting Started](GettingStarted/GettingStarted.md)
 
 ## More info
 

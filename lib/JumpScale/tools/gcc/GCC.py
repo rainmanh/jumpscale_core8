@@ -74,7 +74,7 @@ class GCC_Mgmt():
         node object that represent the host machines
         """
         if self._docker_nodes == []:
-            if j.core.db.get("gcc.host_nodes") == None:
+            if j.core.db.get("gcc.host_nodes") is None:
                 self.init()
             nodes = j.core.db.get("gcc.host_nodes").decode()
             self._host_nodes = self._parseNode(nodes)
@@ -87,7 +87,7 @@ class GCC_Mgmt():
         the acutal apps are installed
         """
         if self._docker_nodes == []:
-            if j.core.db.get("gcc.docker_nodes") == None:
+            if j.core.db.get("gcc.docker_nodes") is None:
                 self.init()
             nodes = j.core.db.get("gcc.docker_nodes").decode()
             self._docker_nodes = self._parseNode(nodes)
@@ -165,7 +165,7 @@ class GCC_Mgmt():
     def healthcheck(self):
         """
         """
-        #TODO: *3 implement some healthchecks done over agentcontrollers
+        # TODO: *3 implement some healthchecks done over agentcontrollers
         #- check diskpace
         #- check cpu
         #- check that 3 are there
@@ -214,4 +214,4 @@ class GCC_aydostor():
 
     def ns_addHost(addr, dnsinfo):  # to be further defined
         pass
-        #TODO: use https over caddy to speak to etcd to configure skydns
+        # TODO: use https over caddy to speak to etcd to configure skydns

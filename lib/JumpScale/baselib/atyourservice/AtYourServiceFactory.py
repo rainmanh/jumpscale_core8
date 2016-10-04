@@ -105,7 +105,7 @@ class AtYourServiceFactory:
                 self._repos[path] = AtYourServiceRepo(name, path)
             elif len(result) > 1:
                 msg = "Multiple AYS repos with name %s found under locations [%s]. Please use j.atyourservice.get(path=<path>) instead" % \
-                        (name, ','.join([repo.basepath for repo in result]))
+                    (name, ','.join([repo.basepath for repo in result]))
                 raise j.exceptions.RuntimeError(msg)
             else:
                 path = result[0].basepath
@@ -121,7 +121,6 @@ class AtYourServiceFactory:
         self._templates = {}
         j.dirs._ays = None
         self._init = False
-
 
     @property
     def sandboxer(self):
@@ -207,7 +206,8 @@ class AtYourServiceFactory:
                 branch = items[domain].get('branch', 'master')
                 reponame = url.rpartition("/")[-1]
                 if reponame not in list(repos.keys()):
-                    dest = j.do.pullGitRepo(url, dest=None, depth=1, ignorelocalchanges=False, reset=False, branch=branch)
+                    dest = j.do.pullGitRepo(url, dest=None, depth=1, ignorelocalchanges=False,
+                                            reset=False, branch=branch)
 
                 repos = j.do.getGitReposListLocal()
 
@@ -222,7 +222,8 @@ class AtYourServiceFactory:
         j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'servicetemplates'))
         j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'blueprints'))
         j.tools.cuisine.local.core.run('git init')
-        j.sal.nettools.download('https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
+        j.sal.nettools.download(
+            'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
         name = j.sal.fs.getBaseName(path)
         self._repos[path] = AtYourServiceRepo(name, path)
         print("AYS Repo created at %s" % path)
@@ -275,13 +276,13 @@ class AtYourServiceFactory:
         return res
 
     def findAYSRepos(self, path=""):
-        #default do NOT run over all code repo's
-        if path=="":
-            path=j.sal.fs.getcwd()
-        res= (root for root, dirs, files in os.walk(path) if '.ays' in files)
-        res=[str(item) for item in res]
-        if len(res)==0:
-            raise j.exceptions.Input("Cannot find AYS repo in:%s, need to find a .ays file in root of ays repo."%path)
+        # default do NOT run over all code repo's
+        if path == "":
+            path = j.sal.fs.getcwd()
+        res = (root for root, dirs, files in os.walk(path) if '.ays' in files)
+        res = [str(item) for item in res]
+        if len(res) == 0:
+            raise j.exceptions.Input("Cannot find AYS repo in:%s, need to find a .ays file in root of ays repo." % path)
         return res
 
     def getService(self, key, die=True):
@@ -290,7 +291,8 @@ class AtYourServiceFactory:
         repo_path, role, instance = key.split("!", 2)
         if not self.exist(path=repo_path):
             if die:
-                raise j.exceptions.Input("service repo %s does not exist, could not retrieve ays service:%s" % (reponame, key))
+                raise j.exceptions.Input(
+                    "service repo %s does not exist, could not retrieve ays service:%s" % (reponame, key))
             else:
                 return None
         repo = self.get(path=repo_path)

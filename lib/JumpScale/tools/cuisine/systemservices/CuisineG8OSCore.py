@@ -18,10 +18,9 @@ class CuisineG8OSCore(app):
         """
         # deps
         self._cuisine.development.js8.installDeps()
-        self._cuisine.apps.redis.install()
+        self._cuisine.apps.redis.install(reset=True)
         self._cuisine.apps.redis.start()
         self._cuisine.apps.mongodb.build(start=False)
-        # self._cuisine.installer.jumpscale8()
 
         self._cuisine.apps.syncthing.build(start=False)
 
@@ -34,34 +33,37 @@ class CuisineG8OSCore(app):
 
         url = "github.com/g8os/core"
         self._cuisine.development.golang.godep(url)
-
-
         self._cuisine.core.run("cd $goDir/src/github.com/g8os/core && go build .", profile=True)
 
         if install:
             self.install(start, gid, nid)
-
 
     def install(self, start=True, gid=None, nid=None):
         """
         download, install, move files to appropriate places, and create relavent configs
         """
         sourcepath = "$goDir/src/github.com/g8os/core"
-        self._cuisine.core.file_move("%s/core" % sourcepath, "$binDir/core")
+        if not self._cuisine.core.file_exists('$binDir/core'):
+            self._cuisine.core.file_move("%s/core" % sourcepath, "$binDir/core")
 
         # copy extensions
         self._cuisine.core.dir_remove("$tmplsDir/cfg/core/extensions")
         self._cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
         self._cuisine.core.file_copy("%s/g8os.toml" % sourcepath, "$tmplsDir/cfg/core")
         self._cuisine.core.dir_ensure("$tmplsDir/cfg/core/conf/")
-        self._cuisine.core.file_copy("{0}basic.jumpscripts.toml {0}basic.syncthing.toml".format(sourcepath+"/conf/"), "$tmplsDir/cfg/core/conf/", recursive=True)
+        config_source = '{0}basic.jumpscripts.toml {0}basic.syncthing.toml'.format(sourcepath + "/conf/")
+        config_destination = '$tmplsDir/cfg/core/conf/'
+        self._cuisine.core.file_copy(config_source, config_destination, recursive=True)
         if self._cuisine.core.isArch:
-            self._cuisine.core.file_copy("{0}sshd-arch.toml".format(sourcepath+"/conf.extra/"), "$tmplsDir/cfg/core/conf/", recursive=True)
+            arch_config_src = '{0}sshd-arch.toml'.format(sourcepath + '/conf.extra/')
+            arch_config_dest = '$tmplsDir/cfg/core/conf/'
+            self._cuisine.core.file_copy(arch_config_src, arch_config_dest, recursive=True)
         if self._cuisine.core.isUbuntu:
-            self._cuisine.core.file_copy("{0}sshd-ubuntu.toml".format(sourcepath+"/conf.extra/"), "$tmplsDir/cfg/core/conf/", recursive=True)
+            ubuntu_config_src = '{0}sshd-ubuntu.toml'.format(sourcepath + '/conf.extra/')
+            ubuntu_config_dest = '$tmplsDir/cfg/core/conf/'
+            self._cuisine.core.file_copy(ubuntu_config_src, ubuntu_config_dest, recursive=True)
         self._cuisine.core.dir_ensure("$tmplsDir/cfg/core/extensions/syncthing")
         self._cuisine.core.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/", recursive=True)
-
 
         if start:
             self.start(nid, gid)
@@ -78,24 +80,32 @@ class CuisineG8OSCore(app):
         if not gid:
             gid = 1
 
-        self._cuisine.core.dir_ensure("$cfgDir/core/")
-        self._cuisine.core.file_copy(
-            "$tmplsDir/cfg/core", "$cfgDir/", recursive=True)
+        self._cuisine.core.dir_ensure('$cfgDir/core/')
+        self._cuisine.core.file_copy('$tmplsDir/cfg/core', '$cfgDir/', recursive=True)
 
         # manipulate config file
-        sourcepath = "$tmplsDir/cfg/core"
+        sourcepath = '$tmplsDir/cfg/core'
         C = self._cuisine.core.file_read("%s/g8os.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
+        # Ubuntu: /optvar/cfg
         cfgdir = self._cuisine.core.dir_paths['cfgDir']
         cfg["main"]["message_ID_file"] = self._cuisine.core.joinpaths(cfgdir, "/core/.mid")
         cfg["main"]["include"] = self._cuisine.core.joinpaths(cfgdir, "/core/conf")
         cfg["main"].pop("network")
         cfg["controllers"] = {"main": {"url": controller_url}}
-        cfg["extension"]["sync"]["cwd"] = self._cuisine.core.joinpaths(cfgdir, "/core/extensions")
-        cfg["extension"]["jumpscript"]["cwd"] = self._cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")
-        cfg["extension"]["jumpscript_content"]["cwd"] = self._cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")
-        cfg["extension"]["js_daemon"]["cwd"] = self._cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")
-        cfg["extension"]["js_daemon"]["env"]["JUMPSCRIPTS_HOME"] = self._cuisine.core.joinpaths(cfgdir, "/core/jumpscripts/")
+        extension = cfg["extension"]
+        syncthing = extension['syncthing']
+        syncthing['binary'] = '/optvar/cfg/core/extensions/syncthing/syncthing'
+        syncthing['cwd'] = '/optvar/cfg/core/extensions'
+        syncthing['env']['HOME'] = '/optvar/cfg/core/extensions/syncthing'
+
+        extension["sync"]["cwd"] = self._cuisine.core.joinpaths(cfgdir, "/core/extensions/sync")
+        # Ubuntu: /optvar/cfg/core/extensions/jumpscript
+        jumpscript_path = self._cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")
+        extension["jumpscript"]["cwd"] = jumpscript_path
+        extension["jumpscript_content"]["cwd"] = jumpscript_path
+        extension["js_daemon"]["cwd"] = jumpscript_path
+        extension["js_daemon"]["env"]["JUMPSCRIPTS_HOME"] = self._cuisine.core.joinpaths(cfgdir, "/core/jumpscripts/")
         cfg["logging"]["db"]["address"] = self._cuisine.core.joinpaths(cfgdir, "/core/logs")
         C = j.data.serializer.toml.dumps(cfg)
 
@@ -109,5 +119,5 @@ class CuisineG8OSCore(app):
         env["TMPDIR"] = self._cuisine.core.dir_paths["tmpDir"]
         cmd = "$binDir/core -nid %s -gid %s -c $cfgDir/core/g8os.toml" % (
             nid, gid)
-        pm = self._cuisine.processmanager.get("tmux")
+        pm = self._cuisine.processmanager.get('tmux')
         pm.ensure("core", cmd=cmd, path="$cfgDir/core", env=env)

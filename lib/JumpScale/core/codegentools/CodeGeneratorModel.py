@@ -173,7 +173,7 @@ return self._P_{name}[-1]\n
             rtype, spec = j.core.specparser.getSpecFromTypeStr(
                 self.spec.appname, self.spec.actorname, prop.type)
             # print str(rtype)+" : "+str(spec)
-            if rtype != None and rtype != "object" and rtype != "enum":
+            if rtype is not None and rtype != "object" and rtype != "enum":
                 if spec not in ["int", "bool", "float", "str"]:
                     self.addNewObjectMethod(prop.name, rtype, spec)
 

@@ -14,7 +14,7 @@ class NodeBase(MonitorTools):
         - host
 
         """
-        if j.tools.perftesttools.monitorNodeIp == None:
+        if j.tools.perftesttools.monitorNodeIp is None:
             raise j.exceptions.RuntimeError("please do j.tools.perftesttools.init() before calling this")
 
         self.influx_host = j.tools.perftesttools.monitorNodeIp
@@ -70,7 +70,7 @@ class NodeBase(MonitorTools):
         disks = [str(disk) for disk in disks]
         self.prepareTmux("mon%s" % self.role, ["monitor"])
         env = {}
-        if j.tools.perftesttools.monitorNodeIp == None:
+        if j.tools.perftesttools.monitorNodeIp is None:
             raise j.exceptions.RuntimeError("please do j.tools.perftesttools.init() before calling this")
         env["redishost"] = self.redis_host
         env["redisport"] = self.redis_port

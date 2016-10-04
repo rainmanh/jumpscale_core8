@@ -18,7 +18,8 @@ class FtpFS:
     is_dir = False
     recursive = False
 
-    def __init__(self, end_type, server, path, username, password, is_dir=False, recursive=False, tempdir=j.dirs.tmpDir, Atype='copy'):
+    def __init__(self, end_type, server, path, username, password, is_dir=False,
+                 recursive=False, tempdir=j.dirs.tmpDir, Atype='copy'):
         """
         Initialize connection
         """
@@ -43,7 +44,7 @@ class FtpFS:
         self.is_dir = is_dir
         self.recursive = recursive
 
-        if is_dir == False:
+        if is_dir is False:
             self.logger.info("FtpFS: copying filename [%s] path [%s]" % (
                 self.filename, self.path))
         else:
@@ -59,7 +60,7 @@ class FtpFS:
             # self.ftp.set_debuglevel(2)
             self.ftp.connect()
             self.ftp.set_pasv(True)
-            if self.username != None and self.password != None:
+            if self.username is not None and self.password is not None:
                 self.ftp.login(self.username, self.password)
             else:
                 self.ftp.login()

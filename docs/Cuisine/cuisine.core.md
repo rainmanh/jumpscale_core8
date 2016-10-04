@@ -4,9 +4,14 @@ The `cuisine.core` module handles basic file system operations and command execu
 
 Examples for methods in `core`:
 
+- **cd**: cd to the given path
 - **command_check**: tests if the given command is available on the system
-- **Command_ensure**: ensures that the given command is present, if not installs the package with the given name, which is the same as the command by default
+- **command_ensure**: ensures that the given command is present, if not installs the package with the given name, which is the same as the command by default
+- **command_location**: return location of cmd
 - **createDir**: to create a directory
+- **dir_attribs**: Updates the mode / owner / group for the given remote directory.
+- **dir_ensure**: Ensures that there is a remote directory at the given location, optionally updating its mode / owner / group.
+- **dir_exists**: Tells if there is a remote directory at the given location.
 - **execute_python**: execute a Python script (script as content) in a remote tmux command, the stdout will be returned
 - **execute_jumpscript**: execute a JumpScript (script as content) in a remote tmux command, the stdout will be returned
 - **file_append**: appends the given content to the remote file at the given location

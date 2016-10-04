@@ -18,13 +18,13 @@ class StatManager:
         self.fiveMinuteId = None
 
     def getFiveMinuteId(self):
-        if self.fiveMinuteId != None:
+        if self.fiveMinuteId is not None:
             return self.fiveMinuteId
         else:
             return j.data.time.get5MinuteId()
 
     def getHourId(self):
-        if self.hourId != None:
+        if self.hourId is not None:
             return self.hourId
         else:
             return self.base.time.getHourId()
@@ -105,7 +105,7 @@ class StatManager:
         self.historyObjsMod[key] = False
 
     def _serialize(self, key, obj):
-        #TODO: needs to be implemented, go to dense binary format (use struct)
+        # TODO: needs to be implemented, go to dense binary format (use struct)
         return obj
 
     def _deserialize(self, data):
@@ -116,7 +116,7 @@ class StatManager:
         ttime = self.getEpoch()
         try:
             for key in list(self.historyObjs.keys()):
-                if self.historyObjsMod[key] == False and ttime > (self.historyObjsLastSave[key] + 600):
+                if self.historyObjsMod[key] is False and ttime > (self.historyObjsLastSave[key] + 600):
                     self.historyObjs.pop(key)
                     self.historyObjsLastSave.pop(key)
                     self.historyObjsMod.pop(key)
@@ -127,7 +127,7 @@ class StatManager:
             pass
 
     def getEpoch(self):
-        if self.now != None:
+        if self.now is not None:
             return self.now
         else:
             return j.data.time.getTimeEpoch()
@@ -157,7 +157,7 @@ class StatManager:
         return j.data.time.get5MinuteId(epoch)
 
     def addInfoLine2HistoryObj(self, id, value, epoch=None):
-        if epoch == None:
+        if epoch is None:
             epoch = self.getEpoch()
         obj = self.getHistoryObject(id)
         key = j.data.time.get5MinuteId(epoch)
@@ -195,7 +195,7 @@ class StatManager:
         """
         can be multi line
         param:info dotnotation of info e.g. 'water.white.level.sb 10'  (as used in graphite)
-        result bool         
+        result bool
         """
         now = self.getEpoch()
         for line in info.split("\n"):
@@ -246,10 +246,10 @@ class StatManager:
         param:start epoch
         param:stop epoch
         param:maxvalues nr of values you want to return
-        result list(list) 
+        result list(list)
 
         """
-        if id == None:
+        if id is None:
             id = ""
         if id.find(",") != -1:
             ids = id.split(",")
@@ -317,7 +317,7 @@ class StatManager:
         param:id id in dot noation e.g. 'water.white.level.sb'
         param:start epoch
         param:stop epoch
-        result dict() 
+        result dict()
 
         """
         pass
@@ -357,7 +357,7 @@ class StatManager:
         param:id id in dot noation e.g. 'water.white.level.sb' (can be multiple use comma as separation)
         param:start epoch; 0 means all
         param:stop epoch; 0 means all
-        result list(list) 
+        result list(list)
 
         """
         pass

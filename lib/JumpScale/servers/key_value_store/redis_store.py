@@ -13,7 +13,8 @@ def chunks(l, n):
 class RedisKeyValueStore(KeyValueStoreBase):
     osis = dict()
 
-    def __init__(self, namespace="", host='localhost', port=6379, db=0, password='', serializers=[], masterdb=None, changelog=True):
+    def __init__(self, namespace="", host='localhost', port=6379, db=0,
+                 password='', serializers=[], masterdb=None, changelog=True):
 
         self.redisclient = j.clients.redis.get(host, port, password=password)
         self.redisclient.port = port
@@ -27,7 +28,7 @@ class RedisKeyValueStore(KeyValueStoreBase):
 
         self.lastchangeIdKey = "changelog:lastid"
         self.nodelastchangeIdkey = "changelog:%s:lastid" % j.application.whoAmI.gid
-        if self.redisclient.get(self.nodelastchangeIdkey) == None:
+        if self.redisclient.get(self.nodelastchangeIdkey) is None:
             self.writedb.redisclient.set(self.nodelastchangeIdkey, 0)
         self.lastchangeId = int(self.redisclient.get(self.nodelastchangeIdkey) or 0)
 
@@ -47,7 +48,7 @@ class RedisKeyValueStore(KeyValueStoreBase):
         @param reset, will just ignore the changelog
         @param delete, means even delete the changelog on master
         """
-        if self.redisclient.get("changelog:lastid") == None:
+        if self.redisclient.get("changelog:lastid") is None:
             return
         lastid = int(self.redisclient.get("changelog:lastid"))
         result = []

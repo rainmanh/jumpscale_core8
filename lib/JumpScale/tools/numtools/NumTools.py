@@ -57,17 +57,17 @@ class NumTools:
         allNone = True
 
         for x2 in tointerpolate:
-            if x2 != None:
+            if x2 is not None:
                 allNone = False
         if allNone:
             tointerpolate = [0.0 for item in tointerpolate]
 
         for xpos in range(len(tointerpolate)):
-            if not tointerpolate[xpos] == None and not j.data.types.int.check(tointerpolate[xpos]):
+            if not tointerpolate[xpos] is None and not j.data.types.int.check(tointerpolate[xpos]):
                 isint = False
-            if tointerpolate[xpos] == None:
+            if tointerpolate[xpos] is None:
                 x.append(xpos)
-            if tointerpolate[xpos] != None:
+            if tointerpolate[xpos] is not None:
                 xp.append(xpos)
                 fp.append(tointerpolate[xpos])
         if len(x) > 0 and len(xp) > 0:
@@ -85,7 +85,7 @@ class NumTools:
             if isint:
                 result3 = [int(round(item, 0)) for item in result3]
             else:
-                if floatnr != None:
+                if floatnr is not None:
                     result3 = [round(float(item), floatnr) for item in result3]
                 else:
                     result3 = [float(item) for item in result3]
@@ -145,12 +145,12 @@ class NumTools:
 
     def text2val(self, value):
         """
-        value can be 10%,0.1,100,1m,1k  m=million 
+        value can be 10%,0.1,100,1m,1k  m=million
         USD/EUR/CH/EGP/GBP are also understood
         all gets translated to eur
         e.g.: 10%
         e.g.: 10EUR or 10 EUR (spaces are stripped)
-        e.g.: 0.1mEUR or 0.1m EUR or 100k EUR or 100000 EUR        
+        e.g.: 0.1mEUR or 0.1m EUR or 100k EUR or 100000 EUR
         """
         if not j.data.types.string(value):
             raise j.exceptions.RuntimeError("value needs to be string in text2val, here: %s" % value)

@@ -16,7 +16,7 @@ class NodeMonitor(NodeBase):
     def startInfluxPump(self):
         env = {}
 
-        if j.tools.perftesttools.monitorNodeIp == None:
+        if j.tools.perftesttools.monitorNodeIp is None:
             raise j.exceptions.RuntimeError("please do j.tools.perftesttools.init() before calling this")
 
         if self.influx_host is None:
@@ -40,14 +40,16 @@ class NodeMonitor(NodeBase):
         self.executeInScreen("influxpump", "js 'j.tools.perftesttools.influxpump()'", env=env, session="mgmt")
 
     def getTotalIOPS(self):
-        return (self.getStatObject(key="iops")["val"], self.getStatObject(key="iops_r")["val"], self.getStatObject(key="iops_w")["val"])
+        return (self.getStatObject(key="iops")["val"], self.getStatObject(
+            key="iops_r")["val"], self.getStatObject(key="iops_w")["val"])
 
     def getTotalThroughput(self):
-        return (self.getStatObject(key="kbsec")["val"], self.getStatObject(key="kbsec_r")["val"], self.getStatObject(key="kbsec_w")["val"])
+        return (self.getStatObject(key="kbsec")["val"], self.getStatObject(
+            key="kbsec_r")["val"], self.getStatObject(key="kbsec_w")["val"])
 
     def getStatObject(self, node="total", key="writeiops"):
         data = self.redis.hget("stats:%s" % node, key)
-        if data == None:
+        if data is None:
             return {"val": None}
         data = j.data.serializer.json.loads(data)
         return data

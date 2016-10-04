@@ -44,7 +44,7 @@ class ApiRos:
         if self.writeSentence(words) == 0:
             return
         r = []
-        while 1:
+        while True:
             i = self.readSentence()
             if len(i) == 0:
                 continue
@@ -70,7 +70,7 @@ class ApiRos:
 
     def readSentence(self):
         r = []
-        while 1:
+        while True:
             w = self.readWord()
             if w == '':
                 return r
@@ -330,7 +330,7 @@ class RouterOS:
         self.download(path, j.sal.fs.joinPaths(destinationdir, path))
 
     def download(self, path, dest):
-        if self.ftp == None:
+        if self.ftp is None:
             self._getFtp()
         self.ftp.retrbinary('RETR %s' % path, open(dest, 'wb').write)
 
@@ -441,7 +441,7 @@ class RouterOS:
                 break
             nr += 1
 
-        if interface == None:
+        if interface is None:
             raise j.exceptions.RuntimeError("Could not find interface %s" % interface)
 
         self.do("/interface/ethernet/reset-mac-address", args={"numbers": str(nr)})

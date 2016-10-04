@@ -1,5 +1,5 @@
 __author__ = 'delandtj'
-
+from JumpScale import j
 import os
 import os.path
 import subprocess
@@ -80,22 +80,44 @@ def ip_link_set(device, args):
     doexec(cmd.split())
 
 
+def limit_interface_rate(limit, interface, burst):
+    cmd = "%s set interface %s ingress_policing_rate=%s"
+    r, s, e = doexec(cmd.split())
+    if r:
+        raise j.exception.RuntimeError(
+            "Problem with setting rate on interface: %s , problem was : %s " % (interface, e))
+    cmd = "%s set interface %s ingress_policing_burst=%s"
+    r, s, e = doexec(cmd.split())
+    if r:
+        raise j.exception.RuntimeError(
+            "Problem with setting burst on interface: %s , problem was : %s " % (interface, e))
+
+
 def createBridge(name):
     cmd = '%s --may-exist add-br %s' % (vsctl, name)
     r, s, e = doexec(cmd.split())
     if r:
         raise j.exceptions.RuntimeError("Problem with creation of bridge %s, err was: %s" % (name, e))
     if name == "public":
-        cmd = '%s set Bridge %s stp_enable=true' % (vsctl,name)
+        cmd = '%s set Bridge %s stp_enable=true' % (vsctl, name)
         r, s, e = doexec(cmd.split())
         if r:
             raise j.exceptions.RuntimeError("Problem setting STP on bridge %s, err was: %s" % (name, e))
+
 
 def destroyBridge(name):
     cmd = '%s --if-exists del-br %s' % (vsctl, name)
     r, s, e = doexec(cmd.split())
     if r:
         raise j.exceptions.RuntimeError("Problem with destruction of bridge %s, err was: %s" % (name, e))
+
+
+def listBridgePorts(name):
+    cmd = '%s list-ports %s' % (vsctl, name)
+    r, s, e = doexec(cmd.split())
+    if r:
+        raise j.exception.RuntimeError("Problem with listing of bridge %s's ports , err was: %s " % (name, e))
+    return s.read()
 
 
 def VlanPatch(parentbridge, vlanbridge, vlanid):
@@ -208,7 +230,7 @@ def addIPv4(interface, ipobj, namespace=None):
     ipv4addr = ipobj.ip
     # if ip existst on interface, we assume all ok
 
-    if namespace != None:
+    if namespace is not None:
         cmd = '%s netns exec %s ip addr add %s/%s dev %s' % (ip, namespace, ipv4addr, netmask, interface)
     else:
         cmd = '%s addr add %s/%s dev %s' % (ip, ipv4addr, netmask, interface)
@@ -223,7 +245,7 @@ def addIPv6(interface, ipobj, namespace=None):
     ipv6addr = ipobj.ip
     # if ip existst on interface, we assume all ok
 
-    if namespace != None and namespace in allnamespaces:
+    if namespace is not None and namespace in allnamespaces:
         cmd = '%s netns exec %s ip addr add %s/%s dev %s' % (ip, namespace, ipv6addr, netmask, interface)
     else:
         cmd = '%s addr add %s/%s dev %s' % (ip, ipv6addr, netmask, interface)
@@ -233,13 +255,22 @@ def addIPv6(interface, ipobj, namespace=None):
     return r, e
 
 
-def connectIfToBridge(bridge, interface):
-    cmd = '%s --if-exists del-port %s %s' % (vsctl, bridge, interface)
-    r, s, e = doexec(cmd.split())
-    cmd = '%s --may-exist add-port %s %s' % (vsctl, bridge, interface)
-    r, s, e = doexec(cmd.split())
-    if r:
-        raise j.exceptions.RuntimeError('Error adding port %s to bridge %s' % (interface, bridge))
+def connectIfToBridge(bridge, interfaces):
+    for interface in interfaces:
+        cmd = '%s --if-exists del-port %s %s' % (vsctl, bridge, interface)
+        r, s, e = doexec(cmd.split())
+        cmd = '%s --may-exist add-port %s %s' % (vsctl, bridge, interface)
+        r, s, e = doexec(cmd.split())
+        if r:
+            raise j.exceptions.RuntimeError('Error adding port %s to bridge %s' % (interface, bridge))
+
+
+def removeIfFromBridge(bridge, interfaces):
+    for interface in interfaces:
+        cmd = '%s --if-exists del-port %s %s' % (vsctl, bridge, interface)
+        r, s, e = doexec(cmd.split())
+        if r:
+            raise j.exceptions.RuntimeError('Error adding port %s to bridge %s' % (interface, bridge))
 
 
 def connectIfToNameSpace(nsname, interface):
@@ -277,7 +308,7 @@ def addBond(bridge, bondname, iflist, lacp="active", lacp_time="fast", mode="bal
     """
 
     intf = re.split('\W+', iflist)
-    if type(trunks) is str:
+    if isinstance(trunks, str):
         tr = re.split('\W+', trunks)
     buildup = "add-bond %s %s " % (bridge, bondname) + " ".join(e for e in list(set(intf))) + " lacp=%s " % lacp
     buildup = buildup + " -- set Port %s bond_mode=%s bond_fake_iface=false " % (bondname, mode)

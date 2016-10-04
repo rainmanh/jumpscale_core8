@@ -12,18 +12,33 @@ class DNSMasq:
         self._configdir = ""
 
     def install(self, start=True):
-        self._cuisine.systemd.remove("dnsmasq")
+        """
+        Install Dnsmasq.
+
+        @param start=True: start dnsmasq
+        """
+        self._cuisine.processmanager.remove("dnsmasq")
         self._cuisine.process.kill("dnsmasq")
         self._cuisine.package.install("dnsmasq")
-        self.config()
+        if not self._cuisine.core.file_exists("/etc/dnsmasq.conf"):
+            self.config()
         if start:
             cmd = self._cuisine.bash.cmdGetPath("dnsmasq")
-            self._cuisine.systemd.ensure("dnsmasq", cmd)
+            self._cuisine.processmanager.ensure("dnsmasq", "%s -d"%(cmd,))
 
     def restart(self):
-        self._cuisine.systemd.restart("dnsmasq")
+        """
+        Restarts Dnsmasq.
+
+        """
+        self._cuisine.processmanager.restart("dnsmasq")
 
     def setConfigPath(self, config_path=None):
+        """
+        Set configuration files path.
+
+        @param config_path string: configuration file path.
+        """
         if not config_path:
             self._configdir = j.tools.path.get('/etc').joinpath('dnsmasq')
         else:
@@ -41,6 +56,14 @@ class DNSMasq:
             filepath.touch()
 
     def addHost(self, macaddress, ipaddress, name=None):
+        """
+        Add a host.
+
+        @param macaddress string: macaddress
+        @param ip string: ip
+        @param name string: name
+
+        """
         if not self._configured:
             raise Exception(
                 'Please run first setConfigPath to select the correct paths')
@@ -75,7 +98,7 @@ class DNSMasq:
 
         C = """
 
-        # Listen on this specific port instead of the standard DNS port (53). 
+        # Listen on this specific port instead of the standard DNS port (53).
         # Setting this to zero completely disables DNS function,
         #port=5353
 
@@ -90,8 +113,8 @@ class DNSMasq:
 
         # Replies which are not DNSSEC signed may be legitimate, because the domain
         # is unsigned, or may be forgeries. Setting this option tells dnsmasq to
-        # check that an unsigned reply is OK, by finding a secure proof that a DS 
-        # record somewhere between the root and the domain does not exist. 
+        # check that an unsigned reply is OK, by finding a secure proof that a DS
+        # record somewhere between the root and the domain does not exist.
         # The cost of setting this is that even queries in unsigned domains will need
         # one or more extra DNS queries to verify.
         #dnssec-check-unsigned
@@ -186,7 +209,7 @@ class DNSMasq:
         # want dnsmasq to really bind only the interfaces it is listening on,
         # uncomment this option. About the only time you may need this is when
         # running another nameserver on the same machine.
-        #bind-interfaces
+        bind-interfaces
 
         # If you don't want dnsmasq to read /etc/hosts, uncomment the
         # following line.
@@ -249,11 +272,11 @@ class DNSMasq:
         #dhcp-range=1234::2, 1234::500, 64, 12h
 
         # Do Router Advertisements, BUT NOT DHCP for this subnet.
-        #dhcp-range=1234::, ra-only 
+        #dhcp-range=1234::, ra-only
 
         # Do Router Advertisements, BUT NOT DHCP for this subnet, also try and
-        # add names to the DNS for the IPv6 address of SLAAC-configured dual-stack 
-        # hosts. Use the DHCPv4 lease to derive the name, network segment and 
+        # add names to the DNS for the IPv6 address of SLAAC-configured dual-stack
+        # hosts. Use the DHCPv4 lease to derive the name, network segment and
         # MAC address and assume that the host will also have an
         # IPv6 address calculated using the SLAAC alogrithm.
         #dhcp-range=1234::, ra-names
@@ -276,9 +299,9 @@ class DNSMasq:
         #dhcp-range=1234::, ra-stateless, ra-names
 
         # Do router advertisements for all subnets where we're doing DHCPv6
-        # Unless overriden by ra-stateless, ra-names, et al, the router 
+        # Unless overriden by ra-stateless, ra-names, et al, the router
         # advertisements will have the M and O bits set, so that the clients
-        # get addresses and configuration from DHCPv6, and the A bit reset, so the 
+        # get addresses and configuration from DHCPv6, and the A bit reset, so the
         # clients don't use SLAAC addresses.
         #enable-ra
 
@@ -351,11 +374,11 @@ class DNSMasq:
         # any machine with Ethernet address starting 11:22:33:
         #dhcp-host=11:22:33:*:*:*,set:red
 
-        # Give a fixed IPv6 address and name to client with 
+        # Give a fixed IPv6 address and name to client with
         # DUID 00:01:00:01:16:d2:83:fc:92:d4:19:e2:d8:b2
         # Note the MAC addresses CANNOT be used to identify DHCPv6 clients.
         # Note also the they [] around the IPv6 address are obilgatory.
-        #dhcp-host=id:00:01:00:01:16:d2:83:fc:92:d4:19:e2:d8:b2, fred, [1234::5] 
+        #dhcp-host=id:00:01:00:01:16:d2:83:fc:92:d4:19:e2:d8:b2, fred, [1234::5]
 
         # Ignore any clients which are not specified in dhcp-host lines
         # or /etc/ethers. Equivalent to ISC "deny unknown-clients".
@@ -405,13 +428,15 @@ class DNSMasq:
         # for all other option numbers.
         #dhcp-option=3
 
+        dhcp-option=6,8.8.8.8
+
         # Set the NTP time server addresses to 192.168.0.4 and 10.10.0.5
         #dhcp-option=option:ntp-server,192.168.0.4,10.10.0.5
 
         # Send DHCPv6 option. Note [] around IPv6 addresses.
         #dhcp-option=option6:dns-server,[1234::77],[1234::88]
 
-        # Send DHCPv6 option for namservers as the machine running 
+        # Send DHCPv6 option for namservers as the machine running
         # dnsmasq and another.
         #dhcp-option=option6:dns-server,[::],[1234::88]
 

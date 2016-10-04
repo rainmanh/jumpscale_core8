@@ -869,7 +869,7 @@ class ProxyInfo:
                 self.proxy_user, self.proxy_pass)
 
     def isgood(self):
-        return (self.proxy_host != None) and (self.proxy_port != None)
+        return (self.proxy_host is not None) and (self.proxy_port is not None)
 
 
 class HTTPConnectionWithTimeout(http.client.HTTPConnection):
@@ -1360,7 +1360,7 @@ and more.
                         location = response['location']
                         (scheme, authority, path, query,
                          fragment) = parse_uri(location)
-                        if authority == None:
+                        if authority is None:
                             response['location'] = urllib.urljoin(
                                 absolute_uri, location)
                     if response.status == 301 and method in ["GET", "HEAD"]:
@@ -1405,7 +1405,8 @@ and more.
 # Then need to optionally turn all exceptions into status codes
 # including all socket.* and httplib.* exceptions.
 
-    def request(self, uri, method="GET", body=None, headers=None, redirections=DEFAULT_MAX_REDIRECTS, connection_type=None):
+    def request(self, uri, method="GET", body=None, headers=None,
+                redirections=DEFAULT_MAX_REDIRECTS, connection_type=None):
         """ Performs a single HTTP request.
 The 'uri' is the URI of the HTTP resource and can begin
 with either 'http' or 'https'. The value of 'uri' must be an absolute URI.

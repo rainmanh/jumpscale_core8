@@ -26,6 +26,7 @@ def restart_program():
 
 
 class Worker(object):
+
     def __init__(self, opts):
         self.opts = opts
         self.log = j.logger.get('Worker')
@@ -45,7 +46,7 @@ class Worker(object):
                 client = j.legacy.agentcontroller.get(ipaddr, login='node')
                 self.clients[ipaddr] = client
             else:
-                if self.acclient == None:
+                if self.acclient is None:
                     self.acclient = j.legacy.agentcontroller.get(opts.ip, port=opts.port, login='node')
                 return self.acclient
         return client
@@ -106,7 +107,7 @@ class Worker(object):
                                     jscript = self.redisw.getJumpscriptFromId(job.jscriptid)
                                 if jscript is None:
                                     msg = "cannot find jumpscripts with id:%s cat:%s cmd:%s" % (
-                                    job.jscriptid, job.category, job.cmd)
+                                        job.jscriptid, job.category, job.cmd)
                                     self.log.error(msg)
                                     eco = j.errorconditionhandler.raiseOperationalCritical(msg,
                                                                                            category="worker.jscript.notfound",
@@ -121,12 +122,12 @@ class Worker(object):
 
                         except Exception as e:
                             agentid = j.application.getAgentId()
-                            if jscript != None:
+                            if jscript is not None:
                                 msg = "could not compile jscript:%s %s_%s on agent:%s.\nError:%s" % (
-                                jscript.id, jscript.organization, jscript.name, agentid, e)
+                                    jscript.id, jscript.organization, jscript.name, agentid, e)
                             else:
                                 msg = "could not compile jscriptid:%s on agent:%s.\nError:%s" % (
-                                job.jscriptid, agentid, e)
+                                    job.jscriptid, agentid, e)
                             eco = j.errorconditionhandler.parsePythonErrorObject(e)
                             eco.errormessage = msg
                             if jscript:
@@ -144,7 +145,8 @@ class Worker(object):
 
                         self.actions[job.jscriptid] = jscript
 
-                    self.log.info("Job started:%s script:%s %s/%s" % (job.id, jscript.id, jscript.organization, jscript.name))
+                    self.log.info("Job started:%s script:%s %s/%s" %
+                                  (job.id, jscript.id, jscript.organization, jscript.name))
 
                     j.logger.enabled = job.log
 
@@ -163,7 +165,7 @@ class Worker(object):
                             eco = result
                             agentid = j.application.getAgentId()
                             msg = "Could not execute jscript:%s %s_%s on agent:%s\nError: %s" % (
-                            jscript.id, jscript.organization, jscript.name, agentid, eco.errormessage)
+                                jscript.id, jscript.organization, jscript.name, agentid, eco.errormessage)
                             eco.errormessage = msg
                             eco.jid = job.guid
                             eco.code = jscript.source
@@ -178,7 +180,7 @@ class Worker(object):
                             #         if line.find(check) != -1:
                             #             found = True
                             #             break
-                            #     if found == False:
+                            #     if found is False:
                             #         out += "%s\n" % line
                             #
                             # eco.backtrace = out

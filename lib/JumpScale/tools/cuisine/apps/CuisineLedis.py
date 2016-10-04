@@ -3,10 +3,12 @@ import os
 
 app = j.tools.cuisine._getBaseAppClass()
 
+
 class CuisineLedis(app):
     NAME = "ledis-server"
+
     def build(self, backend="leveldb", install=True, start=True, reset=False):
-        if reset == False and self.isInstalled():
+        if reset is False and self.isInstalled():
             return
 
         if self._cuisine.core.isUbuntu:
@@ -23,7 +25,7 @@ class CuisineLedis(app):
             """
             self._cuisine.development.golang.install()
             self._cuisine.development.git.pullRepo("https://github.com/siddontang/ledisdb",
-                                       dest="$goDir/src/github.com/siddontang/ledisdb")
+                                                   dest="$goDir/src/github.com/siddontang/ledisdb")
 
             # set the backend in the server config
             ledisdir = self._cuisine.core.args_replace("$goDir/src/github.com/siddontang/ledisdb")
@@ -62,7 +64,7 @@ class CuisineLedis(app):
         ledisdir = self._cuisine.core.args_replace("$goDir/src/github.com/siddontang/ledisdb")
 
         #rc, out, err = self._cuisine.core.run("cd {ledisdir} && source dev.sh && make install".format(ledisdir=ledisdir), profile=True)
-        self._cuisine.core.dir_ensure("$tmplsDir/cfg")  
+        self._cuisine.core.dir_ensure("$tmplsDir/cfg")
         self._cuisine.core.file_copy("/tmp/ledisconfig.toml", dest="$tmplsDir/cfg/ledisconfig.toml")
         self._cuisine.core.file_copy("{ledisdir}/bin/*".format(ledisdir=ledisdir), dest="$binDir")
         self._cuisine.core.file_copy("{ledisdir}/dev.sh".format(ledisdir=ledisdir), dest="$tmplsDir/ledisdev.sh")

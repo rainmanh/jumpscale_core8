@@ -1,5 +1,6 @@
 from JumpScale import j
 
+
 class GridFactory:
 
     def __init__(self):
@@ -19,7 +20,7 @@ class GridFactory:
     def _loadConfig(self, test=True):
         self.config = j.application.config
 
-        if self.config == None:
+        if self.config is None:
             raise RuntimeWarning(
                 "Grid/Broker is not configured please run configureBroker/configureNode first and restart jshell")
 

@@ -9,13 +9,14 @@ author = "kristof@incubaid.com"
 license = "bsd"
 version = "1.0"
 category = "info.gather.nic"
-period = 300 #always in sec
+period = 300  # always in sec
 timeout = period * 0.2
-enable=True
-async=True
-queue='process'
+enable = True
+async = True
+queue = 'process'
 roles = []
-log=False
+log = False
+
 
 def action():
     import psutil
@@ -27,20 +28,20 @@ def action():
         pattern = j.application.config.getStr('nic.pattern')
     for netitem in netinfo:
         name = netitem['name']
-        if pattern and j.codetools.regex.match(pattern,name) == False:
+        if pattern and j.codetools.regex.match(pattern, name) is False:
             continue
 
         ipaddr = netitem.get('ip', [])
 
         nic = ncl()
-        old = ncl.find({'name':name})
+        old = ncl.find({'name': name})
 
         results[name] = nic
-        nic.active=True
+        nic.active = True
         nic.gid = j.application.whoAmI.gid
         nic.nid = j.application.whoAmI.nid
-        nic.ipaddr=ipaddr
-        nic.mac=netitem['mac']
+        nic.ipaddr = ipaddr
+        nic.mac = netitem['mac']
         nic.name = name
 
         if old:
@@ -52,14 +53,13 @@ def action():
                     nic.save()
                     break
 
-
     nics = ncl.find({'nid': j.application.whoAmI.nid, 'gid': j.application.whoAmI.gid})
-    #find deleted nices
+    # find deleted nices
     for nic in nics:
         nic_obj = nic.to_dict()
         if nic_obj['active'] and nic_obj['name'] not in results:
-            #no longer active
-            print ("NO LONGER ACTIVE:%s" % nic_obj['name'])
+            # no longer active
+            print("NO LONGER ACTIVE:%s" % nic_obj['name'])
             nic_obj['active'] = False
             ncl.delete(nic)
 

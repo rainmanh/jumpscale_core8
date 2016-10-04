@@ -40,38 +40,38 @@ class CodeTools:
 
     @property
     def codemanager(self):
-        if self._codemanager == None:
+        if self._codemanager is None:
             from CodeManager import CodeManager
             self._codemanager = CodeManager()
         return self._codemanager
 
     @property
     def regex(self):
-        if self._regex == None:
+        if self._regex is None:
             self._regex = RegexTools()
         return self._regex
 
     @property
     def templateengine(self):
-        if self._templateengine == None:
+        if self._templateengine is None:
             self._templateengine = TemplateEngineWrapper()
         return self._templateengine
 
     @property
     def texteditor(self):
-        if self._texteditor == None:
+        if self._texteditor is None:
             self._texteditor = TextFileEditor()
         return self._texteditor
 
     @property
     def wordreplacer(self):
-        if self._wordreplacer == None:
+        if self._wordreplacer is None:
             self._wordreplacer = WordReplacer()
         return self._wordreplacer
 
     def textToTitle(self, text, maxnrchars=60):
         """
-        try to create a title out of text, ignoring irrelevant words and making lower case and removing 
+        try to create a title out of text, ignoring irrelevant words and making lower case and removing
         not needed chars
         """
         ignore = "for in yes no after up down the"
@@ -255,7 +255,7 @@ class CodeTools:
         result = {}
 
         def toStr(obj, possibleList=True):
-            if isinstance(obj, (str, int, float, bool)) or obj == None:
+            if isinstance(obj, (str, int, float, bool)) or obj is None:
                 return str(obj)
             elif possibleList == True and j.data.types.list.check(obj):
                 r = ""
@@ -305,9 +305,9 @@ class CodeTools:
                 return value
             elif isinstance(obj, str):
                 return obj.encode('utf8')
-            elif isinstance(obj, (int, str, float, bool)) or obj == None:
+            elif isinstance(obj, (int, str, float, bool)) or obj is None:
                 return obj
-            elif isinstance(obj, bytes) or obj == None:
+            elif isinstance(obj, bytes) or obj is None:
                 return obj.decode('utf-8', 'ignore')
             elif isinstance(obj, ClassBase):
                 if hasattr(obj, "_obj2dict"):

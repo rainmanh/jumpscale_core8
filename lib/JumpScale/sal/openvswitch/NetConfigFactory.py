@@ -15,12 +15,13 @@ class NetConfigFactory:
         self._layout = None
         self.PHYSMTU = 2000  # will fit all switches
         self._executor = j.tools.executor.getLocal()
+        self.netcl = netcl
 
     def getConfigFromSystem(self, reload=False):
         """
         walk over system and get configuration, result is dict
         """
-        if self._layout == None or reload:
+        if self._layout is None or reload:
             self._layout = vxlan.NetLayout()
             self._layout.load()
         # add_ips_to(self._layout)  #TODO: fix
@@ -80,12 +81,22 @@ class NetConfigFactory:
 
     def newBridge(self, name, interface=None):
         """
-        @param interface interface where to connect this bridge to
+        @param interface ['interface'] can take multiple interfaces where to connect this bridge
         """
         br = netcl.Bridge(name)
         br.create()
         if interface is not None:
             br.connect(interface)
+
+    def vnicQOS(self, limit, interface, burst_limit=None):
+        """
+        @param limit apply Qos policing to limit the rate throught a
+        @param burst_limit most the maximum amount of data (in Kb) that
+               this interface can send beyond the policing rate.default to 10% of rate
+        """
+        if not burst_limit:
+            burst_limit = 0.1 * limit
+        netcl.limit_interface_rate(limit, interface, burst_limit)
 
     def newVlanBridge(self, name, parentbridge, vlanid, mtu=None):
         addVlanPatch(parentbridge, name, vlanid, mtu=mtu)
@@ -255,7 +266,7 @@ iface $iname inet manual
         C = C.replace("$ipbase", str(n.ip))
         C = C.replace("$mask", str(n.netmask))
         C = C.replace("$MTU", str(self.PHYSMTU))
-        if gw != "" and gw != None:
+        if gw != "" and gw is not None:
             C = C.replace("$gw", "gateway %s" % gw)
         else:
             C = C.replace("$gw", "")
@@ -264,7 +275,8 @@ iface $iname inet manual
         ed.setSection(backplanename, C)
         ed.save()
 
-    def setBackplaneWithBond(self, bondname, bondinterfaces, backplanename='backplane', ipaddr="192.168.10.10/24", gw=""):
+    def setBackplaneWithBond(self, bondname, bondinterfaces, backplanename='backplane',
+                             ipaddr="192.168.10.10/24", gw=""):
         """
         DANGEROUS, will remove old configuration
         """
@@ -299,7 +311,7 @@ iface $bondname inet manual
         C = C.replace("$ipbase", str(n.ip))
         C = C.replace("$mask", str(n.netmask))
         C = C.replace("$MTU", str(self.PHYSMTU))
-        if gw != "" and gw != None:
+        if gw != "" and gw is not None:
             C = C.replace("$gw", "gateway %s" % gw)
         else:
             C = C.replace("$gw", "")
@@ -319,11 +331,11 @@ iface $bondname inet manual
                 self._exec("ip addr flush dev %s" % intname, False)
                 self._exec("ip link set %s down" % intname, False)
 
-        if backplanename != None:
+        if backplanename is not None:
             self._exec("ifdown %s" % backplanename, failOnError=False)
             # self._exec("ifup %s"%backplanename, failOnError=True)
 
-        #TODO: need to do more checks here that it came up and retry couple of times if it did not
+        # TODO: need to do more checks here that it came up and retry couple of times if it did not
         #@ can do this by investigating self.getConfigFromSystem
 
         self._executor.execute("/etc/init.d/openvswitch-switch restart")

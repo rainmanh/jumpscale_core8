@@ -367,7 +367,7 @@ class Queue(object):
     def basic_deserialize(data):
         return msgpack.unpackb(data)
 
-    def __init__(self, host="localhost", port=33013,  space=0):
+    def __init__(self, host="localhost", port=33013, space=0):
         if not(host and port):
             raise Queue.BadConfigException("host and port params "
                                            "must be not empty")
@@ -519,13 +519,13 @@ class Queue(object):
     def statistics(self, tube=None):
         """
         Return queue module statistics accumulated since server start.
-        Output format: if tube != None, then output is dictionary with
+        Output format: if tube is not None, then output is dictionary with
         stats of current tube. If tube is None, then output is dict of
         t stats, ...}
         e.g.:
 
             >>> tube.statistics()
-            # or queue.statistics('tube0') 
+            # or queue.statistics('tube0')
             # or queue.statistics(tube.opt['tube'])
             {'ack': '233',
             'meta': '35',

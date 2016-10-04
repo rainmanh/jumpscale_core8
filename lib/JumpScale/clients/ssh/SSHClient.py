@@ -107,7 +107,7 @@ class SSHClientFactory:
 
 class SSHClient:
 
-    def __init__(self, addr='', port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True,
+    def __init__(self, addr='', port=22, login="root", passwd=None, usesproxy=False, stdout=True, forward_agent=True, allow_agent=True,
                  look_for_keys=True, key_filename=None, passphrase=None, timeout=5.0):
         self.port = port
         self.addr = addr
@@ -132,6 +132,7 @@ class SSHClient:
         self._transport = None
         self._client = None
         self._cuisine = None
+        self.usesproxy = usesproxy
 
     def _test_local_agent(self):
         """
@@ -143,6 +144,33 @@ class SSHClient:
             return False
         else:
             return True
+
+    def connectViaProxy(self, host, username, port, identityfile, proxycommand=None):
+        self.usesproxy = True
+        client = paramiko.SSHClient()
+        client._policy = paramiko.WarningPolicy()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        import os.path
+        self.host = host
+        cfg = {'hostname': host, 'username': username, "port": port}
+        self.addr = host
+        self.user = username
+
+        if identityfile is not None:
+            cfg['key_filename'] = identityfile
+            self.key_filename = cfg['key_filename']
+
+        if proxycommand is not None:
+            cfg['sock'] = paramiko.ProxyCommand(proxycommand)
+        cfg['timeout'] = 5
+        cfg['allow_agent'] = True
+        cfg['banner_timeout'] = 5
+        self.cfg = cfg
+        self.forward_agent = True
+        self._client = client
+        self._client.connect(**cfg)
+
+        return self._client
 
     @property
     def transport(self):
@@ -176,7 +204,7 @@ class SSHClient:
                         self.pkey = paramiko.RSAKey.from_private_key_file(
                             self.key_filename, password=self.passphrase)
                         if not j.do.checkSSHAgentAvailable():
-                            j.do._.loadSSHAgent()
+                            j.do._loadSSHAgent()
                         if not j.do.getSSHKeyPathFromAgent(self.key_filename, die=False):
                             j.do.loadSSHKeys(self.key_filename)
                     self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,
@@ -349,11 +377,12 @@ class SSHClient:
 
     @property
     def cuisine(self):
-        if self._cuisine is None:
-            executor = j.tools.executor.getSSHBased(self.addr, self.port, self.login, self.passwd, allow_agent=self.allow_agent,
-                                                    look_for_keys=self.look_for_keys, timeout=self.timeout,
-                                                    usecache=False)
+        if not self.usesproxy and self._cuisine is None:
+            executor = j.tools.executor.getSSHBased(self.addr, self.port, self.login, self.passwd)
             self._cuisine = executor.cuisine
+        if self.usesproxy:
+            ex = j.tools.executor.getSSHViaProxy(self.host)
+            self._cuisine = j.tools.cuisine.get(self)
         return self._cuisine
 
     def ssh_authorize(self, user, key):

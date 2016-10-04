@@ -29,7 +29,7 @@ class InfluxDumper:
         data = ""
         while True:
             res = self.redis.lpop(q)
-            while res != None:
+            while res is not None:
                 counter += 1
                 # print res
                 measurement, key, tags, epoch, last, mavg, mmax, havg, hmax = res.split("|")

@@ -22,7 +22,7 @@ class CuisineSSH(base):
             except Exception as e:
                 print("  NOT OK")
                 continue
-            if testoutput == False:
+            if testoutput is False:
                 print("  NOT OK")
                 continue
             executor = j.tools.executor.getSSHBased(item, port, login, passwd, checkok=True)
@@ -95,7 +95,7 @@ class CuisineSSH(base):
                         if addr.get("addrtype") == "mac":
                             mac = addr.get("addr")
 
-                    if ip != None:
+                    if ip is not None:
                         ips[ip] = {"mac": mac}
 
             # for line in out.split("\n"):
@@ -163,11 +163,11 @@ class CuisineSSH(base):
         """Removes the given key to the remote '.ssh/authorized_keys' for the given
         user."""
         key = key.strip()
-        d = user.check(user, need_passwd=False)
+        d = self._cuisine.user.check(user, need_passwd=False)
         group = d["gid"]
         keyf = d["home"] + "/.ssh/authorized_keys"
         if self._cuisine.core.file_exists(keyf):
-            self._cuisine.core.file_write(keyf, "\n".join(_ for _ in file_read(keyf).split(
+            self._cuisine.core.file_write(keyf, "\n".join(_ for _ in self._cuisine.core.file_read(keyf).split(
                 "\n") if _.strip() != key), owner=user, group=group, mode="600")
             return True
         else:

@@ -68,7 +68,7 @@ class GeventWSServer:
         self.schedule("timer", self._timer)
         self.schedule("timer2", self._timer2)
 
-        if obj != None:
+        if obj is not None:
             obj.now = self.now
             obj.fiveMinuteId = self.fiveMinuteId
             obj.hourId = self.hourId

@@ -208,7 +208,8 @@ class AtYourServiceSandboxer:
                 self.installAYSFS()
 
             # j.sal.fs.copyDirTree(self.model.storpath+"/files/", "root@%s:/mnt/ays/cachelocal/%s"%(self.model.host,self.model.namespace), \
-            #     keepsymlinks=False, deletefirst=False, overwriteFiles=False, rsync=True, ssh=True, sshport=self.model.port, recursive=True)
+            # keepsymlinks=False, deletefirst=False, overwriteFiles=False, rsync=True,
+            # ssh=True, sshport=self.model.port, recursive=True)
 
         if self.model.populate_grid_cache:
             self._upload(self.model.cache, "/mnt/ays/cache/dedupe/")
@@ -239,7 +240,8 @@ class AtYourServiceSandboxer:
                 raise j.exceptions.RuntimeError('some files didnt upload properly. %s' % ("\n".join(error_files)))
 
             metadataPath = j.sal.fs.joinPaths(self.model.storpath, "md", "0.flist")
-            j.sal.fs.copyDirTree(metadataPath, "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist", overwriteFiles=True, rsync=True, ssh=True)
+            j.sal.fs.copyDirTree(metadataPath, "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",
+                                 overwriteFiles=True, rsync=True, ssh=True)
 
         # if self.model.host!="":
         #     j.sal.fs.copyDirTree(self.model.storpath+"/md/0.flist","root@%s:/etc/ays/local/"%(self.model.host),overwriteFiles=True, rsync=True, ssh=True, sshport=self.model.port)
@@ -270,7 +272,8 @@ class AtYourServiceSandboxer:
         self.buildUpload(sandbox)
 
     def destroyfileserver(self):
-        self.cuisine_master.run("rm -rf /mnt/Storage/openvcloud/ftp/ays/master/;mkdir -p /mnt/Storage/openvcloud/ftp/ays/master/dedupe/")
+        self.cuisine_master.run(
+            "rm -rf /mnt/Storage/openvcloud/ftp/ays/master/;mkdir -p /mnt/Storage/openvcloud/ftp/ays/master/dedupe/")
 
     def __str__(self):
         return str(self.model)

@@ -68,7 +68,8 @@ class ErrorConditionHandler:
         return self._blacklist
 
     def toolStripNonAsciFromText(text):
-        return string.join([char for char in str(text) if ((ord(char) > 31 and ord(char) < 127) or ord(char) == 10)], "")
+        return string.join([char for char in str(text) if (
+            (ord(char) > 31 and ord(char) < 127) or ord(char) == 10)], "")
 
     def setExceptHook(self):
         sys.excepthook = self.excepthook
@@ -77,7 +78,8 @@ class ErrorConditionHandler:
     def getLevelName(self, level):
         return LEVELMAP.get(level, 'UNKNOWN')
 
-    def getErrorConditionObject(self, ddict={}, msg="", msgpub="", category="", level=1, type="UNKNOWN", tb=None, tags=""):
+    def getErrorConditionObject(self, ddict={}, msg="", msgpub="", category="",
+                                level=1, type="UNKNOWN", tb=None, tags=""):
         """
         @data is dict with fields of errorcondition obj
         returns only ErrorConditionObject which should be used in jumpscale to define an errorcondition (or potential error condition)
@@ -141,7 +143,7 @@ class ErrorConditionHandler:
             print("exceptionObject was:\n%s" % exceptionObject)
             sys.exit(1)
 
-        if tb == None:
+        if tb is None:
             ttype, exc_value, tb = sys.exc_info()
 
         if hasattr(exceptionObject, "codetrace"):
@@ -213,7 +215,7 @@ class ErrorConditionHandler:
         # else:
         #     type_str=""
 
-        if eco == None:
+        if eco is None:
             eco = self.getErrorConditionObject(
                 msg=message, msgpub=msgpub, level=level, tb=tb, tags=tags, type=type)
 
@@ -318,10 +320,10 @@ class ErrorConditionHandler:
             except Exception:
                 return default
 
-        if tb == None:
+        if tb is None:
             ttype, msg, tb = sys.exc_info()
 
-        if tb == None:
+        if tb is None:
             frames = [(item[0], item[2]) for item in inspect.stack()]
         else:
             frames = []
@@ -408,7 +410,7 @@ class ErrorConditionHandler:
             # print "EDITOR FOUND:%s" % editor
             if editor:
                 # print errorConditionObject.errormessagepublic
-                if tb == None:
+                if tb is None:
                     try:
                         res = j.tools.console.askString(
                             "\nAn error has occurred. Do you want do you want to do? (s=stop, c=continue, t=getTrace)")
@@ -468,7 +470,7 @@ class ErrorConditionHandler:
             j.application.stop(1)
 
     def halt(self, msg, eco):
-        if eco != None:
+        if eco is not None:
             eco = eco.__dict__
         raise HaltException(msg, eco)
 

@@ -39,7 +39,8 @@ class RecipeState():
         if source != "":
             if name in ["input", "init"]:
                 if source.find("$(") != -1:
-                    raise j.exceptions.Input("Action method:%s should not have template variable '$(...' in sourcecode for init or input method." % (self))
+                    raise j.exceptions.Input(
+                        "Action method:%s should not have template variable '$(...' in sourcecode for init or input method." % (self))
 
             if not isDefaultMethod:
                 newhash = j.data.hash.md5_string(source)
@@ -221,7 +222,8 @@ class ServiceRecipe(ServiceTemplate):
                 amSource = linestrip + "\n"
                 amName = linestrip.split("(", 1)[0][4:].strip()
                 # make sure the required method have the action() decorator
-                if amName in actionmethodsRequired and not lines[i - 1].strip().startswith('@') and amName not in ["input"]:
+                if amName in actionmethodsRequired and not lines[
+                        i - 1].strip().startswith('@') and amName not in ["input"]:
                     lines.insert(i, '\n    @action()')
                     size += 1
                     i += 1
@@ -292,9 +294,11 @@ class ServiceRecipe(ServiceTemplate):
                 fullpath = j.sal.fs.joinPaths(ppath, key)
 
             if j.sal.fs.isDir(fullpath):
-                j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath))
+                j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (
+                    self.role, instance, fullpath))
 
-            service = Service(aysrepo=self.aysrepo, servicerecipe=self, instance=instance, args=args, path="", parent=parent, originator=originator, model=model)
+            service = Service(aysrepo=self.aysrepo, servicerecipe=self, instance=instance,
+                              args=args, path="", parent=parent, originator=originator, model=model)
 
             self.aysrepo._services[service.key] = service
 
@@ -316,7 +320,8 @@ class ServiceRecipe(ServiceTemplate):
         # download
         for recipeitem in self.hrd_template.getListFromPrefix("web.export"):
             if "dest" not in recipeitem:
-                j.events.opserror_critical(msg="could not find dest in hrditem for %s %s" % (recipeitem, self), category="ays.servicetemplate")
+                j.events.opserror_critical(msg="could not find dest in hrditem for %s %s" %
+                                           (recipeitem, self), category="ays.servicetemplate")
 
             fullurl = "%s/%s" % (recipeitem['url'],
                                  recipeitem['source'].lstrip('/'))
@@ -347,7 +352,8 @@ class ServiceRecipe(ServiceTemplate):
             src = "%s/%s" % (dest0, recipeitem['source'])
             src = src.replace("//", "/")
             if "dest" not in recipeitem:
-                j.events.opserror_critical(msg="could not find dest in hrditem for %s %s" % (recipeitem, self), category="ays.servicetemplate")
+                j.events.opserror_critical(msg="could not find dest in hrditem for %s %s" %
+                                           (recipeitem, self), category="ays.servicetemplate")
             dest = recipeitem['dest']
 
             dest = j.application.config.applyOnContent(dest)

@@ -184,6 +184,7 @@ class AOEManager:
             raise AOEError(e)
 
     def delete(self, path):
+        """Delete path"""
         self.unexpose(path)
         j.tools.path.get(path).remove_p()
 

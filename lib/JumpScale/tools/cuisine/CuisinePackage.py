@@ -75,7 +75,7 @@ class CuisinePackage(base):
     def install(self, package, allow_unauthenticated=False):
 
         if self._cuisine.core.isUbuntu:
-            cmd = "apt-get install -y "
+            cmd = "apt-get install -y --assume-yes "
             if allow_unauthenticated:
                 cmd += ' --allow-unauthenticated '
             cmd += package
@@ -91,7 +91,8 @@ class CuisinePackage(base):
             cmd = "pacman -S %s  --noconfirm" % package
 
         elif self._cuisine.core.isMac:
-            if package in ["libpython3.4-dev", "python3.4-dev", "libpython3.5-dev", "python3.5-dev", "libffi-dev", "make", "build-essential", "libpq-dev", "libsqlite3-dev"]:
+            if package in ["libpython3.4-dev", "python3.4-dev", "libpython3.5-dev", "python3.5-dev",
+                           "libffi-dev", "make", "build-essential", "libpq-dev", "libsqlite3-dev"]:
                 return
 
             _, installed, _ = self._cuisine.core.run("brew list")
@@ -217,7 +218,7 @@ class CuisinePackage(base):
 
         """
         if self._cuisine.core.isUbuntu:
-            if package != None:
+            if package is not None:
                 return self._apt_get("-y --purge remove %s" % package)
             else:
                 self._cuisine.core.run("apt-get autoremove -y")

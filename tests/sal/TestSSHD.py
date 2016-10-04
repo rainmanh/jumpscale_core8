@@ -2,13 +2,14 @@ import unittest
 
 from JumpScale import j
 
+
 class TestSSHD(unittest.TestCase):
 
     def setUp(self):
         self.sshd = j.sal.sshd
         self.key1 = 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCUlY0UEUNExAQF/sIw2L2AJEmHj0eTCnSCwg7gYOQDNhrrzD0+HJulD1UTz+zZqiC2nIPWMfWBoEs3i4jDj79fyiGx4pgQJXFwioIqTONlEyvPIY0eCm3eeSaWrK9G0STdlCrrofZzuAL5/SCKiqTEizZe1MqhJT/xs2xpD+hHFIyMIuBl9OOLX2XvFQ6mBB1bq4U1jpemuHk7L/M0m73Na4M2CQWVDUl/CRhNyhI+WlB2i9dwI3RwrtUp98MCAF//cx3xVC4NfHONQmN8j7z/WpsfJIadqOxfnOp5y4kj1EqbtmeKZbYvR2ZtcAibcnWs0/4kNDn723NheG/secHT root@myjs8xenial'
         self.key2 = 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCUlY0UEUNExAQF/sIw2L2AJEmHj0eTCnSCwg7gYOQDNhrrzD0+HJulD1UTz+zZqiC2nIPWMfWBoEs3i4jDj79fyiGx4pgQJXFwioIqTONlEyvPIY0eCm3eeSaWrK9G0STdlCrrofZzuAL5/SCKiqTEizZe1MqhJT/xs2xpD+hHFIyMIuBl9OOLX2XvFQ6mBB1bq4U1jpemuHk7L/M0m73Na4M2CQWVDUl/CRhNyhI+WlB2i9dwI3RwrtUp98MCAF//cx3xVC4NfHONQmN8j7z/WpsfJIadqOxfnOp5y4kj1EqbtmeKZbYvR2ZtcAibcnWs0/4kNDn723NheG/secHT root@myjs8xenial2'
-        self.sshroot= j.tools.path.get("/tmp/sshroot")
+        self.sshroot = j.tools.path.get("/tmp/sshroot")
 
         self.authkeysfile = j.tools.path.get("/tmp/sshroot/authkeys")
 
@@ -59,7 +60,7 @@ class TestSSHD(unittest.TestCase):
 
         self.sshd.deleteKey(self.key1)
         self.sshd.commit()
-        
+
         self.assertNotIn(self.key1, self.sshd.keys)
 
     def test_erase(self):
@@ -74,7 +75,6 @@ class TestSSHD(unittest.TestCase):
 
         self.assertEqual(len(self.sshd.keys), 0)
 
-
     def test_delete_key(self):
 
         self.sshd.addKey(self.key1)
@@ -87,4 +87,3 @@ class TestSSHD(unittest.TestCase):
         self.sshd.commit()
 
         self.assertEqual(len(self.sshd.keys), 1)
-

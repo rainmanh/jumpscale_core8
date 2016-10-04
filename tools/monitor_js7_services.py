@@ -8,6 +8,7 @@ import os
 import re
 import requests
 
+
 class Config():
     """
     Configuration class
@@ -19,11 +20,11 @@ class Config():
     base_path = '/opt/code/github/gig-projects/env_du-conv-3/'
 
 
-
 class MonitoringService():
     """
     Monitoring service class
     """
+
     def __init__(self, config):
         """
         Initialize new instance with specific configurations
@@ -33,8 +34,9 @@ class MonitoringService():
         """
         self._config = config
         self.result = {}
-        self._executor=j.tools.executor.getSSHBased(addr=config.machine_ip, port=22,login=config.machine_login,passwd=config.machine_password)
-        self._cuisine=j.tools.cuisine.get(self._executor)
+        self._executor = j.tools.executor.getSSHBased(
+            addr=config.machine_ip, port=22, login=config.machine_login, passwd=config.machine_password)
+        self._cuisine = j.tools.cuisine.get(self._executor)
         # set sudo mode
         self._cuisine.core.sudomode = True
         self._get_remote_nodes_script = """
@@ -45,7 +47,6 @@ class MonitoringService():
         os.chdir(base_path)
         print(j.clients.openvcloud.get().getRemoteNodes())
         """ % config.base_path
-
 
     def get_remote_nodes(self):
         """
@@ -66,7 +67,6 @@ class MonitoringService():
             for node in map(lambda x: x.split(':')[-1], match.groupdict().get('nodes', '').split(',')):
                 result.append(node)
         return result
-
 
     def parse_services_output(self, data, node):
         """
@@ -122,7 +122,8 @@ class MonitoringService():
         ays_status_cmd = "cd %s;ays execute -tt node.ssh -tn %%s --cmd 'ays status'" % self._config.base_path
         for node in nodes:
             cmd = ays_status_cmd % node
-            output = self._cuisine.core.run(cmd=cmd, die=True, debug=None, checkok=False, showout=True, profile=False, replaceArgs=True, check_is_ok=False)
+            output = self._cuisine.core.run(cmd=cmd, die=True, debug=None, checkok=False,
+                                            showout=True, profile=False, replaceArgs=True, check_is_ok=False)
             self.parse_services_output(data=output, node=node)
 
 

@@ -252,18 +252,18 @@ class CuisineStor(base):
     @property
     def config(self):
         if self._config is None:
-            path = j.sal.fs.joinPaths(self.root,"config.yaml")
+            path = j.sal.fs.joinPaths(self.root, "config.yaml")
             if self._cuisine.core.file_exists(path):
-                self._config = j.data.serializer.yaml.load(self._cuisine.file_read(self.root,"config.yaml"))
+                self._config = j.data.serializer.yaml.load(self._cuisine.file_read(self.root, "config.yaml"))
 
         return self._config
 
     @config.setter
     def config(self, key, value):
-        self.config #populate if it doesn't exist
+        self.config  # populate if it doesn't exist
         self._config[key] = value
         serialized = j.data.serializer.dumps(self._config)
-        path = j.sal.fs.joinPaths(self.root,"config.yaml")
+        path = j.sal.fs.joinPaths(self.root, "config.yaml")
         self._cuisine.core.file_write(path, serialized)
 
     def enableServerHTTP(self):
@@ -619,7 +619,8 @@ class StorSpace(object):
 
         return obj
 
-    def upload(self, flistname, host=None, source="/", excludes=["\.pyc", "__pycache__"], removetmpdir=True, metadataStorspace=None):
+    def upload(self, flistname, host=None, source="/",
+               excludes=["\.pyc", "__pycache__"], removetmpdir=True, metadataStorspace=None):
         """
         Upload a complete directory:
          - from 'host' (if it's an executor)
@@ -640,7 +641,7 @@ class StorSpace(object):
             - metadataStorspace!=None then use other storspace for uploading the plist
         - remove tmpdir if removetmpdir=True
         """
-        #TODO: maxim: specs have not been implemented, lets discuss what we will do and what not
+        # TODO: maxim: specs have not been implemented, lets discuss what we will do and what not
         if not host:
             host = j.tools.executor.getLocal()
 
@@ -775,6 +776,57 @@ class StorSpace(object):
     def tarball(self, keys, target):
         script = self.stor.scripts.tarball(self.spacepath, keys, target)
         data = self._cuisine.core.execute_python(script)
+        return data
+
+    def flist(self, path):
+        """
+        Generate a flist for the path contents
+        """
+        # TODO: maxim, the original format was not a dict, this is not ideal, if
+        # you have a big directory this will explode ! it needs to go back to
+        # original text format & processing on disk directly not in mem
+        flist = {}
+        for file in j.sal.fs.walk(path, recurse=True):
+            stat = j.sal.fs.statPath(file)
+            hash = j.data.hash.md5(file)
+            mode = oct(stat.st_mode)[3:]
+
+            flist[hash] = {
+                'file': file,
+                'size': stat.st_size,
+                'mode': mode,
+                'uname': pwd.getpwuid(stat.st_uid).pw_name,
+                'gname': grp.getgrgid(stat.st_gid).gr_name
+            }
+
+        return flist
+
+    def flistDumps(self, flist):
+        data = []
+
+        for key, f in flist.items():
+            line = "%s|%s|%d|%s|%s|%s" % (
+                f['file'], key, f['size'], f['uname'], f['gname'], f['mode']
+            )
+
+            data.append(line)
+
+        return "\n".join(data) + "\n"
+
+    def flistLoads(self, flist):
+        data = {}
+
+        for line in flist.splitlines():
+            f = line.split('|')
+
+            data[f[1]] = {
+                'file': f[0],
+                'size': int(f[2]),
+                'mode': f[5],
+                'uname': f[3],
+                'gname': f[4]
+            }
+
         return data
 
     def _extract(self, tarfile):

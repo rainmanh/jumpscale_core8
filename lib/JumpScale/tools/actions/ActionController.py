@@ -49,7 +49,7 @@ class ActionController:
 
     @property
     def runid(self):
-        if self._runid == "" or self._runid == None:
+        if self._runid == "" or self._runid is None:
             raise j.exceptions.RuntimeError("runid cannot be empty, please set with j.actions.setRunId(...)")
         return str(self._runid)
 
@@ -66,7 +66,7 @@ class ActionController:
                 self.logger.info("delete:%s" % item)
                 self.reset(runid=item, prefix=prefix)
         else:
-            if prefix == None:
+            if prefix is None:
                 self._actions = {}
                 if runid is None:
                     j.core.db.delete("actions.%s" % self.runid)
@@ -74,7 +74,7 @@ class ActionController:
                     self._runid = runid
                     j.core.db.delete("actions.%s" % runid)
             else:
-                if runid != None:
+                if runid is not None:
                     self._runid = runid
                 key = "actions.%s" % self.runid
                 for hkey in j.core.db.hkeys(key):
@@ -112,7 +112,7 @@ class ActionController:
             needs to be done selfobj=....  ... is whatever code which fill filling selfobj
             BE VERY CAREFUL TO USE THIS, DO NEVER USE IN GEVENT OR ANY OTHER ASYNC FRAMEWORK
 
-        @param dynamicArguments are arguments which will be executed before calling the method e.g. 
+        @param dynamicArguments are arguments which will be executed before calling the method e.g.
            dargs={}
            dargs["service"]="j.atyourservice.getService(\"%s\")"%kwargs["service"]
         '''
@@ -121,7 +121,7 @@ class ActionController:
 
         if showout == True:
             stdOutput = True
-        if showout == False:
+        if showout is False:
             stdOutput = False
 
         l = traceback.format_stack()
@@ -163,7 +163,7 @@ class ActionController:
     @property
     def stack(self):
         val = j.core.db.hget("actions.stack", self.runid)
-        if val == None:
+        if val is None:
             val2 = []
         else:
             val2 = j.data.serializer.json.loads(val)

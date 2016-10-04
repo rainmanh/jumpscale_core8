@@ -218,7 +218,8 @@ class SpecBlock:
         elif len(splitted) == 2:
             self.name = splitted[1]
         else:
-            return parser.raiseError("each [...] on block need to be in format [$type:$name] or  [$type], did not find :", line, linenr)
+            return parser.raiseError(
+                "each [...] on block need to be in format [$type:$name] or  [$type], did not find :", line, linenr)
 
         self.parser = parser
         self.startline = linenr
@@ -235,7 +236,7 @@ class SpecBlock:
                 if key in j.core.specparser.actornames:
                     spec = j.core.specparser.getactorSpec(
                         self.appname, self.actorname, False)
-            if spec == None:
+            if spec is None:
                 spec = Specactor(self.name, self.descr, self.tags,
                                  self.parser.path, self.startline)
                 spec.actorname = self.actorname
@@ -267,7 +268,8 @@ class SpecBlock:
             # print "###########"
             currentitemClass = SpecModelProperty
         else:
-            return self.parser.raiseError("Invalid type '%s' could not find right type of spec doc, only supported model,actor,enum :" % self.type, self.content, self.startline)
+            return self.parser.raiseError(
+                "Invalid type '%s' could not find right type of spec doc, only supported model,actor,enum :" % self.type, self.content, self.startline)
 
         # find the items in the block
         linenr = self.startline
@@ -284,7 +286,7 @@ class SpecBlock:
             line = line.rstrip()
             # print "line:%s state:%s" % (line,state)
             if line.strip() == "":
-                if currentitem != None and currentitemContent == "":
+                if currentitem is not None and currentitemContent == "":
                     currentitem.linenr = linenr + 1
                 continue
             if state == "description" and line.strip().find("\"\"\"") == 0:
@@ -377,8 +379,7 @@ class SpecDirParser:
                 if len(p) not in r:
                     r[len(p)] = []
                 r[len(p)].append(p)
-            lkeysSorted = list(r.keys())
-            lkeysSorted.sort()
+            lkeysSorted = sorted(r.keys())
             for lkey in lkeysSorted:
                 result = result + r[lkey]
             return result
@@ -442,7 +443,7 @@ class SpecFileParser:
             # remove empty lines
             line = line.replace("\t", "    ")
             if line.strip() == "" or line.strip()[0] == "#":
-                if currentblock != None and currentblock.content == "":
+                if currentblock is not None and currentblock.content == "":
                     currentblock.startline = linenr + 1
                 continue
             # remove comments from line
@@ -471,7 +472,7 @@ class SpecFileParser:
 
             # if state=="blockfound" and self._checkIdentation(line,linenr,1,1) and line.strip().find("@") != -1:
                 # found labels tags on right level
-                # if currentblock != None:
+                # if currentblock is not None:
                 # comments,currentblock.tags,tmp=self.getTagsComment(line)
                 # currentblock.startline=linenr
                 # else:
@@ -521,10 +522,10 @@ class SpecFileParser:
             tags = comment.split("@", 1)[1]
             comment = comment.split("@")[0]
 
-        if comment != None:
+        if comment is not None:
             comment = comment.strip()
 
-        if tags != None:
+        if tags is not None:
             tags = tags.strip()
 
         return comment, tags, line
@@ -728,12 +729,12 @@ class SpecParserFactory:
             if query.strip() != "." and query.strip() != "":
                 specname = query
 
-            if actorname == "" and spec != None:
+            if actorname == "" and spec is not None:
                 # no specificiation of actor or app so needs to be local to
                 # this spec
                 actorname = spec.actorname
 
-            if appname == "" and spec != None:
+            if appname == "" and spec is not None:
                 # no specificiation of actor or app so needs to be local to
                 # this spec
                 appname = spec.appname
@@ -768,7 +769,7 @@ class SpecParserFactory:
         # print 'actorname:%s'%actorname
 
         if len(result) == 0:
-            if spec != None:
+            if spec is not None:
                 emsg = "Could not find spec with query:%s appname:%s actorname:%s name:%s (spec info: '%s'_'%s'_'%s')" % \
                     (query, appname, actorname, specname,
                      spec.name, spec.specpath, spec.linenr)
@@ -780,7 +781,7 @@ class SpecParserFactory:
 
         if findOnlyOne:
             if len(result) != 1:
-                if spec != None:
+                if spec is not None:
                     emsg = "Found more than 1 spec for search query:%s appname:%s actorname:%s name:%s (spec info: %s_%s_%s)" % \
                         (query, appname, actorname, specname,
                          spec.name, spec.specpath, spec.linenr)
@@ -868,13 +869,13 @@ class SpecParserFactory:
         else:
             result = self.getEnumerationSpec(
                 appname, actorname, typestr, die=False)
-            if result == False:
+            if result is False:
                 result = self.getModelSpec(
                     appname, actorname, typestr, die=False)
-            if result == False:
+            if result is False:
                 if returntype not in ["list", "dict"]:
                     returntype = "enum"
-            if result == False:
+            if result is False:
                 raise j.exceptions.RuntimeError(
                     "Cannot find spec for app:%s, actor:%s, with typestr:%s" % (appname, actorname, typestr))
             else:

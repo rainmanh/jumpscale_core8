@@ -12,6 +12,7 @@ import time
 
 
 class Jumpscript(object):
+
     def __init__(self, ddict=None, path=None):
         self.logger = j.logger.get('Jumpscript')
 
@@ -60,8 +61,8 @@ from JumpScale import j
     def getDict(self):
         result = dict()
         for attrib in (
-        'name', 'author', 'organization', 'category', 'license', 'version', 'roles', 'source', 'path', 'descr', 'queue',
-        'async', 'period', 'order', 'log', 'enable', 'startatboot', 'gid', 'id', 'timeout'):
+            'name', 'author', 'organization', 'category', 'license', 'version', 'roles', 'source', 'path', 'descr', 'queue',
+                'async', 'period', 'order', 'log', 'enable', 'startatboot', 'gid', 'id', 'timeout'):
             result[attrib] = getattr(self, attrib)
         return result
 
@@ -135,7 +136,7 @@ from JumpScale import j
     def _getECO(self, e):
         eco = j.errorconditionhandler.parsePythonExceptionObject(e)
         eco.tb = None
-        eco.errormessage = 'Exec error procmgr jumpscr:%s_%s on node:%s_%s %s' % (self.organization, self.name, \
+        eco.errormessage = 'Exec error procmgr jumpscr:%s_%s on node:%s_%s %s' % (self.organization, self.name,
                                                                                   j.application.whoAmI.gid,
                                                                                   j.application.whoAmI.nid,
                                                                                   eco.errormessage)
@@ -175,7 +176,7 @@ from JumpScale import j
                                            _sync=False)
 
         self.lastrun = time.time()
-        if result != None:
+        if result is not None:
             print("ok:%s" % self.name)
         return result
 

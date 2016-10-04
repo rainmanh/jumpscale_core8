@@ -2,9 +2,11 @@ from JumpScale import j
 
 app = j.tools.cuisine._getBaseAppClass()
 
+
 class CuisineCapnp(app):
 
     NAME = "capnp"
+
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
@@ -14,7 +16,7 @@ class CuisineCapnp(app):
         install capnp
         """
 
-        if reset == False and self.isInstalled():
+        if reset is False and self.isInstalled():
             return
 
         self._cuisine.package.mdupdate()

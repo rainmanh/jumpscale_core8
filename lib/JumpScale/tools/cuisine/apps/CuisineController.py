@@ -46,7 +46,8 @@ class CuisineController(app):
         """
         sourcepath = "$goDir/src/github.com/g8os/controller"
         # move binary
-        self._cuisine.core.file_move("%s/controller" % sourcepath, "$binDir/controller")
+        if not self._cuisine.core.file_exists('$binDir/controller'):
+            self._cuisine.core.file_move("%s/controller" % sourcepath, "$binDir/controller")
 
         # file copy
         self._cuisine.core.dir_remove("$tmplsDir/cfg/controller/extensions")
@@ -82,6 +83,7 @@ class CuisineController(app):
         cfgDir = self._cuisine.core.dir_paths['cfgDir']
         cfg["events"]["python_path"] = self._cuisine.core.joinpaths(
             cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
+        cfg['events']['enabled'] = True
         cfg["processor"]["python_path"] = self._cuisine.core.joinpaths(
             cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
         cfg["jumpscripts"]["python_path"] = self._cuisine.core.joinpaths(

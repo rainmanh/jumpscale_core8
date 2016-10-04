@@ -18,11 +18,12 @@ LEVELMAP = {1: 'CRITICAL', 2: 'WARNING', 3: 'INFO', 4: 'DEBUG'}
 
 class ErrorConditionObject(BaseException):
     """
-    @param type #BUG,INPUT,MONITORING,OPERATIONS,PERFORMANCE,UNKNOWN  
+    @param type #BUG,INPUT,MONITORING,OPERATIONS,PERFORMANCE,UNKNOWN
     @param level #1:critical, 2:warning, 3:info see j.enumerators.ErrorConditionLevel
     """
 
-    def __init__(self, ddict={}, msg="", msgpub="", category="", level=1, type="UNKNOWN", tb=None, data=None, tags="", limit=30):
+    def __init__(self, ddict={}, msg="", msgpub="", category="", level=1,
+                 type="UNKNOWN", tb=None, data=None, tags="", limit=30):
         if ddict != {}:
             self.__dict__ = ddict
         else:
@@ -71,7 +72,7 @@ class ErrorConditionObject(BaseException):
 
             self._traceback = ""
 
-            if tb != None:
+            if tb is not None:
                 self.tb = tb
 
             self.tags = ""  # e.g. machine:2323
@@ -164,7 +165,7 @@ class ErrorConditionObject(BaseException):
     def process(self):
         self._toAscii()
 
-        if self.type in ["INPUT", "MONITORING", "OPERATIONS", "PERFORMANCE"] and j.application.debug == False:
+        if self.type in ["INPUT", "MONITORING", "OPERATIONS", "PERFORMANCE"] and j.application.debug is False:
             self.tb = ""
             self.code = ""
             self.backtrace = ""
@@ -191,7 +192,7 @@ class ErrorConditionObject(BaseException):
             self.level = 4
 
         res = j.errorconditionhandler._send2Redis(self)
-        if res != None:
+        if res is not None:
             self.__dict__ = res
 
     def toJson(self):
@@ -207,7 +208,7 @@ class ErrorConditionObject(BaseException):
         # if self.tags!="":
         #     content+="tags: %s\n" % self.tags
         content += "%s\n" % self.errormessage
-        if self.errormessagePub != "" and self.errormessagePub != None:
+        if self.errormessagePub != "" and self.errormessagePub is not None:
             content += "errorpub:\n%s\n\n" % self.errormessagePub
         return content
 
@@ -300,7 +301,8 @@ class ErrorConditionObject(BaseException):
         try:
             k = "%s" % k
             v = "%s" % v
-            if k in ["re", "q", "jumpscale", "pprint", "qexec", "jshell", "Shell", "__doc__", "__file__", "__name__", "__package__", "i", "main", "page"]:
+            if k in ["re", "q", "jumpscale", "pprint", "qexec", "jshell", "Shell",
+                     "__doc__", "__file__", "__name__", "__package__", "i", "main", "page"]:
                 return False
             if v.find("<module") != -1:
                 return False

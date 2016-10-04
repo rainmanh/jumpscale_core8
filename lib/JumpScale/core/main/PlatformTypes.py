@@ -60,7 +60,7 @@ class PlatformTypes:
 
     @property
     def myplatform(self):
-        if self._myplatform == None:
+        if self._myplatform is None:
             self._myplatform = PlatformType()
         return self._myplatform
 
@@ -94,7 +94,7 @@ class PlatformType:
         # self._osversion=""
         # self._hostname=""
         # self._osname=""
-        if executor == None:
+        if executor is None:
             self.executor = j.tools.executor.getLocal()
         else:
             self.executor = executor
@@ -173,7 +173,8 @@ class PlatformType:
                     pkgman2dist = {
                         'pacman': 'arch', 'apt-get': 'ubuntu', 'yum': 'fedora', 'apk': 'alpine'}
                     for pkgman, dist in pkgman2dist.items():
-                        rc, _, err = self.executor.cuisine.core.run("which %s" % pkgman, showout=False, replaceArgs=False, die=False)
+                        rc, _, err = self.executor.cuisine.core.run(
+                            "which %s" % pkgman, showout=False, replaceArgs=False, die=False)
                         if rc == 0:
                             self._osname = pkgman2dist[pkgman]
 
@@ -247,7 +248,7 @@ class PlatformType:
 
     def isHyperV(self):
         '''Check whether the system supports HyperV'''
-        #TODO: should be moved to _getPlatform & proper parent definition
+        # TODO: should be moved to _getPlatform & proper parent definition
         if self.isWindows():
             import winreg as wr
             try:

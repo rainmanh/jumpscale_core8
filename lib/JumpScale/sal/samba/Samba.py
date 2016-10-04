@@ -13,7 +13,7 @@ BASEPATH = '/VNASSHARE/'
 
 class SMBUser:
 
-    def __init__(self,  verbose=False):
+    def __init__(self, verbose=False):
         # self._smb = cmd_sambatool(self._stdout, self._stderr)
         self._local = j.tools.executor.getLocal()
         self._verbose = verbose

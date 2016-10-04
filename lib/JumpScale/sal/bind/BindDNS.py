@@ -111,24 +111,40 @@ class BindDNS(DNS):
         return Zone.getreverseMap(self.zones)
 
     def start(self):
+        """
+        Start bind9 server.
+        """
         self.logger.info('STARTING BIND SERVICE')
         _, out = j.sal.process.execute(
             'service bind9 start', outputToStdout=True)
         self.logger.info(out)
 
     def stop(self):
+        """
+        Stop bind9 server.
+        """
         self.logger.info('STOPPING BIND SERVICE')
         _, out = j.sal.process.execute(
             'service bind9 stop', outputToStdout=True)
         self.logger.info(out)
 
     def restart(self):
+        """
+        Restart bind9 server.
+        """
         self.logger.info('RESTSRTING BIND SERVICE')
         _, out = j.sal.process.execute(
             'service bind9 restart', outputToStdout=True)
         self.logger.info(out)
 
     def updateHostIp(self, host, ip):
+        """
+        Update the IP of a host.
+
+        @param host string: hostname
+        @param ip   string: ip
+
+        """
         map = self.map
         record = map.get(host)
         if not record:
@@ -148,6 +164,17 @@ class BindDNS(DNS):
         self.restart()
 
     def addRecord(self, domain, host, ip, klass, type, ttl):
+        """
+        Add an A record.
+
+        @param domain string: domain
+        @param host string: host
+        @param ip string: ip
+        @param klass string: class
+        @param type:
+        @param ttl: time to live
+
+        """
         host = "%s." % host
         records = [x for x in self.zones if x.domain == domain]
         if not records:
@@ -182,6 +209,11 @@ class BindDNS(DNS):
         self.restart()
 
     def deleteHost(self, host):
+        """
+        Delete host.
+
+        @param host string: host
+        """
         host = host.rstrip('.')
         map = self.map
         record = map.get(host)

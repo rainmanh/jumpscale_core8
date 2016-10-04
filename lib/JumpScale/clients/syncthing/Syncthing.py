@@ -30,7 +30,7 @@ class SyncthingClient:
         self.sshport = sshport
         self.rootpasswd = rootpasswd
         self.port = port
-        #TODO: need to be https
+        # TODO: need to be https
         self.syncthing_url = 'http://%s:%s/rest' % (self.addr, self.port)
         self.syncthing_apikey = apikey
         self._config = None
@@ -96,7 +96,7 @@ class SyncthingClient:
 
         print("check if we can find syncthing on right port: %s:%s" %
               (self.addr, self.port))
-        if j.sal.nettools.waitConnectionTest(self.addr, self.port, timeout=10) == False:
+        if j.sal.nettools.waitConnectionTest(self.addr, self.port, timeout=10) is False:
             raise j.exceptions.RuntimeError(
                 "Could not find syncthing on %s:%s, tcp port test" % (self.addr, self.port))
 
@@ -118,7 +118,7 @@ class SyncthingClient:
         return self.api_call("system/status")
 
     def config_get(self, reload=False):
-        if self._config != None and reload == False:
+        if self._config is not None and reload is False:
             return self._config
         self._config = self.api_call("system/config")
         return self._config
@@ -223,7 +223,8 @@ class SyncthingClient:
         # self.config_set()
         return device
 
-    def config_add_folder(self, name, path, replace=True, ignorePerms=False, readOnly=False, rescanIntervalS=10, devices=[]):
+    def config_add_folder(self, name, path, replace=True, ignorePerms=False,
+                          readOnly=False, rescanIntervalS=10, devices=[]):
         name = name.lower()
         config = self.config_get()
         if self.config_exists_folder(name):

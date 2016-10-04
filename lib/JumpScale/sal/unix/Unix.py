@@ -11,12 +11,12 @@ from JumpScale import j
 from JumpScale.data.time.TimeInterval import TimeInterval as TimeIntervalUnit
 #from JumpScale.core.decorators import deprecated
 
-#TODO: *3 fix, move to other sal's
+# TODO: *3 fix, move to other sal's
 
-#TODO: cron needs to be moved into SAL
-#TODO: move many of these methods to cuisine2 (our cuisine) or to system if more appropriate
-#TODO: this file needs to go away
-#TODO: make sure we use proper names & add to right cuisine module
+# TODO: cron needs to be moved into SAL
+# TODO: move many of these methods to cuisine2 (our cuisine) or to system if more appropriate
+# TODO: this file needs to go away
+# TODO: make sure we use proper names & add to right cuisine module
 
 
 def user_in_group(username, groupname):
@@ -60,7 +60,7 @@ class UnixSystem:
         @param var: Variable name
         @type var: string
         '''
-        #TODO: there are better ways of doing this
+        # TODO: there are better ways of doing this
         exitcode, output = j.sal.process.execute(". %s > /dev/null && echo $%s" % (file, var))
         if exitcode != 0:
             return ""
@@ -104,7 +104,8 @@ class UnixSystem:
         else:
             raise j.exceptions.RuntimeError(" System.getMachineInfo not supported on this platform")
 
-    def addCronJob(self, commandToExecute, interval=1, logFilePath=None, replaceLineIfCommandAlreadyInCrontab=True, unit=TimeIntervalUnit.MINUTES):
+    def addCronJob(self, commandToExecute, interval=1, logFilePath=None,
+                   replaceLineIfCommandAlreadyInCrontab=True, unit=TimeIntervalUnit.MINUTES):
         '''Add a cronjob to the system
 
         @param commandToExecute: The command to execute
@@ -178,7 +179,7 @@ class UnixSystem:
             crontabOptions = crontabOptions + "root    "
 
         # Construct output redirection
-        if logFilePath == None:
+        if logFilePath is None:
             crontabOutputRedir = " >/dev/null"
         else:
             if not self.exists(self.getDirName(logFilePath)):
@@ -243,7 +244,7 @@ class UnixSystem:
             group = 'root'
         j.logger.log('Chown %s:%s %s' % (user, group, path), 8)
         uid = pwd.getpwnam(user).pw_uid
-        if group == None:
+        if group is None:
             gid = grp.getgrnam(group).gr_gid
         else:
             gid = grp.getgrnam(group).gr_gid
@@ -395,7 +396,7 @@ class UnixSystem:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
                 raise j.exceptions.RuntimeError('Failed to add user %s, error: %s' %
                                                 (username, output))
-            if homedir != None:
+            if homedir is not None:
                 j.sal.fs.createDir(homedir)
                 j.sal.fs.chown(homedir, username)
                 j.sal.fs.chmod(homedir, 0o700)

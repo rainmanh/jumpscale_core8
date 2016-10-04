@@ -58,7 +58,8 @@ class Ubuntu:
         self.check()
         import lsb_release
         result = lsb_release.get_distro_information()
-        return result["CODENAME"].lower().strip(), result["DESCRIPTION"], result["ID"].lower().strip(), result["RELEASE"],
+        return result["CODENAME"].lower().strip(), result["DESCRIPTION"], result[
+            "ID"].lower().strip(), result["RELEASE"],
 
     def apt_install_check(self, packagenames, cmdname):
         """
@@ -98,7 +99,7 @@ class Ubuntu:
         '''
 
         self.check()
-        if self._cache == None:
+        if self._cache is None:
             self.apt_init()
 
         mainPackage = self._cache[packageName]
@@ -112,7 +113,7 @@ class Ubuntu:
 
     def deb_install(self, path, installDeps=True):
         self.check()
-        if self._cache == None:
+        if self._cache is None:
             self.apt_init()
         import apt.debfile
         deb = apt.debfile.DebPackage(path, cache=self._cache)
@@ -147,7 +148,7 @@ class Ubuntu:
     def pkg_remove(self, packagename):
         self.logger.info("ubuntu remove package:%s" % packagename)
         self.check()
-        if self._cache == None:
+        if self._cache is None:
             self.apt_init()
         pkg = self._cache[packagename]
         if pkg.is_installed:
@@ -166,7 +167,7 @@ stop on runlevel [016]
             C += "respawn\n"
         if pwd:
             C += "chdir %s\n" % pwd
-        if env != None:
+        if env is not None:
             for key, value in list(env.items()):
                 C += "env %s=%s\n" % (key, value)
         C += "exec %s %s\n" % (daemonpath, args)
@@ -212,13 +213,13 @@ stop on runlevel [016]
 
     def apt_update(self, force=True):
         self.check()
-        if self._cache == None:
+        if self._cache is None:
             self.apt_init()
         self._cache.update()
 
     def apt_upgrade(self, force=True):
         self.check()
-        if self._cache == None:
+        if self._cache is None:
             self.apt_init()
         self.apt_update()
         self._cache.upgrade()
@@ -234,7 +235,7 @@ stop on runlevel [016]
 
     def apt_find_all(self, packagename):
         packagename = packagename.lower().strip().replace("_", "").replace("_", "")
-        if self._cache == None:
+        if self._cache is None:
             self.apt_init()
         result = []
         for item in self._cache.keys():
@@ -259,7 +260,7 @@ stop on runlevel [016]
 
     def apt_find_installed(self, packagename):
         packagename = packagename.lower().strip().replace("_", "").replace("_", "")
-        if self._cache == None:
+        if self._cache is None:
             self.apt_init()
         result = []
         for item in self.get_installed_package_names():

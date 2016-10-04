@@ -15,6 +15,7 @@ colored_traceback.add_hook(always=True)
 
 
 class AtYourServiceRepo():
+
     def __init__(self, name, path="", keephistory=True):
         self._init = False
         self.lock = threading.RLock()
@@ -42,12 +43,11 @@ class AtYourServiceRepo():
         self._servicesTree = {}
         # self._db=AYSDB()
         self._load_blueprints()
-        self.keephistory=keephistory
+        self.keephistory = keephistory
         if self.keephistory:
-            self.db = j.servers.kvs.getFSStore("ays_%s"%self.name)
+            self.db = j.servers.kvs.getFSStore("ays_%s" % self.name)
         else:
-            self.db=None
-
+            self.db = None
 
     def _doinit(self):
         j.actions.setRunId("ays_%s" % self.name)
@@ -223,7 +223,7 @@ class AtYourServiceRepo():
         return self._servicesTree
 
     def _load_blueprints(self):
-        bpdir=j.sal.fs.joinPaths(self.basepath, "blueprints")
+        bpdir = j.sal.fs.joinPaths(self.basepath, "blueprints")
         if j.sal.fs.exists(path=bpdir):
             items = j.sal.fs.listFilesInDir(bpdir)
             for path in items:
@@ -243,15 +243,14 @@ class AtYourServiceRepo():
         bps = sorted(bps, key=lambda bp: bp.name)
         return bps
 
-
     @property
     def blueprints_disabled(self):
         """
         Show the disabled blueprints
         """
         bps = []
-        for path,bp in self._blueprints.items():
-            if bp.active==False:
+        for path, bp in self._blueprints.items():
+            if bp.active == False:
                 bps.append(bp)
         bps = sorted(bps, key=lambda bp: bp.name)
         return bps
@@ -290,7 +289,7 @@ class AtYourServiceRepo():
             recipe.init()
             for inst in recipe.listInstances():
                 service = recipe.aysrepo.getService(role=recipe.role, instance=inst, die=False)
-                print("RESETTING SERVICE roles %s inst %s instance %s "%(recipe.role, inst, instance))
+                print("RESETTING SERVICE roles %s inst %s instance %s " % (recipe.role, inst, instance))
                 service.update_hrd()
 
             #import pudb; pu.db
@@ -350,7 +349,7 @@ class AtYourServiceRepo():
                     continue
                 if instance != "" and service.instance != instance:
                     continue
-                if service.getAction(action) == None:
+                if service.getAction(action) is None:
                     continue
                 service.state.set(action, state)
                 service.state.save()
@@ -364,7 +363,8 @@ class AtYourServiceRepo():
         producerRoles = self._processProducerRoles(producerRoles)
         scope = set(self.findServices(role=role, instance=instance, hasAction=action))
         for service in scope:
-            producer_candidates = service.getProducersRecursive(producers=set(), callers=set(), action=action, producerRoles=producerRoles)
+            producer_candidates = service.getProducersRecursive(
+                producers=set(), callers=set(), action=action, producerRoles=producerRoles)
             if producerRoles != '*':
                 producer_valid = [item for item in producer_candidates if item.role in producerRoles]
             else:
@@ -394,7 +394,8 @@ class AtYourServiceRepo():
     def getHRD(self, hash):
         return AYSRun(self).getFile('hrd', hash)
 
-    def getRun(self, role="", instance="", action="install", force=False, producerRoles="*", data=None, id=0, simulate=False):
+    def getRun(self, role="", instance="", action="install", force=False,
+               producerRoles="*", data=None, id=0, simulate=False):
         """
         get a new run
         if id !=0 then the run will be loaded from DB
@@ -410,7 +411,8 @@ class AtYourServiceRepo():
         if action not in ["init"]:
             for key, s in self.services.items():
                 if s.state.get("init") not in ["OK", "DO"]:
-                    error_msg = "Cannot get run: %s:%s:%s because found a service not properly inited yet.\n%s\n please rerun ays init" % (role, instance, action, s)
+                    error_msg = "Cannot get run: %s:%s:%s because found a service not properly inited yet.\n%s\n please rerun ays init" % (
+                        role, instance, action, s)
                     self.logger.error(error_msg)
                     raise j.exceptions.Input(error_msg, msgpub=error_msg)
         if force:
@@ -454,9 +456,10 @@ class AtYourServiceRepo():
         for service in scope:
             if run.exists(service, action):
                 continue
-            producersWaiting = service.getProducersRecursive(producers=set(), callers=set(), action=action, producerRoles=producerRoles)
+            producersWaiting = service.getProducersRecursive(
+                producers=set(), callers=set(), action=action, producerRoles=producerRoles)
             # remove the ones which are already in previous runs
-            producersWaiting = [item for item in producersWaiting if run.exists(item, action) == False]
+            producersWaiting = [item for item in producersWaiting if run.exists(item, action) is False]
             producersWaiting = [item for item in producersWaiting if item.state.get(action, die=False) != "OK"]
 
             if len(producersWaiting) == 0:
@@ -465,7 +468,8 @@ class AtYourServiceRepo():
                 waiting = True
 
         if todo == [] and waiting:
-            raise RuntimeError("cannot find todo's for action:%s in scope:%s.\n\nDEPENDENCY ERROR: could not resolve dependency chain." % (action, scope))
+            raise RuntimeError(
+                "cannot find todo's for action:%s in scope:%s.\n\nDEPENDENCY ERROR: could not resolve dependency chain." % (action, scope))
         return todo
 
     def commit(self, message="", branch="master", push=True):
@@ -497,7 +501,8 @@ class AtYourServiceRepo():
         else:
             actions = [action]
         for _, service in self.services.items():
-            if [service for action in actions if action in list(service.action_methods.keys()) and service.state.get(action, die=False) == 'CHANGED']:
+            if [service for action in actions if action in list(
+                    service.action_methods.keys()) and service.state.get(action, die=False) == 'CHANGED']:
                 changed.append(service)
                 for producers in [producers for _, producers in service.producers.items()]:
                     changed.extend(producers)
@@ -548,7 +553,8 @@ class AtYourServiceRepo():
 
         return res
 
-    def findServices(self, instance="", parent=None, first=False, role="", hasAction="", include_disabled=False, templatename=""):
+    def findServices(self, instance="", parent=None, first=False, role="",
+                     hasAction="", include_disabled=False, templatename=""):
         res = []
 
         for key, service in self.services.items():
@@ -562,14 +568,15 @@ class AtYourServiceRepo():
                 continue
             if not(role == "" or role == service.role):
                 continue
-            if hasAction != "" and service.getAction(hasAction) == None:
+            if hasAction != "" and service.getAction(hasAction) is None:
                 continue
             # if not(node is None or service.isOnNode(node)):
             #     continue
             res.append(service)
         if first:
             if len(res) == 0:
-                raise j.exceptions.Input("cannot find service %s|%s:%s (%s)" % (domain, name, instance, version), "ays.findServices")
+                raise j.exceptions.Input("cannot find service %s|%s:%s (%s)" %
+                                         (domain, name, instance, version), "ays.findServices")
             return res[0]
         return res
 
@@ -627,12 +634,12 @@ class AtYourServiceRepo():
             raise j.exceptions.Input("Cannot find template with name:%s" % name)
 
     def existsTemplate(self, name):
-        if self.getTemplate(name, die=False) == None:
+        if self.getTemplate(name, die=False) is None:
             return False
         return True
 
     def existsRecipe(self, name):
-        if self.getRecipe(name, die=False) == None:
+        if self.getRecipe(name, die=False) is None:
             return False
         return True
 
@@ -642,7 +649,7 @@ class AtYourServiceRepo():
             return recipe
         else:
             template = self.getTemplate(name=name, die=die)
-            if die == False and template == None:
+            if die is False and template is None:
                 return None
             recipe = template.getRecipe(self)
             self._recipes[recipe.name] = recipe

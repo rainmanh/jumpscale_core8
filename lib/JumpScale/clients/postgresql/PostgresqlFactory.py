@@ -74,7 +74,7 @@ class PostgresClient:
         self.cursor = self.client.cursor()
 
     def execute(self, sql):
-        if self.cursor == None:
+        if self.cursor is None:
             self.getcursor()
         return self.cursor.execute(sql)
 
@@ -135,7 +135,8 @@ class PostgresClient:
                 args)
             j.sal.process.execute(cmd, outputToStdout=False)
 
-        for item in j.sal.fs.listFilesInDir(path, recursive=False, filter="*.sql", followSymlinks=True, listSymlinks=True):
+        for item in j.sal.fs.listFilesInDir(path, recursive=False, filter="*.sql",
+                                            followSymlinks=True, listSymlinks=True):
             name = j.sal.fs.getBaseName(item).replace(".sql", "")
             if name.find("_") == 0:
                 continue
@@ -214,7 +215,7 @@ class PostgresClient:
                         j.application.break_into_jshell(
                             "DEBUG NOW psycopg2dumpall2hrd")
 
-                if idfound == None:
+                if idfound is None:
                     j.application.break_into_jshell(
                         "DEBUG NOW could not find id for %s in psycopg2dumpall2hrd" % r)
 

@@ -1,4 +1,4 @@
-#TODO: test *2
+# TODO: test *2
 
 import time
 import socket
@@ -85,7 +85,7 @@ class NetTools:
         start = j.data.time.getTimeEpoch()
         now = start
         while now < start + timeout:
-            if j.sal.nettools.tcpPortConnectionTest(ipaddr, port, 1) == False:
+            if j.sal.nettools.tcpPortConnectionTest(ipaddr, port, 1) is False:
                 return True
             now = j.data.time.getTimeEpoch()
         return False
@@ -281,7 +281,8 @@ class NetTools:
         elif j.core.platformtype.myplatform.isWindows():
             import wmi
             w = wmi.WMI()
-            return ["%s:%s" % (ad.index, str(ad.NetConnectionID)) for ad in w.Win32_NetworkAdapter() if ad.PhysicalAdapter and ad.NetEnabled]
+            return ["%s:%s" % (ad.index, str(ad.NetConnectionID))
+                    for ad in w.Win32_NetworkAdapter() if ad.PhysicalAdapter and ad.NetEnabled]
         else:
             raise j.exceptions.RuntimeError("Not supported on this platform!")
 
@@ -359,7 +360,7 @@ class NetTools:
 
     def getVlanTag(self, interface, nicType=None):
         """Get VLan tag on the specified interface and vlan type"""
-        if nicType == None:
+        if nicType is None:
             nicType = j.sal.nettools.getNicType(interface)
         if nicType == "INFINIBAND" or nicType == "ETHERNET_GB" or nicType == "VIRTUAL":
             return "0"
@@ -536,7 +537,7 @@ class NetTools:
             if nic.IPAddress:
                 for x in range(0, len(nic.IPAddress)):
                     # skip IPv6 addresses for now
-                    if re.match(ipv4Pattern, str(nic.IPAddress[x])) != None:
+                    if re.match(ipv4Pattern, str(nic.IPAddress[x])) is not None:
                         result.append([str(nic.IPAddress[x]), str(nic.IPSubnet[x]), ''])
             return result
         else:

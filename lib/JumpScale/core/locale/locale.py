@@ -34,7 +34,7 @@ class Domain:
         return str(self)
 
     def __str__(self):
-        return str(self._value_) if self._value_ != None else self._key_
+        return str(self._value_) if self._value_ is not None else self._key_
 
 
 class Localizer:

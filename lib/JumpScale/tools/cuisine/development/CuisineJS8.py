@@ -18,7 +18,7 @@ class CuisineJS8(base):
 
     def install(self, reset=False, deps=True):
 
-        if reset == False and self.jumpscale_installed():
+        if reset is False and self.jumpscale_installed():
             return
 
         if deps:
@@ -137,6 +137,8 @@ class CuisineJS8(base):
         gspread
         oauth2client
         crontab
+        beautifulsoup4
+        lxml
         """
         self._cuisine.development.pip.multiInstall(C, upgrade=True)
 

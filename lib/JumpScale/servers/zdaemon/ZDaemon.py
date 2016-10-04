@@ -18,7 +18,7 @@ class ZDaemon(GeventLoop):
 
         self.name = name
 
-        if sslkeyvaluestor == None:
+        if sslkeyvaluestor is None:
             sslkeyvaluestor = j.sal.ssl.getSSLHandler(sslkeyvaluestor)
 
         self.daemon = j.servers.base.getDaemon(name="unknown", sslorg="", ssluser="", sslkeyvaluestor=None)
@@ -29,7 +29,7 @@ class ZDaemon(GeventLoop):
 
         self.port = port
 
-        if port == None:
+        if port is None:
             raise j.exceptions.RuntimeError("Port cannot be none")
 
         self.nrCmdGreenlets = nrCmdGreenlets
@@ -90,7 +90,7 @@ class ZDaemon(GeventLoop):
         self.startClock()
 
         print(("start %s on port:%s" % (self.name, self.port)))
-        if mainloop != None:
+        if mainloop is not None:
             mainloop()
         else:
             while True:
@@ -139,7 +139,7 @@ class ZDaemon(GeventLoop):
     #         if i not in self.ports:
     #             found = i
     #             break
-    #     if found == None:
+    #     if found is None:
     #         raise j.exceptions.RuntimeError("Could not find free port")
 
     #     self.schedule("port_%s"%found, method, port=found, **args)

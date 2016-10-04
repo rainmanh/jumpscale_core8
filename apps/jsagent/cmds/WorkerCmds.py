@@ -56,7 +56,7 @@ class WorkerCmds():
 
     # def stopWorkers(self, session=None):
     #     if session<>None:
-    #         self._adminAuth(session.user,session.passwd)        
+    #         self._adminAuth(session.user,session.passwd)
     #     for workername in self.getWorkersWatchdogTime().keys():
     #         self.redis.set("workers:action:%s"%workername,"STOP")
 

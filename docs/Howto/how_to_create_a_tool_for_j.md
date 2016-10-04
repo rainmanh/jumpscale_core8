@@ -41,7 +41,7 @@ class Hello(object):
         return (self.msg + " ")*n + "!!!"
 ```
 
-5- You will need j.core.db.flushall()/j.core.db.flushdb() to force it to reread the tools directory
+5- You will need `j.core.db.flushall()/j.core.db.flushdb()/j.application.reload()` to force it to reread the tools directory
 
 6- Use it
 
@@ -51,7 +51,7 @@ In [4]: h=j.tools.hello
 In [5]: h=j.tools.hello.new("Konnichwa")
 
 In [6]: h.
-h.lower      h.manytimes  h.msg        h.upper      
+h.lower      h.manytimes  h.msg        h.upper
 
 In [6]: h.upper()
 Out[6]: 'KONNICHWA'

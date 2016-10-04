@@ -2,7 +2,6 @@ from JumpScale import j
 from time import sleep
 
 
-
 app = j.tools.cuisine._getBaseAppClass()
 
 
@@ -15,7 +14,7 @@ class CuisineVolumeDriver(app):
         self.logger = j.logger.get("j.tools.cuisine.volumedriver")
 
     def build(self, reset=False):
-        if reset == False and self.isInstalled():
+        if reset is False and self.isInstalled():
             return
         self._install_deps()
         self._build()
@@ -23,7 +22,8 @@ class CuisineVolumeDriver(app):
     def _install_deps(self):
         self._cuisine.core.file_write('/etc/apt/sources.list.d/ovsaptrepo.list',
                                       'deb http://apt.openvstorage.org unstable main')
-        self._cuisine.core.run('echo "deb http://us.archive.ubuntu.com/ubuntu xenial main universe" >> /etc/apt/sources.list')
+        self._cuisine.core.run(
+            'echo "deb http://us.archive.ubuntu.com/ubuntu xenial main universe" >> /etc/apt/sources.list')
         self._cuisine.package.update()
         self._cuisine.package.upgrade(distupgrade=True)
 

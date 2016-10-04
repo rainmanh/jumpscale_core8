@@ -24,14 +24,13 @@ class JobController:
 
     @property
     def queue(self):
-        if self._queue == None:
+        if self._queue is None:
             self._queue = self.db._db.getQueue('workers')
         return self._queue
 
     def startWorkers(self, nrworkers=8):
 
-        paneNames = [pane.name for pane in self.tmux.panes]
-        paneNames.sort()
+        paneNames = sorted([pane.name for pane in self.tmux.panes])
         for i in range(nrworkers):
             name = paneNames[i]
             pane = self.tmux.getPane(name)
@@ -60,7 +59,7 @@ class JobController:
         abort means jobs will stay in db but state will be set
         """
         job = self.queue.get_nowait()
-        while job != None:
+        while job is not None:
             job.state = "abort"
             job = self.queue.get_nowait()
 
@@ -69,6 +68,6 @@ class JobController:
         will empty queue & remove all jobs
         """
         job = self.queue.get_nowait()
-        while job != None:
+        while job is not None:
             self.db.delete(job.dbobj.key)
             job = self.queue.get_nowait()

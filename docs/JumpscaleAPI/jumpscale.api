@@ -1170,7 +1170,7 @@ j.core.platformtype.myplatform.executor.cuisine.core.file_sha256?4([- location
 j.core.platformtype.myplatform.executor.cuisine.core.file_unlink?4([- path
 ])
 j.core.platformtype.myplatform.executor.cuisine.core.file_update?4([- location
-, - updater = <function CuisineCore.<lambda> at 0x7f41e102d268>
+, - updater = <function CuisineCore.<lambda> at 0x7fb1dc85f048>
 ])
 j.core.platformtype.myplatform.executor.cuisine.core.file_upload_binary?4([- local
 , - remote
@@ -5735,7 +5735,6976 @@ j.tools.cuisine.local.core.file_sha256?4([- location
 j.tools.cuisine.local.core.file_unlink?4([- path
 ])
 j.tools.cuisine.local.core.file_update?4([- location
-, - updater = <function CuisineCore.<lambda> at 0x7f41e102d268>
+, - updater = <function CuisineCore.<lambda> at 0x7fb1dc85f048>
+])
+j.tools.cuisine.local.core.file_upload_binary?4([- local
+, - remote
+])
+j.tools.cuisine.local.core.file_upload_local?4([- local
+, - remote
+])
+j.tools.cuisine.local.core.file_write?4([- location
+, - content
+, - mode
+, - owner
+, - group
+, - check = False
+, - sudo = False
+, - replaceArgs = False
+, - strip = True
+, - showout = True
+, - append = False
+])
+j.tools.cuisine.local.core.fs_find?4([- path
+, - recursive = True
+, - pattern = ''
+, - findstatement = ''
+, - type = ''
+, - contentsearch = ''
+, - extendinfo = False
+])
+j.tools.cuisine.local.core.getenv?4([- refresh = False
+])
+j.tools.cuisine.local.core.hostfile?8
+j.tools.cuisine.local.core.hostname?8
+j.tools.cuisine.local.core.isArch?8
+j.tools.cuisine.local.core.isCygwin?8
+j.tools.cuisine.local.core.isDocker?8
+j.tools.cuisine.local.core.isJS8Sandbox?8
+j.tools.cuisine.local.core.isLxc?8
+j.tools.cuisine.local.core.isMac?8
+j.tools.cuisine.local.core.isUbuntu?8
+j.tools.cuisine.local.core.joinpaths?4([- *args
+])
+j.tools.cuisine.local.core.locale_check?4([- locale
+])
+j.tools.cuisine.local.core.locale_ensure?4([- locale
+])
+j.tools.cuisine.local.core.logger?8
+j.tools.cuisine.local.core.ns?8
+j.tools.cuisine.local.core.ns.hostfile_get?4([])
+j.tools.cuisine.local.core.ns.hostfile_set?4([- name
+, - ipaddr
+])
+j.tools.cuisine.local.core.ns.hostfile_set_fromlocal?4([])
+j.tools.cuisine.local.core.ns.hostfile_set_multiple?4([- names = []
+, - remove = []
+])
+j.tools.cuisine.local.core.ns.nameservers?8
+j.tools.cuisine.local.core.pprint?4([- text
+, - lexer = 'bash'
+])
+j.tools.cuisine.local.core.pwd?4([])
+j.tools.cuisine.local.core.run?4([- cmd
+, - die = True
+, - debug
+, - checkok = False
+, - showout = True
+, - profile = False
+, - replaceArgs = True
+, - shell = False
+])
+j.tools.cuisine.local.core.setIDs?4([- name
+, - grid
+, - domain = 'aydo.com'
+])
+j.tools.cuisine.local.core.set_sudomode?4([])
+j.tools.cuisine.local.core.shell_safe?4([- path
+])
+j.tools.cuisine.local.core.sudo?4([- cmd
+, - die = True
+, - showout = True
+])
+j.tools.cuisine.local.core.sudo_cmd?4([- command
+])
+j.tools.cuisine.local.core.sudomode?8
+j.tools.cuisine.local.core.system_uuid?4([])
+j.tools.cuisine.local.core.system_uuid_alias_add?4([])
+j.tools.cuisine.local.core.touch?4([- path
+])
+j.tools.cuisine.local.core.upload?4([- source
+, - dest = ''
+])
+j.tools.cuisine.local.core.upload_from_local?4([- local
+, - remote
+])
+j.tools.cuisine.local.development?8
+j.tools.cuisine.local.development.git?8
+j.tools.cuisine.local.development.git.pullRepo?4([- url
+, - dest
+, - login
+, - passwd
+, - depth = 1
+, - ignorelocalchanges = True
+, - reset = False
+, - branch
+, - revision
+, - ssh = 'first'
+])
+j.tools.cuisine.local.development.golang?8
+j.tools.cuisine.local.development.golang.GOPATH?7
+j.tools.cuisine.local.development.golang.NAME?7
+j.tools.cuisine.local.development.golang.VERSION?7
+j.tools.cuisine.local.development.golang.clean_src_path?4([])
+j.tools.cuisine.local.development.golang.get?4([- url
+])
+j.tools.cuisine.local.development.golang.godep?4([- url
+, - branch
+, - depth = 1
+])
+j.tools.cuisine.local.development.golang.goraml?4([])
+j.tools.cuisine.local.development.golang.install?4([- reset = False
+])
+j.tools.cuisine.local.development.golang.isInstalled?4([])
+j.tools.cuisine.local.development.js8?8
+j.tools.cuisine.local.development.js8.install?4([- reset = False
+, - deps = True
+])
+j.tools.cuisine.local.development.js8.installDeps?4([])
+j.tools.cuisine.local.development.js8.jumpscale_installed?4([- die = False
+])
+j.tools.cuisine.local.development.lua?8
+j.tools.cuisine.local.development.lua.NAME?7
+j.tools.cuisine.local.development.lua.VERSION?7
+j.tools.cuisine.local.development.lua.install?4([])
+j.tools.cuisine.local.development.lua.installLua51?4([])
+j.tools.cuisine.local.development.lua.installLuaTarantool?4([- reset = False
+])
+j.tools.cuisine.local.development.lua.isInstalled?4([])
+j.tools.cuisine.local.development.lua.package?4([- name
+])
+j.tools.cuisine.local.development.pip?8
+j.tools.cuisine.local.development.pip.ensure?4([])
+j.tools.cuisine.local.development.pip.install?4([- package
+, - upgrade = False
+])
+j.tools.cuisine.local.development.pip.multiInstall?4([- packagelist
+, - upgrade = False
+])
+j.tools.cuisine.local.development.pip.packageRemove?4([- package
+])
+j.tools.cuisine.local.development.pip.packageUpgrade?4([- package
+])
+j.tools.cuisine.local.development.python?8
+j.tools.cuisine.local.development.python.install?4([])
+j.tools.cuisine.local.examples?8
+j.tools.cuisine.local.examples.examplemongocluster?8
+j.tools.cuisine.local.examples.examplemongocluster.install?4([- pubkey
+])
+j.tools.cuisine.local.group?8
+j.tools.cuisine.local.group.check?4([- name
+])
+j.tools.cuisine.local.group.create?4([- name
+, - gid
+])
+j.tools.cuisine.local.group.ensure?4([- name
+, - gid
+])
+j.tools.cuisine.local.group.remove?4([- group
+, - wipe = False
+])
+j.tools.cuisine.local.group.user_add?4([- group
+, - user
+])
+j.tools.cuisine.local.group.user_check?4([- group
+, - user
+])
+j.tools.cuisine.local.group.user_del?4([- group
+, - user
+])
+j.tools.cuisine.local.group.user_ensure?4([- group
+, - user
+])
+j.tools.cuisine.local.id?8
+j.tools.cuisine.local.net?8
+j.tools.cuisine.local.net.defaultgw?8
+j.tools.cuisine.local.net.defaultgwInterface?8
+j.tools.cuisine.local.net.findNodesSSH?4([- range
+, - ips = []
+])
+j.tools.cuisine.local.net.getInfo?4([- device
+])
+j.tools.cuisine.local.net.getNetObject?4([- device
+])
+j.tools.cuisine.local.net.getNetRange?4([- device
+, - skipBegin = 10
+, - skipEnd = 10
+])
+j.tools.cuisine.local.net.ips?8
+j.tools.cuisine.local.net.netconfig?4([- interface
+, - ipaddr
+, - cidr = 24
+, - gateway
+, - dns = '8.8.8.8'
+, - masquerading = False
+])
+j.tools.cuisine.local.net.nics?8
+j.tools.cuisine.local.net.ping?4([- host
+])
+j.tools.cuisine.local.net.setInterfaceFile?4([- ifacefile
+, - pinghost = 'www.google.com'
+])
+j.tools.cuisine.local.net.wirelessLanInterfaces?8
+j.tools.cuisine.local.ns?8
+j.tools.cuisine.local.package?8
+j.tools.cuisine.local.package.clean?4([- package
+, - agressive = False
+])
+j.tools.cuisine.local.package.ensure?4([- package
+, - update = False
+])
+j.tools.cuisine.local.package.install?4([- package
+, - allow_unauthenticated = False
+])
+j.tools.cuisine.local.package.logger?8
+j.tools.cuisine.local.package.mdupdate?4([])
+j.tools.cuisine.local.package.multiInstall?4([- packagelist
+, - allow_unauthenticated = False
+])
+j.tools.cuisine.local.package.remove?4([- package
+, - autoclean = False
+])
+j.tools.cuisine.local.package.start?4([- package
+])
+j.tools.cuisine.local.package.update?4([- package
+])
+j.tools.cuisine.local.package.upgrade?4([- distupgrade = False
+])
+j.tools.cuisine.local.platformtype?8
+j.tools.cuisine.local.platformtype.cache?8
+j.tools.cuisine.local.platformtype.checkMatch?4([- match
+])
+j.tools.cuisine.local.platformtype.dieIfNotPlatform?4([- platform
+])
+j.tools.cuisine.local.platformtype.executor?8
+j.tools.cuisine.local.platformtype.executor.addr?8
+j.tools.cuisine.local.platformtype.executor.checkok?8
+j.tools.cuisine.local.platformtype.executor.checkplatform?4([- name
+])
+j.tools.cuisine.local.platformtype.executor.cuisine?8
+j.tools.cuisine.local.platformtype.executor.curpath?8
+j.tools.cuisine.local.platformtype.executor.debug?8
+j.tools.cuisine.local.platformtype.executor.dest_prefixes?8
+j.tools.cuisine.local.platformtype.executor.docheckok?4([- cmd
+, - out
+])
+j.tools.cuisine.local.platformtype.executor.download?4([- source
+, - dest
+, - source_prefix = ''
+])
+j.tools.cuisine.local.platformtype.executor.env?8
+j.tools.cuisine.local.platformtype.executor.execute?4([- cmds
+, - die = True
+, - checkok
+, - async = False
+, - showout = True
+, - outputStderr = False
+, - timeout = 0
+, - env = {}
+])
+j.tools.cuisine.local.platformtype.executor.executeInteractive?4([- cmds
+, - die = True
+, - checkok
+])
+j.tools.cuisine.local.platformtype.executor.executeRaw?4([- cmd
+, - die = True
+, - showout = False
+])
+j.tools.cuisine.local.platformtype.executor.exists?4([- path
+])
+j.tools.cuisine.local.platformtype.executor.id?8
+j.tools.cuisine.local.platformtype.executor.init?4([])
+j.tools.cuisine.local.platformtype.executor.jumpscale?8
+j.tools.cuisine.local.platformtype.executor.logger?8
+j.tools.cuisine.local.platformtype.executor.platformtype?8
+j.tools.cuisine.local.platformtype.executor.type?8
+j.tools.cuisine.local.platformtype.executor.upload?4([- source
+, - dest
+, - dest_prefix = ''
+, - recursive = True
+])
+j.tools.cuisine.local.platformtype.has_parent?4([- name
+])
+j.tools.cuisine.local.platformtype.hostname?8
+j.tools.cuisine.local.platformtype.is32bit?8
+j.tools.cuisine.local.platformtype.is64bit?8
+j.tools.cuisine.local.platformtype.isGeneric?4([])
+j.tools.cuisine.local.platformtype.isHyperV?4([])
+j.tools.cuisine.local.platformtype.isLinux?4([])
+j.tools.cuisine.local.platformtype.isUnix?4([])
+j.tools.cuisine.local.platformtype.isVirtualBox?4([])
+j.tools.cuisine.local.platformtype.isWindows?4([])
+j.tools.cuisine.local.platformtype.isXen?4([])
+j.tools.cuisine.local.platformtype.myplatform?8
+j.tools.cuisine.local.platformtype.osname?8
+j.tools.cuisine.local.platformtype.osversion?8
+j.tools.cuisine.local.platformtype.platformtypes?8
+j.tools.cuisine.local.platformtype.uname?8
+j.tools.cuisine.local.pnode?8
+j.tools.cuisine.local.pnode.buildArchImage?4([])
+j.tools.cuisine.local.pnode.buildG8OSImage?4([])
+j.tools.cuisine.local.pnode.defaultArch?8
+j.tools.cuisine.local.pnode.erase?4([- keepRoot = True
+])
+j.tools.cuisine.local.pnode.exportRoot?4([- source = '/'
+, - destination = '/image.tar.gz'
+, - excludes = ['\\.pyc', '__pycache__']
+])
+j.tools.cuisine.local.pnode.exportRootStor?4([- storspace
+, - plistname
+, - source = '/'
+, - excludes = ['\\.pyc', '__pycache__']
+, - removetmpdir = True
+])
+j.tools.cuisine.local.pnode.formatStorage?4([- keepRoot = True
+, - mountpoint = '/storage'
+])
+j.tools.cuisine.local.pnode.hwplatform?8
+j.tools.cuisine.local.pnode.importRoot?4([- source = '/image.tar.gz'
+, - destination = '/'
+])
+j.tools.cuisine.local.pnode.installArch?4([- rootsize = 5
+])
+j.tools.cuisine.local.pnode.installG8OS?4([- rootsize = 5
+])
+j.tools.cuisine.local.process?8
+j.tools.cuisine.local.process.find?4([- name
+, - exact = False
+])
+j.tools.cuisine.local.process.info_get?4([- prefix = ''
+])
+j.tools.cuisine.local.process.kill?4([- name
+, - signal = 9
+, - exact = False
+])
+j.tools.cuisine.local.process.tcpport_check?4([- port
+, - prefix = ''
+])
+j.tools.cuisine.local.processmanager?8
+j.tools.cuisine.local.processmanager.ensure?4([- name
+, - cmd
+, - env = {}
+, - path = ''
+, - descr = ''
+, - systemdunit = ''
+, - **kwargs
+])
+j.tools.cuisine.local.processmanager.exists?4([- name
+])
+j.tools.cuisine.local.processmanager.get?4([- pm
+])
+j.tools.cuisine.local.processmanager.list?4([- prefix = ''
+])
+j.tools.cuisine.local.processmanager.logger?8
+j.tools.cuisine.local.processmanager.reload?4([])
+j.tools.cuisine.local.processmanager.remove?4([- prefix
+])
+j.tools.cuisine.local.processmanager.restart?4([])
+j.tools.cuisine.local.processmanager.start?4([- name
+])
+j.tools.cuisine.local.processmanager.stop?4([- name
+])
+j.tools.cuisine.local.solutions?8
+j.tools.cuisine.local.solutions.cockpit?8
+j.tools.cuisine.local.solutions.cockpit.create_config?4([- bot_token
+, - jwt_key
+, - organization
+, - client_secret
+, - client_id
+, - redirect_uri
+, - itsyouonlinehost = 'https://itsyou.online'
+])
+j.tools.cuisine.local.solutions.cockpit.install?4([- start = True
+, - bot_token = ''
+, - jwt_key = ''
+, - organization = ''
+, - client_secret = ''
+, - client_id = ''
+, - redirect_uri = ''
+, - itsyouonlinehost = 'https://itsyou.online'
+, - grafana_scriptedagent = True
+])
+j.tools.cuisine.local.solutions.cockpit.install_deps?4([])
+j.tools.cuisine.local.solutions.cockpit.link_code?4([- grafana_scriptedagent = True
+])
+j.tools.cuisine.local.solutions.cockpit.start?4([- bot_token = ''
+, - jwt_key = ''
+, - organization = ''
+, - client_secret = ''
+, - client_id = ''
+, - redirect_uri = ''
+, - itsyouonlinehost = 'https://itsyou.online'
+])
+j.tools.cuisine.local.solutions.mongocluster?8
+j.tools.cuisine.local.solutions.mongocluster.createCluster?4([- executors
+, - numbers
+])
+j.tools.cuisine.local.solutions.mongocluster.cuisine?8
+j.tools.cuisine.local.solutions.mongocluster.mongoCluster?4([- shards_nodes
+, - config_nodes
+, - mongos_nodes
+, - shards_replica_set_counts = 1
+])
+j.tools.cuisine.local.solutions.proxyclassic?8
+j.tools.cuisine.local.solutions.proxyclassic.configureClient?4([- addr = ''
+, - port = 8123
+])
+j.tools.cuisine.local.solutions.proxyclassic.installCacheProxy?4([- storagemntpoint = '/storage'
+, - btrfs = False
+])
+j.tools.cuisine.local.solutions.proxyclassic.installFilterProxy?4([- port = 8124
+, - forward = True
+])
+j.tools.cuisine.local.solutions.proxyclassic.removeFromSystemD?4([])
+j.tools.cuisine.local.solutions.proxyclassic.start?4([])
+j.tools.cuisine.local.solutions.vrouter?8
+j.tools.cuisine.local.solutions.vrouter.accesspoint?4([- sid = 'internet'
+, - passphrase = 'helloworld'
+])
+j.tools.cuisine.local.solutions.vrouter.bridge?4([])
+j.tools.cuisine.local.solutions.vrouter.check?4([])
+j.tools.cuisine.local.solutions.vrouter.cuisine?8
+j.tools.cuisine.local.solutions.vrouter.defgwInterface?8
+j.tools.cuisine.local.solutions.vrouter.dhcpServer?4([- interfaces = []
+])
+j.tools.cuisine.local.solutions.vrouter.dnsServer?4([])
+j.tools.cuisine.local.solutions.vrouter.firewall?4([])
+j.tools.cuisine.local.solutions.vrouter.freeNetworkRangeDMZ?8
+j.tools.cuisine.local.solutions.vrouter.hostap?4([])
+j.tools.cuisine.local.solutions.vrouter.prepare?4([])
+j.tools.cuisine.local.solutions.vrouter.proxy?4([])
+j.tools.cuisine.local.solutions.vrouter.runSolution?4([])
+j.tools.cuisine.local.solutions.vrouter.wirelessInterfaceNonDefGW?8
+j.tools.cuisine.local.ssh?8
+j.tools.cuisine.local.ssh.authorize?4([- user
+, - key
+])
+j.tools.cuisine.local.ssh.enableAccess?4([- keys
+, - backdoorpasswd
+, - backdoorlogin = 'backdoor'
+, - user = 'root'
+])
+j.tools.cuisine.local.ssh.keygen?4([- user = 'root'
+, - keytype = 'rsa'
+, - name = 'default'
+])
+j.tools.cuisine.local.ssh.scan?4([- range
+, - ips = {}
+, - port = 22
+])
+j.tools.cuisine.local.ssh.sshagent_add?4([- path
+, - removeFirst = True
+])
+j.tools.cuisine.local.ssh.sshagent_remove?4([- path
+])
+j.tools.cuisine.local.ssh.test_login?4([- passwd
+, - port = 22
+, - range
+, - onlyplatform = 'arch'
+])
+j.tools.cuisine.local.ssh.test_login_pushkey?4([- passwd
+, - keyname
+, - port = 22
+, - range
+, - changepasswdto = ''
+, - onlyplatform = 'arch'
+])
+j.tools.cuisine.local.ssh.unauthorize?4([- user
+, - key
+])
+j.tools.cuisine.local.ssh.unauthorizeAll?4([])
+j.tools.cuisine.local.systemservices?8
+j.tools.cuisine.local.systemservices.aydostor?8
+j.tools.cuisine.local.systemservices.aydostor.NAME?7
+j.tools.cuisine.local.systemservices.aydostor.VERSION?7
+j.tools.cuisine.local.systemservices.aydostor.build?4([- addr = '0.0.0.0:8090'
+, - backend = '$varDir/aydostor'
+, - start = True
+, - install = True
+, - reset = False
+])
+j.tools.cuisine.local.systemservices.aydostor.install?4([- addr = '0.0.0.0:8090'
+, - backend = '$varDir/aydostor'
+, - start = True
+])
+j.tools.cuisine.local.systemservices.aydostor.isInstalled?4([])
+j.tools.cuisine.local.systemservices.aydostor.start?4([- addr
+])
+j.tools.cuisine.local.systemservices.base?8
+j.tools.cuisine.local.systemservices.base.cuisine?8
+j.tools.cuisine.local.systemservices.base.install?4([])
+j.tools.cuisine.local.systemservices.docker?8
+j.tools.cuisine.local.systemservices.docker.NAME?7
+j.tools.cuisine.local.systemservices.docker.VERSION?7
+j.tools.cuisine.local.systemservices.docker.dockerStart?4([- name = 'ubuntu1'
+, - image = 'jumpscale/ubuntu1604_all'
+, - ports = ''
+, - volumes
+, - pubkey
+, - weave = False
+])
+j.tools.cuisine.local.systemservices.docker.getDocker?4([- name
+])
+j.tools.cuisine.local.systemservices.docker.install?4([- reset = False
+])
+j.tools.cuisine.local.systemservices.docker.isInstalled?4([])
+j.tools.cuisine.local.systemservices.docker.resetPasswd?4([- dockerCuisineObject
+])
+j.tools.cuisine.local.systemservices.docker.ubuntuBuild?4([- push = False
+])
+j.tools.cuisine.local.systemservices.fw?8
+j.tools.cuisine.local.systemservices.fw.allowIncoming?4([- port
+, - protocol = 'tcp'
+])
+j.tools.cuisine.local.systemservices.fw.denyIncoming?4([- port
+])
+j.tools.cuisine.local.systemservices.fw.flush?4([- permanent = False
+])
+j.tools.cuisine.local.systemservices.fw.fw_type?8
+j.tools.cuisine.local.systemservices.fw.getRuleset?4([])
+j.tools.cuisine.local.systemservices.fw.setRuleset?4([- ruleset
+, - pinghost = '8.8.8.8'
+])
+j.tools.cuisine.local.systemservices.fw.show?4([])
+j.tools.cuisine.local.systemservices.g8oscore?8
+j.tools.cuisine.local.systemservices.g8oscore.NAME?7
+j.tools.cuisine.local.systemservices.g8oscore.VERSION?7
+j.tools.cuisine.local.systemservices.g8oscore.build?4([- start = True
+, - gid
+, - nid
+, - install = True
+])
+j.tools.cuisine.local.systemservices.g8oscore.install?4([- start = True
+, - gid
+, - nid
+])
+j.tools.cuisine.local.systemservices.g8oscore.isInstalled?4([])
+j.tools.cuisine.local.systemservices.g8oscore.start?4([- gid
+, - nid
+, - controller_url = 'http://127.0.0.1:8966'
+])
+j.tools.cuisine.local.systemservices.g8osfs?8
+j.tools.cuisine.local.systemservices.g8osfs.NAME?7
+j.tools.cuisine.local.systemservices.g8osfs.VERSION?7
+j.tools.cuisine.local.systemservices.g8osfs.build?4([- start = False
+, - install = True
+])
+j.tools.cuisine.local.systemservices.g8osfs.cuisine?8
+j.tools.cuisine.local.systemservices.g8osfs.install?4([- start = False
+])
+j.tools.cuisine.local.systemservices.g8osfs.isInstalled?4([])
+j.tools.cuisine.local.systemservices.g8osfs.start?4([])
+j.tools.cuisine.local.systemservices.js8_g8os?8
+j.tools.cuisine.local.systemservices.js8_g8os.base?4([])
+j.tools.cuisine.local.systemservices.js8_g8os.cuisine?8
+j.tools.cuisine.local.systemservices.js8_g8os.jumpscale8?4([- rw = False
+, - reset = False
+])
+j.tools.cuisine.local.systemservices.js8_g8os.jumpscale_installed?4([- die = False
+])
+j.tools.cuisine.local.systemservices.kvm?8
+j.tools.cuisine.local.systemservices.kvm.diskGetPath?4([- name
+])
+j.tools.cuisine.local.systemservices.kvm.install?4([])
+j.tools.cuisine.local.systemservices.kvm.machineCreate?4([- name
+, - disks
+, - nics
+, - mem
+, - pubkey
+])
+j.tools.cuisine.local.systemservices.kvm.prepare?4([])
+j.tools.cuisine.local.systemservices.kvm.vdiskBootCreate?4([- name
+, - image = 'http://fs.aydo.com/kvm/ub_small.img'
+])
+j.tools.cuisine.local.systemservices.kvm.vdiskCreate?4([- name
+, - size = 100
+])
+j.tools.cuisine.local.systemservices.kvm.vdiskDelete?4([- name
+])
+j.tools.cuisine.local.systemservices.kvm.vdiskQOS?4([- name
+, - **kwargs
+])
+j.tools.cuisine.local.systemservices.kvm.vdisksList?4([])
+j.tools.cuisine.local.systemservices.kvm.vmGetPath?4([- name
+])
+j.tools.cuisine.local.systemservices.kvm.vnicCreate?4([- name
+])
+j.tools.cuisine.local.systemservices.kvm.vnicDelete?4([- name
+])
+j.tools.cuisine.local.systemservices.kvm.vnicQOS?4([- name
+, - **kwargs
+])
+j.tools.cuisine.local.systemservices.kvm.vnicsList?4([- **kwargs
+])
+j.tools.cuisine.local.systemservices.openvswitch?8
+j.tools.cuisine.local.systemservices.openvswitch.cuisine?8
+j.tools.cuisine.local.systemservices.openvswitch.install?4([])
+j.tools.cuisine.local.systemservices.openvswitch.prepare?4([])
+j.tools.cuisine.local.systemservices.openvswitch.vnicCreate?4([- name
+])
+j.tools.cuisine.local.systemservices.openvswitch.vnicDelete?4([- **kwargs
+])
+j.tools.cuisine.local.systemservices.openvswitch.vnicQOS?4([- **kwargs
+])
+j.tools.cuisine.local.systemservices.ufw?8
+j.tools.cuisine.local.systemservices.ufw.allowIncoming?4([- port
+, - protocol = 'tcp'
+])
+j.tools.cuisine.local.systemservices.ufw.denyIncoming?4([- port
+])
+j.tools.cuisine.local.systemservices.ufw.flush?4([])
+j.tools.cuisine.local.systemservices.ufw.show?4([])
+j.tools.cuisine.local.systemservices.ufw.ufw_enable?4([])
+j.tools.cuisine.local.systemservices.ufw.ufw_enabled?8
+j.tools.cuisine.local.systemservices.ufw.ufw_rules_allow?8
+j.tools.cuisine.local.systemservices.ufw.ufw_rules_deny?8
+j.tools.cuisine.local.systemservices.weave?8
+j.tools.cuisine.local.systemservices.weave.NAME?7
+j.tools.cuisine.local.systemservices.weave.VERSION?7
+j.tools.cuisine.local.systemservices.weave.install?4([- start = True
+, - peer
+, - jumpscalePath = True
+, - reset = False
+])
+j.tools.cuisine.local.systemservices.weave.isInstalled?4([])
+j.tools.cuisine.local.systemservices.weave.start?4([- peer
+])
+j.tools.cuisine.local.testscripts?8
+j.tools.cuisine.local.tmux?8
+j.tools.cuisine.local.tmux.attachSession?4([- sessionname
+, - windowname
+, - user
+])
+j.tools.cuisine.local.tmux.configure?4([- restartTmux = False
+, - xonsh = False
+])
+j.tools.cuisine.local.tmux.createSession?4([- sessionname
+, - screens
+, - user
+, - killifexists = True
+, - returnifexists = True
+])
+j.tools.cuisine.local.tmux.createWindow?4([- session
+, - name
+, - user
+, - cmd
+])
+j.tools.cuisine.local.tmux.executeInScreen?4([- sessionname
+, - screenname
+, - cmd
+, - wait = 10
+, - cwd
+, - env
+, - user = 'root'
+, - tmuxuser
+, - reset = False
+, - replaceArgs = True
+, - resetAfter = False
+, - die = True
+, - async = False
+])
+j.tools.cuisine.local.tmux.getPid?4([- session
+, - name
+, - user
+])
+j.tools.cuisine.local.tmux.getSessions?4([- user
+])
+j.tools.cuisine.local.tmux.getWindows?4([- session
+, - attemps = 5
+, - user
+])
+j.tools.cuisine.local.tmux.killSession?4([- sessionname
+, - user
+])
+j.tools.cuisine.local.tmux.killSessions?4([- user
+])
+j.tools.cuisine.local.tmux.killWindow?4([- session
+, - name
+, - user
+])
+j.tools.cuisine.local.tmux.logWindow?4([- session
+, - name
+, - filename
+, - user
+])
+j.tools.cuisine.local.tmux.windowExists?4([- session
+, - name
+, - user
+])
+j.tools.cuisine.local.tools?8
+j.tools.cuisine.local.tools.bootmediainstaller?8
+j.tools.cuisine.local.tools.bootmediainstaller.arch?4([- platform = 'rpi_2b'
+, - deviceid
+])
+j.tools.cuisine.local.tools.bootmediainstaller.debian?4([- platform = 'orangepi_plus'
+, - deviceid
+])
+j.tools.cuisine.local.tools.bootmediainstaller.formatCardDeployImage?4([- url
+, - deviceid
+, - part_type = 'msdos'
+, - post_install
+])
+j.tools.cuisine.local.tools.bootmediainstaller.g8os?4([- gid
+, - nid
+, - platform = 'amd64'
+, - deviceid
+, - url
+])
+j.tools.cuisine.local.tools.bootmediainstaller.g8os_arm?4([- url
+, - gid
+, - nid
+, - deviceid
+])
+j.tools.cuisine.local.tools.bootmediainstaller.ubuntu?4([- platform = 'amd64'
+, - deviceid
+])
+j.tools.cuisine.local.tools.sandbox?8
+j.tools.cuisine.local.tools.sandbox.cleanup?4([- aggressive = False
+])
+j.tools.cuisine.local.tools.sandbox.do?4([- destination = '/out'
+, - reset = False
+])
+j.tools.cuisine.local.tools.sshreflector?8
+j.tools.cuisine.local.tools.sshreflector.client?4([- remoteids
+, - reset = True
+])
+j.tools.cuisine.local.tools.sshreflector.client_delete?4([])
+j.tools.cuisine.local.tools.sshreflector.createconnection?4([- remoteids
+])
+j.tools.cuisine.local.tools.sshreflector.server?4([- reset = False
+, - keyname = 'reflector'
+])
+j.tools.cuisine.local.tools.stor?8
+j.tools.cuisine.local.tools.stor.config?8
+j.tools.cuisine.local.tools.stor.enableServerHTTP?4([])
+j.tools.cuisine.local.tools.stor.enableServerRSYNC?4([])
+j.tools.cuisine.local.tools.stor.existsStorageSpace?4([- name
+])
+j.tools.cuisine.local.tools.stor.getStorageSpace?4([- name
+])
+j.tools.cuisine.local.tools.stor.help?4([])
+j.tools.cuisine.local.tools.stor.removeStorageSpace?4([- name
+])
+j.tools.cuisine.local.tools.stor.restart?4([])
+j.tools.cuisine.local.tools.stor.root?8
+j.tools.cuisine.local.tools.stor.scripts?8
+j.tools.cuisine.local.tools.stor.scripts.check?4([- root
+, - keys
+])
+j.tools.cuisine.local.tools.stor.scripts.exists?4([- root
+, - keys
+])
+j.tools.cuisine.local.tools.stor.scripts.getMetadata?4([- root
+, - keys
+])
+j.tools.cuisine.local.tools.stor.scripts.initTree?4([- root
+])
+j.tools.cuisine.local.tools.stor.scripts.setMetadata?4([- root
+, - keys
+, - metadata
+])
+j.tools.cuisine.local.tools.stor.scripts.tarball?4([- root
+, - keys
+, - target
+])
+j.tools.cuisine.local.tools.stor.start?4([])
+j.tools.cuisine.local.tools.stor.storagespaces?8
+j.tools.cuisine.local.user?8
+j.tools.cuisine.local.user.check?4([- name
+, - uid
+, - need_passwd = True
+])
+j.tools.cuisine.local.user.create?4([- name
+, - passwd
+, - home
+, - uid
+, - gid
+, - shell
+, - uid_min
+, - uid_max
+, - encrypted_passwd = True
+, - fullname
+, - createhome = True
+])
+j.tools.cuisine.local.user.ensure?4([- name
+, - passwd
+, - home
+, - uid
+, - gid
+, - shell
+, - fullname
+, - encrypted_passwd = True
+, - group
+])
+j.tools.cuisine.local.user.list?4([])
+j.tools.cuisine.local.user.passwd?4([- name
+, - passwd
+, - encrypted_passwd = False
+])
+j.tools.cuisine.local.user.remove?4([- name
+, - rmhome
+])
+j.tools.cuisine.logger?8
+j.tools.cuisine.reset?4([- cuisine
+])
+j.tools.develop?8
+j.tools.develop.help?4([])
+j.tools.develop.init?4([- nodes = []
+])
+j.tools.develop.monitorChanges?4([- sync = True
+, - reset = False
+])
+j.tools.develop.nodes?8
+j.tools.develop.resetState?4([])
+j.tools.develop.syncCode?4([- ask = False
+, - monitor = False
+, - rsyncdelete = True
+, - reset = False
+])
+j.tools.docgenerator?8
+j.tools.docgenerator.get?4([- source = ''
+, - pdfpath = ''
+, - macrosPath = ''
+])
+j.tools.email?8
+j.tools.email.getDefaultSender?4([])
+j.tools.email.getLast?4([- num = 100
+])
+j.tools.email.getSender?4([- username
+, - password
+, - host = 'smtp.mandrillapp.com'
+, - port = 587
+])
+j.tools.email.pop?4([])
+j.tools.executor?8
+j.tools.executor.get?4([- executor = 'localhost'
+])
+j.tools.executor.getJSAgentBased?4([- agentControllerClientKey
+, - debug = False
+, - checkok = False
+])
+j.tools.executor.getLocal?4([- jumpscale = False
+, - debug = False
+, - checkok = False
+])
+j.tools.executor.getSSHBased?4([- addr = 'localhost'
+, - port = 22
+, - login = 'root'
+, - passwd
+, - debug = False
+, - allow_agent = True
+, - look_for_keys = True
+, - timeout = 5
+, - usecache = True
+, - passphrase
+])
+j.tools.executor.pushkey?4([- addr
+, - passwd
+, - keyname = ''
+, - pubkey = ''
+, - port = 22
+, - login = 'root'
+])
+j.tools.executor.reset?4([- executor
+])
+j.tools.golang?8
+j.tools.golang.build?4([- url
+])
+j.tools.golang.check?4([])
+j.tools.golang.init?4([])
+j.tools.imagelib?8
+j.tools.imagelib.imageObjectGet?4([- path
+])
+j.tools.imagelib.resize?4([- path
+, - pathnew
+, - width = 1024
+, - overwrite = True
+])
+j.tools.imagelib.resize2subdir1024x?4([- path
+, - overwrite = True
+])
+j.tools.imagelib.resize2subdir1600x?4([- path
+, - overwrite = True
+])
+j.tools.imagelib.resizeFullDir2subdir1024?4([- path
+])
+j.tools.inifile?8
+j.tools.inifile.new?4([- filename
+])
+j.tools.inifile.open?4([- filename
+, - createIfNonExisting = True
+])
+j.tools.js8stub?8
+j.tools.js8stub.generateStub?4([- pickledfile = ''
+, - dest = '/tmp/jscompl.py'
+])
+j.tools.js8stub.generate_class?4([- info
+, - level
+])
+j.tools.js8stub.generate_field?4([- info
+, - level
+])
+j.tools.js8stub.generate_fields_for?4([- objpath
+, - level = 0
+])
+j.tools.js8stub.generate_innerclass?4([- info
+, - level
+])
+j.tools.js8stub.generate_method?4([- info
+, - level
+])
+j.tools.js8stub.loaded?8
+j.tools.markdown?8
+j.tools.markdown.installTools?4([])
+j.tools.markdown.tidy?4([- path = ''
+])
+j.tools.numtools?8
+j.tools.numtools.collapseDictOfArraysOfFloats?4([- dictOfArrays
+])
+j.tools.numtools.collapseDictOfDictOfArraysOfFloats?4([- data
+])
+j.tools.numtools.currencies?8
+j.tools.numtools.getMonthsArrayForXYear?4([- X
+, - initvalue
+])
+j.tools.numtools.getYearAndMonthFromMonthId?4([- monthid
+, - startyear = 0
+])
+j.tools.numtools.interpolateList?4([- tointerpolate
+, - left = 0
+, - right
+, - floatnr
+])
+j.tools.numtools.roundDown?4([- value
+, - floatnr = 0
+])
+j.tools.numtools.roundUp?4([- value
+, - floatnr = 0
+])
+j.tools.numtools.setMinValueInArray?4([- array
+, - minval
+])
+j.tools.numtools.text2val?4([- value
+])
+j.tools.objectinspector?8
+j.tools.objectinspector.apiFileLocation?8
+j.tools.objectinspector.base?8
+j.tools.objectinspector.classDocs?8
+j.tools.objectinspector.dest?8
+j.tools.objectinspector.errors?8
+j.tools.objectinspector.generateDocs?4([- dest
+, - ignore = []
+, - objpath = 'j'
+])
+j.tools.objectinspector.importAllLibs?4([- ignore = []
+, - base = '/opt/jumpscale8//lib/JumpScale/'
+])
+j.tools.objectinspector.inspect?4([- objectLocationPath = 'j'
+, - recursive = True
+, - parent
+, - obj
+])
+j.tools.objectinspector.jstree?8
+j.tools.objectinspector.logger?8
+j.tools.objectinspector.manager?8
+j.tools.objectinspector.raiseError?4([- errormsg
+])
+j.tools.objectinspector.root?8
+j.tools.objectinspector.visited?8
+j.tools.objectinspector.writeDocs?4([- path
+])
+j.tools.offliner?8
+j.tools.offliner.getPDFs?4([- url
+, - dest = ''
+])
+j.tools.offliner.getSiteDownloadCmd?4([- url
+, - dest = ''
+, - level = 5
+, - docElementsOnly = True
+, - restrictToDomain = True
+])
+j.tools.path?8
+j.tools.path.get?4([- startpath
+])
+j.tools.performancetrace?8
+j.tools.performancetrace.profile?4([- methodstatement
+, - locals = {}
+, - globals = {}
+])
+j.tools.perftesttools?8
+j.tools.perftesttools.getExampleScript?4([- path
+])
+j.tools.perftesttools.getNodeBase?4([- ipaddr
+, - sshport = 22
+, - name = ''
+])
+j.tools.perftesttools.getNodeHost?4([- ipaddr
+, - sshport = 22
+, - name = ''
+])
+j.tools.perftesttools.getNodeMonitor?4([- name = ''
+])
+j.tools.perftesttools.getNodeNAS?4([- ipaddr
+, - sshport = 22
+, - nrdisks = 0
+, - fstype = 'xfs'
+, - role = ''
+, - debugdisk = ''
+, - name = ''
+])
+j.tools.perftesttools.influxpump?4([])
+j.tools.perftesttools.init?4([- testname
+, - monitorNodeIp
+, - sshPort
+, - redispasswd = ''
+, - sshkey
+])
+j.tools.perftesttools.monitor?4([])
+j.tools.perftesttools.monitorNodeIp?8
+j.tools.perftesttools.monitorNodeSSHPort?8
+j.tools.perftesttools.nodes?8
+j.tools.perftesttools.redispasswd?8
+j.tools.perftesttools.sshkey?8
+j.tools.realityprocess?8
+j.tools.realityprocess.ecodump?4([- cidr = '127.0.0.1'
+, - ports = [7777]
+])
+j.tools.realityprocess.influxpump?4([- influxdb
+, - cidr = '127.0.0.1'
+, - ports = [7777]
+])
+j.tools.realityprocess.logsdump?4([- cidr = '127.0.0.1'
+, - ports = [7777]
+])
+j.tools.realityprocess.monogopump?4([- cidr = '127.0.0.1'
+, - ports = [7777]
+])
+j.tools.sandboxer?8
+j.tools.sandboxer.copyTo?4([- path
+, - dest
+, - excludeFileRegex = []
+, - excludeDirRegex = []
+, - excludeFiltersExt = ['pyc', 'bak']
+])
+j.tools.sandboxer.dedupe?4([- path
+, - storpath
+, - name
+, - excludeFiltersExt = ['pyc', 'bak']
+, - append = False
+, - reset = False
+, - removePrefix = ''
+, - compress = True
+, - delete = False
+, - excludeDirs = []
+])
+j.tools.sandboxer.exclude?8
+j.tools.sandboxer.findLibs?4([- path
+])
+j.tools.sandboxer.new_size?8
+j.tools.sandboxer.original_size?8
+j.tools.sandboxer.sandboxLibs?4([- path
+, - dest
+, - recursive = False
+])
+j.tools.sandboxer.sandbox_python3?4([])
+j.tools.sheet?8
+j.tools.sheet.getSheetsCollection?4([])
+j.tools.sheet.new?4([- name
+, - nrcols = 72
+, - headers = []
+, - period = 'M'
+])
+j.tools.ssh_remotesystem?8
+j.tools.ssh_remotesystem.connect?4([- ip
+, - login = ''
+, - password = ''
+, - timeout = 5.0
+, - port = 22
+])
+j.tools.ssh_remotesystem.connections?8
+j.tools.ssh_remotesystem.exceptions?8
+j.tools.ssh_remotesystem.exceptions.InvalidIpAddressError?8
+j.tools.ssh_remotesystem.exceptions.InvalidIpAddressError.args?8
+j.tools.ssh_remotesystem.exceptions.InvalidIpAddressError.with_traceback?8
+j.tools.ssh_remotesystem.exceptions.RemoteSystemAuthenticationError?8
+j.tools.ssh_remotesystem.exceptions.RemoteSystemAuthenticationError.args?8
+j.tools.ssh_remotesystem.exceptions.RemoteSystemAuthenticationError.with_traceback?8
+j.tools.ssh_remotesystem.exceptions.RemoteSystemNotReachableError?8
+j.tools.ssh_remotesystem.exceptions.RemoteSystemNotReachableError.args?8
+j.tools.ssh_remotesystem.exceptions.RemoteSystemNotReachableError.with_traceback?8
+j.tools.ssh_remotesystem.name?8
+j.tools.swaggerGen?8
+j.tools.swaggerGen.client?8
+j.tools.swaggerGen.generate?4([- baseURL
+, - serverOuput
+, - clientOutput
+])
+j.tools.swaggerGen.generateClient?4([- outputPath
+])
+j.tools.swaggerGen.generateServer?4([- outputPath
+])
+j.tools.swaggerGen.generateactors?4([- destpath
+])
+j.tools.swaggerGen.jinjaEnv?8
+j.tools.swaggerGen.loadSpecFromFile?4([- path
+])
+j.tools.swaggerGen.loadSpecFromStr?4([- spec
+])
+j.tools.swaggerGen.server?8
+j.tools.swaggerGen.spec?8
+j.tools.tarfile?8
+j.tools.tarfile.APPEND?7
+j.tools.tarfile.READ?7
+j.tools.tarfile.WRITE?7
+j.tools.tarfile.get?4([- path
+, - mode = 'r'
+])
+j.tools.taskletengine?8
+j.tools.taskletengine.get?4([- path
+])
+j.tools.taskletengine.getGroup?4([- path = ''
+])
+j.tools.tls?8
+j.tools.tls.get?4([- path
+])
+j.tools.wic?8
+j.tools.wic.defPassword?8
+j.tools.wic.get?4([- ipaddr
+, - passwd = ''
+])
+j.tools.wic.install?4([- wics = ''
+])
+j.tools.worksheets?8
+j.tools.worksheets.add?4([- sheet
+, - category
+])
+j.tools.worksheets.aggregateSheets?4([- sheetnames
+, - rowdescr
+, - category
+, - aggregateSheetName = 'Total'
+, - aggregation = {}
+])
+j.tools.worksheets.applyFunction?4([- rows
+, - method
+, - rowDest
+, - params = {}
+])
+j.tools.worksheets.dict2obj?4([- data
+])
+j.tools.worksheets.dict2sheet?4([- data
+])
+j.tools.worksheets.multiplyRows?4([- rows
+, - newRow
+])
+j.tools.worksheets.new?4([- name
+, - nrcols = 72
+, - headers = []
+, - category
+])
+j.tools.worksheets.obj2dict?4([])
+j.tools.worksheets.sheetNames?8
+j.tools.worksheets.sheets?8
+j.tools.worksheets.sheetsByCategory?8
+j.tools.worksheets.sumRows?4([- rows
+, - newRow
+])
+j.tools.xonsh?8
+j.tools.xonsh.config?4([])
+j.tools.xonsh.configAll?4([])
+j.tools.xonsh.configTmux?4([- restart = True
+])
+j.tools.xonsh.executor?8
+j.tools.xonsh.executor.addr?8
+j.tools.xonsh.executor.checkok?8
+j.tools.xonsh.executor.checkplatform?4([- name
+])
+j.tools.xonsh.executor.cuisine?8
+j.tools.xonsh.executor.curpath?8
+j.tools.xonsh.executor.debug?8
+j.tools.xonsh.executor.dest_prefixes?8
+j.tools.xonsh.executor.docheckok?4([- cmd
+, - out
+])
+j.tools.xonsh.executor.download?4([- source
+, - dest
+, - source_prefix = ''
+])
+j.tools.xonsh.executor.env?8
+j.tools.xonsh.executor.execute?4([- cmds
+, - die = True
+, - checkok
+, - async = False
+, - showout = True
+, - outputStderr = False
+, - timeout = 0
+, - env = {}
+])
+j.tools.xonsh.executor.executeInteractive?4([- cmds
+, - die = True
+, - checkok
+])
+j.tools.xonsh.executor.executeRaw?4([- cmd
+, - die = True
+, - showout = False
+])
+j.tools.xonsh.executor.exists?4([- path
+])
+j.tools.xonsh.executor.id?8
+j.tools.xonsh.executor.init?4([])
+j.tools.xonsh.executor.jumpscale?8
+j.tools.xonsh.executor.logger?8
+j.tools.xonsh.executor.platformtype?8
+j.tools.xonsh.executor.type?8
+j.tools.xonsh.executor.upload?4([- source
+, - dest
+, - dest_prefix = ''
+, - recursive = True
+])
+j.tools.zipfile?8
+j.tools.zipfile.APPEND?7
+j.tools.zipfile.READ?7
+j.tools.zipfile.WRIATE?7
+j.tools.zipfile.get?4([- path
+, - mode = 'r'
+])
+j.actions?8
+j.actions.add?4([- action
+, - actionRecover
+, - args = ()
+, - kwargs = {}
+, - die = True
+, - stdOutput = False
+, - errorOutput = True
+, - retry = 0
+, - serviceObj
+, - deps
+, - executeNow = True
+, - selfGeneratorCode = ''
+, - force = True
+, - showout
+, - actionshow = True
+, - dynamicArguments = {}
+])
+j.actions.addToStack?4([- action
+])
+j.actions.delFromStack?4([- action
+])
+j.actions.get?4([- actionkey
+])
+j.actions.gettodo?4([])
+j.actions.last?8
+j.actions.lastOnes?8
+j.actions.logger?8
+j.actions.rememberDone?8
+j.actions.reset?4([- all = False
+, - runid
+, - prefix
+])
+j.actions.resetAll?4([])
+j.actions.run?4([- agentcontroller = False
+])
+j.actions.selectAction?4([])
+j.actions.setRunId?4([- runid
+, - reset = False
+])
+j.actions.setState?4([- state = 'INIT'
+])
+j.actions.showonly?8
+j.application?8
+j.application.agentid?8
+j.application.appname?8
+j.application.break_into_jshell?4([- msg = 'DEBUG NOW'
+])
+j.application.config?8
+j.application.config.add2tree?4([- path
+, - recursive = True
+])
+j.application.config.add2treeFromContent?4([- content
+])
+j.application.config.applyOnContent?4([- content
+, - additionalArgs = {}
+])
+j.application.config.applyOnDir?4([- path
+, - filter
+, - minmtime
+, - maxmtime
+, - depth
+, - changeFileName = True
+, - changeContent = True
+, - additionalArgs = {}
+])
+j.application.config.applyOnFile?4([- path
+, - additionalArgs = {}
+])
+j.application.config.changed?8
+j.application.config.checkValidity?4([- template
+, - hrddata = {}
+])
+j.application.config.commentblock?8
+j.application.config.delete?4([- key
+])
+j.application.config.exists?4([- key
+])
+j.application.config.get?4([- key
+, - default
+])
+j.application.config.getBool?4([- key
+, - default
+])
+j.application.config.getDict?4([- key
+])
+j.application.config.getDictFromPrefix?4([- prefix
+])
+j.application.config.getFloat?4([- key
+])
+j.application.config.getHRDAsDict?4([])
+j.application.config.getHrd?4([- key
+])
+j.application.config.getInt?4([- key
+, - default
+])
+j.application.config.getList?4([- key
+, - default
+])
+j.application.config.getListFromPrefix?4([- prefix
+])
+j.application.config.getListFromPrefixEachItemDict?4([- prefix
+, - musthave = []
+, - defaults = {}
+, - aredict = {}
+, - arelist = []
+, - areint = []
+, - arebool = []
+])
+j.application.config.getStr?4([- key
+, - default
+])
+j.application.config.hrds?8
+j.application.config.items?8
+j.application.config.keepformat?8
+j.application.config.listAdd?4([- key
+, - item
+])
+j.application.config.name?8
+j.application.config.path?8
+j.application.config.pop?4([- key
+])
+j.application.config.prefix?4([- key
+, - depth = 0
+])
+j.application.config.prefixWithName?8
+j.application.config.prefixexists?4([- key
+])
+j.application.config.processall?4([])
+j.application.config.set?4([- key
+, - val
+, - persistent = True
+])
+j.application.debug?8
+j.application.existAppInstanceHRD?4([- name
+, - instance
+, - domain = 'jumpscale'
+])
+j.application.fixlocale?4([])
+j.application.getAgentId?4([])
+j.application.getAppHRDInstanceNames?4([- name
+, - domain = 'jumpscale'
+])
+j.application.getAppInstanceHRD?4([- name
+, - instance
+, - domain = 'jumpscale'
+, - parent
+])
+j.application.getAppInstanceHRDs?4([- name
+, - domain = 'jumpscale'
+])
+j.application.getCPUUsage?4([])
+j.application.getMemoryUsage?4([])
+j.application.getUniqueMachineId?4([])
+j.application.getWhoAmiStr?4([])
+j.application.gridInitialized?8
+j.application.init?4([])
+j.application.initGrid?4([])
+j.application.interactive?8
+j.application.jid?8
+j.application.logger?8
+j.application.noremote?8
+j.application.reload?4([])
+j.application.reset?4([])
+j.application.sandbox?8
+j.application.skipTraceback?8
+j.application.start?4([- name
+, - appdir = '.'
+])
+j.application.state?8
+j.application.stop?4([- exitcode = 0
+, - stop = True
+])
+j.application.systempid?8
+j.application.useCurrentDirAsHome?4([])
+j.application.whoAmI?8
+j.application.whoAmiBytestr?8
+j.application.writeExitcodeOnExit?8
+j.atyourservice?8
+j.atyourservice.createAYSRepo?4([- path
+])
+j.atyourservice.debug?8
+j.atyourservice.domains?8
+j.atyourservice.exist?4([- path
+])
+j.atyourservice.existsTemplate?4([- name
+])
+j.atyourservice.findAYSRepos?4([- path = ''
+])
+j.atyourservice.findTemplates?4([- name = ''
+, - domain = ''
+, - role = ''
+])
+j.atyourservice.get?4([- name = ''
+, - path = ''
+])
+j.atyourservice.getActionMethodDecorator?4([])
+j.atyourservice.getActionsBaseClassMgmt?4([])
+j.atyourservice.getActionsBaseClassNode?4([])
+j.atyourservice.getBlueprint?4([- aysrepo
+, - path
+])
+j.atyourservice.getService?4([- key
+, - die = True
+])
+j.atyourservice.getTemplate?4([- name
+, - die = True
+])
+j.atyourservice.getTester?4([- name = 'fake_IT_env'
+])
+j.atyourservice.indocker?8
+j.atyourservice.logger?8
+j.atyourservice.reset?4([])
+j.atyourservice.templates?8
+j.atyourservice.updateTemplates?4([- repos = []
+])
+j.clients?8
+j.clients.agentcontroller?8
+j.clients.agentcontroller.get?4([- address = 'localhost'
+, - port = 6379
+, - password
+])
+j.clients.agentcontroller.getAdvanced?4([- address = 'localhost'
+, - port = 6379
+, - password
+])
+j.clients.agentcontroller.getRunArgs?4([- domain
+, - name
+, - max_time = 0
+, - max_restart = 0
+, - recurring_period = 0
+, - stats_interval = 0
+, - args
+, - loglevels = '*'
+, - loglevels_db
+, - loglevels_ac
+, - queue
+])
+j.clients.celery?8
+j.clients.celery.actors?8
+j.clients.celery.app?8
+j.clients.celery.celeryClient?4([- actorName
+, - url = 'redis://localhost:9999/0'
+, - actorsPath = 'actors'
+, - local = False
+])
+j.clients.celery.celeryStart?4([- url = 'redis://localhost:9999/0'
+, - concurrency = 4
+, - actorsPath = 'actors'
+])
+j.clients.celery.flowerStart?4([- url = 'redis://localhost:9999/0'
+])
+j.clients.celery.getCodeClient?4([- path
+, - actorName
+])
+j.clients.celery.getCodeServer?4([- path
+])
+j.clients.cockpit?8
+j.clients.cockpit.getClient?4([- base_uri
+, - jwt
+, - verify_ssl = True
+])
+j.clients.etcd?8
+j.clients.etcd.get?4([- **kwargs
+])
+j.clients.git?8
+j.clients.git.find?4([- account
+, - name
+, - interactive = False
+, - returnGitClient = False
+])
+j.clients.git.findGitPath?4([- path
+])
+j.clients.git.get?4([- basedir = ''
+, - check_path = True
+])
+j.clients.git.logger?8
+j.clients.github?8
+j.clients.github.getClient?4([- secret
+])
+j.clients.github.getIssueClass?4([])
+j.clients.gitlab?8
+j.clients.gitlab.connections?8
+j.clients.gitlab.get?4([- gitlaburl = ''
+, - login = ''
+, - passwd = ''
+, - instance = 'main'
+])
+j.clients.gitlab.getAccountnameReponameFromUrl?4([- url
+])
+j.clients.gitlab.logger?8
+j.clients.gogs?8
+j.clients.gogs.get?4([- addr = 'http://172.17.0.1'
+, - port = '3000'
+, - login = 'abdu'
+, - passwd = 'gig1234'
+])
+j.clients.gogs.logger?8
+j.clients.grafana?8
+j.clients.grafana.get?4([- url = 'http://localhost:3000'
+, - username = 'admin'
+, - password = 'admin'
+, - verify_ssl = True
+])
+j.clients.grafana.getByInstance?4([- instance
+])
+j.clients.graphite?8
+j.clients.graphite.close?4([])
+j.clients.graphite.query?4([- query_
+, - **kwargs
+])
+j.clients.graphite.send?4([- msg
+])
+j.clients.http?8
+j.clients.http.getConnection?4([])
+j.clients.influxdb?8
+j.clients.influxdb.get?4([- host = 'localhost'
+, - port = 8086
+, - username = 'root'
+, - password = 'root'
+, - database
+, - ssl = False
+, - verify_ssl = False
+, - timeout
+, - use_udp = False
+, - udp_port = 4444
+])
+j.clients.influxdb.getByInstance?4([- instancename
+])
+j.clients.influxdb.postraw?4([- data
+, - host = 'localhost'
+, - port = 8086
+, - username = 'root'
+, - password = 'root'
+, - database = 'main'
+])
+j.clients.itsyouonline?8
+j.clients.itsyouonline.get?4([])
+j.clients.mongodb?8
+j.clients.mongodb.get?4([- host = 'localhost'
+, - port = 27017
+, - ssl = False
+])
+j.clients.mongodb.getByInstance?4([- instancename
+])
+j.clients.ms1?8
+j.clients.ms1.get?4([- apiURL = 'www.mothership1.com'
+, - port = 443
+])
+j.clients.mysql?8
+j.clients.mysql.clients?8
+j.clients.mysql.getClient?4([- ipaddr
+, - port
+, - login
+, - passwd
+, - dbname
+])
+j.clients.oauth?8
+j.clients.oauth.get?4([- addr = ''
+, - accesstokenaddr = ''
+, - id = ''
+, - secret = ''
+, - scope = ''
+, - redirect_url = ''
+, - user_info_url = ''
+, - logout_url = ''
+, - instance = 'github'
+])
+j.clients.oauth.logger?8
+j.clients.openvcloud?8
+j.clients.openvcloud.get?4([- url
+, - login
+, - password
+, - secret
+, - port = 443
+])
+j.clients.osticket?8
+j.clients.osticket.clients?8
+j.clients.osticket.getClient?4([- ipaddr
+, - port
+, - login
+, - passwd
+, - dbname
+])
+j.clients.portal?8
+j.clients.portal.get?4([- ip = 'localhost'
+, - port = 82
+, - secret
+])
+j.clients.portal.getByInstance?4([- instance
+])
+j.clients.postgres?8
+j.clients.postgres.clients?8
+j.clients.postgres.createdb?4([- db
+, - ipaddr = 'localhost'
+, - port = 5432
+, - login = 'postgres'
+, - passwd = 'rooter'
+])
+j.clients.postgres.dropdb?4([- db
+, - ipaddr = 'localhost'
+, - port = 5432
+, - login = 'postgres'
+, - passwd = 'rooter'
+])
+j.clients.postgres.getClient?4([- ipaddr = 'localhost'
+, - port = 5432
+, - login = 'postgres'
+, - passwd = 'rooter'
+, - dbname = 'template'
+])
+j.clients.racktivity?8
+j.clients.racktivity.getEnergySwitch?4([- username
+, - password
+, - hostname
+, - port
+, - rtf
+, - moduleinfo
+])
+j.clients.redis?8
+j.clients.redis.configureInstance?4([- name
+, - ip = 'localhost'
+, - port = 6379
+, - maxram = 200
+, - appendonly = True
+, - snapshot = False
+, - slave = ()
+, - ismaster = False
+, - passwd
+, - unixsocket = False
+])
+j.clients.redis.deleteInstance?4([- name
+])
+j.clients.redis.emptyInstance?4([- name
+])
+j.clients.redis.get?4([- ipaddr
+, - port
+, - password = ''
+, - fromcache = True
+])
+j.clients.redis.getByInstance?4([- instance
+])
+j.clients.redis.getInstance?4([- cuisine
+])
+j.clients.redis.getPort?4([- name
+])
+j.clients.redis.getQueue?4([- ipaddr
+, - port
+, - name
+, - namespace = 'queues'
+, - fromcache = True
+])
+j.clients.redis.isRunning?4([- name = ''
+, - ip_address = 'localhost'
+, - port = 6379
+, - path = '$binDir'
+])
+j.clients.skydns?8
+j.clients.skydns.get?4([- baseurl
+, - username
+, - password
+])
+j.clients.ssh?8
+j.clients.ssh.cache?8
+j.clients.ssh.close?4([])
+j.clients.ssh.get?4([- addr = ''
+, - port = 22
+, - login = 'root'
+, - passwd
+, - stdout = True
+, - forward_agent = True
+, - allow_agent = True
+, - look_for_keys = True
+, - timeout = 5
+, - key_filename
+, - passphrase
+, - die = True
+, - usecache = True
+])
+j.clients.ssh.getSSHKeyFromAgentPub?4([- keyname = ''
+, - die = True
+])
+j.clients.ssh.logger?8
+j.clients.ssh.removeFromCache?4([- client
+])
+j.clients.ssh.reset?4([])
+j.clients.storx?8
+j.clients.storx.get?4([- base_url
+])
+j.clients.syncthing?8
+j.clients.syncthing.get?4([- addr = 'localhost'
+, - port = 22001
+, - sshport = 22
+, - rootpasswd = 'js111js'
+, - apikey = 'js111js'
+])
+j.clients.whmcs?8
+j.clients.whmcs.get?4([- username = ''
+, - md5_password = ''
+, - accesskey = ''
+, - url = ''
+, - cloudspace_product_id = ''
+, - operations_user_id = ''
+, - operations_department_id = ''
+, - instance = 'main'
+])
+j.clients.whmcs.getDummy?4([])
+j.clients.whmcs.logger?8
+j.core?8
+j.core.codegenerator?8
+j.core.codegenerator.appdir?8
+j.core.codegenerator.classes?8
+j.core.codegenerator.codepath?8
+j.core.codegenerator.generate?4([- spec
+, - type
+, - typecheck = True
+, - dieInGenCode = True
+, - appserverclient
+, - instance = 0
+, - redis = False
+, - wsclient
+, - codepath
+, - classpath
+, - returnClass = True
+, - args = {}
+, - makeCopy = False
+])
+j.core.codegenerator.generated?8
+j.core.codegenerator.getClassEnumeration?4([- appname
+, - actor
+, - enumname
+, - typecheck = True
+, - dieInGenCode = True
+])
+j.core.codegenerator.getClassJSModel?4([- appname
+, - actor
+, - modelname
+, - typecheck = True
+, - dieInGenCode = True
+, - codepath = ''
+])
+j.core.codegenerator.getClassactorLocal?4([- appname
+, - actor
+, - typecheck = True
+, - dieInGenCode = True
+])
+j.core.codegenerator.getClassesactorMethodGreenlet?4([- appname
+, - actor
+, - typecheck = True
+, - dieInGenCode = True
+])
+j.core.codegenerator.getCodeEveModel?4([- appname
+, - actor
+, - modelname
+, - typecheck = True
+, - dieInGenCode = True
+, - codepath = ''
+])
+j.core.codegenerator.getCodeId?4([- spec
+, - type
+])
+j.core.codegenerator.getCodeJSModel?4([- appname
+, - actor
+, - modelname
+, - typecheck = True
+, - dieInGenCode = True
+, - codepath = ''
+])
+j.core.codegenerator.getactorClass?4([- appname
+, - actor
+, - typecheck = True
+, - dieInGenCode = True
+, - codepath
+])
+j.core.codegenerator.removeFromMem?4([- appname
+, - actor
+])
+j.core.codegenerator.resetMemNonSystem?4([])
+j.core.codegenerator.setTarget?4([- target
+])
+j.core.db?8
+j.core.db.RESPONSE_CALLBACKS?7
+j.core.gevent?8
+j.core.gevent.getGeventLoopClass?4([])
+j.core.grid?8
+j.core.grid.brokerClient?8
+j.core.grid.config?8
+j.core.grid.getLocalIPAccessibleByGridMaster?4([])
+j.core.grid.healthchecker?8
+j.core.grid.id?8
+j.core.grid.init?4([- description = ''
+, - instance = 1
+])
+j.core.grid.isGridMasterLocal?4([])
+j.core.grid.nid?8
+j.core.grid.roles?8
+j.core.platformtype?8
+j.core.platformtype.get?4([- executor
+])
+j.core.platformtype.getParents?4([- name
+])
+j.core.platformtype.myplatform?8
+j.core.platformtype.myplatform.cache?8
+j.core.platformtype.myplatform.cache.cat?8
+j.core.platformtype.myplatform.cache.get?4([- id
+, - method
+, - refresh = False
+, - **kwargs
+])
+j.core.platformtype.myplatform.cache.keepInMem?8
+j.core.platformtype.myplatform.cache.reset?4([])
+j.core.platformtype.myplatform.cache.runid?8
+j.core.platformtype.myplatform.cache.set?4([- id
+, - val
+])
+j.core.platformtype.myplatform.checkMatch?4([- match
+])
+j.core.platformtype.myplatform.dieIfNotPlatform?4([- platform
+])
+j.core.platformtype.myplatform.executor?8
+j.core.platformtype.myplatform.executor.addr?8
+j.core.platformtype.myplatform.executor.checkok?8
+j.core.platformtype.myplatform.executor.checkplatform?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.apps?8
+j.core.platformtype.myplatform.executor.cuisine.apps.alba?8
+j.core.platformtype.myplatform.executor.cuisine.apps.alba.alba_version?8
+j.core.platformtype.myplatform.executor.cuisine.apps.alba.arakoon_version?8
+j.core.platformtype.myplatform.executor.cuisine.apps.alba.build?4([- start = True
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.alba.logger?8
+j.core.platformtype.myplatform.executor.cuisine.apps.alba.ocaml_version?8
+j.core.platformtype.myplatform.executor.cuisine.apps.alba.opam_root?8
+j.core.platformtype.myplatform.executor.cuisine.apps.arakoon?8
+j.core.platformtype.myplatform.executor.cuisine.apps.arakoon.build?4([- start = True
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.arakoon.create_cluster?4([- id
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.arakoon.logger?8
+j.core.platformtype.myplatform.executor.cuisine.apps.arakoon.start?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.brotli?8
+j.core.platformtype.myplatform.executor.cuisine.apps.brotli.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.apps.brotli.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.apps.brotli.build?4([- reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.brotli.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.apps.brotli.install?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.brotli.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.caddy?8
+j.core.platformtype.myplatform.executor.cuisine.apps.caddy.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.apps.caddy.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.apps.caddy.caddyConfig?4([- sectionname
+, - config
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.caddy.install?4([- ssl = False
+, - start = True
+, - dns
+, - reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.caddy.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.caddy.start?4([- ssl
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.capnp?8
+j.core.platformtype.myplatform.executor.cuisine.apps.capnp.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.apps.capnp.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.apps.capnp.install?4([- reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.capnp.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.controller?8
+j.core.platformtype.myplatform.executor.cuisine.apps.controller.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.apps.controller.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.apps.controller.build?4([- start = True
+, - listen_addr = []
+, - install = True
+, - reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.controller.install?4([- start = True
+, - listen_addr = []
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.controller.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.controller.start?4([- listen_addr = []
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.deployerbot?8
+j.core.platformtype.myplatform.executor.cuisine.apps.deployerbot.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.apps.deployerbot.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.apps.deployerbot.create_config?4([- token
+, - g8_addresses
+, - dns
+, - oauth
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.deployerbot.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.apps.deployerbot.install?4([- start = True
+, - token
+, - g8_addresses
+, - dns
+, - oauth
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.deployerbot.install_deps?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.deployerbot.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.deployerbot.link_code?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.deployerbot.start?4([- token
+, - g8_addresses
+, - dns
+, - oauth
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.dnsmasq?8
+j.core.platformtype.myplatform.executor.cuisine.apps.dnsmasq.addHost?4([- macaddress
+, - ipaddress
+, - name
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.dnsmasq.config?4([- device = 'eth0'
+, - rangefrom = ''
+, - rangeto = ''
+, - deviceonly = True
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.dnsmasq.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.apps.dnsmasq.executor?8
+j.core.platformtype.myplatform.executor.cuisine.apps.dnsmasq.install?4([- start = True
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.dnsmasq.logger?8
+j.core.platformtype.myplatform.executor.cuisine.apps.dnsmasq.removeHost?4([- macaddress
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.dnsmasq.restart?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.dnsmasq.setConfigPath?4([- config_path
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.etcd?8
+j.core.platformtype.myplatform.executor.cuisine.apps.etcd.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.apps.etcd.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.apps.etcd.build?4([- start = True
+, - host
+, - peers = []
+, - reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.etcd.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.apps.etcd.install?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.etcd.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.etcd.start?4([- host
+, - peers
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.geodns?8
+j.core.platformtype.myplatform.executor.cuisine.apps.geodns.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.apps.geodns.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.apps.geodns.add_record?4([- domain_name
+, - subdomain
+, - record_type
+, - value
+, - weight = 100
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.geodns.del_domain?4([- domain_name
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.geodns.del_record?4([- domain_name
+, - record_type
+, - subdomain
+, - value
+, - full = True
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.geodns.domains?8
+j.core.platformtype.myplatform.executor.cuisine.apps.geodns.ensure_domain?4([- domain_name
+, - serial = 1
+, - ttl = 600
+, - content
+, - max_hosts = 2
+, - a_records = {}
+, - cname_records = {}
+, - ns = []
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.geodns.get_domain?4([- domain_name
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.geodns.get_record?4([- domain_name
+, - record_type
+, - subdomain
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.geodns.install?4([- reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.geodns.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.geodns.start?4([- ip = '0.0.0.0'
+, - port = '5053'
+, - config_dir = '$cfgDir/geodns/dns/'
+, - identifier = 'geodns_main'
+, - cpus = '1'
+, - tmux = False
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.geodns.stop?4([- name = 'geodns_main'
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.grafana?8
+j.core.platformtype.myplatform.executor.cuisine.apps.grafana.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.apps.grafana.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.apps.grafana.build?4([- reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.grafana.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.apps.grafana.install?4([- start = False
+, - influx_addr = '127.0.0.1'
+, - influx_port = 8086
+, - port = 3000
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.grafana.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.grafana.start?4([- influx_addr = '127.0.0.1'
+, - influx_port = 8086
+, - port = 3000
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.hadoop?8
+j.core.platformtype.myplatform.executor.cuisine.apps.hadoop.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.apps.hadoop.install?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.influxdb?8
+j.core.platformtype.myplatform.executor.cuisine.apps.influxdb.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.apps.influxdb.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.apps.influxdb.build?4([- start = True
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.influxdb.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.apps.influxdb.install?4([- dependencies = False
+, - start = False
+, - reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.influxdb.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.influxdb.start?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.ledis?8
+j.core.platformtype.myplatform.executor.cuisine.apps.ledis.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.apps.ledis.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.apps.ledis.build?4([- backend = 'leveldb'
+, - install = True
+, - start = True
+, - reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.ledis.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.apps.ledis.install?4([- start = True
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.ledis.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.ledis.start?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.mongodb?8
+j.core.platformtype.myplatform.executor.cuisine.apps.mongodb.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.apps.mongodb.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.apps.mongodb.build?4([- start = True
+, - install = True
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.mongodb.install?4([- start = True
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.mongodb.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.mongodb.start?4([- name = 'mongod'
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.portal?8
+j.core.platformtype.myplatform.executor.cuisine.apps.portal.addSpace?4([- spacepath
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.portal.addactor?4([- actorpath
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.portal.getcode?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.portal.install?4([- start = True
+, - mongodbip = '127.0.0.1'
+, - mongoport = 27017
+, - influxip = '127.0.0.1'
+, - influxport = 8086
+, - grafanaip = '127.0.0.1'
+, - grafanaport = 3000
+, - login = ''
+, - passwd = ''
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.portal.installDeps?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.portal.linkCode?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.portal.main_portal_dir?8
+j.core.platformtype.myplatform.executor.cuisine.apps.portal.portal_dir?8
+j.core.platformtype.myplatform.executor.cuisine.apps.portal.serviceconnect?4([- mongodbip = '127.0.0.1'
+, - mongoport = 27017
+, - influxip = '127.0.0.1'
+, - influxport = 8086
+, - grafanaip = '127.0.0.1'
+, - grafanaport = 3000
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.portal.set_admin_password?4([- passwd
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.portal.start?4([- passwd
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.portal.stop?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.pyftpserver?8
+j.core.platformtype.myplatform.executor.cuisine.apps.pyftpserver.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.apps.pyftpserver.install?4([- root = '/storage/ftpserver'
+, - config = ''
+, - port = 2121
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.redis?8
+j.core.platformtype.myplatform.executor.cuisine.apps.redis.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.apps.redis.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.apps.redis.build?4([- reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.redis.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.apps.redis.install?4([- reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.redis.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.redis.start?4([- name = 'main'
+, - ip = 'localhost'
+, - port = 6379
+, - maxram = 200
+, - appendonly = True
+, - snapshot = False
+, - slave = ()
+, - ismaster = False
+, - passwd
+, - unixsocket = True
+, - start = True
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.skydns?8
+j.core.platformtype.myplatform.executor.cuisine.apps.skydns.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.apps.skydns.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.apps.skydns.build?4([- start = True
+, - install = True
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.skydns.install?4([- start = True
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.skydns.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.skydns.start?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.syncthing?8
+j.core.platformtype.myplatform.executor.cuisine.apps.syncthing.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.apps.syncthing.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.apps.syncthing.build?4([- start = True
+, - install = True
+, - reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.syncthing.install?4([- start = True
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.syncthing.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.syncthing.start?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.volumedriver?8
+j.core.platformtype.myplatform.executor.cuisine.apps.volumedriver.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.apps.volumedriver.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.apps.volumedriver.build?4([- reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.volumedriver.install?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.volumedriver.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.volumedriver.logger?8
+j.core.platformtype.myplatform.executor.cuisine.apps.vulcand?8
+j.core.platformtype.myplatform.executor.cuisine.apps.vulcand.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.apps.vulcand.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.apps.vulcand.build?4([- reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.vulcand.install?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.vulcand.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.xrdp?8
+j.core.platformtype.myplatform.executor.cuisine.apps.xrdp.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.apps.xrdp.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.apps.xrdp.build?4([- reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.apps.xrdp.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.apps.xrdp.install?4([])
+j.core.platformtype.myplatform.executor.cuisine.apps.xrdp.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.bash?8
+j.core.platformtype.myplatform.executor.cuisine.bash.addPath?4([- path
+])
+j.core.platformtype.myplatform.executor.cuisine.bash.cmdGetPath?4([- cmd
+, - die = True
+])
+j.core.platformtype.myplatform.executor.cuisine.bash.environ?8
+j.core.platformtype.myplatform.executor.cuisine.bash.environGet?4([- name
+, - default
+])
+j.core.platformtype.myplatform.executor.cuisine.bash.environRemove?4([- key
+, - val
+])
+j.core.platformtype.myplatform.executor.cuisine.bash.environSet?4([- key
+, - val
+, - temp = False
+])
+j.core.platformtype.myplatform.executor.cuisine.bash.fixlocale?4([])
+j.core.platformtype.myplatform.executor.cuisine.bash.get?4([- cuisine
+, - executor
+])
+j.core.platformtype.myplatform.executor.cuisine.bash.getLocaleItems?4([- force = False
+, - showout = False
+])
+j.core.platformtype.myplatform.executor.cuisine.bash.home?8
+j.core.platformtype.myplatform.executor.cuisine.bash.include?4([- path
+])
+j.core.platformtype.myplatform.executor.cuisine.bash.profile?8
+j.core.platformtype.myplatform.executor.cuisine.bash.profile.addInclude?4([- path
+])
+j.core.platformtype.myplatform.executor.cuisine.bash.profile.addPath?4([- path
+])
+j.core.platformtype.myplatform.executor.cuisine.bash.profile.dump?4([])
+j.core.platformtype.myplatform.executor.cuisine.bash.profile.env_pattern?8
+j.core.platformtype.myplatform.executor.cuisine.bash.profile.environ?8
+j.core.platformtype.myplatform.executor.cuisine.bash.profile.include_pattern?8
+j.core.platformtype.myplatform.executor.cuisine.bash.profile.path?8
+j.core.platformtype.myplatform.executor.cuisine.bash.profile.remove?4([- key
+])
+j.core.platformtype.myplatform.executor.cuisine.bash.profile.set?4([- key
+, - value
+])
+j.core.platformtype.myplatform.executor.cuisine.bash.profilePath?8
+j.core.platformtype.myplatform.executor.cuisine.bash.replaceEnvironInText?4([- text
+])
+j.core.platformtype.myplatform.executor.cuisine.bash.reset?4([])
+j.core.platformtype.myplatform.executor.cuisine.bash.setOurProfile?4([])
+j.core.platformtype.myplatform.executor.cuisine.bash.write?4([])
+j.core.platformtype.myplatform.executor.cuisine.btrfs?8
+j.core.platformtype.myplatform.executor.cuisine.btrfs.deviceAdd?4([- path
+, - dev
+])
+j.core.platformtype.myplatform.executor.cuisine.btrfs.deviceDelete?4([- dev
+, - path
+])
+j.core.platformtype.myplatform.executor.cuisine.btrfs.getSpaceUsage?4([- path = '/'
+])
+j.core.platformtype.myplatform.executor.cuisine.btrfs.getSpaceUsageData?4([- path = '/'
+])
+j.core.platformtype.myplatform.executor.cuisine.btrfs.getSpaceUsageDataFree?4([- path = '/'
+])
+j.core.platformtype.myplatform.executor.cuisine.btrfs.snapshotReadOnlyCreate?4([- path
+, - dest
+])
+j.core.platformtype.myplatform.executor.cuisine.btrfs.subvolumeCreate?4([- path
+])
+j.core.platformtype.myplatform.executor.cuisine.btrfs.subvolumeDelete?4([- path
+])
+j.core.platformtype.myplatform.executor.cuisine.btrfs.subvolumeExists?4([- path
+])
+j.core.platformtype.myplatform.executor.cuisine.btrfs.subvolumeList?4([- path
+, - filter = ''
+])
+j.core.platformtype.myplatform.executor.cuisine.btrfs.subvolumesDelete?4([- path
+, - filter = ''
+])
+j.core.platformtype.myplatform.executor.cuisine.core?8
+j.core.platformtype.myplatform.executor.cuisine.core.args_replace?4([- text
+])
+j.core.platformtype.myplatform.executor.cuisine.core.cd?8
+j.core.platformtype.myplatform.executor.cuisine.core.command_check?4([- command
+])
+j.core.platformtype.myplatform.executor.cuisine.core.command_ensure?4([- command
+, - package
+])
+j.core.platformtype.myplatform.executor.cuisine.core.command_location?4([- command
+])
+j.core.platformtype.myplatform.executor.cuisine.core.createDir?4([- location
+, - recursive = True
+, - mode
+, - owner
+, - group
+])
+j.core.platformtype.myplatform.executor.cuisine.core.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.core.dir_attribs?4([- location
+, - mode
+, - owner
+, - group
+, - recursive = False
+, - showout = False
+])
+j.core.platformtype.myplatform.executor.cuisine.core.dir_ensure?4([- location
+, - recursive = True
+, - mode
+, - owner
+, - group
+])
+j.core.platformtype.myplatform.executor.cuisine.core.dir_exists?4([- location
+])
+j.core.platformtype.myplatform.executor.cuisine.core.dir_paths?8
+j.core.platformtype.myplatform.executor.cuisine.core.dir_remove?4([- location
+, - recursive = True
+])
+j.core.platformtype.myplatform.executor.cuisine.core.download?4([- source
+, - dest = ''
+])
+j.core.platformtype.myplatform.executor.cuisine.core.execute_bash?4([- script
+, - die = True
+, - profile = False
+, - tmux = False
+, - args_replace = True
+, - showout = True
+])
+j.core.platformtype.myplatform.executor.cuisine.core.execute_jumpscript?4([- script
+, - die = True
+, - profile = False
+, - tmux = False
+, - args_replace = True
+, - showout = True
+])
+j.core.platformtype.myplatform.executor.cuisine.core.execute_python?4([- script
+, - die = True
+, - profile = False
+, - tmux = False
+, - args_replace = True
+, - showout = True
+])
+j.core.platformtype.myplatform.executor.cuisine.core.execute_script?4([- content
+, - die = True
+, - profile = False
+, - interpreter = 'bash'
+, - tmux = True
+, - args_replace = True
+, - showout = True
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_append?4([- location
+, - content
+, - mode
+, - owner
+, - group
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_attribs?4([- location
+, - mode
+, - owner
+, - group
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_attribs_get?4([- location
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_backup?4([- location
+, - suffix = '.orig'
+, - once = False
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_base64?4([- location
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_copy?4([- source
+, - dest
+, - recursive = False
+, - overwrite = True
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_download?4([- url
+, - to
+, - overwrite = True
+, - retry = 3
+, - timeout = 0
+, - login = ''
+, - passwd = ''
+, - minspeed = 0
+, - multithread = False
+, - expand = False
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_download_binary?4([- local
+, - remote
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_download_local?4([- remote
+, - local
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_ensure?4([- location
+, - mode
+, - owner
+, - group
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_exists?4([- location
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_expand?4([- path
+, - to
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_get_tmp_path?4([- basepath = ''
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_is_dir?4([- location
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_is_file?4([- location
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_is_link?4([- location
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_link?4([- source
+, - destination
+, - symbolic = True
+, - mode
+, - owner
+, - group
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_md5?4([- location
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_move?4([- source
+, - dest
+, - recursive = False
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_read?4([- location
+, - default
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_remove_prefix?4([- location
+, - prefix
+, - strip = True
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_sha256?4([- location
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_unlink?4([- path
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_update?4([- location
+, - updater = <function CuisineCore.<lambda> at 0x7f448d508730>
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_upload_binary?4([- local
+, - remote
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_upload_local?4([- local
+, - remote
+])
+j.core.platformtype.myplatform.executor.cuisine.core.file_write?4([- location
+, - content
+, - mode
+, - owner
+, - group
+, - check = False
+, - sudo = False
+, - replaceArgs = False
+, - strip = True
+, - showout = True
+, - append = False
+])
+j.core.platformtype.myplatform.executor.cuisine.core.fs_find?4([- path
+, - recursive = True
+, - pattern = ''
+, - findstatement = ''
+, - type = ''
+, - contentsearch = ''
+, - extendinfo = False
+])
+j.core.platformtype.myplatform.executor.cuisine.core.getenv?4([- refresh = False
+])
+j.core.platformtype.myplatform.executor.cuisine.core.hostfile?8
+j.core.platformtype.myplatform.executor.cuisine.core.hostname?8
+j.core.platformtype.myplatform.executor.cuisine.core.isArch?8
+j.core.platformtype.myplatform.executor.cuisine.core.isCygwin?8
+j.core.platformtype.myplatform.executor.cuisine.core.isDocker?8
+j.core.platformtype.myplatform.executor.cuisine.core.isJS8Sandbox?8
+j.core.platformtype.myplatform.executor.cuisine.core.isLxc?8
+j.core.platformtype.myplatform.executor.cuisine.core.isMac?8
+j.core.platformtype.myplatform.executor.cuisine.core.isUbuntu?8
+j.core.platformtype.myplatform.executor.cuisine.core.joinpaths?4([- *args
+])
+j.core.platformtype.myplatform.executor.cuisine.core.locale_check?4([- locale
+])
+j.core.platformtype.myplatform.executor.cuisine.core.locale_ensure?4([- locale
+])
+j.core.platformtype.myplatform.executor.cuisine.core.logger?8
+j.core.platformtype.myplatform.executor.cuisine.core.ns?8
+j.core.platformtype.myplatform.executor.cuisine.core.ns.hostfile_get?4([])
+j.core.platformtype.myplatform.executor.cuisine.core.ns.hostfile_set?4([- name
+, - ipaddr
+])
+j.core.platformtype.myplatform.executor.cuisine.core.ns.hostfile_set_fromlocal?4([])
+j.core.platformtype.myplatform.executor.cuisine.core.ns.hostfile_set_multiple?4([- names = []
+, - remove = []
+])
+j.core.platformtype.myplatform.executor.cuisine.core.ns.nameservers?8
+j.core.platformtype.myplatform.executor.cuisine.core.pprint?4([- text
+, - lexer = 'bash'
+])
+j.core.platformtype.myplatform.executor.cuisine.core.pwd?4([])
+j.core.platformtype.myplatform.executor.cuisine.core.run?4([- cmd
+, - die = True
+, - debug
+, - checkok = False
+, - showout = True
+, - profile = False
+, - replaceArgs = True
+, - shell = False
+])
+j.core.platformtype.myplatform.executor.cuisine.core.setIDs?4([- name
+, - grid
+, - domain = 'aydo.com'
+])
+j.core.platformtype.myplatform.executor.cuisine.core.set_sudomode?4([])
+j.core.platformtype.myplatform.executor.cuisine.core.shell_safe?4([- path
+])
+j.core.platformtype.myplatform.executor.cuisine.core.sudo?4([- cmd
+, - die = True
+, - showout = True
+])
+j.core.platformtype.myplatform.executor.cuisine.core.sudo_cmd?4([- command
+])
+j.core.platformtype.myplatform.executor.cuisine.core.sudomode?8
+j.core.platformtype.myplatform.executor.cuisine.core.system_uuid?4([])
+j.core.platformtype.myplatform.executor.cuisine.core.system_uuid_alias_add?4([])
+j.core.platformtype.myplatform.executor.cuisine.core.touch?4([- path
+])
+j.core.platformtype.myplatform.executor.cuisine.core.upload?4([- source
+, - dest = ''
+])
+j.core.platformtype.myplatform.executor.cuisine.core.upload_from_local?4([- local
+, - remote
+])
+j.core.platformtype.myplatform.executor.cuisine.development?8
+j.core.platformtype.myplatform.executor.cuisine.development.git?8
+j.core.platformtype.myplatform.executor.cuisine.development.git.pullRepo?4([- url
+, - dest
+, - login
+, - passwd
+, - depth = 1
+, - ignorelocalchanges = True
+, - reset = False
+, - branch
+, - revision
+, - ssh = 'first'
+])
+j.core.platformtype.myplatform.executor.cuisine.development.golang?8
+j.core.platformtype.myplatform.executor.cuisine.development.golang.GOPATH?7
+j.core.platformtype.myplatform.executor.cuisine.development.golang.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.development.golang.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.development.golang.clean_src_path?4([])
+j.core.platformtype.myplatform.executor.cuisine.development.golang.get?4([- url
+])
+j.core.platformtype.myplatform.executor.cuisine.development.golang.godep?4([- url
+, - branch
+, - depth = 1
+])
+j.core.platformtype.myplatform.executor.cuisine.development.golang.goraml?4([])
+j.core.platformtype.myplatform.executor.cuisine.development.golang.install?4([- reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.development.golang.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.development.js8?8
+j.core.platformtype.myplatform.executor.cuisine.development.js8.install?4([- reset = False
+, - deps = True
+])
+j.core.platformtype.myplatform.executor.cuisine.development.js8.installDeps?4([])
+j.core.platformtype.myplatform.executor.cuisine.development.js8.jumpscale_installed?4([- die = False
+])
+j.core.platformtype.myplatform.executor.cuisine.development.lua?8
+j.core.platformtype.myplatform.executor.cuisine.development.lua.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.development.lua.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.development.lua.install?4([])
+j.core.platformtype.myplatform.executor.cuisine.development.lua.installLua51?4([])
+j.core.platformtype.myplatform.executor.cuisine.development.lua.installLuaTarantool?4([- reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.development.lua.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.development.lua.package?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine.development.pip?8
+j.core.platformtype.myplatform.executor.cuisine.development.pip.ensure?4([])
+j.core.platformtype.myplatform.executor.cuisine.development.pip.install?4([- package
+, - upgrade = False
+])
+j.core.platformtype.myplatform.executor.cuisine.development.pip.multiInstall?4([- packagelist
+, - upgrade = False
+])
+j.core.platformtype.myplatform.executor.cuisine.development.pip.packageRemove?4([- package
+])
+j.core.platformtype.myplatform.executor.cuisine.development.pip.packageUpgrade?4([- package
+])
+j.core.platformtype.myplatform.executor.cuisine.development.python?8
+j.core.platformtype.myplatform.executor.cuisine.development.python.install?4([])
+j.core.platformtype.myplatform.executor.cuisine.examples?8
+j.core.platformtype.myplatform.executor.cuisine.examples.examplemongocluster?8
+j.core.platformtype.myplatform.executor.cuisine.examples.examplemongocluster.install?4([- pubkey
+])
+j.core.platformtype.myplatform.executor.cuisine.group?8
+j.core.platformtype.myplatform.executor.cuisine.group.check?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine.group.create?4([- name
+, - gid
+])
+j.core.platformtype.myplatform.executor.cuisine.group.ensure?4([- name
+, - gid
+])
+j.core.platformtype.myplatform.executor.cuisine.group.remove?4([- group
+, - wipe = False
+])
+j.core.platformtype.myplatform.executor.cuisine.group.user_add?4([- group
+, - user
+])
+j.core.platformtype.myplatform.executor.cuisine.group.user_check?4([- group
+, - user
+])
+j.core.platformtype.myplatform.executor.cuisine.group.user_del?4([- group
+, - user
+])
+j.core.platformtype.myplatform.executor.cuisine.group.user_ensure?4([- group
+, - user
+])
+j.core.platformtype.myplatform.executor.cuisine.id?8
+j.core.platformtype.myplatform.executor.cuisine.net?8
+j.core.platformtype.myplatform.executor.cuisine.net.defaultgw?8
+j.core.platformtype.myplatform.executor.cuisine.net.defaultgwInterface?8
+j.core.platformtype.myplatform.executor.cuisine.net.findNodesSSH?4([- range
+, - ips = []
+])
+j.core.platformtype.myplatform.executor.cuisine.net.getInfo?4([- device
+])
+j.core.platformtype.myplatform.executor.cuisine.net.getNetObject?4([- device
+])
+j.core.platformtype.myplatform.executor.cuisine.net.getNetRange?4([- device
+, - skipBegin = 10
+, - skipEnd = 10
+])
+j.core.platformtype.myplatform.executor.cuisine.net.ips?8
+j.core.platformtype.myplatform.executor.cuisine.net.netconfig?4([- interface
+, - ipaddr
+, - cidr = 24
+, - gateway
+, - dns = '8.8.8.8'
+, - masquerading = False
+])
+j.core.platformtype.myplatform.executor.cuisine.net.nics?8
+j.core.platformtype.myplatform.executor.cuisine.net.ping?4([- host
+])
+j.core.platformtype.myplatform.executor.cuisine.net.setInterfaceFile?4([- ifacefile
+, - pinghost = 'www.google.com'
+])
+j.core.platformtype.myplatform.executor.cuisine.net.wirelessLanInterfaces?8
+j.core.platformtype.myplatform.executor.cuisine.ns?8
+j.core.platformtype.myplatform.executor.cuisine.package?8
+j.core.platformtype.myplatform.executor.cuisine.package.clean?4([- package
+, - agressive = False
+])
+j.core.platformtype.myplatform.executor.cuisine.package.ensure?4([- package
+, - update = False
+])
+j.core.platformtype.myplatform.executor.cuisine.package.install?4([- package
+, - allow_unauthenticated = False
+])
+j.core.platformtype.myplatform.executor.cuisine.package.logger?8
+j.core.platformtype.myplatform.executor.cuisine.package.mdupdate?4([])
+j.core.platformtype.myplatform.executor.cuisine.package.multiInstall?4([- packagelist
+, - allow_unauthenticated = False
+])
+j.core.platformtype.myplatform.executor.cuisine.package.remove?4([- package
+, - autoclean = False
+])
+j.core.platformtype.myplatform.executor.cuisine.package.start?4([- package
+])
+j.core.platformtype.myplatform.executor.cuisine.package.update?4([- package
+])
+j.core.platformtype.myplatform.executor.cuisine.package.upgrade?4([- distupgrade = False
+])
+j.core.platformtype.myplatform.executor.cuisine.platformtype?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.cache?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.checkMatch?4([- match
+])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.dieIfNotPlatform?4([- platform
+])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.addr?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.checkok?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.checkplatform?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.curpath?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.debug?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.dest_prefixes?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.docheckok?4([- cmd
+, - out
+])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.download?4([- source
+, - dest
+, - source_prefix = ''
+])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.env?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.execute?4([- cmds
+, - die = True
+, - checkok
+, - async = False
+, - showout = True
+, - outputStderr = False
+, - timeout = 0
+, - env = {}
+])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.executeInteractive?4([- cmds
+, - die = True
+, - checkok
+])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.executeRaw?4([- cmd
+, - die = True
+, - showout = False
+])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.exists?4([- path
+])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.id?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.init?4([])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.jumpscale?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.logger?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.platformtype?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.type?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.executor.upload?4([- source
+, - dest
+, - dest_prefix = ''
+, - recursive = True
+])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.has_parent?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.hostname?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.is32bit?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.is64bit?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.isGeneric?4([])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.isHyperV?4([])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.isLinux?4([])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.isUnix?4([])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.isVirtualBox?4([])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.isWindows?4([])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.isXen?4([])
+j.core.platformtype.myplatform.executor.cuisine.platformtype.myplatform?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.osname?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.osversion?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.platformtypes?8
+j.core.platformtype.myplatform.executor.cuisine.platformtype.uname?8
+j.core.platformtype.myplatform.executor.cuisine.pnode?8
+j.core.platformtype.myplatform.executor.cuisine.pnode.buildArchImage?4([])
+j.core.platformtype.myplatform.executor.cuisine.pnode.buildG8OSImage?4([])
+j.core.platformtype.myplatform.executor.cuisine.pnode.defaultArch?8
+j.core.platformtype.myplatform.executor.cuisine.pnode.erase?4([- keepRoot = True
+])
+j.core.platformtype.myplatform.executor.cuisine.pnode.exportRoot?4([- source = '/'
+, - destination = '/image.tar.gz'
+, - excludes = ['\\.pyc', '__pycache__']
+])
+j.core.platformtype.myplatform.executor.cuisine.pnode.exportRootStor?4([- storspace
+, - plistname
+, - source = '/'
+, - excludes = ['\\.pyc', '__pycache__']
+, - removetmpdir = True
+])
+j.core.platformtype.myplatform.executor.cuisine.pnode.formatStorage?4([- keepRoot = True
+, - mountpoint = '/storage'
+])
+j.core.platformtype.myplatform.executor.cuisine.pnode.hwplatform?8
+j.core.platformtype.myplatform.executor.cuisine.pnode.importRoot?4([- source = '/image.tar.gz'
+, - destination = '/'
+])
+j.core.platformtype.myplatform.executor.cuisine.pnode.installArch?4([- rootsize = 5
+])
+j.core.platformtype.myplatform.executor.cuisine.pnode.installG8OS?4([- rootsize = 5
+])
+j.core.platformtype.myplatform.executor.cuisine.process?8
+j.core.platformtype.myplatform.executor.cuisine.process.find?4([- name
+, - exact = False
+])
+j.core.platformtype.myplatform.executor.cuisine.process.info_get?4([- prefix = ''
+])
+j.core.platformtype.myplatform.executor.cuisine.process.kill?4([- name
+, - signal = 9
+, - exact = False
+])
+j.core.platformtype.myplatform.executor.cuisine.process.tcpport_check?4([- port
+, - prefix = ''
+])
+j.core.platformtype.myplatform.executor.cuisine.processmanager?8
+j.core.platformtype.myplatform.executor.cuisine.processmanager.ensure?4([- name
+, - cmd
+, - env = {}
+, - path = ''
+, - descr = ''
+, - systemdunit = ''
+, - **kwargs
+])
+j.core.platformtype.myplatform.executor.cuisine.processmanager.exists?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine.processmanager.get?4([- pm
+])
+j.core.platformtype.myplatform.executor.cuisine.processmanager.list?4([- prefix = ''
+])
+j.core.platformtype.myplatform.executor.cuisine.processmanager.logger?8
+j.core.platformtype.myplatform.executor.cuisine.processmanager.reload?4([])
+j.core.platformtype.myplatform.executor.cuisine.processmanager.remove?4([- prefix
+])
+j.core.platformtype.myplatform.executor.cuisine.processmanager.restart?4([])
+j.core.platformtype.myplatform.executor.cuisine.processmanager.start?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine.processmanager.stop?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine.solutions?8
+j.core.platformtype.myplatform.executor.cuisine.solutions.cockpit?8
+j.core.platformtype.myplatform.executor.cuisine.solutions.cockpit.create_config?4([- bot_token
+, - jwt_key
+, - organization
+, - client_secret
+, - client_id
+, - redirect_uri
+, - itsyouonlinehost = 'https://itsyou.online'
+])
+j.core.platformtype.myplatform.executor.cuisine.solutions.cockpit.install?4([- start = True
+, - bot_token = ''
+, - jwt_key = ''
+, - organization = ''
+, - client_secret = ''
+, - client_id = ''
+, - redirect_uri = ''
+, - itsyouonlinehost = 'https://itsyou.online'
+, - grafana_scriptedagent = True
+])
+j.core.platformtype.myplatform.executor.cuisine.solutions.cockpit.install_deps?4([])
+j.core.platformtype.myplatform.executor.cuisine.solutions.cockpit.link_code?4([- grafana_scriptedagent = True
+])
+j.core.platformtype.myplatform.executor.cuisine.solutions.cockpit.start?4([- bot_token = ''
+, - jwt_key = ''
+, - organization = ''
+, - client_secret = ''
+, - client_id = ''
+, - redirect_uri = ''
+, - itsyouonlinehost = 'https://itsyou.online'
+])
+j.core.platformtype.myplatform.executor.cuisine.solutions.mongocluster?8
+j.core.platformtype.myplatform.executor.cuisine.solutions.mongocluster.createCluster?4([- executors
+, - numbers
+])
+j.core.platformtype.myplatform.executor.cuisine.solutions.mongocluster.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.solutions.mongocluster.mongoCluster?4([- shards_nodes
+, - config_nodes
+, - mongos_nodes
+, - shards_replica_set_counts = 1
+])
+j.core.platformtype.myplatform.executor.cuisine.solutions.proxyclassic?8
+j.core.platformtype.myplatform.executor.cuisine.solutions.proxyclassic.configureClient?4([- addr = ''
+, - port = 8123
+])
+j.core.platformtype.myplatform.executor.cuisine.solutions.proxyclassic.installCacheProxy?4([- storagemntpoint = '/storage'
+, - btrfs = False
+])
+j.core.platformtype.myplatform.executor.cuisine.solutions.proxyclassic.installFilterProxy?4([- port = 8124
+, - forward = True
+])
+j.core.platformtype.myplatform.executor.cuisine.solutions.proxyclassic.removeFromSystemD?4([])
+j.core.platformtype.myplatform.executor.cuisine.solutions.proxyclassic.start?4([])
+j.core.platformtype.myplatform.executor.cuisine.solutions.vrouter?8
+j.core.platformtype.myplatform.executor.cuisine.solutions.vrouter.accesspoint?4([- sid = 'internet'
+, - passphrase = 'helloworld'
+])
+j.core.platformtype.myplatform.executor.cuisine.solutions.vrouter.bridge?4([])
+j.core.platformtype.myplatform.executor.cuisine.solutions.vrouter.check?4([])
+j.core.platformtype.myplatform.executor.cuisine.solutions.vrouter.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.solutions.vrouter.defgwInterface?8
+j.core.platformtype.myplatform.executor.cuisine.solutions.vrouter.dhcpServer?4([- interfaces = []
+])
+j.core.platformtype.myplatform.executor.cuisine.solutions.vrouter.dnsServer?4([])
+j.core.platformtype.myplatform.executor.cuisine.solutions.vrouter.firewall?4([])
+j.core.platformtype.myplatform.executor.cuisine.solutions.vrouter.freeNetworkRangeDMZ?8
+j.core.platformtype.myplatform.executor.cuisine.solutions.vrouter.hostap?4([])
+j.core.platformtype.myplatform.executor.cuisine.solutions.vrouter.prepare?4([])
+j.core.platformtype.myplatform.executor.cuisine.solutions.vrouter.proxy?4([])
+j.core.platformtype.myplatform.executor.cuisine.solutions.vrouter.runSolution?4([])
+j.core.platformtype.myplatform.executor.cuisine.solutions.vrouter.wirelessInterfaceNonDefGW?8
+j.core.platformtype.myplatform.executor.cuisine.ssh?8
+j.core.platformtype.myplatform.executor.cuisine.ssh.authorize?4([- user
+, - key
+])
+j.core.platformtype.myplatform.executor.cuisine.ssh.enableAccess?4([- keys
+, - backdoorpasswd
+, - backdoorlogin = 'backdoor'
+, - user = 'root'
+])
+j.core.platformtype.myplatform.executor.cuisine.ssh.keygen?4([- user = 'root'
+, - keytype = 'rsa'
+, - name = 'default'
+])
+j.core.platformtype.myplatform.executor.cuisine.ssh.scan?4([- range
+, - ips = {}
+, - port = 22
+])
+j.core.platformtype.myplatform.executor.cuisine.ssh.sshagent_add?4([- path
+, - removeFirst = True
+])
+j.core.platformtype.myplatform.executor.cuisine.ssh.sshagent_remove?4([- path
+])
+j.core.platformtype.myplatform.executor.cuisine.ssh.test_login?4([- passwd
+, - port = 22
+, - range
+, - onlyplatform = 'arch'
+])
+j.core.platformtype.myplatform.executor.cuisine.ssh.test_login_pushkey?4([- passwd
+, - keyname
+, - port = 22
+, - range
+, - changepasswdto = ''
+, - onlyplatform = 'arch'
+])
+j.core.platformtype.myplatform.executor.cuisine.ssh.unauthorize?4([- user
+, - key
+])
+j.core.platformtype.myplatform.executor.cuisine.ssh.unauthorizeAll?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.aydostor?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.aydostor.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.systemservices.aydostor.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.systemservices.aydostor.build?4([- addr = '0.0.0.0:8090'
+, - backend = '$varDir/aydostor'
+, - start = True
+, - install = True
+, - reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.aydostor.install?4([- addr = '0.0.0.0:8090'
+, - backend = '$varDir/aydostor'
+, - start = True
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.aydostor.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.aydostor.start?4([- addr
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.base?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.base.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.base.install?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.docker?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.docker.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.systemservices.docker.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.systemservices.docker.dockerStart?4([- name = 'ubuntu1'
+, - image = 'jumpscale/ubuntu1604_all'
+, - ports = ''
+, - volumes
+, - pubkey
+, - weave = False
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.docker.getDocker?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.docker.install?4([- reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.docker.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.docker.resetPasswd?4([- dockerCuisineObject
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.docker.ubuntuBuild?4([- push = False
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.fw?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.fw.allowIncoming?4([- port
+, - protocol = 'tcp'
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.fw.denyIncoming?4([- port
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.fw.flush?4([- permanent = False
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.fw.fw_type?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.fw.getRuleset?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.fw.setRuleset?4([- ruleset
+, - pinghost = '8.8.8.8'
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.fw.show?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.g8oscore?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.g8oscore.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.systemservices.g8oscore.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.systemservices.g8oscore.build?4([- start = True
+, - gid
+, - nid
+, - install = True
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.g8oscore.install?4([- start = True
+, - gid
+, - nid
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.g8oscore.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.g8oscore.start?4([- gid
+, - nid
+, - controller_url = 'http://127.0.0.1:8966'
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.g8osfs?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.g8osfs.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.systemservices.g8osfs.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.systemservices.g8osfs.build?4([- start = False
+, - install = True
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.g8osfs.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.g8osfs.install?4([- start = False
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.g8osfs.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.g8osfs.start?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.js8_g8os?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.js8_g8os.base?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.js8_g8os.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.js8_g8os.jumpscale8?4([- rw = False
+, - reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.js8_g8os.jumpscale_installed?4([- die = False
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.kvm?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.kvm.diskGetPath?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.kvm.install?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.kvm.machineCreate?4([- name
+, - disks
+, - nics
+, - mem
+, - pubkey
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.kvm.prepare?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.kvm.vdiskBootCreate?4([- name
+, - image = 'http://fs.aydo.com/kvm/ub_small.img'
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.kvm.vdiskCreate?4([- name
+, - size = 100
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.kvm.vdiskDelete?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.kvm.vdiskQOS?4([- name
+, - **kwargs
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.kvm.vdisksList?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.kvm.vmGetPath?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.kvm.vnicCreate?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.kvm.vnicDelete?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.kvm.vnicQOS?4([- name
+, - **kwargs
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.kvm.vnicsList?4([- **kwargs
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.openvswitch?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.openvswitch.cuisine?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.openvswitch.install?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.openvswitch.prepare?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.openvswitch.vnicCreate?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.openvswitch.vnicDelete?4([- **kwargs
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.openvswitch.vnicQOS?4([- **kwargs
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.ufw?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.ufw.allowIncoming?4([- port
+, - protocol = 'tcp'
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.ufw.denyIncoming?4([- port
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.ufw.flush?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.ufw.show?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.ufw.ufw_enable?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.ufw.ufw_enabled?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.ufw.ufw_rules_allow?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.ufw.ufw_rules_deny?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.weave?8
+j.core.platformtype.myplatform.executor.cuisine.systemservices.weave.NAME?7
+j.core.platformtype.myplatform.executor.cuisine.systemservices.weave.VERSION?7
+j.core.platformtype.myplatform.executor.cuisine.systemservices.weave.install?4([- start = True
+, - peer
+, - jumpscalePath = True
+, - reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.weave.isInstalled?4([])
+j.core.platformtype.myplatform.executor.cuisine.systemservices.weave.start?4([- peer
+])
+j.core.platformtype.myplatform.executor.cuisine.testscripts?8
+j.core.platformtype.myplatform.executor.cuisine.tmux?8
+j.core.platformtype.myplatform.executor.cuisine.tmux.attachSession?4([- sessionname
+, - windowname
+, - user
+])
+j.core.platformtype.myplatform.executor.cuisine.tmux.configure?4([- restartTmux = False
+, - xonsh = False
+])
+j.core.platformtype.myplatform.executor.cuisine.tmux.createSession?4([- sessionname
+, - screens
+, - user
+, - killifexists = True
+, - returnifexists = True
+])
+j.core.platformtype.myplatform.executor.cuisine.tmux.createWindow?4([- session
+, - name
+, - user
+, - cmd
+])
+j.core.platformtype.myplatform.executor.cuisine.tmux.executeInScreen?4([- sessionname
+, - screenname
+, - cmd
+, - wait = 10
+, - cwd
+, - env
+, - user = 'root'
+, - tmuxuser
+, - reset = False
+, - replaceArgs = True
+, - resetAfter = False
+, - die = True
+, - async = False
+])
+j.core.platformtype.myplatform.executor.cuisine.tmux.getPid?4([- session
+, - name
+, - user
+])
+j.core.platformtype.myplatform.executor.cuisine.tmux.getSessions?4([- user
+])
+j.core.platformtype.myplatform.executor.cuisine.tmux.getWindows?4([- session
+, - attemps = 5
+, - user
+])
+j.core.platformtype.myplatform.executor.cuisine.tmux.killSession?4([- sessionname
+, - user
+])
+j.core.platformtype.myplatform.executor.cuisine.tmux.killSessions?4([- user
+])
+j.core.platformtype.myplatform.executor.cuisine.tmux.killWindow?4([- session
+, - name
+, - user
+])
+j.core.platformtype.myplatform.executor.cuisine.tmux.logWindow?4([- session
+, - name
+, - filename
+, - user
+])
+j.core.platformtype.myplatform.executor.cuisine.tmux.windowExists?4([- session
+, - name
+, - user
+])
+j.core.platformtype.myplatform.executor.cuisine.tools?8
+j.core.platformtype.myplatform.executor.cuisine.tools.bootmediainstaller?8
+j.core.platformtype.myplatform.executor.cuisine.tools.bootmediainstaller.arch?4([- platform = 'rpi_2b'
+, - deviceid
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.bootmediainstaller.debian?4([- platform = 'orangepi_plus'
+, - deviceid
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.bootmediainstaller.formatCardDeployImage?4([- url
+, - deviceid
+, - part_type = 'msdos'
+, - post_install
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.bootmediainstaller.g8os?4([- gid
+, - nid
+, - platform = 'amd64'
+, - deviceid
+, - url
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.bootmediainstaller.g8os_arm?4([- url
+, - gid
+, - nid
+, - deviceid
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.bootmediainstaller.ubuntu?4([- platform = 'amd64'
+, - deviceid
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.sandbox?8
+j.core.platformtype.myplatform.executor.cuisine.tools.sandbox.cleanup?4([- aggressive = False
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.sandbox.do?4([- destination = '/out'
+, - reset = False
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.sshreflector?8
+j.core.platformtype.myplatform.executor.cuisine.tools.sshreflector.client?4([- remoteids
+, - reset = True
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.sshreflector.client_delete?4([])
+j.core.platformtype.myplatform.executor.cuisine.tools.sshreflector.createconnection?4([- remoteids
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.sshreflector.server?4([- reset = False
+, - keyname = 'reflector'
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.stor?8
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.config?8
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.enableServerHTTP?4([])
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.enableServerRSYNC?4([])
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.existsStorageSpace?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.getStorageSpace?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.help?4([])
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.removeStorageSpace?4([- name
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.restart?4([])
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.root?8
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.scripts?8
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.scripts.check?4([- root
+, - keys
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.scripts.exists?4([- root
+, - keys
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.scripts.getMetadata?4([- root
+, - keys
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.scripts.initTree?4([- root
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.scripts.setMetadata?4([- root
+, - keys
+, - metadata
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.scripts.tarball?4([- root
+, - keys
+, - target
+])
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.start?4([])
+j.core.platformtype.myplatform.executor.cuisine.tools.stor.storagespaces?8
+j.core.platformtype.myplatform.executor.cuisine.user?8
+j.core.platformtype.myplatform.executor.cuisine.user.check?4([- name
+, - uid
+, - need_passwd = True
+])
+j.core.platformtype.myplatform.executor.cuisine.user.create?4([- name
+, - passwd
+, - home
+, - uid
+, - gid
+, - shell
+, - uid_min
+, - uid_max
+, - encrypted_passwd = True
+, - fullname
+, - createhome = True
+])
+j.core.platformtype.myplatform.executor.cuisine.user.ensure?4([- name
+, - passwd
+, - home
+, - uid
+, - gid
+, - shell
+, - fullname
+, - encrypted_passwd = True
+, - group
+])
+j.core.platformtype.myplatform.executor.cuisine.user.list?4([])
+j.core.platformtype.myplatform.executor.cuisine.user.passwd?4([- name
+, - passwd
+, - encrypted_passwd = False
+])
+j.core.platformtype.myplatform.executor.cuisine.user.remove?4([- name
+, - rmhome
+])
+j.core.platformtype.myplatform.executor.curpath?8
+j.core.platformtype.myplatform.executor.debug?8
+j.core.platformtype.myplatform.executor.dest_prefixes?8
+j.core.platformtype.myplatform.executor.docheckok?4([- cmd
+, - out
+])
+j.core.platformtype.myplatform.executor.download?4([- source
+, - dest
+, - source_prefix = ''
+])
+j.core.platformtype.myplatform.executor.env?8
+j.core.platformtype.myplatform.executor.execute?4([- cmds
+, - die = True
+, - checkok
+, - async = False
+, - showout = True
+, - outputStderr = False
+, - timeout = 0
+, - env = {}
+])
+j.core.platformtype.myplatform.executor.executeInteractive?4([- cmds
+, - die = True
+, - checkok
+])
+j.core.platformtype.myplatform.executor.executeRaw?4([- cmd
+, - die = True
+, - showout = False
+])
+j.core.platformtype.myplatform.executor.exists?4([- path
+])
+j.core.platformtype.myplatform.executor.id?8
+j.core.platformtype.myplatform.executor.init?4([])
+j.core.platformtype.myplatform.executor.jumpscale?8
+j.core.platformtype.myplatform.executor.logger?8
+j.core.platformtype.myplatform.executor.platformtype?8
+j.core.platformtype.myplatform.executor.type?8
+j.core.platformtype.myplatform.executor.upload?4([- source
+, - dest
+, - dest_prefix = ''
+, - recursive = True
+])
+j.core.platformtype.myplatform.has_parent?4([- name
+])
+j.core.platformtype.myplatform.hostname?8
+j.core.platformtype.myplatform.is32bit?8
+j.core.platformtype.myplatform.is64bit?8
+j.core.platformtype.myplatform.isGeneric?4([])
+j.core.platformtype.myplatform.isHyperV?4([])
+j.core.platformtype.myplatform.isLinux?4([])
+j.core.platformtype.myplatform.isUnix?4([])
+j.core.platformtype.myplatform.isVirtualBox?4([])
+j.core.platformtype.myplatform.isWindows?4([])
+j.core.platformtype.myplatform.isXen?4([])
+j.core.platformtype.myplatform.myplatform?8
+j.core.platformtype.myplatform.osname?8
+j.core.platformtype.myplatform.osversion?8
+j.core.platformtype.myplatform.platformtypes?8
+j.core.platformtype.myplatform.uname?8
+j.core.specparser?8
+j.core.specparser.actornames?8
+j.core.specparser.addSpec?4([- spec
+])
+j.core.specparser.app_actornames?8
+j.core.specparser.appnames?8
+j.core.specparser.childspecs?8
+j.core.specparser.findSpec?4([- query = ''
+, - appname = ''
+, - actorname = ''
+, - specname = ''
+, - type = ''
+, - findFromSpec
+, - findOnlyOne = True
+])
+j.core.specparser.getChildModelSpec?4([- app
+, - actorname
+, - name
+, - die = True
+])
+j.core.specparser.getEnumerationSpec?4([- app
+, - actorname
+, - name
+, - die = True
+])
+j.core.specparser.getModelNames?4([- appname
+, - actorname
+])
+j.core.specparser.getModelSpec?4([- app
+, - actorname
+, - name
+, - die = True
+])
+j.core.specparser.getSpecFromTypeStr?4([- appname
+, - actorname
+, - typestr
+])
+j.core.specparser.getactorSpec?4([- app
+, - name
+, - raiseError = True
+])
+j.core.specparser.init?4([])
+j.core.specparser.modelnames?8
+j.core.specparser.parseSpecs?4([- specpath
+, - appname
+, - actorname
+])
+j.core.specparser.removeSpecsForactor?4([- appname
+, - actorname
+])
+j.core.specparser.resetMemNonSystem?4([])
+j.core.specparser.roles?8
+j.core.specparser.specs?8
+j.data?8
+j.data.cache?8
+j.data.cache.db?8
+j.data.cache.get?4([- runid
+, - cat
+, - keepInMem = False
+, - reset = False
+])
+j.data.cache.memcache?8
+j.data.cache.reset?4([- runid = ''
+])
+j.data.capnp?8
+j.data.capnp.getSchema?4([- name
+, - schemaInText
+])
+j.data.hash?8
+j.data.hash.blake2?4([- path
+])
+j.data.hash.blake2_string?4([- s
+])
+j.data.hash.crc32?4([- path
+])
+j.data.hash.crc32_string?4([- s
+])
+j.data.hash.hashDir?4([- rootpath
+])
+j.data.hash.md5?4([- path
+])
+j.data.hash.md5_string?4([- s
+])
+j.data.hash.sha1?4([- path
+])
+j.data.hash.sha1_string?4([- s
+])
+j.data.hash.sha256?4([- path
+])
+j.data.hash.sha256_string?4([- s
+])
+j.data.hash.sha512?4([- path
+])
+j.data.hash.sha512_string?4([- s
+])
+j.data.hrd?8
+j.data.hrd.get?4([- path
+, - content = ''
+, - prefixWithName = True
+, - keepformat = False
+, - args = {}
+, - templates = []
+])
+j.data.hrd.getHRDFromDict?4([- ddict = {}
+])
+j.data.hrd.getHRDFromMongoObject?4([- mongoObject
+, - prefixRootObjectType = True
+])
+j.data.hrd.getSchema?4([- path
+, - content = ''
+])
+j.data.hrd.logger?8
+j.data.idgenerator?8
+j.data.idgenerator.generateCapnpID?4([])
+j.data.idgenerator.generateGUID?4([])
+j.data.idgenerator.generateIncrID?4([- incrTypeId
+, - service
+, - reset = False
+])
+j.data.idgenerator.generateRandomInt?4([- fromInt
+, - toInt
+])
+j.data.idgenerator.generateXCharID?4([- x
+])
+j.data.idgenerator.getID?4([- incrTypeId
+, - objectUniqueSeedInfo
+, - service
+, - reset = False
+])
+j.data.markdown?8
+j.data.markdown.getDocument?4([- content = ''
+, - path = ''
+])
+j.data.markdown.help?4([- run = False
+])
+j.data.models?8
+j.data.models.cockpit_event?8
+j.data.models.cockpit_event.Alarm?8
+j.data.models.cockpit_event.Email?8
+j.data.models.cockpit_event.EmbeddedDocument?8
+j.data.models.cockpit_event.Generic?8
+j.data.models.cockpit_event.Telegram?8
+j.data.models.cockpit_event.addModel?4([- modelclass
+])
+j.data.models.cockpit_event.connect2mongo?4([- host = 'localhost'
+, - port = 27017
+, - db = 'jumpscale_system'
+])
+j.data.models.cockpit_event.listModels?4([])
+j.data.models.system?8
+j.data.models.system.Alert?8
+j.data.models.system.Audit?8
+j.data.models.system.Command?8
+j.data.models.system.Debug?8
+j.data.models.system.Disk?8
+j.data.models.system.Errorcondition?8
+j.data.models.system.Grid?8
+j.data.models.system.Group?8
+j.data.models.system.Heartbeat?8
+j.data.models.system.Job?8
+j.data.models.system.Log?8
+j.data.models.system.Machine?8
+j.data.models.system.Nic?8
+j.data.models.system.Node?8
+j.data.models.system.Process?8
+j.data.models.system.SessionCache?8
+j.data.models.system.Test?8
+j.data.models.system.User?8
+j.data.models.system.VDisk?8
+j.data.models.system.addModel?4([- modelclass
+])
+j.data.models.system.connect2mongo?4([- host = 'localhost'
+, - port = 27017
+, - db = 'jumpscale_system'
+])
+j.data.models.system.listModels?4([])
+j.data.params?8
+j.data.params.get?4([- dictObject = {}
+])
+j.data.params.isParams?4([- p
+])
+j.data.redisdb?8
+j.data.redisdb.get?4([- path
+, - expiration
+])
+j.data.regex?8
+j.data.regex.extractBlocks?4([- text
+, - blockStartPatterns = ['.*']
+, - blockStartPatternsNegative = []
+, - blockStopPatterns = []
+, - blockStopPatternsNegative = []
+, - linesIncludePatterns = ['.*']
+, - linesExcludePatterns = []
+, - includeMatchingLine = True
+])
+j.data.regex.extractFirstFoundBlock?4([- text
+, - blockStartPatterns
+, - blockStartPatternsNegative = []
+, - blockStopPatterns = []
+, - blockStopPatternsNegative = []
+, - linesIncludePatterns = ['.*']
+, - linesExcludePatterns = []
+, - includeMatchingLine = True
+])
+j.data.regex.findAll?4([- pattern
+, - text
+, - flags = 0
+])
+j.data.regex.findHtmlBlock?4([- subject
+, - tofind
+, - path
+, - dieIfNotFound = True
+])
+j.data.regex.findHtmlElement?4([- subject
+, - tofind
+, - path
+, - dieIfNotFound = True
+])
+j.data.regex.findLine?4([- regex
+, - text
+])
+j.data.regex.findOne?4([- pattern
+, - text
+, - flags = 0
+])
+j.data.regex.getINIAlikeVariableFromText?4([- variableName
+, - text
+, - isArray = False
+])
+j.data.regex.getRegexMatch?4([- pattern
+, - text
+, - flags = 0
+])
+j.data.regex.getRegexMatches?4([- pattern
+, - text
+, - flags = 0
+])
+j.data.regex.logger?8
+j.data.regex.match?4([- pattern
+, - text
+])
+j.data.regex.matchAllText?4([- pattern
+, - text
+])
+j.data.regex.matchMultiple?4([- patterns
+, - text
+])
+j.data.regex.processLines?4([- text
+, - includes = ''
+, - excludes = ''
+])
+j.data.regex.removeLines?4([- pattern
+, - text
+])
+j.data.regex.replace?4([- regexFind
+, - regexFindsubsetToReplace
+, - replaceWith
+, - text
+])
+j.data.regex.replaceLines?4([- replaceFunction
+, - arg
+, - text
+, - includes = ''
+, - excludes = ''
+])
+j.data.regex.templates?8
+j.data.regex.templates.lines?8
+j.data.regex.templates.lines.findClasslines?4([])
+j.data.regex.templates.lines.findCommentlines?4([])
+j.data.regex.templates.lines.findDeflines?4([])
+j.data.regex.yieldRegexMatches?4([- pattern
+, - text
+, - flags = 0
+])
+j.data.serializer?8
+j.data.serializer.base64?8
+j.data.serializer.base64.dump?4([- filepath
+, - obj
+])
+j.data.serializer.base64.dumps?4([- s
+])
+j.data.serializer.base64.load?4([- filepath
+])
+j.data.serializer.base64.loads?4([- b
+])
+j.data.serializer.blosc?8
+j.data.serializer.blosc.dump?4([- filepath
+, - obj
+])
+j.data.serializer.blosc.dumps?4([- obj
+])
+j.data.serializer.blosc.load?4([- filepath
+])
+j.data.serializer.blosc.loads?4([- s
+])
+j.data.serializer.blowfish?8
+j.data.serializer.blowfish.c?8
+j.data.serializer.blowfish.dump?4([- filepath
+, - obj
+])
+j.data.serializer.blowfish.dumps?4([- obj
+, - encrkey
+])
+j.data.serializer.blowfish.encrkey?8
+j.data.serializer.blowfish.load?4([- filepath
+])
+j.data.serializer.blowfish.loads?4([- s
+, - encrkey
+])
+j.data.serializer.crc?8
+j.data.serializer.crc.dumps?4([- obj
+])
+j.data.serializer.crc.loads?4([- s
+])
+j.data.serializer.dict?8
+j.data.serializer.dict.dumps?4([- obj
+])
+j.data.serializer.dict.loads?4([- s
+])
+j.data.serializer.hrd?8
+j.data.serializer.hrd.dump?4([- filepath
+, - obj
+])
+j.data.serializer.hrd.dumps?4([- data
+, - prepend = ''
+])
+j.data.serializer.hrd.load?4([- filepath
+])
+j.data.serializer.hrd.loads?4([- data
+])
+j.data.serializer.int?8
+j.data.serializer.int.dumps?4([- obj
+])
+j.data.serializer.int.loads?4([- s
+])
+j.data.serializer.json?8
+j.data.serializer.json.dump?4([- filepath
+, - obj
+])
+j.data.serializer.json.dumps?4([- obj
+, - sort_keys = False
+, - indent = False
+])
+j.data.serializer.json.load?4([- filepath
+])
+j.data.serializer.json.loads?4([- s
+])
+j.data.serializer.lzma?8
+j.data.serializer.lzma.dump?4([- filepath
+, - obj
+])
+j.data.serializer.lzma.dumps?4([- obj
+])
+j.data.serializer.lzma.load?4([- filepath
+])
+j.data.serializer.lzma.loads?4([- s
+])
+j.data.serializer.msgpack?8
+j.data.serializer.msgpack.dump?4([- filepath
+, - obj
+])
+j.data.serializer.msgpack.dumps?4([- obj
+])
+j.data.serializer.msgpack.load?4([- filepath
+])
+j.data.serializer.msgpack.loads?4([- s
+])
+j.data.serializer.pickle?8
+j.data.serializer.pickle.dump?4([- filepath
+, - obj
+])
+j.data.serializer.pickle.dumps?4([- obj
+])
+j.data.serializer.pickle.load?4([- filepath
+])
+j.data.serializer.pickle.loads?4([- s
+])
+j.data.serializer.serializers?8
+j.data.serializer.serializers.base64?8
+j.data.serializer.serializers.base64.dump?4([- filepath
+, - obj
+])
+j.data.serializer.serializers.base64.dumps?4([- s
+])
+j.data.serializer.serializers.base64.load?4([- filepath
+])
+j.data.serializer.serializers.base64.loads?4([- b
+])
+j.data.serializer.serializers.blowfish?8
+j.data.serializer.serializers.blowfish.c?8
+j.data.serializer.serializers.blowfish.dump?4([- filepath
+, - obj
+])
+j.data.serializer.serializers.blowfish.dumps?4([- obj
+, - encrkey
+])
+j.data.serializer.serializers.blowfish.encrkey?8
+j.data.serializer.serializers.blowfish.load?4([- filepath
+])
+j.data.serializer.serializers.blowfish.loads?4([- s
+, - encrkey
+])
+j.data.serializer.serializers.dict?8
+j.data.serializer.serializers.dict.dumps?4([- obj
+])
+j.data.serializer.serializers.dict.loads?4([- s
+])
+j.data.serializer.serializers.get?4([- serializationstr
+, - key = ''
+])
+j.data.serializer.serializers.getBlosc?4([])
+j.data.serializer.serializers.getMessagePack?4([])
+j.data.serializer.serializers.getSerializerType?4([- type
+, - key = ''
+])
+j.data.serializer.serializers.hrd?8
+j.data.serializer.serializers.hrd.dump?4([- filepath
+, - obj
+])
+j.data.serializer.serializers.hrd.dumps?4([- data
+, - prepend = ''
+])
+j.data.serializer.serializers.hrd.load?4([- filepath
+])
+j.data.serializer.serializers.hrd.loads?4([- data
+])
+j.data.serializer.serializers.int?8
+j.data.serializer.serializers.int.dumps?4([- obj
+])
+j.data.serializer.serializers.int.loads?4([- s
+])
+j.data.serializer.serializers.json?8
+j.data.serializer.serializers.json.dump?4([- filepath
+, - obj
+])
+j.data.serializer.serializers.json.dumps?4([- obj
+, - sort_keys = False
+, - indent = False
+])
+j.data.serializer.serializers.json.load?4([- filepath
+])
+j.data.serializer.serializers.json.loads?4([- s
+])
+j.data.serializer.serializers.time?8
+j.data.serializer.serializers.time.dumps?4([- obj
+])
+j.data.serializer.serializers.time.loads?4([- s
+])
+j.data.serializer.serializers.toml?8
+j.data.serializer.serializers.toml.dump?4([- filepath
+, - obj
+])
+j.data.serializer.serializers.toml.dumps?4([- obj
+])
+j.data.serializer.serializers.toml.load?4([- filepath
+])
+j.data.serializer.serializers.toml.loads?4([- s
+])
+j.data.serializer.serializers.types?8
+j.data.serializer.serializers.yaml?8
+j.data.serializer.serializers.yaml.dump?4([- filepath
+, - obj
+])
+j.data.serializer.serializers.yaml.dumps?4([- obj
+])
+j.data.serializer.serializers.yaml.load?4([- filepath
+])
+j.data.serializer.serializers.yaml.loads?4([- s
+])
+j.data.serializer.time?8
+j.data.serializer.time.dumps?4([- obj
+])
+j.data.serializer.time.loads?4([- s
+])
+j.data.serializer.toml?8
+j.data.serializer.toml.dump?4([- filepath
+, - obj
+])
+j.data.serializer.toml.dumps?4([- obj
+])
+j.data.serializer.toml.load?4([- filepath
+])
+j.data.serializer.toml.loads?4([- s
+])
+j.data.serializer.yaml?8
+j.data.serializer.yaml.dump?4([- filepath
+, - obj
+])
+j.data.serializer.yaml.dumps?4([- obj
+])
+j.data.serializer.yaml.load?4([- filepath
+])
+j.data.serializer.yaml.loads?4([- s
+])
+j.data.tags?8
+j.data.tags.getObject?4([- tagstring = ''
+, - setFunction4Tagstring
+])
+j.data.tags.getTagString?4([- labels
+, - tags
+])
+j.data.text?8
+j.data.text.addCmd?4([- out
+, - entity
+, - cmd
+])
+j.data.text.addTimeHR?4([- line
+, - epoch
+, - start = 50
+])
+j.data.text.addVal?4([- out
+, - name
+, - val
+, - addtimehr = False
+])
+j.data.text.ask?4([- content
+, - name
+, - args = {}
+, - ask = True
+])
+j.data.text.decodeUnicode2Asci?4([- text
+])
+j.data.text.eval?4([- code
+])
+j.data.text.existsTemplateVars?4([- text
+])
+j.data.text.getBool?4([- text
+])
+j.data.text.getDict?4([- text
+, - ttype
+])
+j.data.text.getFloat?4([- text
+])
+j.data.text.getInt?4([- text
+])
+j.data.text.getList?4([- text
+, - ttype = 'str'
+])
+j.data.text.getMacroCandidates?4([- txt
+])
+j.data.text.getTemplateVars?4([- text
+])
+j.data.text.hrd2machinetext?4([- value
+, - onlyone = False
+])
+j.data.text.indent?4([- instr
+, - nspaces = 4
+, - wrap = 180
+, - strip = True
+, - indentchar = ' '
+])
+j.data.text.isFloat?4([- text
+])
+j.data.text.isInt?4([- text
+])
+j.data.text.isNumeric?4([- txt
+])
+j.data.text.machinetext2str?4([- value
+])
+j.data.text.machinetext2val?4([- value
+])
+j.data.text.prefix?4([- prefix
+, - txt
+])
+j.data.text.prefix_remove?4([- prefix
+, - txt
+, - onlyPrefix = False
+])
+j.data.text.prefix_remove_withtrailing?4([- prefix
+, - txt
+, - onlyPrefix = False
+])
+j.data.text.printCode?4([- code
+, - style = 'vim'
+])
+j.data.text.pythonObjToStr?4([- obj
+, - multiline = True
+, - canBeDict = True
+, - partial = False
+])
+j.data.text.pythonObjToStr1line?4([- obj
+])
+j.data.text.replaceQuotes?4([- value
+, - replacewith
+])
+j.data.text.replaceTemplateVars?4([- text
+, - args = {}
+])
+j.data.text.sort?4([- txt
+])
+j.data.text.str2var?4([- string
+])
+j.data.text.strip?4([- content
+])
+j.data.text.stripItems?4([- line
+, - items = ['PATH', '"', ' ', "'", ':', '${PATH}', '=', ',']
+])
+j.data.text.toAscii?4([- value
+, - maxlen = 0
+])
+j.data.text.toSafePath?4([- txt
+, - maxlen = 0
+])
+j.data.text.toStr?4([- value
+, - codec = 'utf-8'
+])
+j.data.text.toUnicode?4([- value
+, - codec = 'utf-8'
+])
+j.data.text.toolStripNonAsciFromText?4([- text
+])
+j.data.text.wrap?4([- txt
+, - length = 80
+])
+j.data.time?8
+j.data.time.HRDateTime2epoch?4([- hrdatetime
+])
+j.data.time.HRDatetoEpoch?4([- datestr
+, - local = True
+])
+j.data.time.any2HRDateTime?4([- val
+])
+j.data.time.any2epoch?4([- val
+, - in_list = False
+])
+j.data.time.epoch?8
+j.data.time.epoch2HRDate?4([- epoch
+, - local = True
+])
+j.data.time.epoch2HRDateTime?4([- epoch
+, - local = True
+])
+j.data.time.epoch2HRTime?4([- epoch
+, - local = True
+])
+j.data.time.epoch2ISODateTime?4([- epoch
+])
+j.data.time.epoch2pythonDate?4([- epoch
+])
+j.data.time.epoch2pythonDateTime?4([- epoch
+])
+j.data.time.fiveMinuteIdToEpoch?4([- fiveMinuteId
+])
+j.data.time.formatTime?4([- epoch
+, - formatstr = '%Y/%m/%d %H:%M:%S'
+, - local = True
+])
+j.data.time.get5MinuteId?4([- epoch
+])
+j.data.time.getDayId?4([- epoch
+])
+j.data.time.getDeltaTime?4([- txt
+])
+j.data.time.getEpochAgo?4([- txt
+])
+j.data.time.getEpochFuture?4([- txt
+])
+j.data.time.getHourId?4([- epoch
+])
+j.data.time.getLocalTimeHR?4([])
+j.data.time.getLocalTimeHRForFilesystem?4([])
+j.data.time.getMinuteId?4([- epoch
+])
+j.data.time.getSecondsInHR?4([- seconds
+])
+j.data.time.getTimeEpoch?4([])
+j.data.time.getTimeEpochBin?4([])
+j.data.time.pythonDateTime2Epoch?4([- pythonDateTime
+, - local = True
+])
+j.data.time.pythonDateTime2HRDateTime?4([- pythonDateTime
+, - local = True
+])
+j.data.time.timeinterval?8
+j.data.time.timeinterval.DAYS?7
+j.data.time.timeinterval.HOURS?7
+j.data.time.timeinterval.MICROSECONDS?7
+j.data.time.timeinterval.MILLISECONDS?7
+j.data.time.timeinterval.MINUTES?7
+j.data.time.timeinterval.MONTHS?7
+j.data.time.timeinterval.NANOSECONDS?7
+j.data.time.timeinterval.SECONDS?7
+j.data.time.timeinterval.WEEKS?7
+j.data.time.timeinterval.YEARS?7
+j.data.types?8
+j.data.types.bool?8
+j.data.types.bool.BASETYPE?7
+j.data.types.bool.NAME?7
+j.data.types.bool.check?4([- value
+])
+j.data.types.bool.checkString?4([- s
+])
+j.data.types.bool.clean?4([- value
+])
+j.data.types.bool.fromString?4([- s
+])
+j.data.types.bool.get_default?4([])
+j.data.types.bool.toString?4([- boolean
+])
+j.data.types.bytes?8
+j.data.types.bytes.BASETYPE?7
+j.data.types.bytes.NAME?7
+j.data.types.bytes.check?4([- value
+])
+j.data.types.bytes.clean?4([- value
+])
+j.data.types.bytes.fromString?4([- s
+])
+j.data.types.bytes.get_default?4([])
+j.data.types.bytes.toString?4([- v
+])
+j.data.types.date?8
+j.data.types.date.NAME?7
+j.data.types.date.check?4([- value
+])
+j.data.types.date.clean?4([- v
+])
+j.data.types.date.fromString?4([- s
+])
+j.data.types.date.get_default?4([])
+j.data.types.date.toString?4([- v
+])
+j.data.types.dict?8
+j.data.types.dict.BASETYPE?7
+j.data.types.dict.NAME?7
+j.data.types.dict.check?4([- value
+])
+j.data.types.dict.fromString?4([- s
+])
+j.data.types.dict.get_default?4([])
+j.data.types.dict.toString?4([- v
+])
+j.data.types.duration?8
+j.data.types.duration.BASETYPE?7
+j.data.types.duration.NAME?7
+j.data.types.duration.check?4([- value
+])
+j.data.types.duration.clean?4([- value
+])
+j.data.types.duration.convertToSeconds?4([- value
+])
+j.data.types.duration.fromString?4([- s
+])
+j.data.types.duration.get_default?4([])
+j.data.types.duration.toString?4([- v
+])
+j.data.types.email?8
+j.data.types.email.BASETYPE?7
+j.data.types.email.NAME?7
+j.data.types.email.check?4([- value
+])
+j.data.types.email.clean?4([- v
+])
+j.data.types.email.fromString?4([- v
+])
+j.data.types.email.get_default?4([])
+j.data.types.email.toString?4([- v
+])
+j.data.types.float?8
+j.data.types.float.BASETYPE?7
+j.data.types.float.NAME?7
+j.data.types.float.check?4([- value
+])
+j.data.types.float.checkString?4([- value
+])
+j.data.types.float.clean?4([- value
+])
+j.data.types.float.fromString?4([- s
+])
+j.data.types.float.get_default?4([])
+j.data.types.float.toString?4([- value
+])
+j.data.types.get?4([- ttype
+, - val
+])
+j.data.types.getTypeClass?4([- ttype
+])
+j.data.types.guid?8
+j.data.types.guid.BASETYPE?7
+j.data.types.guid.NAME?7
+j.data.types.guid.check?4([- value
+])
+j.data.types.guid.clean?4([- value
+])
+j.data.types.guid.fromString?4([- v
+])
+j.data.types.guid.get_default?4([])
+j.data.types.guid.toString?4([- v
+])
+j.data.types.int?8
+j.data.types.int.BASETYPE?7
+j.data.types.int.NAME?7
+j.data.types.int.check?4([- value
+])
+j.data.types.int.checkString?4([- s
+])
+j.data.types.int.clean?4([- value
+])
+j.data.types.int.fromString?4([- s
+])
+j.data.types.int.get_default?4([])
+j.data.types.int.toString?4([- value
+])
+j.data.types.ipaddr?8
+j.data.types.ipaddr.BASETYPE?7
+j.data.types.ipaddr.NAME?7
+j.data.types.ipaddr.check?4([- value
+])
+j.data.types.ipaddr.clean?4([- value
+])
+j.data.types.ipaddr.fromString?4([- s
+])
+j.data.types.ipaddr.get_default?4([])
+j.data.types.ipaddr.toString?4([- v
+])
+j.data.types.ipport?8
+j.data.types.ipport.BASETYPE?7
+j.data.types.ipport.NAME?7
+j.data.types.ipport.check?4([- value
+])
+j.data.types.ipport.checkString?4([- s
+])
+j.data.types.ipport.clean?4([- value
+])
+j.data.types.ipport.fromString?4([- s
+])
+j.data.types.ipport.get_default?4([])
+j.data.types.ipport.toString?4([- value
+])
+j.data.types.iprange?8
+j.data.types.iprange.BASETYPE?7
+j.data.types.iprange.NAME?7
+j.data.types.iprange.check?4([- value
+])
+j.data.types.iprange.clean?4([- value
+])
+j.data.types.iprange.fromString?4([- s
+])
+j.data.types.iprange.get_default?4([])
+j.data.types.iprange.toString?4([- v
+])
+j.data.types.json?8
+j.data.types.json.BASETYPE?7
+j.data.types.json.NAME?7
+j.data.types.list?8
+j.data.types.list.BASETYPE?7
+j.data.types.list.NAME?7
+j.data.types.list.check?4([- value
+])
+j.data.types.list.clean?4([- v
+, - ttype = 'str'
+])
+j.data.types.list.fromString?4([- v
+, - ttype = 'str'
+])
+j.data.types.list.get_default?4([])
+j.data.types.list.toString?4([- v
+, - ttype = 'str'
+])
+j.data.types.multiline?8
+j.data.types.multiline.BASETYPE?7
+j.data.types.multiline.NAME?7
+j.data.types.multiline.check?4([- value
+])
+j.data.types.multiline.clean?4([- value
+])
+j.data.types.multiline.fromString?4([- s
+])
+j.data.types.multiline.get_default?4([])
+j.data.types.multiline.toString?4([- v
+])
+j.data.types.path?8
+j.data.types.path.BASETYPE?7
+j.data.types.path.NAME?7
+j.data.types.path.check?4([- value
+])
+j.data.types.path.clean?4([- value
+])
+j.data.types.path.fromString?4([- s
+])
+j.data.types.path.get_default?4([])
+j.data.types.path.toString?4([- v
+])
+j.data.types.set?8
+j.data.types.set.BASETYPE?7
+j.data.types.set.NAME?7
+j.data.types.set.check?4([- value
+])
+j.data.types.set.get_default?4([])
+j.data.types.string?8
+j.data.types.string.BASETYPE?7
+j.data.types.string.NAME?7
+j.data.types.string.check?4([- value
+])
+j.data.types.string.clean?4([- value
+])
+j.data.types.string.fromString?4([- s
+])
+j.data.types.string.get_default?4([])
+j.data.types.string.toString?4([- v
+])
+j.data.types.tel?8
+j.data.types.tel.BASETYPE?7
+j.data.types.tel.NAME?7
+j.data.types.tel.check?4([- value
+])
+j.data.types.tel.clean?4([- v
+])
+j.data.types.tel.fromString?4([- s
+])
+j.data.types.tel.get_default?4([])
+j.data.types.tel.toString?4([- v
+])
+j.data.types.yaml?8
+j.data.types.yaml.BASETYPE?7
+j.data.types.yaml.NAME?7
+j.data.types.yaml.check?4([- value
+])
+j.data.types.yaml.fromString?4([- s
+])
+j.data.types.yaml.get_default?4([])
+j.data.types.yaml.toString?4([- v
+])
+j.data.units?8
+j.data.units.bytes?8
+j.data.units.bytes.converToBestUnit?4([- value
+, - input = ''
+])
+j.data.units.bytes.toSize?4([- value
+, - input = ''
+, - output = 'K'
+])
+j.data.units.sizes?8
+j.data.units.sizes.converToBestUnit?4([- value
+, - input = ''
+])
+j.data.units.sizes.toSize?4([- value
+, - input = ''
+, - output = 'K'
+])
+j.dirs?8
+j.dirs.appDir?8
+j.dirs.base?8
+j.dirs.binDir?8
+j.dirs.cfgDir?8
+j.dirs.codeDir?8
+j.dirs.getPathOfRunningFunction?4([- function
+])
+j.dirs.homeDir?8
+j.dirs.hrd?8
+j.dirs.init?4([])
+j.dirs.jsLibDir?8
+j.dirs.libDir?8
+j.dirs.libExtDir?8
+j.dirs.logDir?8
+j.dirs.pidDir?8
+j.dirs.replaceFilesDirVars?4([- path
+, - recursive = True
+, - filter
+, - additionalArgs = {}
+])
+j.dirs.replaceTxtDirVars?4([- txt
+, - additionalArgs = {}
+])
+j.dirs.tmpDir?8
+j.dirs.tmplsDir?8
+j.dirs.varDir?8
+j.do?8
+j.do.BASE?7
+j.do.CODEDIR?7
+j.do.TMP?7
+j.do.TYPE?7
+j.do.VARDIR?7
+j.do.askItemsFromList?4([- items
+, - msg = ''
+])
+j.do.authorizeSSHKey?4([- remoteipaddr
+, - keyname
+, - login = 'root'
+, - passwd
+, - sshport = 22
+, - removeothers = False
+])
+j.do.changeDir?4([- path
+, - create = False
+])
+j.do.changeLoginPasswdGitRepos?4([- provider = ''
+, - account = ''
+, - name = ''
+, - login = ''
+, - passwd = ''
+, - ssh = True
+, - pushmessage = ''
+])
+j.do.chdir?4([- ddir = ''
+])
+j.do.checkDirOrLinkToDir?4([- fullpath
+])
+j.do.checkInstalled?4([- cmdname
+])
+j.do.checkSSHAgentAvailable?4([])
+j.do.chmod?4([- path
+, - permissions
+])
+j.do.chown?4([- path
+, - user
+])
+j.do.copyDependencies?4([- path
+, - dest
+])
+j.do.copyFile?4([- source
+, - dest
+, - deletefirst = False
+, - skipIfExists = False
+, - makeExecutable = False
+])
+j.do.copyTree?4([- source
+, - dest
+, - keepsymlinks = False
+, - deletefirst = False
+, - overwriteFiles = True
+, - ignoredir = ['.egg-info', '.dist-info']
+, - ignorefiles = ['.egg-info']
+, - rsync = True
+, - ssh = False
+, - sshport = 22
+, - recursive = True
+, - rsyncdelete = False
+, - createdir = False
+])
+j.do.createDir?4([- path
+])
+j.do.debug?8
+j.do.delete?4([- path
+, - force = False
+])
+j.do.download?4([- url
+, - to = ''
+, - overwrite = True
+, - retry = 3
+, - timeout = 0
+, - login = ''
+, - passwd = ''
+, - minspeed = 0
+, - multithread = False
+, - curl = False
+])
+j.do.downloadExpandTarGz?4([- url
+, - destdir
+, - deleteDestFirst = True
+, - deleteSourceAfter = True
+])
+j.do.downloadJumpScaleCore?4([- dest
+])
+j.do.execute?4([- command
+, - showout = True
+, - outputStderr = True
+, - useShell = True
+, - log = True
+, - cwd
+, - timeout = 1
+, - captureout = True
+, - die = True
+, - async = False
+, - executor
+])
+j.do.executeBashScript?4([- content = ''
+, - path
+, - die = True
+, - remote
+, - sshport = 22
+, - showout = True
+, - outputStderr = True
+, - sshkey = ''
+])
+j.do.executeCmds?4([- cmdstr
+, - showout = True
+, - outputStderr = True
+, - useShell = True
+, - log = True
+, - cwd
+, - timeout = 120
+, - captureout = True
+, - die = True
+])
+j.do.executeInteractive?4([- command
+])
+j.do.exists?4([- path
+])
+j.do.expandTarGz?4([- path
+, - destdir
+, - deleteDestFirst = True
+, - deleteSourceAfter = False
+])
+j.do.findDependencies?4([- path
+, - deps = {}
+])
+j.do.getBaseName?4([- path
+])
+j.do.getBinDirSystem?4([])
+j.do.getDirName?4([- path
+, - lastOnly = False
+, - levelsUp
+])
+j.do.getFileExtension?4([- path
+])
+j.do.getGitBranch?4([- path
+])
+j.do.getGitRepoArgs?4([- url = ''
+, - dest
+, - login
+, - passwd
+, - reset = False
+, - branch
+, - ssh = 'auto'
+, - codeDir
+, - executor
+])
+j.do.getGitReposListLocal?4([- provider = ''
+, - account = ''
+, - name = ''
+, - errorIfNone = True
+])
+j.do.getParent?4([- path
+])
+j.do.getPythonLibSystem?4([- jumpscale = False
+])
+j.do.getPythonSiteConfigPath?4([])
+j.do.getSSHKeyFromAgentPub?4([- keyname
+, - die = True
+])
+j.do.getSSHKeyPathFromAgent?4([- keyname
+, - die = True
+])
+j.do.getTimeEpoch?4([])
+j.do.getTmpPath?4([- filename
+])
+j.do.getWalker?4([])
+j.do.installPackage?4([- path
+])
+j.do.installer?8
+j.do.installer.cleanSystem?4([])
+j.do.installer.develtools?4([])
+j.do.installer.gitConfig?4([- name
+, - email
+])
+j.do.installer.installJS?4([- base = ''
+, - clean = True
+, - insystem = True
+, - GITHUBUSER = ''
+, - GITHUBPASSWD = ''
+, - CODEDIR = ''
+, - JSGIT = 'https://github.com/Jumpscale/jumpscale_core8.git'
+, - JSBRANCH = 'master'
+, - AYSGIT = 'https://github.com/Jumpscale/ays_jumpscale8'
+, - AYSBRANCH = 'master'
+, - SANDBOX = '0'
+, - EMAIL = ''
+, - FULLNAME = ''
+])
+j.do.installer.installJSDocs?4([- ssh = True
+])
+j.do.installer.installpip?4([])
+j.do.installer.prepare?4([- SANDBOX = 0
+, - base = ''
+])
+j.do.installer.readonly?8
+j.do.installer.replacesitecustomize?4([])
+j.do.installer.updateOS?4([])
+j.do.installer.updateUpgradeUbuntu?4([])
+j.do.installer.writeenv?4([- basedir = ''
+, - insystem = False
+, - CODEDIR = ''
+, - vardir = ''
+, - die = True
+, - SANDBOX = 0
+])
+j.do.isDir?4([- path
+, - followSoftlink = False
+])
+j.do.isExecutable?4([- path
+])
+j.do.isFile?4([- path
+, - followSoftlink = False
+])
+j.do.isLink?4([- path
+, - checkJunction = False
+])
+j.do.isUnix?4([])
+j.do.isWindows?4([])
+j.do.joinPaths?4([- *args
+])
+j.do.list?4([- path
+])
+j.do.listDirsInDir?4([- path
+, - recursive = False
+, - dirNameOnly = False
+, - findDirectorySymlinks = True
+])
+j.do.listFilesAndDirsInDir?4([- path
+, - recursive = False
+, - filter
+, - minmtime
+, - maxmtime
+, - depth
+, - type = 'fd'
+, - followSymlinks = True
+, - listSymlinks = False
+])
+j.do.listFilesInDir?4([- path
+, - recursive = False
+, - filter
+, - minmtime
+, - maxmtime
+, - depth
+, - case_sensitivity = 'os'
+, - exclude = []
+, - followSymlinks = True
+, - listSymlinks = False
+])
+j.do.listSSHKeyFromAgent?4([- keyIncluded = False
+])
+j.do.loadSSHKeys?4([- path
+, - duration = 86400
+, - die = False
+])
+j.do.loadScript?4([- path
+])
+j.do.log?4([- msg
+, - level
+])
+j.do.parseGitConfig?4([- repopath
+])
+j.do.pullGitRepo?4([- url = ''
+, - dest
+, - login
+, - passwd
+, - depth = 1
+, - ignorelocalchanges = False
+, - reset = False
+, - branch
+, - revision
+, - ssh = 'auto'
+, - executor
+, - codeDir
+, - onlyIfExists = False
+])
+j.do.pushGitRepos?4([- message
+, - name = ''
+, - update = True
+, - provider = ''
+, - account = ''
+])
+j.do.readFile?4([- filename
+])
+j.do.readLink?4([- path
+])
+j.do.removeLinks?4([- path
+])
+j.do.removeSymlink?4([- path
+])
+j.do.rewriteGitRepoUrl?4([- url = ''
+, - login
+, - passwd
+, - ssh = 'auto'
+])
+j.do.sendmail?4([- ffrom
+, - to
+, - subject
+, - msg
+, - smtpuser
+, - smtppasswd
+, - smtpserver = 'smtp.mandrillapp.com'
+, - port = 587
+, - html = ''
+])
+j.do.symlink?4([- src
+, - dest
+, - delete = False
+])
+j.do.symlinkFilesInDir?4([- src
+, - dest
+, - delete = True
+, - includeDirs = False
+])
+j.do.textstrip?4([- content
+, - ignorecomments = False
+])
+j.do.touch?4([- path
+])
+j.do.updateGitRepos?4([- provider = ''
+, - account = ''
+, - name = ''
+, - message = ''
+])
+j.do.whoami?4([])
+j.do.writeFile?4([- path
+, - content
+, - strip = True
+])
+j.errorconditionhandler?8
+j.errorconditionhandler.blacklist?8
+j.errorconditionhandler.checkErrorIgnore?4([- eco
+])
+j.errorconditionhandler.escalateBugToDeveloper?4([- errorConditionObject
+, - tb
+])
+j.errorconditionhandler.escalateToRedis?8
+j.errorconditionhandler.excepthook?4([- ttype
+, - exceptionObject
+, - tb
+])
+j.errorconditionhandler.exceptions?8
+j.errorconditionhandler.exceptions.AYSNotFound?8
+j.errorconditionhandler.exceptions.AYSNotFound.args?8
+j.errorconditionhandler.exceptions.AYSNotFound.msg?8
+j.errorconditionhandler.exceptions.AYSNotFound.tags?8
+j.errorconditionhandler.exceptions.AYSNotFound.with_traceback?8
+j.errorconditionhandler.exceptions.BUG?7
+j.errorconditionhandler.exceptions.BaseJSException?8
+j.errorconditionhandler.exceptions.BaseJSException.args?8
+j.errorconditionhandler.exceptions.BaseJSException.msg?8
+j.errorconditionhandler.exceptions.BaseJSException.tags?8
+j.errorconditionhandler.exceptions.BaseJSException.with_traceback?8
+j.errorconditionhandler.exceptions.HaltException?8
+j.errorconditionhandler.exceptions.HaltException.args?8
+j.errorconditionhandler.exceptions.HaltException.msg?8
+j.errorconditionhandler.exceptions.HaltException.tags?8
+j.errorconditionhandler.exceptions.HaltException.with_traceback?8
+j.errorconditionhandler.exceptions.IOError?8
+j.errorconditionhandler.exceptions.IOError.args?8
+j.errorconditionhandler.exceptions.IOError.msg?8
+j.errorconditionhandler.exceptions.IOError.tags?8
+j.errorconditionhandler.exceptions.IOError.with_traceback?8
+j.errorconditionhandler.exceptions.Input?8
+j.errorconditionhandler.exceptions.Input.args?8
+j.errorconditionhandler.exceptions.Input.msg?8
+j.errorconditionhandler.exceptions.Input.tags?8
+j.errorconditionhandler.exceptions.Input.with_traceback?8
+j.errorconditionhandler.exceptions.JSBUG?7
+j.errorconditionhandler.exceptions.NotFound?8
+j.errorconditionhandler.exceptions.NotFound.args?8
+j.errorconditionhandler.exceptions.NotFound.msg?8
+j.errorconditionhandler.exceptions.NotFound.tags?8
+j.errorconditionhandler.exceptions.NotFound.with_traceback?8
+j.errorconditionhandler.exceptions.OPERATIONS?7
+j.errorconditionhandler.exceptions.RuntimeError?8
+j.errorconditionhandler.exceptions.RuntimeError.args?8
+j.errorconditionhandler.exceptions.RuntimeError.msg?8
+j.errorconditionhandler.exceptions.RuntimeError.tags?8
+j.errorconditionhandler.exceptions.RuntimeError.with_traceback?8
+j.errorconditionhandler.exceptions.Timeout?8
+j.errorconditionhandler.exceptions.Timeout.args?8
+j.errorconditionhandler.exceptions.Timeout.msg?8
+j.errorconditionhandler.exceptions.Timeout.tags?8
+j.errorconditionhandler.exceptions.Timeout.with_traceback?8
+j.errorconditionhandler.exceptions.j?8
+j.errorconditionhandler.getErrorConditionObject?4([- ddict = {}
+, - msg = ''
+, - msgpub = ''
+, - category = ''
+, - level = 1
+, - type = 'UNKNOWN'
+, - tb
+, - tags = ''
+])
+j.errorconditionhandler.getErrorTraceKIS?4([- tb
+])
+j.errorconditionhandler.getFrames?4([- tb
+])
+j.errorconditionhandler.getLevelName?4([- level
+])
+j.errorconditionhandler.halt?4([- msg
+, - eco
+])
+j.errorconditionhandler.haltOnError?8
+j.errorconditionhandler.inException?8
+j.errorconditionhandler.lastAction?8
+j.errorconditionhandler.lastEco?8
+j.errorconditionhandler.parsePythonExceptionObject?4([- exceptionObject
+, - tb
+])
+j.errorconditionhandler.processPythonExceptionObject?4([- exceptionObject
+, - tb
+])
+j.errorconditionhandler.raiseWarning?4([- message
+, - msgpub = ''
+, - tags = ''
+, - level = 4
+])
+j.errorconditionhandler.reRaiseECO?4([- eco
+])
+j.errorconditionhandler.setExceptHook?4([])
+j.errorconditionhandler.toolStripNonAsciFromText?4([- text
+])
+j.events?8
+j.events.bug_critical?4([- msg
+, - source = ''
+])
+j.events.inputerror_critical?4([- msg
+, - category = ''
+, - msgpub = ''
+])
+j.events.inputerror_warning?4([- msg
+, - category = ''
+, - msgpub = ''
+, - level = 5
+])
+j.events.opserror_critical?4([- msg
+])
+j.events.opserror_warning?4([- msg
+, - category = ''
+])
+j.exceptions?8
+j.legacy?8
+j.logger?8
+j.logger.DEV?7
+j.logger.PRODUCTION?7
+j.logger.get?4([- name
+, - enable_only_me = False
+])
+j.logger.handlers?8
+j.logger.init?4([- mode
+, - level
+, - filter = []
+])
+j.logger.log?4([- msg
+, - level = 20
+, - category = 'j'
+])
+j.logger.root_logger_name?8
+j.logger.set_level?4([- level
+])
+j.logger.set_mode?4([- mode
+])
+j.logger.set_quiet?4([- quiet
+])
+j.portal?8
+j.portal.tools?8
+j.sal?8
+j.sal.aoe?8
+j.sal.aoe.create?4([- storpath
+, - size = 10
+])
+j.sal.aoe.delete?4([- path
+])
+j.sal.aoe.expose?4([- storage
+, - major
+, - minor
+, - inf
+])
+j.sal.aoe.list?4([- storpath = '/mnt/disktargets/'
+])
+j.sal.aoe.unexpose?4([- storage
+])
+j.sal.aysfs?8
+j.sal.aysfs.get?4([- name
+, - cuisine
+])
+j.sal.aysfs.getJumpscale?4([- cuisine
+])
+j.sal.aysfs.getOptvar?4([- cuisine
+])
+j.sal.bind?8
+j.sal.bind.addRecord?4([- domain
+, - host
+, - ip
+, - klass
+, - type
+, - ttl
+])
+j.sal.bind.cleanCache?4([])
+j.sal.bind.deleteHost?4([- host
+])
+j.sal.bind.logger?8
+j.sal.bind.restart?4([])
+j.sal.bind.start?4([])
+j.sal.bind.stop?4([])
+j.sal.bind.updateHostIp?4([- host
+, - ip
+])
+j.sal.btrfs?8
+j.sal.ciscoswitch?8
+j.sal.ciscoswitch.get?4([- host
+, - login
+, - password
+])
+j.sal.cloudfs?8
+j.sal.cloudfs.copyDir?4([- sourcepath
+, - destinationpath
+, - tempdir = '/tmp'
+, - recursive = True
+])
+j.sal.cloudfs.copyFile?4([- sourcepath
+, - destinationpath
+, - tempdir = '/tmp'
+])
+j.sal.cloudfs.exportDir?4([- sourcepath
+, - destinationpath
+, - recursive = True
+, - tempdir = '/tmp'
+])
+j.sal.cloudfs.exportVolume?4([- sourcepath
+, - destinationpath
+, - format = 'vdi'
+, - tempdir = '/tmp'
+])
+j.sal.cloudfs.fileGetContents?4([- url
+])
+j.sal.cloudfs.importDir?4([- sourcepath
+, - destinationpath
+, - tempdir = '/tmp'
+])
+j.sal.cloudfs.importFile?4([- sourcepath
+, - destinationpath
+, - tempdir = '/tmp'
+])
+j.sal.cloudfs.importVolume?4([- sourcepath
+, - destinationpath
+, - format = 'vdi'
+, - tempdir = '/tmp'
+])
+j.sal.cloudfs.listDir?4([- path
+])
+j.sal.cloudfs.logger?8
+j.sal.cloudfs.moveDir?4([- sourcepath
+, - destinationpath
+, - tempdir = '/tmp'
+, - recursive = True
+])
+j.sal.cloudfs.moveFile?4([- sourcepath
+, - destinationpath
+, - tempdir = '/tmp'
+])
+j.sal.cloudfs.sourcePathExists?4([- sourcepath
+])
+j.sal.cloudfs.writeFile?4([- url
+, - content
+])
+j.sal.dhcp_ihc?8
+j.sal.dhcp_ihc.configPath?8
+j.sal.dhcp_ihc.configure?4([- ipFrom
+, - ipTo
+, - interface
+])
+j.sal.dhcp_ihc.restart?4([])
+j.sal.dhcp_ihc.start?4([])
+j.sal.dhcp_ihc.stop?4([])
+j.sal.disklayout?8
+j.sal.disklayout.disks?8
+j.sal.disklayout.findDisk?4([- name = ''
+, - mountpoint = ''
+, - caseSensitive = False
+])
+j.sal.disklayout.getDisks?4([])
+j.sal.diskmanager?8
+j.sal.diskmanager.diskGetFreeRegions?4([- disk
+, - align
+])
+j.sal.diskmanager.mirrorsFind?4([])
+j.sal.diskmanager.parted?8
+j.sal.diskmanager.partitionAdd?4([- disk
+, - free
+, - align
+, - length
+, - fs_type
+, - type
+])
+j.sal.diskmanager.partitionsFind?4([- mounted
+, - ttype
+, - ssd
+, - prefix = 'sd'
+, - minsize = 5
+, - maxsize = 5000
+, - devbusy
+, - initialize = False
+, - forceinitialize = False
+])
+j.sal.diskmanager.partitionsFind_Ext4Data?4([])
+j.sal.diskmanager.partitionsGetMounted_Ext4Data?4([])
+j.sal.diskmanager.partitionsMount_Ext4Data?4([])
+j.sal.diskmanager.partitionsUnmount_Ext4Data?4([])
+j.sal.dnsmasq?8
+j.sal.docker?8
+j.sal.docker.base_url?8
+j.sal.docker.basepath?8
+j.sal.docker.build?4([- path
+, - tag
+, - output = True
+, - force = False
+])
+j.sal.docker.client?8
+j.sal.docker.containerNames?8
+j.sal.docker.containerNamesRunning?8
+j.sal.docker.containers?8
+j.sal.docker.containersRunning?8
+j.sal.docker.create?4([- name = ''
+, - ports = ''
+, - vols = ''
+, - volsro = ''
+, - stdout = True
+, - base = 'jumpscale/ubuntu1604'
+, - nameserver = ['8.8.8.8']
+, - replace = True
+, - cpu
+, - mem = 0
+, - ssh = True
+, - myinit = True
+, - sharecode = False
+, - sshkeyname = ''
+, - sshpubkey = ''
+, - setrootrndpasswd = True
+, - rootpasswd = ''
+, - jumpscalebranch = 'master'
+, - aysfs = []
+, - detach = False
+, - privileged = False
+, - getIfExists = True
+, - weavenet = False
+])
+j.sal.docker.destroyAll?4([- removeimages = False
+])
+j.sal.docker.docker_host?8
+j.sal.docker.exists?4([- name
+])
+j.sal.docker.exportRsync?4([- name
+, - backupname
+, - key = 'pub'
+])
+j.sal.docker.exportTgz?4([- name
+, - backupname
+])
+j.sal.docker.get?4([- name
+, - die = True
+])
+j.sal.docker.getImages?4([])
+j.sal.docker.importRsync?4([- backupname
+, - name
+, - basename = ''
+, - key = 'pub'
+])
+j.sal.docker.importTgz?4([- backupname
+, - name
+])
+j.sal.docker.init?4([])
+j.sal.docker.logger?8
+j.sal.docker.ping?4([])
+j.sal.docker.ps?4([])
+j.sal.docker.pull?4([- imagename
+])
+j.sal.docker.push?4([- image
+, - output = True
+])
+j.sal.docker.reInstallDocker?4([])
+j.sal.docker.removeDocker?4([])
+j.sal.docker.removeImages?4([- tag = '<none>:<none>'
+])
+j.sal.docker.status?4([])
+j.sal.docker.weaveInstall?4([- ufw = False
+])
+j.sal.docker.weaveIsActive?8
+j.sal.docker.weavesocket?8
+j.sal.fs?8
+j.sal.fs.changeDir?4([- path
+])
+j.sal.fs.changeFileNames?4([- toReplace
+, - replaceWith
+, - pathToSearchIn
+, - recursive = True
+, - filter
+, - minmtime
+, - maxmtime
+])
+j.sal.fs.checkDirOrLink?4([- fullpath
+])
+j.sal.fs.checkDirOrLinkToDir?4([- fullpath
+])
+j.sal.fs.checkDirParam?4([- path
+])
+j.sal.fs.chmod?4([- path
+, - permissions
+])
+j.sal.fs.chown?4([- path
+, - user
+, - group
+])
+j.sal.fs.cleanupString?4([- string
+, - replacewith = '_'
+, - regex = '([^A-Za-z0-9])'
+])
+j.sal.fs.constructDirPathFromArray?4([- array
+])
+j.sal.fs.constructFilePathFromArray?4([- array
+])
+j.sal.fs.copyDirTree?4([- src
+, - dst
+, - keepsymlinks = False
+, - deletefirst = False
+, - overwriteFiles = True
+, - ignoredir = ['.egg-info', '.dist-info']
+, - ignorefiles = ['.egg-info']
+, - rsync = True
+, - ssh = False
+, - sshport = 22
+, - recursive = True
+, - rsyncdelete = True
+, - createdir = False
+, - applyHrdOnDestPaths
+])
+j.sal.fs.copyFile?4([- fileFrom
+, - to
+, - createDirIfNeeded = False
+, - overwriteFile = True
+])
+j.sal.fs.createDir?4([- newdir
+])
+j.sal.fs.createEmptyFile?4([- filename
+])
+j.sal.fs.dirEqual?4([- path1
+, - path2
+])
+j.sal.fs.exceptions?8
+j.sal.fs.exceptions.LockException?8
+j.sal.fs.exceptions.LockException.args?8
+j.sal.fs.exceptions.LockException.with_traceback?8
+j.sal.fs.exceptions.LockTimeoutException?8
+j.sal.fs.exceptions.LockTimeoutException.args?8
+j.sal.fs.exceptions.LockTimeoutException.with_traceback?8
+j.sal.fs.exists?4([- path
+, - followlinks = True
+])
+j.sal.fs.fileGetContents?4([- filename
+])
+j.sal.fs.fileGetTextContents?4([- filename
+])
+j.sal.fs.fileGetUncommentedContents?4([- filename
+])
+j.sal.fs.fileSize?4([- filename
+])
+j.sal.fs.find?4([- startDir
+, - fileregex
+])
+j.sal.fs.getBaseName?4([- path
+])
+j.sal.fs.getDirName?4([- path
+, - lastOnly = False
+, - levelsUp
+])
+j.sal.fs.getFileExtension?4([- path
+])
+j.sal.fs.getFolderMD5sum?4([- folder
+])
+j.sal.fs.getParent?4([- path
+])
+j.sal.fs.getTempFileName?4([- dir
+, - prefix = ''
+])
+j.sal.fs.getTmpDirPath?4([])
+j.sal.fs.getTmpFilePath?4([- cygwin = False
+])
+j.sal.fs.getcwd?4([])
+j.sal.fs.grep?4([- fileregex
+, - lineregex
+])
+j.sal.fs.gunzip?4([- sourceFile
+, - destFile
+])
+j.sal.fs.gzip?4([- sourceFile
+, - destFile
+])
+j.sal.fs.hardlinkFile?4([- source
+, - destin
+])
+j.sal.fs.isAbsolute?4([- path
+])
+j.sal.fs.isAsciiFile?4([- filename
+, - checksize = 4096
+])
+j.sal.fs.isBinaryFile?4([- filename
+, - checksize = 4096
+])
+j.sal.fs.isDir?4([- path
+, - followSoftlink = True
+])
+j.sal.fs.isEmptyDir?4([- path
+])
+j.sal.fs.isExecutable?4([- path
+])
+j.sal.fs.isFile?4([- path
+, - followSoftlink = True
+])
+j.sal.fs.isLink?4([- path
+, - checkJunction = False
+])
+j.sal.fs.isMount?4([- path
+])
+j.sal.fs.islocked?4([- lockname
+, - reentry = False
+])
+j.sal.fs.joinPaths?4([- *args
+])
+j.sal.fs.listDirsInDir?4([- path
+, - recursive = False
+, - dirNameOnly = False
+, - findDirectorySymlinks = True
+])
+j.sal.fs.listFilesAndDirsInDir?4([- path
+, - recursive = False
+, - filter
+, - minmtime
+, - maxmtime
+, - depth
+, - type = 'fd'
+, - followSymlinks = True
+, - listSymlinks = False
+])
+j.sal.fs.listFilesInDir?4([- path
+, - recursive = False
+, - filter
+, - minmtime
+, - maxmtime
+, - depth
+, - case_sensitivity = 'os'
+, - exclude = []
+, - followSymlinks = True
+, - listSymlinks = False
+])
+j.sal.fs.listPyScriptsInDir?4([- path
+, - recursive = True
+, - filter = '*.py'
+])
+j.sal.fs.lock?4([- lockname
+, - locktimeout = 60
+, - reentry = False
+])
+j.sal.fs.lock_?4([- lockname
+, - locktimeout = 60
+, - reentry = False
+])
+j.sal.fs.logger?8
+j.sal.fs.md5sum?4([- filename
+])
+j.sal.fs.move?4([- source
+, - destin
+])
+j.sal.fs.moveDir?4([- source
+, - destin
+])
+j.sal.fs.moveFile?4([- source
+, - destin
+])
+j.sal.fs.parsePath?4([- path
+, - baseDir = ''
+, - existCheck = True
+, - checkIsFile = False
+])
+j.sal.fs.pathClean?4([- path
+])
+j.sal.fs.pathDirClean?4([- path
+])
+j.sal.fs.pathNormalize?4([- path
+, - root = ''
+])
+j.sal.fs.pathRemoveDirPart?4([- path
+, - toremove
+, - removeTrailingSlash = False
+])
+j.sal.fs.pathShorten?4([- path
+])
+j.sal.fs.pathToUnicode?4([- path
+])
+j.sal.fs.processPathForDoubleDots?4([- path
+])
+j.sal.fs.readFile?4([- filename
+])
+j.sal.fs.readObjectFromFile?4([- filelocation
+])
+j.sal.fs.readlink?4([- path
+])
+j.sal.fs.remove?4([- path
+])
+j.sal.fs.removeDir?4([- path
+])
+j.sal.fs.removeDirTree?4([- path
+, - onlyLogWarningOnRemoveError = False
+])
+j.sal.fs.removeIrrelevantFiles?4([- path
+, - followSymlinks = True
+])
+j.sal.fs.removeLinks?4([- path
+])
+j.sal.fs.renameDir?4([- dirname
+, - newname
+, - overwrite = False
+])
+j.sal.fs.renameFile?4([- filePath
+, - new_name
+])
+j.sal.fs.replaceWordsInFiles?4([- pathToSearchIn
+, - templateengine
+, - recursive = True
+, - filter
+, - minmtime
+, - maxmtime
+])
+j.sal.fs.statPath?4([- path
+])
+j.sal.fs.symlink?4([- path
+, - target
+, - overwriteTarget = False
+])
+j.sal.fs.targzCompress?4([- sourcepath
+, - destinationpath
+, - followlinks = False
+, - destInTar = ''
+, - pathRegexIncludes = ['.[a-zA-Z0-9]*']
+, - pathRegexExcludes = []
+, - contentRegexIncludes = []
+, - contentRegexExcludes = []
+, - depths = []
+, - extrafiles = []
+])
+j.sal.fs.targzUncompress?4([- sourceFile
+, - destinationdir
+, - removeDestinationdir = True
+])
+j.sal.fs.touch?4([- paths
+, - overwrite = True
+])
+j.sal.fs.unlink?4([- filename
+])
+j.sal.fs.unlinkFile?4([- filename
+])
+j.sal.fs.unlock?4([- lockname
+])
+j.sal.fs.unlock_?4([- lockname
+])
+j.sal.fs.validateFilename?4([- filename
+, - platform
+])
+j.sal.fs.walk?4([- root
+, - recurse = 0
+, - pattern = '*'
+, - return_folders = 0
+, - return_files = 1
+, - followSoftlinks = True
+, - str = False
+, - depth
+])
+j.sal.fs.walkExtended?4([- root
+, - recurse = 0
+, - dirPattern = '*'
+, - filePattern = '*'
+, - followSoftLinks = True
+, - dirs = True
+, - files = True
+])
+j.sal.fs.walker?8
+j.sal.fs.walker.find?4([- root
+, - recursive = True
+, - includeFolders = False
+, - pathRegexIncludes = ['.*']
+, - pathRegexExcludes = []
+, - contentRegexIncludes = []
+, - contentRegexExcludes = []
+, - depths = []
+])
+j.sal.fs.walker.walk?4([- root
+, - callback
+, - arg = ''
+, - recursive = True
+, - includeFolders = False
+, - pathRegexIncludes = ['.*']
+, - pathRegexExcludes = []
+, - contentRegexIncludes = []
+, - contentRegexExcludes = []
+, - depths = []
+, - followlinks = True
+])
+j.sal.fs.walker.walkFunctional?4([- root
+, - callbackFunctionFile
+, - callbackFunctionDir
+, - arg = ''
+, - callbackForMatchDir
+, - callbackForMatchFile
+])
+j.sal.fs.writeFile?4([- filename
+, - contents
+, - append = False
+])
+j.sal.fs.writeObjectToFile?4([- filelocation
+, - obj
+])
+j.sal.fswalker?8
+j.sal.fswalker.find?4([- root
+, - recursive = True
+, - includeFolders = False
+, - pathRegexIncludes = ['.*']
+, - pathRegexExcludes = []
+, - contentRegexIncludes = []
+, - contentRegexExcludes = []
+, - depths = []
+])
+j.sal.fswalker.walk?4([- root
+, - callback
+, - arg = ''
+, - recursive = True
+, - includeFolders = False
+, - pathRegexIncludes = ['.*']
+, - pathRegexExcludes = []
+, - contentRegexIncludes = []
+, - contentRegexExcludes = []
+, - depths = []
+, - followlinks = True
+])
+j.sal.fswalker.walkFunctional?4([- root
+, - callbackFunctionFile
+, - callbackFunctionDir
+, - arg = ''
+, - callbackForMatchDir
+, - callbackForMatchFile
+])
+j.sal.hostsfile?8
+j.sal.hostsfile.get?4([])
+j.sal.lxc?8
+j.sal.lxc.btrfsSubvolCopy?4([- nameFrom
+, - NameDest
+])
+j.sal.lxc.btrfsSubvolDelete?4([- name
+])
+j.sal.lxc.btrfsSubvolExists?4([- name
+])
+j.sal.lxc.btrfsSubvolList?4([])
+j.sal.lxc.btrfsSubvolNew?4([- name
+])
+j.sal.lxc.create?4([- name = ''
+, - stdout = True
+, - base = 'base'
+, - start = False
+, - nameserver = '8.8.8.8'
+, - replace = True
+])
+j.sal.lxc.destroy?4([- name
+])
+j.sal.lxc.destroyAll?4([])
+j.sal.lxc.execute?4([- command
+])
+j.sal.lxc.exportRsync?4([- name
+, - backupname
+, - key = 'pub'
+])
+j.sal.lxc.exportTgz?4([- name
+, - backupname
+])
+j.sal.lxc.getConfig?4([- name
+])
+j.sal.lxc.getIp?4([- name
+, - fail = True
+])
+j.sal.lxc.getPid?4([- name
+, - fail = True
+])
+j.sal.lxc.getProcessList?4([- name
+, - stdout = True
+])
+j.sal.lxc.importRsync?4([- backupname
+, - name
+, - basename = ''
+, - key = 'pub'
+])
+j.sal.lxc.importTgz?4([- backupname
+, - name
+])
+j.sal.lxc.list?4([])
+j.sal.lxc.networkSet?4([- machinename
+, - netname = 'pub0'
+, - pubips = []
+, - bridge = 'public'
+, - gateway
+])
+j.sal.lxc.networkSetPrivateVXLan?4([- name
+, - vxlanid
+, - ipaddresses
+])
+j.sal.lxc.pushSSHKey?4([- name
+])
+j.sal.lxc.removeRedundantFiles?4([- name
+])
+j.sal.lxc.setHostName?4([- name
+])
+j.sal.lxc.start?4([- name
+, - stdout = True
+, - test = True
+])
+j.sal.lxc.stop?4([- name
+])
+j.sal.netconfig?8
+j.sal.netconfig.chroot?4([- root
+])
+j.sal.netconfig.hostname_set?4([- hostname
+])
+j.sal.netconfig.interface_configure?4([- dev
+, - ipaddr
+, - bridgedev
+, - gw
+, - dhcp = False
+, - apply = True
+])
+j.sal.netconfig.interface_configure_bridge_safe?4([- interface
+, - ipaddr
+, - gw
+, - mask
+])
+j.sal.netconfig.interface_configure_dhcp?4([- dev = 'eth0'
+, - apply = True
+])
+j.sal.netconfig.interface_configure_dhcp_bridge?4([- dev = 'eth0'
+, - bridgedev
+, - apply = True
+])
+j.sal.netconfig.interface_configure_dhcp_waitdown?4([- interface = 'eth0'
+])
+j.sal.netconfig.interface_remove?4([- dev
+, - apply = True
+])
+j.sal.netconfig.interface_remove_ipaddr?4([- network = '192.168.1'
+])
+j.sal.netconfig.interfaces_reset?4([- shutdown = False
+])
+j.sal.netconfig.interfaces_restart?4([- dev
+])
+j.sal.netconfig.interfaces_shutdown?4([- excludes = []
+])
+j.sal.netconfig.nameserver_set?4([- addr
+])
+j.sal.netconfig.proxy_enable?4([])
+j.sal.netconfig.root?8
+j.sal.nettools?8
+j.sal.nettools.bridgeExists?4([- bridgename
+])
+j.sal.nettools.checkIpAddressIsLocal?4([- ipaddr
+])
+j.sal.nettools.checkListenPort?4([- port
+])
+j.sal.nettools.checkUrlReachable?4([- url
+, - timeout = 5
+])
+j.sal.nettools.download?4([- url
+, - localpath
+, - username
+, - passwd
+, - overwrite = True
+])
+j.sal.nettools.downloadIfNonExistent?4([- url
+, - destination_file_path
+, - md5_checksum
+, - http_auth_username
+, - http_auth_password
+])
+j.sal.nettools.getDefaultIPConfig?4([])
+j.sal.nettools.getDefaultRouter?4([])
+j.sal.nettools.getDomainName?4([])
+j.sal.nettools.getHostByName?4([- dnsHostname
+])
+j.sal.nettools.getHostname?4([])
+j.sal.nettools.getIpAddress?4([- interface
+])
+j.sal.nettools.getIpAddresses?4([- up = False
+])
+j.sal.nettools.getMacAddress?4([- interface
+])
+j.sal.nettools.getMacAddressForIp?4([- ipaddress
+])
+j.sal.nettools.getNameServer?4([])
+j.sal.nettools.getNetworkInfo?4([])
+j.sal.nettools.getNicType?4([- interface
+])
+j.sal.nettools.getNics?4([- up = False
+])
+j.sal.nettools.getReachableIpAddress?4([- ip
+, - port
+])
+j.sal.nettools.getVlanTag?4([- interface
+, - nicType
+])
+j.sal.nettools.getVlanTagFromInterface?4([- interface
+])
+j.sal.nettools.isIpLocal?4([- ipaddress
+])
+j.sal.nettools.isNicConnected?4([- interface
+])
+j.sal.nettools.logger?8
+j.sal.nettools.pingMachine?4([- ip
+, - pingtimeout = 60
+, - recheck = False
+, - allowhostname = True
+])
+j.sal.nettools.pm_formatMacAddress?4([- macaddress
+])
+j.sal.nettools.resetDefaultGateway?4([- gw
+])
+j.sal.nettools.tcpPortConnectionTest?4([- ipaddr
+, - port
+, - timeout
+])
+j.sal.nettools.validateIpAddress?4([- ipaddress
+])
+j.sal.nettools.waitConnectionTest?4([- ipaddr
+, - port
+, - timeout
+])
+j.sal.nettools.waitConnectionTestStopped?4([- ipaddr
+, - port
+, - timeout
+])
+j.sal.nfs?8
+j.sal.nfs.addClient?4([- name = '*'
+, - options = 'rw,sync'
+])
+j.sal.nfs.clients?8
+j.sal.nfs.path?8
+j.sal.nfs.removeClient?4([- name
+])
+j.sal.nginx?8
+j.sal.nginx.get?4([- path = '/etc/nginx'
+])
+j.sal.nic?8
+j.sal.nic.commit?4([- device
+])
+j.sal.nic.ipGet?4([- device
+])
+j.sal.nic.ipReset?4([- device
+, - commit = False
+])
+j.sal.nic.ipSet?4([- device
+, - ip
+, - netmask
+, - gw
+, - inet = 'dhcp'
+, - commit = False
+])
+j.sal.nic.logger?8
+j.sal.openvswitch?8
+j.sal.openvswitch.PHYSMTU?7
+j.sal.openvswitch.applyconfig?4([- interfacenameToExclude
+, - backplanename
+])
+j.sal.openvswitch.configureStaticAddress?4([- interfacename = 'eth0'
+, - ipaddr = '192.168.10.10/24'
+, - gw
+])
+j.sal.openvswitch.createVXLanBridge?4([- networkid
+, - backend
+, - bridgename
+])
+j.sal.openvswitch.ensureVXNet?4([- networkid
+, - backend
+])
+j.sal.openvswitch.getConfigFromSystem?4([- reload = False
+])
+j.sal.openvswitch.getType?4([- interfaceName
+])
+j.sal.openvswitch.initNetworkInterfaces?4([])
+j.sal.openvswitch.newBondedBackplane?4([- name
+, - interfaces
+, - trunks
+])
+j.sal.openvswitch.newBridge?4([- name
+, - interface
+])
+j.sal.openvswitch.newVlanBridge?4([- name
+, - parentbridge
+, - vlanid
+, - mtu
+])
+j.sal.openvswitch.printConfigFromSystem?4([])
+j.sal.openvswitch.removeOldConfig?4([])
+j.sal.openvswitch.setBackplane?4([- interfacename = 'eth0'
+, - backplanename = 1
+, - ipaddr = '192.168.10.10/24'
+, - gw = ''
+])
+j.sal.openvswitch.setBackplaneDhcp?4([- interfacename = 'eth0'
+, - backplanename = 'Public'
+])
+j.sal.openvswitch.setBackplaneNoAddress?4([- interfacename = 'eth0'
+, - backplanename = 1
+])
+j.sal.openvswitch.setBackplaneNoAddressWithBond?4([- bondname
+, - bondinterfaces
+, - backplanename = 'backplane'
+])
+j.sal.openvswitch.setBackplaneWithBond?4([- bondname
+, - bondinterfaces
+, - backplanename = 'backplane'
+, - ipaddr = '192.168.10.10/24'
+, - gw = ''
+])
+j.sal.process?8
+j.sal.process.appCheckActive?4([- appname
+])
+j.sal.process.appGetPids?4([- appname
+])
+j.sal.process.appGetPidsActive?4([- appname
+])
+j.sal.process.appNrInstances?4([- appname
+])
+j.sal.process.appNrInstancesActive?4([- appname
+])
+j.sal.process.appsGet?4([])
+j.sal.process.appsGetNames?4([])
+j.sal.process.checkProcessForPid?4([- pid
+, - process
+])
+j.sal.process.checkProcessRunning?4([- process
+, - min = 1
+])
+j.sal.process.checkstart?4([- cmd
+, - filterstr
+, - nrtimes = 1
+, - retry = 1
+])
+j.sal.process.checkstop?4([- cmd
+, - filterstr
+, - retry = 1
+, - nrinstances = 0
+])
+j.sal.process.execute?4([- command
+, - die = True
+, - outputToStdout = False
+, - useShell = False
+, - ignoreErrorOutput = False
+])
+j.sal.process.executeAsync?4([- command
+, - args = []
+, - printCommandToStdout = False
+, - redirectStreams = True
+, - argsInCommand = False
+, - useShell
+, - outputToStdout = True
+])
+j.sal.process.executeCode?4([- code
+, - params
+])
+j.sal.process.executeInSandbox?4([- command
+, - timeout = 0
+])
+j.sal.process.executeIndependant?4([- cmd
+])
+j.sal.process.executeScript?4([- scriptName
+])
+j.sal.process.executeWithoutPipe?4([- command
+, - die = True
+, - printCommandToStdout = False
+])
+j.sal.process.getDefunctProcesses?4([])
+j.sal.process.getEnviron?4([- pid
+])
+j.sal.process.getMyProcessObject?4([])
+j.sal.process.getPidsByFilter?4([- filterstr
+])
+j.sal.process.getPidsByPort?4([- port
+])
+j.sal.process.getProcessByPort?4([- port
+])
+j.sal.process.getProcessObject?4([- pid
+])
+j.sal.process.getProcessPid?4([- process
+])
+j.sal.process.getProcessPidsFromUser?4([- user
+])
+j.sal.process.getSimularProcesses?4([])
+j.sal.process.isPidAlive?4([- pid
+])
+j.sal.process.kill?4([- pid
+, - sig
+])
+j.sal.process.killProcessByName?4([- name
+, - sig
+])
+j.sal.process.killProcessByPort?4([- port
+])
+j.sal.process.killUserProcesses?4([- user
+])
+j.sal.process.logger?8
+j.sal.process.run?4([- commandline
+, - showOutput = False
+, - captureOutput = True
+, - maxSeconds = 0
+, - stopOnError = True
+, - user
+, - group
+, - **kwargs
+])
+j.sal.process.runDaemon?4([- commandline
+, - stdout
+, - stderr
+, - user
+, - group
+, - env
+])
+j.sal.process.runScript?4([- script
+, - showOutput = False
+, - captureOutput = True
+, - maxSeconds = 0
+, - stopOnError = True
+])
+j.sal.process.setEnvironmentVariable?4([- varnames
+, - varvalues
+])
+j.sal.qemu_img?8
+j.sal.qemu_img.commit?4([- fileName
+, - diskImageFormat
+])
+j.sal.qemu_img.convert?4([- fileName
+, - diskImageFormat
+, - outputFileName
+, - outputFormat
+, - compressTargetImage = False
+, - encryptTargetImage = False
+, - useCompatibilityLevel6 = False
+, - isTargetImageTypeSCSI = False
+, - logger
+])
+j.sal.qemu_img.create?4([- fileName
+, - diskImageFormat
+, - size
+, - baseImage
+, - encryptTargetImage = False
+, - useCompatibilityLevel6 = False
+, - isTargetImageTypeSCSI = False
+])
+j.sal.qemu_img.info?4([- fileName
+, - diskImageFormat
+, - chain = False
+, - unit = 'K'
+])
+j.sal.routeros?8
+j.sal.routeros.get?4([- host
+, - login
+, - password
+])
+j.sal.rsync?8
+j.sal.rsync.getClient?4([- name = ''
+, - addr = 'localhost'
+, - port = 873
+, - login = ''
+, - passwd = ''
+])
+j.sal.rsync.getClientSecret?4([- addr = 'localhost'
+, - port = 873
+, - secret = ''
+])
+j.sal.rsync.getServer?4([- root
+])
+j.sal.samba?8
+j.sal.samba.addShare?4([- sharename
+, - path
+, - options = {}
+])
+j.sal.samba.addSubShare?4([- sharename
+, - sharepath
+])
+j.sal.samba.addUser?4([- username
+, - password
+])
+j.sal.samba.commitShare?4([])
+j.sal.samba.getShare?4([- sharename
+])
+j.sal.samba.getSubShare?4([- sharename
+, - sharepath
+])
+j.sal.samba.grantaccess?4([- username
+, - sharename
+, - sharepath
+, - readonly = True
+])
+j.sal.samba.listShares?4([])
+j.sal.samba.listSubShares?4([- path
+])
+j.sal.samba.listUsers?4([])
+j.sal.samba.removeShare?4([- sharename
+])
+j.sal.samba.removeSubShare?4([- sharename
+, - sharepath
+])
+j.sal.samba.removeUser?4([- username
+])
+j.sal.samba.revokeaccess?4([- username
+, - sharename
+, - sharepath
+, - readonly = True
+])
+j.sal.sshd?8
+j.sal.sshd.SSH_AUTHORIZED_KEYS?7
+j.sal.sshd.SSH_ROOT?7
+j.sal.sshd.addKey?4([- key
+])
+j.sal.sshd.commit?4([])
+j.sal.sshd.deleteKey?4([- key
+])
+j.sal.sshd.disableNonKeyAccess?4([])
+j.sal.sshd.erase?4([])
+j.sal.sshd.keys?8
+j.sal.tmux?8
+j.sal.tmux.createPanes4x4?4([- sessionName = 'main'
+, - windowName = 'actions'
+, - reset = True
+])
+j.sal.tmux.execute?4([- cmd
+])
+j.sal.tmux.getSession?4([- name
+, - reset = False
+, - attach = False
+, - firstWindow = ''
+])
+j.sal.tmux.sessions?8
+j.sal.ubuntu?8
+j.sal.ubuntu.apt_find1_installed?4([- packagename
+])
+j.sal.ubuntu.apt_find_all?4([- packagename
+])
+j.sal.ubuntu.apt_find_installed?4([- packagename
+])
+j.sal.ubuntu.apt_get?4([- name
+])
+j.sal.ubuntu.apt_get_cache_keys?4([])
+j.sal.ubuntu.apt_get_installed?4([])
+j.sal.ubuntu.apt_init?4([])
+j.sal.ubuntu.apt_install?4([- packagename
+])
+j.sal.ubuntu.apt_install_check?4([- packagenames
+, - cmdname
+])
+j.sal.ubuntu.apt_install_version?4([- packageName
+, - version
+])
+j.sal.ubuntu.apt_sources_list?4([])
+j.sal.ubuntu.apt_sources_uri_add?4([- url
+])
+j.sal.ubuntu.apt_sources_uri_change?4([- newuri
+])
+j.sal.ubuntu.apt_update?4([- force = True
+])
+j.sal.ubuntu.apt_upgrade?4([- force = True
+])
+j.sal.ubuntu.check?4([- die = True
+])
+j.sal.ubuntu.checkroot?4([])
+j.sal.ubuntu.deb_download_install?4([- url
+, - removeDownloaded = False
+, - minspeed = 20
+])
+j.sal.ubuntu.deb_install?4([- path
+, - installDeps = True
+])
+j.sal.ubuntu.get_installed_package_names?4([])
+j.sal.ubuntu.installedPackageNames?8
+j.sal.ubuntu.is_pkg_installed?4([- pkg
+])
+j.sal.ubuntu.logger?8
+j.sal.ubuntu.pkg_list?4([- pkgname
+, - regex = ''
+])
+j.sal.ubuntu.pkg_remove?4([- packagename
+])
+j.sal.ubuntu.service_disable_start_boot?4([- servicename
+])
+j.sal.ubuntu.service_enable_start_boot?4([- servicename
+])
+j.sal.ubuntu.service_install?4([- servicename
+, - daemonpath
+, - args = ''
+, - respawn = True
+, - pwd
+, - env
+, - reload = True
+])
+j.sal.ubuntu.service_restart?4([- servicename
+])
+j.sal.ubuntu.service_start?4([- servicename
+])
+j.sal.ubuntu.service_status?4([- servicename
+])
+j.sal.ubuntu.service_stop?4([- servicename
+])
+j.sal.ubuntu.service_uninstall?4([- servicename
+])
+j.sal.ubuntu.sshkeys_generate?4([- passphrase = ''
+, - type = 'rsa'
+, - overwrite = False
+, - path = '/root/.ssh/id_rsa'
+])
+j.sal.ubuntu.version_get?4([])
+j.sal.ubuntu.whoami?4([])
+j.sal.ufw?8
+j.sal.ufw.ACTION_ALLOW_IN?7
+j.sal.ufw.ACTION_ALLOW_OUT?7
+j.sal.ufw.ACTION_DENY_IN?7
+j.sal.ufw.ACTION_DENY_OUT?7
+j.sal.ufw.ACTION_REJECT_IN?7
+j.sal.ufw.ACTION_REJECT_OUT?7
+j.sal.ufw.addRule?4([- action
+, - source = 'any'
+, - destination = 'any'
+])
+j.sal.ufw.commit?4([])
+j.sal.ufw.portClose?4([- port
+])
+j.sal.ufw.portOpen?4([- port
+])
+j.sal.ufw.removeRule?4([- rule
+])
+j.sal.ufw.reset?4([])
+j.sal.unix?8
+j.sal.unix.addCronJob?4([- commandToExecute
+, - interval = 1
+, - logFilePath
+, - replaceLineIfCommandAlreadyInCrontab = True
+, - unit = 1
+])
+j.sal.unix.addSystemGroup?4([- groupname
+])
+j.sal.unix.addSystemUser?4([- username
+, - groupname
+, - shell = '/bin/bash'
+, - homedir
+])
+j.sal.unix.addUserToGroup?4([- username
+, - groupname
+])
+j.sal.unix.checkApplicationInstalled?4([- appname
+])
+j.sal.unix.chmod?4([- root
+, - mode
+, - recurse = 0
+, - dirPattern = '*'
+, - filePattern = '*'
+, - dirs = True
+, - files = True
+])
+j.sal.unix.chown?4([- path
+, - user
+, - group
+, - recursive = False
+])
+j.sal.unix.chroot?4([- path
+])
+j.sal.unix.crypt?4([- word
+, - salt
+])
+j.sal.unix.daemonize?4([- chdir = '/'
+, - umask = 0
+])
+j.sal.unix.disableUnixUser?4([- username
+])
+j.sal.unix.enableUnixUser?4([- username
+])
+j.sal.unix.executeAsUser?4([- command
+, - username
+, - **kwargs
+])
+j.sal.unix.executeDaemonAsUser?4([- command
+, - username
+, - **kwargs
+])
+j.sal.unix.getBashEnvFromFile?4([- file
+, - var
+])
+j.sal.unix.getMachineInfo?4([])
+j.sal.unix.killGroup?4([- pid
+])
+j.sal.unix.logger?8
+j.sal.unix.removeUnixUser?4([- username
+, - removehome = False
+, - die = True
+])
+j.sal.unix.setUnixUserPassword?4([- username
+, - password
+])
+j.sal.unix.unixGroupExists?4([- groupname
+])
+j.sal.unix.unixUserExists?4([- username
+])
+j.sal.unix.unixUserIsInGroup?4([- username
+, - groupname
+])
+j.sal.zeronetconfig?8
+j.sal.zeronetconfig.get?4([- addr
+])
+j.sal.zeronetconfig.logger?8
+j.servers?8
+j.servers.geventws?8
+j.servers.geventws.cache?8
+j.servers.geventws.cachecat?8
+j.servers.geventws.getClient?4([- addr
+, - port
+, - category = 'core'
+, - org = 'myorg'
+, - user = 'root'
+, - passwd = 'passwd'
+, - ssl = False
+, - roles = []
+, - id
+, - timeout = 60
+])
+j.servers.geventws.getHAClient?4([- connections
+, - category = 'core'
+, - org = 'myorg'
+, - user = 'root'
+, - passwd = 'passwd'
+, - ssl = False
+, - roles = []
+, - id
+, - timeout = 60
+, - reconnect = False
+])
+j.servers.geventws.getServer?4([- port
+, - sslorg
+, - ssluser
+, - sslkeyvaluestor
+])
+j.servers.geventws.initSSL4Server?4([- organization
+, - serveruser
+, - sslkeyvaluestor
+])
+j.servers.kvs?8
+j.servers.kvs.getFSStore?4([- namespace = ''
+, - baseDir
+, - serializers = []
+])
+j.servers.kvs.getLevelDBStore?4([- namespace = ''
+, - basedir
+, - serializers = []
+])
+j.servers.kvs.getMemoryStore?4([- namespace
+])
+j.servers.kvs.getRedisStore?4([- namespace = ''
+, - host = 'localhost'
+, - port = 6379
+, - db = 0
+, - password = ''
+, - serializers
+, - masterdb
+, - changelog = True
+])
+j.servers.kvs.getTarantoolDBStore?4([- namespace = ''
+, - host = 'localhost'
+, - port = 6379
+, - db = 0
+, - password = ''
+, - serializers = []
+])
+j.servers.socketserver?8
+j.servers.socketserver.get?4([- port
+, - key
+, - datahandler
+])
+j.servers.socketserver.getClient?4([- addr
+, - port
+, - key
+])
+j.servers.tipc?8
+j.servers.tipc.getClient?4([- servaddr
+, - category = 'core'
+, - org = 'myorg'
+, - user = 'root'
+, - passwd = 'passwd'
+, - ssl = False
+, - roles = []
+])
+j.servers.tipc.getServer?4([- servaddr
+, - sslorg
+, - ssluser
+, - sslkeyvaluestor
+])
+j.servers.tornado?8
+j.servers.tornado.getClient?4([- addr
+, - port
+, - category = 'core'
+, - org = 'myorg'
+, - user = 'root'
+, - passwd = 'passwd'
+, - ssl = False
+, - roles = []
+])
+j.servers.tornado.getHAClient?4([- connections
+, - category = 'core'
+, - org = 'myorg'
+, - user = 'root'
+, - passwd = 'passwd'
+, - ssl = False
+, - roles = []
+, - id
+, - timeout = 60
+, - reconnect = False
+])
+j.servers.tornado.getServer?4([- port
+, - sslorg
+, - ssluser
+, - sslkeyvaluestor
+])
+j.servers.tornado.initSSL4Server?4([- organization
+, - serveruser
+, - sslkeyvaluestor
+])
+j.servers.zdaemon?8
+j.servers.zdaemon.getZDaemon?4([- port = 4444
+, - name = ''
+, - nrCmdGreenlets = 50
+, - sslorg = ''
+, - ssluser = ''
+, - sslkeyvaluestor
+])
+j.servers.zdaemon.getZDaemonAgent?4([- ipaddr = '127.0.0.1'
+, - port = 5651
+, - org = 'myorg'
+, - user = 'root'
+, - passwd = '1234'
+, - ssl = False
+, - reset = False
+, - roles = []
+])
+j.servers.zdaemon.getZDaemonClient?4([- addr = '127.0.0.1'
+, - port = 5651
+, - org = 'myorg'
+, - user = 'root'
+, - passwd = '1234'
+, - ssl = False
+, - category = 'core'
+, - sendformat = 'm'
+, - returnformat = 'm'
+, - gevent = False
+])
+j.servers.zdaemon.getZDaemonHAClient?4([- connections
+, - org = 'myorg'
+, - user = 'root'
+, - passwd = '1234'
+, - ssl = False
+, - category = 'core'
+, - sendformat = 'm'
+, - returnformat = 'm'
+, - gevent = False
+])
+j.servers.zdaemon.getZDaemonTransportClass?4([])
+j.servers.zdaemon.initSSL4Server?4([- organization
+, - serveruser
+, - sslkeyvaluestor
+])
+j.tools?8
+j.tools.aggregator?8
+j.tools.aggregator.getClient?4([- redisConnection
+, - nodename
+])
+j.tools.aggregator.getTester?4([])
+j.tools.atom?8
+j.tools.atom.generateJumpscaleAutocompletion?4([- dest = '/usr/local/lib/python3.5/dist-packages/jscompl.py'
+])
+j.tools.atom.installAll?4([])
+j.tools.atom.installConfig?4([])
+j.tools.atom.installPackage?4([- name
+, - upgrade = False
+])
+j.tools.atom.installPackagesAll?4([])
+j.tools.atom.installPackagesMarkdown?4([])
+j.tools.atom.installPackagesPython?4([])
+j.tools.atom.installPackagesRaml?4([])
+j.tools.atom.installPythonExtensions?4([])
+j.tools.atom.installSnippets?4([])
+j.tools.atom.packages?8
+j.tools.bash?8
+j.tools.bash.addPath?4([- path
+])
+j.tools.bash.cmdGetPath?4([- cmd
+, - die = True
+])
+j.tools.bash.environ?8
+j.tools.bash.environGet?4([- name
+, - default
+])
+j.tools.bash.environRemove?4([- key
+, - val
+])
+j.tools.bash.environSet?4([- key
+, - val
+, - temp = False
+])
+j.tools.bash.fixlocale?4([])
+j.tools.bash.get?4([- cuisine
+, - executor
+])
+j.tools.bash.getLocaleItems?4([- force = False
+, - showout = False
+])
+j.tools.bash.home?8
+j.tools.bash.include?4([- path
+])
+j.tools.bash.profile?8
+j.tools.bash.profile.addInclude?4([- path
+])
+j.tools.bash.profile.addPath?4([- path
+])
+j.tools.bash.profile.dump?4([])
+j.tools.bash.profile.env_pattern?8
+j.tools.bash.profile.environ?8
+j.tools.bash.profile.include_pattern?8
+j.tools.bash.profile.path?8
+j.tools.bash.profile.remove?4([- key
+])
+j.tools.bash.profile.set?4([- key
+, - value
+])
+j.tools.bash.profilePath?8
+j.tools.bash.replaceEnvironInText?4([- text
+])
+j.tools.bash.reset?4([])
+j.tools.bash.setOurProfile?4([])
+j.tools.bash.write?4([])
+j.tools.cache?8
+j.tools.cache.get?4([- db
+, - expiration = 300
+])
+j.tools.cachelru?8
+j.tools.cachelru.getRCache?4([- nritems
+])
+j.tools.cachelru.getRWCache?4([- nrItemsReadCache
+, - nrItemsWriteCache = 50
+, - maxTimeWriteCache = 2000
+, - writermethod
+])
+j.tools.code?8
+j.tools.code.classEditGeany?4([- classs
+])
+j.tools.code.classEditWing?4([- classs
+])
+j.tools.code.classGetBase?4([])
+j.tools.code.classGetJSModelBase?4([])
+j.tools.code.classGetJSRootModelBase?4([])
+j.tools.code.classInfoGet?4([- classs
+])
+j.tools.code.classInfoPrint?4([- classs
+])
+j.tools.code.deIndent?4([- content
+, - level = 1
+])
+j.tools.code.dict2JSModelobject?4([- obj
+, - data
+])
+j.tools.code.dict2object?4([- obj
+, - data
+])
+j.tools.code.indent?4([- content
+, - level = 1
+])
+j.tools.code.object2dict?4([- obj
+, - dieOnUnknown = False
+, - ignoreKeys = []
+, - ignoreUnderscoreKeys = False
+])
+j.tools.code.object2dict4index?4([- obj
+])
+j.tools.code.object2json?4([- obj
+, - pretty = False
+, - skiperrors = False
+, - ignoreKeys = []
+, - ignoreUnderscoreKeys = False
+])
+j.tools.code.object2yaml?4([- obj
+])
+j.tools.code.pprint?4([- obj
+])
+j.tools.code.regex?8
+j.tools.code.regex.extractBlocks?4([- text
+, - blockStartPatterns = ['.*']
+, - blockStartPatternsNegative = []
+, - blockStopPatterns = []
+, - blockStopPatternsNegative = []
+, - linesIncludePatterns = ['.*']
+, - linesExcludePatterns = []
+, - includeMatchingLine = True
+])
+j.tools.code.regex.extractFirstFoundBlock?4([- text
+, - blockStartPatterns
+, - blockStartPatternsNegative = []
+, - blockStopPatterns = []
+, - blockStopPatternsNegative = []
+, - linesIncludePatterns = ['.*']
+, - linesExcludePatterns = []
+, - includeMatchingLine = True
+])
+j.tools.code.regex.findAll?4([- pattern
+, - text
+, - flags = 0
+])
+j.tools.code.regex.findHtmlBlock?4([- subject
+, - tofind
+, - path
+, - dieIfNotFound = True
+])
+j.tools.code.regex.findHtmlElement?4([- subject
+, - tofind
+, - path
+, - dieIfNotFound = True
+])
+j.tools.code.regex.findLine?4([- regex
+, - text
+])
+j.tools.code.regex.findOne?4([- pattern
+, - text
+, - flags = 0
+])
+j.tools.code.regex.getINIAlikeVariableFromText?4([- variableName
+, - text
+, - isArray = False
+])
+j.tools.code.regex.getRegexMatch?4([- pattern
+, - text
+, - flags = 0
+])
+j.tools.code.regex.getRegexMatches?4([- pattern
+, - text
+, - flags = 0
+])
+j.tools.code.regex.logger?8
+j.tools.code.regex.match?4([- pattern
+, - text
+])
+j.tools.code.regex.matchAllText?4([- pattern
+, - text
+])
+j.tools.code.regex.matchMultiple?4([- patterns
+, - text
+])
+j.tools.code.regex.processLines?4([- text
+, - includes = ''
+, - excludes = ''
+])
+j.tools.code.regex.removeLines?4([- pattern
+, - text
+])
+j.tools.code.regex.replace?4([- regexFind
+, - regexFindsubsetToReplace
+, - replaceWith
+, - text
+])
+j.tools.code.regex.replaceLines?4([- replaceFunction
+, - arg
+, - text
+, - includes = ''
+, - excludes = ''
+])
+j.tools.code.regex.templates?8
+j.tools.code.regex.templates.lines?8
+j.tools.code.regex.templates.lines.findClasslines?4([])
+j.tools.code.regex.templates.lines.findCommentlines?4([])
+j.tools.code.regex.templates.lines.findDeflines?4([])
+j.tools.code.regex.yieldRegexMatches?4([- pattern
+, - text
+, - flags = 0
+])
+j.tools.code.templateengine?8
+j.tools.code.templateengine.new?4([])
+j.tools.code.textToTitle?4([- text
+, - maxnrchars = 60
+])
+j.tools.code.wordreplacer?8
+j.tools.code.wordreplacer.removeConfluenceLinks?4([- text
+])
+j.tools.code.wordreplacer.replace?4([- text
+])
+j.tools.code.wordreplacer.replaceInConfluence?4([- text
+])
+j.tools.code.wordreplacer.reset?4([])
+j.tools.code.wordreplacer.synonymAdd?4([- name = ''
+, - simpleSearch = ''
+, - regexFind = ''
+, - regexFindForReplace = ''
+, - replaceWith = ''
+, - replaceExclude = ''
+, - addConfluenceLinkTags = False
+])
+j.tools.code.wordreplacer.synonyms?8
+j.tools.code.wordreplacer.synonymsAddFromFile?4([- path
+, - addConfluenceLinkTags = False
+])
+j.tools.code.wordreplacer.synonymsPrint?4([])
+j.tools.console?8
+j.tools.console.askArrayRow?4([- array
+, - header = True
+, - descr = ''
+, - returncol
+])
+j.tools.console.askChoice?4([- choicearray
+, - descr = ''
+, - sort = True
+, - maxchoice = 60
+, - height = 40
+, - autocomplete = False
+])
+j.tools.console.askChoiceMultiple?4([- choicearray
+, - descr
+, - sort = True
+])
+j.tools.console.askInteger?4([- question
+, - defaultValue
+, - minValue
+, - maxValue
+, - retry = -1
+, - validate
+])
+j.tools.console.askIntegers?4([- question
+, - invalid_message = 'invalid input please try again.'
+, - min
+, - max
+])
+j.tools.console.askMultiline?4([- question
+, - escapeString = '.'
+])
+j.tools.console.askPassword?4([- question
+, - confirm = True
+, - regex
+, - retry = -1
+, - validate
+])
+j.tools.console.askString?4([- question
+, - defaultparam = ''
+, - regex
+, - retry = -1
+, - validate
+])
+j.tools.console.askYesNo?4([- message = ''
+])
+j.tools.console.cls?4([])
+j.tools.console.echo?4([- msg
+, - indent
+, - withStar = False
+, - prefix = ''
+, - log = False
+, - lf = True
+])
+j.tools.console.echoDict?4([- dictionary
+, - withStar = False
+, - indent
+])
+j.tools.console.echoListItem?4([- msg
+])
+j.tools.console.echoListItems?4([- messages
+, - sort = False
+])
+j.tools.console.echoListWithPrefix?4([- messages
+, - prefix
+])
+j.tools.console.echoWithPrefix?4([- message
+, - prefix
+, - withStar = False
+, - indent
+])
+j.tools.console.enableOutput?4([])
+j.tools.console.formatMessage?4([- message
+, - prefix = ''
+, - withStar = False
+, - indent = 0
+, - width = 0
+, - removeemptylines = True
+])
+j.tools.console.getOutput?4([])
+j.tools.console.hideOutput?4([])
+j.tools.console.indent?8
+j.tools.console.logger?8
+j.tools.console.printOutput?4([])
+j.tools.console.rawInputPerChar?4([- callback
+, - params
+])
+j.tools.console.showArray?4([- array
+, - header = True
+])
+j.tools.console.transformDictToMessage?4([- dictionary
+, - withStar = False
+, - indent
+])
+j.tools.console.width?8
+j.tools.cuisine?8
+j.tools.cuisine.authorizeKey?4([- addr = 'localhost:22'
+, - login = 'root'
+, - passwd = ''
+, - keyname = ''
+, - pubkey = ''
+, - passphrase
+])
+j.tools.cuisine.get?4([- executor
+, - usecache = True
+])
+j.tools.cuisine.getFromId?4([- id
+])
+j.tools.cuisine.get_pubkey?4([- keyname = ''
+])
+j.tools.cuisine.local?8
+j.tools.cuisine.local.apps?8
+j.tools.cuisine.local.apps.alba?8
+j.tools.cuisine.local.apps.alba.alba_version?8
+j.tools.cuisine.local.apps.alba.arakoon_version?8
+j.tools.cuisine.local.apps.alba.build?4([- start = True
+])
+j.tools.cuisine.local.apps.alba.logger?8
+j.tools.cuisine.local.apps.alba.ocaml_version?8
+j.tools.cuisine.local.apps.alba.opam_root?8
+j.tools.cuisine.local.apps.arakoon?8
+j.tools.cuisine.local.apps.arakoon.build?4([- start = True
+])
+j.tools.cuisine.local.apps.arakoon.create_cluster?4([- id
+])
+j.tools.cuisine.local.apps.arakoon.logger?8
+j.tools.cuisine.local.apps.arakoon.start?4([])
+j.tools.cuisine.local.apps.brotli?8
+j.tools.cuisine.local.apps.brotli.NAME?7
+j.tools.cuisine.local.apps.brotli.VERSION?7
+j.tools.cuisine.local.apps.brotli.build?4([- reset = False
+])
+j.tools.cuisine.local.apps.brotli.cuisine?8
+j.tools.cuisine.local.apps.brotli.install?4([])
+j.tools.cuisine.local.apps.brotli.isInstalled?4([])
+j.tools.cuisine.local.apps.caddy?8
+j.tools.cuisine.local.apps.caddy.NAME?7
+j.tools.cuisine.local.apps.caddy.VERSION?7
+j.tools.cuisine.local.apps.caddy.caddyConfig?4([- sectionname
+, - config
+])
+j.tools.cuisine.local.apps.caddy.install?4([- ssl = False
+, - start = True
+, - dns
+, - reset = False
+])
+j.tools.cuisine.local.apps.caddy.isInstalled?4([])
+j.tools.cuisine.local.apps.caddy.start?4([- ssl
+])
+j.tools.cuisine.local.apps.capnp?8
+j.tools.cuisine.local.apps.capnp.NAME?7
+j.tools.cuisine.local.apps.capnp.VERSION?7
+j.tools.cuisine.local.apps.capnp.install?4([- reset = False
+])
+j.tools.cuisine.local.apps.capnp.isInstalled?4([])
+j.tools.cuisine.local.apps.controller?8
+j.tools.cuisine.local.apps.controller.NAME?7
+j.tools.cuisine.local.apps.controller.VERSION?7
+j.tools.cuisine.local.apps.controller.build?4([- start = True
+, - listen_addr = []
+, - install = True
+, - reset = False
+])
+j.tools.cuisine.local.apps.controller.install?4([- start = True
+, - listen_addr = []
+])
+j.tools.cuisine.local.apps.controller.isInstalled?4([])
+j.tools.cuisine.local.apps.controller.start?4([- listen_addr = []
+])
+j.tools.cuisine.local.apps.deployerbot?8
+j.tools.cuisine.local.apps.deployerbot.NAME?7
+j.tools.cuisine.local.apps.deployerbot.VERSION?7
+j.tools.cuisine.local.apps.deployerbot.create_config?4([- token
+, - g8_addresses
+, - dns
+, - oauth
+])
+j.tools.cuisine.local.apps.deployerbot.cuisine?8
+j.tools.cuisine.local.apps.deployerbot.install?4([- start = True
+, - token
+, - g8_addresses
+, - dns
+, - oauth
+])
+j.tools.cuisine.local.apps.deployerbot.install_deps?4([])
+j.tools.cuisine.local.apps.deployerbot.isInstalled?4([])
+j.tools.cuisine.local.apps.deployerbot.link_code?4([])
+j.tools.cuisine.local.apps.deployerbot.start?4([- token
+, - g8_addresses
+, - dns
+, - oauth
+])
+j.tools.cuisine.local.apps.dnsmasq?8
+j.tools.cuisine.local.apps.etcd?8
+j.tools.cuisine.local.apps.etcd.NAME?7
+j.tools.cuisine.local.apps.etcd.VERSION?7
+j.tools.cuisine.local.apps.etcd.build?4([- start = True
+, - host
+, - peers = []
+, - reset = False
+])
+j.tools.cuisine.local.apps.etcd.cuisine?8
+j.tools.cuisine.local.apps.etcd.install?4([])
+j.tools.cuisine.local.apps.etcd.isInstalled?4([])
+j.tools.cuisine.local.apps.etcd.start?4([- host
+, - peers
+])
+j.tools.cuisine.local.apps.geodns?8
+j.tools.cuisine.local.apps.geodns.NAME?7
+j.tools.cuisine.local.apps.geodns.VERSION?7
+j.tools.cuisine.local.apps.geodns.add_record?4([- domain_name
+, - subdomain
+, - record_type
+, - value
+, - weight = 100
+])
+j.tools.cuisine.local.apps.geodns.del_domain?4([- domain_name
+])
+j.tools.cuisine.local.apps.geodns.del_record?4([- domain_name
+, - record_type
+, - subdomain
+, - value
+, - full = True
+])
+j.tools.cuisine.local.apps.geodns.domains?8
+j.tools.cuisine.local.apps.geodns.ensure_domain?4([- domain_name
+, - serial = 1
+, - ttl = 600
+, - content
+, - max_hosts = 2
+, - a_records = {}
+, - cname_records = {}
+, - ns = []
+])
+j.tools.cuisine.local.apps.geodns.get_domain?4([- domain_name
+])
+j.tools.cuisine.local.apps.geodns.get_record?4([- domain_name
+, - record_type
+, - subdomain
+])
+j.tools.cuisine.local.apps.geodns.install?4([- reset = False
+])
+j.tools.cuisine.local.apps.geodns.isInstalled?4([])
+j.tools.cuisine.local.apps.geodns.start?4([- ip = '0.0.0.0'
+, - port = '5053'
+, - config_dir = '$cfgDir/geodns/dns/'
+, - identifier = 'geodns_main'
+, - cpus = '1'
+, - tmux = False
+])
+j.tools.cuisine.local.apps.geodns.stop?4([- name = 'geodns_main'
+])
+j.tools.cuisine.local.apps.grafana?8
+j.tools.cuisine.local.apps.grafana.NAME?7
+j.tools.cuisine.local.apps.grafana.VERSION?7
+j.tools.cuisine.local.apps.grafana.build?4([- reset = False
+])
+j.tools.cuisine.local.apps.grafana.cuisine?8
+j.tools.cuisine.local.apps.grafana.install?4([- start = False
+, - influx_addr = '127.0.0.1'
+, - influx_port = 8086
+, - port = 3000
+])
+j.tools.cuisine.local.apps.grafana.isInstalled?4([])
+j.tools.cuisine.local.apps.grafana.start?4([- influx_addr = '127.0.0.1'
+, - influx_port = 8086
+, - port = 3000
+])
+j.tools.cuisine.local.apps.hadoop?8
+j.tools.cuisine.local.apps.hadoop.cuisine?8
+j.tools.cuisine.local.apps.hadoop.install?4([])
+j.tools.cuisine.local.apps.influxdb?8
+j.tools.cuisine.local.apps.influxdb.NAME?7
+j.tools.cuisine.local.apps.influxdb.VERSION?7
+j.tools.cuisine.local.apps.influxdb.build?4([- start = True
+])
+j.tools.cuisine.local.apps.influxdb.cuisine?8
+j.tools.cuisine.local.apps.influxdb.install?4([- dependencies = False
+, - start = False
+, - reset = False
+])
+j.tools.cuisine.local.apps.influxdb.isInstalled?4([])
+j.tools.cuisine.local.apps.influxdb.start?4([])
+j.tools.cuisine.local.apps.ledis?8
+j.tools.cuisine.local.apps.ledis.NAME?7
+j.tools.cuisine.local.apps.ledis.VERSION?7
+j.tools.cuisine.local.apps.ledis.build?4([- backend = 'leveldb'
+, - install = True
+, - start = True
+, - reset = False
+])
+j.tools.cuisine.local.apps.ledis.cuisine?8
+j.tools.cuisine.local.apps.ledis.install?4([- start = True
+])
+j.tools.cuisine.local.apps.ledis.isInstalled?4([])
+j.tools.cuisine.local.apps.ledis.start?4([])
+j.tools.cuisine.local.apps.mongodb?8
+j.tools.cuisine.local.apps.mongodb.NAME?7
+j.tools.cuisine.local.apps.mongodb.VERSION?7
+j.tools.cuisine.local.apps.mongodb.build?4([- start = True
+, - install = True
+])
+j.tools.cuisine.local.apps.mongodb.install?4([- start = True
+])
+j.tools.cuisine.local.apps.mongodb.isInstalled?4([])
+j.tools.cuisine.local.apps.mongodb.start?4([- name = 'mongod'
+])
+j.tools.cuisine.local.apps.portal?8
+j.tools.cuisine.local.apps.portal.addSpace?4([- spacepath
+])
+j.tools.cuisine.local.apps.portal.addactor?4([- actorpath
+])
+j.tools.cuisine.local.apps.portal.getcode?4([])
+j.tools.cuisine.local.apps.portal.install?4([- start = True
+, - mongodbip = '127.0.0.1'
+, - mongoport = 27017
+, - influxip = '127.0.0.1'
+, - influxport = 8086
+, - grafanaip = '127.0.0.1'
+, - grafanaport = 3000
+, - login = ''
+, - passwd = ''
+])
+j.tools.cuisine.local.apps.portal.installDeps?4([])
+j.tools.cuisine.local.apps.portal.linkCode?4([])
+j.tools.cuisine.local.apps.portal.main_portal_dir?8
+j.tools.cuisine.local.apps.portal.portal_dir?8
+j.tools.cuisine.local.apps.portal.serviceconnect?4([- mongodbip = '127.0.0.1'
+, - mongoport = 27017
+, - influxip = '127.0.0.1'
+, - influxport = 8086
+, - grafanaip = '127.0.0.1'
+, - grafanaport = 3000
+])
+j.tools.cuisine.local.apps.portal.set_admin_password?4([- passwd
+])
+j.tools.cuisine.local.apps.portal.start?4([- passwd
+])
+j.tools.cuisine.local.apps.portal.stop?4([])
+j.tools.cuisine.local.apps.pyftpserver?8
+j.tools.cuisine.local.apps.pyftpserver.cuisine?8
+j.tools.cuisine.local.apps.pyftpserver.install?4([- root = '/storage/ftpserver'
+, - config = ''
+, - port = 2121
+])
+j.tools.cuisine.local.apps.redis?8
+j.tools.cuisine.local.apps.redis.NAME?7
+j.tools.cuisine.local.apps.redis.VERSION?7
+j.tools.cuisine.local.apps.redis.build?4([- reset = False
+])
+j.tools.cuisine.local.apps.redis.cuisine?8
+j.tools.cuisine.local.apps.redis.install?4([- reset = False
+])
+j.tools.cuisine.local.apps.redis.isInstalled?4([])
+j.tools.cuisine.local.apps.redis.start?4([- name = 'main'
+, - ip = 'localhost'
+, - port = 6379
+, - maxram = 200
+, - appendonly = True
+, - snapshot = False
+, - slave = ()
+, - ismaster = False
+, - passwd
+, - unixsocket = True
+, - start = True
+])
+j.tools.cuisine.local.apps.skydns?8
+j.tools.cuisine.local.apps.skydns.NAME?7
+j.tools.cuisine.local.apps.skydns.VERSION?7
+j.tools.cuisine.local.apps.skydns.build?4([- start = True
+, - install = True
+])
+j.tools.cuisine.local.apps.skydns.install?4([- start = True
+])
+j.tools.cuisine.local.apps.skydns.isInstalled?4([])
+j.tools.cuisine.local.apps.skydns.start?4([])
+j.tools.cuisine.local.apps.syncthing?8
+j.tools.cuisine.local.apps.syncthing.NAME?7
+j.tools.cuisine.local.apps.syncthing.VERSION?7
+j.tools.cuisine.local.apps.syncthing.build?4([- start = True
+, - install = True
+, - reset = False
+])
+j.tools.cuisine.local.apps.syncthing.install?4([- start = True
+])
+j.tools.cuisine.local.apps.syncthing.isInstalled?4([])
+j.tools.cuisine.local.apps.syncthing.start?4([])
+j.tools.cuisine.local.apps.volumedriver?8
+j.tools.cuisine.local.apps.volumedriver.NAME?7
+j.tools.cuisine.local.apps.volumedriver.VERSION?7
+j.tools.cuisine.local.apps.volumedriver.build?4([- reset = False
+])
+j.tools.cuisine.local.apps.volumedriver.install?4([])
+j.tools.cuisine.local.apps.volumedriver.isInstalled?4([])
+j.tools.cuisine.local.apps.volumedriver.logger?8
+j.tools.cuisine.local.apps.vulcand?8
+j.tools.cuisine.local.apps.vulcand.NAME?7
+j.tools.cuisine.local.apps.vulcand.VERSION?7
+j.tools.cuisine.local.apps.vulcand.build?4([- reset = False
+])
+j.tools.cuisine.local.apps.vulcand.install?4([])
+j.tools.cuisine.local.apps.vulcand.isInstalled?4([])
+j.tools.cuisine.local.apps.xrdp?8
+j.tools.cuisine.local.apps.xrdp.NAME?7
+j.tools.cuisine.local.apps.xrdp.VERSION?7
+j.tools.cuisine.local.apps.xrdp.build?4([- reset = False
+])
+j.tools.cuisine.local.apps.xrdp.cuisine?8
+j.tools.cuisine.local.apps.xrdp.install?4([])
+j.tools.cuisine.local.apps.xrdp.isInstalled?4([])
+j.tools.cuisine.local.bash?8
+j.tools.cuisine.local.bash.addPath?4([- path
+])
+j.tools.cuisine.local.bash.cmdGetPath?4([- cmd
+, - die = True
+])
+j.tools.cuisine.local.bash.environ?8
+j.tools.cuisine.local.bash.environGet?4([- name
+, - default
+])
+j.tools.cuisine.local.bash.environRemove?4([- key
+, - val
+])
+j.tools.cuisine.local.bash.environSet?4([- key
+, - val
+, - temp = False
+])
+j.tools.cuisine.local.bash.fixlocale?4([])
+j.tools.cuisine.local.bash.get?4([- cuisine
+, - executor
+])
+j.tools.cuisine.local.bash.getLocaleItems?4([- force = False
+, - showout = False
+])
+j.tools.cuisine.local.bash.home?8
+j.tools.cuisine.local.bash.include?4([- path
+])
+j.tools.cuisine.local.bash.profile?8
+j.tools.cuisine.local.bash.profile.addInclude?4([- path
+])
+j.tools.cuisine.local.bash.profile.addPath?4([- path
+])
+j.tools.cuisine.local.bash.profile.dump?4([])
+j.tools.cuisine.local.bash.profile.env_pattern?8
+j.tools.cuisine.local.bash.profile.environ?8
+j.tools.cuisine.local.bash.profile.include_pattern?8
+j.tools.cuisine.local.bash.profile.path?8
+j.tools.cuisine.local.bash.profile.remove?4([- key
+])
+j.tools.cuisine.local.bash.profile.set?4([- key
+, - value
+])
+j.tools.cuisine.local.bash.profilePath?8
+j.tools.cuisine.local.bash.replaceEnvironInText?4([- text
+])
+j.tools.cuisine.local.bash.reset?4([])
+j.tools.cuisine.local.bash.setOurProfile?4([])
+j.tools.cuisine.local.bash.write?4([])
+j.tools.cuisine.local.btrfs?8
+j.tools.cuisine.local.core?8
+j.tools.cuisine.local.core.args_replace?4([- text
+])
+j.tools.cuisine.local.core.cd?8
+j.tools.cuisine.local.core.command_check?4([- command
+])
+j.tools.cuisine.local.core.command_ensure?4([- command
+, - package
+])
+j.tools.cuisine.local.core.command_location?4([- command
+])
+j.tools.cuisine.local.core.createDir?4([- location
+, - recursive = True
+, - mode
+, - owner
+, - group
+])
+j.tools.cuisine.local.core.cuisine?8
+j.tools.cuisine.local.core.dir_attribs?4([- location
+, - mode
+, - owner
+, - group
+, - recursive = False
+, - showout = False
+])
+j.tools.cuisine.local.core.dir_ensure?4([- location
+, - recursive = True
+, - mode
+, - owner
+, - group
+])
+j.tools.cuisine.local.core.dir_exists?4([- location
+])
+j.tools.cuisine.local.core.dir_paths?8
+j.tools.cuisine.local.core.dir_remove?4([- location
+, - recursive = True
+])
+j.tools.cuisine.local.core.download?4([- source
+, - dest = ''
+])
+j.tools.cuisine.local.core.execute_bash?4([- script
+, - die = True
+, - profile = False
+, - tmux = False
+, - args_replace = True
+, - showout = True
+])
+j.tools.cuisine.local.core.execute_jumpscript?4([- script
+, - die = True
+, - profile = False
+, - tmux = False
+, - args_replace = True
+, - showout = True
+])
+j.tools.cuisine.local.core.execute_python?4([- script
+, - die = True
+, - profile = False
+, - tmux = False
+, - args_replace = True
+, - showout = True
+])
+j.tools.cuisine.local.core.execute_script?4([- content
+, - die = True
+, - profile = False
+, - interpreter = 'bash'
+, - tmux = True
+, - args_replace = True
+, - showout = True
+])
+j.tools.cuisine.local.core.file_append?4([- location
+, - content
+, - mode
+, - owner
+, - group
+])
+j.tools.cuisine.local.core.file_attribs?4([- location
+, - mode
+, - owner
+, - group
+])
+j.tools.cuisine.local.core.file_attribs_get?4([- location
+])
+j.tools.cuisine.local.core.file_backup?4([- location
+, - suffix = '.orig'
+, - once = False
+])
+j.tools.cuisine.local.core.file_base64?4([- location
+])
+j.tools.cuisine.local.core.file_copy?4([- source
+, - dest
+, - recursive = False
+, - overwrite = True
+])
+j.tools.cuisine.local.core.file_download?4([- url
+, - to
+, - overwrite = True
+, - retry = 3
+, - timeout = 0
+, - login = ''
+, - passwd = ''
+, - minspeed = 0
+, - multithread = False
+, - expand = False
+])
+j.tools.cuisine.local.core.file_download_binary?4([- local
+, - remote
+])
+j.tools.cuisine.local.core.file_download_local?4([- remote
+, - local
+])
+j.tools.cuisine.local.core.file_ensure?4([- location
+, - mode
+, - owner
+, - group
+])
+j.tools.cuisine.local.core.file_exists?4([- location
+])
+j.tools.cuisine.local.core.file_expand?4([- path
+, - to
+])
+j.tools.cuisine.local.core.file_get_tmp_path?4([- basepath = ''
+])
+j.tools.cuisine.local.core.file_is_dir?4([- location
+])
+j.tools.cuisine.local.core.file_is_file?4([- location
+])
+j.tools.cuisine.local.core.file_is_link?4([- location
+])
+j.tools.cuisine.local.core.file_link?4([- source
+, - destination
+, - symbolic = True
+, - mode
+, - owner
+, - group
+])
+j.tools.cuisine.local.core.file_md5?4([- location
+])
+j.tools.cuisine.local.core.file_move?4([- source
+, - dest
+, - recursive = False
+])
+j.tools.cuisine.local.core.file_read?4([- location
+, - default
+])
+j.tools.cuisine.local.core.file_remove_prefix?4([- location
+, - prefix
+, - strip = True
+])
+j.tools.cuisine.local.core.file_sha256?4([- location
+])
+j.tools.cuisine.local.core.file_unlink?4([- path
+])
+j.tools.cuisine.local.core.file_update?4([- location
+, - updater = <function CuisineCore.<lambda> at 0x7f448d508730>
 ])
 j.tools.cuisine.local.core.file_upload_binary?4([- local
 , - remote

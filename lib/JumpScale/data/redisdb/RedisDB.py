@@ -76,7 +76,7 @@ class RedisDBObj:
     @property
     def struct(self):
         data = self.db.hget(self.path, self.id)
-        if data == None:
+        if data is None:
             raise j.exceptions.RuntimeError(
                 "could not find object %s:%s" % (self.path, self.id))
         obj = j.data.serializer.json.loads(data)
@@ -86,7 +86,7 @@ class RedisDBObj:
 
     @struct.setter
     def struct(self, val):
-        if j.data.types.dict.check(val) == False:
+        if j.data.types.dict.check(val) is False:
             raise j.exceptions.RuntimeError("only dict supported")
         self.db.hset(self.path, self.id,
                      j.data.serializer.json.dumps(val, sort_keys=True))
@@ -112,12 +112,10 @@ class RedisDBList:
     @property
     def list(self):
         if self._expiration or not self._list:
-            keys = self.db.hkeys(self.path)
-            keys.sort()
+            keys = sorted(self.db.hkeys(self.path))
             for name in keys:
                 self._list[name] = RedisDBObj(self, self.path, name)
-        keys = list(self._list.keys())
-        keys.sort()
+        keys = sorted(self._list.keys())
         res = []
         for key in keys:
             res.append(self._list[key])
@@ -131,7 +129,7 @@ class RedisDBList:
         return obj
 
     def set(self, data, id=""):
-        if j.data.types.dict.check(data) == False:
+        if j.data.types.dict.check(data) is False:
             raise j.exceptions.RuntimeError("only dict supported")
         if not id:
             id = data['id']

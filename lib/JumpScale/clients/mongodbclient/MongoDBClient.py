@@ -10,7 +10,7 @@ class MongoDBClient:
 
     def get(self, host='localhost', port=27017, ssl=False):
         """
-        host can be 
+        host can be
             mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
         """
         try:

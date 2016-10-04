@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -ex
 
-pip install nose
+pip install nose -q
 pip install ipdbplugin -q
 # copy the tests from the repo dir to a tmp dir
 cp -r /opt/code/github/jumpscale/jumpscale_core8/tests /tmp/

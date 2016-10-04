@@ -12,7 +12,7 @@ class ZDaemonTransport(Transport):
         self._addr = addr
         self._port = port
         self._id = None
-        if gevent == False:
+        if gevent is False:
             import zmq
             import threading
             self.zmq = zmq
@@ -54,7 +54,7 @@ class ZDaemonTransport(Transport):
                      (self._addr, self._port), level=4, category='zdaemon.client.init')
         res = j.sal.nettools.waitConnectionTest(self._addr, self._port, 10)
 
-        if res == False:
+        if res is False:
             msg = "Could not find a running server instance on %s:%s" % (self._addr, self._port)
             raise j.exceptions.RuntimeError(msg)
             j.errorconditionhandler.raiseOperationalCritical(

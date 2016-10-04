@@ -6,7 +6,7 @@ from Tags import Tags
 
 class TagsFactory:
     """
-    Factory Class of dealing with TAGS     
+    Factory Class of dealing with TAGS
     """
 
     def __init__(self):
@@ -14,10 +14,10 @@ class TagsFactory:
 
     def getObject(self, tagstring="", setFunction4Tagstring=None):
         """
-        check whether labelname exists in the labels 
+        check whether labelname exists in the labels
 
         @param tagstring:  example "important customer:kristof"
-        @type tagstring: string           
+        @type tagstring: string
         """
         return Tags(tagstring, setFunction4Tagstring)
 
@@ -27,7 +27,7 @@ class TagsFactory:
         and not to build the script manually to skip reserved letters.
 
         @param labels: A set of labels
-        @param tags: A dict with key values 
+        @param tags: A dict with key values
         """
         labels = labels or set()
         tags = tags or dict()

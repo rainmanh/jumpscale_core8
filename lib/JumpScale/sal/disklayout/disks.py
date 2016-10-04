@@ -38,7 +38,7 @@ class DiskError(Exception):
 
 class BlkInfo:
 
-    def __init__(self,  name, type, size):
+    def __init__(self, name, type, size):
         self.name = name
         self.type = type
         self.size = int(size)
@@ -105,7 +105,7 @@ class BlkInfo:
         Configure partition auto mount `fstab` on `mountpath` defined in HRD
         """
 
-        if self.hrd == None:
+        if self.hrd is None:
             path = self.mountpoint
             if path == "":
                 raise RuntimeError("path cannot be empty")
@@ -162,7 +162,7 @@ class DiskInfo(BlkInfo):
     Represents a disk
     """
 
-    def __init__(self,  name, size, mountpoint="", fstype="", uuid=""):
+    def __init__(self, name, size, mountpoint="", fstype="", uuid=""):
         super(DiskInfo, self).__init__(name, 'disk', size)
         self.mountpoint = mountpoint
         self.fstype = fstype
@@ -321,7 +321,7 @@ class DiskInfo(BlkInfo):
 
 class PartitionInfo(BlkInfo):
 
-    def __init__(self,  name, size, uuid, fstype, mount, device):
+    def __init__(self, name, size, uuid, fstype, mount, device):
         super(PartitionInfo, self).__init__(name, 'part', size)
         self.uuid = uuid
         self.fstype = fstype

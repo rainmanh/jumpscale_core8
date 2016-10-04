@@ -10,7 +10,7 @@ class AgentCmds():
     def __init__(self, daemon=None):
         self._name = "agent"
         self.log = j.logger.get('AgentCmds')
-        if daemon == None:
+        if daemon is None:
             return
         self.daemon = daemon
 
@@ -83,7 +83,7 @@ class AgentCmds():
                     client.notifyWorkCompleted(job)
                     continue
 
-                if job["jscriptid"] == None:
+                if job["jscriptid"] is None:
                     raise RuntimeError("jscript id needs to be filled in")
 
                 jscriptkey = "%(category)s_%(cmd)s" % job
@@ -95,7 +95,7 @@ class AgentCmds():
                     j.events.bug_critical(msg, "jumpscript.notfound")
 
                 jscript = j.legacy.processmanager.cmds.jumpscripts.jumpscripts[jscriptkey]
-                if (jscript.async or job['queue']) and jscript.debug == False:
+                if (jscript.async or job['queue']) and jscript.debug is False:
                     j.legacy.redisworker.execJobAsync(job)
                 else:
                     def run(localjob):

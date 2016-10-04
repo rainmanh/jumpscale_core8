@@ -13,7 +13,8 @@ class GitClient:
         baseDir = baseDir.replace("\\", "/")  # NOQA
         baseDir = baseDir.rstrip("/")
 
-        while ".git" not in j.sal.fs.listDirsInDir(baseDir, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+        while ".git" not in j.sal.fs.listDirsInDir(
+                baseDir, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
             baseDir = j.sal.fs.getParent(baseDir)
 
             if baseDir == "/":
@@ -36,7 +37,6 @@ class GitClient:
                     "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
             self.type, self.account, self.name = base.split("/", 2)
         elif not check_path:
-            path_parts = base.split('/')
             self.type, self.account, self.name = 'github', '', j.sal.fs.getBaseName(base)
         else:
             self.type, self.account, self.name = 'github', 'cockpit', 'cockpit'
@@ -145,7 +145,7 @@ class GitClient:
                     result[state].append(_file)
 
         for diff in self.repo.index.diff(None):
-            #TODO: does not work, did not show my changes !!! *1
+            # TODO: does not work, did not show my changes !!! *1
             path = diff.a_blob.path
             if checkignore(ignore, path):
                 continue
@@ -194,7 +194,7 @@ class GitClient:
     def commit(self, message='', addremove=True):
         if addremove:
             self.addRemoveFiles()
-        if self.hasModifiedFiles() == False:
+        if self.hasModifiedFiles() is False:
             print("no need to commit, no changed files")
             return
         return self.repo.index.commit(message)

@@ -69,14 +69,14 @@ class CuisineSSHReflector(base):
         _, cpath, _ = self._cuisine.core.run("which dropbear")
 
         cmd = "%s -R -F -E -p 9222 -w -s -g -K 20 -I 60" % cpath
-        #self._cuisine.processmanager.e
+        # self._cuisine.processmanager.e
         self._cuisine.processmanager.ensure("reflector", cmd, descr='')
 
         # self._cuisine.package.start(package)
 
         self._cuisine.ns.hostfile_set_fromlocal()
 
-        if self._cuisine.process.tcpport_check(port, "dropbear") == False:
+        if self._cuisine.process.tcpport_check(port, "dropbear") is False:
             raise j.exceptions.RuntimeError("Could not install dropbear, port %s was not running" % port)
 
     #
@@ -137,7 +137,7 @@ class CuisineSSHReflector(base):
             port = remotecuisine.core._executor.port
 
             # test if we can reach the port
-            if j.sal.nettools.tcpPortConnectionTest(addr, port) == False:
+            if j.sal.nettools.tcpPortConnectionTest(addr, port) is False:
                 raise j.exceptions.RuntimeError("Cannot not connect to %s:%s" % (addr, port))
 
             rname = "refl_%s" % remotecuisine.core._executor.addr.replace(".", "_")
@@ -145,7 +145,7 @@ class CuisineSSHReflector(base):
 
             self._cuisine.ns.hostfile_set(rname, addr)
 
-            if remotecuisine.core.file_exists("/home/sshreflector/reflectorclients") == False:
+            if remotecuisine.core.file_exists("/home/sshreflector/reflectorclients") is False:
                 print("reflectorclientsfile does not exist")
                 remotecuisine.core.file_write("/home/sshreflector/reflectorclients", "%s:%s\n" %
                                               (self._cuisine.platformtype.hostname, 9800))
@@ -204,7 +204,7 @@ class CuisineSSHReflector(base):
                     pass
         else:
             cuisine = j.tools.cuisine.get(remoteids)
-        if cuisine == None:
+        if cuisine is None:
             raise j.exceptions.RuntimeError("could not find reflector active")
 
         rpath = "/home/sshreflector/reflectorclients"
@@ -235,6 +235,7 @@ class CuisineSSHReflector(base):
         print(out)
 
     def __str__(self):
-        return "cuisine.reflector:%s:%s" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
+        return "cuisine.reflector:%s:%s" % (getattr(self._executor, 'addr', 'local'),
+                                            getattr(self._executor, 'port', ''))
 
     __repr__ = __str__

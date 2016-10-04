@@ -66,7 +66,8 @@ class Job(object):
         """
         self.gid = int(self.gid)
         self.id = int(self.id)
-        self.guid = j.data.hash.sha256_string(self.getContentKey())  # need to make sure roles & source cannot be changed
+        # need to make sure roles & source cannot be changed
+        self.guid = j.data.hash.sha256_string(self.getContentKey())
 
         return self.guid
 
@@ -93,7 +94,7 @@ class RedisWorkerFactory(object):
 
         random = j.data.idgenerator.generateGUID()
         self.sessionid = "%s_%s_%s_%s" % (
-        j.application.whoAmI.gid, j.application.whoAmI.nid, j.application.whoAmI.pid, random)
+            j.application.whoAmI.gid, j.application.whoAmI.nid, j.application.whoAmI.pid, random)
         self.returnQueues = {}
         self._redis = None
         self._queue = None
@@ -219,7 +220,7 @@ def action%(argspec)s:
             if self.redis.hexists("workers:inqueuetest", jumpscript.getKey()):
                 inserttime = self.redis.hget("workers:inqueuetest", jumpscript.getKey())
                 if inserttime is not None and int(inserttime) < (
-                    int(time.time()) - 3600):  # when older than 1h remove no matter what
+                        int(time.time()) - 3600):  # when older than 1h remove no matter what
                     self.redis.hdel("workers:inqueuetest", jumpscript.getKey())
                     self.checkQueue()
                     return False
@@ -233,9 +234,9 @@ def action%(argspec)s:
         @return job
         """
         js = jumpscript
-        if js == None:
+        if js is None:
             js = self.getJumpscriptFromId(jumpscriptid)
-            if js == None:
+            if js is None:
                 raise RuntimeError("Cannot find jumpscript with id:'%s' on worker." % jumpscriptid)
         else:
             js = jumpscript
@@ -291,7 +292,7 @@ def action%(argspec)s:
 
     def waitJob(self, job, timeout=600):
         result = self.redis.blpop("workers:return:%s" % job.id, timeout=timeout)
-        if result == None:
+        if result is None:
             job.state = "TIMEOUT"
             job.timeStop = int(time.time())
             self.redis.set("workers:jobs%s" % job.id, json.dumps(job.__dict__), ex=60)
@@ -329,7 +330,7 @@ def action%(argspec)s:
         self._scheduleJob(jobobj)
 
     def getJobLine(self, job=None, jobid=None):
-        if jobid != None:
+        if jobid is not None:
             job = self.getJob(jobid)
         start = j.data.time.epoch2HRDateTime(job['timeStart'])
         if job['timeStop'] == 0:
@@ -338,7 +339,7 @@ def action%(argspec)s:
             stop = j.data.time.epoch2HRDateTime(job['timeStop'])
         jobid = '[%s|/grid/job?id=%s]' % (job['id'], job['id'])
         line = "|%s|%s|%s|%s|%s|%s|%s|%s|" % (
-        jobid, job['state'], job['queue'], job['category'], job['cmd'], job['jscriptid'], start, stop)
+            jobid, job['state'], job['queue'], job['category'], job['cmd'], job['jscriptid'], start, stop)
         return line
 
     def getQueuedJobs(self, queue=None, asWikiTable=True):

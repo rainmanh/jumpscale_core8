@@ -43,7 +43,7 @@ class CuisineSystemd(ProcessManagerBase):
         result = []
         for line in out.split("\n"):
             res = re.search(p, line)
-            if res != None:
+            if res is not None:
                 # print (line)
                 d = res.groupdict()
                 if d["name"].startswith(prefix):
@@ -70,7 +70,7 @@ class CuisineSystemd(ProcessManagerBase):
 
     def remove(self, prefix):
         self.stop(prefix)
-        for name, status in self.list(prefix):
+        for name in self.list(prefix):
             self.stop(name)
 
             for item in self._cuisine.core.fs_find("/etc/systemd", True, "*%s.service" % name):

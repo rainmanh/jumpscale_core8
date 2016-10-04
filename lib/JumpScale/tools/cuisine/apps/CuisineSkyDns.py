@@ -6,6 +6,7 @@ app = j.tools.cuisine._getBaseAppClass()
 
 class CuisineSkyDns(app):
     NAME = "skydns"
+
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
@@ -20,7 +21,7 @@ class CuisineSkyDns(app):
 
     def install(self, start=True):
         """
-        download , install, move files to appropriate places, and create relavent configs 
+        download , install, move files to appropriate places, and create relavent configs
         """
         self._cuisine.core.file_copy(self._cuisine.core.joinpaths('$goDir', 'bin', 'skydns'), '$binDir')
         self._cuisine.bash.addPath(self._cuisine.core.args_replace("$binDir"))

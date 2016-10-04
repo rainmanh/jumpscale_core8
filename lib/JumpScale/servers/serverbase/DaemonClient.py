@@ -39,7 +39,7 @@ class DaemonClient:
         """
         @param encrkey (use for simple blowfish shared key encryption, better to use SSL though, will do the same but dynamically exchange the keys)
         """
-        if id != None:
+        if id is not None:
             self._id = id
         else:
             end = 4294967295  # 4bytes max nr
@@ -84,7 +84,8 @@ class DaemonClient:
         if self.ssl:
             if not self.pubkeyserver:
                 self.pubkeyserver = self.sendcmd(category="core", cmd="getpubkeyserver")
-            return self.keystor.encrypt(self.org, self.user, "", "", message=message, sign=True, base64=True, pubkeyReader=self.pubkeyserver)
+            return self.keystor.encrypt(self.org, self.user, "", "", message=message,
+                                        sign=True, base64=True, pubkeyReader=self.pubkeyserver)
         return message
 
     def decrypt(self, message):
@@ -149,9 +150,9 @@ class DaemonClient:
         #     dest="unknown"
         # print "###data send to %s\n%s\n#######"%(dest,data)
 
-        if sendformat == None:
+        if sendformat is None:
             sendformat = self.defaultSerialization
-        if returnformat == None:
+        if returnformat is None:
             returnformat = self.defaultSerialization
         rawdata = data
         if sendformat != "":
@@ -168,7 +169,8 @@ class DaemonClient:
                 #print("session lost")
                 self.initSession()
                 retry += 1
-                return self.sendMsgOverCMDChannel(cmd, rawdata, sendformat=sendformat, returnformat=returnformat, retry=retry, maxretry=maxretry, category=category, transporttimeout=transporttimeout)
+                return self.sendMsgOverCMDChannel(cmd, rawdata, sendformat=sendformat, returnformat=returnformat,
+                                                  retry=retry, maxretry=maxretry, category=category, transporttimeout=transporttimeout)
             else:
                 msg = "Authentication error on server.\n"
                 raise AuthenticationError(msg)
@@ -279,7 +281,8 @@ class Klass:
         """
         if "_agentid" not in args:
             args["_agentid"] = 0
-        return self.sendMsgOverCMDChannel(cmd, args, sendformat, returnformat, category=category, transporttimeout=transporttimeout)
+        return self.sendMsgOverCMDChannel(cmd, args, sendformat, returnformat,
+                                          category=category, transporttimeout=transporttimeout)
 
     def perftest(self):
         start = time.time()

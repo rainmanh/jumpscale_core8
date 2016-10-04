@@ -15,7 +15,8 @@ class ServiceState():
         if j.sal.fs.exists(path=self._path):
             self._model = j.data.serializer.yaml.load(self._path)
         else:
-            self._model = {"parent": "", "producers": {}, "state": {}, "recurring": {}, "events": {}, "templateHRDHash": "", "instanceHRDHash": "", "recipe": ""}
+            self._model = {"parent": "", "producers": {}, "state": {}, "recurring": {},
+                           "events": {}, "templateHRDHash": "", "instanceHRDHash": "", "recipe": ""}
 
         self._changed = False
 

@@ -58,7 +58,7 @@ class GitlabInstance:
         project["id"]
 
         res = self.gitlab.getfile(project["id"], path, "master")
-        if res == False:
+        if res is False:
             raise j.exceptions.Input(
                 "cannot find file:%s in gitlab in project:%s" % (path, project))
 
@@ -134,7 +134,7 @@ class GitlabInstance:
     def getProjects(self):
         key = "projects"
         result = self._getFromCache(key, renew=False)
-        if result == None:
+        if result is None:
             result = self.gitlab.getprojects()
             self.cache.set(key, result)
         return result
@@ -241,7 +241,7 @@ class GitlabInstance:
         """
         key = "groups"
         result = self._getFromCache(key, renew=renew)
-        if result == None:
+        if result is None:
             result = self.gitlab.getgroups()
             self.cache.set(key, result)
         return result

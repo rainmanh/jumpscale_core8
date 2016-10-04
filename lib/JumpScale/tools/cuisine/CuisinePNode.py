@@ -150,7 +150,7 @@ class CuisinePNode(base):
         Create an archive of a remote file system
         @param excludes is list of regex matches not to include while doing export
         """
-        excludes_string = " ".join(["--exclude='%s'"%x for x in excludes])
+        excludes_string = " ".join(["--exclude='%s'" % x for x in excludes])
         cmd = 'tar -zpcf %s --exclude=%s --one-file-system %s' % (destination, excludes_string, source)
         self._cuisine.core.run(cmd)
 
@@ -160,7 +160,6 @@ class CuisinePNode(base):
 
         """
         storspace.upload(plistname, source=source, excludes=excludes, removetmpdir=removetmpdir)
-
 
     def formatStorage(self, keepRoot=True, mountpoint="/storage"):
         """

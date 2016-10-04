@@ -7,7 +7,7 @@ class NginxFactory:
         self.__jslocation__ = "j.sal.nginx"
 
     def get(self, path="/etc/nginx"):
-        #TODO: *2 let work on path
+        # TODO: *2 let work on path
         return Nginx()
 
 

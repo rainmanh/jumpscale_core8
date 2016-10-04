@@ -2,6 +2,7 @@
 from JumpScale import j
 import random
 import sys
+import string
 
 
 class IDGenerator:
@@ -12,6 +13,7 @@ class IDGenerator:
 
     def __init__(self):
         self.__jslocation__ = "j.data.idgenerator"
+        self.cryptogen = random.SystemRandom()
 
     def generateRandomInt(self, fromInt, toInt):
         """
@@ -27,7 +29,7 @@ class IDGenerator:
         @reset if True means restart from 1
         """
         key = "incrementor_%s" % incrTypeId
-        if service.db.exists(key) and reset == False:
+        if service.db.exists(key) and reset is False:
             lastid = int(service.db.get(key))
             service.db.testAndSet(key, str(lastid), str(lastid + 1))
             return lastid + 1
@@ -41,7 +43,7 @@ class IDGenerator:
         remembers previously given id's
         """
         key = "idint_%s_%s" % (incrTypeId, objectUniqueSeedInfo)
-        if service.db.exists(key) and reset == False:
+        if service.db.exists(key) and reset is False:
             id = int(service.db.get(key))
             return id
         else:
@@ -64,6 +66,14 @@ class IDGenerator:
         for i in range(0, x):
             p = self.generateRandomInt(0, l - 1)
             out += r[p]
+        return out
+
+    def generatePasswd(self, x, al=string.printable):
+        l = len(al)
+        out = ""
+        for i in range(0, x):
+            p = self.cryptogen.randrange(0, l - 1)
+            out += al[p]
         return out
 
     def generateCapnpID(self):

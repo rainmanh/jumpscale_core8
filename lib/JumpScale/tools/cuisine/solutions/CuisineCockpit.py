@@ -10,7 +10,8 @@ class CuisineCockpit(base):
         self._executor = executor
         self._cuisine = cuisine
 
-    def install(self, start=True, bot_token='', jwt_key='', organization='', client_secret='', client_id='', redirect_uri='', itsyouonlinehost='https://itsyou.online', grafana_scriptedagent=True):
+    def install(self, start=True, bot_token='', jwt_key='', organization='', client_secret='', client_id='',
+                redirect_uri='', itsyouonlinehost='https://itsyou.online', grafana_scriptedagent=True):
         """
         Install cockpit
         If start is True, bot_token, jwt_key, organization should be specified
@@ -27,7 +28,8 @@ class CuisineCockpit(base):
         if start:
             self.start(bot_token, jwt_key, organization, client_secret, client_id, redirect_uri, itsyouonlinehost)
 
-    def start(self, bot_token='', jwt_key='', organization='', client_secret='', client_id='', redirect_uri='', itsyouonlinehost='https://itsyou.online'):
+    def start(self, bot_token='', jwt_key='', organization='', client_secret='',
+              client_id='', redirect_uri='', itsyouonlinehost='https://itsyou.online'):
         """
         bot_token: telegram token for cockpit bot
         """
@@ -50,9 +52,10 @@ class CuisineCockpit(base):
         self._cuisine.core.file_link('$codeDir/github/jumpscale/jscockpit/jscockpit/', '$appDir/cockpit')
         if grafana_scriptedagent:
             self._cuisine.core.file_copy('$codeDir/github/jumpscale/jscockpit/apps/Cockpit/.files/scriptedagent.js',
-                '$tmplsDir/cfg/grafana/public/dashboards/scriptedagent.js')
+                                         '$tmplsDir/cfg/grafana/public/dashboards/scriptedagent.js')
 
-    def create_config(self, bot_token, jwt_key, organization, client_secret, client_id, redirect_uri, itsyouonlinehost='https://itsyou.online'):
+    def create_config(self, bot_token, jwt_key, organization, client_secret, client_id,
+                      redirect_uri, itsyouonlinehost='https://itsyou.online'):
         cfg = {
             'oauth': {
                 'client_secret': client_secret,

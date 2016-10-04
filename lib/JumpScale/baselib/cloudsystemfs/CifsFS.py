@@ -21,7 +21,8 @@ class CifsFS:
 
     _command = "mount.cifs"
 
-    def __init__(self, end_type, server, share, username, password, is_dir, recursive, tempdir=j.dirs.tmpDir, Atype='copy'):
+    def __init__(self, end_type, server, share, username, password,
+                 is_dir, recursive, tempdir=j.dirs.tmpDir, Atype='copy'):
         """
         Initialize connection
         """
@@ -69,7 +70,7 @@ class CifsFS:
         j.sal.fs.createDir(self.mntpoint)
 
         # Mount sharename
-        if self.username == None and self.password == None:
+        if self.username is None and self.password is None:
             command = '%s //%s/%s %s -o' % (self._command,
                                             self.server, self.sharename, self.mntpoint)
         else:

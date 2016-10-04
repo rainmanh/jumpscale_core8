@@ -12,7 +12,8 @@ class QemuImg:
     def __init__(self):
         self.__jslocation__ = "j.sal.qemu_img"
 
-    def create(self, fileName, diskImageFormat, size, baseImage=None, encryptTargetImage=False, useCompatibilityLevel6=False, isTargetImageTypeSCSI=False):
+    def create(self, fileName, diskImageFormat, size, baseImage=None, encryptTargetImage=False,
+               useCompatibilityLevel6=False, isTargetImageTypeSCSI=False):
         """
         Create a new disk image <fileName> of size <size> and format <diskImageFormat>.
         If base_image is specified, then the image will record only the differences from base_image. No size needs to be specified in this case. base_image will never be modified unless you use the "commit" monitor command.
@@ -49,10 +50,10 @@ class QemuImg:
         command = '%(command)s -f %(diskImageFormat)s %(fileName)s' % {
             'command': command, 'diskImageFormat': diskImageFormat, 'fileName': fileName}
 
-        if size != None:
+        if size is not None:
             command = '%(command)s %(size)sK' % {'command': command, 'size': size}
 
-        if size == None and not baseImage:
+        if size is None and not baseImage:
             raise ValueError('Size can only be None if baseImage is specified')
 
         exitCode, output = self._local.execute(command, die=False)
@@ -75,7 +76,8 @@ class QemuImg:
         if not exitCode == 0:
             raise j.exceptions.RuntimeError('Command %s exited with code %s, output %s' % (command, exitCode, output))
 
-    def convert(self, fileName, diskImageFormat, outputFileName, outputFormat, compressTargetImage=False, encryptTargetImage=False, useCompatibilityLevel6=False, isTargetImageTypeSCSI=False, logger=None):
+    def convert(self, fileName, diskImageFormat, outputFileName, outputFormat, compressTargetImage=False,
+                encryptTargetImage=False, useCompatibilityLevel6=False, isTargetImageTypeSCSI=False, logger=None):
         """
         Convert the disk image <fileName> to disk image <outputFileName> using format <outputFormat>.
         It can be optionally encrypted ("-e" option) or compressed ("-c" option).

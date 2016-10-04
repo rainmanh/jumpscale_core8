@@ -4,21 +4,22 @@ import os
 
 template_api = Blueprint('template_api', __name__)
 
+
 def get_template_dict(template):
     return {
-        'domain':template.domain,
-        'key':template.key,
-        'model':template.model,
-        'name':template.name,
-        'path':template.path,
-        'path_actions':template.path_actions,
-        'path_actions_node':template.path_actions_node,
-        'path_hrd_schema':template.path_hrd_schema,
-        'path_hrd_template':template.path_hrd_template,
-        'path_mongo_model':template.path_mongo_model,
-        'role':template.role,
-        'schema':template.schema.content,
-        'version':template.version
+        'domain': template.domain,
+        'key': template.key,
+        'model': template.model,
+        'name': template.name,
+        'path': template.path,
+        'path_actions': template.path_actions,
+        'path_actions_node': template.path_actions_node,
+        'path_hrd_schema': template.path_hrd_schema,
+        'path_hrd_template': template.path_hrd_template,
+        'path_mongo_model': template.path_mongo_model,
+        'role': template.role,
+        'schema': template.schema.content,
+        'version': template.version
     }
 
 
@@ -41,10 +42,10 @@ def template_post():
     '''
     path = request.args.get('path')
     j.atyourservice.basepath = path
-    dest = os.path.join(path,'actorTemplates',request.json['name'])
+    dest = os.path.join(path, 'actorTemplates', request.json['name'])
     j.sal.fs.createDir(dest)
-    j.sal.fs.writeFile(os.path.join(dest, 'schema.hrd'),'')
-    j.sal.fs.writeFile(os.path.join(dest, 'actions.py'),"""
+    j.sal.fs.writeFile(os.path.join(dest, 'schema.hrd'), '')
+    j.sal.fs.writeFile(os.path.join(dest, 'actions.py'), """
         class Actions():
             def __init__():
                 raise NotImplementedError()

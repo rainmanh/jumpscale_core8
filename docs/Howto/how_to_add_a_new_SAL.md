@@ -53,7 +53,7 @@ In order to force a re-read of the SALs directory you will need to execute:
 
 ```python
 j.core.db.flushall()/j.core.db.flushdb()
-`
+j.application.reload()
 ```
 
 ## 6\. (Re)start the `js` session

@@ -33,7 +33,7 @@ class TextCharEditor:
         return list(self._higestblocknr.keys())
 
     def matchBlocksPattern(self, startpattern, stoppattern, blockname):
-        """        
+        """
         will look for startpattern, then scan for stoppattern
         will only work on text which is not part of known blocks yet
         example to find comments which are full line based startpattern='^[ \t]*%%'  stoppattern="\n"
@@ -49,19 +49,20 @@ class TextCharEditor:
                 raise j.exceptions.RuntimeError("could not find stoppattern %s" % stoppattern)
             end = result2.matches[0].end
             skip = False
-            for pos in range(match.start, match.start + end):  # scan first time if somewhere there is already a char part of a block
+            for pos in range(match.start, match.start +
+                             end):  # scan first time if somewhere there is already a char part of a block
                 if self.chars[pos][1] != "":
                     skip = True
                     #j.logger.log("Could not match the pattern because as part of result there was already another block found, posstart:%s posstop%s" % (match.start,match.start+end-1),5)
             blocknr = self._getNextBlockNr(blockname)
-            if skip == False:
+            if skip is False:
                 for pos in range(match.start, match.start + end):
                     self.chars[pos][1] = blockname
                     self.chars[pos][2] = blocknr
 #            ipshell()
 
     def matchBlocksDelimiter(self, startpattern, blockname, delimiteropen="{", delimiterclose="}"):
-        """        
+        """
         will look for startpattern, then scan for delimeropen and then start counting, block will stop when asmany closes are found as open delimiters
         ideal find e.g. a code block which is not line based
         will only work on text which is not part of known blocks yet
@@ -116,14 +117,14 @@ class TextCharEditor:
             self.lines.append(LTLine(line, blockname, blocknr))
 
     def deleteBlocks(self, blockname):
-        """        
+        """
         """
         self.chars = [char for char in self.chars if char[1] != blockname]
 
     def deleteBlock(self, blockname, blocknr=None):
         """
         delete 1 specified block
-        @param blocknr 
+        @param blocknr
         """
         self.chars = [char for char in self.chars if not (char[1] == blockname and char[2] == blocknr)]
 
@@ -153,11 +154,11 @@ class TextCharEditor:
         """
         block will be inserted at linenr, means line with linenr will be moved backwards
         """
-        if blocknr == None and blockname != "":
+        if blocknr is None and blockname != "":
             blocknr = self._getNextBlockNr(blockname)
-        if blocknr == None and blockname == "":
+        if blocknr is None and blockname == "":
             blocknr = 0
-        if blocknr != None and blockname == "":
+        if blocknr is not None and blockname == "":
             raise j.exceptions.RuntimeError("Cannot have a blockname != \"\" with blocknr>0")
         if len(text) == 0:
             raise j.exceptions.RuntimeError("Cannot insert empty block of text.")
@@ -189,7 +190,7 @@ class TextCharEditor:
     def getBlockPosition(self, blockname, blocknr=None):
         for charnr in range(len(self.chars)):
             # print "%s %s %s" % (charnr,self.chars[charnr][1],self.chars[charnr][2])
-            if self.chars[charnr][1] == blockname and (blocknr == None or self.chars[charnr][2] == blocknr):
+            if self.chars[charnr][1] == blockname and (blocknr is None or self.chars[charnr][2] == blocknr):
                 return charnr
         raise j.exceptions.RuntimeError("Could not find block with name %s and blocknr %s" % (blockname, blocknr))
 

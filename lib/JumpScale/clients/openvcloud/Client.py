@@ -23,6 +23,12 @@ class Factory:
         cl = Client(url, login, password, secret, port)
         return cl
 
+    def getFromService(self, service):
+        return self.get(
+            url=service.model.data.url,
+            login=service.model.data.login,
+            password=service.model.data.password)
+
 
 def patchMS1(api):
 

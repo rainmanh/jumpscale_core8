@@ -406,18 +406,18 @@ class Service:
             recurring_lastrun = {}
             event_lastrun = {}
 
-            for event in self.model.actionsEvent:
+            for event in self.model.actionsEvent.values():
                 event_lastrun[event.action] = event.lastRun
-            for recurring in self.model.actionsRecurring:
+            for recurring in self.model.actionsRecurring.values():
                 recurring_lastrun[recurring.action] = recurring.lastRun
 
             self._initRecurringActions(actor)
             self._initEventActions(actor)
 
-            for action, lastRun in event_lastrun.item():
-                self.model.actionsEvent[action].lastRun = lastrun
-            for action, lastRun in recurring_lastrun.item():
-                self.model.actionsRecurring[action].lastRun = lastrun
+            for action, lastRun in event_lastrun.items():
+                self.model.actionsEvent[action].lastRun = lastRun
+            for action, lastRun in recurring_lastrun.items():
+                self.model.actionsRecurring[action].lastRun = lastRun
 
         elif changeCategory.find('action_new') != -1:
             action_name = changeCategory.split('action_new_')[1]

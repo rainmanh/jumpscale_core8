@@ -93,6 +93,7 @@ def migrate(name):
             actor = repo.actorGet(name=n)
         except:
             import ipdb; ipdb.set_trace()
+
         actor._initFromTemplate(template)
 
 

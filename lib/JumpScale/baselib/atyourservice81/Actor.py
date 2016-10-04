@@ -290,7 +290,6 @@ class Actor():
             - action_mod_actionname
         """
         # self.logger.debug('process change for %s (%s)' % (self, changeCategory))
-
         if changeCategory == 'dataschema':
             # TODO
             pass

@@ -110,11 +110,11 @@ class AtYourServiceRepo():
         res = []
         if version != "":
             raise NotImplemented("actors find with version not implemented.")
-        for item in self.actors:
-            if not(name == "" or item.name == name):
+        for item in self.actors.values():
+            if not(name == "" or item.model.name == name):
                 # no match continue
                 continue
-            if not (role == '' or item.role == role):
+            if not (role == '' or item.model.role == role):
                 # no match continue
                 continue
             res.append(item)

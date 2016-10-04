@@ -10,6 +10,9 @@ class CuisineRedis(app):
     def build(self, reset=False):
         raise NotImplementedError()
 
+    def isInstalled(self):
+        return self._cuisine.core.command_check('redis-server') and self._cuisine.core.command_check('redis-cli')
+
     def install(self, reset=False):
         """Building and installing redis"""
         if reset is False and self.isInstalled():
@@ -72,9 +75,8 @@ class CuisineRedis(app):
             print('Redis is already running!')
             return
 
-        dpath = j.sal.fs.joinPaths(self._cuisine.core.dir_paths["varDir"], 'redis', name)
-        cpath = j.sal.fs.joinPaths(dpath, "redis.conf")
-        
+        _, cpath = j.sal.redis._getPaths(name)
+
         cmd = "$binDir/redis-server %s" % cpath
         self._cuisine.processmanager.ensure(name="redis_%s" % name, cmd=cmd, env={}, path='$binDir')
 

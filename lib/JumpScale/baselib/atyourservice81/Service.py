@@ -103,6 +103,7 @@ class Service:
             # if none of the two is available in the args, don't use instance name and expect the parent service to be unique in the repo
             parent_name = args.get(parent_role, '')
             res = self.aysrepo.servicesFind(name=parent_name, actor='%s.*' % parent_role)
+            res = [s for s in res if s.model.role == parent_role]
             if len(res) == 0:
                 if actor.model.dbobj.parent.auto is False:
                     raise j.exceptions.Input(message="could not find parent:%s for %s, found 0" %
@@ -141,6 +142,7 @@ class Service:
 
             instance = args.get(producer_role, "")
             res = self.aysrepo.servicesFind(name=instance, actor='%s.*' % producer_role)
+            res = [s for s in res if s.model.role == producer_role]
             if len(res) == 0:
                 if producer_model.auto is False:
                     raise j.exceptions.Input(message="could not find producer:%s for %s, found 0" %

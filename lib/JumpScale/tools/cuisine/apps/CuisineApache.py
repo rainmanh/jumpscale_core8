@@ -32,9 +32,9 @@ chmod 764 /opt/owncloudbox/httpd/support/apxs
 
         if start:
             self.start()
-            
+
     def start(self):
-        self._cuisine.core.run("cd /opt/owncloudbox/httpd/bin && ./apachectl start")
+        self._cuisine.core.run("cd /opt/owncloudbox/httpd/bin && ./apachectl start -DFOREGROUND")
 
     def restart(self):
         self._cuisine.core.run("cd /opt/owncloudbox/httpd/bin && ./apachectl restart")

@@ -320,6 +320,12 @@ class ServiceModel(ModelBase):
         """
         j.application.break_into_jshell("DEBUG NOW check recurring")
 
+    def _pre_save(self):
+        binary = self.data.to_bytes_packed()
+        self._data = None
+        if binary != b'':
+            self.dbobj.data = binary
+
     def __repr__(self):
         # TODO: *1 to put back on self.wiki
         out = self.dictJson + "\n"

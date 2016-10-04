@@ -95,9 +95,15 @@ class ModelBase():
 
 class ModelBaseWithData(ModelBase):
 
+    def __init__(self, modelfactory, key="", new=False):
+        super(ModelBaseWithData, self).__init__(modelfactory, key, new)
+        self._data = None
+
     @property
     def data(self):
-        return j.data.capnp.getObj(self.dbobj.dataSchema, binaryData=self.dbobj.data)
+        if self._data is None:
+            self._data = j.data.capnp.getObj(self.dbobj.dataSchema, binaryData=self.dbobj.data)
+        return self._data
 
     @property
     def dataSchema(self):

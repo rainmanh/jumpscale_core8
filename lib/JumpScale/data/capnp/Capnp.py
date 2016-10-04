@@ -104,8 +104,8 @@ class Capnp:
                 args[key2] = args[key]
                 args.pop(key)
         schema = self.getSchema(schemaInText)
-        if binaryData is not None:
-            configdata = schema.from_bytes_packed(binaryData)
+        if binaryData is not None and binaryData != b'':
+            configdata = schema.from_bytes_packed(binaryData).as_builder()
         else:
             try:
                 configdata = schema.new_message(**args)

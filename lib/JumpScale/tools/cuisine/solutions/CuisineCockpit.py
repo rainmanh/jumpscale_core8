@@ -51,6 +51,7 @@ class CuisineCockpit(base):
         self._cuisine.core.dir_ensure('$appDir')
         self._cuisine.core.file_link('$codeDir/github/jumpscale/jscockpit/jscockpit/', '$appDir/cockpit')
         if grafana_scriptedagent:
+            self._cuisine.core.dir_ensure('$tmplsDir/cfg/grafana/public/dashboards/')
             self._cuisine.core.file_copy('$codeDir/github/jumpscale/jscockpit/apps/Cockpit/.files/scriptedagent.js',
                                          '$tmplsDir/cfg/grafana/public/dashboards/scriptedagent.js')
 

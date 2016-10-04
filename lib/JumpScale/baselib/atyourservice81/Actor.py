@@ -66,19 +66,6 @@ class Actor():
             self.model.dbobj.name = template.name
             self.model.dbobj.state = "new"
 
-        # hrd schema to capnp
-        if self.model.dbobj.serviceDataSchema != template.schemaCapnpText:
-            self.model.dbobj.serviceDataSchema = template.schemaCapnpText
-            self.processChange("dataschema")
-
-        if self.model.dbobj.dataUI != template.dataUI:
-            self.model.dbobj.dataUI = template.dataUI
-            self.processChange("ui")
-
-        if self.model.dataJSON != template.configJSON:
-            self.model.dbobj.data = msgpack.dumps(template.configDict)
-            self.processChange("config")
-
         # git location of actor
         self.model.dbobj.gitRepo.url = self.aysrepo.git.remoteUrl
         actorpath = j.sal.fs.joinPaths(self.aysrepo.path, "actors", self.model.name)
@@ -95,6 +82,19 @@ class Actor():
         self._initEventActions(template)
 
         self._processActionsFile(template=template)
+
+        # hrd schema to capnp
+        if self.model.dbobj.serviceDataSchema != template.schemaCapnpText:
+            self.model.dbobj.serviceDataSchema = template.schemaCapnpText
+            self.processChange("dataschema")
+
+        if self.model.dbobj.dataUI != template.dataUI:
+            self.model.dbobj.dataUI = template.dataUI
+            self.processChange("ui")
+
+        if self.model.dataJSON != template.configJSON:
+            self.model.dbobj.data = msgpack.dumps(template.configDict)
+            self.processChange("config")
 
         self.saveToFS()
         self.model.save()

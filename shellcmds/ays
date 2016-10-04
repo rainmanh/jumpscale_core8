@@ -20,22 +20,13 @@ def cli(nodebug):
     repo = j.atyourservice.get()
     repo.debug = not nodebug
 
-# @click.command()
-# @click.argument('name')
-# @click.argument('instance')
-# @click.option('--count', default=1, help='number of instances you want to create, default is 1')
-# @click.option('--domain', default="", help='optional domain of ays')
-# @click.option('--version', default="", help='optional version of ays')
-# def new(name,instance,count=1,domain="",version=""):
-#     """
-#     @arg name: name of ays template to use
-#     @arg instance: the name for the instance
-#     """
-#     from ptpython.repl import embed
-#     print ("DEBUG NOW new")
-#     embed(globals(), locals())
-
-#     click.echo('new')
+@click.command()
+@click.option('--path', '-p', help='path of the new AYS repo you want to create')
+def create_repo(path):
+    """
+    create a new AYS repository
+    """
+    j.atyourservice.repoCreate(path)
 
 
 @click.command()
@@ -350,6 +341,7 @@ def state(role='', instance=''):
         for actionName, state in service.model.actionsState.items():
             print("\t%-25s : %s" % (actionName, state))
 
+cli.add_command(create_repo)
 cli.add_command(runinfo)
 cli.add_command(simulate)
 cli.add_command(test)

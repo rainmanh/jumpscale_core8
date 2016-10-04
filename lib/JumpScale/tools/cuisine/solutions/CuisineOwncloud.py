@@ -26,6 +26,8 @@ class CuisineOwncloud(app):
 
     def start(self, name="???"):
         # TODO:*1
+        pass
 
     def test(self):
         # call the api up/download a file
+        pass

@@ -86,7 +86,7 @@ class Actor():
 
         # process origin,where does the template come from
         # TODO: *1 need to check if template can come from other aysrepo than the one we work on right now
-        self.model.dbobj.origin.gitUrl = template.aysrepo.git.remoteUrl
+        self.model.dbobj.origin.gitUrl = template.remoteUrl
         self.model.dbobj.origin.path = template.pathRelative
 
         self._initParent(template)

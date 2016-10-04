@@ -50,6 +50,11 @@ class ActorTemplate():
         return self.name.split('.')[0]
 
     @property
+    def remoteUrl(self):
+        git = j.clients.git.get(self.path)
+        return git.remoteUrl
+
+    @property
     def schemaHrd(self):
         """
         returns capnp schema as text

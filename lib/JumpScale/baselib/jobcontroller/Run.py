@@ -63,14 +63,21 @@ class RunStep:
             process = job.execute()
 
             if job.model.dbobj.debug is False:
-                processes[job] = process
+                now = j.data.time.epoch
+                processes[job] = {'process': process, 'epoch': j.data.time.epoch}
 
-        for job, process in processes.items():
+        for job, process_info in processes.items():
+            process = process_info['process']
+            action_name = job.model.dbobj.actionName
 
             while not process.isDone():
                 process.wait()
 
-            service_action_obj = job.service.getActionObj(job.model.dbobj.actionName)
+            # if the action is a reccuring action, save last execution time in model
+            if action_name in job.service.model.actionsRecurring:
+                job.service.model.actionsRecurring[action_name].lastRun = process_info['epoch']
+
+            service_action_obj = job.service.model.actions[action_name]
 
             if process.state != 'success':
                 self.state = 'error'

@@ -459,13 +459,19 @@ class Service:
         return job
 
     def runAction(self, action, args={}):
+        self.logger.debug('start runAction %s on %s' % (action, self))
         job = self.getJob(actionName=action, args=args)
+        now = j.data.time.epoch
         p = job.execute()
 
         while not p.isDone():
             p.wait()
 
-        service_action_obj = self.getActionObj(action)
+        # if the action is a reccuring action, save last execution time in model
+        if action in self.model.actionsRecurring:
+            self.model.actionsRecurring[action].lastRun = now
+
+        service_action_obj = self.model.actions[action]
 
         if p.state != 'success':
             job.model.dbobj.state = 'error'
@@ -485,12 +491,12 @@ class Service:
                 print(p.stdout)
 
         job.model.save()
-        self.model.save()
-
+        self.save()
+        self.logger.debug('end runAction %s on %s' % (action, self))
         return job
 
     def getJob(self, actionName, args={}):
-        action = self.getActionObj(actionName)
+        action = self.model.actions[actionName]
         jobobj = j.core.jobcontroller.db.job.new()
         jobobj.dbobj.actionKey = action.actionKey
         jobobj.dbobj.actionName = action.name
@@ -502,13 +508,6 @@ class Service:
         jobobj.args = args
         job = j.core.jobcontroller.newJobFromModel(jobobj)
         return job
-
-    def getActionObj(self, actionName):
-        for action in self.model.dbobj.actions:
-            if action.name == actionName:
-                return action
-        raise j.exceptions.Input(message="Could not find action:%s in %s"(
-            actionName, self), level=1, source="", tags="", msgpub="")
 
     def __eq__(self, service):
         if not service:

@@ -149,7 +149,7 @@ class Job():
             else:
                 self._service = service
 
-        service_action_obj = self.service.getActionObj(self.model.dbobj.actionName)
+        service_action_obj = self.service.model.actions[self.model.dbobj.actionName]
 
         try:
             if self.model.dbobj.actorName != "":

@@ -254,7 +254,7 @@ class AtYourServiceRepo():
                 if instance != "" and service.instance != instance:
                     continue
                 try:
-                    action_obj = service.getActionObj(action)
+                    action_obj = service.models.actions[action]
                     action_obj.state = state
                     service.save()
                 except j.exceptions.Input:

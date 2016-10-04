@@ -26,7 +26,8 @@ cd /opt/owncloudbox && wget https://download.owncloud.org/community/owncloud-9.0
 /bin/cp -Rf /opt/owncloudbox/proj_gig_box/ownclouddeployment/owncloud/config.php /opt/owncloudbox/httpd/htdocs/owncloud/config/
 # copy gig theme
 /bin/cp -Rf /opt/owncloudbox/proj_gig_box/ownclouddeployment/owncloud/gig /opt/owncloudbox/httpd/htdocs/owncloud/themes/
-chmod 755 -R /opt/owncloudbox/owncloud/config
+chown -R www-data:www-data /opt/owncloudbox/owncloud/
+chmod 770 -R /opt/owncloudbox/owncloud
         """
         C = self._cuisine.core.args_replace(C)
         self._cuisine.core.execute_bash(C)

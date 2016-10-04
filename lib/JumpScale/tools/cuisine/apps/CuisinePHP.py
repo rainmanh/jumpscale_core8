@@ -1,50 +1,26 @@
 from JumpScale import j
-from time import sleep
-
 
 app = j.tools.cuisine._getBaseAppClass()
 
 
 class CuisinePHP(app):
-    NAME = 'nginx'
+    
+    NAME = 'php'
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
+    def build(self):
+        C = """
+rm -rf /opt/owncloudbox/php
+cd /opt/owncloudbox && wget http://be2.php.net/distributions/php-7.0.11.tar.bz2 && tar xvjf /opt/owncloudbox/php-7.0.11.tar.bz2
 
-    def _build(self):
-        # TODO: *3 (optional)
-        # build php with web modules
-        raise NotImplementedError
+mv /opt/owncloudbox/php-7.0.11 /opt/owncloudbox/php
 
-    def install(self, start=True):
-        """
-        install, move files to appropriate places, and create relevant configs
-        can use ubuntu apt's can learn from e.g. https://tjosm.com/4937/install-virtualmin-nginx-php-7-mariadb-ubuntu-16-04/ (dont need virtualmin)
+#build
+cd /opt/owncloudbox/php && ./configure --with-apxs2=/opt/owncloudbox/httpd/support/apxs --prefix=/opt/owncloudbox/php/ --exec-prefix=/opt/owncloudbox/php/ --with-config-file-scan-dir=/opt/owncloudbox/php/lib && make && make install
 
-        PHP inside nginx !!!
-
-        also install
-        - http://php.net/manual/en/install.fpm.php  (is this required for php 7.x?)
-        - we probably need one or another accelerator? which one?
-
-        QUESTION: which php version should we install (7.x?)
+#echo to httpdconf mimetypes
+echo "\napplication/x-httpd-php phtml pwml php5 php4 php3 php2 php inc htm html" >> /opt/owncloudbox/httpd/conf/mime.types
 
 
         """
-        # TODO: *1
-        if start:
-            self.start("?")
-
-    def build(self, start=True, install=True):
-        self._build()
-        if install:
-            self.install(start)
-
-    def start(self, name="???"):
-        # TODO:*1
-        raise NotImplementedError
-
-    def test(self):
-        # some php script, see it works
-        raise NotImplementedError
+        C = self._cuisine.core.args_replace(C)
+        self._cuisine.core.execute_bash(C)

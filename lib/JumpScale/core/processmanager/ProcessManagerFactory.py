@@ -122,21 +122,21 @@ class Process():
         if self.method == None:
             msg = "Cannot start process, method not set."
             raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
-        
+
         # saving output
         oldout = sys.stdout
         olderr = sys.stderr
-        
+
         rpipe, wpipe = os.pipe()
         self.outpipe = os.fdopen(wpipe, 'w')
         self.inpipe = os.fdopen(rpipe, 'r')
-        
+
         sys.stdout = StdDuplicate(sys.stdout)
         sys.stderr = StdDuplicate(sys.stderr)
-        
+
         # clearing pid, not used
         self.pid = None
-        
+
         try:
             self._state = "running"
             res = self.method(**self.args)
@@ -155,19 +155,19 @@ class Process():
             self._update(data)
             self.stdout = sys.stdout.getBuffer()
             self.stderr = sys.stderr.getBuffer()
-            
+
             # new will be the full buffer, there is no sync
             self.new_stdout = self.stdout
             self.new_stderr = self.stderr
-            
+
             sys.stdout = sys.stdout.restore()
             sys.stderr = sys.stderr.restore()
-        
+
     def start(self):
         """
         Spawn the method in a new process
         """
-        if self.method == None:
+        if self.method is None:
             msg = "Cannot start process, method not set."
             raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
 
@@ -422,7 +422,7 @@ class ProcessManagerFactory:
 
                 if counter == till:
                     return x
-        
+
         r = {}
         nr = 10
 
@@ -436,7 +436,7 @@ class ProcessManagerFactory:
             print(r[i])
 
         print(" * Simple method (sync) done.")
-        
+
         """
         Simple error managemebt.
         """

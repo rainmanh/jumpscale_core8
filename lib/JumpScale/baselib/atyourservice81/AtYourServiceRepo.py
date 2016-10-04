@@ -279,7 +279,6 @@ class AtYourServiceRepo():
             changed
         """
         res = []
-
         for service_model in self.db.service.find(name=name, actor=actor, state=state, parent=parent, producer=producer):
             if hasAction != "" and hasAction not in service_model.actionsState.keys():
                 continue

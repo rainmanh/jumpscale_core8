@@ -92,8 +92,8 @@ class Blueprint:
                                                  actorname, level=1, source="", tags="", msgpub="")
 
                     actor = self.aysrepo.actorGet(actorname, reload=False)
-
-                    aysi = actor.serviceCreate(instance=bpinstance, args=item)
+                    args = {} if item is None else item
+                    actor.serviceCreate(instance=bpinstance, args=args)
 
     def _add2models(self, content, nr):
         # make sure we don't process double

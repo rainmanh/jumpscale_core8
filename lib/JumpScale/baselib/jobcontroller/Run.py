@@ -196,7 +196,6 @@ class Run:
 
     def execute(self):
         self.state = 'running'
-
         try:
             for step in self.steps:
                 step.execute()

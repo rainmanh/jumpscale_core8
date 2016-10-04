@@ -17,3 +17,4 @@ class CuisineNodeJS(app):
 
         self._cuisine.package.ensure('nodejs')
         self._cuisine.package.ensure('npm')
+        self._cuisine.core.file_link('/usr/bin/nodejs', '/usr/bin/node')

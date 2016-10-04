@@ -17,26 +17,16 @@ class CuisineS3Server(app):
         # build
         raise NotImplementedError
 
-    def install(self, start=True):
+    def install(self, start=False):
         """
-
-
         put backing store on /storage/...
-
         """
-        # TODO: *1
+        path = self._cuisine.development.git.pullRepo('https://github.com/scality/S3.git')
+        self._cuisine.core.run('cd {} && npm install'.format(path))
+
         if start:
-            self.start("?")
+            self.start()
 
-    def build(self, start=True, install=True):
-        self._build()
-        if install:
-            self.install(start)
-
-    def start(self, name="???"):
-        # TODO:*1
-        raise NotImplementedError
-
-    def test(self):
-        # host a file test can be reached
-        raise NotImplementedError
+    def start(self, name=NAME):
+        path = j.sal.fs.joinPaths(j.dirs.codeDir, 'github', 'scality', 'S3')
+        self._cuisine.core.run('cd {} && npm start'.format(path))

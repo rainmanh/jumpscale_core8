@@ -4,6 +4,7 @@ from JumpScale.baselib.atyourservice81.ActorTemplate import ActorTemplate
 from JumpScale.baselib.atyourservice81.ActionsBase import ActionsBase
 from JumpScale.baselib.atyourservice81.AtYourServiceRepo import AtYourServiceRepo
 from JumpScale.baselib.atyourservice81.AtYourServiceTester import AtYourServiceTester
+from JumpScale.baselib.atyourservice81.models import ModelsFactory
 
 import colored_traceback
 import os
@@ -193,6 +194,25 @@ class AtYourServiceFactory:
 
 # REPOS
 
+    def reposDiscover(self, path=None):
+        """
+        Walk over FS. Register AYS repos to DB
+        """
+        if not path:
+            path = j.dirs.codeDir
+        repos = (root for root, dirs, files in os.walk(path) if '.ays' in files)
+
+        db = ModelsFactory()
+        for repo_path in repos:
+            model = db.repo.new()
+            model.path = repo_path
+            model.save()
+            self._repoLoad(repo_path)
+
+    def reposList(self):
+        db = ModelsFactory()
+        return db.repo.find()
+
     def repoCreate(self, path):
         self._doinit()
         if j.sal.fs.exists(path):
@@ -205,6 +225,10 @@ class AtYourServiceFactory:
         j.sal.nettools.download(
             'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
         name = j.sal.fs.getBaseName(path)
+        db = ModelsFactory()
+        model = db.repo.new()
+        model.path = path
+        model.save()
         git_repo = j.clients.git.get(path)
         self._templateRepos[path] = AtYourServiceRepo(name=name, gitrepo=git_repo, path=path)
         print("AYS Repo created at %s" % path)

@@ -477,6 +477,13 @@ class AtYourServiceRepo():
     #                 changed.extend(producers)
     #     return changed
 
+    def runsList(self):
+        """
+        list Runs on repo
+        """
+        runs = j.core.jobcontroller.db.run.find()
+        return runs
+
 # ACTIONS
 
     def init(self, role="", instance="", hasAction="", includeDisabled=False, data=""):

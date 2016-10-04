@@ -57,12 +57,16 @@ class Job():
         return path
 
     def printLogs(self):
+        logs = list()
         for log in self.model.dbobj.logs:
-            print("{epoch} - {category}: {log}".format(
+            logs.append(("{epoch} - {category}: {log}".format(
                 epoch=j.data.time.epoch2HRDateTime(log.epoch),
                 category=log.category,
                 log=log.log
-            ))
+            )))
+        logs = '\n'.join(logs)
+        print (logs)
+        return logs
 
     def save(self):
         self.model.save()

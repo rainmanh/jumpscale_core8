@@ -1,5 +1,10 @@
 @0x93c1ac9f09464fd9;
 
+struct Repo {
+  name @0 :Text;
+  path @1 :Text;
+}
+
 struct Actor {
 
   state @0 :State;
@@ -59,7 +64,7 @@ struct Actor {
   }
 
 
-  #where does the template compe from
+  #where does the template come from
   origin @8 :Origin;
   struct Origin {
     #link to git which hosts this template for the actor

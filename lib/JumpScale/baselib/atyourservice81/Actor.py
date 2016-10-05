@@ -191,7 +191,6 @@ class Actor():
                 amDecorator = ""
                 amMethodArgs = {}
                 state = 'MAIN'
-                continue
 
             if state in ["MAIN", "DEF"] and linestrip.startswith("@"):
                 amDecorator = linestrip

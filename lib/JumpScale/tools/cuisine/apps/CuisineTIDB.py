@@ -35,6 +35,7 @@ class CuisineTIDB(app):
 
     def start(self, name="???"):
         # TODO:*1
+        pass
 
     def test(self):
         raise NotImplementedError

@@ -36,3 +36,4 @@ class CuisineS3Server(app):
 
     def test(self):
         # put/get file over S3 interface using a python S3 lib
+        pass

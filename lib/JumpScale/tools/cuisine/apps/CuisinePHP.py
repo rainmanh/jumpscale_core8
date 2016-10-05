@@ -46,3 +46,4 @@ class CuisinePHP(app):
         # TODO: *1
         # check there is a local nginx running, if not install it
         # deploy some php script, test it works
+        pass

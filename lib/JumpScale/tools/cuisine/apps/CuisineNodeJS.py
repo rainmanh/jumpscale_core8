@@ -14,9 +14,17 @@ class CuisineNodeJS(app):
         """
         can install through ubuntu
         """
+        version = 'node-v6.7.0-linux-x64'
+        url = 'https://nodejs.org/dist/v6.7.0/{}.tar.xz'.format(version)
+        dest = '/tmp/node.tar.xz'
+        self._cuisine.core.run('curl -O {} {}'.format(dest, url))
+        self._cuisine.core.run('tar --overwrite -xf {} -C /tmp/'.format(dest))
 
-        self._cuisine.package.ensure('nodejs')
-        self._cuisine.package.ensure('npm')
-        self._cuisine.core.file_link('/usr/bin/nodejs', '/usr/bin/node')
+        # copy file to correct locations.
+        script = '''\
+        cp /tmp/{version}/bin/node $binDir/
+        mkdir -p $appDir/npm
+        cp -r -t $appDir/npm /tmp/{version}/lib/node_modules/npm/*
+        '''.format(version=version)
 
-        # TODO: copy files back to $appDir/nodejs
+        self._cuisine.core.execute_bash(script)

@@ -10,7 +10,7 @@ import colored_traceback
 colored_traceback.add_hook(always=True)
 
 
-VALID_ACTION_STATE = ['new', 'installing', 'ok', 'error', 'disabled', 'changed,']
+VALID_ACTION_STATE = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 
 class AtYourServiceRepo():
@@ -254,7 +254,7 @@ class AtYourServiceRepo():
                 if instance != "" and service.instance != instance:
                     continue
                 try:
-                    action_obj = service.models.actions[action]
+                    action_obj = service.model.actions[action]
                     action_obj.state = state
                     service.save()
                 except j.exceptions.Input:
@@ -396,13 +396,12 @@ class AtYourServiceRepo():
         producerRoles = self._processProducerRoles(producerRoles)
         if action not in ["init"]:
             for s in self.services:
-                if s.model.actionsState['init'] not in ["new", "ok"]:
+                if s.model.actionsState['init'] not in ["new", "ok", "changed"]:
                     error_msg = "Cannot get run: %s:%s:%s because found a service not properly inited yet.\n%s\n please rerun ays init" % (role, instance, action, s)
                     self.logger.error(error_msg)
                     raise j.exceptions.Input(error_msg, msgpub=error_msg)
-        # if force:
-        #     self.setState(actions=[action], role=role,
-        #                   instance=instance, state="DO")
+        if force:
+            self.serviceSetState(actions=[action], role=role, instance=instance, state="changed")
 
         if action == "init":
             actions = ["init"]

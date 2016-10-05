@@ -17,7 +17,7 @@ class CuisineNodeJS(app):
         version = 'node-v6.7.0-linux-x64'
         url = 'https://nodejs.org/dist/v6.7.0/{}.tar.xz'.format(version)
         dest = '/tmp/node.tar.xz'
-        self._cuisine.core.run('curl -O {} {}'.format(dest, url))
+        self._cuisine.core.run('curl -o {} {}'.format(dest, url))
         self._cuisine.core.run('tar --overwrite -xf {} -C /tmp/'.format(dest))
 
         # copy file to correct locations.
@@ -25,6 +25,7 @@ class CuisineNodeJS(app):
         cp /tmp/{version}/bin/node $binDir/
         mkdir -p $appDir/npm
         cp -r -t $appDir/npm /tmp/{version}/lib/node_modules/npm/*
+        ln -s $appDir/npm/cli.js $binDir/npm
         '''.format(version=version)
 
         self._cuisine.core.execute_bash(script)

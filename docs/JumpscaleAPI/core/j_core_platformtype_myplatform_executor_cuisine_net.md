@@ -42,7 +42,7 @@ return ($fromip,$topip) from range attached to device, skip the mentioned ip add
 
 ```
 
-#### netconfig(*interface, ipaddr, cidr=24, gateway, dns='8.8.8.8', masquerading*) 
+#### netconfig(*interface, ipaddr, cidr=24, gateway, dns='8.8.8.8', masquerading, dhcp*) 
 
 #### ping(*host*) 
 

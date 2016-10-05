@@ -159,9 +159,9 @@ class Application:
         if reload:
             self._config = None
 
-        if self.config is not None and self.config.exists('grid.node.id'):
-            nodeid = self.config.getInt("grid.node.id")
-            gridid = self.config.getInt("grid.id")
+        if self.config is not None:
+            nodeid = self.config.getInt("grid.node.id", 0)
+            gridid = self.config.getInt("grid.id", 0)
             self.logger.debug("gridid:%s,nodeid:%s" % (gridid, nodeid))
         else:
             gridid = 0

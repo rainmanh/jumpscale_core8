@@ -18,7 +18,7 @@ Will dump redis ecos into mongodb
 
 ```
 
-#### influxpump(*influxdb, cidr='127.0.0.1', ports=[7777]*) 
+#### influxpump(*influxdb, cidr='127.0.0.1', ports=[7777], rentention_duration='5d', workers=4*) 
 
 ```
 will dump redis stats into influxdb(s)

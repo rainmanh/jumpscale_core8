@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/sal/fs/SystemFS.py
 - Properties
-    - walker
     - logger
+    - walker
 
 ### Methods
 
@@ -58,7 +58,21 @@ Remove all non-numeric or alphanumeric characters
 
 #### constructDirPathFromArray(*array*) 
 
+```
+Create a path using os specific seperators from a list being passed with directoy.
+
+@param array str: list of dirs in the path.
+
+```
+
 #### constructFilePathFromArray(*array*) 
+
+```
+Add file name  to dir path.
+
+@param array str: list including dir path then file name
+
+```
 
 #### copyDirTree(*src, dst, keepsymlinks, deletefirst, overwriteFiles=True, ignoredir=['.egg-info', '.dist-info'], ignorefiles=['.egg-info'], rsync=True, ssh, sshport=22, recursive=True, rsyncdelete=True, createdir, applyHrdOnDestPaths*) 
 
@@ -258,7 +272,23 @@ Search for lines matching a given regex in all files matching a regex
 
 #### gunzip(*sourceFile, destFile*) 
 
+```
+Gunzip gzip sourcefile into destination file
+
+@param sourceFile str: path to gzip file to be unzipped.
+@param destFile str: path to destination folder to unzip folder.
+
+```
+
 #### gzip(*sourceFile, destFile*) 
+
+```
+Gzip source file into destination zip
+
+@param sourceFile str: path to file to be Gzipped.
+@param destFile str: path to  destination Gzip file.
+
+```
 
 #### hardlinkFile(*source, destin*) 
 
@@ -553,6 +583,13 @@ result will always be with / slashes
 ```
 
 #### readFile(*filename*) 
+
+```
+Get contents as string from filename.
+
+@param filename str: file path to read from.
+
+```
 
 #### readObjectFromFile(*filelocation*) 
 

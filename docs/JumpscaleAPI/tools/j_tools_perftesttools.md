@@ -3,11 +3,11 @@
 
 - /opt/jumpscale8/lib/JumpScale/tools/perftesttools/PerfTestToolsFactory.py
 - Properties
+    - monitorNodeIp
     - nodes
     - redispasswd
-    - monitorNodeSSHPort
-    - monitorNodeIp
     - sshkey
+    - monitorNodeSSHPort
 
 ### Methods
 

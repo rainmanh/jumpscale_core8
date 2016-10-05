@@ -3,10 +3,10 @@
 
 - /opt/jumpscale8/lib/JumpScale/tools/swaggergen/SwaggerGen.py
 - Properties
-    - jinjaEnv
     - server
     - spec
     - client
+    - jinjaEnv
 
 ### Methods
 

@@ -3,10 +3,10 @@
 
 - /opt/jumpscale8/lib/JumpScale/core/codegentools/CodeGenerator.py
 - Properties
-    - appdir
-    - codepath
-    - generated
     - classes
+    - appdir
+    - generated
+    - codepath
 
 ### Methods
 

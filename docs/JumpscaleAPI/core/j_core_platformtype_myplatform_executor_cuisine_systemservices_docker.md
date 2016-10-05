@@ -5,7 +5,7 @@
 
 ### Methods
 
-#### dockerStart(*name='ubuntu1', image='jumpscale/ubuntu1604_all', ports='', volumes, pubkey, weave*) 
+#### dockerStart(*name='ubuntu1', image='jumpscale/ubuntu1604_all', ports='', volumes, pubkey, weave, ssh=True, weavePeer*) 
 
 ```
 will return dockerCuisineObj: is again a cuisine obj on which all kinds of actions can be

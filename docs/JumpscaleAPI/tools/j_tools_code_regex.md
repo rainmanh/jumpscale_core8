@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/data/regex/RegexTools.py
 - Properties
-    - logger
     - templates
+    - logger
 
 ### Methods
 

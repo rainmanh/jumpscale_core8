@@ -3,16 +3,16 @@
 
 - /opt/jumpscale8/lib/JumpScale/tools/objectinspector/ObjectInspector.py
 - Properties
-    - logger
-    - dest
-    - jstree
-    - apiFileLocation
-    - root
-    - base
-    - errors
-    - manager
     - visited
+    - jstree
+    - errors
+    - dest
+    - base
     - classDocs
+    - root
+    - logger
+    - manager
+    - apiFileLocation
 
 ### Methods
 

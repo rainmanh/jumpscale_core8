@@ -4,6 +4,7 @@
 - /opt/jumpscale8/lib/JumpScale/sal/openvswitch/NetConfigFactory.py
 - Properties
     - PHYSMTU
+    - netcl
 
 ### Methods
 
@@ -57,7 +58,7 @@ Reasonable defaults  : mode=balance-tcp, lacp=active,fast, bondname=brname-Bond,
 #### newBridge(*name, interface*) 
 
 ```
-@param interface interface where to connect this bridge to
+@param interface ['interface'] can take multiple interfaces where to connect this bridge
 
 ```
 
@@ -99,6 +100,15 @@ DANGEROUS, will remove old configuration
 
 ```
 DANGEROUS, will remove old configuration
+
+```
+
+#### vnicQOS(*limit, interface, burst_limit*) 
+
+```
+@param limit apply Qos policing to limit the rate throught a
+@param burst_limit most the maximum amount of data (in Kb) that
+       this interface can send beyond the policing rate.default to 10% of rate
 
 ```
 

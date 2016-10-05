@@ -5,7 +5,7 @@
 
 ### Methods
 
-Factory Class of dealing with TAGS     
+Factory Class of dealing with TAGS
 
 #### getObject(*tagstring='', setFunction4Tagstring*) 
 

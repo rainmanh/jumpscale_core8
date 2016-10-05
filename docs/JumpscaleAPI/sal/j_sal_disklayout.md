@@ -7,6 +7,8 @@
 
 ### Methods
 
+helps you to gather a lot of information about the disks and partitions.
+
 #### findDisk(*name='', mountpoint='', caseSensitive*) 
 
 #### getDisks() 

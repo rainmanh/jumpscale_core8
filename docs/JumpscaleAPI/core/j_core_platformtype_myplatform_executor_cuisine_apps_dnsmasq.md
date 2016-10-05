@@ -5,11 +5,19 @@
 - Properties
     - executor
     - logger
-    - cuisine
 
 ### Methods
 
 #### addHost(*macaddress, ipaddress, name*) 
+
+```
+Add a host.
+
+@param macaddress string: macaddress
+@param ip string: ip
+@param name string: name
+
+```
 
 #### config(*device='eth0', rangefrom='', rangeto='', deviceonly=True*) 
 
@@ -21,6 +29,13 @@ if rangefrom & rangeto not specified then will serve full local range minus bott
 
 #### install(*start=True*) 
 
+```
+Install Dnsmasq.
+
+@param start=True: start dnsmasq
+
+```
+
 #### removeHost(*macaddress*) 
 
 ```
@@ -30,5 +45,17 @@ Removes a dhcp-host entry from dnsmasq.conf file
 
 #### restart() 
 
+```
+Restarts Dnsmasq.
+
+```
+
 #### setConfigPath(*config_path*) 
+
+```
+Set configuration files path.
+
+@param config_path string: configuration file path.
+
+```
 

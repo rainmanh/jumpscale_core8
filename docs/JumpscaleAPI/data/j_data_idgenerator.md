@@ -2,6 +2,8 @@
 ## j.data.idgenerator
 
 - /opt/jumpscale8/lib/JumpScale/data/idgenerator/IDGenerator.py
+- Properties
+    - cryptogen
 
 ### Methods
 
@@ -32,6 +34,9 @@ how to use:  j.data.idgenerator.generateIncrID("agent")
 @reset if True means restart from 1
 
 ```
+
+#### generatePasswd(*x, al='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`\{|\}~ 	
+'*) 
 
 #### generateRandomInt(*fromInt, toInt*) 
 

@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/clients/ssh/SSHClient.py
 - Properties
-    - cache
     - logger
+    - cache
 
 ### Methods
 

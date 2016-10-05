@@ -4,9 +4,9 @@
 - /opt/jumpscale8/lib/JumpScale/tools/cuisine/CuisineCore.py
 - Properties
     - sudomode
-    - logger
-    - cd
     - cuisine
+    - cd
+    - logger
 
 ### Methods
 
@@ -245,7 +245,7 @@ Returns the SHA - 256 sum (as a hex string) for the remote file at the given loc
 
 #### file_unlink(*path*) 
 
-#### file_update(*location, updater=<function CuisineCore.<lambda> at 0x7f41e102d268>*) 
+#### file_update(*location, updater=<function CuisineCore.<lambda> at 0x7f5b841c1730>*) 
 
 ```
 Updates the content of the given by passing the existing
@@ -320,12 +320,7 @@ for help on find see http: // www.gnu.org / software / findutils / manual / html
 
 #### pwd() 
 
-#### run(*cmd, die=True, debug, checkok, showout=True, profile, replaceArgs=True, shell*) 
-
-```
-@param profile, execute the bash profile first
-
-```
+#### run(*cmd, die=True, debug, checkok, showout=True, profile, replaceArgs=True, shell, env*) 
 
 #### setIDs(*name, grid, domain='aydo.com'*) 
 
@@ -335,7 +330,7 @@ for help on find see http: // www.gnu.org / software / findutils / manual / html
 
 #### sudo(*cmd, die=True, showout=True*) 
 
-#### sudo_cmd(*command*) 
+#### sudo_cmd(*command, shell, force_sudo*) 
 
 #### system_uuid() 
 

@@ -3,9 +3,9 @@
 
 - /opt/jumpscale8/lib/JumpScale/sal/docker/Docker.py
 - Properties
-    - client
-    - logger
     - base_url
+    - logger
+    - client
 
 ### Methods
 
@@ -23,18 +23,24 @@ return: strint containing the stdout
 #### create(*name='', ports='', vols='', volsro='', stdout=True, base='jumpscale/ubuntu1604', nameserver=['8.8.8.8'], replace=True, cpu, mem, ssh=True, myinit=True, sharecode, sshkeyname='', sshpubkey='', setrootrndpasswd=True, rootpasswd='', jumpscalebranch='master', aysfs, detach, privileged, getIfExists=True, weavenet*) 
 
 ```
+Creates a new container.
+
 @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in
     the container
 @param vols in format as follows "/var/insidemachine:/var/inhost # /var/1:/var/1 # ..."
     '#' is separator
 @param sshkeyname : use ssh-agent (can even do remote through ssh -A) and then specify key
     you want to use in docker
-#TODO: *1 change way how we deal with ssh keys, put authorization file in filesystem
-    before docker starts don't use ssh to push them, will be much faster and easier
 
 ```
 
 #### destroyAll(*removeimages*) 
+
+```
+Destroy all containers.
+@param removeimages bool: to remove all images.
+
+```
 
 #### exists(*name*) 
 
@@ -43,6 +49,12 @@ return: strint containing the stdout
 #### exportTgz(*name, backupname*) 
 
 #### get(*name, die=True*) 
+
+```
+Get a container object by name
+@param name string: container name
+
+```
 
 #### getImages() 
 
@@ -69,6 +81,12 @@ return detailed info
 
 #### pull(*imagename*) 
 
+```
+pull a certain image.
+@param imagename string: image
+
+```
+
 #### push(*image, output=True*) 
 
 ```
@@ -79,9 +97,19 @@ output: print progress as it pushes
 
 #### reInstallDocker() 
 
+```
+ReInstall docker on your system
+
+```
+
 #### removeDocker() 
 
 #### removeImages(*tag='<none>:<none>'*) 
+
+```
+Delete a certain Docker image using tag
+
+```
 
 #### status() 
 

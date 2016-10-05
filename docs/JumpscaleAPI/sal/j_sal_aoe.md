@@ -17,6 +17,11 @@ Create and vdisk
 
 #### delete(*path*) 
 
+```
+Delete path
+
+```
+
 #### expose(*storage, major, minor, inf*) 
 
 ```

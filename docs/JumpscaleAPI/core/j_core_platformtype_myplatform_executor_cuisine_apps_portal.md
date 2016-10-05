@@ -3,8 +3,8 @@
 
 - /opt/jumpscale8/lib/JumpScale/tools/cuisine/apps/CuisinePortal.py
 - Properties
-    - main_portal_dir
     - portal_dir
+    - main_portal_dir
 
 ### Methods
 

@@ -3,13 +3,13 @@
 
 - /opt/jumpscale8/lib/JumpScale/InstallTools.py
 - Properties
-    - CODEDIR
-    - installer
-    - BASE
     - debug
+    - BASE
     - TMP
-    - TYPE
     - VARDIR
+    - installer
+    - TYPE
+    - CODEDIR
 
 ### Methods
 
@@ -24,6 +24,10 @@ the keyname is the name of the key as loaded in ssh-agent
 if remoteothers==True: then other keys will be removed
 
 ```
+
+#### authorize_root(*sftp_client, ip_address, keyname*) 
+
+#### authorize_user(*sftp_client, ip_address, keyname, username*) 
 
 #### changeDir(*path, create*) 
 
@@ -100,6 +104,8 @@ if ssh format of source or dest is: remoteuser@remotehost:/remote/dir
 #### downloadExpandTarGz(*url, destdir, deleteDestFirst=True, deleteSourceAfter=True*) 
 
 #### downloadJumpScaleCore(*dest*) 
+
+#### ensure_keyname(*keyname='', username='root'*) 
 
 #### execute(*command, showout=True, outputStderr=True, useShell=True, log=True, cwd, timeout=1, captureout=True, die=True, async, executor*) 
 
@@ -378,7 +384,7 @@ login & passwd is only for https
 
 ```
 will clone or update repo
-if dest == None then clone underneath: /opt/code/$type/$account/$repo
+if dest is None then clone underneath: /opt/code/$type/$account/$repo
 will ignore changes !!!!!!!!!!!
 
 @param ssh ==True means will checkout ssh

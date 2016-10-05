@@ -3,16 +3,16 @@
 
 - /opt/jumpscale8/lib/JumpScale/core/main/Application.py
 - Properties
+    - noremote
+    - jid
+    - state
+    - interactive
     - agentid
     - gridInitialized
-    - interactive
-    - logger
-    - state
-    - appname
     - sandbox
-    - noremote
+    - appname
+    - logger
     - skipTraceback
-    - jid
 
 ### Methods
 

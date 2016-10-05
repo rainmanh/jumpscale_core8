@@ -3,25 +3,24 @@
 
 - /opt/jumpscale8/lib/JumpScale/data/models/BaseModelFactory.py
 - Properties
-    - User
-    - Job
+    - Disk
     - Heartbeat
-    - Machine
-    - SessionCache
-    - Test
-    - Errorcondition
-    - Node
-    - VDisk
+    - Audit
+    - Alert
+    - Command
+    - Group
     - Grid
     - Log
-    - Debug
-    - Disk
-    - Group
     - Process
+    - User
+    - Test
+    - Job
     - Nic
-    - Audit
-    - Command
-    - Alert
+    - Machine
+    - Errorcondition
+    - VDisk
+    - SessionCache
+    - Node
 
 ### Methods
 

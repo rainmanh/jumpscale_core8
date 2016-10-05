@@ -382,7 +382,7 @@ class AtYourServiceRepo():
                 producerroles = [producerroles.strip()]
         return producerroles
 
-    def runGet(self, role="", instance="", action="install", force=False, producerRoles="*", data=None, key=0, simulate=False):
+    def runGet(self, role="", instance="", action="install", force=False, producerRoles="*", data=None, key=0, simulate=False, debug=False, profile=False):
         """
         get a new run
         if key !=0 then the run will be loaded from DB
@@ -421,6 +421,10 @@ class AtYourServiceRepo():
                             step = run.newStep()
                             newStep = False
                         job = service.getJob(action0)
+                        job.model.dbobj.profile = profile
+                        if profile:
+                            debug = True
+                        job.model.dbobj.debug = debug
                         step.addJob(job)
 
                     if service in scope:

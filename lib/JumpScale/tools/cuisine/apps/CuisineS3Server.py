@@ -12,27 +12,33 @@ class CuisineS3Server(app):
         self._executor = executor
         self._cuisine = cuisine
 
-    def _build(self):
-        # TODO: *1
-        # build
-        raise NotImplementedError
-
-    def install(self, start=False, storageLocation=""):
+    def install(self, start=False, storageLocation="/data/", metaLocation="/meta/"):
         """
         put backing store on /storage/...
         """
         path = self._cuisine.development.git.pullRepo('https://github.com/scality/S3.git')
         self._cuisine.core.run('cd {} && npm install'.format(path))
+        self._cuisine.core.dir_remove('$appDir/S3', recursive=True)
+        self._cuisine.core.run('mv {} $appDir/'.format(path))
 
-        # TODO: *1 copy files back to $appDir/s3server
-        # TODO: *1 storage location configuration
+        cmd = 'S3DATAPATH={data} S3METADATAPATH={meta} npm start'.format(
+            data=storageLocation,
+            meta=metaLocation,
+        )
+
+        content = self._cuisine.core.file_read('$appDir/S3/package.json')
+        pkg = j.data.serializer.json.loads(content)
+        pkg['scripts']['start_location'] = cmd
+
+        content = j.data.serializer.json.dumps(pkg, indent=True)
+        self._cuisine.core.file_write('$appDir/S3/package.json', content)
 
         if start:
             self.start()
 
     def start(self, name=NAME):
-        path = j.sal.fs.joinPaths(j.dirs.codeDir, 'github', 'scality', 'S3')
-        self._cuisine.core.run('cd {} && npm start'.format(path))
+        path = j.sal.fs.joinPaths(j.dirs.appDir, 'S3')
+        self._cuisine.core.run('cd {} && npm run start_location'.format(path))
 
     def test(self):
         # put/get file over S3 interface using a python S3 lib

@@ -297,6 +297,12 @@ class Space:
                     item, id='%(publicIp)s:%(publicPort)s -> %(localIp)s:%(localPort)s' % item)
         return [x.struct for x in self._portforwardings_cache]
 
+    def isPortforwardExists(self, publicIp, publicport, protocol):
+        for pf in self.portforwardings:
+            if pf['publicIp'] == publicIp and int(pf['publicPort']) == int(publicport) and pf['protocol'] == protocol:
+                return True
+        return False
+
     @property
     def authorized_users(self):
         return [u['userGroupId'] for u in self.model['acl']]
@@ -404,18 +410,27 @@ class Machine:
 
     def create_portforwarding(self, publicport, localport, protocol='tcp'):
         if protocol not in ['tcp', 'udp']:
-            raise j.exceptions.RuntimeError(
-                "Protocol for portforward should be tcp or udp not %s" % protocol)
+            raise j.exceptions.RuntimeError("Protocol for portforward should be tcp or udp not %s" % protocol)
         machineip, _ = self.get_machine_ip()
-        self.client.api.cloudapi.portforwarding.create(cloudspaceId=self.space.id,
-                                                       protocol=protocol,
-                                                       localPort=localport,
-                                                       machineId=self.id,
-                                                       publicIp=self.space.model[
-                                                           'publicipaddress'],
-                                                       publicPort=publicport)
+
+        if publicport is None:
+                unavailable_ports = [int(portinfo['publicPort']) for portinfo in self.space.portforwardings]
+                candidate = 2200
+                while True:
+                    if candidate not in unavailable_ports:
+                        publicport = candidate
+                        break
+                    candidate += 1
+        if not self.space.isPortforwardExists(self.space.model['publicipaddress'], publicport, protocol):
+            self.client.api.cloudapi.portforwarding.create(cloudspaceId=self.space.id,
+                                                           protocol=protocol,
+                                                           localPort=localport,
+                                                           machineId=self.id,
+                                                           publicIp=self.space.model['publicipaddress'],
+                                                           publicPort=publicport)
         self.space._portforwardings_cache.delete()
         self._portforwardings_cache.delete()
+        return (publicport, localport)
 
     def delete_portforwarding(self, publicport):
         self.client.api.cloudapi.portforwarding.deleteByPort(cloudspaceId=self.space.id,

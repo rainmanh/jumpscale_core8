@@ -26,7 +26,7 @@ class CuisineTIDB(app):
         """
         # TODO: *1
         if start:
-            self.start("mongod")
+            self.start("???")
 
     def build(self, start=True, install=True):
         self._build()
@@ -35,11 +35,6 @@ class CuisineTIDB(app):
 
     def start(self, name="???"):
         # TODO:*1
-        which = self._cuisine.core.command_location("mongod")
-        self._cuisine.core.dir_ensure('$varDir/data/mongodb')
-        cmd = "%s --dbpath $varDir/data/mongodb" % which
-        self._cuisine.process.kill("mongod")
-        self._cuisine.processmanager.ensure("mongod", cmd=cmd, env={}, path="")
 
     def test(self):
         raise NotImplementedError

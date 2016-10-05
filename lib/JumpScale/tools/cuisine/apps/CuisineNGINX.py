@@ -22,7 +22,7 @@ class CuisineNGINX(app):
         can install through ubuntu
 
         """
-        # TODO: *1
+        # TODO: *1 symlink or copy files to $appDir/nginx/
         if start:
             self.start("?")
 

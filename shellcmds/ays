@@ -20,6 +20,7 @@ def cli(nodebug):
     repo = j.atyourservice.get()
     repo.debug = not nodebug
 
+
 @click.command()
 @click.option('--path', '-p', help='path of the new AYS repo you want to create')
 def create_repo(path):
@@ -69,6 +70,7 @@ def init(role="", instance="", data=""):
 
     repo.init(role=role, instance=instance, data=data)
 
+
 @click.command()
 @click.option('--name', '-n', default=None, help='name of the actor to update')
 def update(name):
@@ -88,7 +90,8 @@ def update(name):
         try:
             actor = repo.actorGet(name=n)
         except:
-            import ipdb; ipdb.set_trace()
+            import ipdb
+            ipdb.set_trace()
 
         actor._initFromTemplate(template)
 
@@ -131,39 +134,8 @@ def showactions():
             print("- %-20s" % action)
 
 
-@click.command()
-@click.argument('action')
-@click.option('--role', '-r', default="", help='optional role for ays instances execute an action on')
-@click.option('--instance', '-i', default="", help='optional name of instance')
-@click.option('--force', default=False, is_flag=True, help='force execution even if no change')
-@click.option('--producerroles', default="*", help='roles of producers which will be taken into consideration, if * all')
-@click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
-def do(action, role, instance, force, producerroles, ask):
-    """
-    call an action (which is a method in the action file e.g. start/stop/export/...)
-    """
-    run = repo.runGet(role=role, instance=instance, action=action, force=force, producerRoles=producerroles)
-    print(run)
-    if ask:
-        resp = j.tools.console.askYesNo('Do you want to execute this run ?')
-        if resp is False:
-            return
-    run.execute()
-
-
-@click.command()
-@click.option('--role', default="", help='optional role for ays instances execute an action on')
-@click.option('--instance', default="", help='optional name of instance')
-@click.option('--force', default=False, is_flag=True, help='if True then will ignore state of service action.')
-@click.option('--producerroles', default="*", help='roles of producers which will be taken into consideration, if * all')
-@click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
-def install(role, instance, force, producerroles, ask):
-    """
-    alias for 'ays do install'
-    make it reality
-    if you want more finegrained controle please use the do cmd
-    """
-    run = repo.runGet(role=role, instance=instance, action="install", force=force, producerRoles=producerroles)
+def _do(action, role, instance, force, producerroles, ask, debug, profile):
+    run = repo.runGet(role=role, instance=instance, action=action, force=force, producerRoles=producerroles, debug=debug, profile=profile)
     if len(run.steps) <= 0:
         print("Nothing to do.")
         return
@@ -180,6 +152,39 @@ def install(role, instance, force, producerroles, ask):
 @click.argument('action')
 @click.option('--role', '-r', default="", help='optional role for ays instances execute an action on')
 @click.option('--instance', '-i', default="", help='optional name of instance')
+@click.option('--force', default=False, is_flag=True, help='force execution even if no change')
+@click.option('--producerroles', default="*", help='roles of producers which will be taken into consideration, if * all')
+@click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
+@click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
+@click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
+def do(action, role, instance, force, producerroles, ask, debug, profile):
+    """
+    call an action (which is a method in the action file e.g. start/stop/export/...)
+    """
+    _do(action=action, role=role, instance=instance, force=force, producerroles=producerroles, ask=ask, debug=debug, profile=profile)
+
+
+@click.command()
+@click.option('--role', default="", help='optional role for ays instances execute an action on')
+@click.option('--instance', default="", help='optional name of instance')
+@click.option('--force', default=False, is_flag=True, help='if True then will ignore state of service action.')
+@click.option('--producerroles', default="*", help='roles of producers which will be taken into consideration, if * all')
+@click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
+@click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
+@click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
+def install(role, instance, force, producerroles, ask, debug, profile):
+    """
+    alias for 'ays do install'
+    make it reality
+    if you want more finegrained controle please use the do cmd
+    """
+    _do(action='install', role=role, instance=instance, force=force, producerroles=producerroles, ask=ask, debug=debug, profile=profile)
+
+
+@click.command()
+@click.argument('action')
+@click.option('--role', '-r', default="", help='optional role for ays instances execute an action on')
+@click.option('--instance', '-i', default="", help='optional name of instance')
 @click.option('--force', default=False, is_flag=True, help='if True then will ignore state of service action.')
 @click.option('--producerroles', default="*", help='roles of producers which will be taken into consideration, if * all')
 def simulate(action, role="", instance="", force=False, producerroles="*"):
@@ -188,7 +193,7 @@ def simulate(action, role="", instance="", force=False, producerroles="*"):
     is ideal to figure out what would happen if you run a certain action
     """
     run = repo.runGet(role=role, instance=instance, action=action,
-                               force=force, producerRoles=producerroles, simulate=True)
+                      force=force, producerRoles=producerroles, simulate=True)
     print(run)
 
 
@@ -345,6 +350,7 @@ def state(role='', instance=''):
         print('State of service : %s!%s' % (service.model.dbobj.actorName, service.model.dbobj.name))
         for actionName, state in service.model.actionsState.items():
             print("\t%-25s : %s" % (actionName, state))
+
 
 @click.command()
 @click.option('--host', '-h', default='localhost')

@@ -17,18 +17,24 @@ class CuisineTIDB(app):
         # SEE: https://github.com/pingcap/tidb
         # deploy on top of tikv (which is distributed database backend on top of paxos)
         # WILL BE BACKEND FOR e.g. OWNCLOUD / GOGS
-        raise NotImplementedError
+        url = 'https://raw.githubusercontent.com/pingcap/docs/master/scripts/build.sh'
+        self._cuisine.core.dir_ensure('/tmp/tidb')
+
+        self._cuisine.core.run('cd /tmp/tidb/ && curl {} | bash'.format(url))
 
     def install(self, start=True):
         """
         download, install, move files to appropriate places, and create relavent configs
-
         """
+
         # TODO: *1
         if start:
             self.start("???")
 
     def build(self, start=True, install=True):
+        """
+        Build requires both golang and rust to be available on the system
+        """
         self._build()
         if install:
             self.install(start)

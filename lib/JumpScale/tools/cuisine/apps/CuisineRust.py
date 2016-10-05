@@ -18,11 +18,10 @@ class CuisineRust(app):
         version = 'rust-1.12.0-x86_64-unknown-linux-gnu'
         url = 'https://static.rust-lang.org/dist/{}.tar.gz'.format(version)
         dest = '/tmp/rust.tar.gz'
-        # self._cuisine.core.run('curl -o {} {}'.format(dest, url))
+        self._cuisine.core.run('curl -o {} {}'.format(dest, url))
         self._cuisine.core.run('tar --overwrite -xf {} -C /tmp/'.format(dest))
 
         # copy file to correct locations.
-        self._cuisine.core.run('mv /tmp/{version} $appDir/rust'.format(version=version))
+        self._cuisine.core.run('cd /tmp/{version} && ./install.sh --prefix=$appDir/rust --destdir==$appDir/rust'.format(version=version))
 
-        self._cuisine.bash.addPath(self._cuisine.core.args_replace('$appDir/rust/rustc/bin'))
-        self._cuisine.bash.addPath(self._cuisine.core.args_replace('$appDir/rust/cargo/bin'))
+        self._cuisine.bash.addPath(self._cuisine.core.args_replace('$appDir/rust/bin'))

@@ -71,7 +71,12 @@ def init(role="", instance="", data=""):
 
 @click.command()
 @click.option('--name', '-n', default=None, help='name of the actor to migrate')
-def migrate(name):
+def update(name):
+    """
+    Update actor to a new version.
+    Any change detected in the actor will be propagated to the services and processChange method will be
+    called all the way from actor to service instances.
+    """
     names = []
     if name is None:
         names = repo.templates.keys()
@@ -341,6 +346,15 @@ def state(role='', instance=''):
         for actionName, state in service.model.actionsState.items():
             print("\t%-25s : %s" % (actionName, state))
 
+@click.command()
+@click.option('--host', '-h', default='localhost')
+@click.option('--port', '-p', default=6379)
+@click.option('--socket', '-s', default=None)
+def start(host, port, socket):
+    from JumpScale.baselib.atyourservice81.AtYourServiceDaemon import Server
+    server = Server(host=host, port=port, unixsocket=socket)
+    server.start()
+
 cli.add_command(create_repo)
 cli.add_command(runinfo)
 cli.add_command(simulate)
@@ -350,7 +364,7 @@ cli.add_command(commit)
 cli.add_command(update)
 cli.add_command(blueprint)
 # cli.add_command(new)
-cli.add_command(destroy)
+cli.add_command(update)
 cli.add_command(init)
 cli.add_command(migrate)
 cli.add_command(install)
@@ -361,6 +375,7 @@ cli.add_command(showparents)
 cli.add_command(showactions)
 cli.add_command(list)
 cli.add_command(state)
+cli.add_command(start)
 
 if __name__ == '__main__':
     cli()

@@ -54,7 +54,7 @@ class ServiceModel(ModelBase):
         """
         actions = {}
         for action in self.dbobj.actions:
-            actions[action.name] = action.state
+            actions[action.name] = action.state.__str__()
         return actions
 
     @property

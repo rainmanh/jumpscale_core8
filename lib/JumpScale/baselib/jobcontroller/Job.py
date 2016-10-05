@@ -177,8 +177,7 @@ class Job():
 
         # TODO improve debug detection
         debugInCode = self.sourceToExecute.find('ipdb') != -1 or self.sourceToExecute.find('IPython') != -1
-        if debugInCode:
-            self.model.dbobj.debug = debugInCode
+        self.model.dbobj.debug = debugInCode
 
         # can be execute in paralle so we don't wait for end of execution here.
         if self.model.dbobj.debug:

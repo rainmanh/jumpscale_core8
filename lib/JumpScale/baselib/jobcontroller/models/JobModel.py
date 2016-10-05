@@ -85,7 +85,7 @@ class JobModel(ModelBase):
 
     @property
     def state(self):
-        return self.dbobj.state
+        return self.dbobj.state.__str__()
 
     @state.setter
     def state(self, val):

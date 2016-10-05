@@ -41,11 +41,11 @@ class RepoModel(ModelBase):
             res.append(self._modelfactory.get(key))
         return res
 
-    def objectGet(self, path):
+    def objectGet(self):
         """
         returns an Actor object created from this model
         """
-        repo = j.atyourservice._repoLoad(path)
+        repo = j.atyourservice._repoLoad(self.dbobj.path)
         return repo
 
     def _pre_save(self):

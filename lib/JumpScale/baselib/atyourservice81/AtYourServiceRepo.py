@@ -249,9 +249,9 @@ class AtYourServiceRepo():
         for action in actions:
             for service in self.services:
 
-                if role != "" and service.role != role:
+                if role != "" and service.model.role != role:
                     continue
-                if instance != "" and service.instance != instance:
+                if instance != "" and service.name != instance:
                     continue
                 try:
                     action_obj = service.model.actions[action]

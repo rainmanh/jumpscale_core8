@@ -1550,10 +1550,6 @@ class InstallTools():
         if len(res) > 1:
             print("more than 1 ssh-agent, will kill all")
             killfirst = True
-        if len(res) == 1 and res[0].find("sshagent_socket") == -1:
-            # means not right agent was loaded
-            killfirst = True
-            print("ssh-agent is not using sshagent_socket")
         if len(res) == 0 and self.exists(socketpath):
             self.delete(socketpath)
 
@@ -1564,16 +1560,6 @@ class InstallTools():
             # remove previous socketpath
             self.delete(socketpath)
             self.delete(self.joinPaths(self.TMP, "ssh-agent-pid"))
-
-        # if path is None:
-        #     path2 = self.joinPaths(os.environ["HOME"], ".ssh", keyname)
-        #     if not self.exists(path2):
-        #         if createkeys:
-        #             self.executeInteractive("ssh-keygen -t rsa -b 4096 -f %s" % path2)
-        #             return self._loadSSHAgent(path=path2, createkeys=False)
-        # else:
-        #     if not self.exists(path):
-        #         raise RuntimeError("Cannot find ssh key on %s" % path)
 
         if not self.exists(socketpath):
             self.createDir(self.getParent(socketpath))
@@ -1602,23 +1588,19 @@ class InstallTools():
                 self.writeFile(self.joinPaths(self.TMP, "ssh-agent-pid"), str(pid))
                 self._addSSHAgentToBashProfile()
 
-                # self.loadSSHKeys(path=path)
-
         # ssh agent should be loaded because ssh-agent socket has been found
-        # pid=int(self.readFile(self.joinPaths(self.TMP,"ssh-agent-pid")))
         if os.environ.get("SSH_AUTH_SOCK") != socketpath:
             self._initSSH_ENV(True)
         rc, result, err = self.execute("ssh-add -l", die=False, showout=False, outputStderr=False)
-        if rc == 2:  # >0 and err.find("not open a connection")!=-1:
-            # no ssh-agent found\
+        if rc == 2:
+            # no ssh-agent found
             print(result)
             raise RuntimeError("Could not connect to ssh-agent, this is bug, ssh-agent should be loaded by now")
         elif rc == 1:
             # no keys but agent loaded
             result = ""
         elif rc > 0:
-            raise RuntimeError(
-                "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
+            raise RuntimeError("Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
 
     def checkSSHAgentAvailable(self):
         if not self.exists(self._getSSHSocketpath()):

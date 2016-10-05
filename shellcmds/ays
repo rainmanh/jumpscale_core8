@@ -70,7 +70,7 @@ def init(role="", instance="", data=""):
     repo.init(role=role, instance=instance, data=data)
 
 @click.command()
-@click.option('--name', '-n', default=None, help='name of the actor to migrate')
+@click.option('--name', '-n', default=None, help='name of the actor to update')
 def update(name):
     """
     Update actor to a new version.
@@ -156,8 +156,8 @@ def do(action, role, instance, force, producerroles, ask):
 @click.option('--instance', default="", help='optional name of instance')
 @click.option('--force', default=False, is_flag=True, help='if True then will ignore state of service action.')
 @click.option('--producerroles', default="*", help='roles of producers which will be taken into consideration, if * all')
-@click.option('--ask', default=False, is_flag=True, help='ask before confirmation before executing')
-def install(role="", instance="", force=False, producerroles="*", ask=False):
+@click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
+def install(role, instance, force, producerroles, ask):
     """
     alias for 'ays do install'
     make it reality
@@ -306,7 +306,7 @@ def commit(message, branch="master", push=False):
 
 @click.command()
 @click.option('--branch', '-b', help="Name of branch, can be used in pull request to do change mgmt.", default='master')
-def update(branch="master"):
+def update_md(branch="master"):
     """
     update the metdata for the templates as well as the current ays repo
     """
@@ -361,12 +361,12 @@ cli.add_command(simulate)
 cli.add_command(test)
 cli.add_command(setstate)
 cli.add_command(commit)
-cli.add_command(update)
+cli.add_command(update_md)
 cli.add_command(blueprint)
 # cli.add_command(new)
-cli.add_command(update)
+cli.add_command(destroy)
 cli.add_command(init)
-cli.add_command(migrate)
+cli.add_command(update)
 cli.add_command(install)
 cli.add_command(uninstall)
 cli.add_command(do)

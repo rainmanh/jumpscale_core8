@@ -1,5 +1,6 @@
 from JumpScale import j
 import time
+import datetime
 import os
 
 CACHETIME = 60
@@ -398,6 +399,9 @@ class Machine:
 
     def delete(self):
         self.client.api.cloudapi.machines.delete(machineId=self.id)
+
+    def create_snapshot(self):
+        self.client.api.cloudapi.machines.snapshot(machineId=self.id, name=str(datetime.datetime.now()))
 
     @property
     def portforwardings(self):

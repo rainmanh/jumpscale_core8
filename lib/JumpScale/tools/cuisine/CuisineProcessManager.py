@@ -16,12 +16,12 @@ class ProcessManagerBase(base):
     def exists(self, name):
         return name in self.list()
 
-    def restart(self):
-        self.stop()
-        self.start()
+    def restart(self, name):
+        self.stop(name)
+        self.start(name)
 
-    def reload(self):
-        return self.restart()
+    def reload(self, name):
+        return self.restart(name)
 
     def get(self, pm=None):
         from .ProcessManagerFactory import ProcessManagerFactory

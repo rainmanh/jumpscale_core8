@@ -134,8 +134,23 @@ def showactions():
             print("- %-20s" % action)
 
 
-def _do(action, role, instance, force, producerroles, ask, debug, profile):
-    run = repo.runGet(role=role, instance=instance, action=action, force=force, producerRoles=producerroles, debug=debug, profile=profile)
+def _do(action, role, instance, force, producerroles, args, ask, debug, profile):
+    data = {}
+    if args is not None:
+        if j.sal.fs.exists(args):
+            # args is the path to a file
+            ext = j.sal.fs.getFileExtension(args)
+            if ext in ['yaml', 'yml']:
+                data = j.data.serializer.yaml.load(args)
+            elif ext in ['toml']:
+                data = j.data.serializer.toml.load(args)
+            else:
+                data = j.data.serializer.json.load(args)
+        else:
+            obj = j.data.tags.getObject(tagstring=args)
+            data = obj.getDict()
+
+    run = repo.runGet(role=role, instance=instance, action=action, force=force, producerRoles=producerroles, debug=debug, profile=profile, data=data)
     if len(run.steps) <= 0:
         print("Nothing to do.")
         return
@@ -153,15 +168,17 @@ def _do(action, role, instance, force, producerroles, ask, debug, profile):
 @click.option('--role', '-r', default="", help='optional role for ays instances execute an action on')
 @click.option('--instance', '-i', default="", help='optional name of instance')
 @click.option('--force', default=False, is_flag=True, help='force execution even if no change')
-@click.option('--producerroles', default="*", help='roles of producers which will be taken into consideration, if * all')
+@click.option('--producerroles', '-p', default="*", help='roles of producers which will be taken into consideration, if * all')
+@click.option('--args', default=None, help='argument to pass to the run. Can be a list of tags e.g: "key:value key:value" \
+or a path to a file containing the argument. Format of the file can be json, yaml, toml. format is detected using file extension. default format is json')
 @click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
 @click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
 @click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
-def do(action, role, instance, force, producerroles, ask, debug, profile):
+def do(action, role, instance, force, producerroles, args, ask, debug, profile):
     """
     call an action (which is a method in the action file e.g. start/stop/export/...)
     """
-    _do(action=action, role=role, instance=instance, force=force, producerroles=producerroles, ask=ask, debug=debug, profile=profile)
+    _do(action=action, role=role, instance=instance, force=force, producerroles=producerroles, ask=ask, debug=debug, profile=profile, args=args)
 
 
 @click.command()
@@ -169,16 +186,18 @@ def do(action, role, instance, force, producerroles, ask, debug, profile):
 @click.option('--instance', default="", help='optional name of instance')
 @click.option('--force', default=False, is_flag=True, help='if True then will ignore state of service action.')
 @click.option('--producerroles', default="*", help='roles of producers which will be taken into consideration, if * all')
+@click.option('--args', default=None, help='argument to pass to the run. Can be a list of tags e.g: "key:value key:value" \
+or a path to a file containing the argument. Format of the file can be json, yaml, toml. format is detected using file extension. default format is json')
 @click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
 @click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
 @click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
-def install(role, instance, force, producerroles, ask, debug, profile):
+def install(role, instance, force, producerroles, ask, args, debug, profile):
     """
     alias for 'ays do install'
     make it reality
     if you want more finegrained controle please use the do cmd
     """
-    _do(action='install', role=role, instance=instance, force=force, producerroles=producerroles, ask=ask, debug=debug, profile=profile)
+    _do(action='install', role=role, instance=instance, force=force, producerroles=producerroles, ask=ask, debug=debug, profile=profile, args=args)
 
 
 @click.command()

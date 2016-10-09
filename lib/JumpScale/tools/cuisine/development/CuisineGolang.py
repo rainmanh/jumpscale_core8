@@ -25,23 +25,18 @@ class CuisineGolang(app):
             return
         if self._cuisine.core.isMac or self._cuisine.core.isArch:
             self._cuisine.core.run(cmd="rm -rf /usr/local/go", die=False)
-            # if self._cuisine.core.isMac:
-            #     self._cuisine.core.run("brew uninstall --force go")
             self._cuisine.package.install("go")
         elif "ubuntu" in self._cuisine.platformtype.platformtypes:
-            # self._cuisine.core.run("apt-get install golang -y --force-yes")
-            downl = "https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz"
+            downl = "https://storage.googleapis.com/golang/go1.7.1.linux-amd64.tar.gz"
             self._cuisine.core.file_download(downl, "/usr/local", overwrite=False, retry=3, timeout=0, expand=True)
         else:
             raise j.exceptions.RuntimeError("platform not supported")
 
-        # optdir = self._cuisine.core.dir_paths["optDir"]
         goDir = self._cuisine.core.dir_paths['goDir']
         self._cuisine.bash.environSet("GOPATH", goDir)
 
         if self._cuisine.core.isMac:
             self._cuisine.bash.environSet("GOROOT", '/usr/local/opt/go/libexec/')
-            # self._cuisine.bash.environSet("GOROOT", '/usr/local/Cellar/go/1.6.2/libexec')
             self._cuisine.bash.addPath("/usr/local/opt/go/libexec/bin/")
         else:
             self._cuisine.bash.environSet("GOROOT", '/usr/local/go')
@@ -52,11 +47,6 @@ class CuisineGolang(app):
         self._cuisine.core.dir_ensure("%s/src" % goDir)
         self._cuisine.core.dir_ensure("%s/pkg" % goDir)
         self._cuisine.core.dir_ensure("%s/bin" % goDir)
-
-        self.get("github.com/tools/godep")
-        self.get("github.com/jteeuwen/go-bindata")
-        # self.get("github.com/rcrowley/go-metrics")
-        self.goraml()
 
     def goraml(self):
         C = '''
@@ -69,6 +59,9 @@ class CuisineGolang(app):
         sh build.sh
         '''
         self._cuisine.core.execute_bash(C, profile=True)
+
+    def install_godep(self):
+        self.get("github.com/tools/godep")
 
     @property
     def GOPATH(self):

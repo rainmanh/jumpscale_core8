@@ -15,7 +15,7 @@ class CuisineRust(app):
         https://static.rust-lang.org/dist/rust-1.12.0-x86_64-unknown-linux-gnu.tar.gz
         """
 
-        version = 'rust-1.12.0-x86_64-unknown-linux-gnu'
+        version = 'rust-nightly-x86_64-unknown-linux-gnu'
         url = 'https://static.rust-lang.org/dist/{}.tar.gz'.format(version)
         dest = '/tmp/rust.tar.gz'
         self._cuisine.core.run('curl -o {} {}'.format(dest, url))

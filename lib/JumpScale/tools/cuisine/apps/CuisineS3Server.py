@@ -38,7 +38,7 @@ class CuisineS3Server(app):
 
     def start(self, name=NAME):
         path = j.sal.fs.joinPaths(j.dirs.appDir, 'S3')
-        self._cuisine.core.run('cd {} && npm run start_location'.format(path))
+        self._cuisine.core.run('cd {} && $binDir/npm run start_location'.format(path))
 
     def test(self):
         # put/get file over S3 interface using a python S3 lib

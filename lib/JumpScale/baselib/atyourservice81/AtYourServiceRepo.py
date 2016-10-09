@@ -257,7 +257,7 @@ class AtYourServiceRepo():
                     action_obj = service.model.actions[action]
                     action_obj.state = state
                     service.save()
-                except j.exceptions.Input:
+                except KeyError:
                     # mean action with this name doesn't exist
                     continue
 

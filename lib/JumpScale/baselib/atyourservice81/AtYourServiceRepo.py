@@ -364,7 +364,7 @@ class AtYourServiceRepo():
         for service in scope:
             producer_candidates = service.getProducersRecursive(producers=set(), callers=set(), action=action, producerRoles=producerRoles)
             if producerRoles != '*':
-                producer_valid = [item for item in producer_candidates if item.role in producerRoles]
+                producer_valid = [item for item in producer_candidates if item.model.role in producerRoles]
             else:
                 producer_valid = producer_candidates
             scope = scope.union(producer_valid)

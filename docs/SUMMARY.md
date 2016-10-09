@@ -83,6 +83,7 @@
 * [Complete Walkthrough](Walkthrough/Walkthrough.md)
   * [Working with Docker using the Docker SAL](Walkthrough/SAL/Docker.md)
   * [Installing Caddy using Cuisine](Walkthrough/Cuisine/install_caddy_on_docker.md)
+  * [Installing Docker and Caddy with AYS](Walkthrough/AYS/Install_docker_and_caddy.md)
 
 * [SSH](SSH/Home.md)
     - [SSH Basics](SSH/SSHBasics.md)

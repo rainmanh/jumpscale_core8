@@ -400,8 +400,8 @@ class Machine:
     def delete(self):
         self.client.api.cloudapi.machines.delete(machineId=self.id)
 
-    def create_snapshot(self):
-        self.client.api.cloudapi.machines.snapshot(machineId=self.id, name=str(datetime.datetime.now()))
+    def create_snapshot(self, name=str(datetime.datetime.now())):
+        self.client.api.cloudapi.machines.snapshot(machineId=self.id, name=name)
 
     @property
     def portforwardings(self):

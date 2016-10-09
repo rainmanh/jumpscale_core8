@@ -1,4 +1,5 @@
 from JumpScale import j
+import textwrap
 from time import sleep
 
 
@@ -34,186 +35,139 @@ class CuisineNGINX(app):
         self._cuisine.core.dir_ensure('/var/log/nginx')
         self._cuisine.core.file_copy('/etc/nginx/*', '$appDir/nginx/etc/', recursive=True)
 
-        basicnginxconf = """
-user www-data;
-worker_processes auto;
-pid /run/nginx.pid;
+        basicnginxconf = """\
+        user www-data;
+        worker_processes auto;
+        pid /run/nginx.pid;
 
-events {
-	worker_connections 768;
-	# multi_accept on;
-}
+        events {
+        	worker_connections 768;
+        	# multi_accept on;
+        }
 
-http {
+        http {
 
-	##
-	# Basic Settings
-	##
+        	##
+        	# Basic Settings
+        	##
 
-	sendfile on;
-	tcp_nopush on;
-	tcp_nodelay on;
-	keepalive_timeout 65;
-	types_hash_max_size 2048;
-	# server_tokens off;
+        	sendfile on;
+        	tcp_nopush on;
+        	tcp_nodelay on;
+        	keepalive_timeout 65;
+        	types_hash_max_size 2048;
+        	# server_tokens off;
 
-	# server_names_hash_bucket_size 64;
-	# server_name_in_redirect off;
+        	# server_names_hash_bucket_size 64;
+        	# server_name_in_redirect off;
 
-	include /etc/nginx/mime.types;
-	default_type application/octet-stream;
+        	include /etc/nginx/mime.types;
+        	default_type application/octet-stream;
 
-	##
-	# SSL Settings
-	##
+        	##
+        	# SSL Settings
+        	##
 
-	ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv3, ref: POODLE
-	ssl_prefer_server_ciphers on;
+        	ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv3, ref: POODLE
+        	ssl_prefer_server_ciphers on;
 
-	##
-	# Logging Settings
-	##
+        	##
+        	# Logging Settings
+        	##
 
-	access_log /var/log/nginx/access.log;
-	error_log /var/log/nginx/error.log;
+        	access_log /var/log/nginx/access.log;
+        	error_log /var/log/nginx/error.log;
 
-	##
-	# Gzip Settings
-	##
+        	##
+        	# Gzip Settings
+        	##
 
-	gzip on;
-	gzip_disable "msie6";
+        	gzip on;
+        	gzip_disable "msie6";
 
-	# gzip_vary on;
-	# gzip_proxied any;
-	# gzip_comp_level 6;
-	# gzip_buffers 16 8k;
-	# gzip_http_version 1.1;
-	# gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+        	# gzip_vary on;
+        	# gzip_proxied any;
+        	# gzip_comp_level 6;
+        	# gzip_buffers 16 8k;
+        	# gzip_http_version 1.1;
+        	# gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
 
-	##
-	# Virtual Host Configs
-	##
+        	##
+        	# Virtual Host Configs
+        	##
 
-	include /etc/nginx/conf.d/*.conf;
-	include /etc/nginx/sites-enabled/*;
-}
+        	include /etc/nginx/conf.d/*.conf;
+        	include /etc/nginx/sites-enabled/*;
+        }
 
 
-#mail {
-#	# See sample authentication script at:
-#	# http://wiki.nginx.org/ImapAuthenticateWithApachePhpScript
-#
-#	# auth_http localhost/auth.php;
-#	# pop3_capabilities "TOP" "USER";
-#	# imap_capabilities "IMAP4rev1" "UIDPLUS";
-#
-#	server {
-#		listen     localhost:110;
-#		protocol   pop3;
-#		proxy      on;
-#	}
-#
-#	server {
-#		listen     localhost:143;
-#		protocol   imap;
-#		proxy      on;
-#	}
-#}
+        #mail {
+        #	# See sample authentication script at:
+        #	# http://wiki.nginx.org/ImapAuthenticateWithApachePhpScript
+        #
+        #	# auth_http localhost/auth.php;
+        #	# pop3_capabilities "TOP" "USER";
+        #	# imap_capabilities "IMAP4rev1" "UIDPLUS";
+        #
+        #	server {
+        #		listen     localhost:110;
+        #		protocol   pop3;
+        #		proxy      on;
+        #	}
+        #
+        #	server {
+        #		listen     localhost:143;
+        #		protocol   imap;
+        #		proxy      on;
+        #	}
+        #}
 
 
         """
-        #The following config supports php
-        defaultenabledsitesconf = """
+        defaultenabledsitesconf = """\
 
-##
-# You should look at the following URL's in order to grasp a solid understanding
-# of Nginx configuration files in order to fully unleash the power of Nginx.
-# http://wiki.nginx.org/Pitfalls
-# http://wiki.nginx.org/QuickStart
-# http://wiki.nginx.org/Configuration
-#
-# Generally, you will want to move this file somewhere, and start with a clean
-# file but keep this around for reference. Or just disable in sites-enabled.
-#
-# Please see /usr/share/doc/nginx-doc/examples/ for more detailed examples.
-##
-
-# Default server configuration
-#
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-
-    # SSL configuration
-    #
-    # listen 443 ssl default_server;
-    # listen [::]:443 ssl default_server;
-    #
-    # Note: You should disable gzip for SSL traffic.
-    # See: https://bugs.debian.org/773332
-    #
-    # Read up on ssl_ciphers to ensure a secure configuration.
-    # See: https://bugs.debian.org/765782
-    #
-    # Self signed certs generated by the ssl-cert package
-    # Don't use them in a production server!
-    #
-    # include snippets/snakeoil.conf;
-
-    root /var/www/html;
-
-    # Add index.php to the list if you are using PHP
-    index index.html index.htm index.nginx-debian.html index.php;
-
-    server_name _;
-
-    location / {
-        # First attempt to serve request as file, then
-        # as directory, then fall back to displaying a 404.
-        try_files $uri $uri/ =404;
-    }
-
-    # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
-
-    location ~ \.php$ {
-        include snippets/fastcgi-php.conf;
-
-    #   # With php7.0-cgi alone:
-        fastcgi_pass 127.0.0.1:9000;
-        # With php7.0-fpm:
-        # fastcgi_pass unix:/run/php/php7.0-fpm.sock;
-    }
-
-    # deny access to .htaccess files, if Apache's document root
-    # concurs with nginx's one
-    #
-    #location ~ /\.ht {
-    #   deny all;
-    #}
-}
+        server {
+            listen 80 default_server;
+            listen [::]:80 default_server;
 
 
-# Virtual Host configuration for example.com
-#
-# You can move that to a different file under sites-available/ and symlink that
-# to sites-enabled/ to enable it.
-#
-#server {
-#   listen 80;
-#   listen [::]:80;
-#
-#   server_name example.com;
-#
-#   root /var/www/example.com;
-#   index index.html;
-#
-#   location / {
-#       try_files $uri $uri/ =404;
-#   }
-#}
+
+            root /var/www/html;
+
+            # Add index.php to the list if you are using PHP
+            index index.html index.htm index.nginx-debian.html index.php;
+
+            server_name _;
+
+            location / {
+                # First attempt to serve request as file, then
+                # as directory, then fall back to displaying a 404.
+                try_files $uri $uri/ =404;
+            }
+
+            # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+
+            location ~ \.php$ {
+                include snippets/fastcgi-php.conf;
+
+            #   # With php7.0-cgi alone:
+                fastcgi_pass 127.0.0.1:9000;
+                # With php7.0-fpm:
+                # fastcgi_pass unix:/run/php/php7.0-fpm.sock;
+            }
+
+            # deny access to .htaccess files, if Apache's document root
+            # concurs with nginx's one
+            #
+            #location ~ /\.ht {
+            #   deny all;
+            #}
+        }
 
         """
+        basicnginxconf = textwrap.dedent(basicnginxconf)
+        defaultenabledsitesconf = textwrap.dedent(defaultenabledsitesconf)
+
         self._cuisine.core.file_write("$appDir/nginx/etc/nginx.conf", content=basicnginxconf)
         self._cuisine.core.file_write("$appDir/nginx/etc/sites-enabled/default", content=defaultenabledsitesconf)
         if start:

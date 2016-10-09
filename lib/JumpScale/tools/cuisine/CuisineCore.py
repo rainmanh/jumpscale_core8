@@ -994,8 +994,6 @@ class CuisineCore(base):
 
     def run(self, cmd, die=True, debug=None, checkok=False, showout=True, profile=False, replaceArgs=True,
             shell=False, env=None):
-
-        showout=True
         """
         @param profile, execute the bash profile first
         """

@@ -20,7 +20,7 @@ class CuisineTIDB(app):
         url = 'https://raw.githubusercontent.com/pingcap/docs/master/scripts/build.sh'
         self._cuisine.core.dir_ensure('/tmp/tidb')
 
-        self._cuisine.core.run('cd /tmp/tidb/ && curl {} | bash'.format(url))
+        self._cuisine.core.run('cd /tmp/tidb/ && curl {} | bash'.format(url), profile=True)
 
     def install(self, start=False):
         """
@@ -56,19 +56,19 @@ class CuisineTIDB(app):
             'dataDir': j.sal.fs.joinPaths(j.dirs.varDir, 'tidb'),
         }
 
-        self._cluster.processmanager.ensure(
+        self._cuisine.processmanager.ensure(
             'tipd',
             'pd-server --cluster-id {clusterId} \
             --data-dir={dataDir}'.format(**config),
         )
 
-        self._cluster.processmanager.ensure(
+        self._cuisine.processmanager.ensure(
             'tikv',
             'tikv-server -I {clusterId} -S raftkv \
             --pd 127.0.0.1:2379 -s tikv1'.format(**config)
         )
 
-        self._cluster.processmanager.ensure(
+        self._cuisine.processmanager.ensure(
             'tidb',
             'tidb-server --store=tikv \
             --path="127.0.0.1:2379?cluster={clusterId}"'.format(**config)

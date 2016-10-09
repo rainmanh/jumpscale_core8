@@ -17,7 +17,7 @@ class CuisineS3Server(app):
         put backing store on /storage/...
         """
         path = self._cuisine.development.git.pullRepo('https://github.com/scality/S3.git')
-        self._cuisine.core.run('cd {} && npm install'.format(path))
+        self._cuisine.core.run('cd {} && $binDir/npm install'.format(path))
         self._cuisine.core.dir_remove('$appDir/S3', recursive=True)
         self._cuisine.core.run('mv {} $appDir/'.format(path))
 

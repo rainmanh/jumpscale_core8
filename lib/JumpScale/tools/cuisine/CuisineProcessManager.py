@@ -16,12 +16,12 @@ class ProcessManagerBase(base):
     def exists(self, name):
         return name in self.list()
 
-    def restart(self):
-        self.stop()
-        self.start()
+    def restart(self, name):
+        self.stop(name)
+        self.start(name)
 
-    def reload(self):
-        return self.restart()
+    def reload(self, name):
+        return self.restart(name)
 
     def get(self, pm=None):
         from .ProcessManagerFactory import ProcessManagerFactory
@@ -236,7 +236,10 @@ class CuisineTmuxec(ProcessManagerBase):
             return []
         res = result.splitlines()
         res = [item.split("(")[0] for item in res]
-        # res = [item.split(":")[1] for item in res]
+        for i, item in enumerate(res):
+            ss = item.split(':')
+            if len(ss) >= 2:
+                res[i] = item.split(":")[1]
         res = [item.strip().rstrip("*-").strip() for item in res]
         return res
 

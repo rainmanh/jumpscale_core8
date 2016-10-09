@@ -7,7 +7,7 @@ class ExecutorSSH(ExecutorBase):
 
     def __init__(self, addr='', port=22, dest_prefixes={}, login="root",
                  passwd=None, debug=False, allow_agent=True,
-                 look_for_keys=True, checkok=True, timeout=5):
+                 look_for_keys=True, checkok=True, timeout=5, key_filename=None):
         # DO NOT USE THIS TO PUSH A KEY!!!
         ExecutorBase.__init__(self, dest_prefixes=dest_prefixes, debug=debug, checkok=checkok)
         self.logger = j.logger.get("j.tools.executor.ssh")
@@ -25,6 +25,7 @@ class ExecutorSSH(ExecutorBase):
         self.type = "ssh"
         self.timeout = timeout
         self.proxycommand = None
+        self.key_filename = key_filename
 
     @property
     def login(self):
@@ -59,7 +60,7 @@ class ExecutorSSH(ExecutorBase):
     @property
     def sshclient(self):
         if self._sshclient is None:
-            return self._getSSHClient()
+            return self._getSSHClient(key_filename=self.key_filename)
         return self._sshclient
 
     def _getSSHClient(self, key_filename=None, passphrase=None):

@@ -257,7 +257,7 @@ class AtYourServiceRepo():
                     action_obj = service.model.actions[action]
                     action_obj.state = state
                     service.save()
-                except j.exceptions.Input:
+                except KeyError:
                     # mean action with this name doesn't exist
                     continue
 
@@ -364,7 +364,7 @@ class AtYourServiceRepo():
         for service in scope:
             producer_candidates = service.getProducersRecursive(producers=set(), callers=set(), action=action, producerRoles=producerRoles)
             if producerRoles != '*':
-                producer_valid = [item for item in producer_candidates if item.role in producerRoles]
+                producer_valid = [item for item in producer_candidates if item.model.role in producerRoles]
             else:
                 producer_valid = producer_candidates
             scope = scope.union(producer_valid)
@@ -382,7 +382,7 @@ class AtYourServiceRepo():
                 producerroles = [producerroles.strip()]
         return producerroles
 
-    def runGet(self, role="", instance="", action="install", force=False, producerRoles="*", data=None, key=0, simulate=False, debug=False, profile=False):
+    def runGet(self, role="", instance="", action="install", force=False, producerRoles="*", data={}, key=0, simulate=False, debug=False, profile=False):
         """
         get a new run
         if key !=0 then the run will be loaded from DB
@@ -420,7 +420,7 @@ class AtYourServiceRepo():
                         if newStep:
                             step = run.newStep()
                             newStep = False
-                        job = service.getJob(action0)
+                        job = service.getJob(action0, args=data)
                         job.model.dbobj.profile = profile
                         if profile:
                             debug = True

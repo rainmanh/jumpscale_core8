@@ -1324,10 +1324,8 @@ class InstallTools():
         if "SSH_AUTH_SOCK" in os.environ:
             return(os.environ["SSH_AUTH_SOCK"])
 
-        # if "root"==self.whoami():
-        #     socketpath="/root/sshagent_socket"
-        # else:
         socketpath = "%s/sshagent_socket" % os.environ["HOME"]
+        os.environ['SSH_AUTH_SOCK'] = socketpath
         return socketpath
 
     def askItemsFromList(self, items, msg=""):

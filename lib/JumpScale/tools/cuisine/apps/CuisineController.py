@@ -20,7 +20,6 @@ class CuisineController(app):
         # deps
         self._cuisine.apps.redis.install()
         self._cuisine.apps.redis.start()
-        self._cuisine.apps.mongodb.build(start=False)
         self._cuisine.apps.syncthing.build(start=False)
 
         self._cuisine.processmanager.remove("agentcontroller8")

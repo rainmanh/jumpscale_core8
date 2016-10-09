@@ -24,6 +24,8 @@ class CuisineAydoStor(app):
             print('Aydostor is already installed, pass reinstall=True parameter to reinstall')
             return
 
+        self._cuisine.package.install('build-essential')
+
         self._cuisine.core.dir_remove("%s/src" % self._cuisine.bash.environGet('GOPATH'))
         self._cuisine.development.golang.install()
         self._cuisine.development.golang.get("github.com/g8os/stor")
@@ -35,8 +37,9 @@ class CuisineAydoStor(app):
         """
         download, install, move files to appropriate places, and create relavent configs
         """
+        self._cuisine.core.dir_ensure('$binDir')
         self._cuisine.core.file_copy(self._cuisine.core.joinpaths(
-            self._cuisine.core.dir_paths['goDir'], 'bin', 'stor'), '$base/bin', overwrite=True)
+            self._cuisine.core.dir_paths['goDir'], 'bin', 'stor'), '$binDir', overwrite=True)
         self._cuisine.bash.addPath("$base/bin")
 
         self._cuisine.processmanager.stop("stor")  # will also kill

@@ -8,16 +8,11 @@ class CuisineRedis(app):
     NAME = 'redis-server'
 
     def build(self, reset=False):
-        raise NotImplementedError()
-
-    def isInstalled(self):
-        return self._cuisine.core.command_check('redis-server') and self._cuisine.core.command_check('redis-cli')
-
-    def install(self, reset=False):
         """Building and installing redis"""
         if reset is False and self.isInstalled():
             print('Redis is already installed, pass reset=True to reinstall.')
             return
+
         if self._cuisine.core.isUbuntu:
             self._cuisine.package.update()
             self._cuisine.package.install("build-essential")
@@ -57,6 +52,12 @@ class CuisineRedis(app):
             raise j.exceptions.NotImplemented(
                 message="only ubuntu supported for building redis", level=1, source="", tags="", msgpub="")
 
+    def isInstalled(self):
+        return self._cuisine.core.command_check('redis-server') and self._cuisine.core.command_check('redis-cli')
+
+    def install(self, reset=False):
+        return True
+
     def start(self, name="main", ip="localhost", port=6379, maxram=200, appendonly=True,
               snapshot=False, slave=(), ismaster=False, passwd=None):
         redis_cli = j.sal.redis.getInstance(self._cuisine)
@@ -71,7 +72,7 @@ class CuisineRedis(app):
                                     passwd=passwd,
                                     unixsocket=False)
         # return if redis is already running
-        if redis_cli.isRunning(ip_address=ip, port=port, path='$binDir'):
+        if redis_cli.isRunning(ip_address=ip, port=port, path='$binDir', password=passwd):
             print('Redis is already running!')
             return
 

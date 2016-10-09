@@ -236,7 +236,10 @@ class CuisineTmuxec(ProcessManagerBase):
             return []
         res = result.splitlines()
         res = [item.split("(")[0] for item in res]
-        # res = [item.split(":")[1] for item in res]
+        for i, item in enumerate(res):
+            ss = item.split(':')
+            if len(ss) >= 2:
+                res[i] = item.split(":")[1]
         res = [item.strip().rstrip("*-").strip() for item in res]
         return res
 

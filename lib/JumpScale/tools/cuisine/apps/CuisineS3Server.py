@@ -17,7 +17,7 @@ class CuisineS3Server(app):
         put backing store on /storage/...
         """
         path = self._cuisine.development.git.pullRepo('https://github.com/scality/S3.git')
-        self._cuisine.core.run('cd {} && $binDir/npm install'.format(path))
+        self._cuisine.core.run('cd {} && npm install'.format(path), profile=True)
         self._cuisine.core.dir_remove('$appDir/S3', recursive=True)
         self._cuisine.core.run('mv {} $appDir/'.format(path))
 
@@ -38,7 +38,7 @@ class CuisineS3Server(app):
 
     def start(self, name=NAME):
         path = j.sal.fs.joinPaths(j.dirs.appDir, 'S3')
-        self._cuisine.core.run('cd {} && $binDir/npm run start_location'.format(path))
+        self._cuisine.core.run('cd {} && npm run start_location'.format(path), profile=True)
 
     def test(self):
         # put/get file over S3 interface using a python S3 lib

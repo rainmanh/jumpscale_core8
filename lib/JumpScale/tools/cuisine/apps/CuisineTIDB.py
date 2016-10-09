@@ -22,14 +22,17 @@ class CuisineTIDB(app):
 
         self._cuisine.core.run('cd /tmp/tidb/ && curl {} | bash'.format(url))
 
-    def install(self, start=True):
+    def install(self, start=False):
         """
         download, install, move files to appropriate places, and create relavent configs
         """
+        script = '''
+        mv /tmp/tidb/bin/* $binDir/
+        '''
+        self._cuisine.core.execute_bash(script)
 
-        # TODO: *1
         if start:
-            self.start("???")
+            self.start()
 
     def build(self, start=True, install=True):
         """
@@ -39,9 +42,37 @@ class CuisineTIDB(app):
         if install:
             self.install(start)
 
-    def start(self, name="???"):
-        # TODO:*1
-        raise NotImplementedError
+    def start(self, clusterId=1):
+        """
+        Read docs here.
+        https://github.com/pingcap/docs/blob/master/op-guide/clustering.md
+        """
+
+        # Start a standalone cluster
+
+        # TODO: make it possible to start multinode cluster.
+        config = {
+            'clusterId': clusterId,
+            'dataDir': j.sal.fs.joinPaths(j.dirs.varDir, 'tidb'),
+        }
+
+        self._cluster.processmanager.ensure(
+            'tipd',
+            'pd-server --cluster-id {clusterId} \
+            --data-dir={dataDir}'.format(**config),
+        )
+
+        self._cluster.processmanager.ensure(
+            'tikv',
+            'tikv-server -I {clusterId} -S raftkv \
+            --pd 127.0.0.1:2379 -s tikv1'.format(**config)
+        )
+
+        self._cluster.processmanager.ensure(
+            'tidb',
+            'tidb-server --store=tikv \
+            --path="127.0.0.1:2379?cluster={clusterId}"'.format(**config)
+        )
 
     def test(self):
         raise NotImplementedError

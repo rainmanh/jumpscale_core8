@@ -167,6 +167,8 @@ class CuisineRunit(ProcessManagerBase):
         sv_text = """#!/bin/sh
         set -e
         echo $descrs
+        source /root/.profile
+
         $env
         cd $path
         exec $cmd

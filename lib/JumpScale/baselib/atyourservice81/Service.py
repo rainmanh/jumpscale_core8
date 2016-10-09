@@ -189,17 +189,6 @@ class Service:
             event.log = event_info.log
             event.lastRun = 0
 
-    def migrate(self, actor):
-        """
-        Migrate updates the connection of this service to the actor passed in argument.
-        this method relink the relation between the service and the actor and the services and the actions
-        """
-        self.model.dbobj.actorKey = actor.model.key
-        for actor_action in actor.model.dbobj.actions:
-            for service_action in self.model.dbobj.actions:
-                if actor_action.name == service_action.name:
-                    service_action.actionKey = actor_action.actionKey
-        self.model.save()
 
     def loadFromFS(self):
         """

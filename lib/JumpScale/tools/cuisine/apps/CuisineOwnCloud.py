@@ -17,8 +17,8 @@ class CuisineOwnCloud(app):
 
         C = """
         set -xe
-        #cd $tmpDir && git clone https://github.com/gig-projects/proj_gig_box.git
-        #cd $tmpDir && wget https://download.owncloud.org/community/owncloud-9.1.1.tar.bz2 && tar jxf owncloud-9.1.1.tar.bz2
+        cd $tmpDir && git clone https://github.com/gig-projects/proj_gig_box.git
+        cd $tmpDir && wget https://download.owncloud.org/community/owncloud-9.1.1.tar.bz2 && tar jxf owncloud-9.1.1.tar.bz2
         cd $tmpDir && tar jxf owncloud-9.1.1.tar.bz2
 
         """

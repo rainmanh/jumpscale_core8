@@ -404,7 +404,7 @@ class Machine:
         self.client.api.cloudapi.machines.snapshot(machineId=self.id, name=name)
 
     def list_snapshots(self):
-        self.client.api.cloudapi.machines.listSnapshots(machineId=self.id)
+        return self.client.api.cloudapi.machines.listSnapshots(machineId=self.id)
 
     def delete_snapshot(self, epoch):
         self.client.api.cloudapi.machines.deleteSnapshot(machineId=self.id, epoch=epoch)

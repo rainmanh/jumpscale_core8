@@ -27,9 +27,12 @@ class RedisInstaller:
         raise j.exceptions.RuntimeError(
             "Could not find redis port in config file %s" % cpath)
 
-    def isRunning(self, name='', ip_address='localhost', port=6379, path='$binDir'):
+    def isRunning(self, name='', ip_address='localhost', port=6379, path='$binDir', password=None):
         if not name:
-            ping_cmd = '%s/redis-cli -h %s -p %s ping' % (path, ip_address, port)
+            ping_cmd = '%s/redis-cli -h %s -p %s ' % (path, ip_address, port)
+            if password is not None and password.strip() != '':
+                ping_cmd += ' -a %s ' % (password)
+            ping_cmd += ' ping'
             rc, out, err = self._cuisine.core.run(ping_cmd, die=False)
             return not rc and out == 'PONG'
 

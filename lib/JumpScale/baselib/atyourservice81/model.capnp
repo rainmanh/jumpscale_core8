@@ -73,16 +73,32 @@ struct Actor {
     path @1 :Text;
   }
 
+  flists @9 :List(Flist);
+  struct Flist {
+      name @0 :Text;
+      namespace @1 :Text;
+      mountpoint @2 :Text;
+      mode @3 :Mode;
+      storeUrl @4:Text;
+      content @5 :Text;
+
+      enum Mode {
+        ro @0;
+        rw @1;
+        ol @2;
+      }
+  }
+
   #python script which interactively asks for the information when not filled in
-  serviceDataUI @9 :Text;
+  serviceDataUI @10 :Text;
 
-  serviceDataSchema @10 :Text;
+  serviceDataSchema @11 :Text;
 
-  data @11 :Data; #is msgpack dict
+  data @12 :Data; #is msgpack dict
 
-  dataUI @12 :Text;
+  dataUI @13 :Text;
 
-  gitRepo @13 :GitRepo;
+  gitRepo @14 :GitRepo;
   struct GitRepo {
     #git url
     url @0 :Text;

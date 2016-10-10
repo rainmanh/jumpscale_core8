@@ -12,7 +12,7 @@ class ActorTemplate():
     def __init__(self, gitrepo, path, aysrepo=None):
 
         # path is path in gitrepo or absolute path
-
+        self.logger = j.atyourservice.logger
         self._schemaHrd = None
 
         if j.sal.fs.exists(path=path):
@@ -129,6 +129,20 @@ class ActorTemplate():
         Actor = self.aysrepo.getActorClass()
         actor = Actor(aysrepo)
         actor.initFromTemplate(template=self)
+
+    @property
+    def flists(self):
+        flists = self._hrd.getDictFromPrefix('flists')
+        for name in list(flists.keys()):
+            path = j.sal.fs.joinPaths(self.path, 'flists', name)
+            if j.sal.fs.exists(path):
+                flists[name]['content'] = j.sal.fs.fileGetContents(path)
+            elif j.sal.fs.exists(path + '.flist'):
+                flists[name]['content'] = j.sal.fs.fileGetContents(path + '.flist')
+            else:
+                raise j.exceptions.NotFound("flist definition in %s references a file that doesn't exists: %s" % (self, path))
+
+        return flists
 
     def __repr__(self):
         return "actortemplate: %-15s:%s" % (self.domain, self.name)

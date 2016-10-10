@@ -80,6 +80,7 @@ class Actor():
         self._initProducers(template)
         self._initRecurringActions(template)
         self._initEventActions(template)
+        self._initFlists(template)
 
         self._processActionsFile(template=template)
 
@@ -141,6 +142,19 @@ class Actor():
             eventObj.event = event
             log = template.eventDict[item]['log']
             eventObj.log = j.data.types.bool.fromString(log)
+
+    def _initFlists(self, template):
+        self.model.dbobj.init('flists', len(template.flists))
+
+        for i, name in enumerate(template.flists):
+            info = template.flists[name]
+            flistObj = self.model.dbobj.flists[i]
+            flistObj.name = name
+            flistObj.mountpoint = info['mountpoint']
+            flistObj.namespace = info['namespace']
+            flistObj.mode = info['mode'].lower()
+            flistObj.storeUrl = info['store_url']
+            flistObj.content = info['content']
 
     def _processActionsFile(self, template):
         self._out = ""

@@ -6,7 +6,6 @@
   - [Why Using JumpScale](Introduction/WhyJumpScale.md)
   - [Solutions Built with JumpScale](Introduction/JumpScaleSolutions.md)
 
-
 * [Getting Started](GettingStarted/GettingStarted.md)
 
   - [Installation](GettingStarted/Installation/Installation.md)
@@ -25,24 +24,31 @@
 
 * [How To](Howto/Howto.md)
 
-    - [Use Git](Howto/how_to_use_git.md)
-      - [Automated](Howto/how_to_use_git_automated.md)
-      - [Manually](Howto/how_to_use_git_manually.md)
-    - [Create a Tool for j](Howto/how_to_create_a_tool_for_j.md)
-    - [Use the OpenvCloud APIs](Howto/how_to_use_OVC_API.md)
-    - [Use the Shell & Debug](Howto/how_to_use_the_shell_and_debug.md)
-    - [Add a New SAL](Howto/how_to_add_a_new_SAL.md)
+  - [Use Git](Howto/how_to_use_git.md)
+    - [Automated](Howto/how_to_use_git_automated.md)
+    - [Manually](Howto/how_to_use_git_manually.md)
+  - [Create a Tool for j](Howto/how_to_create_a_tool_for_j.md)
+  - [Use the OpenvCloud APIs](Howto/how_to_use_OVC_API.md)
+  - [Use the Shell & Debug](Howto/how_to_use_the_shell_and_debug.md)
+  - [Add a New SAL](Howto/how_to_add_a_new_SAL.md)
 
 * [Internals](Internals/Internals.md)
-    - [Redis Usage](Internals/Redis.md)
-    - [Logging](Internals/Logging.md)
-    - [JumpScale Config Files](Internals/jumpscaleconfigfiles.md)
+  - [Redis](Internals/Redis.md)
+  - [Logging](Internals/Logging.md)
+  - [JumpScale Config Files](Internals/jumpscaleconfigfiles.md)
 
 * [SALs](SAL/SAL.md)
-
+  - [DiskLayout](Disklayout.md)
+  - [FS](FS.md)
+  - [KVM](KVM.md)
+  - [Open vSwitch](OpenVSwitch.md)
+  - [Samba](Samba.md)
+  - [SSHD](SSHD.md)
+  - [Tmux](Tmux.md)
+  - [Ubuntu](Ubuntu.md)
+  - [UFW](UFW.md)
 
 * [Cuisine](Cuisine/Cuisine.md)
-
 
 * [AYS](AYS/AYS-Introduction.md)
   - [Definitions](AYS/Definitions/0-Definitions.md)
@@ -64,7 +70,7 @@
   - [EasyClient](AgentController8/EasyClient.md)
   - [Install](AgentController8/Install.md)
   - [Internals](AgentController8/Internals.md)
-  - [Jumpscripts](AgentController8/Jumpscripts.md)
+  - [JumpScripts](AgentController8/Jumpscripts.md)
   - [LogLevels](AgentController8/LogLevels.md)
   - [Manual Installation](AgentController8/ManualInstall.md)
   - [MS1 Driver](AgentController8/MS1driver.md)
@@ -80,9 +86,10 @@
     - [Cloud Automation](Cookbook/CloudAutomation.md)
     - [Databases](Cookbook/DB.md)
 
-* [Complete Walkthrough](Walkthrough/Walkthrough.md)
+* [Walkthroughs](Walkthrough/Walkthrough.md)
   * [Working with Docker using the Docker SAL](Walkthrough/SAL/Docker.md)
   * [Installing Caddy using Cuisine](Walkthrough/Cuisine/install_caddy_on_docker.md)
+  * [Installing Docker and Caddy with AYS](Walkthrough/AYS/Install_docker_and_caddy.md)
 
 * [SSH](SSH/Home.md)
     - [SSH Basics](SSH/SSHBasics.md)

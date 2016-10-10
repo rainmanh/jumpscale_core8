@@ -4,7 +4,7 @@
 j.sal.samba
 ```
 
-## This library enables the user to do the followig:
+## This library enables the user to do the following:
 
 - Add, remove, list Samba shares
 

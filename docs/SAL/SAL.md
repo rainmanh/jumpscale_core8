@@ -4,26 +4,16 @@ A System Abstraction Layer (SAL) is a thin abstraction layer making it easy for 
 
 As part of JumpScale 8 following SALs are included:
 
-- [AOE](AOE.md)
-- [BindDNS](BindDNS.md)
-- [DHCP_ihc](Dhcp_ihc.md)
-- [DNSMasq](Dnsmasq.md)
 - [DiskLayout](Disklayout.md)
-- [DiskManager](DiskManager.md)
-- [Dnsmasq](Dnsmasq.md)
-- [Docker](Docker.md)
-- [FileSystem](FS.md)
-- [HostsFile](HostsFile.md)
-- [LXC](Lxc.md)
-- [NetConfig](NetConfig.md)
-- [NetTools](NetTools.md)
-- [OpenVSwitch](OpenVSwitch.md)
-- [SSHD](SSHD.md)
+- [FS](FS.md)
+- [KVM](KVM.md)
+- [Open vSwitch](OpenVSwitch.md)
 - [Samba](Samba.md)
-- [SystemProcess](SystemProcess.md)
+- [SSHD](SSHD.md)
 - [Tmux](Tmux.md)
-- [UFW](UFW.md)
 - [Ubuntu](Ubuntu.md)
-- [rsync](rsync.md)
+- [UFW](UFW.md)
 
-You can find [more SALs](../JumpscaleAPI/SUMMARY.md#L185) for Windows, Unix, SSL, SSL Signing, TLS, NGINX and QEMU images.
+There are many more SALs, for Windows, Unix, SSL, SSL Signing, TLS, NGINX and QEMU images.
+
+The full list of all SALs can be found in the [JumpScale API](../JumpscaleAPI/SUMMARY.md) section.

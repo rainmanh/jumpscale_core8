@@ -13,9 +13,12 @@ class CuisineARDB(app):
         raise NotImplementedError()
 
     def buildForestDB(self):
+        # build python extension as well a C parts
+        self._cuisine.run("apt-get install libsnappy-dev")
         raise NotImplementedError
 
     def installForestDB(self):
+        # copy to right locations in sandbox
         raise NotImplementedError
 
     def install(self, reset=False):

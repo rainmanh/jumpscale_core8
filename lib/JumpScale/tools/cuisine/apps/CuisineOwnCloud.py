@@ -17,7 +17,7 @@ class CuisineOwnCloud(app):
 
         C = """
         set -xe
-        cd $tmpDir && [ ! -d $tmpDir/proj_gig_box ] && git clone https://github.com/gig-projects/proj_gig_box.git
+        cd $tmpDir && [ ! -d $tmpDir/ays_owncloud ] && git clone https://github.com/0-complexity/ays_owncloud
         cd $tmpDir && [ ! -f $tmpDir/owncloud-9.1.1.tar.bz2 ] && wget https://download.owncloud.org/community/owncloud-9.1.1.tar.bz2 && tar jxf owncloud-9.1.1.tar.bz2
         cd $tmpDir && tar jxf owncloud-9.1.1.tar.bz2
         [ ! -d {storagepath} ] && mkdir -p {storagepath}
@@ -29,12 +29,13 @@ class CuisineOwnCloud(app):
         # use nginx/php other cuisine packages
 
         C = """
+        set -xe
         mv $tmpDir/owncloud $appDir/owncloud
 
         # copy config.php to new owncloud home httpd/docs
-        /bin/cp -Rf $tmpDir/proj_gig_box/ownclouddeployment/owncloud/config.php $appDir/owncloud/config/
+        /bin/cp -Rf $tmpDir/ays_owncloud/owncloud/config.php $appDir/owncloud/config/
         # copy gig theme
-        /bin/cp -Rf $tmpDir/proj_gig_box/ownclouddeployment/owncloud/gig $appDir/owncloud/themes/
+        /bin/cp -Rf $tmpDir/ays_owncloud/owncloud/gig $appDir/owncloud/themes/
         chown -R www-data:www-data $appDir/owncloud
         chmod 777 -R $appDir/owncloud/config
         """
@@ -184,6 +185,11 @@ class CuisineOwnCloud(app):
         basicnginxconf = self._cuisine.apps.nginx.get_basic_nginx_conf()
         basicnginxconf = basicnginxconf.replace("include $appDir/nginx/etc/sites-enabled/*;", "include $cfgDir/nginx/etc/sites-enabled/*;")
         basicnginxconf = self._cuisine.core.args_replace(basicnginxconf)
+        C = """
+        chown -R www-data:www-data $appDir/owncloud $cfgDir/nginx
+        chmod 777 -R $appDir/owncloud/config
+        """
+        self._cuisine.core.execute_bash(C)
         self._cuisine.core.file_write("$cfgDir/nginx/etc/nginx.conf", content=basicnginxconf)
         self._cuisine.processmanager.stop("nginx")
         self._cuisine.apps.nginx.start()

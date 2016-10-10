@@ -7,7 +7,7 @@ class CuisineOwnCloud(app):
 
     NAME = 'owncloud'
 
-    def install(self, start=True, storagepath="/var/www/html", sitename="owncloudy.com"):
+    def install(self, start=True, storagepath="/data/", sitename="owncloudy.com"):
         """
         install owncloud 9.1 on top of nginx/php/tidb
         tidb is the mysql alternative which is ultra reliable & distributed
@@ -31,18 +31,19 @@ class CuisineOwnCloud(app):
         owncloudsiterules = owncloudsiterules % {"sitename": sitename}
 
         C = """
-        # copy owncloud under {storagepath}
-        mv $tmpDir/owncloud {storagepath}/
+        mv $tmpDir/owncloud $appDir/owncloud
 
 
         # copy config.php to new owncloud home httpd/docs
-        /bin/cp -Rf $tmpDir/proj_gig_box/ownclouddeployment/owncloud/config.php {storagepath}/owncloud/config/
+        /bin/cp -Rf $tmpDir/proj_gig_box/ownclouddeployment/owncloud/config.php $appDir/owncloud/config/
         # copy gig theme
-        /bin/cp -Rf $tmpDir/proj_gig_box/ownclouddeployment/owncloud/gig {storagepath}/owncloud/themes/
-        chown -R www-data:www-data {storagepath}/owncloud/
+        /bin/cp -Rf $tmpDir/proj_gig_box/ownclouddeployment/owncloud/gig $appDir/owncloud/themes/
+        chown -R www-data:www-data $appDir/owncloud
         chmod 777 -R /var/www/html/owncloud/config
-
         """.format(storagepath=storagepath)
+
+        # TODO: Configure owncloud to use storagepath as the location to store the (data) files
+
         self._cuisine.core.execute_bash(C)
         self._cuisine.core.file_write("$cfgDir/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
 

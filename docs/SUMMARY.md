@@ -26,6 +26,9 @@
   - [Use Git](Howto/how_to_use_git.md)
     - [Automated](Howto/how_to_use_git_automated.md)
     - [Manually](Howto/how_to_use_git_manually.md)
+  - [How to work with SSH](Howto/SSH/SSH.md)
+    - [SSH Basics](Howto/SSH/SSHBasics.md)
+    - [SSH Agent Tips](Howto/SSH/SSHKeysAgent.md)
   - [Create a Tool for j](Howto/how_to_create_a_tool_for_j.md)
   - [Use the OpenvCloud APIs](Howto/how_to_use_OVC_API.md)
   - [Use the Shell & Debug](Howto/how_to_use_the_shell_and_debug.md)
@@ -93,18 +96,13 @@
   - [Stats](AgentController8/Stats.md)
   - [Tutorial](AgentController8/Tutorial.md)
 
-* [Cookbook](Cookbook/Home.md)
-    - [TelegramBot](Cookbook/Bots.md)
-    - [Cloud Automation](Cookbook/CloudAutomation.md)
-    - [Databases](Cookbook/DB.md)
-
 * [Walkthroughs](Walkthrough/Walkthrough.md)
-  * [Working with Docker using the Docker SAL](Walkthrough/SAL/Docker.md)
-  * [Installing Caddy using Cuisine](Walkthrough/Cuisine/install_caddy_on_docker.md)
-  * [Installing Docker and Caddy with AYS](Walkthrough/AYS/Install_docker_and_caddy.md)
+  - [Working with Docker using the Docker SAL](Walkthrough/SAL/Docker.md)
+  - [Installing Caddy using Cuisine](Walkthrough/Cuisine/install_caddy_on_docker.md)
+  - [Installing Docker and Caddy with AYS](Walkthrough/AYS/Install_docker_and_caddy.md)
 
 * [SSH](SSH/Home.md)
-    - [SSH Basics](SSH/SSHBasics.md)
-    - [SSH Agent](SSH/SSHKeysAgent.md)
+  - [SSH Basics](SSH/SSHBasics.md)
+  - [SSH Agent](SSH/SSHKeysAgent.md)
 
 * [JumpScale API](JumpscaleAPI/SUMMARY.md)

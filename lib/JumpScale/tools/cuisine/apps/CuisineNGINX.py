@@ -27,13 +27,17 @@ class CuisineNGINX(app):
         self._cuisine.package.ensure('nginx')
         # link nginx to binDir and use it from there
 
-        self._cuisine.core.dir_ensure("$appDir/nginx/")
-        self._cuisine.core.dir_ensure("$appDir/nginx/bin")
-        self._cuisine.core.dir_ensure("$appDir/nginx/etc")
+        # self._cuisine.core.dir_ensure("$appDir/nginx/")
+        # self._cuisine.core.dir_ensure("$appDir/nginx/bin")
+        # self._cuisine.core.dir_ensure("$appDir/nginx/etc")
 
-        self._cuisine.core.file_link(source='/usr/sbin/nginx', destination='$appDir/nginx/bin/nginx')
+        self._cuisine.core.dir_ensure("$cfgDir/nginx/")
+        self._cuisine.core.dir_ensure("$cfgDir/nginx/bin")
+        self._cuisine.core.dir_ensure("$cfgDir/nginx/etc")
+
+        self._cuisine.core.file_copy('/usr/sbin/nginx', '$cfgDir/nginx/bin/nginx', overwrite=True)
         self._cuisine.core.dir_ensure('/var/log/nginx')
-        self._cuisine.core.file_copy('/etc/nginx/*', '$appDir/nginx/etc/', recursive=True)
+        self._cuisine.core.file_copy('/etc/nginx/*', '$cfgDir/nginx/etc/', recursive=True)
 
         basicnginxconf = """\
         user www-data;
@@ -61,7 +65,7 @@ class CuisineNGINX(app):
         	# server_names_hash_bucket_size 64;
         	# server_name_in_redirect off;
 
-        	include /etc/nginx/mime.types;
+        	include $cfgDir/nginx/etc/mime.types;
         	default_type application/octet-stream;
 
         	##
@@ -96,8 +100,8 @@ class CuisineNGINX(app):
         	# Virtual Host Configs
         	##
 
-        	include /etc/nginx/conf.d/*.conf;
-        	include /etc/nginx/sites-enabled/*;
+        	include $cfgDir/nginx/etc/conf.d/*;
+        	include $cfgDir/nginx/etc/sites-enabled/*;
         }
 
 
@@ -166,10 +170,14 @@ class CuisineNGINX(app):
 
         """
         basicnginxconf = textwrap.dedent(basicnginxconf)
-        defaultenabledsitesconf = textwrap.dedent(defaultenabledsitesconf)
+        basicnginxconf = self._cuisine.core.args_replace(basicnginxconf)
 
-        self._cuisine.core.file_write("$appDir/nginx/etc/nginx.conf", content=basicnginxconf)
-        self._cuisine.core.file_write("$appDir/nginx/etc/sites-enabled/default", content=defaultenabledsitesconf)
+        defaultenabledsitesconf = textwrap.dedent(defaultenabledsitesconf)
+        defaultenabledsitesconf = self._cuisine.core.args_replace(defaultenabledsitesconf)
+
+        self._cuisine.core.file_write("$cfgDir/nginx/etc/nginx.conf", content=basicnginxconf)
+        self._cuisine.core.file_write("$cfgDir/nginx/etc/sites-enabled/default", content=defaultenabledsitesconf)
+        self._cuisine.core.file_link(source="$cfgDir/nginx", destination="$appDir/nginx")
         if start:
             self.start()
 
@@ -181,8 +189,8 @@ class CuisineNGINX(app):
     def start(self, name="nginx", nodaemon=True, nginxconfpath=None):
         nginxbinpath = '$appDir/nginx'
         if nginxconfpath is None:
-            nginxconfpath = '$appDir/nginx/etc/nginx.conf'
-        nginxcmd = "$appDir/nginx/bin/nginx -c {nginxconfpath} -g 'daemon off;'".format(nginxconfpath=nginxconfpath)  # foreground
+            nginxconfpath = '$cfgDir/nginx/etc/nginx.conf'
+        nginxcmd = "$cfgDir/nginx/bin/nginx -c {nginxconfpath} -g 'daemon off;'".format(nginxconfpath=nginxconfpath)  # foreground
         nginxcmd = self._cuisine.core.args_replace(nginxcmd)
         print("cmd: ", nginxcmd)
         self._cuisine.processmanager.ensure(name=name, cmd=nginxcmd, path=nginxbinpath)

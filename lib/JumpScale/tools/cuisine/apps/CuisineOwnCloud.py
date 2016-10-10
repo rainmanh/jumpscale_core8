@@ -17,41 +17,50 @@ class CuisineOwnCloud(app):
 
         C = """
         set -xe
-        cd $tmpDir && git clone https://github.com/gig-projects/proj_gig_box.git
-        cd $tmpDir && wget https://download.owncloud.org/community/owncloud-9.1.1.tar.bz2 && tar jxf owncloud-9.1.1.tar.bz2
+        cd $tmpDir && [ ! -d $tmpDir/proj_gig_box ] && git clone https://github.com/gig-projects/proj_gig_box.git
+        cd $tmpDir && [ ! -f $tmpDir/owncloud-9.1.1.tar.bz2 ] && wget https://download.owncloud.org/community/owncloud-9.1.1.tar.bz2 && tar jxf owncloud-9.1.1.tar.bz2
         cd $tmpDir && tar jxf owncloud-9.1.1.tar.bz2
-
-        """
+        [ ! -d {storagepath} ] && mkdir -p {storagepath}
+        """.format(storagepath=storagepath)
+        
         self._cuisine.core.execute_bash(C)
 
         # deploy in $appDir/owncloud
         # use nginx/php other cuisine packages
 
-        owncloudsiterules = self._get_default_conf()
+        owncloudsiterules = self._get_default_conf_nginx()
         owncloudsiterules = owncloudsiterules % {"sitename": sitename}
 
         C = """
         mv $tmpDir/owncloud $appDir/owncloud
-
 
         # copy config.php to new owncloud home httpd/docs
         /bin/cp -Rf $tmpDir/proj_gig_box/ownclouddeployment/owncloud/config.php $appDir/owncloud/config/
         # copy gig theme
         /bin/cp -Rf $tmpDir/proj_gig_box/ownclouddeployment/owncloud/gig $appDir/owncloud/themes/
         chown -R www-data:www-data $appDir/owncloud
-        chmod 777 -R /var/www/html/owncloud/config
-        """.format(storagepath=storagepath)
-
-        # TODO: Configure owncloud to use storagepath as the location to store the (data) files
+        chmod 777 -R $appDir/owncloud/config
+        """
 
         self._cuisine.core.execute_bash(C)
+        gigconf = self._get_default_conf_owncloud()
+        gigconf = gigconf % {'storagepath': storagepath}
         self._cuisine.core.file_write("$cfgDir/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
+        self._cuisine.core.file_write("$appDir/owncloud/config/config.php", content=gigconf)
 
         # look at which owncloud plugins to enable(pdf, ...)
-
         # TODO: *1 storage path
 
-    def _get_default_conf(self):
+    def _get_default_conf_owncloud(self):
+        return """\
+        <?php
+        $CONFIG = array (
+            'theme' => 'gig',
+            'datadirectory' => '%(storagepath)s'
+        );
+        """
+
+    def _get_default_conf_nginx(self):
         conf = """\
         upstream php-handler {
             server 127.0.0.1:9000;
@@ -61,12 +70,12 @@ class CuisineOwnCloud(app):
         server {
             listen 80;
             #listen [::]:80 default_server;
-        	server_name %(sitename)s;
+            server_name %(sitename)s;
 
 
-            root /var/www/html/owncloud/;
+            root $appDir/owncloud/;
 
-        	# Add headers to serve security related headers
+            # Add headers to serve security related headers
             # Before enabling Strict-Transport-Security headers please read into this topic first.
             #add_header Strict-Transport-Security "max-age=15552000; includeSubDomains";
 
@@ -166,6 +175,7 @@ class CuisineOwnCloud(app):
         }
         """
         conf = textwrap.dedent(conf)
+        conf = self._cuisine.core.args_replace(conf)
         return conf
 
     def restart(self):

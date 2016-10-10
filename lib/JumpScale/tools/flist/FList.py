@@ -290,12 +290,21 @@ class FList(object):
         self.setModificationTime(hash, stat.st_mtime)
         self.setCreationTime(hash, stat.st_ctime)
 
-    def build(self, path):
+    def build(self, path, excludes=[]):
         if len(self._data) > 0:
             # this can be only done on empty list
             return None
-        
+
         for dirpath, dirs, files in os.walk(path):
+            skip = False
+
+            for e in excludes:
+                if dirpath.startswith(e):
+                    skip = True
+
+            if skip:
+                continue
+
             for filename in files:
                 fname = os.path.join(dirpath, filename)
                 self._build(fname)

@@ -654,8 +654,8 @@ class StorSpace(object):
             target = source
 
         # building the flist struct
-        f = j.tools.flist.get()
-        f.build(target)
+        f = j.tools.flist.create()
+        f.build(target, excludes)
 
         exists = self.exists(f.getHashList())
         needed = []

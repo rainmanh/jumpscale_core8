@@ -35,7 +35,8 @@ Then you can run the following command:
 ```shell
 cd /tmp
 rm -f install.sh
-curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh
+bash install.sh
 ```
 
 ## Mac OSX
@@ -85,13 +86,13 @@ bash install.sh
 
 
 ## Dependencies
-To minimize the size of the installation some of the dependencies where opted to be installed separately, only
-dependencies which affected modular components of jumpscale where moved to allow jumpscale's key components to function
+To minimize the size of the installation some of the dependencies were opted to be installed separately, only
+dependencies which affect modular components of JumpScale where moved out to allow JumpScale's key components to function
 normally without the dependencies. For example:
  - a module such as [**cuisine**](../../Cuisine/Cuisine.md) dependeds on  [**paramiko**](http://docs.paramiko.org/en/2.0/)   
- 
+
 To install the dependencies run this command in the shell:  
-```shell 
+```shell
 js 'j.tools.cuisine.local.development.js8.installDeps()'
 ```  
 

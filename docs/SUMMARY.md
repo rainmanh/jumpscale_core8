@@ -6,7 +6,6 @@
   - [Why Using JumpScale](Introduction/WhyJumpScale.md)
   - [Solutions Built with JumpScale](Introduction/JumpScaleSolutions.md)
 
-
 * [Getting Started](GettingStarted/GettingStarted.md)
 
   - [Installation](GettingStarted/Installation/Installation.md)

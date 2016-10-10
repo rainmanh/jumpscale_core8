@@ -643,7 +643,8 @@ class StorSpace(object):
         """
         # TODO: maxim: specs have not been implemented, lets discuss what we will do and what not
         if not host:
-            host = j.tools.executor.getLocal()
+            # host = j.tools.executor.getLocal()
+            host = self._executor
 
         if host.type == 'ssh':
             source = '%s@%s:%s' % (host.login, host.addr, source)
@@ -732,7 +733,7 @@ class StorSpace(object):
         workdir = j.sal.fs.getTmpDirPath()
         flistfile = j.sal.fs.joinPaths(workdir, flistname + '.flist')
         mds.flist_download('%s.flist' % flistname, flistfile)
-        flist = j.tools.flist.get()
+        flist = j.tools.flist.load(flistfile)
         flist.parse(flistfile)
 
         # checking for cache

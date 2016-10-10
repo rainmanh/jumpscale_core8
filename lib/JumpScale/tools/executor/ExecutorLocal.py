@@ -29,9 +29,12 @@ class ExecutorLocal(ExecutorBase):
     def upload(self, source, dest, dest_prefix="", recursive=True):
         if dest_prefix != "":
             dest = j.sal.fs.joinPaths(dest_prefix, dest)
-        j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False,
-                             overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
-                             ssh=False, recursive=recursive)
+        if j.sal.fs.isDir(source):
+            j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False,
+                                 overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
+                                 ssh=False, recursive=recursive)
+        else:
+            j.sal.fs.copyFile(source, dest, overwriteFile=True)
 
     def download(self, source, dest, source_prefix=""):
         if source_prefix != "":

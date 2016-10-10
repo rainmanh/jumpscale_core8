@@ -600,6 +600,9 @@ class CuisineCore(base):
         source = j.dirs.replaceTxtDirVars(source)
         dest = self._cuisine.core.args_replace(dest)
         print("upload local:%s to remote:%s" % (source, dest))
+        if self._cuisine.id == 'localhost':
+            j.do.copyTree(source, dest, keepsymlinks=True)
+            return
         self._executor.sshclient.rsync_up(source, dest)
 
     def download(self, source, dest=""):
@@ -618,6 +621,9 @@ class CuisineCore(base):
         dest = j.dirs.replaceTxtDirVars(dest)
         source = self._cuisine.core.args_replace(source)
         print("download remote:%s to local:%s" % (source, dest))
+        if self._cuisine.id == 'localhost':
+            j.do.copyTree(source, dest, keepsymlinks=True)
+            return
         self._executor.sshclient.rsync_down(source, dest)
 
     def file_write(self, location, content, mode=None, owner=None, group=None, check=False,
@@ -659,11 +665,16 @@ class CuisineCore(base):
             # if sig != self.file_md5(location):
             # cmd = 'set -ex && echo "%s" | openssl base64 -A -d > %s' % (content_base64, location)
 
-            content_base64 = base64.b64encode(content2).decode()
-
-            # if sig != self.file_md5(location):
-            cmd = 'echo "%s" | openssl base64 -A -d > %s' % (content_base64, location)
-            res = self.run(cmd, showout=False)
+            if len(content2) > 10000:
+                # when contents are too big, bash will crash
+                temp = j.sal.fs.getTempFileName()
+                j.sal.fs.writeFile(filename=temp, contents=content2, append=False)
+                self.upload(temp, location)
+            else:
+                content_base64 = base64.b64encode(content2).decode()
+                # if sig != self.file_md5(location):
+                cmd = 'echo "%s" | openssl base64 -A -d > %s' % (content_base64, location)
+                res = self.run(cmd, showout=False)
             if check:
                 file_sig = self.file_md5(location)
                 assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (
@@ -1080,7 +1091,7 @@ class CuisineCore(base):
         """
         self.logger.info("RUN SCRIPT:")
 
-        self._cuisine.core.pprint(content)
+        # self._cuisine.core.pprint(content)
 
         if args_replace:
             content = self.args_replace(content)

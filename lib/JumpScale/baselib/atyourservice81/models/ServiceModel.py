@@ -173,6 +173,26 @@ class ServiceModel(ModelBase):
             res.append(self._modelfactory.get(key))
         return res
 
+    def delete(self):
+        # delete indexes from db
+        if self.dbobj.parent.actorName != "":
+            parent = "%s!%s" % (self.dbobj.parent.actorName, self.dbobj.parent.serviceName)
+        else:
+            parent = ""
+
+        if len(self.dbobj.producers) == 0:
+            key = "%s:%s:%s:%s:%s" % (self.dbobj.name, self.dbobj.actorName, self.dbobj.state, parent, "")
+            self._index.index_remove(key)
+        else:
+            # now batch all producers as more than 1 index
+            for producer in self.dbobj.producers:
+                producer2 = "%s!%s" % (producer.actorName, producer.serviceName)
+                key = "%s:%s:%s:%s:%s" % (self.dbobj.name, self.dbobj.actorName, self.dbobj.state, parent, producer2)
+                self._index.index_remove(key)
+
+        # delete actual model object
+        self._db.delete(self.key)
+
     def objectGet(self, aysrepo):
         """
         returns an Service object created from this model

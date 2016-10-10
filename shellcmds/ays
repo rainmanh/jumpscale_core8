@@ -398,12 +398,10 @@ def delete(role, instance, ask):
 
 
 @click.command()
-@click.option('--host', '-h', default='localhost')
-@click.option('--port', '-p', default=6379)
-@click.option('--socket', '-s', default=None)
-def start(host, port, socket):
+@click.option('--conf', '-c', default='/optvar/cfg/ays/ays.conf', help='path to AYS configuration file')
+def start(conf):
     from JumpScale.baselib.atyourservice81.AtYourServiceDaemon import Server
-    server = Server(host=host, port=port, unixsocket=socket)
+    server = Server(conf)
     server.start()
 
 cli.add_command(create_repo)

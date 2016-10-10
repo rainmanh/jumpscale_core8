@@ -4,22 +4,43 @@ import time
 from multiprocessing import Process, Pool
 
 
+defaultConfig = {
+    'redis': {
+        'unixsocket': '/tmp/ays.sock'
+    }
+}
+
+
 class Server:
     """AtYourService server"""
 
-    def __init__(self, host="localhost", port=6379, unixsocket=None):
-        self.host = host
-        self.port = port
-        self.unixsocket = unixsocket
-        self._server = j.servers.kvs.getRedisStore("ays_server", namespace='db', host=self.host, port=self.port, unixsocket=self.unixsocket)
+    def __init__(self, config_path=None):
+        if config_path is None:
+            self._config_path = j.sal.fs.joinPaths(j.dirs.cfgDir, 'ays/ays.conf')
+        else:
+            self._config_path = config_path
+        self._config = self._load_config(self._config_path)
+
+        self._server = j.servers.kvs.getRedisStore("ays_server", namespace='db', **self._config['redis'])
+
         self.logger = j.atyourservice.logger
 
-        self._recurring_loop = RecurringLoop(j.clients.atyourservice.get(host=self.host, port=self.port, unixsocket=self.unixsocket))
+        self._recurring_loop = RecurringLoop(j.clients.atyourservice.get(**self._config['redis']))
         self._waiting_jobs = Pool(processes=32)
 
         # self._set_signale_handler()
 
         self._running = False
+
+    def _load_config(self, path):
+        if not j.sal.fs.exists(path):
+            return defaultConfig
+
+        cfg = j.data.serializer.toml.load(path)
+        if 'redis' not in cfg:
+            return defaultConfig
+
+        return cfg
 
     def _set_signale_handler(self):
         def stop(signum, stack_frame):

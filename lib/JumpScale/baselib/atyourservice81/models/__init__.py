@@ -37,7 +37,12 @@ class ModelsFactory():
     def _load_config(self, path):
         if not j.sal.fs.exists(path):
             return defaultConfig
-        return j.data.serializer.toml.load(path)
+
+        cfg = j.data.serializer.toml.load(path)
+        if 'redis' not in cfg:
+            return defaultConfig
+
+        return cfg
 
     def destroy(self):
         self.actor.destroy()

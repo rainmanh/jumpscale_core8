@@ -372,6 +372,32 @@ def state(role='', instance=''):
 
 
 @click.command()
+@click.option('--role', '-r', default="", help='optional role for ays instances you want to delete')
+@click.option('--instance', '-i', default="", help='optional name of instance')
+@click.option('--ask', default=True, is_flag=True, help='ask confirmation before delete services')
+def delete(role, instance, ask):
+    """
+    Delete a service and all it's children
+    Be carefull with this action, there is no come back once a service is deleted.
+    """
+    services = repo.servicesFind(name=instance, actor='%s.*' % role)
+    services = sorted(services, key=lambda s: s.model.dbobj.actorName)
+
+    print("Services selected for deletion:")
+    for service in services:
+        print(service)
+
+    if ask:
+        resp = j.tools.console.askYesNo('\nAre you sure you want to delete ?')
+        if resp is False:
+            return
+
+    for service in services:
+        print('delete %s' % service)
+        service.delete()
+
+
+@click.command()
 @click.option('--host', '-h', default='localhost')
 @click.option('--port', '-p', default=6379)
 @click.option('--socket', '-s', default=None)
@@ -400,6 +426,7 @@ cli.add_command(showparents)
 cli.add_command(showactions)
 cli.add_command(list)
 cli.add_command(state)
+cli.add_command(delete)
 cli.add_command(start)
 
 if __name__ == '__main__':

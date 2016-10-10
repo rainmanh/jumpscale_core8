@@ -235,6 +235,19 @@ class Service:
         self._path = ""
         self._schema = ""
 
+    def delete(self):
+        """
+        delete this service completly.
+        remove it from db and from filesystem
+        all the children of this service are going to be deleted too
+        """
+        for service in self.children:
+            service.delete()
+
+        self.model.delete()
+        j.sal.fs.removeDirTree(self.path)
+        self.aysrepo._services.remove(self)
+
     @property
     def parent(self):
         if self._parent is None:

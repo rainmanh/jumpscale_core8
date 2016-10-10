@@ -281,7 +281,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
         if data is None:
             if die:
-                raise j.exceptions.Input(message="Cannot find object:%s" % key, level=1, source="", tags="", msgpub="")
+                raise j.exceptions.Input(message="Cannot find object: %s" % key, level=1, source="", tags="", msgpub="")
             else:
                 return None
 
@@ -300,19 +300,12 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
     def delete(self, key, secret=""):
 
-        obj = self.get(key, secret=secret, decode=False)
-        # verify will make sure that crc is checked
-        owner, schema, expire, acl, value1 = self._decode(value0, verify=False)
+        val, owner, schema, expire, acl = self.getraw(key, secret=secret, modecheck='d', die=True)
 
-        msg = "user with secret %s has no write permission on object:%s" % (secret, key)
-        if secret in acl:
-            if "d" not in acl[secret]:
-                raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
+        if secret is not None and secret != '' and owner != secret:
+            raise j.exceptions.Input(message="Cannot delete object, only owner can delete an object", level=1, source="", tags="", msgpub="")
 
-        elif owner != "secret":
-            raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
-
-        self._delete(key=key, category=category)
+        self._delete(key=key)
 
     def serialize(self, value):
         for serializer in self.serializers:
@@ -348,6 +341,9 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         ddict.update(items)
         data2 = msgpack.dumps(ddict)
         # TOO: save data2
+
+    def index_remove(self, keys, secret=""):
+        raise NotImplementedError()
 
     def list(self, regex=".*", returnIndex=False, secret=""):
         """

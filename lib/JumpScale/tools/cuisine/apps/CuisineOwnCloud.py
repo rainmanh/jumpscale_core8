@@ -22,14 +22,11 @@ class CuisineOwnCloud(app):
         cd $tmpDir && tar jxf owncloud-9.1.1.tar.bz2
         [ ! -d {storagepath} ] && mkdir -p {storagepath}
         """.format(storagepath=storagepath)
-        
+
         self._cuisine.core.execute_bash(C)
 
         # deploy in $appDir/owncloud
         # use nginx/php other cuisine packages
-
-        owncloudsiterules = self._get_default_conf_nginx()
-        owncloudsiterules = owncloudsiterules % {"sitename": sitename}
 
         C = """
         mv $tmpDir/owncloud $appDir/owncloud
@@ -45,9 +42,10 @@ class CuisineOwnCloud(app):
         self._cuisine.core.execute_bash(C)
         gigconf = self._get_default_conf_owncloud()
         gigconf = gigconf % {'storagepath': storagepath}
-        self._cuisine.core.file_write("$cfgDir/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
         self._cuisine.core.file_write("$appDir/owncloud/config/config.php", content=gigconf)
 
+        if start:
+            self.start(sitename)
         # look at which owncloud plugins to enable(pdf, ...)
         # TODO: *1 storage path
 
@@ -60,7 +58,7 @@ class CuisineOwnCloud(app):
         );
         """
 
-    def _get_default_conf_nginx(self):
+    def _get_default_conf_nginx_site(self):
         conf = """\
         upstream php-handler {
             server 127.0.0.1:9000;
@@ -133,7 +131,7 @@ class CuisineOwnCloud(app):
 
             location ~ ^/(?:index|remote|public|cron|core/ajax/update|status|ocs/v[12]|updater/.+|ocs-provider/.+|core/templates/40[34])\.php(?:$|/) {
                 fastcgi_split_path_info ^(.+\.php)(/.*)$;
-                include fastcgi_params;
+                include $appDir/nginx/etc/fastcgi_params;
                 fastcgi_param SCRIPT_FILENAME $request_filename;
                 fastcgi_param PATH_INFO $fastcgi_path_info;
                 # fastcgi_param HTTPS on;
@@ -177,6 +175,18 @@ class CuisineOwnCloud(app):
         conf = textwrap.dedent(conf)
         conf = self._cuisine.core.args_replace(conf)
         return conf
+
+    def start(self, sitename):
+        owncloudsiterules = self._get_default_conf_nginx_site()
+        owncloudsiterules = owncloudsiterules % {"sitename": sitename}
+        self._cuisine.core.file_write("$cfgDir/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
+
+        basicnginxconf = self._cuisine.apps.nginx.get_basic_nginx_conf()
+        basicnginxconf = basicnginxconf.replace("include $appDir/nginx/etc/sites-enabled/*;", "include $cfgDir/nginx/etc/sites-enabled/*;")
+        basicnginxconf = self._cuisine.core.args_replace(basicnginxconf)
+        self._cuisine.core.file_write("$cfgDir/nginx/etc/nginx.conf", content=basicnginxconf)
+        self._cuisine.processmanager.stop("nginx")
+        self._cuisine.apps.nginx.start()
 
     def restart(self):
         pass

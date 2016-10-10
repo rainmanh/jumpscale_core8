@@ -19,29 +19,8 @@ class CuisineNGINX(app):
         # build nginx
         return True
 
-    def install(self, start=True):
-        """
-        can install through ubuntu
-
-        """
-        # Install through ubuntu
-        self._cuisine.package.ensure('nginx')
-        # link nginx to binDir and use it from there
-
-        # self._cuisine.core.dir_ensure("$appDir/nginx/")
-        # self._cuisine.core.dir_ensure("$appDir/nginx/bin")
-        # self._cuisine.core.dir_ensure("$appDir/nginx/etc")
-
-        self._cuisine.core.dir_ensure("$appDir/nginx/")
-        self._cuisine.core.dir_ensure("$appDir/nginx/bin")
-        self._cuisine.core.dir_ensure("$appDir/nginx/etc")
-        self._cuisine.core.dir_ensure("$cfgDir/nginx/etc")
-
-        self._cuisine.core.file_copy('/usr/sbin/nginx', '$appDir/nginx/bin/nginx', overwrite=True)
-        self._cuisine.core.dir_ensure('/var/log/nginx')
-        self._cuisine.core.file_copy('/etc/nginx/*', '$appDir/nginx/etc/', recursive=True)  # default conf
-        self._cuisine.core.file_copy('/etc/nginx/*', '$cfgDir/nginx/etc/', recursive=True)  # variable conf
-        basicnginxconf = """\
+    def get_basic_nginx_conf(self):
+        return """\
         user www-data;
         worker_processes auto;
         pid /run/nginx.pid;
@@ -99,6 +78,30 @@ class CuisineNGINX(app):
         	include $appDir/nginx/etc/sites-enabled/*;
         }
         """
+
+    def install(self, start=True):
+        """
+        can install through ubuntu
+
+        """
+        # Install through ubuntu
+        self._cuisine.package.ensure('nginx')
+        # link nginx to binDir and use it from there
+
+        # self._cuisine.core.dir_ensure("$appDir/nginx/")
+        # self._cuisine.core.dir_ensure("$appDir/nginx/bin")
+        # self._cuisine.core.dir_ensure("$appDir/nginx/etc")
+
+        self._cuisine.core.dir_ensure("$appDir/nginx/")
+        self._cuisine.core.dir_ensure("$appDir/nginx/bin")
+        self._cuisine.core.dir_ensure("$appDir/nginx/etc")
+        self._cuisine.core.dir_ensure("$cfgDir/nginx/etc")
+
+        self._cuisine.core.file_copy('/usr/sbin/nginx', '$appDir/nginx/bin/nginx', overwrite=True)
+        self._cuisine.core.dir_ensure('/var/log/nginx')
+        self._cuisine.core.file_copy('/etc/nginx/*', '$appDir/nginx/etc/', recursive=True)  # default conf
+        self._cuisine.core.file_copy('/etc/nginx/*', '$cfgDir/nginx/etc/', recursive=True)  # variable conf
+        basicnginxconf = self.get_basic_nginx_conf()
         defaultenabledsitesconf = """\
 
         server {
@@ -143,6 +146,7 @@ class CuisineNGINX(app):
         basicnginxconf = textwrap.dedent(basicnginxconf)
         basicoptvarnginxconf = basicnginxconf.replace("$appDir", "$cfgDir")
         basicnginxconf = self._cuisine.core.args_replace(basicnginxconf)
+        basicoptvarnginxconf = self._cuisine.core.args_replace(basicoptvarnginxconf)
 
         defaultenabledsitesconf = textwrap.dedent(defaultenabledsitesconf)
         defaultenabledsitesconf = self._cuisine.core.args_replace(defaultenabledsitesconf)
@@ -150,11 +154,15 @@ class CuisineNGINX(app):
         self._cuisine.core.file_write("$appDir/nginx/etc/nginx.conf", content=basicnginxconf)
         self._cuisine.core.file_write("$cfgDir/nginx/etc/nginx.conf", content=basicoptvarnginxconf)
         self._cuisine.core.file_write("$appDir/nginx/etc/sites-enabled/default", content=defaultenabledsitesconf)
+        fst_cgi_conf = self._cuisine.core.file_read("$appDir/nginx/etc/fastcgi.conf")
+        fst_cgi_conf = fst_cgi_conf.replace("include fastcgi.conf;", "include /opt/jumpscale8/apps/nginx/etc/fastcgi.conf;")
+        self._cuisine.core.file_write("$appDir/nginx/etc/fastcgi.conf", content=fst_cgi_conf)
+
         #self._cuisine.core.file_link(source="$cfgDir/nginx", destination="$appDir/nginx")
         if start:
             self.start()
 
-    def build(self, start=True, install=True):
+    def build(self, install=True, start=True):
         self._build()
         if install:
             self.install(start)

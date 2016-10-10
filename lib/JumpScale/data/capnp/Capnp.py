@@ -9,13 +9,12 @@ from ModelBase import ModelBase, ModelBaseWithData
 
 class ModelFactory():
 
-    def __init__(self, parentfactory, category, classItem):
+    def __init__(self, parentfactory, category, classItem, host=None, port=None, unixsocket=None):
         self.category = category
         namespace = "%s:%s" % (parentfactory.namespacePrefix, self.category.lower())
-        # unixsocket = j.sal.fs.joinPaths(os.environ["TMP"], 'redis.sock')
-        self._db = j.servers.kvs.getRedisStore(namespace, namespace, unixsocket=None, changelog=False)
+        self._db = j.servers.kvs.getRedisStore(namespace, namespace, host=host, port=port, unixsocket=unixsocket, changelog=False)
         # for now we do index same as database
-        self._index = j.servers.kvs.getRedisStore(namespace, namespace, changelog=False)
+        self._index = j.servers.kvs.getRedisStore(namespace, namespace, host=host, port=port, unixsocket=unixsocket, changelog=False)
         self._modelClass = classItem  # eval(self.category + "Model." + self.category + "Model")
         self._capnp = eval("parentfactory.capnpModel." + self.category)
         self.list = self._modelClass.list

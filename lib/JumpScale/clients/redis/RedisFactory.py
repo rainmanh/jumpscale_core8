@@ -34,7 +34,7 @@ class RedisFactory:
             if unixsocket is None:
                 self._redis[key] = Redis(ipaddr, port, password=password)  # , unixsocket=unixsocket)
             else:
-                self._redis[key] = Redis(unixsocket=unixsocket, password=password)
+                self._redis[key] = Redis(unix_socket_path=unixsocket, password=password)
 
         return self._redis[key]
 

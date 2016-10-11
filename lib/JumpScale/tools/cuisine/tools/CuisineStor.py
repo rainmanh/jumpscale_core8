@@ -389,7 +389,7 @@ class StorSpace(object):
         #check dict
         #store in config also remote serialized !!!
         pass
-    
+
     def configCommit(self):
         yaml = j.data.serializer.yaml.dumps(self.config)
         path = j.sal.fs.joinPaths(self.path, "config.yaml")
@@ -444,7 +444,7 @@ class StorSpace(object):
         '''
 
         return True
-    
+
     def flist_upload(self, source, flistname):
         """
         Upload a flist file to the destination namespace
@@ -487,7 +487,7 @@ class StorSpace(object):
         '''
 
         return True
-    
+
     def flist_download(self, flistfile, dest):
         """
         Download a flist from the storagespace namespace to a specific location
@@ -643,8 +643,7 @@ class StorSpace(object):
         """
         # TODO: maxim: specs have not been implemented, lets discuss what we will do and what not
         if not host:
-            # host = j.tools.executor.getLocal()
-            host = self._executor
+            host = j.tools.executor.getLocal()
 
         if host.type == 'ssh':
             source = '%s@%s:%s' % (host.login, host.addr, source)
@@ -770,7 +769,7 @@ class StorSpace(object):
                 j.sal.fs.copyFile(file, final)
                 j.sal.fs.chown(final, flist.getOwner(key), flist.getGroup(key))
                 j.sal.fs.chmod(final, int(flist.getMode(key), 8))
-            
+
             else:
                 print("FIXME, NOT REGULAR")
 

@@ -1324,7 +1324,7 @@ class InstallTools():
         if "SSH_AUTH_SOCK" in os.environ:
             return(os.environ["SSH_AUTH_SOCK"])
 
-        socketpath = "%s/sshagent_socket" % os.environ["HOME"]
+        socketpath = "%s/sshagent_socket" % os.environ.get("HOME", '/root')
         os.environ['SSH_AUTH_SOCK'] = socketpath
         return socketpath
 

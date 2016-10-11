@@ -91,7 +91,9 @@ class CuisineNGINX(app):
         # self._cuisine.core.dir_ensure("$appDir/nginx/")
         # self._cuisine.core.dir_ensure("$appDir/nginx/bin")
         # self._cuisine.core.dir_ensure("$appDir/nginx/etc")
-
+        self._cuisine.core.dir_ensure("$cfgDir")
+        self._cuisine.core.dir_ensure("$tmpDir")
+        self._cuisine.core.dir_ensure("/optvar/tmp")
         self._cuisine.core.dir_ensure("$appDir/nginx/")
         self._cuisine.core.dir_ensure("$appDir/nginx/bin")
         self._cuisine.core.dir_ensure("$appDir/nginx/etc")

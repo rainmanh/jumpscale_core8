@@ -34,16 +34,17 @@ def _parse(output):
     return blks
 
 
-def lsblk(device=None):
+def lsblk(device=None, executor=None):
     """
     Run lsblk on con, and returned the parsed results
     """
-    _executor = j.tools.executor.getLocal()
+    if executor is None:
+        executor = j.tools.executor.getLocal()
     try:
         command = COMMAND
         if device:
             command = '%s %s' % (COMMAND, device)
-        rc, output, err = _executor.execute(command)
+        rc, output, err = executor.execute(command, checkok=False)
     except Exception as e:
         raise LsblkError(e)
 

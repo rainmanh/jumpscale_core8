@@ -1,8 +1,7 @@
 from JumpScale import j
-import lsblk
-import mount
-import disks
-
+import JumpScale.sal.disklayout.mount as mount
+import JumpScale.sal.disklayout.lsblk as lsblk
+import JumpScale.sal.disklayout.disks as disks
 
 class DiskManager:
     """
@@ -11,6 +10,10 @@ class DiskManager:
     def __init__(self):
         self.__jslocation__ = "j.sal.disklayout"
         self.disks = []
+        self._executor = j.tools.executor.getLocal()
+
+    def set_executor(self, executor):
+        self._executor = executor
 
     def _loadhrd(self, mount):
         hrdpath = j.tools.path.get(mount).joinpath('.disk.hrd')
@@ -33,10 +36,10 @@ class DiskManager:
 
         # find temp mounts & remove, they need to be gone, otherwise will get
         # unpredictable results further
-        for line in j.sal.process.execute("mount")[1].split("\n"):
+        for line in self._executor.execute("mount")[1].split("\n"):
             if " on /tmp" in line:
                 mntpoint = line.split(" on ")[1].split(" type", 1)[0].strip()
-                j.sal.process.execute("umount %s" % mntpoint)
+                self._executor.execute("umount %s" % mntpoint)
 
         devices = []
         disk = None
@@ -45,7 +48,7 @@ class DiskManager:
             name = blk['NAME']
             if blk['TYPE'] == 'disk':
                 disk = disks.DiskInfo(name=name, size=blk['SIZE'], mountpoint=blk[
-                                      'MOUNTPOINT'], fstype=blk['FSTYPE'], uuid=blk['UUID'])
+                                      'MOUNTPOINT'], fstype=blk['FSTYPE'], uuid=blk['UUID'], executor=self._executor)
                 devices.append(disk)
             elif blk['TYPE'] == 'part':
                 if disk is None:
@@ -69,7 +72,7 @@ class DiskManager:
         """
         Get list of all available disks on machine
         """
-        blks = lsblk.lsblk()
+        blks = lsblk.lsblk(executor=self._executor)
         devices = self._loaddisks(blks)
         # loading hrds
         for disk in devices:

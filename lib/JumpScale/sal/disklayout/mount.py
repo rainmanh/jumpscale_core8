@@ -16,6 +16,8 @@ class Mount:
                 '/tmp').joinpath(j.data.idgenerator.generateXCharID(8))
             self._autoClean = True
         self._options = options
+        import ipdb; ipdb.set_trace()
+        self._executor = j.sal.disklayout._executor
 
     @property
     def _mount(self):
@@ -45,7 +47,7 @@ class Mount:
         """
         try:
             j.tools.path.get(self.path).makedirs()
-            j.tools.executor.getLocal().execute(self._mount)
+            self._executor(self._mount)
         except Exception as e:
             raise MountError(e)
         return self
@@ -55,7 +57,7 @@ class Mount:
         Umount partition
         """
         try:
-            j.tools.executor.getLocal().execute(self._umount)
+            self._executor(self._umount)
             if self._autoClean:
                 j.tools.path.get(self.path).rmtree()
         except Exception as e:

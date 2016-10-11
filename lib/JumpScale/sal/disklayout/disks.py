@@ -1,8 +1,9 @@
 import re
 
 from JumpScale import j
-import mount
-import lsblk
+import JumpScale.sal.disklayout.mount as mount
+import JumpScale.sal.disklayout.lsblk as lsblk
+
 
 
 _formatters = {
@@ -38,11 +39,16 @@ class DiskError(Exception):
 
 class BlkInfo:
 
-    def __init__(self, name, type, size):
+    def __init__(self, name, type, size, executor):
         self.name = name
         self.type = type
         self.size = int(size)
         self.hrd = None
+        if executor is None:
+            self._executor = j.tools.executor.getLocal()
+        else:
+            self._executor = executor
+        self._executor = j.sal.disklayout._executor
 
     def __str__(self):
         return '%s %s' % (self.name, self.size)
@@ -162,18 +168,17 @@ class DiskInfo(BlkInfo):
     Represents a disk
     """
 
-    def __init__(self, name, size, mountpoint="", fstype="", uuid=""):
-        super(DiskInfo, self).__init__(name, 'disk', size)
+    def __init__(self, name, size, mountpoint="", fstype="", uuid="", executor=None):
+        super(DiskInfo, self).__init__(name, 'disk', size, executor=executor)
         self.mountpoint = mountpoint
         self.fstype = fstype
         self.uuid = uuid
         self.partitions = list()
-        self._executor = j.tools.executor.getLocal()
         # self.mirrors=[]
         self.mirror_devices = []
         if self.fstype == "btrfs":
             devsfound = []
-            out = j.sal.process.execute(
+            out = self._executor.execute(
                 "btrfs filesystem show %s" % self.name)[1]
             for line in out.split("\n"):
                 line = line.strip()
@@ -266,7 +271,7 @@ class DiskInfo(BlkInfo):
 
         start, end = spot
         try:
-            j.sal.process.execute(
+            self._executor.execute(
                 ('parted -s {name} unit B ' +
                     'mkpart primary {start} {end}').format(name=self.name,
                                                            start=start,
@@ -297,7 +302,7 @@ class DiskInfo(BlkInfo):
 
     def _clearMBR(self):
         try:
-            j.sal.process.execute(
+            self._executor.execute(
                 'parted -s {name} mktable gpt'.format(name=self.name)
             )
         except Exception as e:
@@ -321,8 +326,8 @@ class DiskInfo(BlkInfo):
 
 class PartitionInfo(BlkInfo):
 
-    def __init__(self, name, size, uuid, fstype, mount, device):
-        super(PartitionInfo, self).__init__(name, 'part', size)
+    def __init__(self, name, size, uuid, fstype, mount, device, executor=None):
+        super(PartitionInfo, self).__init__(name, 'part', size, executor=executor)
         self.uuid = uuid
         self.fstype = fstype
         self.mountpoint = mount
@@ -353,7 +358,7 @@ class PartitionInfo(BlkInfo):
         Reload partition status to match current real state
         """
         try:
-            info = lsblk.lsblk(self.name)[0]
+            info = lsblk.lsblk(self.name, executor=self._executor)[0]
         except lsblk.LsblkError:
             self._invalid = True
             info = {

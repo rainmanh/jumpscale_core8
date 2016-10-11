@@ -52,6 +52,6 @@ class RepoModel(ModelBase):
         pass
 
     def __repr__(self):
-        return self.dbobj.name
+        return self.dbobj.path
 
     __str__ = __repr__

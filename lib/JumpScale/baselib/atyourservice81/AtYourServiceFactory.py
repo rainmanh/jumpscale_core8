@@ -210,8 +210,11 @@ class AtYourServiceFactory:
             self._repoLoad(repo_path)
 
     def reposList(self):
+        repos = []
         db = ModelsFactory()
-        return db.repo.find()
+        for model in db.repo.find():
+            repos.append(model.objectGet())
+        return repos
 
     def repoCreate(self, path):
         self._doinit()
@@ -283,7 +286,9 @@ class AtYourServiceFactory:
             raise j.exceptions.Input(
                 "AYS templateRepo with name:%s already exists at %s, cannot have duplicate names." % (name, path))
 
-        self._repos[name] = AtYourServiceRepo(name, gitrepo, path)
+        repo = AtYourServiceRepo(name, gitrepo, path)
+        self._repos[name] = repo
+        return repo
 
     def get(self):
         """

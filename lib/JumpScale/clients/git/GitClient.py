@@ -54,6 +54,8 @@ class GitClient:
 
     @property
     def remoteUrl(self):
+        if len(self.repo.remotes) <= 0:
+            raise j.exceptions.Input("There is not remote configured for this repository")
         return self.repo.remotes[0].url
 
     @property

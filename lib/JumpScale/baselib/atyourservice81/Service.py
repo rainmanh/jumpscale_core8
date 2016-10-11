@@ -227,6 +227,10 @@ class Service:
         self.model.save()
         self.saveToFS()
 
+    def reload(self):
+        self.model._data = None
+        self.model.load(self.model.key)
+
     def reset(self):
         self._hrd = None
         # self._yaml = None
@@ -501,7 +505,7 @@ class Service:
                 print(p.stdout)
 
         job.model.save()
-        self.save()
+        job.service.saveAll()
         self.logger.debug('end runAction %s on %s' % (action, self))
         return job
 

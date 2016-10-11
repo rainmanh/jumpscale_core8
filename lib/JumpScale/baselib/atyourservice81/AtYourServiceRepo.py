@@ -562,6 +562,6 @@ class AtYourServiceRepo():
     #     run.execute()
 
     def __str__(self):
-        return("aysrepo:%s" % (self.name))
+        return("aysrepo:%s" % (self.path))
 
     __repr__ = __str__

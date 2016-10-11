@@ -18,9 +18,13 @@ class CuisineController(app):
         if reset is False and self.isInstalled():
             return
         # deps
-        self._cuisine.apps.redis.install()
-        self._cuisine.apps.redis.start()
-        self._cuisine.apps.syncthing.build(start=False)
+        deps = ['redis-server', 'syncthing']
+        for dep in deps:
+            if not self._cuisine.core.command_check(dep):
+                raise j.exceptions.NotFound(
+                    "dependency %s not found, please install %s before building controller" % (dep, dep))
+        # self._cuisine.apps.redis.install()
+        # self._cuisine.apps.syncthing.build(start=False)
 
         self._cuisine.processmanager.remove("agentcontroller8")
         pm = self._cuisine.processmanager.get("tmux")
@@ -50,10 +54,16 @@ class CuisineController(app):
 
         # file copy
         self._cuisine.core.dir_remove("$tmplsDir/cfg/controller/extensions")
-        self._cuisine.core.file_copy("%s/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale" %
-                                     self._cuisine.core.dir_paths["codeDir"], "$tmplsDir/cfg/controller/jumpscripts/", recursive=True)
+
+        jumpscript_folfer = "%s/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts" % self._cuisine.core.dir_paths[
+            "codeDir"]
+        if self._cuisine.core.dir_exists(jumpscript_folfer):
+            self._cuisine.core.file_copy(jumpscript_folfer + "/jumpscale",
+                                         "$tmplsDir/cfg/controller/jumpscripts/", recursive=True)
+
         self._cuisine.core.file_copy("%s/extensions" % sourcepath,
                                      "$tmplsDir/cfg/controller/extensions", recursive=True)
+
         self._cuisine.core.file_copy("%s/agentcontroller.toml" % sourcepath,
                                      '$tmplsDir/cfg/controller/agentcontroller.toml')
 
@@ -135,9 +145,8 @@ class CuisineController(app):
         self._cuisine.core.file_write("$cfgDir/syncthing/config.xml", dump)
 
         # start
-        self._cuisine.apps.syncthing.start()
-        self._cuisine.apps.mongodb.start()
-        self._cuisine.apps.redis.start()
+        pm = self._cuisine.apps.syncthing.restart()
+
         env = {}
         env["TMPDIR"] = self._cuisine.core.dir_paths["tmpDir"]
         cmd = "$binDir/controller -c $cfgDir/controller/agentcontroller.toml"

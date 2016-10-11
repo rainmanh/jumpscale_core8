@@ -18,7 +18,7 @@ class CuisineSyncthing(app):
         # install golang
         if reset is False and self.isInstalled():
             return
-        self._cuisine.development.golang.install()
+        # self._cuisine.development.golang.install()
 
         # build
         url = "https://github.com/syncthing/syncthing.git"
@@ -111,3 +111,11 @@ class CuisineSyncthing(app):
         self._cuisine.core.file_copy("$tmplsDir/cfg/syncthing/", "$cfgDir", recursive=True)
         pm = self._cuisine.processmanager.get("tmux")
         pm.ensure(name="syncthing", cmd="./syncthing -home  $cfgDir/syncthing", path="$binDir")
+
+    def stop(self):
+        pm = self._cuisine.processmanager.get("tmux")
+        pm.stop("syncthing")
+
+    def restart(self):
+        self.stop()
+        self.start()

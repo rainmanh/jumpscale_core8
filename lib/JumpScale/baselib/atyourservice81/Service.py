@@ -136,44 +136,42 @@ class Service:
         if self._producers is None:
             self._producers = []
 
-        producers_size = len(actor.model.dbobj.producers)
-        # the parent is also considered an producers
-        # we need this to be able to build the dependency tree
-        if self.parent is not None:
-            producers_size += 1
-
-        self.model.dbobj.init('producers', producers_size)
         for i, producer_model in enumerate(actor.model.dbobj.producers):
             producer_role = producer_model.actorRole
 
-            instance = args.get(producer_role, "")
-            res = self.aysrepo.servicesFind(name=instance, actor='%s.*' % producer_role)
-            res = [s for s in res if s.model.role == producer_role]
-            if len(res) == 0:
-                if producer_model.auto is False:
-                    raise j.exceptions.Input(message="could not find producer:%s for %s, found 0" %
+            instances = args.get(producer_role, "")
+
+            if not j.data.types.list.check(instances):
+                instances = [instances]
+
+            for i in instances:
+                res = self.aysrepo.servicesFind(name=i, actor='%s.*' % producer_role)
+                res = [s for s in res if s.model.role == producer_role]
+
+                if len(res) == 0:
+                    if producer_model.auto is False:
+                        raise j.exceptions.Input(message="could not find producer:%s for %s, found 0" %
+                                                 (producer_role, self), level=1, source="", tags="", msgpub="")
+                    else:
+                        auto_actor = self.aysrepo.actorGet(producer_role)
+                        instance = j.data.idgenerator.generateIncrID('service_%s' % producer_role)
+                        res.append(auto_actor.serviceCreate(instance="auto_%d" % instance, args={}))
+                elif len(res) > 1:
+                    raise j.exceptions.Input(message="could not find producer:%s for %s, found more than 1." %
                                              (producer_role, self), level=1, source="", tags="", msgpub="")
-                else:
-                    auto_actor = self.aysrepo.actorGet(producer_role)
-                    instance = j.data.idgenerator.generateIncrID('service_%s' % producer_role)
-                    res.append(auto_actor.serviceCreate(instance="auto_%d" % instance, args={}))
-            elif len(res) > 1:
-                raise j.exceptions.Input(message="could not find producer:%s for %s, found more than 1." %
-                                         (producer_role, self), level=1, source="", tags="", msgpub="")
 
-            producer = self.model.dbobj.producers[i]
-            producer_obj = res[0]
-
-            producer.actorName = producer_obj.model.dbobj.actorName
-            producer.key = producer_obj.model.key
-            producer.serviceName = producer_obj.model.dbobj.name
+                producer_obj = res[0]
+                self.model.producerAdd(
+                    actorName=producer_obj.model.dbobj.actorName,
+                    serviceName=producer_obj.model.dbobj.name,
+                    key=producer_obj.model.key)
 
         # add the parent to the producers
         if self.parent is not None:
-            producer = self.model.dbobj.producers[producers_size - 1]
-            producer.actorName = self.parent.model.dbobj.actorName
-            producer.key = self.parent.model.key
-            producer.serviceName = self.parent.model.dbobj.name
+            producer = self.model.producerAdd(
+                actorName=producer_obj.model.dbobj.actorName,
+                serviceName=self.parent.model.dbobj.name,
+                key=self.parent.model.key)
 
     def _initRecurringActions(self, actor):
         self.model.dbobj.init('recurringActions', len(actor.model.dbobj.recurringActions))

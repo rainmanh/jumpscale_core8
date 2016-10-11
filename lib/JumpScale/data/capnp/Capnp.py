@@ -95,13 +95,13 @@ class Capnp:
         return self._cache[schemaId]
 
     def getObj(self, schemaInText, args={}, binaryData=None):
-        #. are removed from . to Uppercase
-        for key, val in args.items():
-            if "." in key:
-                pre, post = key.split(".", 1)
-                key2 = pre + post[0].upper() + post[1:]
-                args[key2] = args[key]
+        # . are removed from . to Uppercase
+        for key in list(args.keys()):
+            sanitize_key = j.data.hrd.sanitize_key(key)
+            if key != sanitize_key:
+                args[sanitize_key] = args[key]
                 args.pop(key)
+
         schema = self.getSchema(schemaInText)
         if binaryData is not None and binaryData != b'':
             configdata = schema.from_bytes_packed(binaryData).as_builder()

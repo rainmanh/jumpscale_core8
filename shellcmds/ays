@@ -245,6 +245,24 @@ def uninstall(printonly):
 @click.command()
 @click.argument('role')
 @click.argument('instance')
+def show(role, instance):
+    '''
+    show information about a service
+    '''
+    service = repo.serviceGet(role=role, instance=instance)
+    print("Service: %s" % service)
+    print("\nInstance data:")
+    instance_data = service.model.data.to_dict()
+    for k in sorted(instance_data):
+        print("- %s : %s" % (k, instance_data[k]))
+
+    print("\nProducers:")
+    service.printProducersRecursive()
+
+
+@click.command()
+@click.argument('role')
+@click.argument('instance')
 def showproducers(role, instance):
     '''
     find the producers for this service & show
@@ -279,7 +297,7 @@ def list(role, instance):
     print("-------------------")
     services = repo.servicesFind(actor="%s.*" % role, name=instance)
     for s in sorted(services, key=lambda service: service.model.role):
-        print("%s!%s" % (s.model.role, s.model.name))
+        print("%s!%s" % (s.model.role, s.model.dbobj.name))
 
 
 @click.command()
@@ -419,6 +437,7 @@ cli.add_command(update)
 cli.add_command(install)
 cli.add_command(uninstall)
 cli.add_command(do)
+cli.add_command(show)
 cli.add_command(showproducers)
 cli.add_command(showparents)
 cli.add_command(showactions)

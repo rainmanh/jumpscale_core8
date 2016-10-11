@@ -169,7 +169,7 @@ class Service:
         # add the parent to the producers
         if self.parent is not None:
             producer = self.model.producerAdd(
-                actorName=producer_obj.model.dbobj.actorName,
+                actorName=self.parent.model.dbobj.actorName,
                 serviceName=self.parent.model.dbobj.name,
                 key=self.parent.model.key)
 

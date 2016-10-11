@@ -79,6 +79,12 @@ class Service:
         self._initRecurringActions(actor)
         self._initEventActions(actor)
 
+        # set default value for argument not specified in blueprint
+        template = self.aysrepo.templateGet(actor.model.name)
+        for k, v in template.schemaHrd.items.items():
+            if k not in args:
+                args[k] = v.default
+
         # input will always happen in process
         args2 = self.input(args=args)
         if len(args2) >= len(args) and args2 != args:

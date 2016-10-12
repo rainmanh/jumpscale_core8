@@ -218,16 +218,13 @@ class CuisineOwnCloud(app):
         self._cuisine.processmanager.stop("nginx")
         self._cuisine.apps.nginx.start()
 
-        self._cuisine.apps.tidb.make_connection()
-        self._cuisine.apps.tidb.drop_database(database="owncloud")
-        self._cuisine.apps.tidb.create_database(database="owncloud")
-        try:
-            self._cuisine.apps.tidb.create_dbuser(host="127.0.0.1", username="owncloud", passwd="owncloud")
-        except:
-            pass  # user created already.
-
-        self._cuisine.apps.tidb.grant_user(host="127.0.0.1", username="owncloud", database="owncloud")
-        self._cuisine.apps.tidb.close_connection()
+        with self._cuisine.apps.tidb.dbman() as m:
+            try:
+                m.create_database(database="owncloud")
+                m.create_dbuser(host="127.0.0.1", username="owncloud", passwd="owncloud")
+            except:
+                pass  # user created already.
+            m.grant_user(host="127.0.0.1", username="owncloud", database="owncloud")
 
     def restart(self):
         pass

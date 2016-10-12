@@ -5,13 +5,63 @@ import MySQLdb
 app = j.tools.cuisine._getBaseAppClass()
 
 
+class TIDBContextManager:
+
+    def __enter__(self):
+        self._connection = MySQLdb.connect("127.0.0.1")
+        return self
+
+    def create_database(self, database):
+        """
+        Creates a database.
+        """
+        cursor = self._connection.cursor()
+        SQL = """CREATE DATABASE {database};""".format(database=database)
+        print("Executing SQL", SQL)
+        cursor.execute(SQL)
+        self._connection.commit()
+
+    def drop_database(self, database):
+        """
+        Drops database if exists
+        """
+        cursor = self._connection.cursor()
+        SQL = """DROP DATABASE IF EXISTS {database}  ;""".format(database=database)
+        print("Executing SQL", SQL)
+        cursor.execute(SQL)
+        self._connection.commit()
+
+    def create_dbuser(self, host, username, passwd):
+        """
+        Creates a user in database.
+        """
+        cursor = self._connection.cursor()
+        SQL = """CREATE USER '{username}'@'{host}' IDENTIFIED BY '{passwd}' ;""".format(host=host, username=username, passwd=passwd)
+        print("Executing SQL", SQL)
+        cursor.execute(SQL)
+        self._connection.commit()
+
+    def grant_user(self, host, database, username):
+        """
+        Grants full access on certain databse.
+        """
+        SQL = """grant all on {database}.* to '{username}'@'{host}' ;""".format(database=database, host=host, username=username)
+        cursor = self._connection.cursor()
+        print("Executing SQL", SQL)
+        cursor.execute(SQL)
+        self._connection.commit()
+
+    def __exit__(self, type, value, traceback):
+        self._connection.close()
+
+
 class CuisineTIDB(app):
     NAME = 'tidb'
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
-        self._connection = None
+        self.dbman = TIDBContextManager
 
     def _build(self):
         # TODO: *1
@@ -42,7 +92,6 @@ class CuisineTIDB(app):
         self._build()
         if install:
             self.install(start)
-
 
     def start_pd_server(self, clusterId=1):
         config = {
@@ -77,67 +126,19 @@ class CuisineTIDB(app):
             --path="127.0.0.1:2379?cluster={clusterId}"'.format(**config)
         )
 
-    def make_connection(self):
-        self._connection = MySQLdb.connect("127.0.0.1")
-
-    def create_database(self, database):
-        """
-        Creates a database.
-        """
-        if self._connection:
-            cursor = self._connection.cursor()
-            SQL = """CREATE DATABASE {database};""".format(database=database)
-            print("Executing SQL", SQL)
-            cursor.execute(SQL)
-            self._connection.commit()
-
-    def drop_database(self, database):
-        """
-        Drops database if exists
-        """
-        if self._connection:
-            cursor = self._connection.cursor()
-            SQL = """DROP DATABASE IF EXISTS {database}  ;""".format(database=database)
-            print("Executing SQL", SQL)
-            cursor.execute(SQL)
-            self._connection.commit()
-
-    def create_dbuser(self, host, username, passwd):
-        """
-        Creates a user in database.
-        """
-        if self._connection:
-            cursor = self._connection.cursor()
-            SQL = """CREATE USER '{username}'@'{host}' IDENTIFIED BY '{passwd}' ;""".format(host=host, username=username, passwd=passwd)
-            print("Executing SQL", SQL)
-            cursor.execute(SQL)
-            self._connection.commit()
-
-    def grant_user(self, host, database, username):
-        """
-        Grants full access on certain databse.
-        """
-        if self._connection:
-            SQL = """grant all on {database}.* to '{username}'@'{host}' ;""".format(database=database, host=host, username=username)
-            cursor = self._connection.cursor()
-            print("Executing SQL", SQL)
-            cursor.execute(SQL)
-            self._connection.commit()
-
-    def close_connection(self):
-        self._connection.close()
-
     def simple_start(self, clusterId=1):
         """
         Read docs here.
         https://github.com/pingcap/docs/blob/master/op-guide/clustering.md
         """
-
         # Start a standalone cluster
-
         # TODO: make it possible to start multinode cluster.
         self.start_pd_server()
         self.start_tikv()
+        # tries = 0  # Give it sometime to start.
+        # while "tikv" not in self._cuisine.processmanager.list() and tries < 3:
+        #     sleep(2)
+        #     tries += 1
         self.start_tidb()
 
     def test(self):

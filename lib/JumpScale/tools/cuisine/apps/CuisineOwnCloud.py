@@ -45,22 +45,6 @@ class CuisineOwnCloud(app):
         gigconf = gigconf % {'storagepath': storagepath}
         self._cuisine.core.file_write("$appDir/owncloud/config/config.php", content=gigconf)
 
-        with self._cuisine.apps.tidb.dbman() as m:
-            try:
-                m.create_database(database="owncloud")
-                m.create_dbuser(host="127.0.0.1", username="owncloud", passwd="owncloud")
-            except:
-                pass  # user created already.
-            m.grant_user(host="127.0.0.1", username="owncloud", database="owncloud")
-        cmd = """
-        $appDir/php/bin/php $appDir/owncloud/occ maintenance:install  --database="mysql" --database-name="owncloud"\
-        --database-host="127.0.0.1" --database-user="owncloud" --database-pass="owncloud" --admin-user="admin" --admin-pass="admin"\
-        --data-dir="{storagepath}"
-        """.format(storagepath=storagepath)
-        self._cuisine.core.execute_bash(cmd)
-
-        C = "chown -R www-data:www-data $appDir/owncloud"
-        self._cuisine.core.execute_bash(C)
         if start:
             self.start(sitename)
         # look at which owncloud plugins to enable(pdf, ...)
@@ -221,6 +205,21 @@ class CuisineOwnCloud(app):
         owncloudsiterules = self._get_default_conf_nginx_site()
         owncloudsiterules = owncloudsiterules % {"sitename": sitename}
         self._cuisine.core.file_write("$cfgDir/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
+
+        with self._cuisine.apps.tidb.dbman() as m:
+            try:
+                m.create_database(database="owncloud")
+                m.create_dbuser(host="127.0.0.1", username="owncloud", passwd="owncloud")
+            except:
+                pass  # user created already.
+            m.grant_user(host="127.0.0.1", username="owncloud", database="owncloud")
+        cmd = """
+        chown root.root $appDir/owncloud/config/config.php
+        $appDir/php/bin/php $appDir/owncloud/occ maintenance:install  --database="mysql" --database-name="owncloud"\
+        --database-host="127.0.0.1" --database-user="owncloud" --database-pass="owncloud" --admin-user="admin" --admin-pass="admin"\
+        --data-dir="/data"
+        """
+        self._cuisine.core.execute_bash(cmd)
 
         basicnginxconf = self._cuisine.apps.nginx.get_basic_nginx_conf()
         basicnginxconf = basicnginxconf.replace("include $appDir/nginx/etc/sites-enabled/*;", "include $cfgDir/nginx/etc/sites-enabled/*;")

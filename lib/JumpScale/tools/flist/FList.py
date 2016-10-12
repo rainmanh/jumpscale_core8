@@ -123,18 +123,18 @@ class FList(object):
 
         return object
 
-    def _getItem(self, hash, index):
-        id = self._hash[hash]
+    def _getItem(self, filename, index):
+        id = self._hash[filename]
         if id is not None:
             return self._data[id][index]
 
         return None
 
     def getHash(self, filename):
-        return self._getItem(hash, 1)
+        return self._getItem(filename, 1)
 
     def getType(self, filename):
-        type = self._getItem(hash, 0)
+        type = self._getItem(filename, 0)
         if type is None:
             return None
 
@@ -143,29 +143,29 @@ class FList(object):
         return None
 
     def isRegular(self, filename):
-        return self._getItem(hash, 6) == 2
+        return self._getItem(filename, 6) == 2
 
     def getSize(self, filename):
-        return self._getItem(hash, 2)
+        return self._getItem(filename, 2)
 
     def getMode(self, filename):
-        return self._getItem(hash, 5)
+        return self._getItem(filename, 5)
 
     def getOwner(self, filename):
-        return self._getItem(hash, 3)
+        return self._getItem(filename, 3)
 
     def getGroup(self, filename):
-        return self._getItem(hash, 4)
+        return self._getItem(filename, 4)
 
     def getExtended(self, filename):
-        # return self._getItem(hash, 0)
+        # return self._getItem(filename, 0)
         return -1
 
     def getCreationTime(self, filename):
-        return self._getItem(hash, 7)
+        return self._getItem(filename, 7)
 
     def getModificationTime(self, filename):
-        return self._getItem(hash, 8)
+        return self._getItem(filename, 8)
 
     """
     Setters

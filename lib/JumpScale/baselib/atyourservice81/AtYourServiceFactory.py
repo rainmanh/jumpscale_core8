@@ -200,6 +200,7 @@ class AtYourServiceFactory:
         """
         if not path:
             path = j.dirs.codeDir
+        path = j.sal.fs.pathNormalize(path)
         repos = (root for root, dirs, files in os.walk(path) if '.ays' in files)
 
         db = ModelsFactory()
@@ -217,6 +218,7 @@ class AtYourServiceFactory:
         return repos
 
     def repoCreate(self, path):
+        path = j.sal.fs.pathNormalize(path)
         self._doinit()
         if j.sal.fs.exists(path):
             raise j.exceptions.Input("Directory %s already exists. Can't create AYS repo at the same location." % path)

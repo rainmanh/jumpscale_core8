@@ -300,7 +300,7 @@ class FList(object):
             # this can be only done on empty list
             return None
 
-        for dirpath, dirs, files in os.walk(path):
+        for dirpath, dirs, files in os.walk(path, followlinks=True):
             skip = False
 
             for e in excludes:

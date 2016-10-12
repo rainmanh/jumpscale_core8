@@ -87,8 +87,8 @@ class Service:
 
         # input will always happen in process
         args2 = self.input(args=args)
-        if len(args2) >= len(args) and args2 != args:
-            args = args2
+        if args2 != args:
+            args.update(args2)
         if not j.data.types.dict.check(args):
             raise j.exceptions.Input(message="result from input needs to be dict,service:%s" % self,
                                      level=1, source="", tags="", msgpub="")

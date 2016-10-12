@@ -95,6 +95,7 @@ class CuisinePHP(app):
         fpmwwwconf = self._cuisine.core.args_replace(fpmwwwconf)
         self._cuisine.core.file_write("$appDir/php/etc/php-fpm.conf.default", content=fpmdefaultconf)
         self._cuisine.core.file_write("$appDir/php/etc/php-fpm.d/www.conf", content=fpmwwwconf)
+        self._cuisine.bash.addPath(self._cuisine.core.args_replace('$appDir/php/bin'))
 
     def start(self):
         phpfpmbinpath = '$appDir/php/sbin'

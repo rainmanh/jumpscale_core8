@@ -36,7 +36,7 @@ class CuisineOwnCloud(app):
         /bin/cp -Rf $tmpDir/ays_owncloud/owncloud/config.php $appDir/owncloud/config/
         # copy gig theme
         /bin/cp -Rf $tmpDir/ays_owncloud/owncloud/gig $appDir/owncloud/themes/
-        chown -R www-data:www-data $appDir/owncloud
+
         chmod 777 -R $appDir/owncloud/config
         """
 
@@ -45,6 +45,22 @@ class CuisineOwnCloud(app):
         gigconf = gigconf % {'storagepath': storagepath}
         self._cuisine.core.file_write("$appDir/owncloud/config/config.php", content=gigconf)
 
+        with self._cuisine.apps.tidb.dbman() as m:
+            try:
+                m.create_database(database="owncloud")
+                m.create_dbuser(host="127.0.0.1", username="owncloud", passwd="owncloud")
+            except:
+                pass  # user created already.
+            m.grant_user(host="127.0.0.1", username="owncloud", database="owncloud")
+        cmd = """
+        $appDir/php/bin/php $appDir/owncloud/occ maintenance:install  --database="mysql" --database-name="owncloud"\
+        --database-host="127.0.0.1" --database-user="owncloud" --database-pass="owncloud" --admin-user="admin" --admin-pass="admin"\
+        --data-dir="{storagepath}"
+        """.format(storagepath=storagepath)
+        self._cuisine.core.execute_bash(cmd)
+
+        C = "chown -R www-data:www-data $appDir/owncloud"
+        self._cuisine.core.execute_bash(C)
         if start:
             self.start(sitename)
         # look at which owncloud plugins to enable(pdf, ...)
@@ -217,14 +233,6 @@ class CuisineOwnCloud(app):
         self._cuisine.core.file_write("$cfgDir/nginx/etc/nginx.conf", content=basicnginxconf)
         self._cuisine.processmanager.stop("nginx")
         self._cuisine.apps.nginx.start()
-
-        with self._cuisine.apps.tidb.dbman() as m:
-            try:
-                m.create_database(database="owncloud")
-                m.create_dbuser(host="127.0.0.1", username="owncloud", passwd="owncloud")
-            except:
-                pass  # user created already.
-            m.grant_user(host="127.0.0.1", username="owncloud", database="owncloud")
 
     def restart(self):
         pass

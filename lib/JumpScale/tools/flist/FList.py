@@ -52,7 +52,7 @@ class FList(object):
           - 1: symlink      (S_IFLNK)
           - 2: regular file (S_IFREG)
           - 3: block device (S_IFBLK)
-          - 4: directory    (S_IFDIR) (this is not required)
+          - 4: directory    (S_IFDIR) (used for empty directory)
           - 5: char. device (S_IFCHR)
           - 6: fifo pipe    (S_IFIFO)
 
@@ -181,16 +181,16 @@ class FList(object):
         id = self._indexForHash(hash)
         if id is None:
             return None
-        
+
         self._data[id][index] = value
         return value
-        
+
     def setPath(self, hash, value):
         return self._setItem(hash, value, 0)
 
     def setType(self, hash, value):
-        # testing regular first, it will be
-        # the most often used type (in theory)
+        # testing regular first, it will probably be
+        # the most often used type
         if S_ISREG(value):
             return self._setItem(hash, 2, 6)
 
@@ -209,11 +209,11 @@ class FList(object):
 
         if S_ISFIFO(value):
             return self._setItem(hash, 6, 6)
-        
-        # not necessary in flist, but keep if for portability
+
+        # keep track of empty directories
         if S_ISDIR(value):
             return self._setItem(hash, 4, 6)
-        
+
         return None
 
     def setSize(self, hash, value):
@@ -304,6 +304,12 @@ class FList(object):
 
             if skip:
                 continue
+
+            for dirname in dirs:
+                fname = os.path.join(dirpath, dirname)
+
+                if j.sal.fs.isEmptyDir(fname):
+                    self._build(fname)
 
             for filename in files:
                 fname = os.path.join(dirpath, filename)

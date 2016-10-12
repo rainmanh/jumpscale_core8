@@ -13,6 +13,10 @@ compileconfig['with_zlib'] = True
 compileconfig['enable_fpm'] = True
 compileconfig['prefix'] = "$appDir/php"
 compileconfig['exec_prefix'] = "$appDir/php"
+compileconfig['with_mysqli'] = True
+compileconfig['with_pdo_mysql'] = True
+compileconfig['with_mysql_sock'] = "/var/run/mysqld/mysqld.sock"
+
 
 
 class CuisinePHP(app):
@@ -20,7 +24,7 @@ class CuisinePHP(app):
     NAME = 'php'
 
     def build(self, **config):
-        pkgs = "libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev"
+        pkgs = "libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev"
         list(map(self._cuisine.package.ensure, pkgs.split(sep=" ")))
 
         buildconfig = deepcopy(compileconfig)

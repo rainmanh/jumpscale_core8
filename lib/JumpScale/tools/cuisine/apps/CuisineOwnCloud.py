@@ -59,6 +59,29 @@ class CuisineOwnCloud(app):
         );
         """
 
+        # <?php
+        # $CONFIG = array (
+        #   'theme' => 'gig',
+        #   'datadirectory' => '/data/',
+        #   'instanceid' => 'oc9c63xcgy7l',
+        #   'passwordsalt' => 'MB/U0WgxwRZ6BLnzN0reuQ3uwmDUiG',
+        #   'secret' => 'pTG61+fi55qjzoCtik7ROHBN8HoH2vrn1SKSIFXBDlZ+g2Sa',
+        #   'trusted_domains' =>
+        #   array (
+        #     0 => 'owncloudy.com',
+        #   ),
+        #   'overwrite.cli.url' => 'http://owncloudy.com',
+        #   'dbtype' => 'mysql',
+        #   'version' => '9.1.1.3',
+        #   'dbname' => 'owncloud',
+        #   'dbhost' => '127.0.0.1',
+        #   'dbtableprefix' => 'oc_',
+        #   'dbuser' => 'oc_admin',
+        #   'dbpassword' => 'l1R5ILt15MOwq/a2KkIMSfW+1GmMEA',
+        #   'logtimezone' => 'UTC',
+        #   'installed' => true,
+        # );
+
     def _get_default_conf_nginx_site(self):
         conf = """\
         upstream php-handler {
@@ -141,6 +164,7 @@ class CuisineOwnCloud(app):
                 fastcgi_pass php-handler;
                 fastcgi_intercept_errors on;
                 fastcgi_request_buffering off;
+                fastcgi_read_timeout 300;
             }
 
             location ~ ^/(?:updater|ocs-provider)(?:$|/) {
@@ -193,6 +217,17 @@ class CuisineOwnCloud(app):
         self._cuisine.core.file_write("$cfgDir/nginx/etc/nginx.conf", content=basicnginxconf)
         self._cuisine.processmanager.stop("nginx")
         self._cuisine.apps.nginx.start()
+
+        self._cuisine.apps.tidb.make_connection()
+        self._cuisine.apps.tidb.drop_database(database="owncloud")
+        self._cuisine.apps.tidb.create_database(database="owncloud")
+        try:
+            self._cuisine.apps.tidb.create_dbuser(host="127.0.0.1", username="owncloud", passwd="owncloud")
+        except:
+            pass  # user created already.
+
+        self._cuisine.apps.tidb.grant_user(host="127.0.0.1", username="owncloud", database="owncloud")
+        self._cuisine.apps.tidb.close_connection()
 
     def restart(self):
         pass

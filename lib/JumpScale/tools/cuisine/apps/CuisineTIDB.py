@@ -1,6 +1,6 @@
 from JumpScale import j
 from time import sleep
-
+import MySQLdb
 
 app = j.tools.cuisine._getBaseAppClass()
 
@@ -11,6 +11,7 @@ class CuisineTIDB(app):
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
+        self._connection = None
 
     def _build(self):
         # TODO: *1
@@ -42,7 +43,91 @@ class CuisineTIDB(app):
         if install:
             self.install(start)
 
-    def start(self, clusterId=1):
+
+    def start_pd_server(self, clusterId=1):
+        config = {
+            'clusterId': clusterId,
+            'dataDir': j.sal.fs.joinPaths(j.dirs.varDir, 'tidb'),
+        }
+        self._cuisine.processmanager.ensure(
+            'tipd',
+            'pd-server --cluster-id {clusterId} \
+            --data-dir={dataDir}'.format(**config),
+        )
+
+    def start_tikv(self, clusterId=1):
+        config = {
+            'clusterId': clusterId,
+            'dataDir': j.sal.fs.joinPaths(j.dirs.varDir, 'tidb'),
+        }
+        self._cuisine.processmanager.ensure(
+            'tikv',
+            'tikv-server -I {clusterId} -S raftkv \
+            --pd 127.0.0.1:2379 -s tikv1'.format(**config)
+        )
+
+    def start_tidb(self, clusterId=1):
+        config = {
+            'clusterId': clusterId,
+            'dataDir': j.sal.fs.joinPaths(j.dirs.varDir, 'tidb'),
+        }
+        self._cuisine.processmanager.ensure(
+            'tidb',
+            'tidb-server -P 3306 --store=tikv \
+            --path="127.0.0.1:2379?cluster={clusterId}"'.format(**config)
+        )
+
+    def make_connection(self):
+        self._connection = MySQLdb.connect("127.0.0.1")
+
+    def create_database(self, database):
+        """
+        Creates a database.
+        """
+        if self._connection:
+            cursor = self._connection.cursor()
+            SQL = """CREATE DATABASE {database};""".format(database=database)
+            print("Executing SQL", SQL)
+            cursor.execute(SQL)
+            self._connection.commit()
+
+    def drop_database(self, database):
+        """
+        Drops database if exists
+        """
+        if self._connection:
+            cursor = self._connection.cursor()
+            SQL = """DROP DATABASE IF EXISTS {database}  ;""".format(database=database)
+            print("Executing SQL", SQL)
+            cursor.execute(SQL)
+            self._connection.commit()
+
+    def create_dbuser(self, host, username, passwd):
+        """
+        Creates a user in database.
+        """
+        if self._connection:
+            cursor = self._connection.cursor()
+            SQL = """CREATE USER '{username}'@'{host}' IDENTIFIED BY '{passwd}' ;""".format(host=host, username=username, passwd=passwd)
+            print("Executing SQL", SQL)
+            cursor.execute(SQL)
+            self._connection.commit()
+
+    def grant_user(self, host, database, username):
+        """
+        Grants full access on certain databse.
+        """
+        if self._connection:
+            SQL = """grant all on {database}.* to '{username}'@'{host}' ;""".format(database=database, host=host, username=username)
+            cursor = self._connection.cursor()
+            print("Executing SQL", SQL)
+            cursor.execute(SQL)
+            self._connection.commit()
+
+    def close_connection(self):
+        self._connection.close()
+
+    def simple_start(self, clusterId=1):
         """
         Read docs here.
         https://github.com/pingcap/docs/blob/master/op-guide/clustering.md
@@ -51,28 +136,9 @@ class CuisineTIDB(app):
         # Start a standalone cluster
 
         # TODO: make it possible to start multinode cluster.
-        config = {
-            'clusterId': clusterId,
-            'dataDir': j.sal.fs.joinPaths(j.dirs.varDir, 'tidb'),
-        }
-
-        self._cuisine.processmanager.ensure(
-            'tipd',
-            'pd-server --cluster-id {clusterId} \
-            --data-dir={dataDir}'.format(**config),
-        )
-
-        self._cuisine.processmanager.ensure(
-            'tikv',
-            'tikv-server -I {clusterId} -S raftkv \
-            --pd 127.0.0.1:2379 -s tikv1'.format(**config)
-        )
-
-        self._cuisine.processmanager.ensure(
-            'tidb',
-            'tidb-server --store=tikv \
-            --path="127.0.0.1:2379?cluster={clusterId}"'.format(**config)
-        )
+        self.start_pd_server()
+        self.start_tikv()
+        self.start_tidb()
 
     def test(self):
         raise NotImplementedError

@@ -56,6 +56,18 @@ class TIDBContextManager:
 
 
 class CuisineTIDB(app):
+    """
+    Installs TIDB.
+
+    # TODO :*1 FIX install method (to chain 3 start as a simple start method)
+    build(start=False)
+    then start manually
+    start_tipd()
+    start_tikv()
+    start_tidb()
+
+
+    """
     NAME = 'tidb'
 
     def __init__(self, executor, cuisine):
@@ -73,9 +85,11 @@ class CuisineTIDB(app):
 
         self._cuisine.core.run('cd /tmp/tidb/ && curl {} | bash'.format(url), profile=True)
 
+    # TODO:  Currently install with start=False and then run start_tipd, start_tikv, start_tidb separately
     def install(self, start=False):
         """
         download, install, move files to appropriate places, and create relavent configs
+        
         """
         script = '''
         mv /tmp/tidb/bin/* $binDir/
@@ -140,6 +154,9 @@ class CuisineTIDB(app):
         #     sleep(2)
         #     tries += 1
         self.start_tidb()
+    
+    def start(self, clusterId=1):
+        return self.simple_start()
 
     def test(self):
         raise NotImplementedError

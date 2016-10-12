@@ -8,5 +8,5 @@ class GogsFactory:
         self.__jslocation__ = "j.clients.gogs"
         self.logger = j.logger.get("j.clients.gogs")
 
-    def get(self, addr='http://172.17.0.1', port='3000', login='abdu', passwd='gig1234'):
-        return GogsClient(addr, port, login, passwd)
+    def get(self, addr='https://192.168.1.1', port=443, login='abdu', passwd='gig1234'):
+        return GogsClient(addr=addr, port=port, login=login, passwd=passwd)

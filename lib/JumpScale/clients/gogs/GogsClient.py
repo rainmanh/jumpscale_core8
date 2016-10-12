@@ -1,13 +1,14 @@
+
 from JumpScale import j
-import requests
-from requests.auth import HTTPBasicAuth
-from random import randint
-# the users are done , the organization grouping adding and listing of users still not implemented
 # issues still not implemented
-# repos is done except for repository_delete_user
+
 # use gogs from 0-complexity and go-gogs-client from 0-complexity
 # url = https://github.com/0-complexity/gogs
 # url = https://github.com/0-complexity/go-gogs-client
+
+import requests
+from requests.auth import HTTPBasicAuth
+from random import randint
 
 
 class GogsBaseException(Exception):
@@ -35,15 +36,18 @@ class GogsClient:
     some depend on an edited gogs , which is not yet pushed
     """
 
-    def __init__(self, addr, port, login, passwd):
-        self.addr = addr if "http://" in addr else "http://" + addr
+    def __init__(self, addr, login, passwd, port=443):
+        if "https://" in addr:
+            self.addr = addr
+        else:
+            self.addr = addr if "http://" in addr else "http://" + addr
         self.port = port
         self._login = login
         self._passwd = passwd
         self.base_url = "%s:%s/api/v1" % (self.addr, self.port)
-
         self.session = requests.session()
         self.session.auth = HTTPBasicAuth(login, passwd)
+
         # https://github.com/gogits/gogs/tree/master/routers/api/v1
         # https://github.com/gogits/go-gogs-client/wiki
         # modify gogs if have to to get API to do what we want (seems to be
@@ -60,6 +64,7 @@ class GogsClient:
         # delete issues
         # delete users
         # delete orgs
+        pass
 
     def get_url(self, *args):
         return j.sal.fs.joinPaths(self.base_url, *args)
@@ -395,6 +400,7 @@ class GogsClient:
         list issues of repo belonging to owner,
         owner can be user or organization
         """
+
         if not owner:
             owner = self._login
 

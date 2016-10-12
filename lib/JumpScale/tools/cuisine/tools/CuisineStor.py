@@ -662,7 +662,7 @@ class StorSpace(object):
 
         for key, exist in exists.items():
             if not exist and f.isRegular(key):
-                needed.append({'hash': key, 'file': f.getPath(key)})
+                needed.append({'hash': f.getHash(key), 'file': key})
 
         if len(needed) == 0:
             # nothing to upload

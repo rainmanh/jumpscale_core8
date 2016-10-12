@@ -107,7 +107,7 @@ class FList(object):
     Getters
     """
 
-    def _indexFromHash(self, hash):
+    def _indexFromHash(self, filename):
         if hash not in self._hash:
             return None
 
@@ -116,7 +116,7 @@ class FList(object):
     def getHashList(self):
         return list(self._hash.keys())
 
-    def getObject(self, hash):
+    def getObject(self, filename):
         object = {
             # ...
         }
@@ -130,10 +130,10 @@ class FList(object):
 
         return None
 
-    def getPath(self, hash):
-        return self._getItem(hash, 0)
+    def getHash(self, filename):
+        return self._getItem(hash, 1)
 
-    def getType(self, hash):
+    def getType(self, filename):
         type = self._getItem(hash, 0)
         if type is None:
             return None
@@ -142,29 +142,29 @@ class FList(object):
 
         return None
 
-    def isRegular(self, hash):
+    def isRegular(self, filename):
         return self._getItem(hash, 6) == 2
 
-    def getSize(self, hash):
+    def getSize(self, filename):
         return self._getItem(hash, 2)
 
-    def getMode(self, hash):
+    def getMode(self, filename):
         return self._getItem(hash, 5)
 
-    def getOwner(self, hash):
+    def getOwner(self, filename):
         return self._getItem(hash, 3)
 
-    def getGroup(self, hash):
+    def getGroup(self, filename):
         return self._getItem(hash, 4)
 
-    def getExtended(self, hash):
+    def getExtended(self, filename):
         # return self._getItem(hash, 0)
         return -1
 
-    def getCreationTime(self, hash):
+    def getCreationTime(self, filename):
         return self._getItem(hash, 7)
 
-    def getModificationTime(self, hash):
+    def getModificationTime(self, filename):
         return self._getItem(hash, 8)
 
     """
@@ -181,7 +181,7 @@ class FList(object):
 
         return self._hash[filename]
 
-    def _setItem(self, filename, hash, value, index):
+    def _setItem(self, filename, value, index):
         id = self._indexForPath(filename)
         if id is None:
             return None
@@ -189,50 +189,50 @@ class FList(object):
         self._data[id][index] = value
         return value
 
-    def setHash(self, filename, hash, value):
-        return self._setItem(filename, hash, value, 1)
+    def setHash(self, filename, value):
+        return self._setItem(filename, value, 1)
 
-    def setType(self, filename, hash, value):
+    def setType(self, filename, value):
         # testing regular first, it will probably be
         # the most often used type
         if S_ISREG(value):
-            return self._setItem(filename, hash, 2, 6)
+            return self._setItem(filename, 2, 6)
 
         # testing special files type
         if S_ISSOCK(value):
-            return self._setItem(filename, hash, 0, 6)
+            return self._setItem(filename, 0, 6)
 
         if S_ISLNK(value):
-            return self._setItem(filename, hash, 1, 6)
+            return self._setItem(filename, 1, 6)
 
         if S_ISBLK(value):
-            return self._setItem(filename, hash, 3, 6)
+            return self._setItem(filename, 3, 6)
 
         if S_ISCHR(value):
-            return self._setItem(filename, hash, 5, 6)
+            return self._setItem(filename, 5, 6)
 
         if S_ISFIFO(value):
-            return self._setItem(filename, hash, 6, 6)
+            return self._setItem(filename, 6, 6)
 
         # keep track of empty directories
         if S_ISDIR(value):
-            return self._setItem(filename, hash, 4, 6)
+            return self._setItem(filename, 4, 6)
 
         return None
 
-    def setSize(self, filename, hash, value):
-        return self._setItem(filename, hash, value, 2)
+    def setSize(self, filename, value):
+        return self._setItem(filename, value, 2)
 
-    def setMode(self, filename, hash, value):
-        return self._setItem(filename, hash, value, 5)
+    def setMode(self, filename, value):
+        return self._setItem(filename, value, 5)
 
-    def setOwner(self, filename, hash, value):
-        return self._setItem(filename, hash, value, 3)
+    def setOwner(self, filename, value):
+        return self._setItem(filename, value, 3)
 
-    def setGroup(self, filename, hash, value):
-        return self._setItem(filename, hash, value, 4)
+    def setGroup(self, filename, value):
+        return self._setItem(filename, value, 4)
 
-    def setExtended(self, filename, hash, value):
+    def setExtended(self, filename, value):
         """
         value: need to be a stat struct
         """
@@ -241,20 +241,20 @@ class FList(object):
         # symlink
         if S_ISLNK(value.st_mode):
             xtd = os.readlink(path)
-            return self._setItem(filename, hash, xtd, 9)
+            return self._setItem(filename, xtd, 9)
 
         # block device
         if S_ISBLK(value.st_mode) or S_ISCHR(value.st_mode):
             id = '%d,%d' % (os.major(value.st_rdev), os.minor(value.st_rdev))
-            return self._setItem(filename, hash, id, 9)
+            return self._setItem(filename, id, 9)
 
-        return self._setItem(filename, hash, "", 9)
+        return self._setItem(filename, "", 9)
 
-    def setModificationTime(self, filename, hash, value):
-        return self._setItem(filename, hash, int(value), 7)
+    def setModificationTime(self, filename, value):
+        return self._setItem(filename, int(value), 7)
 
-    def setCreationTime(self, filename, hash, value):
-        return self._setItem(filename, hash, int(value), 8)
+    def setCreationTime(self, filename, value):
+        return self._setItem(filename, int(value), 8)
 
     """
     Builder
@@ -285,15 +285,15 @@ class FList(object):
         else:
             hash = j.data.hash.md5(filename)
 
-        self.setHash(filename, hash, hash)
-        self.setType(filename, hash, stat.st_mode)
-        self.setSize(filename, hash, stat.st_size)
-        self.setMode(filename, hash, mode)
-        self.setOwner(filename, hash, uname)
-        self.setGroup(filename, hash, gname)
-        self.setExtended(filename, hash, stat)
-        self.setModificationTime(filename, hash, stat.st_mtime)
-        self.setCreationTime(filename, hash, stat.st_ctime)
+        self.setHash(filename, hash)
+        self.setType(filename, stat.st_mode)
+        self.setSize(filename, stat.st_size)
+        self.setMode(filename, mode)
+        self.setOwner(filename, uname)
+        self.setGroup(filename, gname)
+        self.setExtended(filename, stat)
+        self.setModificationTime(filename, stat.st_mtime)
+        self.setCreationTime(filename, stat.st_ctime)
 
     def build(self, path, excludes=[]):
         if len(self._data) > 0:

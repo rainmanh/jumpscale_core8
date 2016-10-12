@@ -21,12 +21,12 @@ class Server:
             self._config_path = config_path
         self._config = self._load_config(self._config_path)
 
-        self._server = j.servers.kvs.getRedisStore("ays_server", namespace='db', **self._config['redis'])
+        self._command_queue = j.servers.kvs.getRedisStore("ays_server", namespace='db', **self._config['redis'])
 
         self.logger = j.atyourservice.logger
 
-        self._recurring_loop = RecurringLoop(j.clients.atyourservice.get(**self._config['redis']))
-        self._waiting_jobs = Pool(processes=32)
+        self._recurring_loop = RecurringLoop()
+        self._workers = Pool()
 
         # self._set_signale_handler()
 
@@ -58,7 +58,7 @@ class Server:
         self._running = True
 
         while self._running:
-            payload = self._server.queueGet('command', timeout=2)
+            payload = self._command_queue.queueGet('command', timeout=2)
             if payload is None:
                 # timeout without receiving command
                 continue
@@ -79,7 +79,7 @@ class Server:
 
     def stop(self):
         if self._recurring_loop.is_alive():
-            self.logger.info("stopping recurring thread")
+            self.logger.info("stopping monitor recurring process")
             self._recurring_loop.stop()
             # FIXME: why:  assert self._parent_pid == os.getpid(), 'can only join a child process'
             # self._recurring_loop.join()
@@ -89,8 +89,8 @@ class Server:
             self.logger.info("stopping server")
 
         self.logger.info("wait for all jobs to finish")
-        self._waiting_jobs.close()
-        self._waiting_jobs.join()
+        self._workers.close()
+        self._workers.join()
 
     def _dispatch(self, request):
         self.logger.info('dispatch request %s' % request)
@@ -99,57 +99,41 @@ class Server:
         if request['command'] == 'execute':
             self._execute(request)
 
+        elif request['command'] == 'event':
+            self._progagate_event(request)
+
     def _execute(self, request):
-        self._waiting_jobs.apply_async(process_job, (request,))
+        if 'action' not in request:
+            self.logger.error('execute command received but not action specified in request.')
+            return
 
+        action = requrest['action']
+        args = requrest.get('args', {})
+        self._workers.apply_async(service.runAction, (action, args))
 
-def process_job(request):
-    """
-    this task creates a job from the request information, wait for the job to complete and save the state of the job back to the database
-    """
-    logger = j.atyourservice.logger
-    try:
-        repo = j.atyourservice.repoGet(request['repo_path'])
-        service_model = repo.db.service.get(request['service_key'])
-        service = service_model.objectGet(repo)
-    except Exception as e:
-        logger.error("Can't execute action: %s" % str(e))
-        return
+    def _progagate_event(self, request):
+        if 'event' not in request:
+            self.logger.error('event command received but not event type specified in request.')
+            return
 
-    logger.info('execute %s on %s' % (request['action_name'], service))
-    action = request['action_name']
-    job = service.getJob(request['action_name'])
+        event_type = request['event']
+        args = request.get('args', {})
 
-    now = j.data.time.epoch
-    p = job.execute()
+        for repo in j.atyourservice.reposList():
+            for service in repo.services:
+                if len(service.model.actionsEvent) <= 0:
+                    continue
 
-    while not p.isDone():
-        p.wait()
+                for action_name, event_obj in service.model.actionsEvent.items():
+                    if event_obj.event != event_type:
+                        continue
 
-    # if the action is a reccuring action, save last execution time in model
-    if action in service.model.actionsRecurring:
-        service.model.actionsRecurring[action].lastRun = now
+                    self.logger.info('event %s propagated to %s repo: %s' % (event_type, service, repo.path))
 
-    service_action_obj = service.model.actions[action]
+                    event_obj.lastRun = j.data.time.epoch
+                    service.save()
 
-    if p.state != 'success':
-        job.model.dbobj.state = 'error'
-        service_action_obj.state = 'error'
-        # processError creates the logs entry in job object
-        job._processError(p.error)
-    else:
-        job.model.dbobj.state = 'ok'
-        service_action_obj.state = 'ok'
-
-        log_enable = j.core.jobcontroller.db.action.get(service_action_obj.actionKey).dbobj.log
-        if log_enable:
-            job.model.log(msg=p.stdout, level=5, category='out')
-            job.model.log(msg=p.stderr, level=5, category='err')
-
-    job.model.save()
-    service.save()
-    j.atyourservice.logger.info('job %s for %s finished' % (action, service.model.key))
-    return 'done'
+                    self._workers.apply_async(service.runAction, (event_obj.action, args))
 
 
 class RecurringLoop(Process):
@@ -163,33 +147,31 @@ class RecurringLoop(Process):
     that take care of waiting for the job to complete and saving it's state back the db.
     """
 
-    def __init__(self, client):
+    def __init__(self):
         super(RecurringLoop, self).__init__()
-        self._client = client
         self.logger = j.atyourservice.logger
         self._running = False
+        self._workers = Pool()
 
     def run(self):
         self.logger.info('starting recurring thread')
         self._running = True
 
         while self.is_alive() and self._running:
-            # TODO loop over all repos
-            repo = j.atyourservice.get()
-            for service in repo.services:
-                if len(service.model.actionsRecurring) <= 0:
-                    continue
+            repos = j.atyourservice.reposList()
+            for repo in repos:
+                for service in repo.services:
+                    if len(service.model.actionsRecurring) <= 0:
+                        continue
 
-                for action_name, recurring_obj in service.model.actionsRecurring.items():
+                    for action_name, recurring_obj in service.model.actionsRecurring.items():
 
-                    now = j.data.time.epoch
-                    if recurring_obj.lastRun == 0 or now > (recurring_obj.lastRun + recurring_obj.period):
-                        self._client.do('execute', args={
-                            'repo_path': repo.path,
-                            'service_key': service.model.key,
-                            'action_name': action_name
-                        })
-                        recurring_obj.lastRun = now
+                        now = j.data.time.epoch
+                        if recurring_obj.lastRun == 0 or now > (recurring_obj.lastRun + recurring_obj.period):
+                            recurring_obj.lastRun = now
+                            service.save()
+                            self.logger.info('recurring job for %s' % service)
+                            self._workers.apply_async(service.runAction, (action_name, ))
 
             time.sleep(1)
 

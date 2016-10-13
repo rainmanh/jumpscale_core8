@@ -13,6 +13,11 @@ class HRDFactory:
         self.logger.disabled = True
 
     def sanitize_key(self, key):
+        """
+        make sure the key of an HRD schema has a valid format for Capnp Schema
+        e.g.:
+            ssh.port becomes sshPort
+        """
         return HRDSchema.sanitize_key(key)
 
     def getSchema(self, path=None, content=""):

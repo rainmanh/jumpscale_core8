@@ -380,8 +380,15 @@ class Service:
 
         self.model.producerAdd(
             actorName=service.model.dbobj.actorName,
-            serviceName=service.model.name,
+            serviceName=service.name,
             key=service.model.key)
+
+        if service.model.dbobj.actorName not in self._producers:
+            self._producers[service.model.dbobj.actorName] = [service]
+        else:
+            self._producers[service.model.dbobj.actorName].append(service)
+
+        self.saveAll()
 
     @property
     def executor(self):

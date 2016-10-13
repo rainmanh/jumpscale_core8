@@ -30,6 +30,7 @@ class CuisineOwnCloud(app):
 
         C = """
         set -xe
+        rm -rf $appDir/owncloud
         mv $tmpDir/owncloud $appDir/owncloud
 
         # copy config.php to new owncloud home httpd/docs

@@ -39,6 +39,7 @@ class CuisinePHP(app):
                 args_string += " --{k}={v}".format(k=k, v=v)
         C = """
         rm -rf $tmpDir/php
+        rm -rf $appDir/php
         set -xe
         rm -rf $tmpDir/php-7.0.11
         cd $tmpDir && [ ! -f $tmpDir/php-7.0.11.tar.bz2 ] && cd $tmpDir && wget http://be2.php.net/distributions/php-7.0.11.tar.bz2 && tar xvjf $tmpDir/php-7.0.11.tar.bz2
@@ -49,8 +50,6 @@ class CuisinePHP(app):
         cd $tmpDir/php && ./configure {args_string} && make
 
         """.format(args_string=args_string)
-
-        self._cuisine.core.dir_ensure("$appDir/php")
         C = self._cuisine.core.args_replace(C)
 
         self._cuisine.core.execute_bash(C)
@@ -84,8 +83,6 @@ class CuisinePHP(app):
         fpmwwwconf = textwrap.dedent(fpmwwwconf)
         # make sure to save that configuration file ending with .conf under php/etc/php-fpm.d/www.conf
         C = """
-        rm -rf $appDir/php
-        mkdir $appDir/php
         cd $tmpDir/php && make install
         """
 

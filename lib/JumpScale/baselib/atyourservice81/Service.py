@@ -493,6 +493,9 @@ class Service:
         now = j.data.time.epoch
         p = job.execute()
 
+        if job.model.dbobj.debug is True:
+            return job
+
         while not p.isDone():
             p.wait()
 

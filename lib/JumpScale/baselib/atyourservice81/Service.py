@@ -194,7 +194,7 @@ class Service:
             event.lastRun = 0
 
     def check_args(self, actor, args):
-        """ Checks whether if args is the same is instance model """
+        """ Checks whether if args are the same as in instance model """
         data = j.data.serializer.json.loads(self.model.dataJSON)
         for key, value in args.items():
             if data[key] != value:

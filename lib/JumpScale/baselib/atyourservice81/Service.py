@@ -193,6 +193,12 @@ class Service:
             event.log = event_info.log
             event.lastRun = 0
 
+    def check_args(self, actor, args):
+        """ Checks whether if args is the same is instance model """
+        data = j.data.serializer.json.loads(self.model.dataJSON)
+        for key, value in args.items():
+            if data[key] != value:
+                self.processChange(actor=actor, changeCategory="dataschema", args=args)
 
     def loadFromFS(self):
         """
@@ -393,7 +399,7 @@ class Service:
                 return executor
         return j.tools.executor.getLocal()
 
-    def processChange(self, actor, changeCategory):
+    def processChange(self, actor, changeCategory, args={}):
         """
         template action change
         categories :
@@ -407,8 +413,9 @@ class Service:
         # self.logger.debug('process change for %s (%s)' % (self, changeCategory))
 
         if changeCategory == 'dataschema':
-            # TODO
-            pass
+            for key, value in args.items():
+                setattr(self.model.data, key, value)
+            self.model.save()
         elif changeCategory == 'ui':
             # TODO
             pass

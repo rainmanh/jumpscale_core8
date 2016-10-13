@@ -55,7 +55,7 @@ class ActionModel(ModelBase):
     @property
     def key(self):
         if self._key == "":
-            self._key = j.data.hash.md5_string(self.dbobj.name + self.dbobj.code)
+            self._key = j.data.hash.md5_string(self.dbobj.name + self.dbobj.code + self.argsText)
         return self._key
 
     @classmethod

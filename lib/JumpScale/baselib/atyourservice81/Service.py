@@ -413,7 +413,11 @@ class Service:
         # TODO: implement different pre-define action for each category
         # self.logger.debug('process change for %s (%s)' % (self, changeCategory)
 
-        if changeCategory == 'ui':
+        if changeCategory == 'dataschema':
+            # We use the args passed without change
+            pass
+
+        elif changeCategory == 'ui':
             # TODO
             pass
         elif changeCategory == 'config':

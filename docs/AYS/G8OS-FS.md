@@ -13,7 +13,7 @@ The G8OS FS uses two kinds of files to recreate a file system:
 - Metadata files
 - Binary files
 
-There is one metadata file for each AYS service template or AYS service instance.
+There is one metadata file for each AYS actor template or AYS service instance.
 
 The following is an excerpt of the metadata files of the `jumpscale__base` services:
 

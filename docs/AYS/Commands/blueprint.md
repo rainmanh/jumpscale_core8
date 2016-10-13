@@ -24,7 +24,7 @@ Options:
 
 The process that takes places is:
 
-- Copy the AYS service template files to appropriate destination in your AYS repository
+- Copy the AYS actor template files to appropriate destination in your AYS repository
 
   - e.g. `/Users/kristofdespiegeleer1/code/jumpscale/ays_core_it/services/sshkey!main`)
 

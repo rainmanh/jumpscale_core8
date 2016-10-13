@@ -51,7 +51,7 @@ The **Templates Details** page shows information pertinent to the template; such
 
 The **Service Details** page shows information pertinent to a service instance.
 
-It gives a link to the service template used to install.
+It gives a link to the actor template used to install.
 
 The code editor gives a handy way to edit/configure the service instance.
 

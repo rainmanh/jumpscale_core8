@@ -1,6 +1,6 @@
 # AYS Template Repo
 
-AYS service template repositories contain all the metadata defining the lifecycle of a service, from pre-installation to monitoring.
+AYS actor template repositories contain all the metadata defining the lifecycle of a service, from pre-installation to monitoring.
 
 An example is [ays_jumpscale8](https://github.com/Jumpscale/ays_jumpscale8), defining the full life cycle of all JumpScale services.
 
@@ -27,7 +27,7 @@ All metadata repositories are cloned as subdirectories of `/opt/code/$type/`:
 
 - Reposotories from other Git systems are cloned into `/opt/code/git/`
 
-Each AYS service template has following files:
+Each AYS actor template has following files:
 
 - **schema.hrd**
 
@@ -55,12 +55,24 @@ Each AYS service template has following files:
     docker.local = type:bool default:False
     ```
 
-- **service.hrd** (optional)
+- **actor.hrd** (optional)
 
-  - Containing information about recurring action methods, how to react on changes and how to run processes
-  - See 
+  - Containing information about recurring action methods, and action triggered by events.
 
-    <service.hrd> for more details</service.hrd>
+  - Example:
+    ```
+    recurring.monitor =
+        period: 30s,
+        log: True,
 
+    recurring.cleanup =
+        period: 30s,
+        log: False,
+
+    event.telegram.install =
+        log:'True',
+    event.telegram.update  =
+        log:'False',
+      ```
 
 - **actions.py** defines the behavior of the service (optional)

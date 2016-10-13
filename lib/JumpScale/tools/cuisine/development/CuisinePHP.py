@@ -47,17 +47,16 @@ class CuisinePHP(app):
         mv $tmpDir/php-7.0.11/ $tmpDir/php
 
         #build
-        cd $tmpDir/php && ./configure {args_string} && make && make test
+        cd $tmpDir/php && ./configure {args_string} && make
 
         """.format(args_string=args_string)
-        print("PHP ARGS_STRING: ", args_string)
-        C = self._cuisine.core.args_replace(C)
 
+        C = self._cuisine.core.args_replace(C)
         self._cuisine.core.execute_bash(C)
 
         # check if we need an php accelerator: https://en.wikipedia.org/wiki/List_of_PHP_accelerators
 
-    def install(self, start=True):
+    def install(self, start=False):
         fpmdefaultconf = """\
         include=$appDir/php/etc/php-fpm.d/*.conf
         """
@@ -94,6 +93,9 @@ class CuisinePHP(app):
         self._cuisine.core.file_write("$appDir/php/etc/php-fpm.conf.default", content=fpmdefaultconf)
         self._cuisine.core.file_write("$appDir/php/etc/php-fpm.d/www.conf", content=fpmwwwconf)
         self._cuisine.bash.addPath(self._cuisine.core.args_replace('$appDir/php/bin'))
+
+        if start:
+            self.start()
 
     def start(self):
         phpfpmbinpath = '$appDir/php/sbin'

@@ -331,7 +331,7 @@ class Actor():
 
         service = self.aysrepo.serviceGet(role=self.model.role, instance=instance, die=False)
         if service is not None:
-            service.check_args(self, args)
+            service._check_args(self, args)
             return service
         service = Service(aysrepo=self.aysrepo, actor=self, name=instance, args=args)
         return service

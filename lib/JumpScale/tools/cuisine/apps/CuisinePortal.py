@@ -14,7 +14,7 @@ class CuisinePortal(base):
         self.main_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'main')
 
     def _install(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1",
-                 influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
+                 influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd="", branch='master'):
         """
         grafanaip and port should be the external ip of the machine
         Portal install will only install the portal and libs. No spaces but the system ones will be add by default.
@@ -26,7 +26,7 @@ class CuisinePortal(base):
             self._cuisine.development.js8.install()
         self._cuisine.development.pip.packageUpgrade("pip")
         self.installDeps()
-        self.getcode()
+        self.getcode(branch=branch)
         self.linkCode()
         self.serviceconnect(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip,
                             influxport=influxport, grafanaip=grafanaip, grafanaport=grafanaport)
@@ -135,8 +135,8 @@ class CuisinePortal(base):
         self._cuisine.development.pip.multiInstall(deps)
         self._cuisine.apps.mongodb.build()
 
-    def getcode(self):
-        self._cuisine.development.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git")
+    def getcode(self, branch='master'):
+        self._cuisine.development.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git", branch=branch=None)
 
     def linkCode(self):
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")

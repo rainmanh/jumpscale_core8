@@ -89,7 +89,7 @@ class CuisineTIDB(app):
     def install(self, start=False):
         """
         download, install, move files to appropriate places, and create relavent configs
-        
+
         """
         script = '''
         mv /tmp/tidb/bin/* $binDir/
@@ -149,12 +149,18 @@ class CuisineTIDB(app):
         # TODO: make it possible to start multinode cluster.
         self.start_pd_server()
         self.start_tikv()
+        cmd = "netstat | grep tidb-server"
+        rc, out, err = self._cuisine.core.run(cmd)
+        tries = 0  # Give it sometime to start.
+        while rc != 0 and tries < 3:
+            sleep(2)
+            tries += 1
         # tries = 0  # Give it sometime to start.
-        # while "tikv" not in self._cuisine.processmanager.list() and tries < 3:
+        # while "tikv" not in self._cuisine.processmanager.list( and tries < 3:
         #     sleep(2)
         #     tries += 1
         self.start_tidb()
-    
+
     def start(self, clusterId=1):
         return self.simple_start()
 

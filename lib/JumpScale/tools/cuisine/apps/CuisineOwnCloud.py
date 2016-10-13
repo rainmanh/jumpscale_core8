@@ -202,7 +202,7 @@ class CuisineOwnCloud(app):
         conf = self._cuisine.core.args_replace(conf)
         return conf
 
-    def start(self, sitename):
+    def start(self, sitename='owncloudy.com', dbhost="127.0.0.1", dbuser="owncloud", dbpass="owncloud"):
         owncloudsiterules = self._get_default_conf_nginx_site()
         owncloudsiterules = owncloudsiterules % {"sitename": sitename}
         self._cuisine.core.file_write("$cfgDir/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
@@ -210,16 +210,17 @@ class CuisineOwnCloud(app):
         with self._cuisine.apps.tidb.dbman() as m:
             try:
                 m.create_database(database="owncloud")
-                m.create_dbuser(host="127.0.0.1", username="owncloud", passwd="owncloud")
+                m.create_dbuser(host=dbhost, username=dbuser, passwd=dbpass)
             except:
                 pass  # user created already.
-            m.grant_user(host="127.0.0.1", username="owncloud", database="owncloud")
+            m.grant_user(host=dbhost, username=dbuser, database="owncloud")
         cmd = """
         chown root.root $appDir/owncloud/config/config.php
         $appDir/php/bin/php $appDir/owncloud/occ maintenance:install  --database="mysql" --database-name="owncloud"\
-        --database-host="127.0.0.1" --database-user="owncloud" --database-pass="owncloud" --admin-user="admin" --admin-pass="admin"\
+        --database-host="{dbhost}" --database-user="{dbuser}" --database-pass="{dbpass}" --admin-user="admin" --admin-pass="admin"\
         --data-dir="/data"
-        """
+        """.format(dbhost=dbhost, dbuser=dbuser, dbpass=dbpass)
+
         self._cuisine.core.execute_bash(cmd)
 
         basicnginxconf = self._cuisine.apps.nginx.get_basic_nginx_conf()

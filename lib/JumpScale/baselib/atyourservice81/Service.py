@@ -197,7 +197,8 @@ class Service:
         """ Checks whether if args are the same as in instance model """
         data = j.data.serializer.json.loads(self.model.dataJSON)
         for key, value in args.items():
-            if data[key] != value:
+            sanitized_key = j.data.hrd.sanitize_key(key)
+            if data[sanitized_key] != value:
                 self.processChange(actor=actor, changeCategory="dataschema", args=args)
                 break
 

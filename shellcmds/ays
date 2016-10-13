@@ -182,10 +182,10 @@ def do(action, role, instance, force, producerroles, args, ask, debug, profile):
 
 
 @click.command()
-@click.option('--role', default="", help='optional role for ays instances execute an action on')
-@click.option('--instance', default="", help='optional name of instance')
+@click.option('--role', '-r', default="", help='optional role for ays instances execute an action on')
+@click.option('--instance', '-i', default="", help='optional name of instance')
 @click.option('--force', default=False, is_flag=True, help='if True then will ignore state of service action.')
-@click.option('--producerroles', default="*", help='roles of producers which will be taken into consideration, if * all')
+@click.option('--producerroles', '-p', default="*", help='roles of producers which will be taken into consideration, if * all')
 @click.option('--args', default=None, help='argument to pass to the run. Can be a list of tags e.g: "key:value key:value" \
 or a path to a file containing the argument. Format of the file can be json, yaml, toml. format is detected using file extension. default format is json')
 @click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')

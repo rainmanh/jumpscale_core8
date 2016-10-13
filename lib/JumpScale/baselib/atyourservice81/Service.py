@@ -199,6 +199,7 @@ class Service:
         for key, value in args.items():
             if data[key] != value:
                 self.processChange(actor=actor, changeCategory="dataschema", args=args)
+                break
 
     def loadFromFS(self):
         """
@@ -410,13 +411,9 @@ class Service:
             - action_mod_actionname
         """
         # TODO: implement different pre-define action for each category
-        # self.logger.debug('process change for %s (%s)' % (self, changeCategory))
+        # self.logger.debug('process change for %s (%s)' % (self, changeCategory)
 
-        if changeCategory == 'dataschema':
-            for key, value in args.items():
-                setattr(self.model.data, key, value)
-            self.model.save()
-        elif changeCategory == 'ui':
+        if changeCategory == 'ui':
             # TODO
             pass
         elif changeCategory == 'config':
@@ -458,7 +455,8 @@ class Service:
 
         # execute the processChange method if it exists
         if 'processChange' in self.model.actions.keys():
-            job = self.getJob("processChange", args={'changeCategory': changeCategory})
+            args.update({'changeCategory': changeCategory})
+            job = self.getJob("processChange", args=args)
             args = job.executeInProcess(service=self)
             job.model.save()
             # self.runAction('processChange', args={'changeCategory': changeCategory})

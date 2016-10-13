@@ -126,3 +126,17 @@ class DiskManager:
             elif mountpoint == "" and name != "" and name in disk.name:
                 return disk
         return None
+
+    def filesystemStat(self, path):
+        data = self._executor.execute("df --output='source,size,used,avail' '%s' | tail -1" % path)
+        out = ' '.join(data[1].replace('K', '').split())
+
+        fields = out.split(' ')
+        values = {
+            'root': fields[0],
+            'size': int(fields[1]) * 1024,
+            'used': int(fields[2]) * 1024,
+            'free': int(fields[3]) * 1024,
+        }
+
+        return values

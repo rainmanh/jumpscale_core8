@@ -24,7 +24,7 @@ class CuisinePHP(app):
     NAME = 'php'
 
     def build(self, **config):
-        pkgs = "libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev"
+        pkgs = "libxml2-dev libpng-dev libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev"
         list(map(self._cuisine.package.ensure, pkgs.split(sep=" ")))
 
         buildconfig = deepcopy(compileconfig)
@@ -47,9 +47,10 @@ class CuisinePHP(app):
         mv $tmpDir/php-7.0.11/ $tmpDir/php
 
         #build
-        cd $tmpDir/php && ./configure {args_string} && make
+        cd $tmpDir/php && ./configure {args_string} && make && make test
 
         """.format(args_string=args_string)
+        print("PHP ARGS_STRING: ", args_string)
         C = self._cuisine.core.args_replace(C)
 
         self._cuisine.core.execute_bash(C)

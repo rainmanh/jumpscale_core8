@@ -128,7 +128,7 @@ class Server:
                     if event_obj.event != event_type:
                         continue
 
-                    self.logger.info('event %s propagated to %s repo: %s' % (event_type, service, repo.path))
+                    self.logger.info('event %s propagated to %s from %s' % (event_type, service, repo))
 
                     event_obj.lastRun = j.data.time.epoch
                     service.save()

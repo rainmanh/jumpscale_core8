@@ -23,6 +23,7 @@ class HRDType:
         self.consume_nr_max = 100  # max amount we require
         self.parent = ""
         self.auto = False
+        self.optional = False
         self.hrd_ttype = None
 
     def validate(self, value):
@@ -224,8 +225,8 @@ class HRDSchema:
             if tags.labelExists("auto"):
                 hrdtype.auto = True
 
-            if tags.labelExists("auto"):
-                hrdtype.auto = True
+            if tags.labelExists("optional"):
+                hrdtype.optional = True
 
             if tags.tagExists("minval"):
                 hrdtype.minVal = hrdtype.typeclass.fromString(

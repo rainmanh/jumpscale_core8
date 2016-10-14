@@ -7,9 +7,14 @@ from .ActorModel import ActorModel
 from .ServiceModel import ServiceModel
 from .RepoModel import RepoModel
 
+if "darwin" in str(j.core.platformtype.myplatform):
+    socket=j.core.db.config_get()["unixsocket"]
+else:
+    socket='/tmp/ays.sock'
+
 defaultConfig = {
     'redis': {
-        'unixsocket': '/tmp/ays.sock'
+        'unixsocket': socket
     }
 }
 

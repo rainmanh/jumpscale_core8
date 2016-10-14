@@ -25,7 +25,7 @@ All metadata repositories are cloned as subdirectories of `/opt/code/$type/`:
 
   - So `https://github.com/Jumpscale/ays_jumpscale8` is cloned into `/opt/code/github/jumpscale/ays_jumpscale8`
 
-- Reposotories from other Git systems are cloned into `/opt/code/git/`
+- Repositories from other Git systems are cloned into `/opt/code/git/`
 
 Each AYS actor template has following files:
 

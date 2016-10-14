@@ -29,7 +29,10 @@ class Blueprint:
             msg = 'Yaml format of the blueprint is not valid.'
             raise j.exceptions.Input(message=msg, msgpub=msg)
 
-        self.models = []
+        self.models = [] #can be actions or services or recurring
+        self.actions=[]
+        self.recurring=[]
+
         self._contentblocks = []
 
         content = ""
@@ -58,8 +61,45 @@ class Blueprint:
         self.hash = j.data.hash.md5_string(self.content)
 
     def load(self, role="", instance=""):
+        self.actions=[]
+        self.recurring=[]
         for model in self.models:
             if model is not None:
+
+                if "actions" in model:
+                    #found action need to add them to blueprint
+                    for actionModel in model["actions"]:
+                        if not 'actor' in actionModel:
+                            actor0=""
+                        else:
+                            actor0=actionModel["actor"]
+                        if not 'service' in actionModel:
+                            service0=""
+                        else:
+                            service0=actionModel["service"]
+
+                        servicesFound=self.aysrepo.servicesFind(name=service0, actor=actor0)
+
+                        if len(servicesFound)==0:
+                            raise j.exceptions.Input(message="found action to execute but could not find required service:%s!%s"%(actor0,service0), level=1, source="", tags="", msgpub="")
+                        elif len(servicesFound)>1:
+                            raise j.exceptions.Input(message="found action to execute but found more than 1 service:%s!%s"%(actor0,service0), level=1, source="", tags="", msgpub="")
+
+                        serviceObj=servicesFound[0]
+
+                        if "action" not in actionModel:
+                            raise j.exceptions.Input(message="need to specify action.", level=1, source="", tags="", msgpub="")
+
+                        actions=[item.strip() for item in actionModel["action"].split(",") if item.strip!=""]
+
+                        for actionName in actions:
+                            self.actions.append([serviceObj,actionName])
+
+                    from IPython import embed
+                    print ("DEBUG NOW 99999")
+                    embed()
+                    raise RuntimeError("stop debug here")
+
                 for key, item in model.items():
                     if key.find("__") == -1:
                         raise j.exceptions.Input(
@@ -113,6 +153,8 @@ class Blueprint:
     def services(self):
         services = []
         for model in self.models:
+
+
             if model is not None:
                 for key, item in model.items():
                     if key.find("__") == -1:

@@ -6,7 +6,20 @@ It's just a way of organizing your services and grouping them.
 
 Child services are created in a subdirectory of its parent.
 
-## Example:
+## Example
+
+Example of `parent` in `schema.hrd`:
+
+```yaml
+node = type:str parent:node auto
+```
+
+- This means that the service has a parent of role `node` and that it should auto create its parent if it doesn't already exist.
+- The `auto` tag is optional and means that we will look if there is a parent if right type if yes will use that one
+- The `optional` tag is optional and means that the parent relationship is not required
+
+
+## Example deployed:
 
 Considering the following blueprint:
 

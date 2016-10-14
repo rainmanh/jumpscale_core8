@@ -50,3 +50,5 @@ events.mail.escalate =
 events.telegram.respond_telegram =
     log = False,
 ```
+
+## Build instructions

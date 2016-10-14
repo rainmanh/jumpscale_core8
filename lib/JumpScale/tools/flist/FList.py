@@ -4,7 +4,7 @@ import pwd
 import grp
 import os
 import sys
-
+import re
 
 class FListFactory(object):
 
@@ -295,29 +295,41 @@ class FList(object):
         self.setModificationTime(filename, stat.st_mtime)
         self.setCreationTime(filename, stat.st_ctime)
 
+    def __valid(self, fname, excludes):
+        for ex in excludes:
+            if ex.match(fname):
+                return False
+
+        return True
+
     def build(self, path, excludes=[]):
         if len(self._data) > 0:
             # this can be only done on empty list
             return None
 
+        # compiling regex for exclusion
+        __excludes = []
+        for ex in excludes:
+            __excludes.append(re.compile(ex))
+
         for dirpath, dirs, files in os.walk(path, followlinks=True):
-            skip = False
-
-            for e in excludes:
-                if dirpath.startswith(e):
-                    skip = True
-
-            if skip:
-                continue
-
             for dirname in dirs:
                 fname = os.path.join(dirpath, dirname)
+
+                # exclusion checking
+                if not self.__valid(fname, __excludes):
+                    continue
 
                 if j.sal.fs.isEmptyDir(fname):
                     self._build(fname)
 
             for filename in files:
                 fname = os.path.join(dirpath, filename)
+
+                # exclusion checking
+                if not self.__valid(fname, __excludes):
+                    continue
+
                 self._build(fname)
 
         return len(self._data)

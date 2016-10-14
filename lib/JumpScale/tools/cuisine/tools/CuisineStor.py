@@ -620,7 +620,7 @@ class StorSpace(object):
         return obj
 
     def upload(self, flistname, host=None, source="/",
-               excludes=["\.pyc", "__pycache__"], removetmpdir=True, metadataStorspace=None):
+               excludes=[r'/__pycache__/', r'(.*)\.pyc$'], removetmpdir=True, metadataStorspace=None):
         """
         Upload a complete directory:
          - from 'host' (if it's an executor)

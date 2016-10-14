@@ -30,7 +30,7 @@ class Dep:
         dest = dest.replace("//", "/")
         j.sal.fs.createDir(j.sal.fs.getDirName(dest))
         if dest != self.path:  # don't copy to myself
-            print("DEPCOPY: %s %s" % (self.path, dest))
+            # print("DEPCOPY: %s %s" % (self.path, dest))
             if not j.sal.fs.exists(dest):
                 j.sal.fs.copyFile(self.path, dest)
             j.tools.sandboxer._done.append(dest)
@@ -159,7 +159,7 @@ class Sandboxer:
             dest2 = dest + "/" + subpath
             j.sal.fs.createDir(j.sal.fs.getDirName(dest2))
             # print ("C:%s"%dest2)
-            j.sal.fs.copyFile(src, dest2)
+            j.sal.fs.copyFile(src, dest2, overwriteFile=True)
 
         j.sal.fs.walker.walkFunctional(path, callbackFunctionFile=callbackFile, callbackFunctionDir=None, arg=(path, dest),
                                        callbackForMatchDir=callbackForMatchDir, callbackForMatchFile=callbackForMatchFile)

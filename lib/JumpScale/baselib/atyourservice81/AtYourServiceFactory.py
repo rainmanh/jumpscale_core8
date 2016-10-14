@@ -219,14 +219,14 @@ class AtYourServiceFactory:
 
     def repoCreate(self, path):
         path = j.sal.fs.pathNormalize(path)
-        self._doinit()
+
         if j.sal.fs.exists(path):
             raise j.exceptions.Input("Directory %s already exists. Can't create AYS repo at the same location." % path)
         j.sal.fs.createDir(path)
         j.sal.fs.createEmptyFile(j.sal.fs.joinPaths(path, '.ays'))
         j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'actorTemplates'))
         j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'blueprints'))
-        j.tools.cuisine.local.core.run('git init')
+        j.tools.cuisine.local.core.run('cd %s;git init' % path)
         j.sal.nettools.download(
             'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
         name = j.sal.fs.getBaseName(path)

@@ -140,9 +140,12 @@ class CuisineJS8(base):
         beautifulsoup4
         lxml
 
-        snappy
+        python-snappy
         """
         self._cuisine.development.pip.multiInstall(C, upgrade=True)
+
+        self._cuisine.package.ensure('libsnappy-dev')
+        self._cuisine.package.ensure('libsnappy1v5')
 
         if self._cuisine.platformtype.osname != "debian":
             C = """

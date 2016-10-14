@@ -149,6 +149,9 @@ class Service:
                 res = [s for s in res if s.model.role == producer_role]
 
                 if len(res) == 0:
+                    if producer_model.minServices == 0:
+                        continue
+
                     if producer_model.auto is False:
                         raise j.exceptions.Input(message="could not find producer:%s for %s, found 0" %
                                                  (producer_role, self), level=1, source="", tags="", msgpub="")

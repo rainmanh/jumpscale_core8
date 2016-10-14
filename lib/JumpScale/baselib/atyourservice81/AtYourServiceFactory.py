@@ -234,7 +234,7 @@ class AtYourServiceFactory:
         model = db.repo.new()
         model.path = path
         model.save()
-        git_repo = j.clients.git.get(path)
+        git_repo = j.clients.git.get(path, check_path=False)
         self._templateRepos[path] = AtYourServiceRepo(name=name, gitrepo=git_repo, path=path)
         print("AYS Repo created at %s" % path)
         return self._templateRepos[path]

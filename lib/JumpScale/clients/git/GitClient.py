@@ -23,10 +23,8 @@ class GitClient:
         baseDir = baseDir.rstrip("/")
 
         if baseDir.strip() == "":
-            raise j.exceptions.RuntimeError(
-                "could not find basepath for .git in %s" % baseDir)
-
-        if baseDir.find("/code/") == -1:
+            raise j.exceptions.RuntimeError("could not find basepath for .git in %s" % baseDir)
+        if baseDir.find("/code/") == -1 and check_path:
             raise j.exceptions.Input(
                 "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
         base = baseDir.split("/code/", 1)[1]

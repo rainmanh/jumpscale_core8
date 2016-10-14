@@ -42,6 +42,8 @@ class AtYourServiceRepo():
         else:
             self.model = model
 
+        j.atyourservice.loadActionBase()
+
     def _doinit(self):
         if self._actors == {}:
             self.actors  # will load it
@@ -341,11 +343,12 @@ class AtYourServiceRepo():
                 bp.load(role=role, instance=instance)
         else:
             bp = Blueprint(self, path=path, content=content)
-            if bp.path not in self._blueprints:
-                self._blueprints[bp.path] = bp
+            # if bp.path not in self._blueprints:
+            self._blueprints[bp.path] = bp
             bp.load(role=role, instance=instance)
 
         self.init(role=role, instance=instance)
+
         print("blueprint done")
 
     def blueprintGet(self, path):
@@ -367,7 +370,8 @@ class AtYourServiceRepo():
         producerRoles = self._processProducerRoles(producerRoles)
         scope = set(self.servicesFind(actor="%s.*" % role, name=instance, hasAction=action))
         for service in scope:
-            producer_candidates = service.getProducersRecursive(producers=set(), callers=set(), action=action, producerRoles=producerRoles)
+            producer_candidates = service.getProducersRecursive(
+                producers=set(), callers=set(), action=action, producerRoles=producerRoles)
             if producerRoles != '*':
                 producer_valid = [item for item in producer_candidates if item.model.role in producerRoles]
             else:
@@ -402,7 +406,8 @@ class AtYourServiceRepo():
         if action not in ["init"]:
             for s in self.services:
                 if s.model.actionsState['init'] not in ["new", "ok", "changed"]:
-                    error_msg = "Cannot get run: %s:%s:%s because found a service not properly inited yet.\n%s\n please rerun ays init" % (role, instance, action, s)
+                    error_msg = "Cannot get run: %s:%s:%s because found a service not properly inited yet.\n%s\n please rerun ays init" % (
+                        role, instance, action, s)
                     self.logger.error(error_msg)
                     raise j.exceptions.Input(error_msg, msgpub=error_msg)
         if force:
@@ -458,7 +463,8 @@ class AtYourServiceRepo():
         for service in scope:
             if run.hasServiceForAction(service, action):
                 continue
-            producersWaiting = service.getProducersRecursive(producers=set(), callers=set(), action=action, producerRoles=producerRoles)
+            producersWaiting = service.getProducersRecursive(
+                producers=set(), callers=set(), action=action, producerRoles=producerRoles)
             # remove the ones which are already in previous runs
             producersWaiting = [item for item in producersWaiting if run.hasServiceForAction(item, action) is False]
             # remove action that has alredy status ok

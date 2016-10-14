@@ -47,9 +47,9 @@ class Actor():
         actionspath = j.sal.fs.joinPaths(self.path, "actions.py")
         j.sal.fs.writeFile(actionspath, self.model.actionsSourceCode)
 
-        path3 = j.sal.fs.joinPaths(self.path, "config.json")
-        if self.model.data != {}:
-            j.sal.fs.writeFile(path3, self.model.dataJSON)
+        # path3 = j.sal.fs.joinPaths(self.path, "config.json")
+        # if self.model.data != {}:
+        #     j.sal.fs.writeFile(path3, self.model.dataJSON)
 
         path4 = j.sal.fs.joinPaths(self.path, "schema.capnp")
         if self.model.dbobj.serviceDataSchema.strip() != "":
@@ -78,7 +78,6 @@ class Actor():
         self._initParent(template)
         self._initProducers(template)
         self._initRecurringActions(template)
-        self._initEventActions(template)
         self._initFlists(template)
 
         self._processActionsFile(template=template)
@@ -92,9 +91,9 @@ class Actor():
             self.model.dbobj.dataUI = template.dataUI
             self.processChange("ui")
 
-        if self.model.dataJSON != template.configJSON:
-            self.model.dbobj.data = msgpack.dumps(template.configDict)
-            self.processChange("config")
+        # if self.model.dataJSON != template.configJSON:
+        #     self.model.dbobj.data = msgpack.dumps(template.configDict)
+        #     self.processChange("config")
 
         self.saveToFS()
         self.model.save()
@@ -104,7 +103,7 @@ class Actor():
         if parent is not None:
             parent_name = parent.parent
             parent_role = parent_name.split('.')[0]
-            self.model.parentSet(role=parent_role, auto=bool(parent.auto))
+            self.model.parentSet(role=parent_role, auto=bool(parent.auto), optional=bool(parent.optional))
 
     def _initProducers(self, template):
         consumed_actors = template.schemaHrd.consumeSchemaItemsGet()
@@ -121,26 +120,17 @@ class Actor():
             producer.auto = bool(consume_info.auto)
 
     def _initRecurringActions(self, template):
-        self.model.dbobj.init('recurringActions', len(template.recurringDict))
-
+        #TODO *1
         for i, action in enumerate(template.recurringDict):
+            from IPython import embed
+            print("DEBUG NOW sdsds")
+            embed()
+            raise RuntimeError("stop debug here")
             reccuring_info = template.recurringDict[action]
             recurring = self.model.dbobj.recurringActions[i]
             recurring.action = action
             recurring.period = j.data.types.duration.convertToSeconds(reccuring_info['period'])
             recurring.log = j.data.types.bool.fromString(reccuring_info['log'])
-
-    def _initEventActions(self, template):
-        # TODO format for event in hrd is ugly, need better
-        self.model.dbobj.init('eventActions', len(template.eventDict))
-
-        for i, item in enumerate(template.eventDict):
-            event, action = item.split('.')
-            eventObj = self.model.dbobj.eventActions[i]
-            eventObj.action = action
-            eventObj.event = event
-            log = template.eventDict[item]['log']
-            eventObj.log = j.data.types.bool.fromString(log)
 
     def _initFlists(self, template):
         self.model.dbobj.init('flists', len(template.flists))
@@ -159,7 +149,8 @@ class Actor():
         self._out = ""
 
         actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
-                                 "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata", "consume"]
+                                 "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata",
+                                 "consume", "action_pre_", "action_post_"]
 
         actorMethods = ["input", "build"]
 
@@ -167,7 +158,7 @@ class Actor():
         if j.sal.fs.exists(actionspath):
             content = j.sal.fs.fileGetContents(actionspath)
         else:
-            content = "class Actions(ActionsBase):\n\n"
+            content = "class Actions():\n\n"
 
         if content.find("class action(ActionMethodDecorator)") != -1:
             raise j.exceptions.Input("There should be no decorator specified in %s" % self.path_actions)
@@ -177,7 +168,7 @@ class Actor():
 
         state = "INIT"
         amSource = ""
-        amName = ""
+        actionName = ""
         amDoc = ""
         amDecorator = ""
         amMethodArgs = {}
@@ -197,9 +188,9 @@ class Actor():
 
             if state == "DEF" and (linestrip.startswith("@") or linestrip.startswith("def")):
                 # means we are at end of def to new one
-                self._addAction(amName, amSource, amDecorator, amMethodArgs, amDoc)
+                self._addAction(actionName, amSource, amDecorator, amMethodArgs, amDoc)
                 amSource = ""
-                amName = ""
+                actionName = ""
                 amDoc = ""
                 amDecorator = ""
                 amMethodArgs = {}
@@ -214,9 +205,9 @@ class Actor():
                 amDoc = ""
                 amSource = ""
                 amMethodArgs = args.rstrip('):')
-                amName = definition[4:].strip()
+                actionName = definition[4:].strip()
                 if amDecorator == "":
-                    if amName in actorMethods:
+                    if actionName in actorMethods:
                         amDecorator = "@actor"
                     else:
                         amDecorator = "@service"
@@ -242,39 +233,49 @@ class Actor():
             if state == "DEF":
                 if linestrip != line[4:].strip():
                     # means we were not rightfully intented
-                    raise j.exceptions.Input(message="error in source of action from %s (indentation):\nline:%s\n%s" % (self, line, content), level=1, source="", tags="", msgpub="")
+                    raise j.exceptions.Input(message="error in source of action from %s (indentation):\nline:%s\n%s" % (
+                        self, line, content), level=1, source="", tags="", msgpub="")
                 amSource += "%s\n" % line[4:]
 
         # process the last one
-        if amName != "":
-            self._addAction(amName, amSource, amDecorator, amMethodArgs, amDoc)
+        if actionName != "":
+            self._addAction(actionName, amSource, amDecorator, amMethodArgs, amDoc)
 
         for actionname in actionmethodsRequired:
             if actionname not in self.model.actionsSortedList:
-                # self.addAction(name=actionname, isDefaultMethod=True)
                 # not found
-                if actionname == "input":
-                    amSource = "return {}"
-                    self._addAction(amName="input", amSource=amSource, amDecorator="actor", amMethodArgs="job", amDoc="")
-                else:
-                    self._addAction(amName=actionname, amSource="", amDecorator="service", amMethodArgs="job", amDoc="")
 
-    def _addAction(self, amName, amSource, amDecorator, amMethodArgs, amDoc):
+                # check if we find the action in our default actions, if yes use that one
+                if actionname in j.atyourservice.baseActions:
+                    actionobj, actionmethod = j.atyourservice.baseActions[actionname]
+                    self._addAction2(actionname, actionobj)
+                else:
+                    if actionname == "input":
+                        amSource = "return {}"
+                        self._addAction(actionName="input", amSource=amSource,
+                                        amDecorator="actor", amMethodArgs="job", amDoc="")
+                    else:
+                        self._addAction(actionName=actionname, amSource="",
+                                        amDecorator="service", amMethodArgs="job", amDoc="")
+
+    def _addAction(self, actionName, amSource, amDecorator, amMethodArgs, amDoc):
 
         if amSource == "":
             amSource = "pass"
 
         amDoc = amDoc.strip()
+
+        # THIS COULD BE DANGEROUS !!! (despiegk)
         amSource = amSource.strip(" \n")
 
         ac = j.core.jobcontroller.db.action.new()
         ac.dbobj.code = amSource
         ac.dbobj.actorName = self.model.name
         ac.dbobj.doc = amDoc
-        ac.dbobj.name = amName
+        ac.dbobj.name = actionName
         ac.dbobj.args = amMethodArgs
         ac.dbobj.lastModDate = j.data.time.epoch
-        ac.dbobj.origin = "actoraction:%s:%s" % (self.model.dbobj.name, amName)
+        ac.dbobj.origin = "actoraction:%s:%s" % (self.model.dbobj.name, actionName)
 
         if not j.core.jobcontroller.db.action.exists(ac.key):
             # will save in DB
@@ -282,14 +283,18 @@ class Actor():
         else:
             ac = j.core.jobcontroller.db.action.get(key=ac.key)
 
-        oldaction = self.model.actions.get(amName, None)
-        if oldaction is None:
-            self.model.actionAdd(amName, actionKey=ac.key)
-            self.processChange("action_new_%s" % amName)
-        elif oldaction.actionKey != ac.key:
-            # is a mod, need to remember the new key
-            oldaction.actionKey = ac.key
-            self.processChange("action_mod_%s" % amName)
+        self._addAction2(actionName, ac)
+
+    def _addAction2(self, actionName, action):
+        """
+        @param actionName = actionName
+        @param action is the action object
+        """
+        actionObj = self.model.actionAdd(name=actionName, key=action.key)
+        if actionObj.state == "new":
+            self.processChange("action_new_%s" % actionName)
+        else:
+            self.processChange("action_mod_%s" % actionName)
 
     def processChange(self, changeCategory):
         """

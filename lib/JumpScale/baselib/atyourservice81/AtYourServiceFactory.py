@@ -12,6 +12,7 @@ import sys
 if "." not in sys.path:
     sys.path.append(".")
 
+import inspect
 
 colored_traceback.add_hook(always=True)
 
@@ -40,6 +41,9 @@ class AtYourServiceFactory:
         self._repodb = factory_db.repo
 
         self._test = None
+
+        self.baseActions={}
+
 
     def test(self):
         r = self.get()
@@ -352,5 +356,17 @@ class AtYourServiceFactory:
     def getActionsBaseClass(self):
         return ActionsBase
 
-    def getActionMethodDecorator(self):
-        return ActionMethodDecorator
+    def loadActionBase(self):
+        """
+        load all the basic actions for atyourservice
+        """
+        if self.baseActions=={}:
+            base=self.getActionsBaseClass()
+
+            for method in [item[1] for item in inspect.getmembers(base) if item[0][0]!="_"]:
+                methodName=str(method).split(" ")[1].replace("ActionsBase.","")
+                ac=j.core.jobcontroller.getActionObjFromMethod(method)
+                if not j.core.jobcontroller.db.action.exists(ac.key):
+                    # will save in DB
+                    ac.save()
+                self.baseActions[ac.dbobj.name]=ac,method

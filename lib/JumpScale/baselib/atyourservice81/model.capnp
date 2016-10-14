@@ -30,6 +30,7 @@ struct Actor {
     minServices @1 :UInt8;
     maxServices @2 :UInt8;
     auto @3 :Bool;
+    optional @4 :Bool;
   }
 
   actions @5 :List(Action);
@@ -37,35 +38,40 @@ struct Actor {
     name @0 :Text;
     #unique key for code of action (see below)
     actionKey @1 :Text;
-    type @2 :Type;
-    enum Type {
-      actor @0;
-      service @1;
-      node @2;
+    period @2 :UInt32; #use j.data.time.getSecondsInHR( to show HR
+    log @3 :Bool;
+    state @4 :ActionState;
+    enum ActionState {
+      new @0;
+      changed @1;
+      ok @2;
+      disabled @3;
+      error @4;
     }
   }
 
-  recurringActions @6 :List(Recurring);
-  struct Recurring {
-    action @0 :Text;
-    #period in seconds
-    period @1 :UInt32;
-    #if True then will keep log of what happened, otherwise only when error
-    log @2 :Bool;
+  eventFilters @6 :List(EventFilter);
+  struct EventFilter {
+      #channel e.g. telegram, leave empty if all
+      channel @0 :EventChannel;
+      enum EventChannel {
+        telegram @0;
+        email @1;
+        webservice @2;
+        blueprint @3;
+      }
+      #cmd as asked for e.g. start, can be left empty
+      cmd @1 :Text;
+      # tags which define sort of filtering e.g. importance:urgent state:down
+      tags @2 :Text;
+      # secrets (comma separated list of secret keys which allow event to execute)
+      secrets @3 :Text;
+      #if 1 specific  action needs to be executed and no other one
+      action @4 :Text;
   }
-
-  eventActions @7 :List(Event);
-  struct Event {
-    action @0 :Text;
-    # name of the event to register to
-    event @1 :Text;
-    # if True then will keep log of what happened, otherwise only when error
-    log @2: Bool;
-  }
-
 
   #where does the template come from
-  origin @8 :Origin;
+  origin @7 :Origin;
   struct Origin {
     #link to git which hosts this template for the actor
     gitUrl @0 :Text;
@@ -73,7 +79,7 @@ struct Actor {
     path @1 :Text;
   }
 
-  flists @9 :List(Flist);
+  flists @8 :List(Flist);
   struct Flist {
       name @0 :Text;
       namespace @1 :Text;
@@ -90,15 +96,15 @@ struct Actor {
   }
 
   #python script which interactively asks for the information when not filled in
-  serviceDataUI @10 :Text;
+  serviceDataUI @9 :Text;
 
-  serviceDataSchema @11 :Text;
+  serviceDataSchema @10 :Text;
 
-  data @12 :Data; #is msgpack dict
+  data @11 :Data; #is msgpack dict
 
-  dataUI @13 :Text;
+  dataUI @12 :Text;
 
-  gitRepo @14 :GitRepo;
+  gitRepo @13 :GitRepo;
   struct GitRepo {
     #git url
     url @0 :Text;
@@ -138,28 +144,39 @@ struct Service {
     name @0 :Text;
     #unique key for code of action (see below)
     actionKey @1 :Text;
-    state @2: State;
+    state @2: ActionState;
+    enum ActionState {
+      new @0;
+      changed @1;
+      ok @2;
+      disabled @3;
+      error @4;
+    }
+    log @3 :Bool;
+    lastRun @4: UInt32;
+    period @5 :UInt32;#use j.data.time.getSecondsInHR( to show HR
   }
 
-  recurringActions @6 :List(Recurring);
-  struct Recurring {
-    action @0 :Text;
-    #period in seconds
-    period @1 :UInt32;
-    lastRun @2: UInt32;
-    # if True then will keep log of what happened, otherwise only when error
-    log @3: Bool;
+  #list of filter statements, when match call service.executeActionService("processEvent",event)
+  eventFilters @6 :List(EventFilter);
+  struct EventFilter {
+      #channel e.g. telegram, leave empty if all
+      channel @0 :EventChannel;
+      enum EventChannel {
+        telegram @0;
+        email @1;
+        webservice @2;
+        blueprint @3;
+      }
+      #action e.g. start, can be left empty
+      action @1 :Text;
+      # tags which define sort of filtering e.g. importance:urgent state:down
+      tags @2 :Text;
+      # secrets (comma separated list of secret keys which allow event to execute)
+      secrets @3 :Text;
   }
 
-  eventActions @7 :List(Event);
-  struct Event {
-    action @0 :Text;
-    # name of the event to register to
-    event @1 :Text;
-    lastRun @2: UInt32;
-    # if True then will keep log of what happened, otherwise only when error
-    log @3: Bool;
-  }
+  actorKey @7 :Text;
 
   state @8 :State;
   enum State {
@@ -177,14 +194,12 @@ struct Service {
   #schema of config data in textual format
   dataSchema @10 :Text;
 
-  gitRepos @11 :List(GitRepo);
+  gitRepo @11 :GitRepo;
   struct GitRepo {
     #git url
     url @0 :Text;
     #path in repo
     path @1 :Text;
   }
-
-  actorKey @12 :Text;
 
 }

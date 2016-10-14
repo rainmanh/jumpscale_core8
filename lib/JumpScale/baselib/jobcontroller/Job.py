@@ -137,6 +137,16 @@ class Job():
 
         self.model.save()
 
+    def error(self,errormsg,level=1,tags=""):
+        self.model.log(
+            msg=errormsg,
+            level=level,
+            category="errormsg",
+            tags=tags)
+        self.model.save()
+        raise RuntimeError(errormsg)
+
+
     def executeInProcess(self, service=None):
         """
         execute the job in the process, capture output when possible

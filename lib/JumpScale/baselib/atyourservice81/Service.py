@@ -32,8 +32,8 @@ class Service:
     @property
     def path(self):
         if self._path == "":
-            relpath = self.model.dbobj.gitRepos[0].path
-            assert self.model.dbobj.gitRepos[0].url == self.aysrepo.git.remoteUrl
+            relpath = self.model.dbobj.gitRepo.path
+            assert self.model.dbobj.gitRepo.url == self.aysrepo.git.remoteUrl
             self._path = j.sal.fs.joinPaths(self.aysrepo.path, relpath)
         return self._path
 
@@ -53,8 +53,7 @@ class Service:
         dbobj.state = "new"
         dbobj.dataSchema = actor.model.dbobj.serviceDataSchema
 
-        r = self.model._gitRepoNowObj()
-        r.url = self.aysrepo.git.remoteUrl
+        dbobj.gitRepo.url = self.aysrepo.git.remoteUrl
 
         # actions
         actions = dbobj.init("actions", len(actor.model.dbobj.actions))
@@ -64,6 +63,8 @@ class Service:
             actionnew.state = "new"
             actionnew.actionKey = action.actionKey
             actionnew.name = action.name
+            actionnew.log = action.log
+            actionnew.period = action.period
             counter += 1
 
         # parents/producers
@@ -71,13 +72,11 @@ class Service:
         parent = self._initParent(actor, args)
         if parent is not None:
             fullpath = j.sal.fs.joinPaths(parent.path, skey)
-            r.path = j.sal.fs.pathRemoveDirPart(fullpath, self.aysrepo.path)
+            dbobj.gitRepo.path = j.sal.fs.pathRemoveDirPart(fullpath, self.aysrepo.path)
         else:
-            r.path = j.sal.fs.joinPaths("services", skey)
+            dbobj.gitRepo.path = j.sal.fs.joinPaths("services", skey)
 
         self._initProducers(actor, args)
-        self._initRecurringActions(actor)
-        self._initEventActions(actor)
 
         # set default value for argument not specified in blueprint
         template = self.aysrepo.templateGet(actor.model.name)
@@ -86,9 +85,7 @@ class Service:
                 args[k] = v.default
 
         # input will always happen in process
-        args2 = self.input(args=args)
-        if args2 != args:
-            args.update(args2)
+        args = self.input(args=args)
         if not j.data.types.dict.check(args):
             raise j.exceptions.Input(message="result from input needs to be dict,service:%s" % self,
                                      level=1, source="", tags="", msgpub="")
@@ -106,11 +103,14 @@ class Service:
             parent_role = actor.model.dbobj.parent.actorRole
 
             # try to get the instance name from the args. Look for full actor name ('node.ssh') or just role (node)
-            # if none of the two is available in the args, don't use instance name and expect the parent service to be unique in the repo
+            # if none of the two is available in the args, don't use instance name and
+            # expect the parent service to be unique in the repo
             parent_name = args.get(parent_role, '')
             res = self.aysrepo.servicesFind(name=parent_name, actor='%s.*' % parent_role)
             res = [s for s in res if s.model.role == parent_role]
             if len(res) == 0:
+                if actor.model.dbobj.parent.optional:
+                    return None
                 if actor.model.dbobj.parent.auto is False:
                     raise j.exceptions.Input(message="could not find parent:%s for %s, found 0" %
                                              (parent_name, self), level=1, source="", tags="", msgpub="")
@@ -175,26 +175,6 @@ class Service:
                 actorName=self.parent.model.dbobj.actorName,
                 serviceName=self.parent.model.dbobj.name,
                 key=self.parent.model.key)
-
-    def _initRecurringActions(self, actor):
-        self.model.dbobj.init('recurringActions', len(actor.model.dbobj.recurringActions))
-
-        for i, reccuring_info in enumerate(actor.model.dbobj.recurringActions):
-            recurring = self.model.dbobj.recurringActions[i]
-            recurring.action = reccuring_info.action
-            recurring.period = reccuring_info.period
-            recurring.log = reccuring_info.log
-            recurring.lastRun = 0
-
-    def _initEventActions(self, actor):
-        self.model.dbobj.init('eventActions', len(actor.model.dbobj.eventActions))
-
-        for i, event_info in enumerate(actor.model.dbobj.eventActions):
-            event = self.model.dbobj.eventActions[i]
-            event.action = event_info.action
-            event.event = event_info.event
-            event.log = event_info.log
-            event.lastRun = 0
 
     def _check_args(self, actor, args):
         """ Checks whether if args are the same as in instance model """
@@ -490,11 +470,50 @@ class Service:
         job.model.save()
         return job
 
-    def runAction(self, action, args={}):
-        self.logger.debug('start runAction %s on %s' % (action, self))
+    def checkActions(self, actions):
+        """
+        will walk over all actions, and make sure the default are well set.
+
+        """
+        from IPython import embed
+        print("DEBUG NOW checkactions")
+        embed()
+        raise RuntimeError("stop debug here")
+
+    def scheduleAction(self, action, args={}, period=0, log=True):
+        self.model.actionAdd(key, name, recurring=0, log=True)
+        self.logger.debug('schedule action %s on %s' % (action, self))
+        from IPython import embed
+        print("DEBUG NOW addaction")
+        embed()
+        raise RuntimeError("stop debug here")
+
+    def executeAction(self, action, args={}):
+        if action[-1] == "_":
+            return self.runActionService(action)
+        else:
+            return self.runActionJob(action, args)
+
+    def executeActionService(self, actionName):
+        action, method = j.atyourservice.baseActions[actionName]
+        res = method(service=self, actionName=actionName)
+        return res
+
+    def executeActionJob(self, actionName, args={}):
+
+        import ipdb
+        ipdb.set_trace()
+
         job = self.getJob(actionName=action, args=args)
         now = j.data.time.epoch
+
+        if self.runServiceAction("check_active") == False:
+            message = "Cannot execute action:%s on service:%s, service is nor ready" % (action, self)
+            job.error(message)
+
         p = job.execute()
+
+        self.runServiceAction("action_post_", actionName=action)
 
         if job.model.dbobj.debug is True:
             return job

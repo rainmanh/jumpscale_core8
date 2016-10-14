@@ -29,10 +29,9 @@ class Blueprint:
             msg = 'Yaml format of the blueprint is not valid.'
             raise j.exceptions.Input(message=msg, msgpub=msg)
 
-        self.models = [] #can be actions or services or recurring
-        self.actions=[]
-        self.recurring=[]
-
+        self.models = []  # can be actions or services or recurring
+        self.actions = []
+        self.eventFilters = []
         self._contentblocks = []
 
         content = ""
@@ -61,79 +60,132 @@ class Blueprint:
         self.hash = j.data.hash.md5_string(self.content)
 
     def load(self, role="", instance=""):
-        self.actions=[]
-        self.recurring=[]
+        self.actions = []
+        self.eventFilters = []
+
         for model in self.models:
             if model is not None:
 
                 if "actions" in model:
-                    #found action need to add them to blueprint
+                    # found action need to add them to blueprint
                     for actionModel in model["actions"]:
                         if not 'actor' in actionModel:
-                            actor0=""
+                            actor0 = ""
                         else:
-                            actor0=actionModel["actor"]
+                            actor0 = actionModel["actor"]
                         if not 'service' in actionModel:
-                            service0=""
+                            service0 = ""
                         else:
-                            service0=actionModel["service"]
+                            service0 = actionModel["service"]
+                        if not 'recurring' in actionModel:
+                            recurring0 = ""
+                        else:
+                            recurring0 = actionModel["recurring"]
+                        servicesFound = self.aysrepo.servicesFind(name=service0, actor=actor0)
 
-                        servicesFound=self.aysrepo.servicesFind(name=service0, actor=actor0)
-
-                        if len(servicesFound)==0:
-                            raise j.exceptions.Input(message="found action to execute but could not find required service:%s!%s"%(actor0,service0), level=1, source="", tags="", msgpub="")
-                        elif len(servicesFound)>1:
-                            raise j.exceptions.Input(message="found action to execute but found more than 1 service:%s!%s"%(actor0,service0), level=1, source="", tags="", msgpub="")
-
-                        serviceObj=servicesFound[0]
+                        if len(servicesFound) == 0:
+                            raise j.exceptions.Input(message="found action to execute but could not find required service:%s!%s" % (
+                                actor0, service0), level=1, source="", tags="", msgpub="")
 
                         if "action" not in actionModel:
-                            raise j.exceptions.Input(message="need to specify action.", level=1, source="", tags="", msgpub="")
+                            raise j.exceptions.Input(message="need to specify action.",
+                                                     level=1, source="", tags="", msgpub="")
 
-                        actions=[item.strip() for item in actionModel["action"].split(",") if item.strip!=""]
+                        actions = [item.strip() for item in actionModel["action"].split(",") if item.strip != ""]
 
-                        for actionName in actions:
-                            self.actions.append([serviceObj,actionName])
+                        for serviceObj in servicesFound:
+                            for actionName in actions:
+                                self.actions.append([serviceObj, actionName, recurring0])
 
-                    from IPython import embed
-                    print ("DEBUG NOW 99999")
-                    embed()
-                    raise RuntimeError("stop debug here")
+                elif "eventfilters" in model:
+                        # found action need to add them to blueprint
+                    for obj in model["actions"]:
+                        if not 'actor' in obj:
+                            actor0 = ""
+                        else:
+                            actor0 = obj["actor"]
+                        if not 'service' in obj:
+                            service0 = ""
+                        else:
+                            service0 = obj["service"]
+                        if not 'channel' in obj:
+                            channel0 = ""
+                        else:
+                            channel0 = obj["channel"]
+                        if not 'cmd' in obj:
+                            cmd0 = ""
+                        else:
+                            cmd0 = obj["cmd"]
+                        if not 'secret' in obj:
+                            secret0 = ""
+                        else:
+                            secret0 = obj["secret"]
+                        if not 'action' in obj:
+                            action0 = ""
+                        else:
+                            action0 = obj["action"]
 
-                for key, item in model.items():
-                    if key.find("__") == -1:
-                        raise j.exceptions.Input(
-                            "Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
-                    actorname, bpinstance = key.lower().split("__", 1)
+                        servicesFound = self.aysrepo.servicesFind(name=service0, actor=actor0)
 
-                    if instance != "" and bpinstance != instance:
-                        self.logger.info(
-                            "ignore load from blueprint for: %s:%s" % (actorname, bpinstance))
-                        continue
+                        if len(servicesFound) == 0:
+                            raise j.exceptions.Input(message="found action to execute but could not find required service:%s!%s" % (
+                                actor0, service0), level=1, source="", tags="", msgpub="")
 
-                    if actorname.find(".") != -1:
-                        rolefound, _ = actorname.split(".", 1)
-                    else:
-                        rolefound = actorname
+                        for serviceObj in servicesFound:
+                            self.eventFilters.append([serviceObj, channel0, cmd0, secret0, action0])
 
-                    if role != "" and role != rolefound:
-                        self.logger.info(
-                            "ignore load from blueprint based on role for: %s:%s" % (actorname, bpinstance))
-                        continue
+                else:
 
-                    # check if we can find actorname and if not then check if there is a blueprint.  name...
-                    if not self.aysrepo.templateExists(actorname) and not actorname.startswith('blueprint.'):
-                        blueaysname = 'blueprint.%s' % actorname
-                        if self.aysrepo.templateExists(blueaysname):
-                            actorname = blueaysname
+                    for key, item in model.items():
+                        if key.find("__") == -1:
+                            raise j.exceptions.Input(
+                                "Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
+                        actorname, bpinstance = key.lower().split("__", 1)
 
-                    if not self.aysrepo.templateExists(actorname):
-                        raise j.exceptions.Input(message="Cannot find actor:%s" %
-                                                 actorname, level=1, source="", tags="", msgpub="")
+                        if instance != "" and bpinstance != instance:
+                            self.logger.info(
+                                "ignore load from blueprint for: %s:%s" % (actorname, bpinstance))
+                            continue
 
-                    actor = self.aysrepo.actorGet(actorname, reload=False)
-                    args = {} if item is None else item
-                    actor.serviceCreate(instance=bpinstance, args=args)
+                        if actorname.find(".") != -1:
+                            rolefound, _ = actorname.split(".", 1)
+                        else:
+                            rolefound = actorname
+
+                        if role != "" and role != rolefound:
+                            self.logger.info(
+                                "ignore load from blueprint based on role for: %s:%s" % (actorname, bpinstance))
+                            continue
+
+                        # check if we can find actorname and if not then check if there is a blueprint.  name...
+                        if not self.aysrepo.templateExists(actorname) and not actorname.startswith('blueprint.'):
+                            blueaysname = 'blueprint.%s' % actorname
+                            if self.aysrepo.templateExists(blueaysname):
+                                actorname = blueaysname
+
+                        if not self.aysrepo.templateExists(actorname):
+                            raise j.exceptions.Input(message="Cannot find actor:%s" %
+                                                     actorname, level=1, source="", tags="", msgpub="")
+
+                        actor = self.aysrepo.actorGet(actorname, reload=False)
+                        args = {} if item is None else item
+                        actor.serviceCreate(instance=bpinstance, args=args)
+
+        # first we had to make sure all services do exist, then we can add these properties
+        for serviceAction in self.actions:
+            service = serviceAction[0]
+            actionName = serviceAction[1]
+            recurring = serviceAction[2]
+            if recurring == "":
+                # no recurring
+                service.scheduleAction(actionName)
+            else:
+                # blueprint execute, recurring job
+                service.model.recurringAdd(actionName, recurring)
+
+        for eventFilter in self.eventFilters:
+            service, channel0, cmd0, secret0, action0 = eventFilter
+            service.model.eventFilterSet(channel=channel0, action=action0, cmd=cmd0, secrets=secret0)
 
     def _add2models(self, content, nr):
         # make sure we don't process double
@@ -153,7 +205,6 @@ class Blueprint:
     def services(self):
         services = []
         for model in self.models:
-
 
             if model is not None:
                 for key, item in model.items():

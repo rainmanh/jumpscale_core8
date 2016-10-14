@@ -36,7 +36,8 @@ class TIDBContextManager:
         Creates a user in database.
         """
         cursor = self._connection.cursor()
-        SQL = """CREATE USER '{username}'@'{host}' IDENTIFIED BY '{passwd}' ;""".format(host=host, username=username, passwd=passwd)
+        SQL = """CREATE USER '{username}'@'{host}' IDENTIFIED BY '{passwd}' ;""".format(
+            host=host, username=username, passwd=passwd)
         print("Executing SQL", SQL)
         cursor.execute(SQL)
         self._connection.commit()
@@ -45,7 +46,8 @@ class TIDBContextManager:
         """
         Grants full access on certain databse.
         """
-        SQL = """grant all on {database}.* to '{username}'@'{host}' ;""".format(database=database, host=host, username=username)
+        SQL = """grant all on {database}.* to '{username}'@'{host}' ;""".format(
+            database=database, host=host, username=username)
         cursor = self._connection.cursor()
         print("Executing SQL", SQL)
         cursor.execute(SQL)
@@ -150,7 +152,7 @@ class CuisineTIDB(app):
         self.start_pd_server()
         self.start_tikv()
         cmd = "netstat | grep tidb-server"
-        rc, out, err = self._cuisine.core.run(cmd)
+        rc, out, err = self._cuisine.core.run(cmd, die=False)
         tries = 0  # Give it sometime to start.
         while rc != 0 and tries < 3:
             sleep(2)

@@ -1,6 +1,11 @@
 # How To
 
 - [Use Git](how_to_use_git.md)
+  - [Automated](how_to_use_git_automated.md)
+  - [Manually](how_to_use_git_manually.md)
+- [How to work with SSH](SSH/SSH.md)
+  - [SSH Basics](SSH/SSHBasics.md)
+  - [SSH Agent Tips](SSH/SSHKeysAgent.md)
 - [Create a Tool for j](how_to_create_a_tool_for_j.md)
 - [Use Docker](how_to_use_Docker.md)
 - [Building Your Own Docker Image](how_to_build_Docker_image_with_JumpScale.md)

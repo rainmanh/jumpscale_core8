@@ -305,6 +305,14 @@ class Space:
         return False
 
     @property
+    def owners(self):
+        _owners = []
+        for user in self.model['acl']:
+            if not user['canBeDeleted']:
+                _owners.append(user['userGroupId'])
+        return _owners
+
+    @property
     def authorized_users(self):
         return [u['userGroupId'] for u in self.model['acl']]
 

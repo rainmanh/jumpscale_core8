@@ -193,7 +193,7 @@ class AtYourServiceRepo():
         if role.strip() == "" or instance.strip() == "":
             raise j.exceptions.Input("role and instance cannot be empty.")
 
-        objs = self.db.service.find(actor="%s.*" % role, name=instance)
+        objs = self.db.service.find(actor="%s" % role, name=instance)
         if len(objs) == 0:
             if die:
                 raise j.exceptions.Input(message="Cannot find service %s:%s" %

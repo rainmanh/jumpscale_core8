@@ -207,7 +207,7 @@ class CuisineOwnCloud(app):
         owncloudsiterules = owncloudsiterules % {"sitename": sitename}
         self._cuisine.core.file_write("$cfgDir/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
 
-        with self._cuisine.apps.tidb.dbman() as m:
+        with self._cuisine.apps.tidb.dbman(host=dbhost, username='root', password='', port=3306) as m:
             try:
                 m.create_database(database="owncloud")
                 m.create_dbuser(host=dbhost, username=dbuser, passwd=dbpass)

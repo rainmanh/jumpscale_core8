@@ -133,7 +133,7 @@ class AtYourServiceRepo():
                 self._templates[key] = template
 
         # load local templates
-        path = j.sal.fs.joinPaths(self.path, "actortemplates")
+        path = j.sal.fs.joinPaths(self.path, "actorTemplates")
         if j.sal.fs.exists(path):
             for template in j.atyourservice._actorTemplatesGet(self.git, path=path, aysrepo=self):
                 # here we want to overrides the global templates with local one. so having duplicate name is normal

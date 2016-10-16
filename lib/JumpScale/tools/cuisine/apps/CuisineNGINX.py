@@ -181,6 +181,9 @@ class CuisineNGINX(app):
             print("cmd: ", nginxcmd)
             self._cuisine.processmanager.ensure(name=name, cmd=nginxcmd, path=nginxbinpath)
 
+    def stop(self):
+        self._cuisine.processmanager.stop("nginx")
+        
     def test(self):
         # host a file test can be reached
         raise NotImplementedError

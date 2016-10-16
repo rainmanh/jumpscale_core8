@@ -104,6 +104,9 @@ class CuisinePHP(app):
         phpfpmcmd = self._cuisine.core.args_replace(phpfpmcmd)
         self._cuisine.processmanager.ensure(name="php-fpm", cmd=phpfpmcmd, path=phpfpmbinpath)
 
+    def stop(self):
+        self._cuisine.processmanager.stop("php-fpm")
+
     def test(self):
         # TODO: *1
         # check there is a local nginx running, if not install it

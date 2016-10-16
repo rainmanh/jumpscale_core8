@@ -12,9 +12,13 @@ class TIDBContextManager:
         self.username = username
         self.password = password
         self.port = port
+        self._connection = None
 
     def __enter__(self):
-        self._connection = MySQLdb.connect(host=self.host, user=self.username, passwd=self.password, port=self.port)
+        try:
+            self._connection = MySQLdb.connect(host=self.host, user=self.username, passwd=self.password, port=self.port)
+        except:
+            print("COULNDT CONNECT WITH {} {} {} {} ".format(self.host, self.username, self.password, self.port))
         return self
 
     def create_database(self, database):
@@ -157,17 +161,19 @@ class CuisineTIDB(app):
         # TODO: make it possible to start multinode cluster.
         self.start_pd_server()
         self.start_tikv()
-        cmd = "ps aux | grep tidb-server"
+        cmd = "ps aux | grep tikv-server"
         rc, out, err = self._cuisine.core.run(cmd, die=False)
         tries = 0  # Give it sometime to start.
         while rc != 0 and tries < 3:
+            rc, out, err = self._cuisine.core.run(cmd, die=False)
             sleep(2)
             tries += 1
+        self.start_tidb()
         # tries = 0  # Give it sometime to start.
         # while "tikv" not in self._cuisine.processmanager.list( and tries < 3:
         #     sleep(2)
         #     tries += 1
-        self.start_tidb()
+
 
     def start(self, clusterId=1):
         return self.simple_start()

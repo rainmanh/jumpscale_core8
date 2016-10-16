@@ -18,8 +18,7 @@ class CuisineOwnCloud(app):
         C = """
         set -xe
         cd $tmpDir && [ ! -d $tmpDir/ays_owncloud ] && git clone https://github.com/0-complexity/ays_owncloud
-        cd $tmpDir && [ ! -f $tmpDir/owncloud-9.1.1.tar.bz2 ] && wget https://download.owncloud.org/community/owncloud-9.1.1.tar.bz2 && tar jxf owncloud-9.1.1.tar.bz2
-        cd $tmpDir && tar jxf owncloud-9.1.1.tar.bz2
+        cd $tmpDir && [ ! -f $tmpDir/owncloud-9.1.1.tar.bz2 ] && wget https://download.owncloud.org/community/owncloud-9.1.1.tar.bz2 && cd $tmpDir && tar jxf owncloud-9.1.1.tar.bz2
         [ ! -d {storagepath} ] && mkdir -p {storagepath}
         """.format(storagepath=storagepath)
 
@@ -38,7 +37,7 @@ class CuisineOwnCloud(app):
         # copy gig theme
         /bin/cp -Rf $tmpDir/ays_owncloud/owncloud/gig $appDir/owncloud/themes/
 
-        chmod 777 -R $appDir/owncloud/config
+
         """
 
         self._cuisine.core.execute_bash(C)
@@ -202,24 +201,27 @@ class CuisineOwnCloud(app):
         conf = self._cuisine.core.args_replace(conf)
         return conf
 
-    def start(self, sitename='owncloudy.com', dbhost="127.0.0.1", dbuser="owncloud", dbpass="owncloud"):
+    def start(self, sitename='owncloudy.com', dbhost="127.0.0.1", dbuser="root", dbpass=""):
+
         owncloudsiterules = self._get_default_conf_nginx_site()
         owncloudsiterules = owncloudsiterules % {"sitename": sitename}
         self._cuisine.core.file_write("$cfgDir/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
 
-        with self._cuisine.apps.tidb.dbman(host=dbhost, username='root', password='', port=3306) as m:
-            try:
-                m.create_database(database="owncloud")
-                m.create_dbuser(host=dbhost, username=dbuser, passwd=dbpass)
-            except:
-                pass  # user created already.
-            m.grant_user(host=dbhost, username=dbuser, database="owncloud")
+        C = '''
+        mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --execute "CREATE DATABASE owncloud"
+        mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --execute "CREATE USER 'owncloud'@'%' IDENTIFIED BY 'owncloud'"
+        mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --execute "grant all on owncloud.* to 'owncloud'@'owncloud'"
+        '''.format(dbhost=dbhost, dbuser=dbuser, dbpass=dbpass)
+
+        self._cuisine.core.execute_bash(C)
+
+        #TODO: if not installed
         cmd = """
-        chown root.root $appDir/owncloud/config/config.php
         $appDir/php/bin/php $appDir/owncloud/occ maintenance:install  --database="mysql" --database-name="owncloud"\
-        --database-host="{dbhost}" --database-user="{dbuser}" --database-pass="{dbpass}" --admin-user="admin" --admin-pass="admin"\
+        --database-host="{dbhost}" --database-user="owncloud" --database-pass="owncloud" --admin-user="admin" --admin-pass="admin"\
         --data-dir="/data"
-        """.format(dbhost=dbhost, dbuser=dbuser, dbpass=dbpass)
+        """.format(dbhost=dbhost)
+
 
         self._cuisine.core.execute_bash(cmd)
 
@@ -234,6 +236,7 @@ class CuisineOwnCloud(app):
         self._cuisine.core.file_write("$cfgDir/nginx/etc/nginx.conf", content=basicnginxconf)
         self._cuisine.processmanager.stop("nginx")
         self._cuisine.apps.nginx.start()
+        self._cuisine.development.php.start()
 
     def restart(self):
         pass

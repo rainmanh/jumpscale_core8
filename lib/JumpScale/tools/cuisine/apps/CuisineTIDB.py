@@ -7,8 +7,14 @@ app = j.tools.cuisine._getBaseAppClass()
 
 class TIDBContextManager:
 
+    def __init__(self, host='127.0.0.1', username='root', password='', port=3306):
+        self.host = host
+        self.username = username
+        self.password = password
+        self.port = port
+
     def __enter__(self):
-        self._connection = MySQLdb.connect("127.0.0.1")
+        self._connection = MySQLdb.connect(host=self.host, user=self.username, passwd=self.password, port=self.port)
         return self
 
     def create_database(self, database):
@@ -151,7 +157,7 @@ class CuisineTIDB(app):
         # TODO: make it possible to start multinode cluster.
         self.start_pd_server()
         self.start_tikv()
-        cmd = "netstat | grep tidb-server"
+        cmd = "ps aux | grep tidb-server"
         rc, out, err = self._cuisine.core.run(cmd, die=False)
         tries = 0  # Give it sometime to start.
         while rc != 0 and tries < 3:

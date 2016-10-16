@@ -229,6 +229,16 @@ class Space:
         self._portforwardings_cache = j.data.redisdb.get(
             "%s:portforwardings" % self._basekey, CACHETIME)
 
+    def add_external_network(self, name, subnet, gateway, startip, endip, gid, vlan):
+        self.client.api.cloudbroker.iaas.addExternalNetwork(cloudspaceId=self.id,
+                                                            name=name,
+                                                            subnet=subnet,
+                                                            getway=gateway,
+                                                            startip=startip,
+                                                            endip=endip,
+                                                            gid=gid,
+                                                            vlan=vlan)
+
     def save(self):
         self.client.api.cloudapi.cloudspaces.update(cloudspaceId=self.model['id'],
                                                     name=self.model['name'],

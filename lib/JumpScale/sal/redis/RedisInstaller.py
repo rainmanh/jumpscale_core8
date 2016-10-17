@@ -1,4 +1,3 @@
-
 import os
 
 from JumpScale import j
@@ -27,9 +26,14 @@ class RedisInstaller:
         raise j.exceptions.RuntimeError(
             "Could not find redis port in config file %s" % cpath)
 
-    def isRunning(self, name='', ip_address='localhost', port=6379, path='$binDir', password=None):
+    def isRunning(self, name='', ip_address='localhost', port=6379, path='$binDir', password=None, unixsocket=None):
         if not name:
-            ping_cmd = '%s/redis-cli -h %s -p %s ' % (path, ip_address, port)
+            if ip_address != '' and port != 0:
+                ping_cmd = '%s/redis-cli -h %s -p %s ' % (path, ip_address, port)
+            elif unixsocket is not None:
+                ping_cmd = '%s/redis-cli -s %s ' % (path, unixsocket)
+            else:
+                raise j.exceptions.RuntimeError("can't connect to redis")
             if password is not None and password.strip() != '':
                 ping_cmd += ' -a %s ' % (password)
             ping_cmd += ' ping'
@@ -131,7 +135,7 @@ class RedisInstaller:
         # IF YOU ARE SURE YOU WANT YOUR INSTANCE TO LISTEN TO ALL THE INTERFACES
         # JUST COMMENT THE FOLLOWING LINE.
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        bind $bind
+        $bind
 
         # Protected mode is a layer of security protection, in order to avoid that
         # Redis instances left open on the internet are accessed and exploited.
@@ -1129,7 +1133,7 @@ class RedisInstaller:
         """
 
         if unixsocket is not None and unixsocket != '':
-            C = C.replace("# unixsocket /tmp/redis.sock", "unixsocket $vardir/redis/$name/redis.sock")
+            C = C.replace("# unixsocket /tmp/redis.sock", "unixsocket %s" % unixsocket)
             C = C.replace("# unixsocketperm 700", "unixsocketperm 770")
 
         C = C.replace("$name", name)
@@ -1141,7 +1145,10 @@ class RedisInstaller:
         self._cuisine.core.dir_ensure(base_dir)
         C = C.replace("$dir", base_dir)
 
-        C = C.replace("$bind", ip)
+        if ip is None or ip == '':
+            C = C.replace("$bind", "# bind")
+        else:
+            C = C.replace("$bind", 'bind %s' % ip)
 
         if ismaster:
             slave = False

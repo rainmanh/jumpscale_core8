@@ -129,6 +129,7 @@ class CuisinePortal(base):
         gevent
         flask
         Flask-Bootstrap
+        snakeviz
         """
         self._cuisine.package.multiInstall(['libjpeg-dev', 'libffi-dev'])
         self._cuisine.development.pip.ensure()

@@ -28,6 +28,17 @@ def create_repo(path):
 
 
 @click.command()
+@click.option('--path', '-p', default=None, help='Path where to start looking for AYS repository')
+def discover(path=None):
+    """
+    Discover AYS repository on the filesystem and save them in DB.
+    """
+    if path is None:
+        path = j.sal.fs.getcwd()
+    j.atyourservice.reposDiscover(path)
+
+
+@click.command()
 @click.option('--role', '-r', default="", help='optional role for ays instances to init')
 @click.option('--instance', '-i', default="", help='optional name of instance')
 @click.option('--data', '-d', default="", help='data to populate a specific instance')
@@ -455,6 +466,7 @@ def start(conf):
     server.start()
 
 cli.add_command(create_repo)
+cli.add_command(discover)
 cli.add_command(runinfo)
 cli.add_command(simulate)
 cli.add_command(test)

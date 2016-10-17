@@ -59,7 +59,7 @@ class CuisineRedis(app):
         return True
 
     def start(self, name="main", ip="localhost", port=6379, maxram=200, appendonly=True,
-              snapshot=False, slave=(), ismaster=False, passwd=None):
+              snapshot=False, slave=(), ismaster=False, passwd=None, unixsocket=None):
         redis_cli = j.sal.redis.getInstance(self._cuisine)
         redis_cli.configureInstance(name,
                                     ip,
@@ -70,9 +70,9 @@ class CuisineRedis(app):
                                     slave=slave,
                                     ismaster=ismaster,
                                     passwd=passwd,
-                                    unixsocket=False)
+                                    unixsocket=unixsocket)
         # return if redis is already running
-        if redis_cli.isRunning(ip_address=ip, port=port, path='$binDir', password=passwd):
+        if redis_cli.isRunning(ip_address=ip, port=port, path='$binDir', password=passwd, unixsocket=unixsocket):
             print('Redis is already running!')
             return
 
@@ -82,8 +82,8 @@ class CuisineRedis(app):
         self._cuisine.processmanager.ensure(name="redis_%s" % name, cmd=cmd, env={}, path='$binDir')
 
         # Checking if redis is started correctly with port specified
-        if not redis_cli.isRunning(ip_address=ip, port=port, path='$binDir'):
+        if not redis_cli.isRunning(ip_address=ip, port=port, path='$binDir', unixsocket=unixsocket):
             raise j.exceptions.RuntimeError('Redis is failed to start correctly')
 
     def stop(self, name='main'):
-        self._cuisine.processmanager.ensure(name="redis_%s" % name)
+        self._cuisine.processmanager.stop(name="redis_%s" % name)

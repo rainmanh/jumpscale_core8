@@ -14,11 +14,8 @@ repo = None
 
 
 @click.group()
-@click.option('--nodebug', default=False, help='disable debug mode', is_flag=True)
-def cli(nodebug):
-    global repo
-    repo = j.atyourservice.get()
-    repo.debug = not nodebug
+def cli():
+    pass
 
 
 @click.command()
@@ -65,6 +62,7 @@ def init(role="", instance="", data=""):
     blueprints are no longer processed in init step, use the ays blueprint command
 
     """
+    repo = j.atyourservice.get()
     if data != "" and (role == "" or instance == ""):
         raise j.exceptions.Input("need to specify role & instance to pass data")
 
@@ -79,6 +77,7 @@ def update(name):
     Any change detected in the actor will be propagated to the services and processChange method will be
     called all the way from actor to service instances.
     """
+    repo = j.atyourservice.get()
     names = []
     if name is None:
         names = repo.templates.keys()
@@ -111,6 +110,7 @@ def blueprint(path, role, instance):
 
     if role & instance specified then only the ays instances with specified role/instance will be processed
     """
+    repo = j.atyourservice.get()
     repo.blueprintExecute(role=role, instance=instance, path=path)
 
 
@@ -120,6 +120,7 @@ def build(servicekey):
     """
     builds specific service
     """
+    repo = j.atyourservice.get()
     repo.get(servicekey)
 
 
@@ -128,6 +129,7 @@ def showactions():
     """
     shows all services with relevant actions
     """
+    repo = j.atyourservice.get()
     for service in repo.services:
         print("%s" % service)
         for action, state in service.model.actionsState.items():
@@ -135,6 +137,7 @@ def showactions():
 
 
 def _do(action, role, instance, force, producerroles, args, ask, debug, profile):
+    repo = j.atyourservice.get()
     data = {}
     if args is not None:
         if j.sal.fs.exists(args):
@@ -211,6 +214,7 @@ def simulate(action, role="", instance="", force=False, producerroles="*"):
     is like do only does not execute it,
     is ideal to figure out what would happen if you run a certain action
     """
+    repo = j.atyourservice.get()
     run = repo.runGet(role=role, instance=instance, action=action,
                       force=force, producerRoles=producerroles, simulate=True)
     print(run)
@@ -228,6 +232,7 @@ def setstate(action, state="DO", role="", instance="", force=False, producerrole
     be careful what you do with this command
     this sets the state of an ays instance manually
     """
+    repo = j.atyourservice.get()
     repo.setState(actions=[action], role=role, instance=instance, state=state)
     run = repo.runGet(role=role, instance=instance, action=action, force=False, producerRoles=producerroles)
     print(run)
@@ -239,6 +244,7 @@ def uninstall(printonly):
     """
     do uninstall
     """
+    repo = j.atyourservice.get()
     repo.uninstall(printonly=printonly)
 
 
@@ -249,8 +255,9 @@ def show(role, instance):
     '''
     show information about a service
     '''
+    repo = j.atyourservice.get()
     service = repo.serviceGet(role=role, instance=instance)
-    print("Service: %s" % service)
+    print("Service: %s - Actor: %s" % (service.model.dbobj.name, service.model.dbobj.actorName))
     print("\nInstance data:")
     instance_data = service.model.data.to_dict()
     for k in sorted(instance_data):
@@ -275,6 +282,7 @@ def showproducers(role, instance):
     '''
     find the producers for this service & show
     '''
+    repo = j.atyourservice.get()
     print("producers:")
     ays = repo.serviceGet(role=role, instance=instance)
     ays.printProducersRecursive()
@@ -287,6 +295,7 @@ def showparents(role, instance):
     """
     Display the list of parent of a specific service instance.
     """
+    repo = j.atyourservice.get()
     service = repo.serviceGet(role, instance)
     out = "parents:\n"
     for parent in service.parents:
@@ -301,6 +310,7 @@ def list(role, instance):
     """
     The list command lists all service instances with specific role and instance name.
     """
+    repo = j.atyourservice.get()
     print("Installed services:")
     print("-------------------")
     services = repo.servicesFind(actor="%s.*" % role, name=instance)
@@ -316,6 +326,7 @@ def destroy():
 
     make sure to do a commit before you do a distroy, this will give you a chance to roll back.
     """
+    repo = j.atyourservice.get()
     repo.destroy(False)
     j.application.reset()
 
@@ -333,6 +344,7 @@ def test(cmd, name, message):
      - push : push modified tests to the repo
      - pull : get the repo with the tests
     """
+    repo = j.atyourservice.get()
     tester = j.repo.getTester(name)
     if cmd == "doall":
         tester.doall()
@@ -351,6 +363,7 @@ def commit(message, branch="master", push=False):
     commit the changes in the ays repo to git, can optionally push.
     this is very important because it allows you to see change in ays repo.
     """
+    repo = j.atyourservice.get()
     repo.commit(message, branch, push=push)
 
 
@@ -360,6 +373,7 @@ def update_md(branch="master"):
     """
     update the metdata for the templates as well as the current ays repo
     """
+    repo = j.atyourservice.get()
     repo.update(branch=branch)
 
 
@@ -370,6 +384,7 @@ def runinfo(runid, list):
     """
     print info about run, if not specified will be latest run
     """
+    repo = j.atyourservice.get()
     if list:
         print("Run IDs:")
         for i, key in enumerate(j.core.jobcontroller.db.run.list()):
@@ -389,6 +404,7 @@ def state(role='', instance=''):
     """
     Print the state of the selected services. If not role or instances specified, all services from the repository are selected
     """
+    repo = j.atyourservice.get()
     services = repo.servicesFind(name=instance, actor='%s.*' % role)
     services = sorted(services, key=lambda s: s.model.dbobj.actorName)
     for service in services:
@@ -406,12 +422,20 @@ def delete(role, instance, ask):
     Delete a service and all it's children
     Be carefull with this action, there is no come back once a service is deleted.
     """
+    repo = j.atyourservice.get()
     services = repo.servicesFind(name=instance, actor='%s.*' % role)
+    if len(services) <= 0:
+        print('Nothing to be deleted')
+        return
+
     services = sorted(services, key=lambda s: s.model.dbobj.actorName)
 
     print("Services selected for deletion:")
     for service in services:
-        print(service)
+        print("- %s" % service)
+        print('\nchild that will also be deleted:')
+        for child in service.children:
+            print('  - %s' % child)
 
     if ask:
         resp = j.tools.console.askYesNo('\nAre you sure you want to delete ?')

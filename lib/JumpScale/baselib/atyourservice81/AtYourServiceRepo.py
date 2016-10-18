@@ -15,7 +15,7 @@ VALID_ACTION_STATE = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 class AtYourServiceRepo():
 
-    def __init__(self, name, gitrepo, path):
+    def __init__(self, name, gitrepo, path, model=None):
 
         self._init = False
 
@@ -37,6 +37,10 @@ class AtYourServiceRepo():
         self._services = []
 
         self.db = ModelsFactory(self)
+        if model is None:
+            self.model = self.db.repo.find(path=path)[0]
+        else:
+            self.model = model
 
     def _doinit(self):
         if self._actors == {}:
@@ -60,7 +64,7 @@ class AtYourServiceRepo():
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "actors"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "services"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "recipes"))  # for old time sake
-        self.db.destroy()
+        self.model.delete()
         j.core.jobcontroller.db.destroy()
 
 # ACTORS
@@ -466,21 +470,6 @@ class AtYourServiceRepo():
             raise RuntimeError(
                 "cannot find todo's for action:%s in scope:%s.\n\nDEPENDENCY ERROR: could not resolve dependency chain." % (action, scope))
         return todo
-    #
-
-    # def _getChangedServices(self, action=None):
-    #     changed = list()
-    #     if not action:
-    #         actions = ["install", "stop", "start", "monitor", "halt", "check_up", "check_down",
-    #                    "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata"]
-    #     else:
-    #         actions = [action]
-    #     for _, service in self.services.items():
-    #         if [service for action in actions if action in list(service.action_methods.keys()) and service.state.get(action, die=False) == 'CHANGED']:
-    #             changed.append(service)
-    #             for producers in [producers for _, producers in service.producers.items()]:
-    #                 changed.extend(producers)
-    #     return changed
 
     def runsList(self):
         """
@@ -513,57 +502,10 @@ class AtYourServiceRepo():
 
         print("init done")
 
-    # def commit(self, message="", branch="master", push=True):
-    #     self._doinit()
-    #     if message == "":
-    #         message = "log changes for repo:%s" % self.name
-    #     if branch != "master":
-    #         self.git.switchBranch(branch)
-    #
-    #     self.git.commit(message, True)
-    #
-    #     if push:
-    #         print("PUSH")
-    #         self.git.push()
-    #
-    # def update(self, branch="master"):
-    #     j.atyourservice.updateTemplates()
-    #     if branch != "master":
-    #         self.git.switchBranch(branch)
-    #     self.git.pull()
-    #
-    # def install(self, role="", instance="", force=True, producerRoles="*"):
-    #     self._doinit()
-    #     if force:
-    #         self.setState(actions=["install"], role=role,
-    #                       instance=instance, state='DO')
-    #
-    #     run = self.runGet(action="install", force=force)
-    #     print("RUN:INSTALL")
-    #     print(run)
-    #     run.execute()
-    #
-    # def uninstall(self, role="", instance="", force=True, producerRoles="*", printonly=False):
-    #     self._doinit()
-    #     if force:
-    #         self.setState(actions=["stop", "uninstall"],
-    #                       role=role, instance=instance, state='DO')
-    #
-    #     run = self.runGet(action="stop", force=force)
-    #     print("RUN:STOP")
-    #     print(run)
-    #     if not printonly:
-    #         run.execute()
-    #
-    #     run = self.runGet(role=role, instance=instance,
-    #                       action="uninstall", force=force)
-    #     print("RUN:UNINSTALL")
-    #     print(run)
-    #     if not printonly:
-    #         run.execute()
-    #     run.execute()
-
     def __str__(self):
         return("aysrepo:%s" % (self.path))
 
     __repr__ = __str__
+
+    def __lt__(self, other):
+        return self.path < other.path

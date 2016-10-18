@@ -35,6 +35,9 @@ class AtYourServiceFactory:
         self.debug = j.core.db.get("atyourservice.debug") == 1
 
         self.logger = j.logger.get('j.atyourservice')
+        
+        factory_db = ModelsFactory()
+        self._repodb = factory_db.repo
 
         self._test = None
 
@@ -203,17 +206,15 @@ class AtYourServiceFactory:
         path = j.sal.fs.pathNormalize(path)
         repos = (root for root, dirs, files in os.walk(path) if '.ays' in files)
 
-        db = ModelsFactory()
         for repo_path in repos:
-            model = db.repo.new()
+            model = self._repodb.new()
             model.path = repo_path
             model.save()
             self._repoLoad(repo_path)
 
     def reposList(self):
         repos = []
-        db = ModelsFactory()
-        for model in db.repo.find():
+        for model in self._repodb.find():
             repos.append(model.objectGet())
         return repos
 
@@ -230,10 +231,11 @@ class AtYourServiceFactory:
         j.sal.nettools.download(
             'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
         name = j.sal.fs.getBaseName(path)
-        db = ModelsFactory()
-        model = db.repo.new()
+
+        model = sel._repodb.new()
         model.path = path
         model.save()
+
         git_repo = j.clients.git.get(path, check_path=False)
         self._templateRepos[path] = AtYourServiceRepo(name=name, gitrepo=git_repo, path=path)
         print("AYS Repo created at %s" % path)
@@ -288,8 +290,18 @@ class AtYourServiceFactory:
             raise j.exceptions.Input(
                 "AYS templateRepo with name:%s already exists at %s, cannot have duplicate names." % (name, path))
 
-        repo = AtYourServiceRepo(name, gitrepo, path)
+        # if the repo we are curently loading in not in db yet. add it.
+        models = self._repodb.find(path)
+        if len(models) <= 0:
+            model = self._repodb.new()
+            model.path = path
+            model.save()
+        else:
+            model = models[0]
+
+        repo = AtYourServiceRepo(name, gitrepo, path, model=model)
         self._repos[name] = repo
+
         return repo
 
     def get(self):
@@ -317,9 +329,11 @@ class AtYourServiceFactory:
         if repo is None:
             # repo does not exist yet
             self._repoLoad(path)
-        repo = findRepo(path)
+            repo = findRepo(path)
+
         if repo is None:
             raise j.exceptions.Input(message="Could not find repo in path:%s" % path, level=1, source="", tags="", msgpub="")
+
         return repo
 
 # FACTORY

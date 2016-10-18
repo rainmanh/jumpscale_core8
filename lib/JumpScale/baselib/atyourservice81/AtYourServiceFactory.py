@@ -35,7 +35,7 @@ class AtYourServiceFactory:
         self.debug = j.core.db.get("atyourservice.debug") == 1
 
         self.logger = j.logger.get('j.atyourservice')
-        
+
         factory_db = ModelsFactory()
         self._repodb = factory_db.repo
 
@@ -207,9 +207,6 @@ class AtYourServiceFactory:
         repos = (root for root, dirs, files in os.walk(path) if '.ays' in files)
 
         for repo_path in repos:
-            model = self._repodb.new()
-            model.path = repo_path
-            model.save()
             self._repoLoad(repo_path)
 
     def reposList(self):

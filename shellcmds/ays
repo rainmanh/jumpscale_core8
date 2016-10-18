@@ -37,6 +37,13 @@ def discover(path=None):
         path = j.sal.fs.getcwd()
     j.atyourservice.reposDiscover(path)
 
+@click.command()
+def repo_list():
+    print("AYS Repositories: ")
+    repos = j.atyourservice.reposList()
+    for repo in sorted(repos):
+        print(repo.path)
+
 
 @click.command()
 @click.option('--role', '-r', default="", help='optional role for ays instances to init')
@@ -472,6 +479,7 @@ def start(conf):
 
 cli.add_command(create_repo)
 cli.add_command(discover)
+cli.add_command(repo_list)
 cli.add_command(runinfo)
 cli.add_command(simulate)
 cli.add_command(test)

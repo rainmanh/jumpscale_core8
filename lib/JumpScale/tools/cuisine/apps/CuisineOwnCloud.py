@@ -156,7 +156,7 @@ class CuisineOwnCloud(app):
             location ~ ^/(?:index|remote|public|cron|core/ajax/update|status|ocs/v[12]|updater/.+|ocs-provider/.+|core/templates/40[34])\.php(?:$|/) {
                 fastcgi_split_path_info ^(.+\.php)(/.*)$;
                 include $appDir/nginx/etc/fastcgi_params;
-                fastcgi_param SCRIPT_FILENAME $request_filename;
+                fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
                 fastcgi_param PATH_INFO $fastcgi_path_info;
                 # fastcgi_param HTTPS on;
                 fastcgi_param modHeadersAvailable true; #Avoid sending the security headers twice
@@ -207,11 +207,13 @@ class CuisineOwnCloud(app):
         owncloudsiterules = owncloudsiterules % {"sitename": sitename}
         self._cuisine.core.file_write("$cfgDir/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
 
-        C = '''
-        mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --execute "CREATE DATABASE owncloud"
-        mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --execute "CREATE USER 'owncloud'@'%' IDENTIFIED BY 'owncloud'"
-        mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --execute "grant all on owncloud.* to 'owncloud'@'owncloud'"
-        '''.format(dbhost=dbhost, dbuser=dbuser, dbpass=dbpass)
+        privateIp = self._cuisine.net.getInfo(self._cuisine.net.nics[0])['ip'][0]
+
+        C = r"""\
+        mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --port 3306 --execute "CREATE DATABASE owncloud"
+        mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --port 3306 --execute "CREATE USER 'owncloud'@'{ip}' IDENTIFIED BY 'owncloud'"
+        mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --port 3306 --execute "grant all on *.* to 'owncloud'@'{ip}'"
+        """.format(dbhost=dbhost, dbuser=dbuser, dbpass=dbpass, ip=privateIp)
 
         self._cuisine.core.execute_bash(C)
 
@@ -220,8 +222,9 @@ class CuisineOwnCloud(app):
         $appDir/php/bin/php $appDir/owncloud/occ maintenance:install  --database="mysql" --database-name="owncloud"\
         --database-host="{dbhost}" --database-user="owncloud" --database-pass="owncloud" --admin-user="admin" --admin-pass="admin"\
         --data-dir="/data"
-        """.format(dbhost=dbhost)
 
+        $appDir/php/bin/php $appDir/owncloud/occ config:system:set trusted_domains 1 --value={sitename}
+        """.format(dbhost=dbhost, sitename=sitename)
 
         self._cuisine.core.execute_bash(cmd)
 
@@ -231,6 +234,7 @@ class CuisineOwnCloud(app):
         C = """
         chown -R www-data:www-data $appDir/owncloud $cfgDir/nginx
         chmod 777 -R $appDir/owncloud/config
+        chown -R www-data:www-data /data
         """
         self._cuisine.core.execute_bash(C)
         self._cuisine.core.file_write("$cfgDir/nginx/etc/nginx.conf", content=basicnginxconf)

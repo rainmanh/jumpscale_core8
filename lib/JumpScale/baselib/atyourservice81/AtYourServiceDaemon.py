@@ -11,12 +11,10 @@ defaultConfig = {
 }
 
 
-def run_action(request):
-    action = request['action']
-    args = request.get('args', {})
-    repo = j.atyourservice.repoGet(request['repo_path'])
-    service = repo.db.service.get(request['service_key']).objectGet(repo)
-    service.runAction(action, args)
+def run_action(repo_path, service_key, action_name, args={}):
+    repo = j.atyourservice.repoGet(repo_path)
+    service = repo.db.service.get(service_key).objectGet(repo)
+    service.runAction(action_name, args)
 
 
 class Server:
@@ -116,7 +114,12 @@ class Server:
             return
 
         try:
-            self._workers.apply_async(run_action, (request,))
+            self._workers.apply_async(run_action, (
+                request['repo_path'],
+                request['service_key'],
+                request['action'],
+                request.get('args', {}))
+            )
         except Exception as e:
             self.logger.error('error: %s' % str(e))
 
@@ -142,13 +145,12 @@ class Server:
                     event_obj.lastRun = j.data.time.epoch
                     service.save()
 
-                    request = {
-                        'repo_path': service.aysrepo.path,
-                        'service_key': service.model.key,
-                        'action': event_obj.action,
-                        'args': args
-                    }
-                    self._workers.apply_async(run_action, (request, ))
+                    self._workers.apply_async(run_action, (
+                        service.aysrepo.path,
+                        service.model.key,
+                        event_obj.action,
+                        args,
+                    ))
 
 
 class RecurringLoop(Thread):
@@ -187,17 +189,17 @@ class RecurringLoop(Thread):
                             recurring_obj.lastRun = now
                             service.save()
                             self.logger.info('recurring job for %s' % service)
-                            request = {
-                                'repo_path': service.aysrepo.path,
-                                'service_key': service.model.key,
-                                'action': action_name,
-                            }
+
                             try:
-                                self._workers.apply_async(run_action, (request, ))
+                                self._workers.apply_async(run_action, (
+                                    service.aysrepo.path,
+                                    service.model.key,
+                                    action_name,
+                                ))
                             except Exception as e:
                                 self.logger.error('error: %s' % str(e))
 
-            time.sleep(10)
+            time.sleep(5)
 
     def stop(self):
         if self._running:

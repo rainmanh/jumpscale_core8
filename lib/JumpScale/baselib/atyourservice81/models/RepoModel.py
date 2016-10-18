@@ -41,6 +41,10 @@ class RepoModel(ModelBase):
             res.append(self._modelfactory.get(key))
         return res
 
+    def delete(self):
+        self._db.delete(self.key)
+        self._index.index_remove(self.path)
+
     def objectGet(self):
         """
         returns an Actor object created from this model

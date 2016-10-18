@@ -405,7 +405,7 @@ class AtYourServiceRepo():
 
         if action == "init":
             actions = ["init"]
-        elif action in ['uninstall', 'removedata', 'cleanup', 'halt', 'stop']:
+        elif action in ['uninstall', 'removedata', 'cleanup', 'halt', 'stop', 'install']:
             actions = [action]
         else:
             actions = ["install", action]

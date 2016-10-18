@@ -334,9 +334,10 @@ class Space:
         return True
 
     def unauthorize_user(self, username):
-        if username in self.authorized_users:
-            self.client.api.cloudapi.cloudspaces.deleteUser(
-                cloudspaceId=self.id, userId=username, recursivedelete=True)
+        canBeDeleted = [u['userGroupId'] for u in self.model['acl'] if u['canBeDeleted'] is True]
+
+        if username in self.authorized_users and username in canBeDeleted:
+            self.client.api.cloudapi.cloudspaces.deleteUser(cloudspaceId=self.id, userId=username, recursivedelete=True)
             self.refresh()
         return True
 

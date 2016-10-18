@@ -277,13 +277,18 @@ def show(role, instance):
     print("\nProducers:")
     service.printProducersRecursive()
 
+    def print_date(epoch):
+        if epoch == 0:
+            return "never"
+        return j.data.time.epoch2HRDateTime(epoch)
+
     print("\nRecurring actions:")
     for name, model in service.model.actionsRecurring.items():
-        print("%s: period:%5s lastRun:%s " % (name, j.data.time.getSecondsInHR(model.period), j.data.time.epoch2HRDateTime(model.lastRun)))
+        print("%s: period:%5s lastRun:%s " % (name, j.data.time.getSecondsInHR(model.period), print_date(model.lastRun)))
 
     print("\nEvent actions:")
     for name, model in service.model.actionsEvent.items():
-        print("%s: event:%s lastRun:%s " % (name, model.event, j.data.time.epoch2HRDateTime(model.lastRun)))
+        print("%s: event:%s lastRun:%s " % (name, model.event, print_date(model.lastRun)))
 
 
 @click.command()

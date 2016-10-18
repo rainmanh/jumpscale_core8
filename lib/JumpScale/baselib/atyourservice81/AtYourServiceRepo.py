@@ -64,8 +64,9 @@ class AtYourServiceRepo():
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "actors"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "services"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "recipes"))  # for old time sake
+        self.db.actor.destroy()
+        self.db.service.destroy()
         self.model.delete()
-        j.core.jobcontroller.db.destroy()
 
 # ACTORS
 

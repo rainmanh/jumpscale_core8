@@ -83,8 +83,8 @@ class Job():
     @property
     def service(self):
         if self._service is None:
-            # TODO: *3 is shortcut but will work for now, we need to see we are in right repo if multiple
-            repo = [item for item in j.atyourservice._repos.items()][-1][1]
+            repoModel = j.atyourservice._repodb.get(self.model.dbobj.repoKey)
+            repo = repoModel.objectGet()
             serviceModel = repo.db.service.get(self.model.dbobj.serviceKey)
             self._service = serviceModel.objectGet(repo)
         return self._service

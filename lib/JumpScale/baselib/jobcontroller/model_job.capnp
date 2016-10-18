@@ -45,17 +45,19 @@ struct Job {
     tags @4 :Text;
   }
 
+  # need to know from in which repo to look for the service
+  repoKey @8 :Text;
   #info which is input for the action, will be given to methods as service=...
-  serviceKey @8 :Text;
+  serviceKey @9 :Text;
 
   #binary or other
-  argsData @9 :Data;
+  argsData @10 :Data;
 
   #dict which will be given to method as **args (msgpack)
-  args @10 :Data;
+  args @11 :Data;
 
   #is the last current state
-  state @11 :State;
+  state @12 :State;
   enum State {
       new @0;
       running @1;
@@ -64,16 +66,16 @@ struct Job {
   }
 
   #msgpack serialized
-  result @12 :Data;
+  result @13 :Data;
 
-  lastModDate @13: UInt32;
+  lastModDate @14: UInt32;
 
-  simulate @14: Bool;
+  simulate @15: Bool;
 
-  debug @15: Bool;
+  debug @16: Bool;
 
-  profile @16: Bool;
-  profileData @17: Data;
+  profile @17: Bool;
+  profileData @18: Data;
 
 }
 

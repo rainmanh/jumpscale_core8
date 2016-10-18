@@ -533,6 +533,7 @@ class Service:
     def getJob(self, actionName, args={}):
         action = self.model.actions[actionName]
         jobobj = j.core.jobcontroller.db.job.new()
+        jobobj.dbobj.repoKey = self.aysrepo.model.key
         jobobj.dbobj.actionKey = action.actionKey
         jobobj.dbobj.actionName = action.name
         jobobj.dbobj.actorName = self.model.dbobj.actorName

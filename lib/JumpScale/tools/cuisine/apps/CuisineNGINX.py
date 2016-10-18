@@ -175,15 +175,17 @@ class CuisineNGINX(app):
             nginxconfpath = '$cfgDir/nginx/etc/nginx.conf'
         nginxconfpath = self._cuisine.core.args_replace(nginxconfpath)
         nginxconfpath = os.path.normpath(nginxconfpath)
-        if os.path.exists(nginxconfpath):
+        if self._cuisine.core.file_exists(nginxconfpath):
             nginxcmd = "$appDir/nginx/bin/nginx -c {nginxconfpath} -g 'daemon off;'".format(nginxconfpath=nginxconfpath)  # foreground
             nginxcmd = self._cuisine.core.args_replace(nginxcmd)
             print("cmd: ", nginxcmd)
             self._cuisine.processmanager.ensure(name=name, cmd=nginxcmd, path=nginxbinpath)
+        else:
+            raise RuntimeError('failed to start nginx')
 
     def stop(self):
         self._cuisine.processmanager.stop("nginx")
-        
+
     def test(self):
         # host a file test can be reached
         raise NotImplementedError

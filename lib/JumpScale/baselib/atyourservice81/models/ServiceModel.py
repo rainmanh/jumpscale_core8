@@ -5,7 +5,11 @@ ModelBase = j.data.capnp.getModelBaseClassWithData()
 VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 
-class ServiceModel(ActorServiceBaseModel, ModelBase):
+class ServiceModel(ModelBase, ActorServiceBaseModel):
+
+    @property
+    def role(self):
+        return self.dbobj.actorName.split(".")[0]
 
     @property
     def parent(self):
@@ -264,11 +268,20 @@ class ServiceModel(ActorServiceBaseModel, ModelBase):
         return action
 # others
 
-    # def _pre_save(self):
-    #     binary = self.data.to_bytes_packed()
-    #     self._data = None
-    #     if binary != b'':
-    #         self.dbobj.data = binary
+    @property
+    def dictFiltered(self):
+        ddict = self.dbobj.to_dict()
+        if "data" in ddict:
+            ddict.pop("data")
+        if "dataSchema" in ddict:
+            ddict.pop("dataSchema")
+        return ddict
+
+    def _pre_save(self):
+        binary = self.data.to_bytes_packed()
+        self._data = None
+        if binary != b'':
+            self.dbobj.data = binary
 
     def __repr__(self):
         # TODO: *1 to put back on self.wiki

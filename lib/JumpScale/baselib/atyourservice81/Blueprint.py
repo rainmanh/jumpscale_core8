@@ -135,7 +135,6 @@ class Blueprint:
                             self.eventFilters.append([serviceObj, channel0, cmd0, secret0, action0])
 
                 else:
-
                     for key, item in model.items():
                         if key.find("__") == -1:
                             raise j.exceptions.Input(

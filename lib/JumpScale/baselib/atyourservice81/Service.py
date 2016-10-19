@@ -85,7 +85,10 @@ class Service:
                 args[k] = v.default
 
         # input will always happen in process
-        args = self.input(args=args)
+        args2 = self.input(args=args)
+        if args2 is not None and j.data.types.dict.check(args2):
+            args.update(args2)
+
         if not j.data.types.dict.check(args):
             raise j.exceptions.Input(message="result from input needs to be dict,service:%s" % self,
                                      level=1, source="", tags="", msgpub="")

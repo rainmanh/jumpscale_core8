@@ -47,6 +47,10 @@ class ActorModel(ModelBase, ActorServiceBaseModel):
             res.append(self._modelfactory.get(key))
         return res
 
+    @property
+    def role(self):
+        return self.dbobj.name.split(".")[0]
+
     def objectGet(self, aysrepo):
         """
         returns an Actor object created from this model
@@ -90,6 +94,13 @@ class ActorModel(ModelBase, ActorServiceBaseModel):
         obj.name = name
         self.changed = changed
         return obj
+
+    @property
+    def dictFiltered(self):
+        ddict = self.dbobj.to_dict()
+        if "data" in ddict:
+            ddict.pop("data")
+        return ddict
 
     def _pre_save(self):
         pass

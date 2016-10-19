@@ -236,7 +236,7 @@ class AtYourServiceFactory:
             'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
         name = j.sal.fs.getBaseName(path)
 
-        model = sel._repodb.new()
+        model = self._repodb.new()
         model.path = path
         model.save()
 

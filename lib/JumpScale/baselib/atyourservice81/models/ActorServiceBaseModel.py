@@ -12,10 +12,6 @@ class ActorServiceBaseModel():
                                      level=1, source="", tags="", msgpub="")
         return self.dbobj.name
 
-    @property
-    def role(self):
-        return self.dbobj.name.split(".")[0]
-
     def _producerNewObj(self):
         olditems = [item.to_dict() for item in self.dbobj.producers]
         newlist = self.dbobj.init("producers", len(olditems) + 1)
@@ -93,7 +89,7 @@ class ActorServiceBaseModel():
                     self.changed = True
                 break
 
-        if action_obj == None:
+        if action_obj is None:
             action_obj = self._actionsNewObj()
             action_obj.state = "new"
             self.changed = True
@@ -165,15 +161,6 @@ class ActorServiceBaseModel():
 
     def _pre_save(self):
         pass
-
-    @property
-    def dictFiltered(self):
-        ddict = self.dbobj.to_dict()
-        if "data" in ddict:
-            ddict.pop("data")
-        if "dataSchema" in ddict:
-            ddict.pop("dataSchema")
-        return ddict
 
     def __repr__(self):
         out = self.dictJson + "\n"

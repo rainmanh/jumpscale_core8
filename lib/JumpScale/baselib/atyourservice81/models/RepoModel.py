@@ -8,7 +8,7 @@ ModelBase = j.data.capnp.getModelBaseClassWithData()
 class RepoModel(ModelBase):
     """
     Model Class for an Repo object
-    """
+    """ 
 
     @property
     def path(self):

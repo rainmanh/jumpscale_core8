@@ -215,10 +215,6 @@ class Account:
                                                     type=type)
         return res
 
-    def disk_limit_io(self, disk_id, iops=50):
-        self.client.api.cloudapi.disks.limitIO(diskId=disk_id,
-                                               iops=iops)
-
     def __str__(self):
         return "openvcloud client account: %(name)s" % (self.model)
 
@@ -448,6 +444,9 @@ class Machine:
                                                             size=size,
                                                             type=type)
         return disk_id
+
+    def disk_limit_io(self, disk_id, iops=50):
+        self.client.api.cloudapi.disks.limitIO(diskId=disk_id, iops=iops)
 
     @property
     def portforwardings(self):

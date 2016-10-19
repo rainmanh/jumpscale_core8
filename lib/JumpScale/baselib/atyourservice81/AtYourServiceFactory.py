@@ -204,10 +204,13 @@ class AtYourServiceFactory:
         if not path:
             path = j.dirs.codeDir
         path = j.sal.fs.pathNormalize(path)
-        repos = (root for root, dirs, files in os.walk(path) if '.ays' in files)
+        repos_path = (root for root, dirs, files in os.walk(path) if '.ays' in files)
 
-        for repo_path in repos:
-            self._repoLoad(repo_path)
+        repos = []
+        for repo_path in repos_path:
+            repos.append(self._repoLoad(repo_path))
+
+        return repos
 
     def reposList(self):
         repos = []
@@ -242,7 +245,6 @@ class AtYourServiceFactory:
         """
         load templateRepo's from path
         if path not specified then will go from current path, will first walk down if no .ays dirs found then will walk up to find .ays file
-
         """
         if path == "":
             path = j.sal.fs.getcwd()

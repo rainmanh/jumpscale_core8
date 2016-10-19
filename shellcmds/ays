@@ -35,7 +35,15 @@ def discover(path=None):
     """
     if path is None:
         path = j.sal.fs.getcwd()
-    j.atyourservice.reposDiscover(path)
+    repos = j.atyourservice.reposDiscover(path)
+
+    print('Repositories discovered: ')
+    if len(repos) > 0:
+        for repo in repos:
+            print(repo.path)
+    else:
+        print('None')
+
 
 @click.command()
 def repo_list():

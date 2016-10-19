@@ -483,13 +483,35 @@ class Service:
         embed()
         raise RuntimeError("stop debug here")
 
-    def scheduleAction(self, action, args={}, period=0, log=True):
-        self.model.actionAdd(key, name, recurring=0, log=True)
+    def scheduleAction(self, action, args={}, period=None, log=True):
+        """
+        Change the state of an action so it marked as need to be executed
+        if the period is specified, also create a recurring period for the action
+        """
         self.logger.debug('schedule action %s on %s' % (action, self))
-        from IPython import embed
-        print("DEBUG NOW addaction")
-        embed()
-        raise RuntimeError("stop debug here")
+        if action not in self.model.actions:
+            raise j.exceptions.Input("Trying to schedule action %s on %s. but this action doesn't exist" % (action, self))
+
+        action_model = self.model.actions[action]
+
+        if action_model.state == 'disabled':
+            raise j.exceptions.Input("Trying to schedule action %s on %s. but this action is disabled" % (action, self))
+
+        if period is not None and period != '':
+            # convert period to seconds
+            if j.data.types.string.check(period):
+                period = j.data.types.duration.convertToSeconds(period)
+            elif j.data.types.int.check(period) or j.data.types.float.check(period):
+                period = int(period)
+            # save period into actionCode model
+            action_model.period = period
+
+        # already in a state that required execution. nothing to do
+        if action_model.state == 'new':
+            self.logger.debug('already in a state that required execution. nothing to do')
+            return
+
+        action_model.state = 'changed'
 
     def executeAction(self, action, args={}):
         if action[-1] == "_":

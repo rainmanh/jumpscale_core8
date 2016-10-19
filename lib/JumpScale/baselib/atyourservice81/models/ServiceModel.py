@@ -214,20 +214,26 @@ class ServiceModel(ModelBase, ActorServiceBaseModel):
 
 # events
 
-    def eventFilterSet(self, channel="", action="", tags="", secrets=""):
+    def eventFilterSet(self, command, action, channel="", tags="", secrets=""):
         changed = False
+
+        command = command.lower()
         channel = channel.lower()
         action = action.lower()
         tags = tags.lower()
         tags = self._getSortedListInString(tags)
-        res = self.eventFiltersFind(channel=channel, action=action, tags=tags)
-        if res == 0:
+
+        res = self.eventFiltersFind(command=command, channel=channel, action=action, tags=tags)
+        if len(res) == 0:
             eventsFilter = self._eventFiltersNewObj()
-        elif res == 1:
+        elif len(res) == 1:
             eventsFilter = res[0]
         else:
             raise j.exceptions.Input(message="found more than 1 eventsfilter", level=1, source="", tags="", msgpub="")
 
+        if command != '':
+            eventsFilter.command = command
+            changed = True
         if channel != "":
             eventsFilter.channel = channel
             changed = True
@@ -238,27 +244,33 @@ class ServiceModel(ModelBase, ActorServiceBaseModel):
             eventsFilter.tags = tags
             changed = True
         if secrets != "":
-            secrets = _getSortedListInString(secrets)
+            secrets = self._getSortedListInString(secrets)
             eventsFilter.secrets = secrets
             changed = True
+
         self.changed = changed
+
         return changed
 
     def _getSortedListInString(self, items):
         # sort & structure tags well
-        items = [item.strip().strip(",").strip() for item in tags.split(" ") if item.strip() != ""]
+        items = [item.strip().strip(",").strip() for item in items.split(" ") if item.strip() != ""]
         items.sort()
         items = " ".join(items)
         return items
 
-    def eventFiltersFind(self, channel="", action="", tags=""):
+    def eventFiltersFind(self, command='', channel="", action="", tags=""):
+        command = command.lower()
         channel = channel.lower()
         action = action.lower()
         tags = tags.lower()
         tags = self._getSortedListInString(tags)
+
         res = []
         for item in self.dbobj.eventFilters:
             found = True
+            if command != '' and item.command != command:
+                found = False
             if channel != "" and item.channel != channel:
                 found = False
             if found and action != "" and item.action != action:
@@ -271,7 +283,7 @@ class ServiceModel(ModelBase, ActorServiceBaseModel):
 
     def _eventFiltersNewObj(self):
         olditems = [item.to_dict() for item in self.dbobj.eventFilters]
-        newlist = self.dbobj.init("eventfilters", len(olditems) + 1)
+        newlist = self.dbobj.init("eventFilters", len(olditems) + 1)
         for i, item in enumerate(olditems):
             newlist[i] = item
         action = newlist[-1]

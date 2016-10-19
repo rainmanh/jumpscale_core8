@@ -275,35 +275,42 @@ def uninstall(printonly):
 
 
 @click.command()
-@click.argument('role')
-@click.argument('instance')
+@click.option('--role', '-r', default='')
+@click.option('--instance', '-i', default='')
 def show(role, instance):
     '''
     show information about a service
     '''
-    repo = j.atyourservice.get()
-    service = repo.serviceGet(role=role, instance=instance)
-    print("Service: %s - Actor: %s" % (service.model.dbobj.name, service.model.dbobj.actorName))
-    print("\nInstance data:")
-    instance_data = service.model.data.to_dict()
-    for k in sorted(instance_data):
-        print("- %s : %s" % (k, instance_data[k]))
-
-    print("\nProducers:")
-    service.printProducersRecursive()
-
     def print_date(epoch):
         if epoch == 0:
             return "never"
         return j.data.time.epoch2HRDateTime(epoch)
 
-    print("\nRecurring actions:")
-    for name, model in service.model.actionsRecurring.items():
-        print("%s: period:%5s lastRun:%s " % (name, j.data.time.getSecondsInHR(model.period), print_date(model.lastRun)))
+    repo = j.atyourservice.get()
+    services = repo.servicesFind(actor="%s.*" % role, name=instance)
+    for service in services:
+        print('\n')
+        print('---------------------------------------------------')
+        print("Service: %s - Actor: %s" % (service.model.dbobj.name, service.model.dbobj.actorName))
+        print("\nInstance data:")
+        instance_data = service.model.data.to_dict()
+        for k in sorted(instance_data):
+            print("- %s : %s" % (k, instance_data[k]))
 
-    print("\nEvent actions:")
-    for name, model in service.model.actionsEvent.items():
-        print("%s: event:%s lastRun:%s " % (name, model.event, print_date(model.lastRun)))
+        print("\nProducers:")
+        service.printProducersRecursive()
+
+        print("\nRecurring actions:")
+        for name, model in service.model.actionsRecurring.items():
+            print("%s: period:%5s lastRun:%s " % (name, j.data.time.getSecondsInHR(model.period), print_date(model.lastRun)))
+
+        print("\nEvent filters:")
+        for event_filter in service.model.eventFilters:
+            print('- action: %s' % event_filter.action)
+            print('  command: %s' % event_filter.command)
+            print('  channel: %s' % event_filter.channel)
+            print('  tags: %s' % event_filter.tags)
+            print('  secrets: not shown')
 
 
 @click.command()

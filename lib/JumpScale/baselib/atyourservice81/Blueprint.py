@@ -132,7 +132,13 @@ class Blueprint:
                                 actor0, service0), level=1, source="", tags="", msgpub="")
 
                         for serviceObj in servicesFound:
-                            self.eventFilters.append([serviceObj, channel0, cmd0, secret0, action0])
+                            self.eventFilters.append({
+                                'service_obj': serviceObj,
+                                'channel': channel0,
+                                'command': cmd0,
+                                'secret': secret0,
+                                'action_name': action0,
+                            })
 
                 else:
                     for key, item in model.items():
@@ -171,20 +177,17 @@ class Blueprint:
                         actor.serviceCreate(instance=bpinstance, args=args)
 
         # first we had to make sure all services do exist, then we can add these properties
-        for serviceAction in self.actions:
-            service = serviceAction[0]
-            actionName = serviceAction[1]
-            recurring = serviceAction[2]
-            if recurring == "":
-                # no recurring
-                service.scheduleAction(actionName)
-            else:
-                # blueprint execute, recurring job
-                service.model.recurringAdd(actionName, recurring)
+        for action_info in self.actions:
+            service = action_info['service_obj']
+            service.scheduleAction(action_info['action_name'], period=action_info['recurring_period'])
+            service.saveAll()
 
-        for eventFilter in self.eventFilters:
-            service, channel0, cmd0, secret0, action0 = eventFilter
-            service.model.eventFilterSet(channel=channel0, action=action0, cmd=cmd0, secrets=secret0)
+        for event_filter in self.eventFilters:
+            service = event_filter['service_obj']
+            service.model.eventFilterSet(
+                channel=event_filter['channel'], action=event_filter['action_name'],
+                command=event_filter['command'], secrets=event_filter['secret'])
+            service.saveAll()
 
     def _add2models(self, content, nr):
         # make sure we don't process double

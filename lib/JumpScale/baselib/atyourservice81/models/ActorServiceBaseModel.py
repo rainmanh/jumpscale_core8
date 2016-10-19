@@ -127,6 +127,10 @@ class ActorServiceBaseModel():
                 recurrings[obj.name] = obj
         return recurrings
 
+    @property
+    def eventFilters(self):
+        return list(self.dbobj.eventFilters)
+
     def _actionsNewObj(self):
         olditems = [item.to_dict() for item in self.dbobj.actions]
         newlist = self.dbobj.init("actions", len(olditems) + 1)

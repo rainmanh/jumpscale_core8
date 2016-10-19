@@ -52,23 +52,25 @@ struct Actor {
 
   eventFilters @6 :List(EventFilter);
   struct EventFilter {
-      #channel e.g. telegram, leave empty if all
+      # channel e.g. telegram, leave empty if all
       channel @0 :EventChannel;
       enum EventChannel {
-        telegram @0;
-        email @1;
-        webservice @2;
-        blueprint @3;
+        all @0;
+        telegram @1;
+        email @2;
+        webservice @3;
+        blueprint @4;
       }
-      #cmd as asked for e.g. start, can be left empty
-      cmd @1 :Text;
+      # the command that will trigger the execution of the action.
+      command @1 :Text;
+      # action e.g. start, can be left empty
+      action @2 :Text;
       # tags which define sort of filtering e.g. importance:urgent state:down
-      tags @2 :Text;
+      tags @3 :Text;
       # secrets (comma separated list of secret keys which allow event to execute)
-      secrets @3 :Text;
-      #if 1 specific  action needs to be executed and no other one
-      action @4 :Text;
+      secrets @4 :Text;
   }
+
 
   #where does the template come from
   origin @7 :Origin;
@@ -160,20 +162,23 @@ struct Service {
   #list of filter statements, when match call service.executeActionService("processEvent",event)
   eventFilters @6 :List(EventFilter);
   struct EventFilter {
-      #channel e.g. telegram, leave empty if all
+      # channel e.g. telegram, leave empty if all
       channel @0 :EventChannel;
       enum EventChannel {
-        telegram @0;
-        email @1;
-        webservice @2;
-        blueprint @3;
+        all @0;
+        telegram @1;
+        email @2;
+        webservice @3;
+        blueprint @4;
       }
-      #action e.g. start, can be left empty
-      action @1 :Text;
+      # the command that will trigger the execution of the action.
+      command @1 :Text;
+      # action e.g. start, can be left empty
+      action @2 :Text;
       # tags which define sort of filtering e.g. importance:urgent state:down
-      tags @2 :Text;
+      tags @3 :Text;
       # secrets (comma separated list of secret keys which allow event to execute)
-      secrets @3 :Text;
+      secrets @4 :Text;
   }
 
   actorKey @7 :Text;

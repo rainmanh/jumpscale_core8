@@ -34,7 +34,7 @@ class AtYourServiceRepo():
         self._blueprints = {}
         self._templates = {}
         self._actors = {}
-        self._services = []
+        self._services = {}
 
         self.db = ModelsFactory(self)
         if model is None:
@@ -185,12 +185,14 @@ class AtYourServiceRepo():
 
     @property
     def services(self):
-        if self._services == []:
-            for item in self.db.service.find():
-                res = item.objectGet(aysrepo=self)
-                if res.model.dbobj.state != "disabled":
-                    self._services.append(res)
-        return self._services
+        if self._services == {}:
+            for service_model in self.db.service.find():
+                # we check if the don't have the service already in memory
+                if service_model.key not in self._services:
+                    service_obj = service_model.objectGet(aysrepo=self)
+                    if service_obj.model.dbobj.state != "disabled":
+                        self._services[service_obj.model.key] = service_obj
+        return list(self._services.values())
 
     def serviceGet(self, role, instance, die=True):
         """

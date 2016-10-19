@@ -206,6 +206,14 @@ class Account:
                 raise j.exceptions.RuntimeError(
                     "Could not find space with name %s" % name)
 
+    def create_disk(self, name, gid, description, size=0, type="B"):
+        self.client.api.cloudapi.disks.create(accountId=self.id,
+                                              name=name,
+                                              gid=gid,
+                                              description=description,
+                                              size=size,
+                                              type=type)
+
     def __str__(self):
         return "openvcloud client account: %(name)s" % (self.model)
 

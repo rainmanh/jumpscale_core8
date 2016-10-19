@@ -69,15 +69,15 @@ class Blueprint:
                 if "actions" in model:
                     # found action need to add them to blueprint
                     for actionModel in model["actions"]:
-                        if not 'actor' in actionModel:
+                        if 'actor' not in actionModel:
                             actor0 = ""
                         else:
                             actor0 = actionModel["actor"]
-                        if not 'service' in actionModel:
+                        if 'service' not in actionModel:
                             service0 = ""
                         else:
                             service0 = actionModel["service"]
-                        if not 'recurring' in actionModel:
+                        if 'recurring' not in actionModel:
                             recurring0 = ""
                         else:
                             recurring0 = actionModel["recurring"]
@@ -95,32 +95,36 @@ class Blueprint:
 
                         for serviceObj in servicesFound:
                             for actionName in actions:
-                                self.actions.append([serviceObj, actionName, recurring0])
+                                self.actions.append({
+                                    'service_obj': serviceObj,
+                                    'action_name': actionName,
+                                    'recurring_period': recurring0,
+                                })
 
                 elif "eventfilters" in model:
                         # found action need to add them to blueprint
-                    for obj in model["actions"]:
-                        if not 'actor' in obj:
+                    for obj in model["eventfilters"]:
+                        if 'actor' not in obj:
                             actor0 = ""
                         else:
                             actor0 = obj["actor"]
-                        if not 'service' in obj:
+                        if 'service' not in obj:
                             service0 = ""
                         else:
                             service0 = obj["service"]
-                        if not 'channel' in obj:
+                        if 'channel' not in obj:
                             channel0 = ""
                         else:
                             channel0 = obj["channel"]
-                        if not 'cmd' in obj:
+                        if 'cmd' not in obj:
                             cmd0 = ""
                         else:
                             cmd0 = obj["cmd"]
-                        if not 'secret' in obj:
+                        if 'secret' not in obj:
                             secret0 = ""
                         else:
                             secret0 = obj["secret"]
-                        if not 'action' in obj:
+                        if 'action' not in obj:
                             action0 = ""
                         else:
                             action0 = obj["action"]

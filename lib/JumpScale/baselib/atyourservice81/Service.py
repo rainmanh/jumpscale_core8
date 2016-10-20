@@ -296,7 +296,7 @@ class Service:
         if self._producers == {}:
             for prod_model in self.model.producers:
 
-                if prod_model.dbobj.actorName not in self._producers:
+                if prod_model.role not in self._producers:
                     self._producers[prod_model.role] = []
 
                 result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)

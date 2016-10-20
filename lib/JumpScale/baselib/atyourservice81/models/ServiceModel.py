@@ -135,18 +135,9 @@ class ServiceModel(ModelBase, ActorServiceBaseModel):
         """
         returns an Service object created from this model
         """
-        # first check if we don't have that service already loaded in memory
-        for service in aysrepo._services:
-            if self.key in aysrepo._services:
-                return aysrepo._services[self.key]
-
-        # we don't so create the new object
         actor = aysrepo.actorGet(self.dbobj.actorName, die=True)
         Service = aysrepo.getServiceClass()
         service = Service(name=self.dbobj.name, aysrepo=aysrepo, model=self)
-        # and keep it in cache
-        aysrepo._services[service.model.key] = service
-
         return service
 
     @property

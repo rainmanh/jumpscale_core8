@@ -55,17 +55,8 @@ class ActorModel(ModelBase, ActorServiceBaseModel):
         """
         returns an Actor object created from this model
         """
-        # check if we don't already have the actor loaded in memory
-        if self.name in aysrepo._actors:
-            return aysrepo._actors[self.name]
-
-        # we don't so we create a new actor object
         Actor = aysrepo.getActorClass()
         actor = Actor(aysrepo=aysrepo, model=self)
-
-        # and cache it
-        aysrepo._actors[self.name] = actor
-
         return actor
 
     def parentSet(self, role, auto, optional):

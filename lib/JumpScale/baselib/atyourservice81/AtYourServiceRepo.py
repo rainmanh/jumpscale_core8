@@ -31,11 +31,6 @@ class AtYourServiceRepo():
 
         self.name = name
 
-        self._blueprints = {}
-        self._templates = {}
-        self._actors = {}
-        self._services = {}
-
         self.db = ModelsFactory(self)
         if model is None:
             self.model = self.db.repo.find(path=path)[0]
@@ -43,22 +38,6 @@ class AtYourServiceRepo():
             self.model = model
 
         j.atyourservice.loadActionBase()
-
-    def _doinit(self):
-        if self._actors == {}:
-            self.actors  # will load it
-
-    def reset(self):
-        # self._db.reload()
-        j.dirs._ays = None
-        # self._services = {}
-        self._actors = {}
-        self._templates = {}
-        # self._reposDone = {}
-        self._todo = []
-        self._blueprints = {}
-        # self._load_blueprints()
-        # self._servicesTree = {}
 
     def destroy(self, uninstall=True):
         if uninstall:
@@ -81,23 +60,26 @@ class AtYourServiceRepo():
         """
         actorTemplate = self.templateGet(name)
         actor = Actor(aysrepo=self, template=actorTemplate)
-        actor.model.save()
-        self._actors[actor.model.name] = actor
         return actor
 
     def actorGet(self, name, reload=False, die=False):
-        if reload:
-            self.reset()
-        if name in self.actors:
-            obj = self.actors[name]
-        else:
+        actors = self.db.actor.find(name=name)
+        if len(actors) == 1:
+            obj = actors[0].objectGet(self)
+        elif len(actors) > 1:
+            raise j.exceptions.Input(message="ore then one actor find with this name:%s" % name, level=1, source="", tags="", msgpub="")
+        elif len(actors) < 1:
             if die:
-                raise j.exceptions.Input(message="Could not find actor with name:%s" %
-                                         name, level=1, source="", tags="", msgpub="")
+                raise j.exceptions.Input(message="Could not find actor with name:%s" % name, level=1, source="", tags="", msgpub="")
             obj = self.actorCreate(name)
+
         if reload:
             obj.loadFromFS()
+
         return obj
+
+    def actorGetByKey(self, key):
+        return self.db.actor.get(key).objectGet(self)
 
     def actorExists(self, name):
         if name in self.actors:
@@ -106,18 +88,17 @@ class AtYourServiceRepo():
 
     @property
     def actors(self):
-        if self._actors == {}:
-            for item in self.db.actor.find():
-                res = item.objectGet(aysrepo=self)
-                if res.model.dbobj.state != "disabled":
-                    self._actors[res.model.dbobj.name] = res
-        return self._actors
+        actors = {}
+        for model in self.db.actor.find():
+            if model.dbobj.state != "disabled":
+                actors[model.dbobj.name] = model.objectGet(aysrepo=self)
+        return actors
 
     def actorsFind(self, name="", version="", role=''):
         res = []
         if version != "":
             raise NotImplemented("actors find with version not implemented.")
-        for item in self.actors.values():
+        for item in self.db.actor.find(name=name):
             if not(name == "" or item.model.name == name):
                 # no match continue
                 continue
@@ -133,20 +114,19 @@ class AtYourServiceRepo():
     def templates(self):
         """
         """
-        if self._templates == {}:
-            # need to link to templates of factory and then overrule with the
-            # local ones
-            for key, template in j.atyourservice.actorTemplates.items():
-                self._templates[key] = template
+        templates = {}
+        # need to link to templates of factory and then overrule with the local ones
+        for key, template in j.atyourservice.actorTemplates.items():
+            templates[key] = template
 
         # load local templates
         path = j.sal.fs.joinPaths(self.path, "actorTemplates")
         if j.sal.fs.exists(path):
             for template in j.atyourservice._actorTemplatesGet(self.git, path=path, aysrepo=self):
                 # here we want to overrides the global templates with local one. so having duplicate name is normal
-                self._templates[template.name] = template
+                templates[template.name] = template
 
-        return self._templates
+        return templates
 
     def templateGet(self, name, die=True):
         """
@@ -185,18 +165,15 @@ class AtYourServiceRepo():
 
     @property
     def services(self):
-        if self._services == {}:
-            for service_model in self.db.service.find():
-                # we check if the don't have the service already in memory
-                if service_model.key not in self._services:
-                    service_obj = service_model.objectGet(aysrepo=self)
-                    if service_obj.model.dbobj.state != "disabled":
-                        self._services[service_obj.model.key] = service_obj
-        return list(self._services.values())
+        services = []
+        for service_model in self.db.service.find():
+            if service_model.dbobj.state != "disabled":
+                services.append(service_model.objectGet(aysrepo=self))
+        return services
 
-    def serviceGet(self, role, instance, die=True):
+    def serviceGet(self, role, instance, key=None, die=True):
         """
-        Return service indentifier by role and instance
+        Return service indentifier by role and instance or key
         throw error if service is not found or if more than one service is found
         """
         if role.strip() == "" or instance.strip() == "":
@@ -210,10 +187,13 @@ class AtYourServiceRepo():
             return None
         return objs[0].objectGet(self)
 
+    def serviceGetByKey(self, key):
+        return self.db.service.get(key=key).objectGet(self)
+
     @property
     def serviceKeys(self):
         keys = []
-        for s in self.services.values():
+        for s in self.services:
             keys.append(s.model.key)
         return keys
 
@@ -224,7 +204,7 @@ class AtYourServiceRepo():
 
         if self._servicesTree:
             return self._servicesTree
-        self._doinit()
+
         producers = []
         parents = {"name": "sudoroot", "children": []}
         for root in j.sal.fs.walk(j.dirs.ays, recurse=1, pattern='*state.yaml', return_files=1, depth=2):
@@ -250,7 +230,7 @@ class AtYourServiceRepo():
             raise j.exceptions.Input(message='%s is not a valid state. Should one of %s' %
                                      (state, ', '.join(VALID_ACTION_STATE)))
 
-        self._doinit()
+
         if "install" in actions:
             if "init" not in actions:
                 actions.insert(0, "init")
@@ -305,12 +285,14 @@ class AtYourServiceRepo():
 # BLUEPRINTS
 
     def _load_blueprints(self):
+        bps = {}
         bpdir = j.sal.fs.joinPaths(self.path, "blueprints")
         if j.sal.fs.exists(path=bpdir):
             items = j.sal.fs.listFilesInDir(bpdir)
             for path in items:
-                if path not in self._blueprints:
-                    self._blueprints[path] = Blueprint(self, path=path)
+                if path not in bps:
+                    bps[path] = Blueprint(self, path=path)
+        return bps
 
     @property
     def blueprints(self):
@@ -318,7 +300,7 @@ class AtYourServiceRepo():
         only shows the ones which are on predefined location
         """
         bps = []
-        for path, bp in self._blueprints.items():
+        for path, bp in self._load_blueprints().items():
             if bp.active:
                 bps.append(bp)
 
@@ -331,22 +313,19 @@ class AtYourServiceRepo():
         Show the disabled blueprints
         """
         bps = []
-        for path, bp in self._blueprints.items():
-            if bp.active == False:
+        for path, bp in self._load_blueprints.items():
+            if bp.active is False:
                 bps.append(bp)
         bps = sorted(bps, key=lambda bp: bp.name)
         return bps
 
     def blueprintExecute(self, path="", content="", role="", instance=""):
-        self._doinit()
-        self._load_blueprints()
         if path == "" and content == "":
             for bp in self.blueprints:
                 bp.load(role=role, instance=instance)
         else:
             bp = Blueprint(self, path=path, content=content)
-            # if bp.path not in self._blueprints:
-            self._blueprints[bp.path] = bp
+            # self._blueprints[bp.path] = bp
             bp.load(role=role, instance=instance)
 
         self.init(role=role, instance=instance)
@@ -354,8 +333,6 @@ class AtYourServiceRepo():
         print("blueprint done")
 
     def blueprintGet(self, path):
-
-        self._doinit()
         for bp in self.blueprints:
             if bp.path == path:
                 return bp
@@ -398,7 +375,6 @@ class AtYourServiceRepo():
         get a new run
         if key !=0 then the run will be loaded from DB
         """
-        self._doinit()
 
         if key != 0:
             run_model = j.core.jobcontroller.db.run.get(key)
@@ -487,24 +463,79 @@ class AtYourServiceRepo():
         runs = j.core.jobcontroller.db.run.find()
         return runs
 
+    def findScheduledActions(self):
+        """
+        Walk over all servies and look for action with state scheduled.
+        It then creates actions chains for all schedules actions.
+        """
+        to_execute = {}
+        for service in self.services:
+            for action, state in service.model.actionsState.items():
+                if state == 'scheduled':
+                    if service.model.key not in to_execute:
+                        to_execute[service.model.key] = [action]
+                    else:
+                        to_execute[service.model.key].append(action)
+
+        result = {}
+        for key, actions in to_execute.items():
+            result[key] = []
+
+            for action in actions:
+                result[key].append(self._build_actions_chain(action))
+
+        return result
+
+    def createGlobalRun(self, data={}, simulate=False, debug=False, profile=False):
+        """
+        Create a run from all the scheduled actions in the repository.
+        """
+        run = j.core.jobcontroller.newRun(simulate=simulate)
+
+        scheduled_actions = self.findScheduledActions()
+        total_actions_set = set()
+
+        for key, actions_list in scheduled_actions.items():
+            model = self.db.service.get(key)
+
+            for actions in actions_list:
+                for action in actions:
+                    total_actions_set.add(action)
+
+                    scope = self.runFindActionScope(action, role="", instance="", producerRoles="*")
+                    todo = self._findTodo(action=action, scope=scope, run=run, producerRoles="*")
+
+                    while todo != []:
+                        newStep = True
+                        for service in todo:
+                            if service.model.actionsState[action] not in ['ok', 'disabled']:
+                                if newStep:
+                                    step = run.newStep()
+                                    newStep = False
+
+                                job = service.getJob(action, args={})
+                                job.model.dbobj.profile = False
+                                if job.model.dbobj.profile:
+                                    debug = True
+                                job.model.dbobj.debug = debug
+
+                                step.addJob(job)
+
+                            if service in scope:
+                                scope.remove(service)
+
+                        todo = self._findTodo(action, scope=scope, run=run, producerRoles="*")
+
+        # these are destructive actions, they need to happens in reverse order
+        # in the dependency tree
+        if total_actions_set.isdisjoint(set(['uninstall', 'removedata', 'cleanup', 'halt', 'stop'])) is False:
+            run.reverse()
+
+        return run
+
 # ACTIONS
 
     def init(self, role="", instance="", hasAction="", includeDisabled=False, data=""):
-        self._doinit()
-        if role == "" and instance == "":
-            self.reset()
-
-        # self.serviceSetState(actions=["init"], role=role, instance=instance, state="new")
-        # for key, actor in self.actors.items():
-        #     if role != "" and actor.role == role:
-        #         continue
-        #     actor.init()
-        #     for inst in actor.listInstances():
-        #         service = actor.aysrepo.getService(role=actor.role, instance=inst, die=False)
-        #         print("RESETTING SERVICE roles %s inst %s instance %s " % (actor.role, inst, instance))
-        #         service.update_hrd()
-        #
-        #     #actor.newInstance(instance=key, args={})
         for service in self.servicesFind(name=instance, actor='%s.*' % role, hasAction=hasAction, includeDisabled=includeDisabled):
             self.logger.info('init service: %s' % service)
             service.init()

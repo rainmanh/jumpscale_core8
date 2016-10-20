@@ -12,10 +12,7 @@ class Service:
         self._schema = None
         self._path = ""
         self._schema = None
-        self._producers = {}
         self.name = name
-        self._parent = None
-        self._executor = None
 
         self.aysrepo = aysrepo
         self.logger = j.atyourservice.logger
@@ -125,7 +122,6 @@ class Service:
                 raise j.exceptions.Input(message="could not find parent:%s for %s, found more than 1." %
                                          (parent_name, self), level=1, source="", tags="", msgpub="")
             parentobj = res[0]
-            self._parent = parentobj
 
             self.model.dbobj.parent.actorName = parentobj.model.dbobj.actorName
             self.model.dbobj.parent.key = parentobj.model.key
@@ -136,8 +132,6 @@ class Service:
         return None
 
     def _initProducers(self, actor, args):
-        if self._producers is None:
-            self._producers = []
 
         for i, producer_model in enumerate(actor.model.dbobj.producers):
             producer_role = producer_model.actorRole
@@ -223,20 +217,6 @@ class Service:
         self.model._data = None
         self.model.load(self.model.key)
 
-    def reset(self):
-        self._hrd = None
-        # self._yaml = None
-        self._mongoModel = None
-        self._dnsNames = []
-        self._logPath = None
-        self._state = None
-        self._executor = None
-        self._producers = None
-        self._parentChain = None
-        self._parent = None
-        self._path = ""
-        self._schema = ""
-
     def delete(self):
         """
         delete this service completly.
@@ -252,10 +232,9 @@ class Service:
 
     @property
     def parent(self):
-        if self._parent is None:
-            if self.model.parent is not None:
-                self._parent = self.model.parent.objectGet(self.aysrepo)
-        return self._parent
+        if self.model.parent is not None:
+            return self.model.parent.objectGet(self.aysrepo)
+        return None
 
     @property
     def parents(self):
@@ -276,17 +255,17 @@ class Service:
 
     @property
     def producers(self):
-        if self._producers == {}:
-            for prod_model in self.model.producers:
+        producers = {}
+        for prod_model in self.model.producers:
 
-                if prod_model.dbobj.actorName not in self._producers:
-                    self._producers[prod_model.role] = []
+            if prod_model.dbobj.actorName not in producers:
+                producers[prod_model.role] = []
 
-                result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
-                for service in result:
-                    self._producers[prod_model.role].append(service)
+            result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
+            for service in result:
+                producers[prod_model.role].append(service)
 
-        return self._producers
+        return producers
 
     @property
     def consumers(self):
@@ -370,18 +349,11 @@ class Service:
             serviceName=service.name,
             key=service.model.key)
 
-        if service.model.dbobj.actorName not in self._producers:
-            self._producers[service.model.dbobj.actorName] = [service]
-        else:
-            self._producers[service.model.dbobj.actorName].append(service)
-
         self.saveAll()
 
     @property
     def executor(self):
-        if self._executor is None:
-            self._executor = self._getExecutor()
-        return self._executor
+        return self._getExecutor()
 
     def _getExecutor(self):
         executor = None

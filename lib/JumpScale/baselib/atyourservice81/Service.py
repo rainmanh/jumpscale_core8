@@ -265,7 +265,6 @@ class Service:
 
         self.model.delete()
         j.sal.fs.removeDirTree(self.path)
-        self.aysrepo._services.remove(self)
 
     @property
     def parent(self):

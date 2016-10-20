@@ -12,6 +12,15 @@ colored_traceback.add_hook(always=True)
 
 VALID_ACTION_STATE = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
+ACTIONS_DEPS = {
+    'init': [],
+    'install': ['init'],
+    'start': ['install'],
+    'stop': ['start'],
+    'uninstall': ['stop'],
+    'monitor': ['start']
+}
+
 
 class AtYourServiceRepo():
 
@@ -383,20 +392,16 @@ class AtYourServiceRepo():
         producerRoles = self._processProducerRoles(producerRoles)
         if action not in ["init"]:
             for s in self.services:
-                if s.model.actionsState['init'] not in ["new", "ok", "changed"]:
+                if s.model.actionsState['init'] not in ["new", "ok", "changed", "scheduled"]:
                     error_msg = "Cannot get run: %s:%s:%s because found a service not properly inited yet.\n%s\n please rerun ays init" % (
                         role, instance, action, s)
                     self.logger.error(error_msg)
                     raise j.exceptions.Input(error_msg, msgpub=error_msg)
-        if force:
-            self.serviceSetState(actions=[action], role=role, instance=instance, state="changed")
 
-        if action == "init":
-            actions = ["init"]
-        elif action in ['uninstall', 'removedata', 'cleanup', 'halt', 'stop', 'install']:
-            actions = [action]
-        else:
-            actions = ["install", action]
+        if force:
+            self.serviceSetState(actions=[action], role=role, instance=instance, state="scheduled")
+
+        actions = self._build_actions_chain(action)
 
         run = j.core.jobcontroller.newRun(simulate=simulate)
         for action0 in actions:
@@ -405,7 +410,7 @@ class AtYourServiceRepo():
             while todo != []:
                 newStep = True
                 for service in todo:
-                    if service.model.actionsState[action0] != 'ok':
+                    if service.model.actionsState[action0] not in ['ok', 'disabled']:
                         print("DO:%s %s" % (action0, service))
                         if newStep:
                             step = run.newStep()
@@ -428,6 +433,17 @@ class AtYourServiceRepo():
             run.reverse()
 
         return run
+
+    def _build_actions_chain(self, action):
+        """
+        this method returns a list of action that need to happens before the action passed in argument
+        can start
+        """
+        chain = [action]
+        while ACTIONS_DEPS.get(action, []) != []:
+            chain[:0] = ACTIONS_DEPS[action]
+            action = chain[0]
+        return chain
 
     def _findTodo(self, action, scope, run, producerRoles):
         if action == "" or action is None:

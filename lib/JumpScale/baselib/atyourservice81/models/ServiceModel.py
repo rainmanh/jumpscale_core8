@@ -206,6 +206,7 @@ class ServiceModel(ModelBase, ActorServiceBaseModel):
 # events
 
     def eventFilterSet(self, command, action, channel="", tags="", secrets=""):
+        self.logger.debug('set event filter on %s!%s' % (self.role, self.name))
         changed = False
 
         command = command.lower()
@@ -240,6 +241,7 @@ class ServiceModel(ModelBase, ActorServiceBaseModel):
             changed = True
 
         self.changed = changed
+        self.save()
 
         return changed
 

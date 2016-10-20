@@ -478,12 +478,8 @@ class Service:
             # save period into actionCode model
             action_model.period = period
 
-        # already in a state that required execution. nothing to do
-        if action_model.state == 'new':
-            self.logger.debug('already in a state that required execution. nothing to do')
-            return
-
-        action_model.state = 'changed'
+        action_model.state = 'scheduled'
+        self.save()
 
     def executeAction(self, action, args={}):
         if action[-1] == "_":

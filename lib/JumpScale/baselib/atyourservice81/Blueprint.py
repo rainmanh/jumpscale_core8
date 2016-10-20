@@ -96,7 +96,7 @@ class Blueprint:
                         for serviceObj in servicesFound:
                             for actionName in actions:
                                 self.actions.append({
-                                    'service_obj': serviceObj,
+                                    'service_key': serviceObj.model.key,
                                     'action_name': actionName,
                                     'recurring_period': recurring0,
                                 })
@@ -137,7 +137,7 @@ class Blueprint:
 
                         for serviceObj in servicesFound:
                             self.eventFilters.append({
-                                'service_obj': serviceObj,
+                                'service_key': serviceObj.model.key,
                                 'channel': channel0,
                                 'command': cmd0,
                                 'secret': secret0,
@@ -182,16 +182,14 @@ class Blueprint:
 
         # first we had to make sure all services do exist, then we can add these properties
         for action_info in self.actions:
-            service = action_info['service_obj']
+            service = self.aysrepo.serviceGetByKey(action_info['service_key'])
             service.scheduleAction(action_info['action_name'], period=action_info['recurring_period'])
-            service.saveAll()
 
         for event_filter in self.eventFilters:
-            service = event_filter['service_obj']
+            service = self.aysrepo.serviceGetByKey(event_filter['service_key'])
             service.model.eventFilterSet(
                 channel=event_filter['channel'], action=event_filter['action_name'],
                 command=event_filter['command'], secrets=event_filter['secret'])
-            service.saveAll()
 
     def _add2models(self, content, nr):
         # make sure we don't process double

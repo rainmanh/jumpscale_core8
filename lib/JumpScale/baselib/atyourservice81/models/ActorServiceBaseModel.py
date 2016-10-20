@@ -84,7 +84,7 @@ class ActorServiceBaseModel():
         for act in self.dbobj.actions:
             if act.name == name:
                 action_obj = act
-                if key != "" and action_obj.key != key:
+                if key != "" and action_obj.actionKey != key:
                     action_obj.state = "changed"
                     self.changed = True
                 break

@@ -19,6 +19,26 @@ def cli():
 
 
 @click.command()
+@click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
+def run(ask):
+    repo = j.atyourservice.get()
+    run = repo.createGlobalRun()
+
+    if len(run.steps) <= 0:
+        print("Nothing to do.")
+        return
+    else:
+        print(run)
+
+    if ask:
+        resp = j.tools.console.askYesNo('Do you want to execute this run ?')
+        if resp is False:
+            return
+
+    run.execute()
+
+
+@click.command()
 @click.option('--path', '-p', help='path of the new AYS repo you want to create')
 def create_repo(path):
     """
@@ -491,7 +511,7 @@ def start(conf):
     server = Server(conf)
     server.start()
 
-cli.add_command(create_repo)
+cli.add_command(run)
 cli.add_command(discover)
 cli.add_command(repo_list)
 cli.add_command(runinfo)

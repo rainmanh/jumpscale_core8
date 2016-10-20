@@ -1,5 +1,36 @@
 @0x93c1ac9f09464fd9;
 
+# common struct
+enum ActionState {
+  new @0;
+  changed @1;
+  ok @2;
+  scheduled @3;
+  disabled @4;
+  error @5;
+}
+
+struct EventFilter {
+    # channel e.g. telegram, leave empty if all
+    channel @0 :EventChannel;
+    enum EventChannel {
+      all @0;
+      telegram @1;
+      email @2;
+      webservice @3;
+      blueprint @4;
+    }
+    # the command that will trigger the execution of the action.
+    command @1 :Text;
+    # action e.g. start, can be left empty
+    action @2 :Text;
+    # tags which define sort of filtering e.g. importance:urgent state:down
+    tags @3 :Text;
+    # secrets (comma separated list of secret keys which allow event to execute)
+    secrets @4 :Text;
+}
+
+
 struct Repo {
   name @0 :Text;
   path @1 :Text;
@@ -41,36 +72,9 @@ struct Actor {
     period @2 :UInt32; #use j.data.time.getSecondsInHR( to show HR
     log @3 :Bool;
     state @4 :ActionState;
-    enum ActionState {
-      new @0;
-      changed @1;
-      ok @2;
-      disabled @3;
-      error @4;
-    }
   }
 
   eventFilters @6 :List(EventFilter);
-  struct EventFilter {
-      # channel e.g. telegram, leave empty if all
-      channel @0 :EventChannel;
-      enum EventChannel {
-        all @0;
-        telegram @1;
-        email @2;
-        webservice @3;
-        blueprint @4;
-      }
-      # the command that will trigger the execution of the action.
-      command @1 :Text;
-      # action e.g. start, can be left empty
-      action @2 :Text;
-      # tags which define sort of filtering e.g. importance:urgent state:down
-      tags @3 :Text;
-      # secrets (comma separated list of secret keys which allow event to execute)
-      secrets @4 :Text;
-  }
-
 
   #where does the template come from
   origin @7 :Origin;
@@ -147,13 +151,6 @@ struct Service {
     #unique key for code of action (see below)
     actionKey @1 :Text;
     state @2: ActionState;
-    enum ActionState {
-      new @0;
-      changed @1;
-      ok @2;
-      disabled @3;
-      error @4;
-    }
     log @3 :Bool;
     lastRun @4: UInt32;
     period @5 :UInt32;#use j.data.time.getSecondsInHR( to show HR
@@ -161,25 +158,6 @@ struct Service {
 
   #list of filter statements, when match call service.executeActionService("processEvent",event)
   eventFilters @6 :List(EventFilter);
-  struct EventFilter {
-      # channel e.g. telegram, leave empty if all
-      channel @0 :EventChannel;
-      enum EventChannel {
-        all @0;
-        telegram @1;
-        email @2;
-        webservice @3;
-        blueprint @4;
-      }
-      # the command that will trigger the execution of the action.
-      command @1 :Text;
-      # action e.g. start, can be left empty
-      action @2 :Text;
-      # tags which define sort of filtering e.g. importance:urgent state:down
-      tags @3 :Text;
-      # secrets (comma separated list of secret keys which allow event to execute)
-      secrets @4 :Text;
-  }
 
   actorKey @7 :Text;
 

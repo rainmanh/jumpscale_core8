@@ -554,10 +554,11 @@ class Service:
             return self.executeActionJob(action, args)
 
     def executeActionService(self, action, args={}):
-        job = self.getJob(action, args=args)
-        result = job.executeInProcess(service=self)
-        job.model.save()
-        return result
+        # execute an action in process without creating a job
+        # usefull for methods called very often.
+        action, method = j.atyourservice.baseActions[actionName]
+        res = method(service=self, actionName=actionName)
+        return res
 
     def executeActionJob(self, actionName, args={}):
         self.logger.debug('execute action %s on %s' % (action, self))

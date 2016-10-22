@@ -1,6 +1,6 @@
-@0xc95b52bf39888c7e;
+@0xc95b66bf39888c7e;
 
-struct Job {
+struct Issue {
   #this object is hosted by actor based on FQDN
   #is the run which asked for this job
   runKey @0 :Text;

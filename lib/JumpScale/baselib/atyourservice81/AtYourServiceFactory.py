@@ -222,6 +222,7 @@ class AtYourServiceFactory:
         return repos
 
     def repoCreate(self, path):
+        raise RuntimeError("check not ok")
         path = j.sal.fs.pathNormalize(path)
 
         if j.sal.fs.exists(path):
@@ -294,6 +295,7 @@ class AtYourServiceFactory:
 
         # if the repo we are curently loading in not in db yet. add it.
         models = self._repodb.find(path)
+
         if len(models) <= 0:
             model = self._repodb.new()
             model.path = path
@@ -334,7 +336,8 @@ class AtYourServiceFactory:
             repo = findRepo(path)
 
         if repo is None:
-            raise j.exceptions.Input(message="Could not find repo in path:%s" % path, level=1, source="", tags="", msgpub="")
+            raise j.exceptions.Input(message="Could not find repo in path:%s" %
+                                     path, level=1, source="", tags="", msgpub="")
 
         return repo
 

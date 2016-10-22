@@ -76,6 +76,8 @@ class StoreFactory:
 
         # encodetest()
 
+        print("test ok")
+
     def getRedisCacheLocal(self):
         """
         example:

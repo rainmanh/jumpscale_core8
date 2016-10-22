@@ -49,24 +49,25 @@ class RedisKeyValueStore(KeyValueStoreBase):
         """
         @param items is {indexitem:key}
             indexitem is e.g. $actorname:$state:$role (is a text which will be index to key)
-                indexitems are always made lowercase
             key links to the object in the db
         ':' is not allowed in indexitem
         """
         # if in non redis, implement as e.g. str index in 1 key and if gets too big then create multiple
         for key, val in items.items():
-            lkey = key.lower()
+            lkey = key
             if self.redisclient.hexists(self._indexkey, lkey):
-                val = self.redisclient.hget(self._indexkey, lkey).decode() + "," + val
-            self.redisclient.hset(self._indexkey, lkey, val)
+                val = self.redisclient.hget(self._indexkey, lkey).decode()
+                if lkey not in val:
+                    val += "," + val
+                    self.redisclient.hset(self._indexkey, lkey, val)
+            else:
+                self.redisclient.hset(self._indexkey, lkey, val)
         return True
 
     def index_remove(self, key, secret=""):
         """
         @param keys is the key to remove from index
-        key are always made lowercase
         """
-        key = key.lower()
         if self.redisclient.hexists(self._indexkey, key):
             self.redisclient.hdel(self._indexkey, key)
 

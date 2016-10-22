@@ -8,6 +8,7 @@ enum ActionState {
   scheduled @3;
   disabled @4;
   error @5;
+  running @6;
 }
 
 struct EventFilter {

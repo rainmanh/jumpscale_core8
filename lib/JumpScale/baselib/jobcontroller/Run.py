@@ -58,7 +58,7 @@ class RunStep:
     def execute(self):
         processes = {}
         for job in self.jobs:
-            self.logger.info('exectute %s' % job)
+            self.logger.info('execute %s' % job)
             process = job.execute()
 
             if job.model.dbobj.debug is False:
@@ -97,7 +97,7 @@ class RunStep:
                 print(process.stdout)
 
             job.model.save()
-            # job.service.saveAll()
+            job.service.saveAll()
 
     def __repr__(self):
         out = "step:%s (%s)\n" % (self.dbobj.number, self.state)
@@ -158,7 +158,7 @@ class Run:
     def services(self):
         res = []
         for step in self.steps:
-            res.exetend(step.services)
+            res.extend(step.services)
         return res
 
     def hasServiceForAction(self, service, action):

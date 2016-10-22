@@ -22,6 +22,7 @@ class Job():
         self._action = None
         self._service = None
         self._source = None
+        self.saveService = True
 
     @property
     def action(self):
@@ -68,9 +69,6 @@ class Job():
         print(logs)
         return logs
 
-    def save(self):
-        self.model.save()
-
     @property
     def method(self):
         if self.action.key not in j.core.jobcontroller._methods:
@@ -83,10 +81,11 @@ class Job():
     @property
     def service(self):
         if self._service is None:
-            repoModel = j.atyourservice._repodb.get(self.model.dbobj.repoKey)
-            repo = repoModel.objectGet()
-            serviceModel = repo.db.service.get(self.model.dbobj.serviceKey)
-            self._service = serviceModel.objectGet(repo)
+            if self.model.dbobj.actorName != "":
+                repoModel = j.atyourservice._repodb.get(self.model.dbobj.repoKey)
+                repo = repoModel.objectGet()
+                serviceModel = repo.db.service.get(self.model.dbobj.serviceKey)
+                self._service = serviceModel.objectGet(repo)
         return self._service
 
     def _processError(self, eco):
@@ -137,7 +136,7 @@ class Job():
             epoch=epoch,
             tags=tags)
 
-        self.model.save()
+        self.save()
 
     def error(self, errormsg, level=1, tags=""):
         self.model.log(
@@ -145,8 +144,18 @@ class Job():
             level=level,
             category="errormsg",
             tags=tags)
-        self.model.save()
+        self.save()
         raise RuntimeError(errormsg)
+
+    def save(self):
+        self.model.save()
+        if self.saveService and self.service != None:
+            service_action_obj = self.service.model.actions[self.model.dbobj.actionName]
+            # print(self.model.dbobj.state)
+            service_action_obj.state = str(self.model.dbobj.state)
+            if self.saveService:
+                print("save service:%s" % self.service.name)
+                self.service.saveAll()
 
     def executeInProcess(self, service=None):
         """
@@ -154,11 +163,12 @@ class Job():
         if debug job then will not capture output so our debugging features work
         """
 
-        if self.model.dbobj.actorName != "":
-            if service is None:
-                service = self.service
-            else:
-                self._service = service
+        # to make sure we don't put it in the profiler
+        self.method
+
+        if self.model.dbobj.profile:
+            pr = cProfile.Profile()
+            pr.enable()
 
         try:
             if self.model.dbobj.actorName != "":
@@ -166,20 +176,29 @@ class Job():
             else:
                 res = self.method(**self.model.args)
 
-            self.model.dbobj.state = 'ok'
-
         except Exception as e:
             self.model.dbobj.state = 'error'
             eco = j.errorconditionhandler.processPythonExceptionObject(e)
             self._processError(eco)
             raise j.exceptions.RuntimeError("could not execute job:%s" % self)
 
+        finally:
+            if self.model.dbobj.profile:
+                pr.create_stats()
+                stat_file = j.sal.fs.getTempFileName()
+                pr.dump_stats(stat_file)
+                self.model.dbobj.profileData = j.sal.fs.fileGetBinaryContents(stat_file)
+                j.sal.fs.remove(stat_file)
+
+        self.model.dbobj.state = 'ok'
+
         self.model.result = res
-        self.model.save()
+        self.save()
         return res
 
     def execute(self):
         self.model.dbobj.state = 'running'
+        self.save()
 
         # TODO improve debug detection
         if self.model.dbobj.debug is False:
@@ -188,19 +207,9 @@ class Job():
 
         # can be execute in paralle so we don't wait for end of execution here.
         if self.model.dbobj.debug:
-            if self.model.dbobj.profile:
-                pr = cProfile.Profile()
-                pr.enable()
 
             process = self.executeInProcess()
 
-            if self.model.dbobj.profile:
-                pr.create_stats()
-                stat_file = j.sal.fs.getTempFileName()
-                pr.dump_stats(stat_file)
-                self.model.dbobj.profileData = j.sal.fs.fileGetBinaryContents(stat_file)
-                self.model.save()
-                j.sal.fs.remove(stat_file)
         else:
             return j.core.processmanager.startProcess(self.method, {'job': self})
 

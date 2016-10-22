@@ -3,7 +3,7 @@ from JumpScale import j
 
 class ActionsBase:
 
-    def init_actions_(job):
+    def init_actions_(service):
         """
         this needs to returns an array of actions representing the depencies between actions.
         Looks at ACTION_DEPS in this module for an example of what is expected
@@ -17,7 +17,7 @@ class ActionsBase:
             'uninstall': ['stop'],
         }
 
-    def process_event_(job):
+    def process_event_(service):
         """
         check the event, if match call relevant actions
         """

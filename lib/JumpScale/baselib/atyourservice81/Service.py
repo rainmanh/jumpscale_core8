@@ -98,6 +98,8 @@ class Service:
             if k not in args:
                 args[k] = v.default
 
+        self.save()
+
         self.init()
 
         self.saveAll()
@@ -195,7 +197,6 @@ class Service:
         if self.model is None:
             self.model = self.db.new()
 
-
         model_json = j.data.serializer.json.load(j.sal.fs.joinPaths(path, "service.json"))
         # for now we don't reload the actions codes.
         # when using distributed DB, the actions code could still be available
@@ -203,7 +204,8 @@ class Service:
         self.model.dbobj = self.aysrepo.db.capnpModel.Service.new_message(**model_json)
 
         data_json = j.data.serializer.json.load(j.sal.fs.joinPaths(path, "data.json"))
-        self.model.dbobj.data = j.data.capnp.getBinaryData(j.data.capnp.getObj(self.model.dbobj.dataSchema, args=data_json))
+        self.model.dbobj.data = j.data.capnp.getBinaryData(
+            j.data.capnp.getObj(self.model.dbobj.dataSchema, args=data_json))
         # data_obj = j.data.capnp.getObj(self.model.dbobj.dataSchema, data_json)
         # self.model._data = data_obj
 
@@ -501,7 +503,10 @@ class Service:
 
     def input(self, args={}):
         job = self.getJob("input", args=args)
+        job._service = self
+        job.saveService = False  # this is done to make sure we don't save the service at this point !!!
         args = job.executeInProcess(service=self)
+        job.model.actorName = self.model.dbobj.actorName
         job.model.save()
         return args
 
@@ -546,6 +551,7 @@ class Service:
             action_model.period = period
 
         action_model.state = 'scheduled'
+        self.saveAll()
 
     def executeAction(self, action, args={}):
         if action[-1] == "_":
@@ -556,8 +562,8 @@ class Service:
     def executeActionService(self, action, args={}):
         # execute an action in process without creating a job
         # usefull for methods called very often.
-        action, method = j.atyourservice.baseActions[actionName]
-        res = method(service=self, actionName=actionName)
+        action, method = j.atyourservice.baseActions[action]
+        res = method(service=self)
         return res
 
     def executeActionJob(self, actionName, args={}):
@@ -597,7 +603,7 @@ class Service:
 
         job.model.save()
         job.service.saveAll()
-        self.logger.debug('end runAction %s on %s' % (action, self))
+        self.logger.debug('end execute action %s on %s' % (action, self))
         return job
 
     def getJob(self, actionName, args={}):

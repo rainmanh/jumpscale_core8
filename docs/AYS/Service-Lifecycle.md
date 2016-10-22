@@ -2,9 +2,9 @@
 
 The lifecycle of any service can be managed by AYS.
 
-## Step 1: Create an AYS service template
+## Step 1: Create an AYS actor template
 
-An AYS service template defines:
+An AYS actor template defines:
 
 ```
 - Relations between this service and other services. This is done through consumption.
@@ -14,7 +14,7 @@ An AYS service template defines:
 - Any other relevant action which can be done on the AYS service
 ```
 
-An AYS service template is stored in an **AYS template repository** or locally in the `actorTemplates` directory of an **AYS repository**.
+An AYS actor template is stored in an **AYS template repository** or locally in the `actorTemplates` directory of an **AYS repository**.
 
 ## Step 2: Create AYS blueprints using the AYS service
 
@@ -29,11 +29,11 @@ An AYS blueprint defines:
 - Attributes per service
 ```
 
-## Step 3: AYS service template gets "converted" into an AYS service recipe
+## Step 3: AYS actor template gets "converted" into an AYS service recipe
 
-An AYS service recipe is a copy of an AYS service template, residing in a local AYS repository.
+An AYS service recipe is a copy of an AYS actor template, residing in a local AYS repository.
 
-So an AYS service template becomes an AYS service recipe when copied into the local AYS repository, where it will be used for actually deploying one or more instances of that service.
+So an AYS actor template becomes an AYS service recipe when copied into the local AYS repository, where it will be used for actually deploying one or more instances of that service.
 
 ## Step 4: AYS service recipe gets "converted" into one or more AYS service instances
 
@@ -41,7 +41,7 @@ This happens when executing the `AYS init` command on the AYS repository.
 
 What actually happens at that moment is that the `instance.hrd` for each of the service instances gets created in `ays-repo/services/.../$servicerole!$serviceinstance/`.
 
-The `ìnstance.hrd` has all the configuration settings for that AYS service instance. All `instance.hrd` files get born out of the `schema.hrd` orginating from the service template which got "converted" to the service recipe. The schema defines the properties required for the `instance.hrd`.
+The `ìnstance.hrd` has all the configuration settings for that AYS service instance. All `instance.hrd` files get born out of the `schema.hrd` orginating from the actor template which got "converted" to the service recipe. The schema defines the properties required for the `instance.hrd`.
 
 ## Step 5: Deploy & manage the AYS service instance
 

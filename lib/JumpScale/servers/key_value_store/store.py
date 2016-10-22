@@ -6,16 +6,7 @@ import time
 import collections
 
 
-try:
-    import snappy
-except:
-    # this is ugly.
-    rc, out = j.sal.process.execute("apt-get install -y libsnappy-dev ", die=True,
-                                    outputToStdout=False, ignoreErrorOutput=False)
-    rc, out = j.sal.process.execute("pip3 install python-snappy", die=True,
-                                    outputToStdout=False, ignoreErrorOutput=False)
-    import snappy
-
+import snappy
 
 # IMPORTANT: had to remove class for manipulating kvs object, class was more clear but 2 issues
 # - this needs to be converted to a functional C module which can be reused in many languages, doing this in OO is much more complex

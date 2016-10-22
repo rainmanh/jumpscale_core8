@@ -24,7 +24,7 @@ class CuisinePHP(app):
     NAME = 'php'
 
     def build(self, **config):
-        pkgs = "libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev"
+        pkgs = "libxml2-dev libpng-dev libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev"
         list(map(self._cuisine.package.ensure, pkgs.split(sep=" ")))
 
         buildconfig = deepcopy(compileconfig)
@@ -39,6 +39,7 @@ class CuisinePHP(app):
                 args_string += " --{k}={v}".format(k=k, v=v)
         C = """
         rm -rf $tmpDir/php
+        rm -rf $appDir/php
         set -xe
         rm -rf $tmpDir/php-7.0.11
         cd $tmpDir && [ ! -f $tmpDir/php-7.0.11.tar.bz2 ] && cd $tmpDir && wget http://be2.php.net/distributions/php-7.0.11.tar.bz2 && tar xvjf $tmpDir/php-7.0.11.tar.bz2
@@ -50,14 +51,12 @@ class CuisinePHP(app):
 
         """.format(args_string=args_string)
 
-        self._cuisine.core.dir_ensure("$appDir/php")
         C = self._cuisine.core.args_replace(C)
-
         self._cuisine.core.execute_bash(C)
 
         # check if we need an php accelerator: https://en.wikipedia.org/wiki/List_of_PHP_accelerators
 
-    def install(self, start=True):
+    def install(self, start=False):
         fpmdefaultconf = """\
         include=$appDir/php/etc/php-fpm.d/*.conf
         """
@@ -84,8 +83,6 @@ class CuisinePHP(app):
         fpmwwwconf = textwrap.dedent(fpmwwwconf)
         # make sure to save that configuration file ending with .conf under php/etc/php-fpm.d/www.conf
         C = """
-        rm -rf $appDir/php
-        mkdir $appDir/php
         cd $tmpDir/php && make install
         """
 
@@ -97,12 +94,18 @@ class CuisinePHP(app):
         self._cuisine.core.file_write("$appDir/php/etc/php-fpm.d/www.conf", content=fpmwwwconf)
         self._cuisine.bash.addPath(self._cuisine.core.args_replace('$appDir/php/bin'))
 
+        if start:
+            self.start()
+
     def start(self):
         phpfpmbinpath = '$appDir/php/sbin'
 
         phpfpmcmd = "$appDir/php/sbin/php-fpm -F -y $appDir/php/etc/php-fpm.conf.default"  # foreground
         phpfpmcmd = self._cuisine.core.args_replace(phpfpmcmd)
         self._cuisine.processmanager.ensure(name="php-fpm", cmd=phpfpmcmd, path=phpfpmbinpath)
+
+    def stop(self):
+        self._cuisine.processmanager.stop("php-fpm")
 
     def test(self):
         # TODO: *1

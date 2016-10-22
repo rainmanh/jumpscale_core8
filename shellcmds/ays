@@ -14,11 +14,28 @@ repo = None
 
 
 @click.group()
-@click.option('--nodebug', default=False, help='disable debug mode', is_flag=True)
-def cli(nodebug):
-    global repo
+def cli():
+    pass
+
+
+@click.command()
+@click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
+def run(ask):
     repo = j.atyourservice.get()
-    repo.debug = not nodebug
+    run = repo.createGlobalRun()
+
+    if len(run.steps) <= 0:
+        print("Nothing to do.")
+        return
+    else:
+        print(run)
+
+    if ask:
+        resp = j.tools.console.askYesNo('Do you want to execute this run ?')
+        if resp is False:
+            return
+
+    run.execute()
 
 
 @click.command()
@@ -28,6 +45,32 @@ def create_repo(path):
     create a new AYS repository
     """
     j.atyourservice.repoCreate(path)
+
+
+@click.command()
+@click.option('--path', '-p', default=None, help='Path where to start looking for AYS repository')
+def discover(path=None):
+    """
+    Discover AYS repository on the filesystem and save them in DB.
+    """
+    if path is None:
+        path = j.sal.fs.getcwd()
+    repos = j.atyourservice.reposDiscover(path)
+
+    print('Repositories discovered: ')
+    if len(repos) > 0:
+        for repo in repos:
+            print(repo.path)
+    else:
+        print('None')
+
+
+@click.command()
+def repo_list():
+    print("AYS Repositories: ")
+    repos = j.atyourservice.reposList()
+    for repo in sorted(repos):
+        print(repo.path)
 
 
 @click.command()
@@ -65,6 +108,7 @@ def init(role="", instance="", data=""):
     blueprints are no longer processed in init step, use the ays blueprint command
 
     """
+    repo = j.atyourservice.get()
     if data != "" and (role == "" or instance == ""):
         raise j.exceptions.Input("need to specify role & instance to pass data")
 
@@ -79,6 +123,7 @@ def update(name):
     Any change detected in the actor will be propagated to the services and processChange method will be
     called all the way from actor to service instances.
     """
+    repo = j.atyourservice.get()
     names = []
     if name is None:
         names = repo.templates.keys()
@@ -111,6 +156,7 @@ def blueprint(path, role, instance):
 
     if role & instance specified then only the ays instances with specified role/instance will be processed
     """
+    repo = j.atyourservice.get()
     repo.blueprintExecute(role=role, instance=instance, path=path)
 
 
@@ -120,6 +166,7 @@ def build(servicekey):
     """
     builds specific service
     """
+    repo = j.atyourservice.get()
     repo.get(servicekey)
 
 
@@ -128,6 +175,7 @@ def showactions():
     """
     shows all services with relevant actions
     """
+    repo = j.atyourservice.get()
     for service in repo.services:
         print("%s" % service)
         for action, state in service.model.actionsState.items():
@@ -135,6 +183,7 @@ def showactions():
 
 
 def _do(action, role, instance, force, producerroles, args, ask, debug, profile):
+    repo = j.atyourservice.get()
     data = {}
     if args is not None:
         if j.sal.fs.exists(args):
@@ -182,10 +231,10 @@ def do(action, role, instance, force, producerroles, args, ask, debug, profile):
 
 
 @click.command()
-@click.option('--role', default="", help='optional role for ays instances execute an action on')
-@click.option('--instance', default="", help='optional name of instance')
+@click.option('--role', '-r', default="", help='optional role for ays instances execute an action on')
+@click.option('--instance', '-i', default="", help='optional name of instance')
 @click.option('--force', default=False, is_flag=True, help='if True then will ignore state of service action.')
-@click.option('--producerroles', default="*", help='roles of producers which will be taken into consideration, if * all')
+@click.option('--producerroles', '-p', default="*", help='roles of producers which will be taken into consideration, if * all')
 @click.option('--args', default=None, help='argument to pass to the run. Can be a list of tags e.g: "key:value key:value" \
 or a path to a file containing the argument. Format of the file can be json, yaml, toml. format is detected using file extension. default format is json')
 @click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
@@ -211,6 +260,7 @@ def simulate(action, role="", instance="", force=False, producerroles="*"):
     is like do only does not execute it,
     is ideal to figure out what would happen if you run a certain action
     """
+    repo = j.atyourservice.get()
     run = repo.runGet(role=role, instance=instance, action=action,
                       force=force, producerRoles=producerroles, simulate=True)
     print(run)
@@ -228,6 +278,7 @@ def setstate(action, state="DO", role="", instance="", force=False, producerrole
     be careful what you do with this command
     this sets the state of an ays instance manually
     """
+    repo = j.atyourservice.get()
     repo.setState(actions=[action], role=role, instance=instance, state=state)
     run = repo.runGet(role=role, instance=instance, action=action, force=False, producerRoles=producerroles)
     print(run)
@@ -239,33 +290,47 @@ def uninstall(printonly):
     """
     do uninstall
     """
+    repo = j.atyourservice.get()
     repo.uninstall(printonly=printonly)
 
 
 @click.command()
-@click.argument('role')
-@click.argument('instance')
+@click.option('--role', '-r', default='')
+@click.option('--instance', '-i', default='')
 def show(role, instance):
     '''
     show information about a service
     '''
-    service = repo.serviceGet(role=role, instance=instance)
-    print("Service: %s" % service)
-    print("\nInstance data:")
-    instance_data = service.model.data.to_dict()
-    for k in sorted(instance_data):
-        print("- %s : %s" % (k, instance_data[k]))
+    def print_date(epoch):
+        if epoch == 0:
+            return "never"
+        return j.data.time.epoch2HRDateTime(epoch)
 
-    print("\nProducers:")
-    service.printProducersRecursive()
+    repo = j.atyourservice.get()
+    services = repo.servicesFind(actor="%s.*" % role, name=instance)
+    for service in services:
+        print('\n')
+        print('---------------------------------------------------')
+        print("Service: %s - Actor: %s" % (service.model.dbobj.name, service.model.dbobj.actorName))
+        print("\nInstance data:")
+        instance_data = service.model.data.to_dict()
+        for k in sorted(instance_data):
+            print("- %s : %s" % (k, instance_data[k]))
 
-    print("\nRecurring actions:")
-    for name, model in service.model.actionsRecurring.items():
-        print("%s: period:%5s lastRun:%s " % (name, j.data.time.getSecondsInHR(model.period), j.data.time.epoch2HRDateTime(model.lastRun)))
+        print("\nProducers:")
+        service.printProducersRecursive()
 
-    print("\nEvent actions:")
-    for name, model in service.model.actionsEvent.items():
-        print("%s: event:%s lastRun:%s " % (name, model.event, j.data.time.epoch2HRDateTime(model.lastRun)))
+        print("\nRecurring actions:")
+        for name, model in service.model.actionsRecurring.items():
+            print("%s: period:%5s lastRun:%s " % (name, j.data.time.getSecondsInHR(model.period), print_date(model.lastRun)))
+
+        print("\nEvent filters:")
+        for event_filter in service.model.eventFilters:
+            print('- action: %s' % event_filter.action)
+            print('  command: %s' % event_filter.command)
+            print('  channel: %s' % event_filter.channel)
+            print('  tags: %s' % event_filter.tags)
+            print('  secrets: not shown')
 
 
 @click.command()
@@ -275,6 +340,7 @@ def showproducers(role, instance):
     '''
     find the producers for this service & show
     '''
+    repo = j.atyourservice.get()
     print("producers:")
     ays = repo.serviceGet(role=role, instance=instance)
     ays.printProducersRecursive()
@@ -287,6 +353,7 @@ def showparents(role, instance):
     """
     Display the list of parent of a specific service instance.
     """
+    repo = j.atyourservice.get()
     service = repo.serviceGet(role, instance)
     out = "parents:\n"
     for parent in service.parents:
@@ -301,6 +368,7 @@ def list(role, instance):
     """
     The list command lists all service instances with specific role and instance name.
     """
+    repo = j.atyourservice.get()
     print("Installed services:")
     print("-------------------")
     services = repo.servicesFind(actor="%s.*" % role, name=instance)
@@ -316,8 +384,8 @@ def destroy():
 
     make sure to do a commit before you do a distroy, this will give you a chance to roll back.
     """
+    repo = j.atyourservice.get()
     repo.destroy(False)
-    j.application.reset()
 
 
 @click.command()
@@ -333,6 +401,7 @@ def test(cmd, name, message):
      - push : push modified tests to the repo
      - pull : get the repo with the tests
     """
+    repo = j.atyourservice.get()
     tester = j.repo.getTester(name)
     if cmd == "doall":
         tester.doall()
@@ -351,6 +420,7 @@ def commit(message, branch="master", push=False):
     commit the changes in the ays repo to git, can optionally push.
     this is very important because it allows you to see change in ays repo.
     """
+    repo = j.atyourservice.get()
     repo.commit(message, branch, push=push)
 
 
@@ -360,6 +430,7 @@ def update_md(branch="master"):
     """
     update the metdata for the templates as well as the current ays repo
     """
+    repo = j.atyourservice.get()
     repo.update(branch=branch)
 
 
@@ -370,6 +441,7 @@ def runinfo(runid, list):
     """
     print info about run, if not specified will be latest run
     """
+    repo = j.atyourservice.get()
     if list:
         print("Run IDs:")
         for i, key in enumerate(j.core.jobcontroller.db.run.list()):
@@ -389,6 +461,7 @@ def state(role='', instance=''):
     """
     Print the state of the selected services. If not role or instances specified, all services from the repository are selected
     """
+    repo = j.atyourservice.get()
     services = repo.servicesFind(name=instance, actor='%s.*' % role)
     services = sorted(services, key=lambda s: s.model.dbobj.actorName)
     for service in services:
@@ -406,12 +479,20 @@ def delete(role, instance, ask):
     Delete a service and all it's children
     Be carefull with this action, there is no come back once a service is deleted.
     """
+    repo = j.atyourservice.get()
     services = repo.servicesFind(name=instance, actor='%s.*' % role)
+    if len(services) <= 0:
+        print('Nothing to be deleted')
+        return
+
     services = sorted(services, key=lambda s: s.model.dbobj.actorName)
 
     print("Services selected for deletion:")
     for service in services:
-        print(service)
+        print("- %s" % service)
+        print('\nchild that will also be deleted:')
+        for child in service.children:
+            print('  - %s' % child)
 
     if ask:
         resp = j.tools.console.askYesNo('\nAre you sure you want to delete ?')
@@ -430,7 +511,9 @@ def start(conf):
     server = Server(conf)
     server.start()
 
-cli.add_command(create_repo)
+cli.add_command(run)
+cli.add_command(discover)
+cli.add_command(repo_list)
 cli.add_command(runinfo)
 cli.add_command(simulate)
 cli.add_command(test)

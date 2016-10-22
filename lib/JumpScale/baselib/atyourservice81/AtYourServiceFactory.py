@@ -12,6 +12,7 @@ import sys
 if "." not in sys.path:
     sys.path.append(".")
 
+import inspect
 
 colored_traceback.add_hook(always=True)
 
@@ -36,7 +37,12 @@ class AtYourServiceFactory:
 
         self.logger = j.logger.get('j.atyourservice')
 
+        factory_db = ModelsFactory()
+        self._repodb = factory_db.repo
+
         self._test = None
+
+        self.baseActions = {}
 
     def test(self):
         r = self.get()
@@ -201,40 +207,39 @@ class AtYourServiceFactory:
         if not path:
             path = j.dirs.codeDir
         path = j.sal.fs.pathNormalize(path)
-        repos = (root for root, dirs, files in os.walk(path) if '.ays' in files)
+        repos_path = (root for root, dirs, files in os.walk(path) if '.ays' in files)
 
-        db = ModelsFactory()
-        for repo_path in repos:
-            model = db.repo.new()
-            model.path = repo_path
-            model.save()
-            self._repoLoad(repo_path)
+        repos = []
+        for repo_path in repos_path:
+            repos.append(self._repoLoad(repo_path))
+
+        return repos
 
     def reposList(self):
         repos = []
-        db = ModelsFactory()
-        for model in db.repo.find():
+        for model in self._repodb.find():
             repos.append(model.objectGet())
         return repos
 
     def repoCreate(self, path):
         path = j.sal.fs.pathNormalize(path)
-        self._doinit()
+
         if j.sal.fs.exists(path):
             raise j.exceptions.Input("Directory %s already exists. Can't create AYS repo at the same location." % path)
         j.sal.fs.createDir(path)
         j.sal.fs.createEmptyFile(j.sal.fs.joinPaths(path, '.ays'))
         j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'actorTemplates'))
         j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'blueprints'))
-        j.tools.cuisine.local.core.run('git init')
+        j.tools.cuisine.local.core.run('cd %s;git init' % path)
         j.sal.nettools.download(
             'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
         name = j.sal.fs.getBaseName(path)
-        db = ModelsFactory()
-        model = db.repo.new()
+
+        model = self._repodb.new()
         model.path = path
         model.save()
-        git_repo = j.clients.git.get(path)
+
+        git_repo = j.clients.git.get(path, check_path=False)
         self._templateRepos[path] = AtYourServiceRepo(name=name, gitrepo=git_repo, path=path)
         print("AYS Repo created at %s" % path)
         return self._templateRepos[path]
@@ -243,7 +248,6 @@ class AtYourServiceFactory:
         """
         load templateRepo's from path
         if path not specified then will go from current path, will first walk down if no .ays dirs found then will walk up to find .ays file
-
         """
         if path == "":
             path = j.sal.fs.getcwd()
@@ -288,8 +292,18 @@ class AtYourServiceFactory:
             raise j.exceptions.Input(
                 "AYS templateRepo with name:%s already exists at %s, cannot have duplicate names." % (name, path))
 
-        repo = AtYourServiceRepo(name, gitrepo, path)
+        # if the repo we are curently loading in not in db yet. add it.
+        models = self._repodb.find(path)
+        if len(models) <= 0:
+            model = self._repodb.new()
+            model.path = path
+            model.save()
+        else:
+            model = models[0]
+
+        repo = AtYourServiceRepo(name, gitrepo, path, model=model)
         self._repos[name] = repo
+
         return repo
 
     def get(self):
@@ -317,9 +331,11 @@ class AtYourServiceFactory:
         if repo is None:
             # repo does not exist yet
             self._repoLoad(path)
-        repo = findRepo(path)
+            repo = findRepo(path)
+
         if repo is None:
             raise j.exceptions.Input(message="Could not find repo in path:%s" % path, level=1, source="", tags="", msgpub="")
+
         return repo
 
 # FACTORY
@@ -339,5 +355,17 @@ class AtYourServiceFactory:
     def getActionsBaseClass(self):
         return ActionsBase
 
-    def getActionMethodDecorator(self):
-        return ActionMethodDecorator
+    def loadActionBase(self):
+        """
+        load all the basic actions for atyourservice
+        """
+        if self.baseActions == {}:
+            base = self.getActionsBaseClass()
+
+            for method in [item[1] for item in inspect.getmembers(base) if item[0][0] != "_"]:
+                methodName = str(method).split(" ")[1].replace("ActionsBase.", "")
+                ac = j.core.jobcontroller.getActionObjFromMethod(method)
+                if not j.core.jobcontroller.db.action.exists(ac.key):
+                    # will save in DB
+                    ac.save()
+                self.baseActions[ac.dbobj.name] = ac, method

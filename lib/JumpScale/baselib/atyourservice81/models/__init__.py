@@ -7,9 +7,14 @@ from .ActorModel import ActorModel
 from .ServiceModel import ServiceModel
 from .RepoModel import RepoModel
 
+if "darwin" in str(j.core.platformtype.myplatform):
+    socket=j.core.db.config_get()["unixsocket"]
+else:
+    socket='/tmp/ays.sock'
+
 defaultConfig = {
     'redis': {
-        'unixsocket': '/tmp/ays.sock'
+        'unixsocket': socket
     }
 }
 
@@ -22,15 +27,12 @@ class ModelsFactory():
 
         ModelFactory = j.data.capnp.getModelFactoryClass()
         self.capnpModel = ModelCapnp
-        if not aysrepo:
-            self.namespacePrefix = "ays:"
-            self.repo = ModelFactory(self, "Repo", RepoModel, **config['redis'])
-        else:
+        self.namespacePrefix = "ays:"
+        self.repo = ModelFactory(self, "Repo", RepoModel, **config['redis'])
+        if aysrepo:
             self.namespacePrefix = "ays:%s" % aysrepo.name
-
             self.actor = ModelFactory(self, "Actor", ActorModel, **config['redis'])
             self.service = ModelFactory(self, "Service", ServiceModel, **config['redis'])
-
             self.actor.repo = aysrepo
             self.service.repo = aysrepo
 
@@ -45,5 +47,6 @@ class ModelsFactory():
         return cfg
 
     def destroy(self):
+        self.repo.destroy()
         self.actor.destroy()
         self.service.destroy()

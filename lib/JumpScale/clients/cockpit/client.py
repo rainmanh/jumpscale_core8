@@ -33,7 +33,7 @@ class Client:
     without modifying the upper interface of the client.
     """
 
-    def __init__(self, base_uri, jwt, verify_ssl=True):
+    def __init__(self, base_uri, jwt=None, verify_ssl=True):
         """
         base_uri: str, URL of the cockpit api. e.g: https://mycockpit.com/api
         jwt: str, json web token from itsyou.online
@@ -43,9 +43,9 @@ class Client:
         if verify_ssl is False:
             requests.packages.urllib3.disable_warnings()
         self._client.url = base_uri
-        self._jwt = jwt
+        # self._jwt = jwt
         self._client.session.headers = {
-            "Authorization": "Bearer " + jwt,
+            # "Authorization": "Bearer " + jwt,
             "Content-Type": "application/json"
         }
 

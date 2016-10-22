@@ -10,7 +10,7 @@ Usage: ays init [OPTIONS]
 
       When using data the data is passed to the specific instance, if data used also role and instance needs to be used
 
-      Step 1: init will walk over all existing recipes (AYS service templates in local context) and will see if recipe actions or HRDs changed
+      Step 1: init will walk over all existing recipes (AYS actor templates in local context) and will see if recipe actions or HRDs changed
 
       if there is change than all ays instance originating from this recipe\'s state will be changed this will allow the further install action to execute on the change
 

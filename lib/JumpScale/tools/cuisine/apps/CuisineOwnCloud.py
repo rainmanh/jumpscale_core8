@@ -18,8 +18,7 @@ class CuisineOwnCloud(app):
         C = """
         set -xe
         cd $tmpDir && [ ! -d $tmpDir/ays_owncloud ] && git clone https://github.com/0-complexity/ays_owncloud
-        cd $tmpDir && [ ! -f $tmpDir/owncloud-9.1.1.tar.bz2 ] && wget https://download.owncloud.org/community/owncloud-9.1.1.tar.bz2 && tar jxf owncloud-9.1.1.tar.bz2
-        cd $tmpDir && tar jxf owncloud-9.1.1.tar.bz2
+        cd $tmpDir && [ ! -f $tmpDir/owncloud-9.1.1.tar.bz2 ] && wget https://download.owncloud.org/community/owncloud-9.1.1.tar.bz2 && cd $tmpDir && tar jxf owncloud-9.1.1.tar.bz2
         [ ! -d {storagepath} ] && mkdir -p {storagepath}
         """.format(storagepath=storagepath)
 
@@ -30,6 +29,7 @@ class CuisineOwnCloud(app):
 
         C = """
         set -xe
+        rm -rf $appDir/owncloud
         mv $tmpDir/owncloud $appDir/owncloud
 
         # copy config.php to new owncloud home httpd/docs
@@ -37,7 +37,7 @@ class CuisineOwnCloud(app):
         # copy gig theme
         /bin/cp -Rf $tmpDir/ays_owncloud/owncloud/gig $appDir/owncloud/themes/
 
-        chmod 777 -R $appDir/owncloud/config
+
         """
 
         self._cuisine.core.execute_bash(C)
@@ -156,7 +156,7 @@ class CuisineOwnCloud(app):
             location ~ ^/(?:index|remote|public|cron|core/ajax/update|status|ocs/v[12]|updater/.+|ocs-provider/.+|core/templates/40[34])\.php(?:$|/) {
                 fastcgi_split_path_info ^(.+\.php)(/.*)$;
                 include $appDir/nginx/etc/fastcgi_params;
-                fastcgi_param SCRIPT_FILENAME $request_filename;
+                fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
                 fastcgi_param PATH_INFO $fastcgi_path_info;
                 # fastcgi_param HTTPS on;
                 fastcgi_param modHeadersAvailable true; #Avoid sending the security headers twice
@@ -201,24 +201,31 @@ class CuisineOwnCloud(app):
         conf = self._cuisine.core.args_replace(conf)
         return conf
 
-    def start(self, sitename):
+    def start(self, sitename='owncloudy.com', dbhost="127.0.0.1", dbuser="root", dbpass=""):
+
         owncloudsiterules = self._get_default_conf_nginx_site()
         owncloudsiterules = owncloudsiterules % {"sitename": sitename}
         self._cuisine.core.file_write("$cfgDir/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
 
-        with self._cuisine.apps.tidb.dbman() as m:
-            try:
-                m.create_database(database="owncloud")
-                m.create_dbuser(host="127.0.0.1", username="owncloud", passwd="owncloud")
-            except:
-                pass  # user created already.
-            m.grant_user(host="127.0.0.1", username="owncloud", database="owncloud")
+        privateIp = self._cuisine.net.getInfo(self._cuisine.net.nics[0])['ip'][0]
+
+        C = r"""\
+        mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --port 3306 --execute "CREATE DATABASE owncloud"
+        mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --port 3306 --execute "CREATE USER 'owncloud'@'{ip}' IDENTIFIED BY 'owncloud'"
+        mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --port 3306 --execute "grant all on *.* to 'owncloud'@'{ip}'"
+        """.format(dbhost=dbhost, dbuser=dbuser, dbpass=dbpass, ip=privateIp)
+
+        self._cuisine.core.execute_bash(C)
+
+        #TODO: if not installed
         cmd = """
-        chown root.root $appDir/owncloud/config/config.php
         $appDir/php/bin/php $appDir/owncloud/occ maintenance:install  --database="mysql" --database-name="owncloud"\
-        --database-host="127.0.0.1" --database-user="owncloud" --database-pass="owncloud" --admin-user="admin" --admin-pass="admin"\
+        --database-host="{dbhost}" --database-user="owncloud" --database-pass="owncloud" --admin-user="admin" --admin-pass="admin"\
         --data-dir="/data"
-        """
+
+        $appDir/php/bin/php $appDir/owncloud/occ config:system:set trusted_domains 1 --value={sitename}
+        """.format(dbhost=dbhost, sitename=sitename)
+
         self._cuisine.core.execute_bash(cmd)
 
         basicnginxconf = self._cuisine.apps.nginx.get_basic_nginx_conf()
@@ -227,11 +234,13 @@ class CuisineOwnCloud(app):
         C = """
         chown -R www-data:www-data $appDir/owncloud $cfgDir/nginx
         chmod 777 -R $appDir/owncloud/config
+        chown -R www-data:www-data /data
         """
         self._cuisine.core.execute_bash(C)
         self._cuisine.core.file_write("$cfgDir/nginx/etc/nginx.conf", content=basicnginxconf)
         self._cuisine.processmanager.stop("nginx")
         self._cuisine.apps.nginx.start()
+        self._cuisine.development.php.start()
 
     def restart(self):
         pass

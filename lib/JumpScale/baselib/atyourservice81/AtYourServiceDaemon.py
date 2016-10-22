@@ -1,14 +1,20 @@
 from JumpScale import j
 import signal
 import time
-from multiprocessing import Process, Pool
-
+from multiprocessing import Pool
+from threading import Thread
 
 defaultConfig = {
     'redis': {
         'unixsocket': '/tmp/ays.sock'
     }
 }
+
+
+def run_action(repo_path, service_key, action_name, args={}):
+    repo = j.atyourservice.repoGet(repo_path)
+    service = repo.db.service.get(service_key).objectGet(repo)
+    service.runAction(action_name, args)
 
 
 class Server:
@@ -95,7 +101,7 @@ class Server:
     def _dispatch(self, request):
         self.logger.info('dispatch request %s' % request)
 
-        # TODO: implemet other commands
+        # TODO: implement other commands
         if request['command'] == 'execute':
             self._execute(request)
 
@@ -107,9 +113,15 @@ class Server:
             self.logger.error('execute command received but not action specified in request.')
             return
 
-        action = requrest['action']
-        args = requrest.get('args', {})
-        self._workers.apply_async(service.runAction, (action, args))
+        try:
+            self._workers.apply_async(run_action, (
+                request['repo_path'],
+                request['service_key'],
+                request['action'],
+                request.get('args', {}))
+            )
+        except Exception as e:
+            self.logger.error('error: %s' % str(e))
 
     def _progagate_event(self, request):
         if 'event' not in request:
@@ -128,15 +140,20 @@ class Server:
                     if event_obj.event != event_type:
                         continue
 
-                    self.logger.info('event %s propagated to %s repo: %s' % (event_type, service, repo.path))
+                    self.logger.info('event %s propagated to %s from %s' % (event_type, service, repo))
 
                     event_obj.lastRun = j.data.time.epoch
                     service.save()
 
-                    self._workers.apply_async(service.runAction, (event_obj.action, args))
+                    self._workers.apply_async(run_action, (
+                        service.aysrepo.path,
+                        service.model.key,
+                        event_obj.action,
+                        args,
+                    ))
 
 
-class RecurringLoop(Process):
+class RecurringLoop(Thread):
     """
     Loop that triggers the recurring action of all the services
 
@@ -160,6 +177,7 @@ class RecurringLoop(Process):
         while self.is_alive() and self._running:
             repos = j.atyourservice.reposList()
             for repo in repos:
+                self.logger.debug('inspect %s for recurring actions' % repo)
                 for service in repo.services:
                     if len(service.model.actionsRecurring) <= 0:
                         continue
@@ -171,9 +189,17 @@ class RecurringLoop(Process):
                             recurring_obj.lastRun = now
                             service.save()
                             self.logger.info('recurring job for %s' % service)
-                            self._workers.apply_async(service.runAction, (action_name, ))
 
-            time.sleep(1)
+                            try:
+                                self._workers.apply_async(run_action, (
+                                    service.aysrepo.path,
+                                    service.model.key,
+                                    action_name,
+                                ))
+                            except Exception as e:
+                                self.logger.error('error: %s' % str(e))
+
+            time.sleep(5)
 
     def stop(self):
         if self._running:

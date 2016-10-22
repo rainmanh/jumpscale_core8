@@ -620,7 +620,7 @@ class StorSpace(object):
         return obj
 
     def upload(self, flistname, host=None, source="/",
-               excludes=["\.pyc", "__pycache__"], removetmpdir=True, metadataStorspace=None):
+               excludes=[r'/__pycache__/', r'(.*)\.pyc$'], removetmpdir=True, metadataStorspace=None):
         """
         Upload a complete directory:
          - from 'host' (if it's an executor)
@@ -662,7 +662,7 @@ class StorSpace(object):
 
         for key, exist in exists.items():
             if not exist and f.isRegular(key):
-                needed.append({'hash': key, 'file': f.getPath(key)})
+                needed.append({'hash': f.getHash(key), 'file': key})
 
         if len(needed) == 0:
             # nothing to upload

@@ -4,7 +4,7 @@ AYS repositories (repos) are Git repositories containing services instances or s
 
 These are the two types of repositories used by AYS:
 
-- **AYS Template Repos** are Git repositories containing all service templates from which an actual AYS instance can be deployed. We can see it as a library of services form which you pick some templates to represent what you're trying to model.
+- **AYS Template Repos** are Git repositories containing all actor templates from which an actual AYS instance can be deployed. We can see it as a library of services form which you pick some templates to represent what you're trying to model.
 
   - See [AYS template repo](../FileDetails/AYS-template-repo.md) for more details
 

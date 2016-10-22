@@ -83,8 +83,8 @@ class Job():
     @property
     def service(self):
         if self._service is None:
-            # TODO: *3 is shortcut but will work for now, we need to see we are in right repo if multiple
-            repo = [item for item in j.atyourservice._repos.items()][-1][1]
+            repoModel = j.atyourservice._repodb.get(self.model.dbobj.repoKey)
+            repo = repoModel.objectGet()
             serviceModel = repo.db.service.get(self.model.dbobj.serviceKey)
             self._service = serviceModel.objectGet(repo)
         return self._service
@@ -137,6 +137,16 @@ class Job():
 
         self.model.save()
 
+    def error(self,errormsg,level=1,tags=""):
+        self.model.log(
+            msg=errormsg,
+            level=level,
+            category="errormsg",
+            tags=tags)
+        self.model.save()
+        raise RuntimeError(errormsg)
+
+
     def executeInProcess(self, service=None):
         """
         execute the job in the process, capture output when possible
@@ -176,8 +186,9 @@ class Job():
         self.model.dbobj.state = 'running'
 
         # TODO improve debug detection
-        debugInCode = self.sourceToExecute.find('ipdb') != -1 or self.sourceToExecute.find('IPython') != -1
-        self.model.dbobj.debug = debugInCode
+        if self.model.dbobj.debug is False:
+            debugInCode = self.sourceToExecute.find('ipdb') != -1 or self.sourceToExecute.find('IPython') != -1
+            self.model.dbobj.debug = debugInCode
 
         # can be execute in paralle so we don't wait for end of execution here.
         if self.model.dbobj.debug:

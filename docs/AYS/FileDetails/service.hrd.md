@@ -1,6 +1,6 @@
-# AYS service.hrd
+# AYS actor.hrd
 
-This is next to `schema.hrd` and the optional `actions.py` the `service.hrd` is another optional metadatafile for a service.
+This is next to `schema.hrd` and the optional `actions.py` the `actor.hrd` is another optional metadatafile for a service.
 
 It contains information defining:
 
@@ -18,14 +18,18 @@ Example:
 The service has 2 recurring actions, monitor and export. Monitor runs every minute and export once a day.
 
 ```
-recurring.monitor = 1m
-recurring.export = 1d
+recurring.monitor =
+    period: 2m,
+    log: True,
+
+recurring.export =
+    period: 1d,
+    log: False,
 ```
 
 Following conditions apply for values used here:
 
 - Only 3m, 3d and 3h (3 can be any integer value) or just an integer when you mean seconds
-- In case of seconds, value should be at least 5
 
 ## Events subscription
 
@@ -40,9 +44,11 @@ A service can subscribe to 5 types of events:
 Example of a service that register to two types of event. It will execute the escalate method from the actions.py file when a mail is received and the respond_telegram when a message from [Telegram](telegram.org) is received
 
 ```
-events.mail =
-    escalate,
+events.mail.escalate =
+    log = True,
 
-events.telegram =
-    respond_telegram,
+events.telegram.respond_telegram =
+    log = False,
 ```
+
+## Build instructions

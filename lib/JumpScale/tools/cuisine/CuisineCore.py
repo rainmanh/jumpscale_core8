@@ -665,7 +665,7 @@ class CuisineCore(base):
             # if sig != self.file_md5(location):
             # cmd = 'set -ex && echo "%s" | openssl base64 -A -d > %s' % (content_base64, location)
 
-            if len(content2) > 10000:
+            if len(content2) > 100000:
                 # when contents are too big, bash will crash
                 temp = j.sal.fs.getTempFileName()
                 j.sal.fs.writeFile(filename=temp, contents=content2, append=False)

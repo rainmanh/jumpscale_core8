@@ -44,13 +44,13 @@ class CuisineMongodb(app):
                 for file in self._cuisine.core.fs_find('%s/bin/' % extracted, type='f'):
                     self._cuisine.core.file_copy(file, appbase)
 
-    def install(self, start=True):
+    def install(self, start=True, name='mongod'):
         """
         download, install, move files to appropriate places, and create relavent configs
         """
-        self._cuisine.core.dir_ensure('$varDir/data/mongodb')
+        self._cuisine.core.dir_ensure('$varDir/data/%s' % name)
         if start:
-            self.start("mongod")
+            self.start(name)
 
     def build(self, start=True, install=True):
         self._build()
@@ -59,7 +59,10 @@ class CuisineMongodb(app):
 
     def start(self, name="mongod"):
         which = self._cuisine.core.command_location("mongod")
-        self._cuisine.core.dir_ensure('$varDir/data/mongodb')
-        cmd = "%s --dbpath $varDir/data/mongodb" % which
-        self._cuisine.process.kill("mongod")
-        self._cuisine.processmanager.ensure("mongod", cmd=cmd, env={}, path="")
+        self._cuisine.core.dir_ensure('$varDir/data/%s' % name)
+        cmd = "%s --dbpath $varDir/data/%s" % (which, name)
+        # self._cuisine.process.kill("mongod")
+        self._cuisine.processmanager.ensure(name, cmd=cmd, env={}, path="")
+
+    def stop(self, name='mongod'):
+        self._cuisine.processmanager.stop(name)

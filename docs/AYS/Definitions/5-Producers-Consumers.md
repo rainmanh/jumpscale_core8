@@ -2,7 +2,7 @@
 
 Each service instance can consume a service delivered by a producer. A producer is another service instance delivering a service.
 
-The consumption of another service is specified in the `schema.hrd` file of a service template ore recipe, using the `consume` keyword.
+The consumption of another service is specified in the `schema.hrd` file of a actor template ore recipe, using the `consume` keyword.
 
 As an example of consumption, see the following `schema.hrd` specification:
 

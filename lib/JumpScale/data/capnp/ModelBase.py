@@ -14,6 +14,7 @@ class ModelBase():
         self._index = modelfactory._index
         self._key = ""
         self.dbobj = None
+        self.changed = False
 
         if key != "":
             if len(key) != 16 and len(key) != 32:

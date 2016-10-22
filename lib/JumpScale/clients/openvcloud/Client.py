@@ -206,6 +206,15 @@ class Account:
                 raise j.exceptions.RuntimeError(
                     "Could not find space with name %s" % name)
 
+    def create_disk(self, name, gid, description, size=0, type="B"):
+        res = self.client.api.cloudapi.disks.create(accountId=self.id,
+                                                    name=name,
+                                                    gid=gid,
+                                                    description=description,
+                                                    size=size,
+                                                    type=type)
+        return res
+
     def __str__(self):
         return "openvcloud client account: %(name)s" % (self.model)
 
@@ -228,6 +237,16 @@ class Space:
             "%s:image" % self._basekey, CACHETIME)
         self._portforwardings_cache = j.data.redisdb.get(
             "%s:portforwardings" % self._basekey, CACHETIME)
+
+    def add_external_network(self, name, subnet, gateway, startip, endip, gid, vlan):
+        self.client.api.cloudbroker.iaas.addExternalNetwork(cloudspaceId=self.id,
+                                                            name=name,
+                                                            subnet=subnet,
+                                                            getway=gateway,
+                                                            startip=startip,
+                                                            endip=endip,
+                                                            gid=gid,
+                                                            vlan=vlan)
 
     def save(self):
         self.client.api.cloudapi.cloudspaces.update(cloudspaceId=self.model['id'],
@@ -305,6 +324,14 @@ class Space:
         return False
 
     @property
+    def owners(self):
+        _owners = []
+        for user in self.model['acl']:
+            if not user['canBeDeleted']:
+                _owners.append(user['userGroupId'])
+        return _owners
+
+    @property
     def authorized_users(self):
         return [u['userGroupId'] for u in self.model['acl']]
 
@@ -316,9 +343,10 @@ class Space:
         return True
 
     def unauthorize_user(self, username):
-        if username in self.authorized_users:
-            self.client.api.cloudapi.cloudspaces.deleteUser(
-                cloudspaceId=self.id, userId=username, recursivedelete=True)
+        canBeDeleted = [u['userGroupId'] for u in self.model['acl'] if u['canBeDeleted'] is True]
+
+        if username in self.authorized_users and username in canBeDeleted:
+            self.client.api.cloudapi.cloudspaces.deleteUser(cloudspaceId=self.id, userId=username, recursivedelete=True)
             self.refresh()
         return True
 
@@ -408,6 +436,17 @@ class Machine:
 
     def delete_snapshot(self, epoch):
         self.client.api.cloudapi.machines.deleteSnapshot(machineId=self.id, epoch=epoch)
+
+    def add_disk(self, name, description, size=10, type='D'):
+        disk_id = self.client.api.cloudapi.machines.addDisk(machineId=self.id,
+                                                            diskName=name,
+                                                            description=description,
+                                                            size=size,
+                                                            type=type)
+        return disk_id
+
+    def disk_limit_io(self, disk_id, iops=50):
+        self.client.api.cloudapi.disks.limitIO(diskId=disk_id, iops=iops)
 
     @property
     def portforwardings(self):

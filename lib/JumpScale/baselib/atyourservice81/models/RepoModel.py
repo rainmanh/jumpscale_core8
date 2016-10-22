@@ -8,7 +8,7 @@ ModelBase = j.data.capnp.getModelBaseClassWithData()
 class RepoModel(ModelBase):
     """
     Model Class for an Repo object
-    """
+    """ 
 
     @property
     def path(self):
@@ -40,6 +40,10 @@ class RepoModel(ModelBase):
         for key in self.list(path):
             res.append(self._modelfactory.get(key))
         return res
+
+    def delete(self):
+        self._db.delete(self.key)
+        self._index.index_remove(self.path)
 
     def objectGet(self):
         """

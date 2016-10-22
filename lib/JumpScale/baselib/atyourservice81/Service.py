@@ -12,10 +12,7 @@ class Service:
         self._schema = None
         self._path = ""
         self._schema = None
-        self._producers = {}
         self.name = name
-        self._parent = None
-        self._executor = None
 
         self.aysrepo = aysrepo
         self.logger = j.atyourservice.logger
@@ -32,8 +29,8 @@ class Service:
     @property
     def path(self):
         if self._path == "":
-            relpath = self.model.dbobj.gitRepos[0].path
-            assert self.model.dbobj.gitRepos[0].url == self.aysrepo.git.remoteUrl
+            relpath = self.model.dbobj.gitRepo.path
+            assert self.model.dbobj.gitRepo.url == self.aysrepo.git.remoteUrl
             self._path = j.sal.fs.joinPaths(self.aysrepo.path, relpath)
         return self._path
 
@@ -53,8 +50,7 @@ class Service:
         dbobj.state = "new"
         dbobj.dataSchema = actor.model.dbobj.serviceDataSchema
 
-        r = self.model._gitRepoNowObj()
-        r.url = self.aysrepo.git.remoteUrl
+        dbobj.gitRepo.url = self.aysrepo.git.remoteUrl
 
         # actions
         actions = dbobj.init("actions", len(actor.model.dbobj.actions))
@@ -64,6 +60,8 @@ class Service:
             actionnew.state = "new"
             actionnew.actionKey = action.actionKey
             actionnew.name = action.name
+            actionnew.log = action.log
+            actionnew.period = action.period
             counter += 1
 
         # parents/producers
@@ -71,13 +69,11 @@ class Service:
         parent = self._initParent(actor, args)
         if parent is not None:
             fullpath = j.sal.fs.joinPaths(parent.path, skey)
-            r.path = j.sal.fs.pathRemoveDirPart(fullpath, self.aysrepo.path)
+            dbobj.gitRepo.path = j.sal.fs.pathRemoveDirPart(fullpath, self.aysrepo.path)
         else:
-            r.path = j.sal.fs.joinPaths("services", skey)
+            dbobj.gitRepo.path = j.sal.fs.joinPaths("services", skey)
 
         self._initProducers(actor, args)
-        self._initRecurringActions(actor)
-        self._initEventActions(actor)
 
         # set default value for argument not specified in blueprint
         template = self.aysrepo.templateGet(actor.model.name)
@@ -87,8 +83,9 @@ class Service:
 
         # input will always happen in process
         args2 = self.input(args=args)
-        if args2 != args:
+        if args2 is not None and j.data.types.dict.check(args2):
             args.update(args2)
+
         if not j.data.types.dict.check(args):
             raise j.exceptions.Input(message="result from input needs to be dict,service:%s" % self,
                                      level=1, source="", tags="", msgpub="")
@@ -106,11 +103,14 @@ class Service:
             parent_role = actor.model.dbobj.parent.actorRole
 
             # try to get the instance name from the args. Look for full actor name ('node.ssh') or just role (node)
-            # if none of the two is available in the args, don't use instance name and expect the parent service to be unique in the repo
+            # if none of the two is available in the args, don't use instance name and
+            # expect the parent service to be unique in the repo
             parent_name = args.get(parent_role, '')
             res = self.aysrepo.servicesFind(name=parent_name, actor='%s.*' % parent_role)
             res = [s for s in res if s.model.role == parent_role]
             if len(res) == 0:
+                if actor.model.dbobj.parent.optional:
+                    return None
                 if actor.model.dbobj.parent.auto is False:
                     raise j.exceptions.Input(message="could not find parent:%s for %s, found 0" %
                                              (parent_name, self), level=1, source="", tags="", msgpub="")
@@ -122,7 +122,6 @@ class Service:
                 raise j.exceptions.Input(message="could not find parent:%s for %s, found more than 1." %
                                          (parent_name, self), level=1, source="", tags="", msgpub="")
             parentobj = res[0]
-            self._parent = parentobj
 
             self.model.dbobj.parent.actorName = parentobj.model.dbobj.actorName
             self.model.dbobj.parent.key = parentobj.model.key
@@ -133,8 +132,6 @@ class Service:
         return None
 
     def _initProducers(self, actor, args):
-        if self._producers is None:
-            self._producers = []
 
         for i, producer_model in enumerate(actor.model.dbobj.producers):
             producer_role = producer_model.actorRole
@@ -149,6 +146,9 @@ class Service:
                 res = [s for s in res if s.model.role == producer_role]
 
                 if len(res) == 0:
+                    if producer_model.minServices == 0:
+                        continue
+
                     if producer_model.auto is False:
                         raise j.exceptions.Input(message="could not find producer:%s for %s, found 0" %
                                                  (producer_role, self), level=1, source="", tags="", msgpub="")
@@ -173,26 +173,14 @@ class Service:
                 serviceName=self.parent.model.dbobj.name,
                 key=self.parent.model.key)
 
-    def _initRecurringActions(self, actor):
-        self.model.dbobj.init('recurringActions', len(actor.model.dbobj.recurringActions))
-
-        for i, reccuring_info in enumerate(actor.model.dbobj.recurringActions):
-            recurring = self.model.dbobj.recurringActions[i]
-            recurring.action = reccuring_info.action
-            recurring.period = reccuring_info.period
-            recurring.log = reccuring_info.log
-            recurring.lastRun = 0
-
-    def _initEventActions(self, actor):
-        self.model.dbobj.init('eventActions', len(actor.model.dbobj.eventActions))
-
-        for i, event_info in enumerate(actor.model.dbobj.eventActions):
-            event = self.model.dbobj.eventActions[i]
-            event.action = event_info.action
-            event.event = event_info.event
-            event.log = event_info.log
-            event.lastRun = 0
-
+    def _check_args(self, actor, args):
+        """ Checks whether if args are the same as in instance model """
+        data = j.data.serializer.json.loads(self.model.dataJSON)
+        for key, value in args.items():
+            sanitized_key = j.data.hrd.sanitize_key(key)
+            if sanitized_key in data and data[sanitized_key] != value:
+                self.processChange(actor=actor, changeCategory="dataschema", args=args)
+                break
 
     def loadFromFS(self):
         """
@@ -229,20 +217,6 @@ class Service:
         self.model._data = None
         self.model.load(self.model.key)
 
-    def reset(self):
-        self._hrd = None
-        # self._yaml = None
-        self._mongoModel = None
-        self._dnsNames = []
-        self._logPath = None
-        self._state = None
-        self._executor = None
-        self._producers = None
-        self._parentChain = None
-        self._parent = None
-        self._path = ""
-        self._schema = ""
-
     def delete(self):
         """
         delete this service completly.
@@ -254,14 +228,13 @@ class Service:
 
         self.model.delete()
         j.sal.fs.removeDirTree(self.path)
-        self.aysrepo._services.remove(self)
+        # self.aysrepo._services.remove(self)  # not sure this is still relevant
 
     @property
     def parent(self):
-        if self._parent is None:
-            if self.model.parent is not None:
-                self._parent = self.model.parent.objectGet(self.aysrepo)
-        return self._parent
+        if self.model.parent is not None:
+            return self.model.parent.objectGet(self.aysrepo)
+        return None
 
     @property
     def parents(self):
@@ -282,17 +255,20 @@ class Service:
 
     @property
     def producers(self):
-        if self._producers == {}:
-            for prod_model in self.model.producers:
+        producers = {}
+        for prod_model in self.model.producers:
 
-                if prod_model.dbobj.actorName not in self._producers:
-                    self._producers[prod_model.role] = []
+            if prod_model.dbobj.actorName not in producers:
+                producers[prod_model.role] = []
+                # TODO: *1 christophe, do we need this, came from master
+                # if prod_model.role not in self._producers:
+                #     self._producers[prod_model.role] = []
 
-                result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
-                for service in result:
-                    self._producers[prod_model.role].append(service)
+            result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
+            for service in result:
+                producers[prod_model.role].append(service)
 
-        return self._producers
+        return producers
 
     @property
     def consumers(self):
@@ -373,14 +349,14 @@ class Service:
 
         self.model.producerAdd(
             actorName=service.model.dbobj.actorName,
-            serviceName=service.model.name,
+            serviceName=service.name,
             key=service.model.key)
+
+        self.saveAll()
 
     @property
     def executor(self):
-        if self._executor is None:
-            self._executor = self._getExecutor()
-        return self._executor
+        return self._getExecutor()
 
     def _getExecutor(self):
         executor = None
@@ -393,7 +369,7 @@ class Service:
                 return executor
         return j.tools.executor.getLocal()
 
-    def processChange(self, actor, changeCategory):
+    def processChange(self, actor, changeCategory, args={}):
         """
         template action change
         categories :
@@ -404,11 +380,12 @@ class Service:
             - action_mod_actionname
         """
         # TODO: implement different pre-define action for each category
-        # self.logger.debug('process change for %s (%s)' % (self, changeCategory))
+        # self.logger.debug('process change for %s (%s)' % (self, changeCategory)
 
         if changeCategory == 'dataschema':
-            # TODO
+            # We use the args passed without change
             pass
+
         elif changeCategory == 'ui':
             # TODO
             pass
@@ -451,7 +428,8 @@ class Service:
 
         # execute the processChange method if it exists
         if 'processChange' in self.model.actions.keys():
-            job = self.getJob("processChange", args={'changeCategory': changeCategory})
+            args.update({'changeCategory': changeCategory})
+            job = self.getJob("processChange", args=args)
             args = job.executeInProcess(service=self)
             job.model.save()
             # self.runAction('processChange', args={'changeCategory': changeCategory})
@@ -470,11 +448,72 @@ class Service:
         job.model.save()
         return job
 
-    def runAction(self, action, args={}):
-        self.logger.debug('start runAction %s on %s' % (action, self))
+    def checkActions(self, actions):
+        """
+        will walk over all actions, and make sure the default are well set.
+
+        """
+        from IPython import embed
+        print("DEBUG NOW checkactions")
+        embed()
+        raise RuntimeError("stop debug here")
+
+    def scheduleAction(self, action, args={}, period=None, log=True):
+        """
+        Change the state of an action so it marked as need to be executed
+        if the period is specified, also create a recurring period for the action
+        """
+        self.logger.debug('schedule action %s on %s' % (action, self))
+        if action not in self.model.actions:
+            raise j.exceptions.Input(
+                "Trying to schedule action %s on %s. but this action doesn't exist" % (action, self))
+
+        action_model = self.model.actions[action]
+
+        if action_model.state == 'disabled':
+            raise j.exceptions.Input("Trying to schedule action %s on %s. but this action is disabled" % (action, self))
+
+        if period is not None and period != '':
+            # convert period to seconds
+            if j.data.types.string.check(period):
+                period = j.data.types.duration.convertToSeconds(period)
+            elif j.data.types.int.check(period) or j.data.types.float.check(period):
+                period = int(period)
+            # save period into actionCode model
+            action_model.period = period
+
+        action_model.state = 'scheduled'
+        self.save()
+
+    def executeAction(self, action, args={}):
+        if action[-1] == "_":
+            return self.runActionService(action)
+        else:
+            return self.runActionJob(action, args)
+
+    def executeActionService(self, actionName):
+        action, method = j.atyourservice.baseActions[actionName]
+        res = method(service=self, actionName=actionName)
+        return res
+
+    def executeActionJob(self, actionName, args={}):
+
+        import ipdb
+        ipdb.set_trace()
+
         job = self.getJob(actionName=action, args=args)
         now = j.data.time.epoch
+
+        if self.runServiceAction("check_active") == False:
+            message = "Cannot execute action:%s on service:%s, service is nor ready" % (action, self)
+            job.error(message)
+
         p = job.execute()
+
+        self.runServiceAction("action_post_", actionName=action)
+
+        if job.model.dbobj.debug is True:
+            return job
 
         while not p.isDone():
             p.wait()
@@ -510,6 +549,7 @@ class Service:
     def getJob(self, actionName, args={}):
         action = self.model.actions[actionName]
         jobobj = j.core.jobcontroller.db.job.new()
+        jobobj.dbobj.repoKey = self.aysrepo.model.key
         jobobj.dbobj.actionKey = action.actionKey
         jobobj.dbobj.actionName = action.name
         jobobj.dbobj.actorName = self.model.dbobj.actorName

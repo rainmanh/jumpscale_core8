@@ -1,12 +1,11 @@
 from JumpScale import j
-
+from JumpScale.baselib.atyourservice81.models.ActorServiceBaseModel import ActorServiceBaseModel
 ModelBase = j.data.capnp.getModelBaseClassWithData()
-
 
 VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 
-class ServiceModel(ModelBase):
+class ServiceModel(ModelBase, ActorServiceBaseModel):
 
     @property
     def role(self):
@@ -21,7 +20,8 @@ class ServiceModel(ModelBase):
         if len(parentModels) <= 0:
             return None
         elif len(parentModels) > 1:
-            raise j.exceptions.RuntimeError("More then one parent model found for model %s:%s" % (self.dbobj.actorName, self.dbobj.name))
+            raise j.exceptions.RuntimeError("More then one parent model found for model %s:%s" %
+                                            (self.dbobj.actorName, self.dbobj.name))
 
         return parentModels[0]
 
@@ -31,68 +31,6 @@ class ServiceModel(ModelBase):
         for prod in self.dbobj.producers:
             producers.extend(self.find(name=prod.serviceName, actor=prod.actorName))
         return producers
-
-    @property
-    def actions(self):
-        """
-        return dict
-            key = action name
-            val = action model
-        """
-        actions = {}
-        for action in self.dbobj.actions:
-            actions[action.name] = action
-        return actions
-
-    @property
-    def actionsState(self):
-        """
-        return dict
-            key = action name
-            val = state
-        state = 'new', 'installing', 'ok', 'error', 'disabled', 'changed'
-        """
-        actions = {}
-        for action in self.dbobj.actions:
-            actions[action.name] = action.state.__str__()
-        return actions
-
-    @property
-    def actionsCode(self):
-        """
-        return dict
-            key = action name
-            val = source code of the action
-        """
-        actions = {}
-        for action in self.dbobj.actions:
-            action_model = j.core.jobcontroller.db.action.get(action.actionKey)
-            actions[action.name] = action_model.code
-        return actions
-
-    @property
-    def actionsRecurring(self):
-        """
-        return dict
-            key = action name
-            val = recurring model
-        """
-        recurrings = {}
-        for recurring in self.dbobj.recurringActions:
-            recurrings[recurring.action] = recurring
-        return recurrings
-
-    @property
-    def actionsEvent(self):
-        """
-        return dict
-            key = action name
-            val = event model
-        """
-        events = {}
-        for event in self.dbobj.eventActions:
-            events[event.action] = event
-        return events
 
     @classmethod
     def list(self, name="", actor="", state="", parent="", producer="", returnIndex=False):
@@ -199,47 +137,8 @@ class ServiceModel(ModelBase):
         """
         actor = aysrepo.actorGet(self.dbobj.actorName, die=True)
         Service = aysrepo.getServiceClass()
-        return Service(name=self.dbobj.name, aysrepo=aysrepo, model=self)
-
-    def _producerNewObj(self):
-        olditems = [item.to_dict() for item in self.dbobj.producers]
-        newlist = self.dbobj.init("producers", len(olditems) + 1)
-        for i, item in enumerate(olditems):
-            newlist[i] = item
-        return newlist[-1]
-
-    def _actionsNewObj(self):
-        olditems = [item.to_dict() for item in self.dbobj.actions]
-        newlist = self.dbobj.init("actions", len(olditems) + 1)
-        for i, item in enumerate(olditems):
-            newlist[i] = item
-        return newlist[-1]
-
-    def _getActionModel(self, name):
-        for action in self.dbobj.actions:
-            if action.name == name:
-                return action
-        raise j.exceptions.NotFound("Can't find method with name %s" % name)
-
-    def _recurringNewObj(self):
-        olditems = [item.to_dict() for item in self.dbobj.recurring]
-        newlist = self.dbobj.init("recurring", len(olditems) + 1)
-        for i, item in enumerate(olditems):
-            newlist[i] = item
-        return newlist[-1]
-
-    def _getRecurringModel(self, action_name):
-        for recurring in self.dbobj.recurring:
-            if recurring.action == action_name:
-                return recurring
-        raise j.exceptions.NotFound("Can't find recurring with name %s" % action_name)
-
-    def _gitRepoNowObj(self):
-        olditems = [item.to_dict() for item in self.dbobj.gitRepos]
-        newlist = self.dbobj.init("gitRepos", len(olditems) + 1)
-        for i, item in enumerate(olditems):
-            newlist[i] = item
-        return newlist[-1]
+        service = Service(name=self.dbobj.name, aysrepo=aysrepo, model=self)
+        return service
 
     @property
     def wiki(self):
@@ -281,22 +180,14 @@ class ServiceModel(ModelBase):
 
         return out
 
-    @property
-    def dictFiltered(self):
-        ddict = self.dbobj.to_dict()
-        if "data" in ddict:
-            ddict.pop("data")
-        if "dataSchema" in ddict:
-            ddict.pop("dataSchema")
-        return ddict
-
-    def actionAdd(self, key, name):
-        action_obj = self._actionsNewObj()
-        action_obj.state = "new"
-        action_obj.actionKey = key
-        action_obj.name = name
-        self.save()
-        return action_obj
+    def actionCheckExecuted(self, action):
+        """
+        check if it needs to be executed or not
+        """
+        from IPython import embed
+        print("DEBUG NOW actionCheckExecuted")
+        embed()
+        raise RuntimeError("stop debug here")
 
     def producerAdd(self, actorName, serviceName, key):
         p = self._producerNewObj()
@@ -305,40 +196,101 @@ class ServiceModel(ModelBase):
         p.key = key
         self.save()
 
-    def recurringAdd(self, name, period):
-        """
-        """
-        r = self._recurringAdd()
-        raise NotImplemented
-        name = name.lower()
-        try:
-            recurring = self._getRecurringModel(name)
-        except j.exceptions.NotFound as e:
-            recurring = self.recurringAdd()
-            recurring.action = name
-            recurring.lastRun = 0
-
-        if recurring.period != period:
-            recurring.period = period
-            self.changed = True
-
-    def recurringRemove(self, name):
-        raise NotImplementedError
-        # if name in self._model['recurring']:
-        #     del self._model['recurring'][name]
-        #     self.changed = True
-
-    def repoAdd(self, url, path):
-        repo = self._gitRepoNowObj()
-        repo.url = url
-        repo.path = path
-        self.save()
-
     def check(self):
         """
         walks over the recurring items and if too old will execute
         """
+        # TODO: *1 need to check, probably differently implemented
         j.application.break_into_jshell("DEBUG NOW check recurring")
+
+# events
+
+    def eventFilterSet(self, command, action, channel="", tags="", secrets=""):
+        self.logger.debug('set event filter on %s!%s' % (self.role, self.name))
+        changed = False
+
+        command = command.lower()
+        channel = channel.lower()
+        action = action.lower()
+        tags = tags.lower()
+        tags = self._getSortedListInString(tags)
+
+        res = self.eventFiltersFind(command=command, channel=channel, action=action, tags=tags)
+        if len(res) == 0:
+            eventsFilter = self._eventFiltersNewObj()
+        elif len(res) == 1:
+            eventsFilter = res[0]
+        else:
+            raise j.exceptions.Input(message="found more than 1 eventsfilter", level=1, source="", tags="", msgpub="")
+
+        if command != '':
+            eventsFilter.command = command
+            changed = True
+        if channel != "":
+            eventsFilter.channel = channel
+            changed = True
+        if action != "":
+            eventsFilter.action = action
+            changed = True
+        if tags != "":
+            eventsFilter.tags = tags
+            changed = True
+        if secrets != "":
+            secrets = self._getSortedListInString(secrets)
+            eventsFilter.secrets = secrets
+            changed = True
+
+        self.changed = changed
+        self.save()
+
+        return changed
+
+    def _getSortedListInString(self, items):
+        # sort & structure tags well
+        items = [item.strip().strip(",").strip() for item in items.split(" ") if item.strip() != ""]
+        items.sort()
+        items = " ".join(items)
+        return items
+
+    def eventFiltersFind(self, command='', channel="", action="", tags=""):
+        command = command.lower()
+        channel = channel.lower()
+        action = action.lower()
+        tags = tags.lower()
+        tags = self._getSortedListInString(tags)
+
+        res = []
+        for item in self.dbobj.eventFilters:
+            found = True
+            if command != '' and item.command != command:
+                found = False
+            if channel != "" and item.channel != channel:
+                found = False
+            if found and action != "" and item.action != action:
+                found = False
+            if found and tags != "" and len(item.tags) > 5 and tags.find(item.tags) == -1:
+                found = False
+            if found:
+                res.append(item)
+        return res
+
+    def _eventFiltersNewObj(self):
+        olditems = [item.to_dict() for item in self.dbobj.eventFilters]
+        newlist = self.dbobj.init("eventFilters", len(olditems) + 1)
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        action = newlist[-1]
+        return action
+# others
+
+    @property
+    def dictFiltered(self):
+        ddict = self.dbobj.to_dict()
+        if "data" in ddict:
+            ddict.pop("data")
+        if "dataSchema" in ddict:
+            ddict.pop("dataSchema")
+        return ddict
 
     def _pre_save(self):
         binary = self.data.to_bytes_packed()

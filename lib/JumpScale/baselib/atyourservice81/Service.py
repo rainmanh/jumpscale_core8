@@ -5,10 +5,11 @@ import capnp
 
 class Service:
 
-    def __init__(self, aysrepo, actor=None, model=None, name="", args={}):
+    def __init__(self, aysrepo, actor=None, model=None, name="", args={}, path=None):
         """
         init from a template or from a model
         """
+        self.model = None
         self._schema = None
         self._path = ""
         self._schema = None
@@ -22,6 +23,8 @@ class Service:
             self._initFromActor(actor, args=args, name=name)
         elif model is not None:
             self.model = model
+        elif path is not None:
+            self.loadFromFS(path)
         else:
             raise j.exceptions.Input(
                 message="template or model needs to be specified when creating an actor", level=1, source="", tags="", msgpub="")
@@ -183,18 +186,42 @@ class Service:
                 self.processChange(actor=actor, changeCategory="dataschema", args=args)
                 break
 
-    def loadFromFS(self):
+    def loadFromFS(self, path):
         """
         get content from fs and load in object
         only for DR purposes, std from key value stor
         """
-        # TODO: *2 implement
-        from IPython import embed
-        print("DEBUG NOW loadFromFS")
-        embed()
-        raise RuntimeError("stop debug here")
+        self.logger.debug("load service from FS: %s" % path)
+        if self.model is None:
+            self.model = self.db.new()
 
-        self.model.save()
+
+        model_json = j.data.serializer.json.load(j.sal.fs.joinPaths(path, "service.json"))
+        # for now we don't reload the actions codes.
+        # when using distributed DB, the actions code could still be available
+        del model_json['actions']
+        self.model.dbobj = self.aysrepo.db.capnpModel.Service.new_message(**model_json)
+
+        data_json = j.data.serializer.json.load(j.sal.fs.joinPaths(path, "data.json"))
+        self.model.dbobj.data = j.data.capnp.getBinaryData(j.data.capnp.getObj(self.model.dbobj.dataSchema, args=data_json))
+        # data_obj = j.data.capnp.getObj(self.model.dbobj.dataSchema, data_json)
+        # self.model._data = data_obj
+
+        # actions
+        # relink actions from the actor to be sure we have good keys
+        actor = self.aysrepo.actorGet(name=self.model.dbobj.actorName)
+        actions = self.model.dbobj.init("actions", len(actor.model.dbobj.actions))
+        counter = 0
+        for action in actor.model.dbobj.actions:
+            actionnew = actions[counter]
+            actionnew.state = "new"
+            actionnew.actionKey = action.actionKey
+            actionnew.name = action.name
+            actionnew.log = action.log
+            actionnew.period = action.period
+            counter += 1
+
+        self.saveAll()
 
     def saveToFS(self):
         j.sal.fs.createDir(self.path)

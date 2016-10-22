@@ -69,8 +69,14 @@ class AtYourServiceRepo():
         elif len(actors) > 1:
             raise j.exceptions.Input(message="ore then one actor find with this name:%s" % name, level=1, source="", tags="", msgpub="")
         elif len(actors) < 1:
-            if die:
+            # checking if we have the actor on the file system
+            actors_dir = j.sal.fs.joinPaths(self.path, 'actors')
+            results = j.sal.fs.walkExtended(actors_dir, files=False, dirPattern=name)
+            if len(results) == 1:
+                actor = Actor(aysrepo=self, name=name)
+            elif die:
                 raise j.exceptions.Input(message="Could not find actor with name:%s" % name, level=1, source="", tags="", msgpub="")
+
             obj = self.actorCreate(name)
 
         if reload:
@@ -370,60 +376,60 @@ class AtYourServiceRepo():
                 producerroles = [producerroles.strip()]
         return producerroles
 
-    def runGet(self, role="", instance="", action="install", force=False, producerRoles="*", data={}, key=0, simulate=False, debug=False, profile=False):
-        """
-        get a new run
-        if key !=0 then the run will be loaded from DB
-        """
-
-        if key != 0:
-            run_model = j.core.jobcontroller.db.run.get(key)
-            return run_model.objectGet()
-
-        producerRoles = self._processProducerRoles(producerRoles)
-        if action not in ["init"]:
-            for s in self.services:
-                if s.model.actionsState['init'] not in ["new", "ok", "changed", "scheduled"]:
-                    error_msg = "Cannot get run: %s:%s:%s because found a service not properly inited yet.\n%s\n please rerun ays init" % (
-                        role, instance, action, s)
-                    self.logger.error(error_msg)
-                    raise j.exceptions.Input(error_msg, msgpub=error_msg)
-
-        if force:
-            self.serviceSetState(actions=[action], role=role, instance=instance, state="scheduled")
-
-        actions = j.atyourservice.baseActions['']._build_actions_chain(action)
-
-        run = j.core.jobcontroller.newRun(simulate=simulate)
-        for action0 in actions:
-            scope = self.runFindActionScope(action=action0, role=role, instance=instance, producerRoles=producerRoles)
-            todo = self._findTodo(action=action0, scope=scope, run=run, producerRoles=producerRoles)
-            while todo != []:
-                newStep = True
-                for service in todo:
-                    if service.model.actionsState[action0] not in ['ok', 'disabled']:
-                        print("DO:%s %s" % (action0, service))
-                        if newStep:
-                            step = run.newStep()
-                            newStep = False
-                        job = service.getJob(action0, args=data)
-                        job.model.dbobj.profile = profile
-                        if profile:
-                            debug = True
-                        job.model.dbobj.debug = debug
-                        step.addJob(job)
-
-                    if service in scope:
-                        scope.remove(service)
-
-                todo = self._findTodo(action0, scope=scope, run=run, producerRoles=producerRoles)
-
-        # these are destructive actions, they need to happens in reverse order
-        # in the dependency tree
-        if action in ['uninstall', 'removedata', 'cleanup', 'halt', 'stop']:
-            run.reverse()
-
-        return run
+    # def runGet(self, role="", instance="", action="install", force=False, producerRoles="*", data={}, key=0, simulate=False, debug=False, profile=False):
+    #     """
+    #     get a new run
+    #     if key !=0 then the run will be loaded from DB
+    #     """
+    #
+    #     if key != 0:
+    #         run_model = j.core.jobcontroller.db.run.get(key)
+    #         return run_model.objectGet()
+    #
+    #     producerRoles = self._processProducerRoles(producerRoles)
+    #     if action not in ["init"]:
+    #         for s in self.services:
+    #             if s.model.actionsState['init'] not in ["new", "ok", "changed", "scheduled"]:
+    #                 error_msg = "Cannot get run: %s:%s:%s because found a service not properly inited yet.\n%s\n please rerun ays init" % (
+    #                     role, instance, action, s)
+    #                 self.logger.error(error_msg)
+    #                 raise j.exceptions.Input(error_msg, msgpub=error_msg)
+    #
+    #     if force:
+    #         self.serviceSetState(actions=[action], role=role, instance=instance, state="scheduled")
+    #
+    #     actions = j.atyourservice.baseActions['']._build_actions_chain(action)
+    #
+    #     run = j.core.jobcontroller.newRun(simulate=simulate)
+    #     for action0 in actions:
+    #         scope = self.runFindActionScope(action=action0, role=role, instance=instance, producerRoles=producerRoles)
+    #         todo = self._findTodo(action=action0, scope=scope, run=run, producerRoles=producerRoles)
+    #         while todo != []:
+    #             newStep = True
+    #             for service in todo:
+    #                 if service.model.actionsState[action0] not in ['ok', 'disabled']:
+    #                     print("DO:%s %s" % (action0, service))
+    #                     if newStep:
+    #                         step = run.newStep()
+    #                         newStep = False
+    #                     job = service.getJob(action0, args=data)
+    #                     job.model.dbobj.profile = profile
+    #                     if profile:
+    #                         debug = True
+    #                     job.model.dbobj.debug = debug
+    #                     step.addJob(job)
+    #
+    #                 if service in scope:
+    #                     scope.remove(service)
+    #
+    #             todo = self._findTodo(action0, scope=scope, run=run, producerRoles=producerRoles)
+    #
+    #     # these are destructive actions, they need to happens in reverse order
+    #     # in the dependency tree
+    #     if action in ['uninstall', 'removedata', 'cleanup', 'halt', 'stop']:
+    #         run.reverse()
+    #
+    #     return run
 
     def _findTodo(self, action, scope, run, producerRoles):
         if action == "" or action is None:

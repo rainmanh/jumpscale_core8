@@ -287,8 +287,6 @@ class ServiceModel(ModelBase, ActorServiceBaseModel):
         ddict = self.dbobj.to_dict()
         if "data" in ddict:
             ddict.pop("data")
-        if "dataSchema" in ddict:
-            ddict.pop("dataSchema")
         return ddict
 
     def _pre_save(self):

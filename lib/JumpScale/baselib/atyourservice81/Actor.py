@@ -6,7 +6,7 @@ from JumpScale.baselib.atyourservice81.Service import Service
 
 class Actor():
 
-    def __init__(self, aysrepo, template=None, model=None):
+    def __init__(self, aysrepo, template=None, model=None, name=None):
         """
         init from a template or from a model
         """
@@ -21,22 +21,40 @@ class Actor():
             self._initFromTemplate(template)
         elif model is not None:
             self.model = model
+        elif name is not None:
+            self.loadFromFS(name)
         else:
             raise j.exceptions.Input(
-                message="template or model needs to be specified when creating an actor", level=1, source="", tags="", msgpub="")
+                message="template or model or name needs to be specified when creating an actor", level=1, source="", tags="", msgpub="")
 
     @property
     def path(self):
         return j.sal.fs.joinPaths(self.aysrepo.path, "actors", self.model.name)
 
-    def loadFromFS(self):
+    def loadFromFS(self, name):
         """
         get content from fs and load in object
         """
-        raise NotImplemented("#TODO *2")
-        scode = self.model.actionsSourceCode  # @TODO *1 is also wrong, need to check
+        if self.model is None:
+            self.model = self.db.new()
 
+        actor_path = j.sal.fs.joinPaths(self.aysrepo.path, "actors", name)
+        self.logger.debug("load actor from FS: %s" % actor_path)
+        json = j.data.serializer.json.load(j.sal.fs.joinPaths(actor_path, "actor.json"))
+
+        # for now we don't reload the actions codes.
+        # when using distributed DB, the actions code could still be available
+        del json['actions']
+        self.model.dbobj = self.aysrepo.db.capnpModel.Actor.new_message(**json)
+
+        # need to save already here cause processActionFile is doing a find
+        # and it need to be able to find this new actor model we are creating
         self.model.save()
+
+        # recreate the actions code from the action.py file from the file system
+        self._processActionsFile(j.sal.fs.joinPaths(actor_path, "actions.py"))
+
+        self.saveAll()
 
     def saveToFS(self):
         j.sal.fs.createDir(self.path)
@@ -80,7 +98,7 @@ class Actor():
         self._initRecurringActions(template)
         self._initFlists(template)
 
-        self._processActionsFile(template=template)
+        self._processActionsFile(j.sal.fs.joinPaths(template.path, "actions.py"))
 
         # hrd schema to capnp
         if self.model.dbobj.serviceDataSchema != template.schemaCapnpText:
@@ -145,7 +163,7 @@ class Actor():
             flistObj.storeUrl = info['store_url']
             flistObj.content = info['content']
 
-    def _processActionsFile(self, template):
+    def _processActionsFile(self, path):
         self._out = ""
 
         actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
@@ -154,9 +172,8 @@ class Actor():
 
         actorMethods = ["input", "build"]
 
-        actionspath = j.sal.fs.joinPaths(template.path, "actions.py")
-        if j.sal.fs.exists(actionspath):
-            content = j.sal.fs.fileGetContents(actionspath)
+        if j.sal.fs.exists(path):
+            content = j.sal.fs.fileGetContents(path)
         else:
             content = "class Actions():\n\n"
 
@@ -337,7 +354,18 @@ class Actor():
         if service is not None:
             service._check_args(self, args)
             return service
-        service = Service(aysrepo=self.aysrepo, actor=self, name=instance, args=args)
+
+        # checking if we have the service on the file system
+        target = "%s!%s" % (self.model.name, instance)
+        services_dir = j.sal.fs.joinPaths(self.aysrepo.path, 'services')
+        results = j.sal.fs.walkExtended(services_dir, files=False, dirPattern=target)
+        if len(results) > 1:
+            raise j.exceptions.RuntimeError("found more then one service directory for %s" % target)
+        elif len(results) == 1:
+            service = Service(aysrepo=self.aysrepo, path=results[0])
+        else:
+            service = Service(aysrepo=self.aysrepo, actor=self, name=instance, args=args)
+
         return service
 
     @property

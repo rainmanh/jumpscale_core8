@@ -64,6 +64,8 @@ class Service:
             actionnew.period = action.period
             counter += 1
 
+        print("!!!!!!!!!")
+
         # input will always happen in process
         args2 = self.input(args=args)
         # print("%s:%s" % (self, args2))
@@ -95,9 +97,7 @@ class Service:
 
         self.init()
 
-        self.model.save()
-
-        self.saveToFS()
+        self.saveAll()
 
     def _initParent(self, actor, args):
         if actor.model.dbobj.parent.actorRole is not "":

@@ -160,19 +160,15 @@ class Job():
             else:
                 self._service = service
 
-        service_action_obj = self.service.model.actions[self.model.dbobj.actionName]
-
         try:
             if self.model.dbobj.actorName != "":
                 res = self.method(job=self)
             else:
                 res = self.method(**self.model.args)
 
-            service_action_obj.state = 'ok'
             self.model.dbobj.state = 'ok'
 
         except Exception as e:
-            service_action_obj.state = 'error'
             self.model.dbobj.state = 'error'
             eco = j.errorconditionhandler.processPythonExceptionObject(e)
             self._processError(eco)
@@ -180,7 +176,6 @@ class Job():
 
         self.model.result = res
         self.model.save()
-        self.service.saveAll()
         return res
 
     def execute(self):

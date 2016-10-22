@@ -12,15 +12,6 @@ colored_traceback.add_hook(always=True)
 
 VALID_ACTION_STATE = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
-ACTIONS_DEPS = {
-    'init': [],
-    'install': ['init'],
-    'start': ['install'],
-    'stop': ['start'],
-    'uninstall': ['stop'],
-    'monitor': ['start']
-}
-
 
 class AtYourServiceRepo():
 
@@ -401,7 +392,7 @@ class AtYourServiceRepo():
         if force:
             self.serviceSetState(actions=[action], role=role, instance=instance, state="scheduled")
 
-        actions = self._build_actions_chain(action)
+        actions = j.atyourservice.baseActions['']._build_actions_chain(action)
 
         run = j.core.jobcontroller.newRun(simulate=simulate)
         for action0 in actions:
@@ -433,17 +424,6 @@ class AtYourServiceRepo():
             run.reverse()
 
         return run
-
-    def _build_actions_chain(self, action):
-        """
-        this method returns a list of action that need to happens before the action passed in argument
-        can start
-        """
-        chain = [action]
-        while ACTIONS_DEPS.get(action, []) != []:
-            chain[:0] = ACTIONS_DEPS[action]
-            action = chain[0]
-        return chain
 
     def _findTodo(self, action, scope, run, producerRoles):
         if action == "" or action is None:
@@ -488,17 +468,17 @@ class AtYourServiceRepo():
         for service in self.services:
             for action, state in service.model.actionsState.items():
                 if state == 'scheduled':
-                    if service.model.key not in to_execute:
-                        to_execute[service.model.key] = [action]
+                    if service not in to_execute:
+                        to_execute[service] = [action]
                     else:
-                        to_execute[service.model.key].append(action)
+                        to_execute[service].append(action)
 
         result = {}
-        for key, actions in to_execute.items():
-            result[key] = []
+        for service, actions in to_execute.items():
+            result[service] = []
 
             for action in actions:
-                result[key].append(self._build_actions_chain(action))
+                result[service].append(service._build_actions_chain(action))
 
         return result
 
@@ -511,8 +491,7 @@ class AtYourServiceRepo():
         scheduled_actions = self.findScheduledActions()
         total_actions_set = set()
 
-        for key, actions_list in scheduled_actions.items():
-            model = self.db.service.get(key)
+        for _, actions_list in scheduled_actions.items():
 
             for actions in actions_list:
                 for action in actions:
@@ -542,8 +521,8 @@ class AtYourServiceRepo():
 
                         todo = self._findTodo(action, scope=scope, run=run, producerRoles="*")
 
-        # these are destructive actions, they need to happens in reverse order
-        # in the dependency tree
+        # FIXME: this is not correct behavior
+        # these are destructive actions, they need to happens in reverse order in the dependency tree
         if total_actions_set.isdisjoint(set(['uninstall', 'removedata', 'cleanup', 'halt', 'stop'])) is False:
             run.reverse()
 

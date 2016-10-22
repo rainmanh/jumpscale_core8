@@ -519,30 +519,21 @@ class Service:
 
     def executeAction(self, action, args={}):
         if action[-1] == "_":
-            return self.runActionService(action)
+            return self.executeActionService(action)
         else:
-            return self.runActionJob(action, args)
+            return self.executeActionJob(action, args)
 
-    def executeActionService(self, actionName):
-        action, method = j.atyourservice.baseActions[actionName]
-        res = method(service=self, actionName=actionName)
-        return res
+    def executeActionService(self, action, args={}):
+        job = self.getJob(action, args=args)
+        result = job.executeInProcess(service=self)
+        job.model.save()
+        return result
 
     def executeActionJob(self, actionName, args={}):
-
-        import ipdb
-        ipdb.set_trace()
-
+        self.logger.debug('execute action %s on %s' % (action, self))
         job = self.getJob(actionName=action, args=args)
         now = j.data.time.epoch
-
-        if self.runServiceAction("check_active") == False:
-            message = "Cannot execute action:%s on service:%s, service is nor ready" % (action, self)
-            job.error(message)
-
         p = job.execute()
-
-        self.runServiceAction("action_post_", actionName=action)
 
         if job.model.dbobj.debug is True:
             return job
@@ -592,6 +583,22 @@ class Service:
         jobobj.args = args
         job = j.core.jobcontroller.newJobFromModel(jobobj)
         return job
+
+    def _build_actions_chain(self, action):
+        """
+        this method returns a list of action that need to happens before the action passed in argument
+        can start
+        """
+        if 'init_actions_' in self.model.actions:
+            dependency_chain = self.executeActionService('init_actions_', action)
+        else:
+            raise j.exceptions.RuntimeError("Can't find method check_actions_")
+
+        chain = [action]
+        while dependency_chain.get(action, []) != []:
+            chain[:0] = dependency_chain[action]
+            action = chain[0]
+        return chain
 
     def __eq__(self, service):
         if not service:

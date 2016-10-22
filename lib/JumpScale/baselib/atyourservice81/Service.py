@@ -272,11 +272,14 @@ class Service:
 
     @property
     def consumers(self):
-        consumers = list()
+        consumers = {}
         services = self.aysrepo.servicesFind()
         for service in services:
             if self.isConsumedBy(service):
-                consumers.append(service)
+                if service.model.role not in consumers:
+                    consumers[service.model.role] = [service]
+                else:
+                    consumers[service.model.role].append(service)
         return consumers
 
     def isConsumedBy(self, service):
@@ -303,8 +306,7 @@ class Service:
                 if action == "" or action in producer.model.actionsState.keys():
                     if producerRoles == "*" or producer.model.role in producerRoles:
                         producers.add(producer)
-                producers = producer.getProducersRecursive(
-                    producers=producers, callers=callers, action=action, producerRoles=producerRoles)
+                producers = producer.getProducersRecursive(producers=producers, callers=callers, action=action, producerRoles=producerRoles)
         return producers.symmetric_difference(callers)
 
     def printProducersRecursive(self, prefix=""):
@@ -339,6 +341,37 @@ class Service:
             producersChanged = producersChanged.intersection(scope)
 
         return producersChanged
+
+    def getConsumersRecursive(self, consumers=set(), callers=set(), action="", consumerRole="*"):
+        for role, consumers_list in self.consumers.items():
+            for consumer in consumers_list:
+                if action == "" or action in consumer.model.actionsState.keys():
+                    if consumerRole == "*" or consumer.model.role in consmersRole:
+                        consumers.add(consumer)
+                consumers = consumer.getConsumersRecursive(consumers=consumers, callers=callers, action=action, consumerRole=consumerRole)
+        return consumers.symmetric_difference(callers)
+
+    def getConsumersWaiting(self, action='uninstall', consumersChanged=set(), scope=None):
+        for consumer in self.getConsumersRecursive(set(), set()):
+            # check that the action exists, no need to wait for other actions,
+            # appart from when init or install not done
+
+            if consumer.model.actionsState['init'] != "ok":
+                consumersChanged.add(consumer)
+
+            if consumer.model.actionsState['install'] != "ok":
+                consumersChanged.add(consumer)
+
+            if action not in consumer.model.actionsState.keys():
+                continue
+
+            if consumer.model.actionsState[action] != "ok":
+                consumersChanged.add(consumer)
+
+        if scope is not None:
+            consumersChanged = consumersChanged.intersection(scope)
+
+        return consumersChanged
 
     def consume(self, service):
         """

@@ -1,6 +1,6 @@
 from JumpScale import j
 from time import sleep
-import MySQLdb
+
 
 app = j.tools.cuisine._getBaseAppClass()
 
@@ -8,6 +8,7 @@ app = j.tools.cuisine._getBaseAppClass()
 class TIDBContextManager:
 
     def __enter__(self):
+        import MySQLdb
         self._connection = MySQLdb.connect("127.0.0.1")
         return self
 
@@ -36,7 +37,8 @@ class TIDBContextManager:
         Creates a user in database.
         """
         cursor = self._connection.cursor()
-        SQL = """CREATE USER '{username}'@'{host}' IDENTIFIED BY '{passwd}' ;""".format(host=host, username=username, passwd=passwd)
+        SQL = """CREATE USER '{username}'@'{host}' IDENTIFIED BY '{passwd}' ;""".format(
+            host=host, username=username, passwd=passwd)
         print("Executing SQL", SQL)
         cursor.execute(SQL)
         self._connection.commit()
@@ -45,7 +47,8 @@ class TIDBContextManager:
         """
         Grants full access on certain databse.
         """
-        SQL = """grant all on {database}.* to '{username}'@'{host}' ;""".format(database=database, host=host, username=username)
+        SQL = """grant all on {database}.* to '{username}'@'{host}' ;""".format(
+            database=database, host=host, username=username)
         cursor = self._connection.cursor()
         print("Executing SQL", SQL)
         cursor.execute(SQL)
@@ -85,7 +88,7 @@ class CuisineTIDB(app):
         if start:
             self.start()
 
-    def build(self, start=True, install=True):
+    def build(self, start=False, install=True):
         """
         Build requires both golang and rust to be available on the system
         """
@@ -126,7 +129,7 @@ class CuisineTIDB(app):
             --path="127.0.0.1:2379?cluster={clusterId}"'.format(**config)
         )
 
-    def simple_start(self, clusterId=1):
+    def start(self, clusterId=1):
         """
         Read docs here.
         https://github.com/pingcap/docs/blob/master/op-guide/clustering.md

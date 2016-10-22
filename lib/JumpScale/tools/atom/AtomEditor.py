@@ -100,16 +100,17 @@ class AtomEditor:
         print("install snippets")
         merged = {}
         snippets_existing_path = os.path.expanduser("~/.atom/snippets.cson")
+
         snippetspath = os.path.join(os.path.dirname(inspect.getfile(self.__class__)), "snippets.cson")
         if j.sal.fs.exists(snippets_existing_path, followlinks=True):
             snippets_existing = j.sal.fs.fileGetContents(snippets_existing_path)
-            snippets_existing2=""
+            snippets_existing2 = ""
             for line in snippets_existing.split("\n"):
-                if line.startswith("#") or line.strip=="":
+                if line.startswith("#") or line.strip == "":
                     continue
-                snippets_existing2+=line
+                snippets_existing2 += line
 
-            if snippets_existing2.strip=="":
+            if snippets_existing2.strip == "":
                 merged = cson.loads(snippets_existing2)
                 with open(snippetspath) as jssnippets:
                     snippets = cson.load(jssnippets)

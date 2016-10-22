@@ -228,7 +228,7 @@ class Service:
 
         self.model.delete()
         j.sal.fs.removeDirTree(self.path)
-        self.aysrepo._services.remove(self)
+        # self.aysrepo._services.remove(self)  # not sure this is still relevant
 
     @property
     def parent(self):
@@ -260,6 +260,9 @@ class Service:
 
             if prod_model.dbobj.actorName not in producers:
                 producers[prod_model.role] = []
+                # TODO: *1 christophe, do we need this, came from master
+                # if prod_model.role not in self._producers:
+                #     self._producers[prod_model.role] = []
 
             result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
             for service in result:
@@ -462,7 +465,8 @@ class Service:
         """
         self.logger.debug('schedule action %s on %s' % (action, self))
         if action not in self.model.actions:
-            raise j.exceptions.Input("Trying to schedule action %s on %s. but this action doesn't exist" % (action, self))
+            raise j.exceptions.Input(
+                "Trying to schedule action %s on %s. but this action doesn't exist" % (action, self))
 
         action_model = self.model.actions[action]
 

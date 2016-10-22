@@ -206,6 +206,15 @@ class Account:
                 raise j.exceptions.RuntimeError(
                     "Could not find space with name %s" % name)
 
+    def create_disk(self, name, gid, description, size=0, type="B"):
+        res = self.client.api.cloudapi.disks.create(accountId=self.id,
+                                                    name=name,
+                                                    gid=gid,
+                                                    description=description,
+                                                    size=size,
+                                                    type=type)
+        return res
+
     def __str__(self):
         return "openvcloud client account: %(name)s" % (self.model)
 
@@ -427,6 +436,17 @@ class Machine:
 
     def delete_snapshot(self, epoch):
         self.client.api.cloudapi.machines.deleteSnapshot(machineId=self.id, epoch=epoch)
+
+    def add_disk(self, name, description, size=10, type='D'):
+        disk_id = self.client.api.cloudapi.machines.addDisk(machineId=self.id,
+                                                            diskName=name,
+                                                            description=description,
+                                                            size=size,
+                                                            type=type)
+        return disk_id
+
+    def disk_limit_io(self, disk_id, iops=50):
+        self.client.api.cloudapi.disks.limitIO(diskId=disk_id, iops=iops)
 
     @property
     def portforwardings(self):

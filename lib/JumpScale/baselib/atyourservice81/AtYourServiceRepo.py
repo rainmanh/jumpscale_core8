@@ -558,6 +558,19 @@ class AtYourServiceRepo():
 
         print("init done")
 
+# Git management
+
+    def commit(self, message="", branch="master", push=True):
+        if message == "":
+            message = "log changes for repo:%s" % self.name
+        if branch != "master":
+            self.git.switchBranch(branch)
+
+        self.git.commit(message, True)
+
+        if push:
+            print("PUSH")
+
     def __str__(self):
         return("aysrepo:%s" % (self.path))
 

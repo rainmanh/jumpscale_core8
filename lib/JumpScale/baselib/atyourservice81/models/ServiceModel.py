@@ -241,7 +241,6 @@ class ServiceModel(ModelBase, ActorServiceBaseModel):
             changed = True
 
         self.changed = changed
-        self.save()
 
         return changed
 

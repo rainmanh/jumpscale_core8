@@ -483,7 +483,6 @@ class Service:
             action_model.period = period
 
         action_model.state = 'scheduled'
-        self.save()
 
     def executeAction(self, action, args={}):
         if action[-1] == "_":

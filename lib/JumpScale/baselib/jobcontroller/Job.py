@@ -65,7 +65,7 @@ class Job():
                 log=log.log
             )))
         logs = '\n'.join(logs)
-        print (logs)
+        print(logs)
         return logs
 
     def save(self):
@@ -106,7 +106,8 @@ class Job():
             else:
                 # TODO
                 print("error message empty")
-                import ipdb; ipdb.set_trace()
+                import ipdb
+                ipdb.set_trace()
 
             level = int(eco['level'])
             tags = eco['tags']
@@ -122,7 +123,8 @@ class Job():
             else:
                 # TODO
                 print("error message empty")
-                import ipdb; ipdb.set_trace()
+                import ipdb
+                ipdb.set_trace()
 
             level = eco.level
             tags = eco.tags
@@ -137,7 +139,7 @@ class Job():
 
         self.model.save()
 
-    def error(self,errormsg,level=1,tags=""):
+    def error(self, errormsg, level=1, tags=""):
         self.model.log(
             msg=errormsg,
             level=level,
@@ -145,7 +147,6 @@ class Job():
             tags=tags)
         self.model.save()
         raise RuntimeError(errormsg)
-
 
     def executeInProcess(self, service=None):
         """
@@ -179,7 +180,7 @@ class Job():
 
         self.model.result = res
         self.model.save()
-        self.service.model.save()
+        self.service.saveAll()
         return res
 
     def execute(self):

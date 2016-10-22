@@ -184,12 +184,14 @@ class Blueprint:
         for action_info in self.actions:
             service = self.aysrepo.serviceGetByKey(action_info['service_key'])
             service.scheduleAction(action_info['action_name'], period=action_info['recurring_period'])
+            service.saveAll()
 
         for event_filter in self.eventFilters:
             service = self.aysrepo.serviceGetByKey(event_filter['service_key'])
             service.model.eventFilterSet(
                 channel=event_filter['channel'], action=event_filter['action_name'],
                 command=event_filter['command'], secrets=event_filter['secret'])
+            service.saveAll()
 
     def _add2models(self, content, nr):
         # make sure we don't process double

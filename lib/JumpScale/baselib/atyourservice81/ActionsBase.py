@@ -3,19 +3,50 @@ from JumpScale import j
 
 class ActionsBase:
 
-    def init_actions_(service, actions=[]):
-        service.checkActions(actions)
+    def init_actions_(job):
+        """
+        this needs to returns an array of actions representing the depencies between actions.
+        Looks at ACTION_DEPS in this module for an example of what is expected
+        """
+        return {
+            'init': [],
+            'install': ['init'],
+            'start': ['install'],
+            'monitor': ['start'],
+            'stop': [],
+            'uninstall': ['stop'],
+        }
 
-    def process_event_(service, event):
+    def process_event_(job):
         """
         check the event, if match call relevant actions
         """
-        pass
+        service = job.service
+        event = job.args.get('event', None)
+        if event is None:
+            return
 
-    # # before each action this is called, this happens always in process
-    # # if we return False then the action will not be executed
-    # # if re return True, will be executed
-    # # when method ends with _ it means will be executed in process & no job will be done
+        channel = event.get('channel', '')
+        command = event.get('command', '')
+        action = event['action']
+        secret = event.get('secret', '')
+
+        for event_filter in service.model.eventfilters:
+            if channel != '' and channel != event_filter.channel:
+                continue
+
+            if command != '' and command != event_filter.command:
+                continue
+
+            if secret != '' and secret != event_filter.secret:
+                continue
+
+            s.executeActionService(action)
+
+    # before each action this is called, this happens always in process
+    # if we return False then the action will not be executed
+    # if re return True, will be executed
+    # when method ends with _ it means will be executed in process & no job will be done
     # def action_pre_(service, actionName):
     #     pass
     #     #

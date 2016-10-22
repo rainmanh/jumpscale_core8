@@ -6,7 +6,6 @@ import colored_traceback
 colored_traceback.add_hook(always=True)
 
 
-
 class RunStep:
 
     def __init__(self, run, nr, dbobj):
@@ -98,7 +97,7 @@ class RunStep:
                 print(process.stdout)
 
             job.model.save()
-            job.service.save()
+            job.service.saveAll()
 
     def __repr__(self):
         out = "step:%s (%s)\n" % (self.dbobj.number, self.state)
@@ -212,7 +211,8 @@ class Run:
                         if job.model.state == 'error':
                             log = job.model.dbobj.logs[-1]
                             job.str_error(log.log)
-                    raise j.exceptions.RuntimeError("Error during execution of step %d\n See stacktrace above to identify the issue" % step.dbobj.number)
+                    raise j.exceptions.RuntimeError(
+                        "Error during execution of step %d\n See stacktrace above to identify the issue" % step.dbobj.number)
 
             self.state = 'ok'
         finally:

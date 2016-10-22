@@ -9,6 +9,7 @@ from collections import OrderedDict
 
 VALID_LOG_CATEGORY = ['out', 'err', 'msg', 'alert', 'errormsg', 'trace']
 
+
 class JobModel(ModelBase):
     """
     """
@@ -116,6 +117,7 @@ class JobModel(ModelBase):
         if self.dbobj.args == b"":
             return {}
         res = msgpack.loads(self.dbobj.args, encoding='utf-8')
+        # print("get:%s" % res)
         if res is None:
             res = {}
         return res
@@ -128,6 +130,7 @@ class JobModel(ModelBase):
     @args.setter
     def args(self, val):
         args = msgpack.dumps(val)
+        # print("set:%s" % args)
         self.dbobj.args = args
 
     @property

@@ -150,7 +150,7 @@ class Actor():
 
         actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
                                  "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata",
-                                 "consume", "action_pre_", "action_post_"]
+                                 "consume", "action_pre_", "action_post_", "init_actions_"]
 
         actorMethods = ["input", "build"]
 
@@ -251,7 +251,7 @@ class Actor():
                     self._addAction2(actionname, actionobj)
                 else:
                     if actionname == "input":
-                        amSource = "return {}"
+                        amSource = "return None"
                         self._addAction(actionName="input", amSource=amSource,
                                         amDecorator="actor", amMethodArgs="job", amDoc="")
                     else:

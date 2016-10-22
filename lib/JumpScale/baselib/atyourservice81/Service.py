@@ -64,6 +64,18 @@ class Service:
             actionnew.period = action.period
             counter += 1
 
+        # input will always happen in process
+        args2 = self.input(args=args)
+        # print("%s:%s" % (self, args2))
+        if args2 is not None and j.data.types.dict.check(args2):
+            args = args2
+
+        if not j.data.types.dict.check(args):
+            raise j.exceptions.Input(message="result from input needs to be dict,service:%s" % self,
+                                     level=1, source="", tags="", msgpub="")
+
+        dbobj.data = j.data.capnp.getBinaryData(j.data.capnp.getObj(dbobj.dataSchema, args=args))
+
         # parents/producers
         skey = "%s!%s" % (self.model.role, self.model.dbobj.name)
         parent = self._initParent(actor, args)
@@ -80,17 +92,6 @@ class Service:
         for k, v in template.schemaHrd.items.items():
             if k not in args:
                 args[k] = v.default
-
-        # input will always happen in process
-        args2 = self.input(args=args)
-        if args2 is not None and j.data.types.dict.check(args2):
-            args.update(args2)
-
-        if not j.data.types.dict.check(args):
-            raise j.exceptions.Input(message="result from input needs to be dict,service:%s" % self,
-                                     level=1, source="", tags="", msgpub="")
-
-        dbobj.data = j.data.capnp.getBinaryData(j.data.capnp.getObj(dbobj.dataSchema, args=args))
 
         self.init()
 
@@ -272,11 +273,14 @@ class Service:
 
     @property
     def consumers(self):
-        consumers = list()
+        consumers = {}
         services = self.aysrepo.servicesFind()
         for service in services:
             if self.isConsumedBy(service):
-                consumers.append(service)
+                if service.model.role not in consumers:
+                    consumers[service.model.role] = [service]
+                else:
+                    consumers[service.model.role].append(service)
         return consumers
 
     def isConsumedBy(self, service):
@@ -339,6 +343,38 @@ class Service:
             producersChanged = producersChanged.intersection(scope)
 
         return producersChanged
+
+    def getConsumersRecursive(self, consumers=set(), callers=set(), action="", consumerRole="*"):
+        for role, consumers_list in self.consumers.items():
+            for consumer in consumers_list:
+                if action == "" or action in consumer.model.actionsState.keys():
+                    if consumerRole == "*" or consumer.model.role in consmersRole:
+                        consumers.add(consumer)
+                consumers = consumer.getConsumersRecursive(
+                    consumers=consumers, callers=callers, action=action, consumerRole=consumerRole)
+        return consumers.symmetric_difference(callers)
+
+    def getConsumersWaiting(self, action='uninstall', consumersChanged=set(), scope=None):
+        for consumer in self.getConsumersRecursive(set(), set()):
+            # check that the action exists, no need to wait for other actions,
+            # appart from when init or install not done
+
+            if consumer.model.actionsState['init'] != "ok":
+                consumersChanged.add(consumer)
+
+            if consumer.model.actionsState['install'] != "ok":
+                consumersChanged.add(consumer)
+
+            if action not in consumer.model.actionsState.keys():
+                continue
+
+            if consumer.model.actionsState[action] != "ok":
+                consumersChanged.add(consumer)
+
+        if scope is not None:
+            consumersChanged = consumersChanged.intersection(scope)
+
+        return consumersChanged
 
     def consume(self, service):
         """
@@ -483,34 +519,24 @@ class Service:
             action_model.period = period
 
         action_model.state = 'scheduled'
-        self.save()
 
     def executeAction(self, action, args={}):
         if action[-1] == "_":
-            return self.runActionService(action)
+            return self.executeActionService(action)
         else:
-            return self.runActionJob(action, args)
+            return self.executeActionJob(action, args)
 
-    def executeActionService(self, actionName):
-        action, method = j.atyourservice.baseActions[actionName]
-        res = method(service=self, actionName=actionName)
-        return res
+    def executeActionService(self, action, args={}):
+        job = self.getJob(action, args=args)
+        result = job.executeInProcess(service=self)
+        job.model.save()
+        return result
 
     def executeActionJob(self, actionName, args={}):
-
-        import ipdb
-        ipdb.set_trace()
-
+        self.logger.debug('execute action %s on %s' % (action, self))
         job = self.getJob(actionName=action, args=args)
         now = j.data.time.epoch
-
-        if self.runServiceAction("check_active") == False:
-            message = "Cannot execute action:%s on service:%s, service is nor ready" % (action, self)
-            job.error(message)
-
         p = job.execute()
-
-        self.runServiceAction("action_post_", actionName=action)
 
         if job.model.dbobj.debug is True:
             return job
@@ -560,6 +586,22 @@ class Service:
         jobobj.args = args
         job = j.core.jobcontroller.newJobFromModel(jobobj)
         return job
+
+    def _build_actions_chain(self, action):
+        """
+        this method returns a list of action that need to happens before the action passed in argument
+        can start
+        """
+        if 'init_actions_' in self.model.actions:
+            dependency_chain = self.executeActionService('init_actions_', action)
+        else:
+            raise j.exceptions.RuntimeError("Can't find method check_actions_")
+
+        chain = [action]
+        while dependency_chain.get(action, []) != []:
+            chain[:0] = dependency_chain[action]
+            action = chain[0]
+        return chain
 
     def __eq__(self, service):
         if not service:

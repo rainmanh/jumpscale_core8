@@ -101,6 +101,8 @@ class Service:
         self.save()
 
         self.init()
+        # need to do this manually cause execution of input method is a bit special.
+        self.model.actions['input'].state = 'ok'
 
         self.saveAll()
 

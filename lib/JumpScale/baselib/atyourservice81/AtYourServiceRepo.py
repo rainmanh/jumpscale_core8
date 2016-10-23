@@ -355,8 +355,7 @@ class AtYourServiceRepo():
         producerRoles = self._processProducerRoles(producerRoles)
         scope = set(self.servicesFind(actor="%s.*" % role, name=instance, hasAction=action))
         for service in scope:
-            producer_candidates = service.getProducersRecursive(
-                producers=set(), callers=set(), action=action, producerRoles=producerRoles)
+            producer_candidates = service.getProducersRecursive(producers=set(), callers=set(), action=action, producerRoles=producerRoles)
             if producerRoles != '*':
                 producer_valid = [item for item in producer_candidates if item.model.role in producerRoles]
             else:
@@ -376,88 +375,6 @@ class AtYourServiceRepo():
                 producerroles = [producerroles.strip()]
         return producerroles
 
-    # def runGet(self, role="", instance="", action="install", force=False, producerRoles="*", data={}, key=0, simulate=False, debug=False, profile=False):
-    #     """
-    #     get a new run
-    #     if key !=0 then the run will be loaded from DB
-    #     """
-    #
-    #     if key != 0:
-    #         run_model = j.core.jobcontroller.db.run.get(key)
-    #         return run_model.objectGet()
-    #
-    #     producerRoles = self._processProducerRoles(producerRoles)
-    #     if action not in ["init"]:
-    #         for s in self.services:
-    #             if s.model.actionsState['init'] not in ["new", "ok", "changed", "scheduled"]:
-    #                 error_msg = "Cannot get run: %s:%s:%s because found a service not properly inited yet.\n%s\n please rerun ays init" % (
-    #                     role, instance, action, s)
-    #                 self.logger.error(error_msg)
-    #                 raise j.exceptions.Input(error_msg, msgpub=error_msg)
-    #
-    #     if force:
-    #         self.serviceSetState(actions=[action], role=role, instance=instance, state="scheduled")
-    #
-    #     actions = j.atyourservice.baseActions['']._build_actions_chain(action)
-    #
-    #     run = j.core.jobcontroller.newRun(simulate=simulate)
-    #     for action0 in actions:
-    #         scope = self.runFindActionScope(action=action0, role=role, instance=instance, producerRoles=producerRoles)
-    #         todo = self._findTodo(action=action0, scope=scope, run=run, producerRoles=producerRoles)
-    #         while todo != []:
-    #             newStep = True
-    #             for service in todo:
-    #                 if service.model.actionsState[action0] not in ['ok', 'disabled']:
-    #                     print("DO:%s %s" % (action0, service))
-    #                     if newStep:
-    #                         step = run.newStep()
-    #                         newStep = False
-    #                     job = service.getJob(action0, args=data)
-    #                     job.model.dbobj.profile = profile
-    #                     if profile:
-    #                         debug = True
-    #                     job.model.dbobj.debug = debug
-    #                     step.addJob(job)
-    #
-    #                 if service in scope:
-    #                     scope.remove(service)
-    #
-    #             todo = self._findTodo(action0, scope=scope, run=run, producerRoles=producerRoles)
-    #
-    #     # these are destructive actions, they need to happens in reverse order
-    #     # in the dependency tree
-    #     if action in ['uninstall', 'removedata', 'cleanup', 'halt', 'stop']:
-    #         run.reverse()
-    #
-    #     return run
-
-    def _findTodo(self, action, scope, run, producerRoles):
-        if action == "" or action is None:
-            raise j.exceptions.Input("action cannot be empty")
-
-        if scope == []:
-            return []
-
-        todo = []
-        waiting = False
-        for service in scope:
-            if run.hasServiceForAction(service, action):
-                continue
-            producersWaiting = service.getProducersRecursive(
-                producers=set(), callers=set(), action=action, producerRoles=producerRoles)
-            # remove the ones which are already in previous runs
-            producersWaiting = [item for item in producersWaiting if run.hasServiceForAction(item, action) is False]
-            # remove action that has alredy status ok
-            producersWaiting = [item for item in producersWaiting if item.model.actionsState[action] != "ok"]
-
-            if len(producersWaiting) == 0:
-                todo.append(service)
-
-        if todo == [] and waiting:
-            raise RuntimeError(
-                "cannot find todo's for action:%s in scope:%s.\n\nDEPENDENCY ERROR: could not resolve dependency chain." % (action, scope))
-        return todo
-
     def runsList(self):
         """
         list Runs on repo
@@ -470,72 +387,98 @@ class AtYourServiceRepo():
         Walk over all servies and look for action with state scheduled.
         It then creates actions chains for all schedules actions.
         """
-        to_execute = {}
-        for service in self.services:
-            for action, state in service.model.actionsState.items():
-                if state == 'scheduled':
-                    if service not in to_execute:
-                        to_execute[service] = [action]
-                    else:
-                        to_execute[service].append(action)
+        def build_actions_chain(action):
+            _, method = j.atyourservice.baseActions['init_actions_']
+            dependency_chain = method(service=self, args={})
+            chain = [action]
+            while dependency_chain.get(action, []) != []:
+                chain[:0] = dependency_chain[action]
+                action = chain[0]
+            return chain
 
         result = {}
-        for service, actions in to_execute.items():
-            result[service] = []
-
-            for action in actions:
-                result[service].append(service._build_actions_chain(action))
+        for service_model in self.db.service.find():
+            for action, state in service_model.actionsState.items():
+                if state == 'scheduled':
+                    action_chain = build_actions_chain(action)
+                    result[service_model] = action_chain
 
         return result
 
-    def createGlobalRun(self, data={}, simulate=False, debug=False, profile=False):
+    def createGlobalRun(self):
         """
         Create a run from all the scheduled actions in the repository.
         """
-        run = j.core.jobcontroller.newRun(simulate=simulate)
+        def create_job(model, action):
+            action_model = model.actions[action]
+            job_model = j.core.jobcontroller.db.job.new()
+            job_model.dbobj.repoKey = self.model.key
+            job_model.dbobj.actionKey = action_model.actionKey
+            job_model.dbobj.actionName = action_model.name
+            job_model.dbobj.actorName = model.dbobj.actorName
+            job_model.dbobj.serviceName = model.dbobj.name
+            job_model.dbobj.serviceKey = model.key
+            job_model.dbobj.state = "new"
+            job_model.dbobj.lastModDate = j.data.time.epoch
+            job_model.dbobj.serviceKey = model.key
+            job_model.dbobj.repoKey = self.model.key
+            job = j.core.jobcontroller.newJobFromModel(job_model)
+            job.saveService = False
+            return job
 
+        def producersOk(matrice, model, action):
+            prodsOk = True
+            for prod in model.getProducersRecursive(producers=set()):
+                if matrice[prod.key][action] != 'ok':
+                    prodsOk = False
+                    break
+            return prodsOk
+
+        matrice = {}
+        for model in self.db.service.find():
+            matrice[model.key] = model.actionsState
+
+        run = j.core.jobcontroller.newRun(simulate=False)
         scheduled_actions = self.findScheduledActions()
-        total_actions_set = set()
+        action_dict = {}
 
-        for _, actions_list in scheduled_actions.items():
+        for model, actions in scheduled_actions.items():
+            for action in actions:
+                if action not in action_dict:
+                    action_dict[action] = []
+                action_dict[action].append(model)
 
-            for actions in actions_list:
-                for action in actions:
-                    total_actions_set.add(action)
+        for action, scope in action_dict.items():
 
-                    scope = self.runFindActionScope(action, role="", instance="", producerRoles="*")
-                    todo = self._findTodo(action=action, scope=scope, run=run, producerRoles="*")
+            more = True
+            while more:
+                more = False
+                newStep = True
+                todo = []
+                for model in scope:
+                    # this action is already ok for this service
+                    if matrice[model.key][action] == 'ok':
+                        continue
 
-                    while todo != []:
-                        newStep = True
-                        for service in todo:
-                            if service.model.actionsState[action] not in ['ok', 'disabled']:
-                                if newStep:
-                                    step = run.newStep()
-                                    newStep = False
+                    more = True
 
-                                job = service.getJob(action, args={})
-                                job.model.dbobj.profile = False
-                                if job.model.dbobj.profile:
-                                    debug = True
-                                job.model.dbobj.debug = debug
+                    # if all the dependency of the current service are ok, add it to this step
+                    if producersOk(matrice, model, action):
+                        todo.append(model)
 
-                                step.addJob(job)
+                for model in todo:
+                    job = create_job(model, action)
+                    # print("add %s : %s" % (model, action))
+                    if newStep:
+                        step = run.newStep()
+                        newStep = False
 
-                            if service in scope:
-                                scope.remove(service)
-
-                        todo = self._findTodo(action, scope=scope, run=run, producerRoles="*")
-
-        # FIXME: this is not correct behavior
-        # these are destructive actions, they need to happens in reverse order in the dependency tree
-        if total_actions_set.isdisjoint(set(['uninstall', 'removedata', 'cleanup', 'halt', 'stop'])) is False:
-            run.reverse()
+                    step.addJob(job)
+                    matrice[model.key][action] = 'ok'
 
         return run
 
 # ACTIONS
-
     def init(self, role="", instance="", hasAction="", includeDisabled=False, data=""):
         for service in self.servicesFind(name=instance, actor='%s.*' % role, hasAction=hasAction, includeDisabled=includeDisabled):
             self.logger.info('init service: %s' % service)

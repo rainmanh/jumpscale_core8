@@ -466,8 +466,9 @@ def state(role='', instance=''):
     services = sorted(services, key=lambda s: s.model.dbobj.actorName)
     for service in services:
         print('State of service : %s!%s' % (service.model.dbobj.actorName, service.model.dbobj.name))
-        for actionName, state in service.model.actionsState.items():
-            print("\t%-25s : %s" % (actionName, state))
+        actionsNames = sorted(service.model.actionsState.keys())
+        for actionName in actionsNames:
+            print("\t%-25s : %s" % (actionName, service.model.actionsState[actionName]))
 
 
 @click.command()

@@ -32,6 +32,14 @@ class ServiceModel(ModelBase, ActorServiceBaseModel):
             producers.extend(self.find(name=prod.serviceName, actor=prod.actorName))
         return producers
 
+    def getProducersRecursive(self, producers=set(), action="", producerRoles="*"):
+        for producer_model in self.producers:
+                if action == "" or action in producer_model.actions.keys():
+                    if producerRoles == "*" or producer_model.role in producerRoles:
+                        producers.add(producer_model)
+                producers = producer_model.getProducersRecursive(producers=producers, action=action, producerRoles=producerRoles)
+        return producers
+
     @classmethod
     def list(self, name="", actor="", state="", parent="", producer="", returnIndex=False):
         """
@@ -297,13 +305,22 @@ class ServiceModel(ModelBase, ActorServiceBaseModel):
 
     def __repr__(self):
         # TODO: *1 to put back on self.wiki
-        out = self.dictJson + "\n"
-        if self.dbobj.dataSchema not in ["", b""]:
-            out += "SCHEMA:\n"
-            out += self.dbobj.dataSchema
-        if self.dbobj.data not in ["", b""]:
-            out += "DATA:\n"
-            out += self.dataJSON
-        return out
+        # out = self.dictJson + "\n"
+        # if self.dbobj.dataSchema not in ["", b""]:
+        #     out += "SCHEMA:\n"
+        #     out += self.dbobj.dataSchema
+        # if self.dbobj.data not in ["", b""]:
+        #     out += "DATA:\n"
+        #     out += self.dataJSON
+        # return out
+        return "%s!%s" % (self.role, self.dbobj.name)
+
+    def __eq__(self, other):
+        if not isinstance(other, ServiceModel):
+            return False
+        return self.key == other.key
+
+    def __hash__(self):
+        return hash(self.key)
 
     __str__ = __repr__

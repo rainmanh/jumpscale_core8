@@ -71,7 +71,6 @@ class ModelBase():
         self.dbobj = self._capnp.from_bytes(buff, builder=True)
 
     def save(self):
-        print("SAVE:%s" % self._db.name)
         self._pre_save()
         buff = self.dbobj.to_bytes()
         self._db.set(self.key, buff)

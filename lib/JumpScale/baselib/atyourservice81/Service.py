@@ -67,8 +67,6 @@ class Service:
             actionnew.period = action.period
             counter += 1
 
-        print("!!!!!!!!!")
-
         # input will always happen in process
         args2 = self.input(args=args)
         # print("%s:%s" % (self, args2))
@@ -290,15 +288,11 @@ class Service:
         producers = {}
         for prod_model in self.model.producers:
 
-            if prod_model.dbobj.actorName not in producers:
+            if prod_model.role not in producers:
                 producers[prod_model.role] = []
-                # TODO: *1 christophe, do we need this, came from master
-                # if prod_model.role not in self._producers:
-                #     self._producers[prod_model.role] = []
 
             result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
-            for service in result:
-                producers[prod_model.role].append(service)
+            producers[prod_model.role].extend(result)
 
         return producers
 
@@ -338,8 +332,7 @@ class Service:
                 if action == "" or action in producer.model.actionsState.keys():
                     if producerRoles == "*" or producer.model.role in producerRoles:
                         producers.add(producer)
-                producers = producer.getProducersRecursive(
-                    producers=producers, callers=callers, action=action, producerRoles=producerRoles)
+                producers = producer.getProducersRecursive(producers=producers, callers=callers, action=action, producerRoles=producerRoles)
         return producers.symmetric_difference(callers)
 
     def printProducersRecursive(self, prefix=""):
@@ -349,31 +342,6 @@ class Service:
                 print("%s- %s" % (prefix, producer))
                 producer.printProducersRecursive(prefix + "  ")
 
-    def getProducersWaiting(self, action="install", producersChanged=set(), scope=None):
-        """
-        return list of producers which are waiting to be executing the action
-        """
-
-        for producer in self.getProducersRecursive(set(), set()):
-            # check that the action exists, no need to wait for other actions,
-            # appart from when init or install not done
-
-            if producer.model.actionsState['init'] != "ok":
-                producersChanged.add(producer)
-
-            if producer.model.actionsState['install'] != "ok":
-                producersChanged.add(producer)
-
-            if action not in producer.model.actionsState.keys():
-                continue
-
-            if producer.model.actionsState[action] != "ok":
-                producersChanged.add(producer)
-
-        if scope is not None:
-            producersChanged = producersChanged.intersection(scope)
-
-        return producersChanged
 
     def getConsumersRecursive(self, consumers=set(), callers=set(), action="", consumerRole="*"):
         for role, consumers_list in self.consumers.items():

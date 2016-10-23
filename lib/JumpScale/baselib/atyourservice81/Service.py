@@ -565,7 +565,7 @@ class Service:
         # execute an action in process without creating a job
         # usefull for methods called very often.
         action, method = j.atyourservice.baseActions[action]
-        res = method(service=self)
+        res = method(service=self, args=args)
         return res
 
     def executeActionJob(self, actionName, args={}):

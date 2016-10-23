@@ -134,6 +134,12 @@ class CuisinePortal(base):
         self._cuisine.package.multiInstall(['libjpeg-dev', 'libffi-dev'])
         self._cuisine.development.pip.ensure()
         self._cuisine.development.pip.multiInstall(deps)
+
+        # snappy install
+        self._cuisine.package.ensure('libsnappy-dev')
+        self._cuisine.package.ensure('libsnappy1v5')
+        self._cuisine.development.pip.install('python-snappy')
+
         self._cuisine.apps.mongodb.build()
 
     def getcode(self, branch='master'):

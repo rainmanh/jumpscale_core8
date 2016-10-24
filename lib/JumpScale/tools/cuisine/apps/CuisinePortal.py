@@ -14,7 +14,7 @@ class CuisinePortal(base):
         self.main_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'main')
 
     def _install(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1",
-                 influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd="", branch='master'):
+                 influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd="", branch='master', redis_ip="127.0.0.1", redis_port=6379):
         """
         grafanaip and port should be the external ip of the machine
         Portal install will only install the portal and libs. No spaces but the system ones will be add by default.
@@ -28,17 +28,40 @@ class CuisinePortal(base):
         self.installDeps()
         self.getcode(branch=branch)
         self.linkCode()
+        self.ays_prepare(redis_ip=redis_ip, redis_port=redis_port)
         self.serviceconnect(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip,
                             influxport=influxport, grafanaip=grafanaip, grafanaport=grafanaport)
 
     def install(self, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086,
-                grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
-        self._install(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip, influxport=influxport,
-                      grafanaip=grafanaip, grafanaport=grafanaport, login=login, passwd=passwd)
+                grafanaip="127.0.0.1", grafanaport=3000, login="", passwd="", redis_ip="127.0.0.1", redis_port=6379):
+        self._install(mongodbip=mongodbip,
+                      mongoport=mongoport,
+                      influxip=influxip,
+                      influxport=influxport,
+                      grafanaip=grafanaip,
+                      grafanaport=grafanaport,
+                      login=login,
+                      passwd=passwd,
+                      redis_ip=redis_ip,
+                      redis_port=redis_port)
         if start:
             self.start()
 
-    def installDeps(self):
+    def ays_prepare(self, redis_ip="127.0.0.1", redis_port=6379):
+        # Linking ays81 portal
+        self._cuisine.core.file_link(source='$codeDir/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81',
+                                     destination='$appDir/portals/main/base/AYS81')
+
+        # Configure ays's redis
+        LOCATION = '/optvar/cfg/ays'
+        self._cuisine.core.dir_ensure(location=LOCATION)
+        cfg = """
+        host = "{host}"
+        port = {port}
+        """.format(host=redis_ip, port=redis_port)
+        self._cuisine.core.file_write("{path}/ays.conf".format(path=LOCATION), cfg)
+
+    def installDeps(self, ays_redis={}):
         """
         make sure new env arguments are understood on platform
         """

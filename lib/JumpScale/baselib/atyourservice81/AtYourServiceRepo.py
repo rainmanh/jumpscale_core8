@@ -5,6 +5,7 @@ from JumpScale.baselib.atyourservice81.Service import Service
 from JumpScale.baselib.atyourservice81.Blueprint import Blueprint
 from JumpScale.baselib.jobcontroller.Run import Run
 from JumpScale.baselib.atyourservice81.models import ModelsFactory
+from JumpScale.baselib.atyourservice81.AtYourServiceDependencies import build_nodes, create_graphs, get_task_batches, create_job
 
 import colored_traceback
 colored_traceback.add_hook(always=True)
@@ -405,76 +406,26 @@ class AtYourServiceRepo():
 
         return result
 
-    def createGlobalRun(self):
+    def runCreate(self):
         """
         Create a run from all the scheduled actions in the repository.
         """
-        def create_job(model, action):
-            action_model = model.actions[action]
-            job_model = j.core.jobcontroller.db.job.new()
-            job_model.dbobj.repoKey = self.model.key
-            job_model.dbobj.actionKey = action_model.actionKey
-            job_model.dbobj.actionName = action_model.name
-            job_model.dbobj.actorName = model.dbobj.actorName
-            job_model.dbobj.serviceName = model.dbobj.name
-            job_model.dbobj.serviceKey = model.key
-            job_model.dbobj.state = "new"
-            job_model.dbobj.lastModDate = j.data.time.epoch
-            job_model.dbobj.serviceKey = model.key
-            job_model.dbobj.repoKey = self.model.key
-            job = j.core.jobcontroller.newJobFromModel(job_model)
-            job.saveService = False
-            return job
+        all_nodes = build_nodes(self)
+        nodes = create_graphs(self, all_nodes)
+        run = j.core.jobcontroller.newRun()
 
-        def producersOk(matrice, model, action):
-            prodsOk = True
-            for prod in model.getProducersRecursive(producers=set()):
-                if matrice[prod.key][action] != 'ok':
-                    prodsOk = False
-                    break
-            return prodsOk
+        for bundle in get_task_batches(nodes):
+            to_add = []
 
-        matrice = {}
-        for model in self.db.service.find():
-            matrice[model.key] = model.actionsState
+            for node in bundle:
+                if node.model.actionsState[node.action] != 'ok':
+                    to_add.append(node)
 
-        run = j.core.jobcontroller.newRun(simulate=False)
-        scheduled_actions = self.findScheduledActions()
-        action_dict = {}
+            if len(to_add) > 0:
+                step = run.newStep()
 
-        for model, actions in scheduled_actions.items():
-            for action in actions:
-                if action not in action_dict:
-                    action_dict[action] = []
-                action_dict[action].append(model)
-
-        for action, scope in action_dict.items():
-
-            more = True
-            while more:
-                more = False
-                newStep = True
-                todo = []
-                for model in scope:
-                    # this action is already ok for this service
-                    if matrice[model.key][action] == 'ok':
-                        continue
-
-                    more = True
-
-                    # if all the dependency of the current service are ok, add it to this step
-                    if producersOk(matrice, model, action):
-                        todo.append(model)
-
-                for model in todo:
-                    job = create_job(model, action)
-                    # print("add %s : %s" % (model, action))
-                    if newStep:
-                        step = run.newStep()
-                        newStep = False
-
-                    step.addJob(job)
-                    matrice[model.key][action] = 'ok'
+            for node in to_add:
+                step.addJob(create_job(self, node.model, node.action))
 
         return run
 

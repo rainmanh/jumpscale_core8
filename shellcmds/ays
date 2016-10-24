@@ -22,7 +22,7 @@ def cli():
 @click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
 def run(ask):
     repo = j.atyourservice.get()
-    run = repo.createGlobalRun()
+    run = repo.runCreate()
 
     if len(run.steps) <= 0:
         print("Nothing to do.")

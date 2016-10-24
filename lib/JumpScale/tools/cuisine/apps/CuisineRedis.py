@@ -7,7 +7,7 @@ app = j.tools.cuisine._getBaseAppClass()
 class CuisineRedis(app):
     NAME = 'redis-server'
 
-    def build(self, reset=False):
+    def build(self, reset=False, start=False):
         """Building and installing redis"""
         if reset is False and self.isInstalled():
             print('Redis is already installed, pass reset=True to reinstall.')
@@ -51,6 +51,9 @@ class CuisineRedis(app):
         else:
             raise j.exceptions.NotImplemented(
                 message="only ubuntu supported for building redis", level=1, source="", tags="", msgpub="")
+
+        if start is True:
+            self.start()
 
     def isInstalled(self):
         return self._cuisine.core.command_check('redis-server') and self._cuisine.core.command_check('redis-cli')

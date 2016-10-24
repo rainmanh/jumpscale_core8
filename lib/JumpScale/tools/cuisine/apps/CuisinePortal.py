@@ -56,6 +56,7 @@ class CuisinePortal(base):
         LOCATION = '/optvar/cfg/ays'
         self._cuisine.core.dir_ensure(location=LOCATION)
         cfg = """
+        [redis]
         host = "{host}"
         port = {port}
         """.format(host=redis_ip, port=redis_port)
@@ -164,7 +165,7 @@ class CuisinePortal(base):
         self._cuisine.development.pip.install('python-snappy')
 
         self._cuisine.apps.mongodb.build()
-        self._cuisine.apps.redis.build()
+        self._cuisine.apps.redis.build(start=True)
 
     def getcode(self, branch='master'):
         self._cuisine.development.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git", branch=None)

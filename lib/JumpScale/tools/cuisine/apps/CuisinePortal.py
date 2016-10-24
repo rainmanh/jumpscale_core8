@@ -131,7 +131,7 @@ class CuisinePortal(base):
         Flask-Bootstrap
         snakeviz
         """
-        self._cuisine.package.multiInstall(['libjpeg-dev', 'libffi-dev'])
+        self._cuisine.package.multiInstall(['libjpeg-dev', 'libffi-dev', 'zlib1g-dev'])
         self._cuisine.development.pip.ensure()
         self._cuisine.development.pip.multiInstall(deps)
 

@@ -102,8 +102,8 @@ class RunStep:
     def __repr__(self):
         out = "step:%s (%s)\n" % (self.dbobj.number, self.state)
         for job in self.jobs:
-            out += "- %-25s %-25s ! %-15s %s \n" % \
-                (job.model.dbobj.actorName, job.model.dbobj.serviceName, job.model.dbobj.actionName, job.model.dbobj.state)
+            out += "- %-25s %-25s ! %-15s\n" % \
+                (job.model.dbobj.actorName, job.model.dbobj.serviceName, job.model.dbobj.actionName)
         return out
 
     __str__ = __repr__

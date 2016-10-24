@@ -1,71 +1,8 @@
 from JumpScale import j
 from time import sleep
-import MySQLdb
+
 
 app = j.tools.cuisine._getBaseAppClass()
-
-
-class TIDBContextManager:
-
-    def __init__(self, host='127.0.0.1', username='root', password='', port=3306):
-        self.host = host
-        self.username = username
-        self.password = password
-        self.port = port
-        self._connection = None
-
-    def __enter__(self):
-        try:
-            self._connection = MySQLdb.connect(host=self.host, user=self.username, passwd=self.password, port=self.port)
-        except:
-            print("COULNDT CONNECT WITH {} {} {} {} ".format(self.host, self.username, self.password, self.port))
-        return self
-
-    def create_database(self, database):
-        """
-        Creates a database.
-        """
-        cursor = self._connection.cursor()
-        SQL = """CREATE DATABASE {database};""".format(database=database)
-        print("Executing SQL", SQL)
-        cursor.execute(SQL)
-        self._connection.commit()
-
-    def drop_database(self, database):
-        """
-        Drops database if exists
-        """
-        cursor = self._connection.cursor()
-        SQL = """DROP DATABASE IF EXISTS {database}  ;""".format(database=database)
-        print("Executing SQL", SQL)
-        cursor.execute(SQL)
-        self._connection.commit()
-
-    def create_dbuser(self, host, username, passwd):
-        """
-        Creates a user in database.
-        """
-        cursor = self._connection.cursor()
-        SQL = """CREATE USER '{username}'@'{host}' IDENTIFIED BY '{passwd}' ;""".format(
-            host=host, username=username, passwd=passwd)
-        print("Executing SQL", SQL)
-        cursor.execute(SQL)
-        self._connection.commit()
-
-    def grant_user(self, host, database, username):
-        """
-        Grants full access on certain databse.
-        """
-        SQL = """grant all on {database}.* to '{username}'@'{host}' ;""".format(
-            database=database, host=host, username=username)
-        cursor = self._connection.cursor()
-        print("Executing SQL", SQL)
-        cursor.execute(SQL)
-        self._connection.commit()
-
-    def __exit__(self, type, value, traceback):
-        self._connection.close()
-
 
 class CuisineTIDB(app):
     """
@@ -85,7 +22,7 @@ class CuisineTIDB(app):
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
-        self.dbman = TIDBContextManager
+
 
     def _build(self):
         # TODO: *1

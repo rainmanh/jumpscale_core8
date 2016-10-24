@@ -462,6 +462,10 @@ class Machine:
             raise j.exceptions.RuntimeError("Protocol for portforward should be tcp or udp not %s" % protocol)
         machineip, _ = self.get_machine_ip()
 
+        # Fix cache miss
+        if not self.space.model['publicipaddress']:
+            self.space.refresh()
+
         if publicport is None:
                 unavailable_ports = [int(portinfo['publicPort']) for portinfo in self.space.portforwardings]
                 candidate = 2200
@@ -482,6 +486,10 @@ class Machine:
         return (publicport, localport)
 
     def delete_portforwarding(self, publicport):
+        # Fix cache miss
+        if not self.space.model['publicipaddress']:
+            self.space.refresh()
+
         self.client.api.cloudapi.portforwarding.deleteByPort(cloudspaceId=self.space.id,
                                                              publicIp=self.space.model[
                                                                  'publicipaddress'],

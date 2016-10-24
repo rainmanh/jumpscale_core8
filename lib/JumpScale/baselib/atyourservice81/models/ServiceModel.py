@@ -1,6 +1,7 @@
 from JumpScale import j
 from JumpScale.baselib.atyourservice81.models.ActorServiceBaseModel import ActorServiceBaseModel
 ModelBase = j.data.capnp.getModelBaseClassWithData()
+import imp
 
 VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
@@ -25,6 +26,37 @@ class ServiceModel(ModelBase, ActorServiceBaseModel):
 
         return parentModels[0]
 
+    def _build_actions_chain(self, action, ds=list(), parents=list()):
+        """
+        this method returns a list of action that need to happens before the action passed in argument
+        can start
+        """
+        # if 'init_actions_' in self.actions:
+        #     # loader = importlib.machinery.SourceFileLoader(self.actions['init_actions_'], self.sourceToExecutePath)
+        #     # handle = loader.load_module(self.actions['init_actions_'])
+        #     # method = eval("handle.action")
+        #     mod = imp.new_module("mod")
+        #     method = exec (self.actionsCode['init_actions_'])
+        # else:
+        method = j.atyourservice.baseActions['init_actions_'][1]
+        dependency_chain = method(self)
+
+        if action in parents:
+            raise RuntimeError('cyclic dep: %s' % parents)
+        if action in ds:
+            return
+        ds.append(action)
+        newkeys = dependency_chain.get(action)
+        if not newkeys:
+            return
+        parents.append(action)
+        for key in newkeys:
+            self._build_actions_chain(key, ds, parents)
+        parents.pop()
+        ds.pop()
+        ds.reverse()
+        return ds
+
     @property
     def producers(self):
         producers = []
@@ -32,12 +64,14 @@ class ServiceModel(ModelBase, ActorServiceBaseModel):
             producers.extend(self.find(name=prod.serviceName, actor=prod.actorName))
         return producers
 
-    def getProducersRecursive(self, producers=set(), action="", producerRoles="*"):
+    def getProducersRecursive(self, producers=list(), action="", producerRoles="*"):
         for producer_model in self.producers:
-                if action == "" or action in producer_model.actions.keys():
-                    if producerRoles == "*" or producer_model.role in producerRoles:
-                        producers.add(producer_model)
-                producers = producer_model.getProducersRecursive(producers=producers, action=action, producerRoles=producerRoles)
+            if action == "" or action in producer_model.actions.keys():
+                if producerRoles == "*" or producer_model.role in producerRoles:
+                    if producer_model in producers:
+                        continue
+                    producers.append(producer_model)
+            producers = producer_model.getProducersRecursive(producers=producers, action=action, producerRoles=producerRoles)
         return producers
 
     @classmethod

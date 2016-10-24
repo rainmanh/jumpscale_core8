@@ -591,21 +591,28 @@ class Service:
         job = j.core.jobcontroller.newJobFromModel(jobobj)
         return job
 
-    def _build_actions_chain(self, action):
+    def _build_actions_chain(self, action, ds=list(), parents=list()):
         """
         this method returns a list of action that need to happens before the action passed in argument
         can start
         """
         if 'init_actions_' in self.model.actions:
             dependency_chain = self.executeActionService('init_actions_', action)
-        else:
-            raise j.exceptions.RuntimeError("Can't find method check_actions_")
 
-        chain = [action]
-        while dependency_chain.get(action, []) != []:
-            chain[:0] = dependency_chain[action]
-            action = chain[0]
-        return chain
+        if action in parents:
+            raise RuntimeError('cyclic dep: %s' % parents)
+        if action in ds:
+            return
+        ds.append(action)
+        newkeys = dependency_chain.get(action)
+        if not newkeys:
+            return
+        parents.append(action)
+        for key in newkeys:
+            self._build_actions_chain(key, ds, parents)
+        parents.pop()
+        ds.reverse()
+        return ds
 
     def __eq__(self, service):
         if not service:

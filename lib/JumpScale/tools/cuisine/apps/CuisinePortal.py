@@ -61,7 +61,7 @@ class CuisinePortal(base):
         """.format(host=redis_ip, port=redis_port)
         self._cuisine.core.file_write("{path}/ays.conf".format(path=LOCATION), cfg)
 
-    def installDeps(self, ays_redis={}):
+    def installDeps(self):
         """
         make sure new env arguments are understood on platform
         """
@@ -164,6 +164,7 @@ class CuisinePortal(base):
         self._cuisine.development.pip.install('python-snappy')
 
         self._cuisine.apps.mongodb.build()
+        self._cuisine.apps.redis.build()
 
     def getcode(self, branch='master'):
         self._cuisine.development.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git", branch=None)

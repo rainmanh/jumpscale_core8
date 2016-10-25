@@ -69,6 +69,12 @@ class Service:
             actionnew.period = action.period
             counter += 1
 
+        # set default value for argument not specified in blueprint
+        template = self.aysrepo.templateGet(actor.model.name)
+        for k, v in template.schemaHrd.items.items():
+            if k not in args:
+                args[k] = v.default
+
         # input will always happen in process
         args2 = self.input(args=args)
         # print("%s:%s" % (self, args2))
@@ -91,12 +97,6 @@ class Service:
             dbobj.gitRepo.path = newpath
 
         self._initProducers(actor, args)
-
-        # set default value for argument not specified in blueprint
-        template = self.aysrepo.templateGet(actor.model.name)
-        for k, v in template.schemaHrd.items.items():
-            if k not in args:
-                args[k] = v.default
 
         self.save()
 

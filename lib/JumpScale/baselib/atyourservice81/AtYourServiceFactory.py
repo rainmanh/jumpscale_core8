@@ -222,7 +222,6 @@ class AtYourServiceFactory:
         return repos
 
     def repoCreate(self, path):
-        raise RuntimeError("check not ok")
         path = j.sal.fs.pathNormalize(path)
 
         if j.sal.fs.exists(path):

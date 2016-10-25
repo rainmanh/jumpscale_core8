@@ -514,6 +514,7 @@ def start(conf):
     server.start()
 
 cli.add_command(run)
+cli.add_command(create_repo)
 cli.add_command(discover)
 cli.add_command(repo_list)
 cli.add_command(runinfo)

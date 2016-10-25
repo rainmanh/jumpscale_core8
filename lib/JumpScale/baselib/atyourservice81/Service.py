@@ -552,8 +552,8 @@ class Service:
         return res
 
     def executeActionJob(self, actionName, args={}):
-        self.logger.debug('execute action %s on %s' % (action, self))
-        job = self.getJob(actionName=action, args=args)
+        self.logger.debug('execute action %s on %s' % (actionName, self))
+        job = self.getJob(actionName=actionName, args=args)
         now = j.data.time.epoch
         p = job.execute()
 
@@ -564,10 +564,10 @@ class Service:
             p.wait()
 
         # if the action is a reccuring action, save last execution time in model
-        if action in self.model.actionsRecurring:
-            self.model.actionsRecurring[action].lastRun = now
+        if actionName in self.model.actionsRecurring:
+            self.model.actionsRecurring[actionName].lastRun = now
 
-        service_action_obj = self.model.actions[action]
+        service_action_obj = self.model.actions[actionName]
 
         if p.state != 'success':
             job.model.dbobj.state = 'error'
@@ -588,7 +588,7 @@ class Service:
 
         job.model.save()
         job.service.saveAll()
-        self.logger.debug('end execute action %s on %s' % (action, self))
+        self.logger.debug('end execute action %s on %s' % (actionName, self))
         return job
 
     def getJob(self, actionName, args={}):

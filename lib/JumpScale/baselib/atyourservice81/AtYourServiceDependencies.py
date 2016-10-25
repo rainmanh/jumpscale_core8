@@ -48,10 +48,11 @@ def addEdges(node, action, all_nodes, nodes):
     """
     for prod in node.model.producers:
         name = "%s-%s" % (prod.key, action)
-        edge = all_nodes[name]
-        addEdges(edge, action, all_nodes, nodes)
-        node.addEdge(edge)
-        nodes.append(edge)
+        edge = all_nodes.get(name)
+        if edge:
+            addEdges(edge, action, all_nodes, nodes)
+            node.addEdge(edge)
+            nodes.append(edge)
 
 
 def get_task_batches(nodes):

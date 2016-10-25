@@ -57,6 +57,7 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     # export LC_ALL='C.UTF-8'
     locale-gen en_US.UTF-8
     export LANG=en_US.UTF-8
+    export LC_ALL=en_US.UTF-8
     dist=''
     dist=`grep DISTRIB_ID /etc/*-release | awk -F '=' '{print $2}'`
     if [ "$dist" == "Ubuntu" ]; then
@@ -86,18 +87,18 @@ elif [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
     install apt-cyg /bin
     apt-cyg install curl
     apt-cyg install openssl-devel
-    apt-cyg install wget 
+    apt-cyg install wget
     apt-cyg install python3
     apt-cyg install make
     apt-cyg install libffi-devel
-    apt-cyg install unzip 
+    apt-cyg install unzip
 
     python3 -m ensurepip
-    ln -sf /usr/bin/python3 /usr/bin/python 
+    ln -sf /usr/bin/python3 /usr/bin/python
     apt-cyg install git
 
     pip3 install cryptography==1.4
-    pip3 install --upgrade paramiko 
+    pip3 install --upgrade paramiko
     pip3 install --upgrade pip setuptools
     pip3 install --upgrade ipdb
     pip3 install --upgrade requests
@@ -117,11 +118,11 @@ elif [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
     cd $TMPDIR
     rm -rf Redis
     mkdir Redis
-    cd Redis 
+    cd Redis
     wget -O Redis-x64-3.2.100.zip https://github.com/MSOpenTech/redis/releases/download/win-3.2.100/Redis-x64-3.2.100.zip
     unzip Redis-x64-3.2.100.zip
     chmod +x redis-server.exe
-    cp -f  redis-server.exe /usr/local/bin  
+    cp -f  redis-server.exe /usr/local/bin
 
     if [ -z"$JSBASE" ]; then
         export JSBASE="$HOME/opt/jumpscale8"

@@ -95,10 +95,10 @@ class Actor():
 
         self._initParent(template)
         self._initProducers(template)
-        self._initRecurringActions(template)
         self._initFlists(template)
 
         self._processActionsFile(j.sal.fs.joinPaths(template.path, "actions.py"))
+        self._initRecurringActions(template)
 
         # hrd schema to capnp
         if self.model.dbobj.serviceDataSchema != template.schemaCapnpText:
@@ -138,17 +138,10 @@ class Actor():
             producer.auto = bool(consume_info.auto)
 
     def _initRecurringActions(self, template):
-        #TODO *1
-        for i, action in enumerate(template.recurringDict):
-            from IPython import embed
-            print("DEBUG NOW sdsds")
-            embed()
-            raise RuntimeError("stop debug here")
-            reccuring_info = template.recurringDict[action]
-            recurring = self.model.dbobj.recurringActions[i]
-            recurring.action = action
-            recurring.period = j.data.types.duration.convertToSeconds(reccuring_info['period'])
-            recurring.log = j.data.types.bool.fromString(reccuring_info['log'])
+        for action, reccuring_info in template.recurringDict.items():
+            action_model = self.model.actions[action]
+            action_model.period = j.data.types.duration.convertToSeconds(reccuring_info['period'])
+            action_model.log = j.data.types.bool.fromString(reccuring_info['log'])
 
     def _initFlists(self, template):
         self.model.dbobj.init('flists', len(template.flists))

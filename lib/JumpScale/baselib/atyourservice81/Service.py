@@ -86,7 +86,8 @@ class Service:
         if parent is not None:
             fullpath = j.sal.fs.joinPaths(parent.path, skey)
             newpath = j.sal.fs.pathRemoveDirPart(fullpath, self.aysrepo.path)
-            j.sal.fs.moveDir(dbobj.gitRepo.path, newpath)
+            if j.sal.fs.exists(dbobj.gitRepo.path):
+                j.sal.fs.moveDir(dbobj.gitRepo.path)
             dbobj.gitRepo.path = newpath
 
         self._initProducers(actor, args)

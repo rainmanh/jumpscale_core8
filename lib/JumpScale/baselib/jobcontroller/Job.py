@@ -150,11 +150,10 @@ class Job():
     def save(self):
         self.model.save()
         if self.saveService and self.service is not None:
-            service_action_obj = self.service.model.actions[self.model.dbobj.actionName]
-            # print(self.model.dbobj.state)
-            service_action_obj.state = str(self.model.dbobj.state)
             if self.saveService:
                 self.service.reload()
+                service_action_obj = self.service.model.actions[self.model.dbobj.actionName]
+                service_action_obj.state = str(self.model.dbobj.state)
                 self.service.saveAll()
 
     def executeInProcess(self, service=None):

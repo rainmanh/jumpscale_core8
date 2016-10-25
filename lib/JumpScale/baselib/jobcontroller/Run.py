@@ -96,8 +96,7 @@ class RunStep:
 
                 print(process.stdout)
 
-            job.model.save()
-            job.service.saveAll()
+            job.save()
 
     def __repr__(self):
         out = "step:%s (%s)\n" % (self.dbobj.number, self.state)

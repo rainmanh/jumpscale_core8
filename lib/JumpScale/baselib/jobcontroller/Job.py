@@ -149,11 +149,12 @@ class Job():
 
     def save(self):
         self.model.save()
-        if self.saveService and self.service != None:
+        if self.saveService and self.service is not None:
             service_action_obj = self.service.model.actions[self.model.dbobj.actionName]
             # print(self.model.dbobj.state)
             service_action_obj.state = str(self.model.dbobj.state)
             if self.saveService:
+                self.service.reload()
                 self.service.saveAll()
 
     def executeInProcess(self, service=None):
@@ -206,11 +207,9 @@ class Job():
 
         # can be execute in paralle so we don't wait for end of execution here.
         if self.model.dbobj.debug:
-
             process = self.executeInProcess()
-
         else:
-            return j.core.processmanager.startProcess(self.method, {'job': self})
+            process = j.core.processmanager.startProcess(self.method, {'job': self})
 
         return process
 

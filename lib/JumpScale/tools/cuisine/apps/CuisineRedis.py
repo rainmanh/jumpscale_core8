@@ -61,7 +61,7 @@ class CuisineRedis(app):
     def install(self, reset=False):
         return True
 
-    def start(self, name="main", ip="localhost", port=6379, maxram=200, appendonly=True,
+    def start(self, name="main", ip="localhost", port=6379, maxram=1048576, appendonly=True,
               snapshot=False, slave=(), ismaster=False, passwd=None, unixsocket=None):
         redis_cli = j.sal.redis.getInstance(self._cuisine)
         redis_cli.configureInstance(name,

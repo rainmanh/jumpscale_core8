@@ -53,7 +53,9 @@ class Service:
         dbobj.state = "new"
         dbobj.dataSchema = actor.model.dbobj.serviceDataSchema
 
+        skey = "%s!%s" % (self.model.role, self.model.dbobj.name)
         dbobj.gitRepo.url = self.aysrepo.git.remoteUrl
+        dbobj.gitRepo.path = j.sal.fs.joinPaths("services", skey)
 
         # actions
         actions = dbobj.init("actions", len(actor.model.dbobj.actions))
@@ -80,13 +82,12 @@ class Service:
         dbobj.data = j.data.capnp.getBinaryData(j.data.capnp.getObj(dbobj.dataSchema, args=args))
 
         # parents/producers
-        skey = "%s!%s" % (self.model.role, self.model.dbobj.name)
         parent = self._initParent(actor, args)
         if parent is not None:
             fullpath = j.sal.fs.joinPaths(parent.path, skey)
-            dbobj.gitRepo.path = j.sal.fs.pathRemoveDirPart(fullpath, self.aysrepo.path)
-        else:
-            dbobj.gitRepo.path = j.sal.fs.joinPaths("services", skey)
+            newpath = j.sal.fs.pathRemoveDirPart(fullpath, self.aysrepo.path)
+            j.sal.fs.moveDir(dbobj.gitRepo.path, newpath)
+            dbobj.gitRepo.path = newpath
 
         self._initProducers(actor, args)
 

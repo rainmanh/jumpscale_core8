@@ -22,6 +22,7 @@ def cli():
 @click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
 def run(ask):
     repo = j.atyourservice.get()
+    print("Compute dependency graph...")
     run = repo.runCreate()
 
     if len(run.steps) <= 0:

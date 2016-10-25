@@ -20,10 +20,13 @@ def cli():
 
 @click.command()
 @click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
-def run(ask):
+# @click.option('--force', default=False, is_flag=True, help='force execution even if no change')
+@click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
+@click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
+def run(ask, debug, profile):
     repo = j.atyourservice.get()
     print("Compute dependency graph...")
-    run = repo.runCreate()
+    run = repo.runCreate(debug=debug, profile=profile)
 
     if len(run.steps) <= 0:
         print("Nothing to do.")
@@ -200,7 +203,10 @@ def _do(action, role, instance, force, producerroles, args, ask, debug, profile)
             obj = j.data.tags.getObject(tagstring=args)
             data = obj.getDict()
 
-    run = repo.runGet(role=role, instance=instance, action=action, force=force, producerRoles=producerroles, debug=debug, profile=profile, data=data)
+    for service in repo.servicesFind(actor="%s.*" % role, name=instance):
+        service.scheduleAction(action=action, period=None, log=True, force=force)
+
+    run = repo.runCreate(profile=profile, debug=debug)
     if len(run.steps) <= 0:
         print("Nothing to do.")
         return

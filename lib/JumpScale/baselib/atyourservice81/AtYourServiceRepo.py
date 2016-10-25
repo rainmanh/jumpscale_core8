@@ -391,14 +391,14 @@ class AtYourServiceRepo():
         result = {}
         for service_model in self.db.service.find():
             for action, state in service_model.actionsState.items():
-                if state == 'scheduled':
+                if state in ['scheduled', 'changed']:
                     action_chain = list()
                     service_model._build_actions_chain(action, ds=action_chain)
                     action_chain.reverse()
                     result[service_model] = action_chain
         return result
 
-    def runCreate(self):
+    def runCreate(self, debug=False, profile=False):
         """
         Create a run from all the scheduled actions in the repository.
         """
@@ -417,7 +417,12 @@ class AtYourServiceRepo():
                 step = run.newStep()
 
             for node in to_add:
-                step.addJob(create_job(self, node.model, node.action))
+                job = create_job(self, node.model, node.action)
+
+                job.model.dbobj.profile = profile
+                job.model.dbobj.debug = profile if profile is True else debug
+
+                step.addJob(job)
 
         return run
 

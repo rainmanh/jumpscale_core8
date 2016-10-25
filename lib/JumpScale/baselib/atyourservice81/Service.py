@@ -502,7 +502,7 @@ class Service:
         embed()
         raise RuntimeError("stop debug here")
 
-    def scheduleAction(self, action, args={}, period=None, log=True):
+    def scheduleAction(self, action, args={}, period=None, log=True, force=False):
         """
         Change the state of an action so it marked as need to be executed
         if the period is specified, also create a recurring period for the action
@@ -526,7 +526,7 @@ class Service:
             # save period into actionCode model
             action_model.period = period
 
-        if action_model.state == 'ok':
+        if not force and action_model.state == 'ok':
             self.logger.info("action %s already in ok state, don't schedule again" % action_model.name)
         else:
             action_model.state = 'scheduled'

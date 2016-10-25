@@ -99,6 +99,10 @@ class Service:
         self.save()
 
         self.init()
+
+        # make sure we have the last version of the model if something changed during init
+        self.reload()
+
         # need to do this manually cause execution of input method is a bit special.
         self.model.actions['input'].state = 'ok'
 
@@ -501,7 +505,7 @@ class Service:
         Change the state of an action so it marked as need to be executed
         if the period is specified, also create a recurring period for the action
         """
-        self.logger.debug('schedule action %s on %s' % (action, self))
+        self.logger.info('schedule action %s on %s' % (action, self))
         if action not in self.model.actions:
             raise j.exceptions.Input(
                 "Trying to schedule action %s on %s. but this action doesn't exist" % (action, self))
@@ -520,7 +524,11 @@ class Service:
             # save period into actionCode model
             action_model.period = period
 
-        action_model.state = 'scheduled'
+        if action_model.state == 'ok':
+            self.logger.info("action %s already in ok state, don't schedule again" % action_model.name)
+        else:
+            action_model.state = 'scheduled'
+
         self.saveAll()
 
     def executeAction(self, action, args={}):

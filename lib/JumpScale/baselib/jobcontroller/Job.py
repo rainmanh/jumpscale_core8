@@ -154,7 +154,6 @@ class Job():
             # print(self.model.dbobj.state)
             service_action_obj.state = str(self.model.dbobj.state)
             if self.saveService:
-                print("save service:%s" % self.service.name)
                 self.service.saveAll()
 
     def executeInProcess(self, service=None):

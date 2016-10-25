@@ -9,9 +9,8 @@ def build_nodes(repo):
     These node are going to be used to create the dependency graphs
     """
     all_nodes = {}
-    actions = ['init', 'install', 'start', 'monitor', 'uninstall', 'stop']
     for model in repo.db.service.find():
-        for action in actions:
+        for action in model.actions.keys():
             node = Node(model, action)
             all_nodes[node.id] = node
     return all_nodes

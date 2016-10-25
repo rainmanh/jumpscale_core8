@@ -65,7 +65,7 @@ class RedisInstaller:
         self._cuisine.core.dir_remove(dpath)
         self._cuisine.core.dir_ensure(dpath)
 
-    def configureInstance(self, name, ip="localhost", port=6379, maxram=200, appendonly=True, snapshot=False, slave=(), ismaster=False, passwd=None, unixsocket=False):
+    def configureInstance(self, name, ip="localhost", port=6379, maxram=1048576, appendonly=True, snapshot=False, slave=(), ismaster=False, passwd=None, unixsocket=False):
         """
         @param maxram = MB of ram
         slave example: (192.168.10.10,8888,asecret)   (ip,port,secret)

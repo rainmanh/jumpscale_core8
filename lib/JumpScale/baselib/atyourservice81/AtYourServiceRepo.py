@@ -388,22 +388,14 @@ class AtYourServiceRepo():
         Walk over all servies and look for action with state scheduled.
         It then creates actions chains for all schedules actions.
         """
-        def build_actions_chain(action):
-            _, method = j.atyourservice.baseActions['init_actions_']
-            dependency_chain = method(service=self, args={})
-            chain = [action]
-            while dependency_chain.get(action, []) != []:
-                chain[:0] = dependency_chain[action]
-                action = chain[0]
-            return chain
-
         result = {}
         for service_model in self.db.service.find():
             for action, state in service_model.actionsState.items():
                 if state == 'scheduled':
-                    action_chain = build_actions_chain(action)
+                    action_chain = list()
+                    service_model._build_actions_chain(action, ds=action_chain)
+                    action_chain.reverse()
                     result[service_model] = action_chain
-
         return result
 
     def runCreate(self):

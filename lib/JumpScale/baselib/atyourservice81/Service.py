@@ -532,8 +532,13 @@ class Service:
     def executeActionService(self, action, args={}):
         # execute an action in process without creating a job
         # usefull for methods called very often.
-        action, method = j.atyourservice.baseActions[action]
-        res = method(service=self, args=args)
+        action_id = self.model.actions[action].actionKey
+        action_model = j.core.jobcontroller.db.action.get(action_id)
+        action_with_lines = ("\n %s \n" % action_model.code)
+        indented_action = '\n    '.join(action_with_lines.splitlines())
+        complete_action = "def %s(%s): %s" % (action, action_model.argsText, indented_action)
+        exec(complete_action)
+        res = eval(action)(service=self, args=args)
         return res
 
     def executeActionJob(self, actionName, args={}):
@@ -591,26 +596,13 @@ class Service:
         job = j.core.jobcontroller.newJobFromModel(jobobj)
         return job
 
-    def _build_actions_chain(self, action, ds=list(), parents=list()):
+    def _build_actions_chain(self, action):
         """
         this method returns a list of action that need to happens before the action passed in argument
         can start
         """
-        if 'init_actions_' in self.model.actions:
-            dependency_chain = self.executeActionService('init_actions_', action)
-
-        if action in parents:
-            raise RuntimeError('cyclic dep: %s' % parents)
-        if action in ds:
-            return
-        ds.append(action)
-        newkeys = dependency_chain.get(action)
-        if not newkeys:
-            return
-        parents.append(action)
-        for key in newkeys:
-            self._build_actions_chain(key, ds, parents)
-        parents.pop()
+        ds = list()
+        self.model._build_actions_chain(ds=ds)
         ds.reverse()
         return ds
 

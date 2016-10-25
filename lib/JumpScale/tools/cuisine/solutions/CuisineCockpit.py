@@ -24,6 +24,10 @@ class CuisineCockpit(base):
         self._cuisine.processmanager.ensure('cockpit', cmd=cmd, path='/opt/jumpscale8/apps/ays_api')
 
     def install_deps(self):
+        self._cuisine.package.multiInstall([
+            'libssl-dev'
+        ])
+
         deps = """
         cryptography
         pyjwt
@@ -32,6 +36,3 @@ class CuisineCockpit(base):
         python-telegram-bot
         """
         self._cuisine.development.pip.multiInstall(deps, upgrade=True)
-        self._cuisine.package.multiInstall([
-            'libssl-dev'
-        ])

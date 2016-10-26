@@ -2449,6 +2449,7 @@ exec python3 -q "$@"
             pip3 install ipython
             pip3 install redis
             pip3 install netaddr
+            pip3 install cython
             pip3 install pycapnp
             pip3 install path.py
             pip3 install colored-traceback

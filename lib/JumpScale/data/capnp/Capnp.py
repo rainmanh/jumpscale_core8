@@ -96,6 +96,7 @@ class Capnp:
 
     def getObj(self, schemaInText, args={}, binaryData=None):
         # . are removed from . to Uppercase
+        args = args.copy()  # to not change the args passed in argument
         for key in list(args.keys()):
             sanitize_key = j.data.hrd.sanitize_key(key)
             if key != sanitize_key:

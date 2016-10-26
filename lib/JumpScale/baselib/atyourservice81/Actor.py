@@ -121,7 +121,7 @@ class Actor():
         if parent is not None:
             parent_name = parent.parent
             parent_role = parent_name.split('.')[0]
-            self.model.parentSet(role=parent_role, auto=bool(parent.auto), optional=bool(parent.optional))
+            self.model.parentSet(role=parent_role, auto=bool(parent.auto), optional=bool(parent.optional), argKey=parent.name)
 
     def _initProducers(self, template):
         consumed_actors = template.schemaHrd.consumeSchemaItemsGet()
@@ -136,6 +136,7 @@ class Actor():
             producer.minServices = int(consume_info.consume_nr_min)
             producer.maxServices = int(consume_info.consume_nr_max)
             producer.auto = bool(consume_info.auto)
+            producer.argKey = consume_info.name
 
     def _initRecurringActions(self, template):
         for action, reccuring_info in template.recurringDict.items():

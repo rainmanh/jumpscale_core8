@@ -63,6 +63,7 @@ struct Actor {
     maxServices @2 :UInt8;
     auto @3 :Bool;
     optional @4 :Bool;
+    argKey @5 :Text; # key in the args that contains the instance name of the targets
   }
 
   actions @5 :List(Action);

@@ -117,7 +117,7 @@ class Service:
             # try to get the instance name from the args. Look for full actor name ('node.ssh') or just role (node)
             # if none of the two is available in the args, don't use instance name and
             # expect the parent service to be unique in the repo
-            parent_name = args.get(parent_role, '')
+            parent_name = args.get(actor.model.dbobj.parent.argKey, args.get(parent_role, ''))
             res = self.aysrepo.servicesFind(name=parent_name, actor='%s.*' % parent_role)
             res = [s for s in res if s.model.role == parent_role]
             if len(res) == 0:
@@ -148,7 +148,7 @@ class Service:
         for i, producer_model in enumerate(actor.model.dbobj.producers):
             producer_role = producer_model.actorRole
 
-            instances = args.get(producer_role, "")
+            instances = args.get(producer_model.argKey, args.get(producer_role, ""))
 
             if not j.data.types.list.check(instances):
                 instances = [instances]

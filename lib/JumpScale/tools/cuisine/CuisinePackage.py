@@ -154,22 +154,18 @@ class CuisinePackage(base):
             self._cuisine.core.sudomode = True
 
             if j.data.types.string.check(packagelist):
-                packages = packagelist.split("\n")
+                packages = packagelist.strip().splitlines()
             elif j.data.types.list.check(packagelist):
                 packages = packagelist
             else:
                 raise j.exceptions.Input('packagelist should be string or a list. received a %s' % type(packagelist))
 
-            for dep in packages:
+            for i, dep in enumerate(packages):
                 dep = dep.strip()
-                if dep.strip() == "":
-                    continue
-                if dep.strip()[0] == "#":
-                    continue
-                dep = dep.strip()
-                if dep is None or dep == "":
-                    continue
-                self.install(dep, allow_unauthenticated=allow_unauthenticated)
+                if dep is None or dep == "" or dep[0] == '#':
+                    del packages[i]
+
+            self.install(' '.join(packages), allow_unauthenticated=allow_unauthenticated)
         finally:
             self._cuisine.core.sudomode = previous_sudo
 

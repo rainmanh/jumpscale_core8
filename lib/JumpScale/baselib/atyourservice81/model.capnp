@@ -135,6 +135,7 @@ struct Service {
   parent @3 :ServicePointer;
 
   producers @4 :List(ServicePointer);
+  consumers @12 :List(ServicePointer);
 
   struct ServicePointer {
     actorName @0 :Text;

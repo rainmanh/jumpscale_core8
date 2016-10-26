@@ -73,6 +73,21 @@ class ServiceModel(ModelBase, ActorServiceBaseModel):
                 producers = producer_model.getProducersRecursive(producers=producers, action=action, producerRoles=producerRoles)
         return producers
 
+    @property
+    def consumers(self):
+        consumers = []
+        for prod in self.dbobj.consumers:
+            consumers.extend(self.find(name=prod.serviceName, actor=prod.actorName))
+        return consumers
+
+    def getConsumersRecursive(self, consumers=set(), action="", consumersRoles="*"):
+        for consumer_model in self.consumers:
+                if action == "" or action in consumer_model.actions.keys():
+                    if consumersRoles == "*" or consumer_model.role in consumersRoles:
+                        consumers.add(consumer_model)
+                consumers = consumer_model.getProducersRecursive(consumers=consumers, action=action, consumersRoles=producerRoles)
+        return consumers
+
     @classmethod
     def list(self, name="", actor="", state="", parent="", producer="", returnIndex=False):
         """
@@ -235,6 +250,13 @@ class ServiceModel(ModelBase, ActorServiceBaseModel):
         p.actorName = actorName
         p.serviceName = serviceName
         p.key = key
+        self.save()
+
+    def consumerAdd(self, actorName, serviceName, key):
+        c = self._consumerNewObj()
+        c.actorName = actorName
+        c.serviceName = serviceName
+        c.key = key
         self.save()
 
     def check(self):

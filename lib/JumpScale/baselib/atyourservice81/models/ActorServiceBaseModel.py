@@ -19,6 +19,13 @@ class ActorServiceBaseModel():
             newlist[i] = item
         return newlist[-1]
 
+    def _consumerNewObj(self):
+        olditems = [item.to_dict() for item in self.dbobj.consumers]
+        newlist = self.dbobj.init("consumers", len(olditems) + 1)
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        return newlist[-1]
+
 # actions
 
     @property

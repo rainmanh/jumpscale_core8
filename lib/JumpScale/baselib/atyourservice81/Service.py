@@ -173,10 +173,17 @@ class Service:
                                              (producer_role, self), level=1, source="", tags="", msgpub="")
 
                 producer_obj = res[0]
+                # add the service we consumer in the producers list
                 self.model.producerAdd(
                     actorName=producer_obj.model.dbobj.actorName,
                     serviceName=producer_obj.model.dbobj.name,
                     key=producer_obj.model.key)
+                # add ourself to the consumers list of the producer
+                producer_obj.model.consumerAdd(
+                    actorName=self.model.dbobj.actorName,
+                    serviceName=self.model.dbobj.name,
+                    key=self.model.key)
+
 
         # add the parent to the producers
         if self.parent is not None:
@@ -184,6 +191,12 @@ class Service:
                 actorName=self.parent.model.dbobj.actorName,
                 serviceName=self.parent.model.dbobj.name,
                 key=self.parent.model.key)
+
+            # add ourself to the consumers list of the parent
+            self.parent.model.consumerAdd(
+                actorName=self.model.dbobj.actorName,
+                serviceName=self.model.dbobj.name,
+                key=self.model.key)
 
     def _check_args(self, actor, args):
         """ Checks whether if args are the same as in instance model """
@@ -259,6 +272,8 @@ class Service:
         remove it from db and from filesystem
         all the children of this service are going to be deleted too
         """
+        # TODO remove self from producers and consumers
+
         for service in self.children:
             service.delete()
 
@@ -305,21 +320,19 @@ class Service:
     @property
     def consumers(self):
         consumers = {}
-        services = self.aysrepo.servicesFind()
-        for service in services:
-            if self.isConsumedBy(service):
-                if service.model.role not in consumers:
-                    consumers[service.model.role] = [service]
-                else:
-                    consumers[service.model.role].append(service)
+        for prod_model in self.model.consumers:
+
+            if prod_model.role not in consumers:
+                consumers[prod_model.role] = []
+
+            result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
+            consumers[prod_model.role].extend(result)
+
         return consumers
 
     def isConsumedBy(self, service):
-        if self.model.role in service.producers:
-            for s in service.producers[self.model.role]:
-                if s.model.key == self.model.key:
-                    return True
-        return False
+        consumers_keys = [model.key for model in self.model.consumers]
+        return service.model.key in consumers_keys
 
     def findConsumersRecursive(self, target=None, out=set()):
         """
@@ -393,7 +406,14 @@ class Service:
             serviceName=service.name,
             key=service.model.key)
 
+        # add ourself to the consumers list of the producer
+        service.model.consumerAdd(
+            actorName=self.model.dbobj.actorName,
+            serviceName=self.model.dbobj.name,
+            key=self.model.key)
+
         self.saveAll()
+        service.saveAll()
 
     @property
     def executor(self):

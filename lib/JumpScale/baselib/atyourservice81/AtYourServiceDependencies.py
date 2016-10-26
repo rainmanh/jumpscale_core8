@@ -20,7 +20,7 @@ def create_graphs(repo, all_nodes):
     """
     Create a depency graphs base of the consumption between services and actions
     """
-    nodes = []
+    nodes = set()
 
     for model, actions in repo.findScheduledActions().items():
         actions.reverse()
@@ -28,16 +28,19 @@ def create_graphs(repo, all_nodes):
         for i, action in enumerate(actions):
             name = "%s-%s" % (model.key, action)
             node = all_nodes[name]
-            nodes.append(node)
+            nodes.add(node)
 
-            addEdges(node, action, all_nodes, nodes)
+            if action in ['stop', 'uninstall']:
+                addConsumerEdges(node, action, all_nodes, nodes)
+            else:
+                addEdges(node, action, all_nodes, nodes)
 
             if i + 1 < len(actions):
                 action = actions[i + 1]
                 name = "%s-%s" % (model.key, action)
                 edge = all_nodes[name]
                 node.addEdge(edge)
-                nodes.append(edge)
+                nodes.add(edge)
 
     return nodes
 
@@ -52,8 +55,20 @@ def addEdges(node, action, all_nodes, nodes):
         if edge:
             addEdges(edge, action, all_nodes, nodes)
             node.addEdge(edge)
-            nodes.append(edge)
+            nodes.add(edge)
 
+
+def addConsumerEdges(node, action, all_nodes, nodes):
+    """
+    recursivlely add edged to a node
+    """
+    for prod in node.model.consumers:
+        name = "%s-%s" % (prod.key, action)
+        edge = all_nodes.get(name)
+        if edge:
+            addConsumerEdges(edge, action, all_nodes, nodes)
+            node.addEdge(edge)
+            nodes.add(edge)
 
 def get_task_batches(nodes):
 

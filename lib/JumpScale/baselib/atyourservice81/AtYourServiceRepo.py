@@ -40,9 +40,7 @@ class AtYourServiceRepo():
 
         j.atyourservice._loadActionBase()
 
-    def destroy(self, uninstall=True):
-        if uninstall and getattr(self, "uninstall", None):
-            self.uninstall()
+    def destroy(self):
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "actors"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "services"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "recipes"))  # for old time sake

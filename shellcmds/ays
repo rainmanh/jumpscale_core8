@@ -392,7 +392,7 @@ def destroy():
     make sure to do a commit before you do a distroy, this will give you a chance to roll back.
     """
     repo = j.atyourservice.get()
-    repo.destroy(False)
+    repo.destroy()
 
 
 @click.command()

@@ -9,7 +9,7 @@
 
 ## Requirements
 
-- Minimuam 2GB RAM
+- Minimum 2GB RAM
 - Python 3.5
 - curl
 

@@ -9,6 +9,7 @@
 
 ## Requirements
 
+- Minimuam 2GB RAM
 - Python 3.5
 - curl
 
@@ -71,7 +72,7 @@ bash install.sh
  - Install [Cygwin](https://cygwin.com/install.html)
  - When installing Cygwin search for the following packages in the package menu and select them:
      - [curl](https://curl.haxx.se/), under net
-     - [gcc-g++ :gnu compiler collection(c ++)](https://en.wikipedia.org/wiki/GNU_Compiler_Collection), under devel  
+     - [gcc-g++ :gnu compiler collection(c ++)](https://en.wikipedia.org/wiki/GNU_Compiler_Collection), under devel
      - [Paramiko](http://www.paramiko.org/), under python
      - [lynx](http://lynx.browser.org/lynx.html), under web
 
@@ -89,14 +90,14 @@ bash install.sh
 To minimize the size of the installation some of the dependencies were opted to be installed separately, only
 dependencies which affect modular components of JumpScale where moved out to allow JumpScale's key components to function
 normally without the dependencies. For example:
- - a module such as [**cuisine**](../../Cuisine/Cuisine.md) dependeds on  [**paramiko**](http://docs.paramiko.org/en/2.0/)   
+ - a module such as [**cuisine**](../../Cuisine/Cuisine.md) dependeds on  [**paramiko**](http://docs.paramiko.org/en/2.0/)
 
-To install the dependencies run this command in the shell:  
+To install the dependencies run this command in the shell:
 ```shell
 js 'j.tools.cuisine.local.development.js8.installDeps()'
-```  
+```
 
-Here is a list of the dependencies:  
+Here is a list of the dependencies:
  - [**redis**](http://redis.io/)
  - [**brotli**](https://github.com/google/brotli)
  - [**pip**](https://pypi.python.org/pypi/pip)

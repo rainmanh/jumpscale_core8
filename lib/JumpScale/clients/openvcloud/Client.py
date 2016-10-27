@@ -460,41 +460,66 @@ class Machine:
     def create_portforwarding(self, publicport, localport, protocol='tcp'):
         if protocol not in ['tcp', 'udp']:
             raise j.exceptions.RuntimeError("Protocol for portforward should be tcp or udp not %s" % protocol)
+
         machineip, _ = self.get_machine_ip()
 
-        # Fix cache miss
-        if not self.space.model['publicipaddress']:
-            self.space.refresh()
+        # force cache reset (try to reduce concurrent side effect)
+        self.space.refresh()
+
+        publicAddress = self.space.model['publicipaddress']
+        if not publicAddress:
+            raise j.exceptions.RuntimeError("No public address found, cannot create port forward")
+
+        # define real publicport, override it by a generated one if needed
+        realpublicport = publicport
 
         if publicport is None:
-                unavailable_ports = [int(portinfo['publicPort']) for portinfo in self.space.portforwardings]
-                candidate = 2200
-                while True:
-                    if candidate not in unavailable_ports:
-                        publicport = candidate
-                        break
-                    candidate += 1
-        if not self.space.isPortforwardExists(self.space.model['publicipaddress'], publicport, protocol):
-            self.client.api.cloudapi.portforwarding.create(cloudspaceId=self.space.id,
-                                                           protocol=protocol,
-                                                           localPort=localport,
-                                                           machineId=self.id,
-                                                           publicIp=self.space.model['publicipaddress'],
-                                                           publicPort=publicport)
+            unavailable_ports = [int(portinfo['publicPort']) for portinfo in self.space.portforwardings]
+            candidate = 2200
+
+            while candidate in unavailable_ports:
+                candidate += 1
+
+            realpublicport = candidate
+
+        if not self.space.isPortforwardExists(publicAddress, realpublicport, protocol):
+            try:
+                self.client.api.cloudapi.portforwarding.create(
+                    cloudspaceId=self.space.id,
+                    protocol=protocol,
+                    localPort=localport,
+                    machineId=self.id,
+                    publicIp=publicAddress,
+                    publicPort=realpublicport
+                )
+
+            except Exception as e:
+                # if we have a conflict response, let's check something:
+                # - if it's an auto-generated port, we probably hit a concurrence issue
+                #   let's try again with a new port
+                if str(e).startswith("409 Conflict") and publicport is None:
+                    return self.create_portforwarding(None, localport, protocol)
+
+                # - if the port was choose excplicitly, then it's not the lib's fault
+                raise
+
         self.space._portforwardings_cache.delete()
         self._portforwardings_cache.delete()
-        return (publicport, localport)
+
+        return (realpublicport, localport)
 
     def delete_portforwarding(self, publicport):
         # Fix cache miss
         if not self.space.model['publicipaddress']:
             self.space.refresh()
 
-        self.client.api.cloudapi.portforwarding.deleteByPort(cloudspaceId=self.space.id,
-                                                             publicIp=self.space.model[
-                                                                 'publicipaddress'],
-                                                             publicPort=publicport,
-                                                             proto='tcp')
+        self.client.api.cloudapi.portforwarding.deleteByPort(
+            cloudspaceId=self.space.id,
+            publicIp=self.space.model['publicipaddress'],
+            publicPort=publicport,
+            proto='tcp'
+        )
+
         self.space._portforwardings_cache.delete()
         self._portforwardings_cache.delete()
 

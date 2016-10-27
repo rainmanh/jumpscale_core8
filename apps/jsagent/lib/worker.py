@@ -128,7 +128,7 @@ class Worker(object):
                             else:
                                 msg = "could not compile jscriptid:%s on agent:%s.\nError:%s" % (
                                     job.jscriptid, agentid, e)
-                            eco = j.errorconditionhandler.parsePythonErrorObject(e)
+                            eco = j.errorconditionhandler.processPythonExceptionObject(e)
                             eco.errormessage = msg
                             if jscript:
                                 eco.code = jscript.source

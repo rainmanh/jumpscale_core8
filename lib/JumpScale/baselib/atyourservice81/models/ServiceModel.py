@@ -30,7 +30,7 @@ class ServiceModel(ActorServiceBaseModel):
         # usefull for methods called very often.
         action_id = self.actions[action].actionKey
         action_model = j.core.jobcontroller.db.action.get(action_id)
-        action_with_lines = ("\n %s \n" % action_model.code)
+        action_with_lines = ("\n%s \n" % action_model.code)
         indented_action = '\n    '.join(action_with_lines.splitlines())
         complete_action = "def %s(%s): %s" % (action, action_model.argsText, indented_action)
         exec(complete_action)
@@ -43,7 +43,7 @@ class ServiceModel(ActorServiceBaseModel):
         can start
         """
         if dc is None:
-            dependency_chain = self._executeActionService('init_actions_')
+            dependency_chain = self._executeActionService('init_actions_', args={'action': action})
         if action in parents:
             raise RuntimeError('cyclic dep: %s' % parents)
         if action in ds:

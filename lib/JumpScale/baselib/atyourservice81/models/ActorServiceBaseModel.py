@@ -1,9 +1,16 @@
-import msgpack
 from collections import OrderedDict
+
+import msgpack
 from JumpScale import j
 
+ModelBase = j.data.capnp.getModelBaseClassWithData()
 
-class ActorServiceBaseModel():
+
+class ActorServiceBaseModel(ModelBase):
+    """
+    Base class for ActorModel and ServiceModel class.
+    You should not instanciate this class directly but one of it's children instead
+    """
 
     @property
     def name(self):
@@ -19,12 +26,25 @@ class ActorServiceBaseModel():
             newlist[i] = item
         return newlist[-1]
 
+    def _producerRemoveObj(self, key):
+        newitems = [item.to_dict() for item in self.dbobj.prodcuers if item.key != key]
+        newlist = self.dbobj.init("producers", len(newitems))
+        for i, item in enumerate(newitems):
+            newlist[i] = item
+
+
     def _consumerNewObj(self):
         olditems = [item.to_dict() for item in self.dbobj.consumers]
         newlist = self.dbobj.init("consumers", len(olditems) + 1)
         for i, item in enumerate(olditems):
             newlist[i] = item
         return newlist[-1]
+
+    def _consumerRemoveObj(self, key):
+        newitems = [item.to_dict() for item in self.dbobj.consumers if item.key != key]
+        newlist = self.dbobj.init("consumers", len(newitems))
+        for i, item in enumerate(newitems):
+            newlist[i] = item
 
 # actions
 
@@ -86,6 +106,7 @@ class ActorServiceBaseModel():
 
     def actionAdd(self, name, key="", period=0, log=True):
         """
+        creates and add an action code model to the actor/service
         """
         action_obj = None
         for act in self.dbobj.actions:

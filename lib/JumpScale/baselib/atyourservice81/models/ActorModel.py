@@ -1,11 +1,11 @@
-import msgpack
 from collections import OrderedDict
+
+import msgpack
 from JumpScale import j
 from JumpScale.baselib.atyourservice81.models.ActorServiceBaseModel import ActorServiceBaseModel
-ModelBase = j.data.capnp.getModelBaseClass()
 
 
-class ActorModel(ModelBase, ActorServiceBaseModel):
+class ActorModel(ActorServiceBaseModel):
     """
     Model Class for an Actor object
     """

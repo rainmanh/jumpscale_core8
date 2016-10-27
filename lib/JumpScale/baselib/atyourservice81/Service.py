@@ -272,14 +272,19 @@ class Service:
         remove it from db and from filesystem
         all the children of this service are going to be deleted too
         """
-        # TODO remove self from producers and consumers
+        # TODO should probably warn user relation may be broken
+
+        for prod_model in self.model.producers:
+            prod_model.consumerRemove(self)
+
+        for cons_model in self.model.consumers:
+            cons_model.producerRemove(self)
 
         for service in self.children:
             service.delete()
 
         self.model.delete()
         j.sal.fs.removeDirTree(self.path)
-        # self.aysrepo._services.remove(self)  # not sure this is still relevant
 
     @property
     def parent(self):

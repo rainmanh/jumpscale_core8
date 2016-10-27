@@ -1,11 +1,11 @@
 from JumpScale import j
 from JumpScale.baselib.atyourservice81.models.ActorServiceBaseModel import ActorServiceBaseModel
-ModelBase = j.data.capnp.getModelBaseClassWithData()
+
 
 VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 
-class ServiceModel(ModelBase, ActorServiceBaseModel):
+class ServiceModel(ActorServiceBaseModel):
 
     @property
     def role(self):
@@ -246,18 +246,36 @@ class ServiceModel(ModelBase, ActorServiceBaseModel):
         raise RuntimeError("stop debug here")
 
     def producerAdd(self, actorName, serviceName, key):
-        p = self._producerNewObj()
-        p.actorName = actorName
-        p.serviceName = serviceName
-        p.key = key
+        """
+        Add another service to the producers list
+        """
+        producer_model = self._producerNewObj()
+        producer_model.actorName = actorName
+        producer_model.serviceName = serviceName
+        producer_model.key = key
         self.save()
 
+    def producerRemove(self, service):
+        """
+        Remove the service passed in argument from the producers list
+        """
+        self._producerRemoveObj(service.model.key)
+
     def consumerAdd(self, actorName, serviceName, key):
-        c = self._consumerNewObj()
-        c.actorName = actorName
-        c.serviceName = serviceName
-        c.key = key
+        """
+        Add another service to the consumers list
+        """
+        consumer_model = self._consumerNewObj()
+        consumer_model.actorName = actorName
+        consumer_model.serviceName = serviceName
+        consumer_model.key = key
         self.save()
+
+    def consumerRemove(self, service):
+        """
+        Remove the service passed in argument from the producers list
+        """
+        self._consumerRemoveObj(service.model.key)
 
     def check(self):
         """

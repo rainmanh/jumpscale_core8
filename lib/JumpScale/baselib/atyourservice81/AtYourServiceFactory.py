@@ -1,7 +1,7 @@
 from JumpScale import j
 
 from JumpScale.baselib.atyourservice81.ActorTemplate import ActorTemplate
-from JumpScale.baselib.atyourservice81.ActionsBase import ActionsBase
+from JumpScale.baselib.atyourservice81 import ActionsBase
 from JumpScale.baselib.atyourservice81.AtYourServiceRepo import AtYourServiceRepo
 from JumpScale.baselib.atyourservice81.AtYourServiceTester import AtYourServiceTester
 from JumpScale.baselib.atyourservice81.models import ModelsFactory
@@ -354,20 +354,14 @@ class AtYourServiceFactory:
         self._doinit()
         return self._domains
 
-    def getActionsBaseClass(self):
-        return ActionsBase
-
-    def loadActionBase(self):
+    def _loadActionBase(self):
         """
         load all the basic actions for atyourservice
         """
         if self.baseActions == {}:
-            base = self.getActionsBaseClass()
-
-            for method in [item[1] for item in inspect.getmembers(base) if item[0][0] != "_"]:
-                methodName = str(method).split(" ")[1].replace("ActionsBase.", "")
-                ac = j.core.jobcontroller.getActionObjFromMethod(method)
-                if not j.core.jobcontroller.db.action.exists(ac.key):
+            for method in [item[1] for item in inspect.getmembers(ActionsBase) if item[0][0] != "_"]:
+                action_code_model = j.core.jobcontroller.getActionObjFromMethod(method)
+                if not j.core.jobcontroller.db.action.exists(action_code_model.key):
                     # will save in DB
-                    ac.save()
-                self.baseActions[ac.dbobj.name] = ac, method
+                    action_code_model.save()
+                self.baseActions[action_code_model.dbobj.name] = action_code_model, method

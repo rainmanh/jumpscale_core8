@@ -38,7 +38,7 @@ class AtYourServiceRepo():
         else:
             self.model = model
 
-        j.atyourservice.loadActionBase()
+        j.atyourservice._loadActionBase()
 
     def destroy(self, uninstall=True):
         if uninstall and getattr(self, "uninstall", None):

@@ -23,7 +23,7 @@ def cli():
 @click.option('--force', default=False, is_flag=True, help='force execution even if no change')
 @click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
 @click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
-def run(ask, debug, profile):
+def run(ask, force, debug, profile):
     repo = j.atyourservice.get()
     print("Compute dependency graph...")
     run = repo.runCreate(debug=debug, profile=profile)

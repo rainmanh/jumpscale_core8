@@ -20,7 +20,7 @@ def cli():
 
 @click.command()
 @click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
-# @click.option('--force', default=False, is_flag=True, help='force execution even if no change')
+@click.option('--force', default=False, is_flag=True, help='force execution even if no change')
 @click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
 @click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
 def run(ask, debug, profile):

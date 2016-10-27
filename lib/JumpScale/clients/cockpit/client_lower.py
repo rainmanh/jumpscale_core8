@@ -87,7 +87,7 @@ class Client:
         """
         if self.auth_header:
             self.session.headers.update({"Authorization": self.auth_header})
-
+        repository = repository.split('/')[-1]
         uri = self.url + "/ays/repository/" + repository
         return self.session.delete(uri, headers=headers, params=query_params)
 

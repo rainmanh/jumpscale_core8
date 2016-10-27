@@ -27,11 +27,10 @@ class ActorServiceBaseModel(ModelBase):
         return newlist[-1]
 
     def _producerRemoveObj(self, key):
-        newitems = [item.to_dict() for item in self.dbobj.prodcuers if item.key != key]
+        newitems = [item.to_dict() for item in self.dbobj.producers if item.key != key]
         newlist = self.dbobj.init("producers", len(newitems))
         for i, item in enumerate(newitems):
             newlist[i] = item
-
 
     def _consumerNewObj(self):
         olditems = [item.to_dict() for item in self.dbobj.consumers]

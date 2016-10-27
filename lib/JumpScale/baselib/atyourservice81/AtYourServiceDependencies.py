@@ -90,7 +90,8 @@ def get_task_batches(nodes):
         # If there aren't any, we have a loop in the graph
         if not ready:
             msg = "Circular dependencies found!\n"
-            msg += format_dependencies(id_to_deps)
+            name_to_deps = dict((n.name, set(n.edges)) for n in nodes)
+            msg += format_dependencies(name_to_deps)
             raise ValueError(msg)
 
         # Remove them from the dependency graph
@@ -113,7 +114,7 @@ def format_dependencies(id_to_deps):
         for parent in deps:
             msg.append("%s -> %s" % (name, parent))
         if len(deps) == 0:
-            msg.append('%s -> no desp' % name)
+            msg.append('%s -> no deps' % name)
     return "\n".join(msg)
 
 

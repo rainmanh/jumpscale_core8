@@ -102,7 +102,7 @@ class AtYourServiceRepo():
     def actorsFind(self, name="", version="", role=''):
         res = []
         if version != "":
-            raise NotImplemented("actors find with version not implemented.")
+            raise NotImplementedError("actors find with version not implemented.")
         for item in self.db.actor.find(name=name):
             if not(name == "" or item.model.name == name):
                 # no match continue

@@ -318,7 +318,7 @@ class AtYourServiceRepo():
         Show the disabled blueprints
         """
         bps = []
-        for path, bp in self._load_blueprints.items():
+        for path, bp in self._load_blueprints().items():
             if bp.active is False:
                 bps.append(bp)
         bps = sorted(bps, key=lambda bp: bp.name)

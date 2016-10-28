@@ -2256,7 +2256,7 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
             os.environ["AYSBRANCH"] = "master"
         C = C.format(**os.environ)
 
-        hpath = "%s/ays/ays.cfg" % cfgdir
+        hpath = "%s/ays/ays.config" % cfgdir
         if not do.exists(path=hpath):
             do.writeFile(hpath, C)
 

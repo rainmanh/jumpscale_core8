@@ -2,11 +2,11 @@
 
 The JumpScale implementation of Cuisine is a fork of the original Cuisine as available on GitHub: <https://github.com/sebastien/cuisine>
 
-Cuisine provides [Chef](https://en.wikipedia.org/wiki/Chef_(software)) software-like functionality for [Fabric](http://www.fabfile.org/).
+Cuisine provides [Chef](https://en.wikipedia.org/wiki/Chef_(software) software-like functionality for [Fabric](http://www.fabfile.org/).
 
 Cuisine makes it easy to automate server installations and create configuration recipes by wrapping common administrative tasks, such as installing packages and creating users and groups, in Python functions.
 
-Cuisine takes an `executor` object as an argument, though which you connect locally or remotely.
+Cuisine takes an `executor` object as an argument, through which you connect locally or remotely.
 
 ## Local
 

@@ -10,7 +10,7 @@ from JumpScale.baselib.atyourservice81.AtYourServiceDependencies import build_no
 import colored_traceback
 colored_traceback.add_hook(always=True)
 
-
+import os
 VALID_ACTION_STATE = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 
@@ -337,11 +337,13 @@ class AtYourServiceRepo():
 
         print("blueprint done")
 
-    def blueprintGet(self, path):
+    def blueprintGet(self, bname):
+        bpath = os.path.join(self.path, "blueprints", bname)
+
         for bp in self.blueprints:
-            if bp.path == path:
+            if bp.path == bpath:
                 return bp
-        return Blueprint(self, path)
+        return Blueprint(self, bpath)
 
 # RUN related
 

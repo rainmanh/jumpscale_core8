@@ -2458,6 +2458,8 @@ exec python3 -q "$@"
             pip3 install msgpack-python
             pip3 install pyblake2
             pip3 install click
+            pip3 install yaml
+            pip3 install pytoml
             """
             do.executeCmds(cmds)
 

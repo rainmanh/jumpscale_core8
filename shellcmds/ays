@@ -513,10 +513,9 @@ def delete(role, instance, ask):
 
 
 @click.command()
-@click.option('--conf', '-c', default='/optvar/cfg/ays/ays.conf', help='path to AYS configuration file')
-def start(conf):
+def start():
     from JumpScale.baselib.atyourservice81.AtYourServiceDaemon import Server
-    server = Server(conf)
+    server = Server()
     server.start()
 
 cli.add_command(run)

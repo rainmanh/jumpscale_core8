@@ -2164,6 +2164,8 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
         if vardir == "":
             vardir = do.VARDIR
 
+        cfgdir = do.joinPaths(do.VARDIR, 'cfg')
+
         try:
             do.createDir(vardir)
             do.createDir("%s/hrd/system/" % vardir)
@@ -2233,10 +2235,19 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
             do.writeFile(hpath, C)
 
         C = """
-        #here domain=jumpscale, change name for more domains
-        metadata.jumpscale =
-            url:'{AYSGIT}',
-            branch:'{AYSBRANCH}',
+        # By default, AYS will use the JS redis. This is for quick testing
+        # and development. To configure a persistent/different redis, uncomment
+        # and change the redis config
+
+        # [redis]
+        # host = "localhost"
+        # port = 6379
+
+        # here domain = jumpscale, change name for more domains
+        [[metadata]]
+            [metadata.jumpscale]
+                url = {AYSGIT},
+                branch = {AYSBRANCH},
 
         """
         if "AYSGIT" not in os.environ or os.environ["AYSGIT"].strip() == "":
@@ -2245,7 +2256,7 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
             os.environ["AYSBRANCH"] = "master"
         C = C.format(**os.environ)
 
-        hpath = "%s/hrd/system/atyourservice.hrd" % vardir
+        hpath = "%s/ays/ays.cfg" % cfgdir
         if not do.exists(path=hpath):
             do.writeFile(hpath, C)
 

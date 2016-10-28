@@ -82,7 +82,7 @@ class Job():
     def service(self):
         if self._service is None:
             if self.model.dbobj.actorName != "":
-                repoModel = j.atyourservice._repodb.get(self.model.dbobj.repoKey)
+                repoModel = j.atyourservice.repodb.get(self.model.dbobj.repoKey)
                 repo = repoModel.objectGet()
                 serviceModel = repo.db.service.get(self.model.dbobj.serviceKey)
                 self._service = serviceModel.objectGet(repo)

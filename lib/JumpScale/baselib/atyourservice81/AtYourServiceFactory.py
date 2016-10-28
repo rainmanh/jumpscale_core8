@@ -24,6 +24,8 @@ class AtYourServiceFactory:
 
         self._init = False
 
+        self._config = None
+
         self._domains = []
         self._templates = {}
         self._templateRepos = {}
@@ -37,12 +39,35 @@ class AtYourServiceFactory:
 
         self.logger = j.logger.get('j.atyourservice')
 
-        factory_db = ModelsFactory()
-        self._repodb = factory_db.repo
+        self._repodb = None
 
         self._test = None
 
         self.baseActions = {}
+
+    @property
+    def config(self):
+        if self._config is None:
+            if "darwin" in str(j.core.platformtype.myplatform):
+                socket = j.core.db.config_get()["unixsocket"]
+            else:
+                socket = '/tmp/ays.sock'
+
+            config_path = j.sal.fs.joinPaths(j.dirs.cfgDir, 'ays/ays.conf')
+            if not j.sal.fs.exists(config_path):
+                self._config = {'redis': j.core.db.config_get('unixsocket')}
+
+            cfg = j.data.serializer.toml.load(config_path)
+            if 'redis' not in cfg:
+                cfg.update({'redis': j.core.db.config_get('unixsocket')})
+                j.atyourservice._config = cfg
+        return self._config
+
+    @property
+    def repodb(self):
+        if self._repodb is None:
+            self._repodb = ModelsFactory().repo
+        return self._repodb
 
     def test(self):
         r = self.get()
@@ -72,24 +97,26 @@ class AtYourServiceFactory:
                 # can access the opt dir, lets update the atyourservice
                 # metadata
 
-                global_templates_repos = j.application.config.getDictFromPrefix("atyourservice.metadata")
+                global_templates_repos = j.atyourservice.config['metadata']
 
-                for domain in list(global_templates_repos.keys()):
-                    url = global_templates_repos[domain]['url']
-                    if url.strip() == "":
-                        raise j.exceptions.RuntimeError("url cannot be empty")
-                    branch = global_templates_repos[domain].get('branch', 'master')
+                for item in global_templates_repos:
+                    for domain, info in item.items():
+                        url = info['url']
+                        if url.strip() == "":
+                            raise j.exceptions.RuntimeError("url cannot be empty")
+                    branch = info.get('branch', 'master')
                     templateReponame = url.rpartition("/")[-1]
                     if templateReponame not in list(localGitRepos.keys()):
                         j.do.pullGitRepo(url, dest=None, depth=1, ignorelocalchanges=False, reset=False, branch=branch)
 
             # load global templates
-            for domain, repo_info in global_templates_repos.items():
-                _, _, _, _, repo_path, _ = j.do.getGitRepoArgs(repo_info['url'])
-                gitrepo = j.clients.git.get(repo_path, check_path=False)
-                # self._templates.setdefault(gitrepo.name, {})
-                for templ in self._actorTemplatesGet(gitrepo, repo_path):
-                    self._templates[templ.name] = templ
+            for item in global_templates_repos:
+                for domain, repo_info in item.items():
+                    _, _, _, _, repo_path, _ = j.do.getGitRepoArgs(repo_info['url'])
+                    gitrepo = j.clients.git.get(repo_path, check_path=False)
+                    # self._templates.setdefault(gitrepo.name, {})
+                    for templ in self._actorTemplatesGet(gitrepo, repo_path):
+                        self._templates[templ.name] = templ
 
             self._reposLoad()
 
@@ -217,7 +244,7 @@ class AtYourServiceFactory:
 
     def reposList(self):
         repos = []
-        for model in self._repodb.find():
+        for model in self.repodb.find():
             repos.append(model.objectGet())
         return repos
 
@@ -235,7 +262,7 @@ class AtYourServiceFactory:
             'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
         name = j.sal.fs.getBaseName(path)
 
-        model = self._repodb.new()
+        model = self.repodb.new()
         model.path = path
         model.save()
 
@@ -293,10 +320,10 @@ class AtYourServiceFactory:
                 "AYS templateRepo with name:%s already exists at %s, cannot have duplicate names." % (name, path))
 
         # if the repo we are curently loading in not in db yet. add it.
-        models = self._repodb.find(path)
+        models = self.repodb.find(path)
 
         if len(models) <= 0:
-            model = self._repodb.new()
+            model = self.repodb.new()
             model.path = path
             model.save()
         else:

@@ -8,45 +8,20 @@ from .JobModel import JobModel
 from .ActionModel import ActionModel
 from .RunModel import RunModel
 
-if "darwin" in str(j.core.platformtype.myplatform):
-    socket=j.core.db.config_get()["unixsocket"]
-else:
-    socket='/tmp/ays.sock'
-
-defaultConfig = {
-    'redis': {
-        'unixsocket': socket
-    }
-}
-
-
 
 class ModelsFactory():
 
     def __init__(self):
-        self._config_path = j.sal.fs.joinPaths(j.dirs.cfgDir, 'ays/ays.conf')
-        config = self._load_config(self._config_path)
-
         self.namespacePrefix = "jobs"
         ModelFactory = j.data.capnp.getModelFactoryClass()
 
         self.capnpModel = ModelCapnp
 
-        self.job = ModelFactory(self, "Job", JobModel, **config['redis'])
-        self.action = ModelFactory(self, "Action", ActionModel, **config['redis'])
-        self.run = ModelFactory(self, "Run", RunModel, **config['redis'])
+        self.job = ModelFactory(self, "Job", JobModel, **j.atyourservice.config['redis'])
+        self.action = ModelFactory(self, "Action", ActionModel, **j.atyourservice.config['redis'])
+        self.run = ModelFactory(self, "Run", RunModel, **j.atyourservice.config['redis'])
 
     def destroy(self):
         self.job.destroy()
         self.action.destroy()
         self.run.destroy()
-
-    def _load_config(self, path):
-        if not j.sal.fs.exists(path):
-            return defaultConfig
-
-        cfg = j.data.serializer.toml.load(path)
-        if 'redis' not in cfg:
-            return defaultConfig
-
-        return cfg

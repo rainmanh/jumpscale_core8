@@ -66,7 +66,7 @@ class AtYourServiceRepo():
         if len(actors) == 1:
             obj = actors[0].objectGet(self)
         elif len(actors) > 1:
-            raise j.exceptions.Input(message="ore then one actor find with this name:%s" % name, level=1, source="", tags="", msgpub="")
+            raise j.exceptions.Input(message="More than one actor found with name:%s" % name, level=1, source="", tags="", msgpub="")
         elif len(actors) < 1:
             # checking if we have the actor on the file system
             actors_dir = j.sal.fs.joinPaths(self.path, 'actors')

@@ -60,7 +60,7 @@ class AtYourServiceFactory:
             cfg = j.data.serializer.toml.load(config_path)
             if 'redis' not in cfg:
                 cfg.update({'redis': j.core.db.config_get('unixsocket')})
-                j.atyourservice._config = cfg
+            j.atyourservice._config = cfg
         return self._config
 
     @property

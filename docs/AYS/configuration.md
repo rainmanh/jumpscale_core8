@@ -3,7 +3,19 @@
 Now that AYS use a database to store it's data, we need to be able to configure the connection to this database.  
 To do so we use a simple configuration file. It need to be located in `/optvar/cfg/ays/ays.conf`
 
-In this file you need to specify how AYS need to connect to redis. It supports two mode, TCP or UNIX socket.
+In this file you need to specify how AYS need to connect to redis and where the metadata exists.
+
+## For AYS metadata, you can add as many domains as you need
+```toml
+
+[[metadata]]
+[metadata.jumpscale]
+url = "https://github.com/Jumpscale/ays_jumpscale8"
+branch = "master"
+
+```
+
+## For redis config, it supports two mode, TCP or UNIX socket.
 
 Here are two example of configuration file.
 For TCP:
@@ -19,11 +31,11 @@ For unix socket
 unixsocket = '/var/run/redis.sock'
 ```
 
-If no configuration file exists, the default behavior is to try to connect to redis using a unix socket located at `/tmp/ays.sock`
+If no configuration file exists, the default behavior is to try to connect to JS redis (over a unix socket located at `/tmp/redis.sock`)
 
 
-## Redis server configuration
-By default redis is an in-memory only key value store. But for our use case we want the data to be persistent event after the server has stopped. To do that we need to configure the redis server to save its data on disk.
+### Redis server configuration
+By default redis is an in-memory only key value store. But for our use case we want the data to be persistent even after the server has stopped. To do that, we need to configure the redis server to save its data on disk.
 
 Here is an example of valid redis configuration for AYS:
 ```

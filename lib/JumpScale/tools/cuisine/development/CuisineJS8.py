@@ -16,7 +16,7 @@ class CuisineJS8(base):
             return True
         return False
 
-    def install(self, reset=False, deps=True, branch='master'):
+    def install(self, reset=False, deps=True, branch='master', keep=False):
 
         if reset is False and self.jumpscale_installed():
             return
@@ -32,6 +32,9 @@ class CuisineJS8(base):
 
             C = 'cd $tmpDir/;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/{branch}/install/install.sh > install.sh;bash install.sh'.format(
                 branch=branch)
+            if keep:
+                C += ' -k'
+
             C = self._cuisine.core.args_replace(C)
             self._cuisine.core.run(C)
         elif self._cuisine.core.isMac:

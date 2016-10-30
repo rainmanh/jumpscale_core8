@@ -1,7 +1,26 @@
 #!/usr/bin/env bash
-rm -rf /opt/jumpscale8
-
 set -ex
+
+reset='true'
+while getopts ":kh" opt; do
+    case $opt in
+      k)
+        reset=false
+        ;;
+      h)
+        echo "Usage install.sh:
+        -k keep don't remove jumpscale directory if it exists before installation
+        "
+        exit 44
+    esac
+done
+
+echo "$reset"
+if [ $reset == "true" ]; then
+    rm -rf /opt/jumpscale8
+fi
+
+
 #known env variables
 
 #JSBASE : is root where jumpscale will be installed

@@ -11,7 +11,7 @@ parser.add_argument('--no-reset', dest='no_reset', action='store_true', default=
 
 args = parser.parse_args()
 
-reset = not no_reset
+reset = not args.no_reset
 
 if "JSBRANCH" in os.environ:
     branch = os.environ["JSBRANCH"]

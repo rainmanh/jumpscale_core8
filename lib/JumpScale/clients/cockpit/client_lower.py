@@ -327,6 +327,16 @@ class Client:
         uri = self.url + "/ays/repository/" + repository + "/execute"
         return self.session.post(uri, data, headers=headers, params=query_params)
 
+    def uninstall(self, data, repository, headers=None, query_params=None):
+        """
+        Perform an action on the services matches by the query arguments
+        It is method for POST /ays/repository/{repository}/execute
+        """
+        if self.auth_header:
+            self.session.headers.update({"Authorization": self.auth_header})
+        uri = self.url + "/ays/repository/" + repository + "/uninstall"
+        return self.session.post(uri, data, headers=headers, params=query_params)
+
     def getSource(self, source, repository, headers=None, query_params=None):
         """
         gets source of hash in a repo

@@ -175,8 +175,7 @@ class Client:
         self._assert_response(resp)
         return resp.json()
 
-    def executeAction(self, repository, action, role='', instance='', producer_roles='*',
-                      force=False, async=False, headers=None, query_params=None):
+    def executeAction(self, repository, action, role='', instance='', producer_roles='*', headers=None, query_params=None):
         """
         simulate the execution of an action
         It is method for POST /ays/repository/{repository}/simulate
@@ -186,14 +185,23 @@ class Client:
             'role': role,
             'instance': instance,
             'producer_roles': producer_roles,
-            'force': force,
-            'async': async,
         }
         query_params = query_params or {}
         query_params.update(query)
 
         resp = self._client.executeAction(
             data=None, repository=repository, headers=headers, query_params=query_params)
+        self._assert_response(resp)
+        return resp.json()
+
+    def uninstall(self, repository, headers=None, query_params=None):
+        """
+        simulate the execution of an action
+        It is method for POST /ays/repository/{repository}/simulate
+        """
+        query_params = query_params or {}
+
+        resp = self._client.uninstall(data=None, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 

@@ -56,7 +56,6 @@ class AtYourServiceFactory:
             config_path = j.sal.fs.joinPaths(j.dirs.cfgDir, 'ays/ays.conf')
             if not j.sal.fs.exists(config_path):
                 self._config = {'redis': j.core.db.config_get('unixsocket')}
-
             cfg = j.data.serializer.toml.load(config_path)
             if 'redis' not in cfg:
                 cfg.update({'redis': j.core.db.config_get('unixsocket')})

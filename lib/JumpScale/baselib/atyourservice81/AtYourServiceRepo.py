@@ -376,6 +376,14 @@ class AtYourServiceRepo():
                 producerroles = [producerroles.strip()]
         return producerroles
 
+    def runGet(self, runkey):
+        """
+        Get Run by id
+        """
+        if j.core.jobcontroller.db.run.exists(runkey):
+            return j.core.jobcontroller.db.run.get(runkey)
+        raise j.exceptions.Input('No run with key %s found' % runkey)
+
     def runsList(self):
         """
         list Runs on repo

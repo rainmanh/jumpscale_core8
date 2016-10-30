@@ -156,4 +156,8 @@ branch=${JSBRANCH-master}
 curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/web/bootstrap.py > $TMPDIR/bootstrap.py
 
 cd $TMPDIR
+if [ "${reset}" == "true" ]; then
 python3 bootstrap.py
+else
+python3 bootstrap.py --no-reset
+fi

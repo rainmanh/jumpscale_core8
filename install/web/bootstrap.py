@@ -3,6 +3,15 @@
 
 import os
 import time
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--no-reset', dest='no_reset', action='store_true', default=False,
+                    help='clean JS')
+
+args = parser.parse_args()
+
+reset = not no_reset
 
 if "JSBRANCH" in os.environ:
     branch = os.environ["JSBRANCH"]
@@ -60,7 +69,7 @@ print("prepare system for jumpscale8")
 do.installer.prepare()
 
 print("install jumpscale8")
-do.installer.installJS()
+do.installer.installJS(clean=reset)
 
 from JumpScale import j
 

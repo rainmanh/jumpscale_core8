@@ -24,11 +24,12 @@ class CuisineNodeJS(app):
         self._cuisine.core.run('tar --overwrite -xf {} -C /tmp/'.format(dest))
 
         # copy file to correct locations.
-        script = '''\
-        cp /tmp/{version}/bin/node $binDir/
-        mkdir -p $appDir/npm
-        cp -r -t $appDir/npm /tmp/{version}/lib/node_modules/npm/*
-        ln -s $appDir/npm/cli.js $binDir/npm
-        '''.format(version=version)
-
-        self._cuisine.core.execute_bash(script)
+        self._cuisine.core.dir_ensure('$binDir')
+        self._cuisine.core.dir_ensure('$appDir/npm')
+        src = '/tmp/{version}/bin/node'.format(version=version)
+        self._cuisine.core.file_copy(src, '$binDir', recursive=True, overwrite=True)
+        src = '/tmp/{version}/lib/node_modules/npm/*'.format(version=version)
+        self._cuisine.core.file_copy(src, '$appDir/npm', recursive=True, overwrite=True)
+        if self._cuisine.core.exists('$binDir/npm'):
+            self._cuisine.core.file_unlink('$binDir/npm')
+        self._cuisine.core.file_link('$appDir/npm/cli.js', '$binDir/npm')

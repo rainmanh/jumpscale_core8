@@ -7,7 +7,7 @@ from JumpScale.clients.redis.Redis import Redis
 from JumpScale.clients.redis.RedisQueue import RedisQueue
 import os
 import time
-
+import sys
 # import itertools
 
 
@@ -54,21 +54,42 @@ class RedisFactory:
         """
         tmpdir = tmpdir.rstrip("/")
 
-        if j.do.TYPE.startswith("WIN"):
-            j.core.db = Redis()
-        else:
-            j.core.db = Redis(unix_socket_path='%s/redis.sock' % tmpdir)
+        counter = 0
+        while counter < 40:
 
-        try:
-            j.core.db.set("internal.last", 0)
-        except Exception as e:
-            print("warning:did not find redis")
-            j.core.db = None
+            if j.do.TYPE.startswith("WIN"):
+                j.core.db = Redis()
+            else:
+                j.core.db = Redis(unix_socket_path='%s/redis.sock' % tmpdir)
 
-        if j.core.db is None:
-            self.start4JScore(j, tmpdir)
+            try:
+                j.core.db.set("internal.last", 0)
+                return True
+            except Exception as e:
 
-    def start4JScore(self, j, tmpdir):
+                #@todo
+                if False and "redis.sock. No such file or directory" in str(e):
+                    tempRedis = Redis()
+                    try:
+                        tempRedis.set("internal.last", 0)
+                        print("PLEASE KILL ALL REDIS INSTANCES")
+                        counter = 40
+                    except Exception as e:
+                        pass
+                else:
+                    print("warning:did not find redis")
+                    print("error:%s" % e)
+                    j.core.db = None
+
+            if j.core.db is None:
+                self._start4JScore(j, tmpdir)
+                time.sleep(0.5)
+                counter += 1
+
+        print("could not start redis server, check manually, best to kill all of them and restart.")
+        sys.exit(1)
+
+    def _start4JScore(self, j, tmpdir):
         """
         starts a redis instance in separate ProcessLookupError
         standard on $tmpdir/redis.sock
@@ -78,9 +99,10 @@ class RedisFactory:
             cmd = "redis-server --unixsocket %s/redis.sock --maxmemory 100000000 --daemonize yes" % tmpdir
             print("start redis in background (osx)")
             os.system(cmd)
+            print("started")
         elif j.do.TYPE.startswith("WIN"):
             cmd = "redis-server --maxmemory 100000000 & "
-            print("start redis in background")
+            print("start redis in background (win)")
             os.system(cmd)
         else:
             cmd = "echo never > /sys/kernel/mm/transparent_hugepage/enabled"
@@ -95,17 +117,7 @@ class RedisFactory:
             sync_cmd = 'sync'
             cmd1 = "chmod 550 %s 2>&1" % redis_bin
             cmd2 = "%s  --port 0 --unixsocket %s/redis.sock --maxmemory 100000000 --daemonize yes" % (redis_bin, tmpdir)
-            print("start redis in background")
+            print("start redis in background (linux)")
             os.system(cmd1)
             os.system(sync_cmd)
             os.system(cmd2)
-        # Wait until redis is up
-
-        counter = 1
-        while j.core.db is None:
-            self.init4jscore(j, tmpdir)
-            time.sleep(0.5)
-            counter += 1
-            if counter == 20:
-                print("could not start redis server.")
-                sys.exit(1)

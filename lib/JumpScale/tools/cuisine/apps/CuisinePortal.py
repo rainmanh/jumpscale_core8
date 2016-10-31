@@ -66,6 +66,8 @@ class CuisinePortal(base):
         """
         make sure new env arguments are understood on platform
         """
+        self._cuisine.development.pip.ensure()
+
         deps = """
         cffi==1.5.2
         setuptools
@@ -155,13 +157,17 @@ class CuisinePortal(base):
         Flask-Bootstrap
         snakeviz
         """
-        self._cuisine.package.multiInstall(['libjpeg-dev', 'libffi-dev', 'zlib1g-dev'])
-        self._cuisine.development.pip.ensure()
         self._cuisine.development.pip.multiInstall(deps)
 
+        if "darwin" in self._cuisine.platformtype.osname:
+            self._cuisine.core.run("brew install libtiff libjpeg webp little-cms2")
+        else:
+            self._cuisine.package.multiInstall(['libjpeg-dev', 'libffi-dev', 'zlib1g-dev'])
+
         # snappy install
-        self._cuisine.package.ensure('libsnappy-dev')
-        self._cuisine.package.ensure('libsnappy1v5')
+        if not "darwin" in self._cuisine.platformtype.osname:
+            self._cuisine.package.ensure('libsnappy-dev')
+            self._cuisine.package.ensure('libsnappy1v5')
         self._cuisine.development.pip.install('python-snappy')
 
         self._cuisine.apps.mongodb.build()

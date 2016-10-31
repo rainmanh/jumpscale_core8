@@ -88,7 +88,7 @@ class CuisinePIP(base):
         """
         previous_sudo = self._cuisine.core.sudomode
         try:
-            self._cuisine.core.sudomode = True
+            self._cuisine.core.sudomode = False  # PLEASE DO NOT PUT ON SUDO
             if j.data.types.string.check(packagelist):
                 packages = packagelist.split("\n")
             elif j.data.types.list.check(packagelist):

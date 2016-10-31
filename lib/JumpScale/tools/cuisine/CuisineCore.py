@@ -993,7 +993,8 @@ class CuisineCore(base):
         return output
 
     def set_sudomode(self):
-        self.sudomode = True
+        print("WARNING don't use sudo mode")
+        self.sudomode = False
 
     def sudo(self, cmd, die=True, showout=True):
         sudomode = self.sudomode

@@ -106,25 +106,32 @@ class FList(object):
     """
     Getters
     """
-
-    def _indexFromHash(self, filename):
+    def _indexsFromHash(self, hash):
         if hash not in self._hash:
             return None
 
         return self._hash[hash]
 
     def getHashList(self):
-        return list(self._hash.keys())
+        hashes = []
 
-    def getObject(self, filename):
-        object = {
-            # ...
-        }
+        for x in self._data:
+            hashes.append(x[1])
 
-        return object
+        return hashes
+
+    def filesFromHash(self, hash):
+        paths = []
+        ids = self._indexsFromHash(hash)
+
+        # adding paths from ids list
+        for x in ids:
+            paths.append(self._data[x][0])
+
+        return paths
 
     def _getItem(self, filename, index):
-        id = self._hash[filename]
+        id = self._path[filename]
         if id is not None:
             return self._data[id][index]
 
@@ -172,14 +179,14 @@ class FList(object):
     """
 
     def _indexForPath(self, filename):
-        if filename not in self._hash:
+        if filename not in self._path:
             # creating new entry
             self._data.append([None] * 10)
             id = len(self._data) - 1
             self._data[id][0] = filename
-            self._hash[filename] = id
+            self._path[filename] = id
 
-        return self._hash[filename]
+        return self._path[filename]
 
     def _setItem(self, filename, value, index):
         id = self._indexForPath(filename)
@@ -190,7 +197,18 @@ class FList(object):
         return value
 
     def setHash(self, filename, value):
-        return self._setItem(filename, value, 1)
+        self._setItem(filename, value, 1)
+
+        # updating hash list
+        id = self._indexForPath(filename)
+
+        if value in self._hash:
+            self._hash[value].append(id)
+
+        else:
+            self._hash[value] = [id]
+
+        return value
 
     def setType(self, filename, value):
         # testing regular first, it will probably be

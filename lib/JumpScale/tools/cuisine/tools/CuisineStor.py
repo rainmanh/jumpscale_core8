@@ -527,7 +527,7 @@ class StorSpace(object):
         Check if a set of keys exists. Returns a list which contains hash and bool
         """
         script = self.stor.scripts.exists(self.spacepath, keys)
-        data = self._cuisine.core.execute_python(script)[1]
+        data = self._cuisine.core.execute_python(script, showout=False)[1]
         return j.data.serializer.json.loads(data)
 
     def get(self, key, dest, chmod=None, chown=None):
@@ -661,8 +661,16 @@ class StorSpace(object):
         needed = []
 
         for key, exist in exists.items():
-            if not exist and f.isRegular(key):
-                needed.append({'hash': f.getHash(key), 'file': key})
+            files = f.filesFromHash(key)
+
+            # from a hash, all files will point to the same content
+            # by checking only the first one from the filelist, we will know
+            # if this this key point to regular file(s) or not
+            #
+            # if it's not found, we will only append one file
+            # it's not needed to append each file, they contains all the same data
+            if not exist and f.isRegular(files[0]):
+                needed.append({'hash': key, 'file': files[0]})
 
         if len(needed) == 0:
             # nothing to upload

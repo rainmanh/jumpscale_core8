@@ -477,7 +477,7 @@ class Service:
         elif changeCategory.find('action_new') != -1:
             action_name = changeCategory.split('action_new_')[1]
             actor_action_pointer = actor.model.actions[action_name]
-            self.model.actionAdd(actor_action_pointer.actionKey, action_name)
+            self.model.actionAdd(key=actor_action_pointer.actionKey, name=action_name)
 
         elif changeCategory.find('action_mod') != -1:
             # update state and pointer of the action pointer in service model

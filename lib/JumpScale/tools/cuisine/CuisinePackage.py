@@ -160,12 +160,14 @@ class CuisinePackage(base):
             else:
                 raise j.exceptions.Input('packagelist should be string or a list. received a %s' % type(packagelist))
 
-            for i, dep in enumerate(packages):
+            to_install = []
+            for dep in packages:
                 dep = dep.strip()
                 if dep is None or dep == "" or dep[0] == '#':
-                    del packages[i]
+                    continue
+                to_install.append(dep)
 
-            self.install(' '.join(packages), allow_unauthenticated=allow_unauthenticated)
+            self.install(' '.join(to_install), allow_unauthenticated=allow_unauthenticated)
         finally:
             self._cuisine.core.sudomode = previous_sudo
 

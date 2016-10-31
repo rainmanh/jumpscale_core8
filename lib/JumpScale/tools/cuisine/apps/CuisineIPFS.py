@@ -19,11 +19,9 @@ class CuisineIPFS(app):
         elif "darwin" in self._cuisine.platformtype.osname:
             url = "https://dist.ipfs.io/go-ipfs/v0.4.4/go-ipfs_v0.4.4_linux-amd64.tar.gz"
 
-        dest = j.sal.fs.joinPaths(self._cuisine.core.dir_paths["tmpDir"], "downloads", "go-ipfs")
-
         path = j.do.download(url, overwrite=False)
 
-        j.sal.fs.targzUncompress(dest, j.sal.fs.joinPaths(j.dirs.tmpDir, "ipfs"))
+        j.sal.fs.targzUncompress(path, j.dirs.tmpDir, "ipfs")
 
         from IPython import embed
         print("DEBUG NOW ipfs")

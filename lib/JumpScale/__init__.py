@@ -43,6 +43,8 @@ if not embed():
 
         os.environ["TMP"] = os.path.join(basevar, "tmp")
 
+        os.environ['APPDATA'] = "/optvar/"
+
     tmpdir = os.environ["TMP"]
     if not os.path.isdir(tmpdir):
         os.makedirs(tmpdir)
@@ -70,8 +72,8 @@ else:
     base = os.getcwd()
     sys.path.insert(0, "%s/lib" % base)
     sys.path.insert(1, base)
-    sys.path.insert(0, "%s/lib/base_library.zip"%base)
-    sys.path.insert(0, "%s/lib/base.zip"%base)
+    sys.path.insert(0, "%s/lib/base_library.zip" % base)
+    sys.path.insert(0, "%s/lib/base.zip" % base)
     # sys.path.insert(0, "%s/binlib/")
     os.makedirs(os.environ["TMP"], exist_ok=True)
     os.makedirs(os.environ["APPDATA"], exist_ok=True)

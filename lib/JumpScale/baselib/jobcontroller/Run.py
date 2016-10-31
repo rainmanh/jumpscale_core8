@@ -78,7 +78,6 @@ class RunStep:
 
                 if not process.isDone():
                     all_done = False
-                    self.logger.debug("all jobs not done yet...")
                     process.sync()
                     if process.new_stdout != "":
                         if last_output != job.model.key:

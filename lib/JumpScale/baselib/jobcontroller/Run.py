@@ -1,5 +1,6 @@
 from JumpScale import j
 
+import time
 import pygments.lexers
 from pygments.formatters import get_formatter_by_name
 import colored_traceback
@@ -77,6 +78,7 @@ class RunStep:
 
                 if not process.isDone():
                     all_done = False
+                    self.logger.debug("all jobs not done yet...")
                     process.sync()
                     if process.new_stdout != "":
                         if last_output != job.model.key:
@@ -85,8 +87,10 @@ class RunStep:
                         last_output = job.model.key
                     continue
                 all_done = True
+            time.sleep(0.5)
 
         # save state of jobs, process logs and errors
+        self.logger.debug("all jobs should be done. process results")
         for job, process_info in processes.items():
             process = process_info['process']
             action_name = job.model.dbobj.actionName

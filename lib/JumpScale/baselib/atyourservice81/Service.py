@@ -586,7 +586,6 @@ class Service:
             return job
 
         while not p.isDone():
-            self.logger.debug('wait for process to finish...')
             p.sync()
             if p.new_stdout != "":
                 self.logger.info(p.new_stdout)

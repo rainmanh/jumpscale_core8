@@ -17,12 +17,14 @@ class CuisineG8OSCore(app):
         neither can be the int zero, can be ommited if start=False
         """
         # deps
-        self._cuisine.development.js8.installDeps()
-        self._cuisine.apps.redis.install(reset=True)
-        self._cuisine.apps.redis.start()
-        self._cuisine.apps.mongodb.build(start=False)
+        self._cuisine.package.mdupdate()
+        self._cuisine.package.install('build-essential')
+        # self._cuisine.development.js8.installDeps()
+        # self._cuisine.apps.redis.install(reset=True)
+        # self._cuisine.apps.redis.start()
+        # self._cuisine.apps.mongodb.build(start=False)
 
-        self._cuisine.apps.syncthing.build(start=False)
+        # self._cuisine.apps.syncthing.build(start=False)
 
         self._cuisine.tmux.killWindow("main", "agent")
 

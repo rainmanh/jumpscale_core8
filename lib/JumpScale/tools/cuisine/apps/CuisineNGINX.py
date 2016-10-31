@@ -85,6 +85,7 @@ class CuisineNGINX(app):
 
         """
         # Install through ubuntu
+        self._cuisine.package.mdupdate()
         self._cuisine.package.ensure('nginx')
         # link nginx to binDir and use it from there
 

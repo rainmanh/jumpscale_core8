@@ -6970,7 +6970,7 @@ j.tools.xonsh.executor.upload?4([- source
 j.tools.zipfile?8
 j.tools.zipfile.APPEND?7
 j.tools.zipfile.READ?7
-j.tools.zipfile.WRIATE?7
+j.tools.zipfile.WRITE?7
 j.tools.zipfile.get?4([- path
 , - mode = 'r'
 ])
@@ -13940,7 +13940,7 @@ j.tools.xonsh.executor.upload?4([- source
 j.tools.zipfile?8
 j.tools.zipfile.APPEND?7
 j.tools.zipfile.READ?7
-j.tools.zipfile.WRIATE?7
+j.tools.zipfile.WRITE?7
 j.tools.zipfile.get?4([- path
 , - mode = 'r'
 ])
@@ -21720,7 +21720,7 @@ j.tools.xonsh.executor.upload?4([- source
 j.tools.zipfile?8
 j.tools.zipfile.APPEND?7
 j.tools.zipfile.READ?7
-j.tools.zipfile.WRIATE?7
+j.tools.zipfile.WRITE?7
 j.tools.zipfile.get?4([- path
 , - mode = 'r'
 ])

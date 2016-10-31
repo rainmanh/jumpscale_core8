@@ -1,7 +1,7 @@
 from JumpScale import j
 
 import capnp
-
+import time
 
 class Service:
 
@@ -586,7 +586,13 @@ class Service:
             return job
 
         while not p.isDone():
-            p.wait()
+            self.logger.debug('wait for process to finish...')
+            p.sync()
+            if p.new_stdout != "":
+                self.logger.info(p.new_stdout)
+            time.sleep(0.5)
+
+        p.wait()
 
         # if the action is a reccuring action, save last execution time in model
         if actionName in self.model.actionsRecurring:

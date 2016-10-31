@@ -65,6 +65,28 @@ class RunStep:
                 now = j.data.time.epoch
                 processes[job] = {'process': process, 'epoch': j.data.time.epoch}
 
+        # loop over all jobs from a step, waiting for them to be done
+        # printing output of the jobs as it get synced from the subprocess
+        all_done = False
+        last_output = None
+        while not all_done:
+            all_done = True
+
+            for job, process_info in processes.items():
+                process = process_info['process']
+
+                if not process.isDone():
+                    all_done = False
+                    process.sync()
+                    if process.new_stdout != "":
+                        if last_output != job.model.key:
+                            self.logger.info("stdout of %s" % job)
+                        self.logger.info(process.new_stdout)
+                        last_output = job.model.key
+                    continue
+                all_done = True
+
+        # save state of jobs, process logs and errors
         for job, process_info in processes.items():
             process = process_info['process']
             action_name = job.model.dbobj.actionName

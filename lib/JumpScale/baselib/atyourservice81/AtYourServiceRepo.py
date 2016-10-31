@@ -399,7 +399,7 @@ class AtYourServiceRepo():
         result = {}
         for service_model in self.db.service.find():
             for action, state in service_model.actionsState.items():
-                if state in ['scheduled', 'changed']:
+                if state in ['scheduled', 'changed', 'error']:
                     action_chain = list()
                     service_model._build_actions_chain(action, ds=action_chain)
                     action_chain.reverse()

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -ex
+set -e
 
 export STARTDIR=$PWD
 
@@ -7,7 +7,7 @@ reset='true'
 while getopts ":kh" opt; do
     case $opt in
       k)
-        reset=false
+        reset='false'
         ;;
       h)
         echo "Usage install.sh:
@@ -17,7 +17,6 @@ while getopts ":kh" opt; do
     esac
 done
 
-echo "$reset"
 if [ $reset == "true" ]; then
     rm -rf /opt/jumpscale8
 fi

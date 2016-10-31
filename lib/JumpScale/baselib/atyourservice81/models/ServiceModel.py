@@ -4,8 +4,22 @@ from JumpScale.baselib.atyourservice81.models.ActorServiceBaseModel import Actor
 
 VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
-
 class ServiceModel(ActorServiceBaseModel):
+
+    def __init__(self, modelfactory, key="", new=False):
+        super(ServiceModel, self).__init__(modelfactory, key=key, new=new)
+        self._cache = False
+        self._producers = []
+        self._consumers = []
+
+    def enable_cache(self):
+        self._cache = True
+
+    def disable_cache(self):
+        self._cache = False
+        self._producers = []
+        self._consumers = []
+
 
     @property
     def role(self):
@@ -60,7 +74,15 @@ class ServiceModel(ActorServiceBaseModel):
 
     @property
     def producers(self):
-        producers = []
+        producers = None
+        if self._cache is True:
+            if self._producers != []:
+                return self._producers
+            else:
+                producers = self._producers
+        else:
+            producers = []
+
         for prod in self.dbobj.producers:
             producers.extend(self.find(name=prod.serviceName, actor=prod.actorName))
         return producers
@@ -75,7 +97,15 @@ class ServiceModel(ActorServiceBaseModel):
 
     @property
     def consumers(self):
-        consumers = []
+        consumers = None
+        if self._cache is True:
+            if self._consumers != []:
+                return self._consumers
+            else:
+                consumers = self._consumers
+        else:
+            consumers = []
+
         for prod in self.dbobj.consumers:
             consumers.extend(self.find(name=prod.serviceName, actor=prod.actorName))
         return consumers

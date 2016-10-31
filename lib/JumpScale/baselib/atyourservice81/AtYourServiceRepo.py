@@ -104,7 +104,7 @@ class AtYourServiceRepo():
         if version != "":
             raise NotImplementedError("actors find with version not implemented.")
         for item in self.db.actor.find(name=name):
-            if not(name == "" or item.model.name == name):
+            if not(name == "" or item.name == name):
                 # no match continue
                 continue
             if not (role == '' or item.model.role == role):

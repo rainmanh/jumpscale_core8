@@ -23,7 +23,6 @@ class CuisineIPFS(app):
 
         j.sal.fs.targzUncompress(path, j.dirs.tmpDir, "ipfs")
 
-        from IPython import embed
-        print("DEBUG NOW ipfs")
-        embed()
-        raise RuntimeError("stop debug here")
+        cmd = j.sal.fs.joinPaths(j.dirs.tmpDir, "go-ips", "install.sh")
+
+        self._cuisine.core.run(cmd)

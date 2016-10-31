@@ -11,7 +11,7 @@ from JumpScale import j
 
 class ZipFileFactory:
     READ = 'r'
-    WRIATE = 'w'
+    WRITE = 'w'
     APPEND = 'a'
 
     def __init__(self):

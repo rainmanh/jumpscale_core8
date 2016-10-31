@@ -993,8 +993,7 @@ class CuisineCore(base):
         return output
 
     def set_sudomode(self):
-        print("WARNING don't use sudo mode")
-        self.sudomode = False
+        self.sudomode = True
 
     def sudo(self, cmd, die=True, showout=True):
         sudomode = self.sudomode
@@ -1062,6 +1061,10 @@ class CuisineCore(base):
         return rc, out, err
 
     def sudo_cmd(self, command, shell=False, force_sudo=False):
+        # TODO: Fix properly. This is just a workaround
+        if "darwin" in self._cuisine.platformtype.osname:
+            return cmd
+
         if not force_sudo and getattr(self._executor, 'login', '') == "root":
             cmd = command
         passwd = self._executor.passwd if hasattr(self._executor, "passwd") else ''

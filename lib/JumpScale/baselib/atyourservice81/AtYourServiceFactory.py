@@ -51,7 +51,7 @@ class AtYourServiceFactory:
             if "darwin" in str(j.core.platformtype.myplatform):
                 socket = j.core.db.config_get()["unixsocket"]
             else:
-                socket = '/tmp/ays.sock'
+                socket = '%s/redis.sock' % j.dirs.tmpDir
 
             config_path = j.sal.fs.joinPaths(j.dirs.cfgDir, 'ays/ays.conf')
             if not j.sal.fs.exists(config_path):
@@ -59,7 +59,7 @@ class AtYourServiceFactory:
             cfg = j.data.serializer.toml.load(config_path)
             if 'redis' not in cfg:
                 cfg.update({'redis': j.core.db.config_get('unixsocket')})
-            j.atyourservice._config = cfg
+            self._config = cfg
         return self._config
 
     @property

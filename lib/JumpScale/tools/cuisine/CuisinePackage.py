@@ -151,7 +151,7 @@ class CuisinePackage(base):
         """
         previous_sudo = self._cuisine.core.sudomode
         try:
-            self._cuisine.core.sudomode = False
+            self._cuisine.core.sudomode = True
 
             if j.data.types.string.check(packagelist):
                 packages = packagelist.strip().splitlines()

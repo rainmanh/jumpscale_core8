@@ -1,6 +1,3 @@
-def embed():
-    return "embed" in sys.__dict__
-
 import sys
 import os
 # import socket
@@ -13,6 +10,9 @@ import os.path
 import locale
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
+
+def embed():
+    return "embed" in sys.__dict__
 
 if not embed():
     from JumpScale.clients.redis.RedisFactory import RedisFactory
@@ -122,6 +122,7 @@ class Loader:
 locationbases = {}
 j = Loader("j")
 j.data = Loader("j.data")
+j.embed = embed()
 j.data.serializer = Loader("j.data.serializer")
 j.data.units = Loader('j.data.units')
 j.data.models = Loader('j.data.models')

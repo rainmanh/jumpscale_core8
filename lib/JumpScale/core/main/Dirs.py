@@ -46,7 +46,7 @@ class Dirs:
 
         self.tmpDir = os.environ["TMP"]
 
-        if not embed():
+        if not j.embed:
             self.appDir = j.application.config.get("system.paths.app")
             self.tmplsDir = j.application.config.get("system.paths.templates")
             self.varDir = j.application.config.get("system.paths.var")

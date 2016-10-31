@@ -99,6 +99,7 @@ class Application:
 
     def init(self):
         j.errorconditionhandler.setExceptHook()
+        j.dirs.init()
 
         if not embed():
             logging_cfg = self.config.getDictFromPrefix('logging')

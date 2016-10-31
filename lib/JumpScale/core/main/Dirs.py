@@ -6,6 +6,10 @@ import inspect
 from JumpScale import j
 
 
+def embed():
+    return "embed" in sys.__dict__
+
+
 def pathToUnicode(path):
     """
     Convert path to unicode. Use the local filesystem encoding. Will return
@@ -34,12 +38,17 @@ class Dirs:
 
         # self.base=j.application.config.get("system.paths.base")
         self.base = j.do.BASE
-        if j.core.db is not None:
-            data = j.core.db.get("system.dirs.%s" % self.base)
-            if data is not None:
-                self.__dict__ = j.data.serializer.json.loads(data.decode())
-            else:
-                self.init()
+
+        self.hrd = os.path.join(os.environ['APPDATA'], "hrd", "system")
+        self.homeDir = os.environ["HOME"]
+
+    def normalize(self, path):
+        """
+        """
+        if "~" in path:
+            path = path.replace("~", j.dirs.homeDir)
+        path = j.sal.fs.pathDirClean(path)
+        return path
 
     def init(self):
         print("load dirs")
@@ -47,23 +56,19 @@ class Dirs:
         self.tmpDir = os.environ["TMP"]
 
         if not embed():
-            self.appDir = j.application.config.get("system.paths.app")
-            self.tmplsDir = j.application.config.get("system.paths.templates")
-            self.varDir = j.application.config.get("system.paths.var")
-            self.cfgDir = j.application.config.get("system.paths.cfg")
-            self.libDir = j.application.config.get("system.paths.lib")
-            # j.application.config.get("system.paths.python.lib.js")
-            self.logDir = j.application.config.get("system.paths.log")
-            self.pidDir = j.application.config.get("system.paths.pid")
-            self.codeDir = j.application.config.get("system.paths.code")
-            self.libExtDir = j.application.config.get(
-                "system.paths.python.lib.ext")
-            self.hrd = os.path.join(
-                j.application.config.get("system.paths.hrd"), "system")
-
+            self.appDir = self.normalize(j.application.config.get("system.paths.app"))
+            self.tmplsDir = self.normalize(j.application.config.get("system.paths.templates"))
+            self.varDir = self.normalize(j.application.config.get("system.paths.var"))
+            self.cfgDir = self.normalize(j.application.config.get("system.paths.cfg"))
+            self.libDir = self.normalize(j.application.config.get("system.paths.lib"))
+            self.logDir = self.normalize(j.application.config.get("system.paths.log"))
+            self.pidDir = self.normalize(j.application.config.get("system.paths.pid"))
+            self.codeDir = self.normalize(j.application.config.get("system.paths.code"))
+            self.libExtDir = self.normalize(j.application.config.get(
+                "system.paths.python.lib.ext"))
             self._createDir(self.tmplsDir)
 
-            pythonzip = os.path.join(self.libDir, 'python.zip')
+            pythonzip = self.normalize(os.path.join(self.libDir, 'python.zip'))
             if os.path.exists(pythonzip):
                 if pythonzip in sys.path:
                     sys.path.pop(sys.path.index(pythonzip))
@@ -74,9 +79,9 @@ class Dirs:
             sys.path.insert(2, self.libExtDir)
 
             if 'JSBASE' in os.environ:
-                self.binDir = os.path.join(self.base, 'bin')
+                self.binDir = self.normalize(os.path.join(self.base, 'bin'))
             else:
-                self.binDir = j.application.config.get("system.paths.bin")
+                self.binDir = self.normalize(j.application.config.get("system.paths.bin"))
 
             data = j.data.serializer.json.dumps(self.__dict__)
             j.core.db.set("system.dirs.%s" % self.base, data)
@@ -94,8 +99,6 @@ class Dirs:
             self.libExtDir = ""
 
         self.jsLibDir = os.path.join(self.libDir, "JumpScale")
-
-        self.homeDir = os.environ["HOME"]
 
         if self.libDir in sys.path:
             sys.path.pop(sys.path.index(self.libDir))

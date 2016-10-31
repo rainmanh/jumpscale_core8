@@ -4,11 +4,25 @@ import string
 import inspect
 import imp
 
+
+def embed():
+    return "embed" in sys.__dict__
+
+
 import colored_traceback
 colored_traceback.add_hook(always=True)
 
 from JumpScale import j
-from JumpScale.core.errorhandling.ErrorConditionObject import ErrorConditionObject, LEVELMAP
+
+
+def embed():
+    return "embed" in sys.__dict__
+
+
+if not embed():
+    from JumpScale.core.errorhandling.ErrorConditionObject import ErrorConditionObject, LEVELMAP
+else:
+    from ErrorConditionObject import ErrorConditionObject, LEVELMAP
 
 
 # class BaseException(Exception):
@@ -42,6 +56,8 @@ class ErrorConditionHandler:
         j.exceptions = JSExceptions
 
     def _send2Redis(self, eco):
+        if embed():
+            return
         if self.escalateToRedis is None:
             luapath = "%s/core/errorhandling/eco.lua" % j.dirs.jsLibDir
             if j.sal.fs.exists(path=luapath):

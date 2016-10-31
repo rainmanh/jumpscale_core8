@@ -4,7 +4,13 @@ from JSLogger import JSLogger
 from Filter import ModuleFilter
 import time
 import logging
-import logging.handlers
+
+import sys
+def embed():
+    return "embed" in sys.__dict__
+
+if not embed():
+    import logging.handlers
 from colorlog import ColoredFormatter
 import os
 

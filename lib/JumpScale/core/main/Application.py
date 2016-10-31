@@ -9,6 +9,10 @@ from collections import namedtuple
 WhoAmI = namedtuple('WhoAmI', 'gid nid pid')
 
 
+def embed():
+    return "embed" in sys.__dict__
+
+
 class Application:
 
     def __init__(self):
@@ -47,8 +51,9 @@ class Application:
         """
         empties the core.db
         """
-        for key in j.core.db.keys():
-            j.core.db.delete(key)
+        if j.core.db != None:
+            for key in j.core.db.keys():
+                j.core.db.delete(key)
         j.dirs.init()
         self.reload()
 
@@ -95,11 +100,14 @@ class Application:
     def init(self):
         j.errorconditionhandler.setExceptHook()
 
-        logging_cfg = self.config.getDictFromPrefix('logging')
-        level = logging_cfg.get('level', 'DEBUG')
-        mode = logging_cfg.get('mode', 'DEV')
-        filter_module = logging_cfg.get('filter', [])
-        j.logger.init(mode, level, filter_module)
+        if not embed():
+            logging_cfg = self.config.getDictFromPrefix('logging')
+            level = logging_cfg.get('level', 'DEBUG')
+            mode = logging_cfg.get('mode', 'DEV')
+            filter_module = logging_cfg.get('filter', [])
+            j.logger.init(mode, level, filter_module)
+        else:
+            j.logger.init("DEV", "INFO", [])
 
         if self._fixlocale:
             self.fixlocale()
@@ -129,6 +137,8 @@ class Application:
 
     @property
     def config(self):
+        if embed():
+            return None
         if self._config is None:
             self._config = j.data.hrd.get(path=j.dirs.hrd)
         return self._config

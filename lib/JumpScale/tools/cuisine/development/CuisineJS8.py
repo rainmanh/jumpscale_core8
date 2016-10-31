@@ -40,6 +40,8 @@ class CuisineJS8(base):
         elif self._cuisine.core.isMac:
             cmd = "export TMPDIR=~/tmp;mkdir -p $TMPDIR;cd $TMPDIR;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/{branch}/install/install.sh > install.sh;bash install.sh".format(
                 branch=branch)
+            if cmd:
+                cmd += ' -k'
             self._cuisine.core.run(cmd)
         else:
             raise j.exceptions.RuntimeError("platform not supported yet")

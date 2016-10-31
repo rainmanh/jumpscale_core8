@@ -14,6 +14,9 @@ class CuisineNodeJS(app):
         """
         can install through ubuntu
         """
+        self._cuisine.package.mdupdate()
+        self._cuisine.package.install('xz-utils')
+
         version = 'node-v6.7.0-linux-x64'
         url = 'https://nodejs.org/dist/v6.7.0/{}.tar.xz'.format(version)
         dest = '/tmp/node.tar.xz'

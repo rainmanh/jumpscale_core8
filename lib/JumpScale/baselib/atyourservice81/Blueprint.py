@@ -224,7 +224,7 @@ class Blueprint:
                     else:
                         rolefound = aysname
 
-                    service = self.aysrepo.getService(
+                    service = self.aysrepo.serviceGet(
                         role=rolefound, instance=aysinstance, die=False)
                     if service:
                         services.append(service)

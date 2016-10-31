@@ -1145,7 +1145,7 @@ class InstallTools():
             os.system(cmd)
         else:
             handle = gzip.open(path)
-            with open(tarfilename, 'w') as out:
+            with open(tarfilename, 'wb') as out:
                 for line in handle:
                     out.write(line)
             out.close()

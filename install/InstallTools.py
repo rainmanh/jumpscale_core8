@@ -2140,7 +2140,7 @@ class Installer():
 
         src = "%s/github/jumpscale/jumpscale_core8/shellcmds" % do.CODEDIR
         desttest = "/usr/local/bin/js"
-        if not self.exists(desttest):
+        if not do.exists(desttest):
             dest = "/usr/local/bin"
             do.symlinkFilesInDir(src, dest)
 
@@ -2244,7 +2244,7 @@ class Installer():
             'j.data.hrd',
             'j.application'
         """
-        do.writeFile("logging.hrd" % do.CFGDIR, C)
+        do.writeFile("%s/logging.hrd" % do.CFGDIR, C)
 
         C = """
 
@@ -2290,7 +2290,7 @@ class Installer():
         """
         C = C.replace("$base", do.BASE)
 
-        if self.sandbox:
+        if do.sandbox:
             C = C.replace('$pythonhome', 'export PYTHONHOME=$JSBASE/bin')
         else:
             C = C.replace('$pythonhome', '')
@@ -2300,7 +2300,7 @@ class Installer():
         else:
             C = C.replace(
                 "$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu:$_OLD_PYTHONPATH")
-        envfile = "%s/env.sh" % basedir
+        envfile = "%s/env.sh" % do.BASE
 
         if self.readonly is False or die == True:
             do.writeFile(envfile, C)
@@ -2325,17 +2325,17 @@ class Installer():
         if self.readonly is False or die == True:
 
             do.delete("/usr/bin/jspython")  # to remove link
-            do.delete("%s/bin/jspython" % basedir)
+            do.delete("%s/bin/jspython" % do.BASE)
             do.delete("/usr/local/bin/jspython")
 
             if self.sandbox:
-                dest = "%s/bin/jspython" % basedir
-                C2 = C2.replace('$base', basedir)
+                dest = "%s/bin/jspython" % do.BASE
+                C2 = C2.replace('$base', do.BASE)
                 do.writeFile(dest, C2)
             else:
                 # in system
                 dest = "/usr/local/bin/jspython"
-                C2_insystem = C2_insystem.replace('$base', basedir)
+                C2_insystem = C2_insystem.replace('$base', do.BASE)
                 do.writeFile(dest, C2_insystem)
             do.chmod(dest, 0o770)
 
@@ -2354,7 +2354,7 @@ class Installer():
 
                         out += "%s\n" % line
                     do.writeFile(path, out)
-            changesite("%s/lib/site.py" % basedir)
+            changesite("%s/lib/site.py" % do.BASE)
             # if insystem:
             #     changesite("/usr/local/lib/python3/dist-packages/site.py"%basedir)
 

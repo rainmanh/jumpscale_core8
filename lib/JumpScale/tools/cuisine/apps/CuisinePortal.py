@@ -1,5 +1,6 @@
 from JumpScale import j
 import time
+import os
 
 
 base = j.tools.cuisine._getBaseClass()
@@ -21,6 +22,8 @@ class CuisinePortal(base):
         To add spaces and actors, please use addSpace and addactor
         """
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
+        self._cuisine.bash.environSet("LANG", "C.UTF-8")
+        
         # if not self._cuisine.core.isMac:
         if not self._cuisine.development.js8.jumpscale_installed():
             self._cuisine.development.js8.install()
@@ -161,13 +164,13 @@ class CuisinePortal(base):
 
         if "darwin" in self._cuisine.platformtype.osname:
             self._cuisine.core.run("brew install libtiff libjpeg webp little-cms2")
+            self._cuisine.core.run("brew install snappy")
+            self._cuisine.core.run('CPPFLAGS="-I/usr/local/include -L/usr/local/lib" pip install python-snappy')
         else:
             self._cuisine.package.multiInstall(['libjpeg-dev', 'libffi-dev', 'zlib1g-dev'])
-
-        # snappy install
-        if not "darwin" in self._cuisine.platformtype.osname:
             self._cuisine.package.ensure('libsnappy-dev')
             self._cuisine.package.ensure('libsnappy1v5')
+
         self._cuisine.development.pip.install('python-snappy')
 
         self._cuisine.apps.mongodb.build()
@@ -178,45 +181,53 @@ class CuisinePortal(base):
 
     def linkCode(self):
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        _, destjslib, _ = self._cuisine.core.run(
-            "js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'", showout=False)
+        _, destjslib, _ = self._cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'", 
+                                                 showout=False)
 
-        if self._cuisine.core.file_exists("%s/portal" % destjslib):
-            self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths[
-                                         "codeDir"], "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
-        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" %
-                                     self._cuisine.core.dir_paths["codeDir"], "%s/portal" % self._cuisine.core.dir_paths['jsLibDir'])
+        if "darwin" in self._cuisine.platformtype.osname:
+            # Needs refining,In osx destjslib='load dirs\n/usr/local/lib/python3.5/site-packages/JumpScale/'
+            destjslib = destjslib.split("\n")[1]
+        
+        if self._cuisine.core.file_exists(destjslib):
+            self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths["codeDir"], 
+                                         "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
+        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths["codeDir"], 
+                                     "%s/portal" % self._cuisine.core.dir_paths['jsLibDir'])
 
         self._cuisine.core.run("js --quiet 'j.application.reload()'", showout=False, die=False)
 
         if not self.portal_dir.endswith("/"):
             self.portal_dir += '/'
         self._cuisine.core.dir_ensure(self.portal_dir)
-        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/jslib" %
-                                     self._cuisine.core.dir_paths["codeDir"], '%s/jslib' % self.portal_dir)
+        
+        CODE_DIR = self._cuisine.core.dir_paths["codeDir"]
+        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/jslib" % CODE_DIR, 
+                                     '%s/jslib' % self.portal_dir)
         self._cuisine.core.dir_ensure(j.sal.fs.joinPaths(self.portal_dir, 'portalbase'))
-        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/system" %
-                                     self._cuisine.core.dir_paths["codeDir"], '%s/portalbase/system' % self.portal_dir)
-        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki" %
-                                     self._cuisine.core.dir_paths["codeDir"], '%s/portalbase/wiki' % self.portal_dir)
+        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/system" % CODE_DIR, 
+                                     '%s/portalbase/system' % self.portal_dir)
+        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki" % CODE_DIR, 
+                                     '%s/portalbase/wiki' % self.portal_dir)
         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/macros" %
-                                     self._cuisine.core.dir_paths["codeDir"], '%s/portalbase/macros' % self.portal_dir)
+                                     CODE_DIR, '%s/portalbase/macros' % self.portal_dir)
         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/templates" %
-                                     self._cuisine.core.dir_paths["codeDir"], '%s/portalbase/templates' % self.portal_dir)
+                                     CODE_DIR, '%s/portalbase/templates' % self.portal_dir)
 
         self._cuisine.core.dir_ensure(self.main_portal_dir)
 
         self._cuisine.core.dir_ensure('%s/base/home/.space' % self.main_portal_dir)
         self._cuisine.core.file_ensure('%s/base/home/home.md' % self.main_portal_dir)
 
-        self._cuisine.core.dir_ensure('$tmplsDir/cfg/portal')
-        self._cuisine.core.file_copy(j.sal.fs.joinPaths(self._cuisine.core.dir_paths[
-            "codeDir"], 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'), '$tmplsDir/cfg/portal/config.hrd')
 
-        self._cuisine.core.file_copy(j.sal.fs.joinPaths(self._cuisine.core.dir_paths[
-            "codeDir"], 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'), self.main_portal_dir)
-        content = self._cuisine.core.file_read(j.sal.fs.joinPaths(self._cuisine.core.dir_paths[
-            "codeDir"], 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'))
+        self._cuisine.core.dir_ensure('$tmplsDir/cfg/portal')
+        self._cuisine.core.file_copy(j.sal.fs.joinPaths(CODE_DIR, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'), 
+                                     '$tmplsDir/cfg/portal/config.hrd')
+
+        # copy portal_start.py
+        self._cuisine.core.file_copy(j.sal.fs.joinPaths(CODE_DIR, 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'), 
+                                                        self.main_portal_dir)
+        content = self._cuisine.core.file_read(j.sal.fs.joinPaths(CODE_DIR, 
+                                               'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'))
         configHRD = j.data.hrd.get(content=content, prefixWithName=False)
         configHRD.set('param.cfg.appdir', j.sal.fs.joinPaths(self.portal_dir, 'portalbase'))
         self._cuisine.core.file_write(j.sal.fs.joinPaths(self.main_portal_dir, 'config.hrd'), content=str(configHRD))

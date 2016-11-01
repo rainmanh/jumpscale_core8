@@ -67,7 +67,7 @@ class RedisFactory:
                 return True
             except Exception as e:
 
-                #@todo
+                # Todo
                 if False and "redis.sock. No such file or directory" in str(e):
                     tempRedis = Redis()
                     try:
@@ -96,7 +96,7 @@ class RedisFactory:
         """
         if j.do.TYPE.startswith("OSX"):
             #--port 0
-            cmd = "redis-server --unixsocket %s/redis.sock --maxmemory 100000000 --daemonize yes" % tmpdir
+            cmd = "redis-server --port 0 --unixsocket %s/redis.sock --maxmemory 100000000 --daemonize yes" % tmpdir
             print("start redis in background (osx)")
             os.system(cmd)
             print("started")

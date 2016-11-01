@@ -1724,7 +1724,7 @@ class InstallTools():
         return repository_host, repository_type, repository_account, repository_name, dest, repository_url
 
     def pullGitRepo(self, url="", dest=None, login=None, passwd=None, depth=1, ignorelocalchanges=False,
-                    reset=False, branch=None, revision=None, ssh="auto", executor=None, codeDir=None, onlyIfExists=False):
+                    reset=False, branch=None, revision=None, ssh="auto", executor=None, codeDir=None):
         """
         will clone or update repo
         if dest is None then clone underneath: /opt/code/$type/$account/$repo
@@ -1733,6 +1733,7 @@ class InstallTools():
         @param ssh ==True means will checkout ssh
         @param ssh =="first" means will checkout sss first if that does not work will go to http
         """
+
         if ssh == "first":
             try:
                 return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
@@ -1745,27 +1746,31 @@ class InstallTools():
         base, provider, account, repo, dest, url = self.getGitRepoArgs(
             url, dest, login, passwd, reset=reset, ssh=ssh, codeDir=codeDir, executor=executor)
 
-        exists = self.exists(dest) if not executor else executor.exists(dest)
+        print("pull:%s ->%s" % (url, dest))
 
-        if onlyIfExists and exists is False:
-            return
+        existsDir = self.exists(dest) if not executor else executor.exists(dest)
 
-        if dest is None and branch is None:
-            branch = "master"
-        elif branch is None and dest is not None and exists:
+        checkdir = "%s/.git" % (dest)
+        existsGit = self.exists(checkdir) if not executor else executor.exists(checkdir)
+
+        if existsDir and not existsGit:
+            raise RuntimeError("Git location does not have .git:%s\n" % dest)
+
+        if existsGit:
             # if we don't specify the branch, try to find the currently checkedout branch
             cmd = 'cd %s; git rev-parse --abbrev-ref HEAD' % dest
             rc, out, err = self.execute(cmd, die=False, showout=False, executor=executor)
             if rc == 0:
-                branch = out.strip()
+                branchFound = out.strip()
             else:  # if we can't retreive current branch, use master as default
-                branch = 'master'
-        else:
-            branch = branch
+                raise RuntimeError("Cannot retrieve branch:\n%s\n" % cmd)
 
-        checkdir = "%s/.git" % (dest)
-        exists = self.exists(checkdir) if not executor else executor.exists(checkdir)
-        if exists:
+            if branch != None and branch != branchFound and ignorelocalchanges == False:
+                raise RuntimeError("Cannot pull repo, branch on filesystem is not same as branch asked for.")
+
+            if branch == None:
+                branch = branchFound
+
             if ignorelocalchanges:
                 print(("git pull, ignore changes %s -> %s" % (url, dest)))
                 cmd = "cd %s;git fetch" % dest
@@ -1774,21 +1779,17 @@ class InstallTools():
                     self.execute(cmd, executor=executor)
                 if branch is not None:
                     print("reset branch to:%s" % branch)
-                    self.execute("cd %s;git reset --hard origin/%s" % (dest, branch), timeout=600, executor=executor)
+                    self.execute("cd %s;git fetch; git reset --hard origin/%s" %
+                                 (dest, branch), timeout=600, executor=executor)
             else:
                 # pull
                 print(("git pull %s -> %s" % (url, dest)))
                 if url.find("http") != -1:
                     print("http")
-                    if branch is not None:
-                        cmd = "cd %s;git -c http.sslVerify=false pull origin %s" % (dest, branch)
-                    else:
-                        cmd = "cd %s;git -c http.sslVerify=false pull" % dest
+                    cmd = "cd %s;git -c http.sslVerify=false pull origin %s" % (dest, branch)
                 else:
-                    if branch is not None:
-                        cmd = "cd %s; git fetch ; git reset --hard origin/%s" % (dest, branch)
-                    else:
-                        cmd = "cd %s; git fetch ; git reset --hard origin/master" % dest
+                    cmd = "cd %s; pull origin %s" % (dest, branch)
+
                 self.execute(cmd, timeout=600, executor=executor)
         else:
             print(("git clone %s -> %s" % (url, dest)))
@@ -2471,6 +2472,7 @@ exec python3 -q "$@"
                 do.execute(cmd)
 
     def prepare(self):
+        return
         print("prepare")
 
         self.installpip()
@@ -2561,15 +2563,15 @@ exec python3 -q "$@"
 
         do.pullGitRepo("https://github.com/vinta/awesome-python")
 
-        if do.TYPE.startswith("OSX"):
-            dest = "%s/Library/Application Support/Sublime Text 3/Packages" % os.environ["HOME"]
-            src = "%s/opt/code/github/jumpscale/jumpscale_core8/tools/sublimetext/" % os.environ["HOME"]
-        else:
-            print("implement develtools")
-            import ipdb
-            ipdb.set_trace()
-        if do.exists(src) and do.exists(dest):
-            do.copyTree(src, dest)
+        # if do.TYPE.startswith("OSX"):
+        #     dest = "%s/Library/Application Support/Sublime Text 3/Packages" % os.environ["HOME"]
+        #     src = "%s/opt/code/github/jumpscale/jumpscale_core8/tools/sublimetext/" % os.environ["HOME"]
+        # else:
+        #     print("implement develtools")
+        #     import ipdb
+        #     ipdb.set_trace()
+        # if do.exists(src) and do.exists(dest):
+        #     do.copyTree(src, dest)
 
 
 do.installer = Installer()

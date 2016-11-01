@@ -15,11 +15,12 @@ def embed():
 
 class Config:
     def __getattribute__(self, attr):
-        config_path = j.sal.fs.joinPaths(j.dirs.cfgDir, attr)
-        if not j.sal.fs.isDir(config_path):
+        config_path = os.path.join(j.dirs.cfgDir, attr)
+        if not os.path.isdir(config_path):
             return None
         config = {}
-        for config_file in j.sal.fs.listFilesInDir(config_path):
+        config_files = [f for f in os.listdir(config_path) if os.path.isfile(f)]
+        for config_file in config_files:
             # support yaml, hrd, toml
             if config_file.endswith('.yaml'):
                 with open(config_file, 'r') as conf:
@@ -27,7 +28,7 @@ class Config:
             elif config_file.endswith('.hrd'):
                 cfg = j.data.hrd.get(config_file)
                 cfg = cfg.getHRDAsDict()
-            config[j.sal.fs.getBaseName(config_file).split('.')[0]] = cfg
+            config[os.path.basename(config_file).split('.')[0]] = cfg
         return config
 
 class Application:

@@ -227,7 +227,7 @@ class CuisineCore(base):
     def isJS8Sandbox(self):
         def get():
             # TODO: need to implement when sandbox, what is the right check?
-            return self.file_exists("/opt/jumpscale8/bin/libasn1.so.8")
+            return self.file_exists("/JS8/opt/jumpscale8/bin/libasn1.so.8")
         return self._cache.get("isJS8Sandbox", get)
 
     @property
@@ -241,15 +241,15 @@ class CuisineCore(base):
                 if self.isMac or self.isCygwin:
                     res["base"] = "%s/opt/jumpscale8/" % env["HOME"]
                 else:
-                    res["base"] = "/opt/jumpscale8/"
+                    res["base"] = "/JS8/opt/jumpscale8/"
             if self.isMac or self.isCygwin:
                 res["codeDir"] = "%s/opt/code/" % env["HOME"]
                 res["optDir"] = "%s/opt/" % env["HOME"]
                 res["varDir"] = "%s/optvar/" % env["HOME"]
             else:
-                res["codeDir"] = "/opt/code/"
-                res["optDir"] = "/opt/"
-                res["varDir"] = "/optvar/"
+                res["codeDir"] = "/JS8/code/"
+                res["optDir"] = "/JS8/opt/"
+                res["varDir"] = "/JS8/optvar/"
             res["appDir"] = "%s/apps" % res["base"]
             res['tmplsDir'] = "%s/templates" % res["base"]
             res["binDir"] = "%s/bin" % res["base"]
@@ -801,7 +801,7 @@ class CuisineCore(base):
                 cmd += " -n "
             else:
                 cmd += " --no-clobber "
-    
+
         if self.isMac:
             cmd += '%s %s' % (source.rstrip("/"), dest)
             cmd += " 2>&1 >/dev/null ;True"

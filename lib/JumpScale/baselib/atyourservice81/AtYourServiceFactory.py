@@ -49,11 +49,10 @@ class AtYourServiceFactory:
     def config(self):
         if self._config is None:
             default_metadata = {'metadata': [{'jumpscale': {'url': 'https://github.com/Jumpscale/ays_jumpscale8', 'branch': 'master'}}]}
-            config_path = j.sal.fs.joinPaths(j.dirs.cfgDir, 'ays/ays.conf')
-            if not j.sal.fs.exists(config_path):
+            cfg = j.application.config.jumpscale['ays']
+            if not cfg:
                 self._config = {'redis': j.core.db.config_get('unixsocket')}
                 self._config.update(default_metadata)
-            cfg = j.data.serializer.toml.load(config_path)
             if 'redis' not in cfg:
                 cfg.update({'redis': j.core.db.config_get('unixsocket')})
             if 'metadata' not in cfg:
@@ -152,13 +151,11 @@ class AtYourServiceFactory:
                     }
         """
         if len(templateRepos) == 0:
-            metadata = j.application.config.getDictFromPrefix(
-                'atyourservice.metadata')
+            metadata = j.application.config.jumpscale['ays'].get('metadata')
             templateRepos = list(metadata.values())
 
         for templateRepo in templateRepos:
-            branch = templateRepo[
-                'branch'] if 'branch' in templateRepo else 'master'
+            branch = templateRepo['branch'] if 'branch' in templateRepo else 'master'
             j.do.pullGitRepo(url=templateRepo['url'], branch=branch)
 
         self._doinit(True)

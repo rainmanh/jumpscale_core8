@@ -76,9 +76,9 @@ class ErrorConditionHandler:
     @property
     def blacklist(self):
         if self._blacklist is None:
-            key = 'application.eco.blacklist'
-            if j.application.config.exists(key):
-                self._blacklist = j.application.config.getList(key)
+            key = 'eco.blacklist'
+            if j.application.config.jumpscale.get('application').get(key):
+                self._blacklist = j.application.config.jumpscale.get('application').getList(key)
             else:
                 self._blacklist = list()
         return self._blacklist

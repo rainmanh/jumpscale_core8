@@ -23,7 +23,7 @@ class CuisinePortal(base):
         """
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
         self._cuisine.bash.environSet("LANG", "C.UTF-8")
-        
+
         # if not self._cuisine.core.isMac:
         if not self._cuisine.development.js8.jumpscale_installed():
             self._cuisine.development.js8.install()
@@ -56,7 +56,7 @@ class CuisinePortal(base):
                                      destination='$appDir/portals/main/base/AYS81')
 
         # Configure ays's redis
-        LOCATION = '/optvar/cfg/ays'
+        LOCATION = '%s/jumpscale/ays.yaml' % j.dirs.cfgDir
         self._cuisine.core.dir_ensure(location=LOCATION)
         cfg = """
         [redis]

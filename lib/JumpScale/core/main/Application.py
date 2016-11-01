@@ -190,16 +190,15 @@ class Application:
             self._config = None
 
         if self.config is not None:
-            nodeid = self.config.getInt("grid.node.id", 0)
-            gridid = self.config.getInt("grid.id", 0)
+            nodeid = self.config.jumpscale['system'].get("grid.node.id", 0)
+            gridid = self.config.jumpscale['system'].get("grid.id", 0)
             self.logger.debug("gridid:%s,nodeid:%s" % (gridid, nodeid))
         else:
             gridid = 0
             nodeid = 0
 
         self._whoAmi = WhoAmI(gid=gridid, nid=nodeid, pid=0)
-        self._whoAmiBytestr = struct.pack(
-            "<hhh", self.whoAmI.pid, self.whoAmI.nid, self.whoAmI.gid)
+        self._whoAmiBytestr = struct.pack("<hhh", self.whoAmI.pid, self.whoAmI.nid, self.whoAmI.gid)
 
     def initGrid(self):
         if not self.gridInitialized:

@@ -171,7 +171,7 @@ branch=${JSBRANCH-master}
 
 cd $STARTDIR
 
-if [ -e"web/bootstrap.py" ]; then
+if [ -e "web/bootstrap.py" ]; then
     cp bootstrap.py $TMPDIR/bootstrap.py
     cp InstallTools.py $TMPDIR/InstallTools.py
 else

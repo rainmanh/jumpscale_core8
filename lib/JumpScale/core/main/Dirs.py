@@ -59,7 +59,7 @@ class Dirs:
             self.tmplsDir = self.normalize(j.application.config["dirs"].get("templates"))
             self.varDir = self.normalize(j.application.config["dirs"].get("VARDIR"))
             self.cfgDir = self.normalize(j.application.config["dirs"].get("CFGDIR"))
-            self.libDir = self.normalize(j.application.config["dirs"].get("lib"))
+            self.libDir = j.sal.fs.joinPaths(self.base, 'lib')
             self.logDir = self.normalize(j.application.config["dirs"].get("log"))
             self.pidDir = self.normalize(j.application.config["dirs"].get("pid"))
             self.codeDir = self.normalize(j.application.config["dirs"].get("CODEDIR"))

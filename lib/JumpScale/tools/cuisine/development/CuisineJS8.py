@@ -30,7 +30,7 @@ class CuisineJS8(base):
                 linkcmd = "mkdir -p /usr/local/lib/python3.5/dist-packages/JumpScale;ln -s /usr/local/lib/python3.5/dist-packages/JumpScale /usr/local/lib/python3.4/dist-packages/JumpScale"
                 self._cuisine.core.run(linkcmd)
 
-            C = 'cd $tmpDir/;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/{branch}/install/install.sh > install.sh;bash install.sh'.format(
+            C = 'cd $tmpDir/;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/{branch}/install/install.sh > install.sh;JSBRANCH={branch} bash install.sh'.format(
                 branch=branch)
             if keep:
                 C += ' -k'
@@ -38,7 +38,7 @@ class CuisineJS8(base):
             C = self._cuisine.core.args_replace(C)
             self._cuisine.core.run(C)
         elif self._cuisine.core.isMac:
-            cmd = "export TMPDIR=~/tmp;mkdir -p $TMPDIR;cd $TMPDIR;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/{branch}/install/install.sh > install.sh;bash install.sh".format(
+            cmd = "export TMPDIR=~/tmp;mkdir -p $TMPDIR;cd $TMPDIR;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/{branch}/install/install.sh > install.sh;JSBRANCH={branch} bash install.sh".format(
                 branch=branch)
             if cmd:
                 cmd += ' -k'

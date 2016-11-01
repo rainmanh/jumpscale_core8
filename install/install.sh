@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-set -ex
+set -e
+
+export STARTDIR=$PWD
 
 reset='true'
 while getopts ":kh" opt; do
     case $opt in
       k)
-        reset=false
+        reset='false'
         ;;
       h)
         echo "Usage install.sh:
@@ -15,7 +17,6 @@ while getopts ":kh" opt; do
     esac
 done
 
-echo "$reset"
 if [ $reset == "true" ]; then
     rm -rf /opt/jumpscale8
 fi
@@ -39,12 +40,21 @@ export PYTHONVERSION='3'
 export AYSGIT='https://github.com/Jumpscale/ays_jumpscale8'
 export AYSBRANCH='master'
 
+if [ -z"/JS8" ]; then
+    export JSBASE="/JS8/opt/jumpscale8"
+    export TMPDIR="/JS8/tmp"
+    mkdir -p $JSBASE
+else
+    if [ "$(uname)" == "Darwin" ]; then
+        export TMPDIR="$HOME/tmp"
+        export JSBASE="$HOME/opt/jumpscale8"
+    fi
+fi
 
-if [ "$(uname)" == "Darwin" ]; then
-    # Do something under Mac OS X platform
-    #echo 'install brew'
-    #ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-    export LANG=C; export LC_ALL=C
+mkdir -p $TMPDIR
+cd $TMPDIR
+
+function osx_install {
     brew install curl
     brew install python3
     brew install redis
@@ -64,14 +74,16 @@ if [ "$(uname)" == "Darwin" ]; then
     pip3 install --upgrade ptpdb
     pip3 install --upgrade http://carey.geek.nz/code/python-fcrypt/fcrypt-1.3.1.tar.gz
     pip3 install --upgrade uvloop
+}
 
-    export TMPDIR=~/tmp
+if [ "$(uname)" == "Darwin" ]; then
+    # Do something under Mac OS X platform
+    #echo 'install brew'
+    #ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    export LANG=C; export LC_ALL=C
+    # osx_install
 
-    if [ -z"$JSBASE" ]; then
-        export JSBASE="$HOME/opt/jumpscale8"
-    fi
-    mkdir -p $TMPDIR
-    cd $TMPDIR
+
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     # export LC_ALL='C.UTF-8'
     locale-gen en_US.UTF-8
@@ -153,11 +165,21 @@ fi
 
 set -ex
 branch=${JSBRANCH-master}
-curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/bootstrap.py > $TMPDIR/bootstrap.py
+
+cd $STARTDIR
+
+if [ -e"web/bootstrap.py" ]; then
+    cp bootstrap.py $TMPDIR/bootstrap.py
+    cp InstallTools.py $TMPDIR/InstallTools.py
+else
+    curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/bootstrap.py > $TMPDIR/bootstrap.py
+    curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/InstallTools.py?$RANDOM > $TMPDIR/InstallTools.py
+fi
+
 
 cd $TMPDIR
 if [ "${reset}" == "true" ]; then
-python3 bootstrap.py
+    python3 bootstrap.py
 else
-python3 bootstrap.py --no-reset
+    python3 bootstrap.py --no-reset
 fi

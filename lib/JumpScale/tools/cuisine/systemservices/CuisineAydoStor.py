@@ -24,10 +24,10 @@ class CuisineAydoStor(app):
             print('Aydostor is already installed, pass reinstall=True parameter to reinstall')
             return
 
+        self._cuisine.package.mdupdate()
         self._cuisine.package.install('build-essential')
 
         self._cuisine.core.dir_remove("%s/src" % self._cuisine.bash.environGet('GOPATH'))
-        self._cuisine.development.golang.install()
         self._cuisine.development.golang.get("github.com/g8os/stor")
 
         if install:

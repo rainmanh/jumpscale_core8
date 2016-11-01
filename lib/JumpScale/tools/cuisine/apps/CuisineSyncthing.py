@@ -22,7 +22,8 @@ class CuisineSyncthing(app):
 
         # build
         url = "https://github.com/syncthing/syncthing.git"
-        self._cuisine.core.dir_remove('$goDir/src/github.com/syncthing/syncthing')
+        if self._cuisine.core.file_exists('$goDir/src/github.com/syncthing/syncthing'):
+            self._cuisine.core.dir_remove('$goDir/src/github.com/syncthing/syncthing')
         dest = self._cuisine.development.git.pullRepo(url,
                                                       dest='$goDir/src/github.com/syncthing/syncthing',
                                                       ssh=False,

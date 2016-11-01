@@ -24,20 +24,20 @@ class GitClient:
 
         if baseDir.strip() == "":
             raise j.exceptions.RuntimeError("could not find basepath for .git in %s" % baseDir)
-        if baseDir.find("/code/") == -1 and check_path:
-            raise j.exceptions.Input(
-                "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
-        base = baseDir.split("/code/", 1)[1]
+        if check_path:
+            if baseDir.find("/code/") == -1:
+                raise j.exceptions.Input("jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
 
-        if not base.startswith('cockpit') and check_path:
-            if base.count("/") != 2:
-                raise j.exceptions.Input(
-                    "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
-            self.type, self.account, self.name = base.split("/", 2)
-        elif not check_path:
-            self.type, self.account, self.name = 'github', '', j.sal.fs.getBaseName(base)
+            base = baseDir.split("/code/", 1)[1]
+
+            if not base.startswith('cockpit'):
+                if base.count("/") != 2:
+                    raise j.exceptions.Input("jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
+                self.type, self.account, self.name = base.split("/", 2)
+            else:
+                self.type, self.account, self.name = 'github', 'cockpit', 'cockpit'
         else:
-            self.type, self.account, self.name = 'github', 'cockpit', 'cockpit'
+            self.type, self.account, self.name = '', '', j.sal.fs.getBaseName(baseDir)
 
         self.baseDir = baseDir
 

@@ -31,24 +31,8 @@ print("bootstrap installtools in dir %s and use branch:'%s'" % (tmpdir, branch))
 
 path = "%s/InstallTools.py" % tmpdir
 
-overwrite = True  # set on False for development or debugging
-
-if overwrite and os.path.exists(path):
-    os.remove(path)
-    try:
-        os.remove(path + "c")
-    except:
-        pass
-
-import random
-
 if not os.path.exists(path):
-    print("overwrite")
-    r = random.randint(1, 10000)  # to make sure caching does not work on internet
-    cmd = "curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/%s/install/InstallTools.py?%s > %s" % (
-        branch, r, path)
-    # print (cmd)
-    os.system(cmd)
+    raise RuntimeError("Cannot find:%s" % path)
 
 from importlib import util
 spec = util.spec_from_file_location("InstallTools", path)
@@ -65,11 +49,13 @@ do = InstallTools.do
 # FROM now on there is a do. variable which has many features, please investigate
 
 
-print("prepare system for jumpscale8")
-do.installer.prepare()
+# ALREADY DONE IN INSTALLJS
+# print("prepare system for jumpscale8")
+# do.installer.prepare()
 
 print("install jumpscale8")
 do.installer.installJS(clean=reset)
+do.installer.installJSDocs()
 
 from JumpScale import j
 

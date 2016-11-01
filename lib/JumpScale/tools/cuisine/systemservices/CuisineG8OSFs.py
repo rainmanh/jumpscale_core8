@@ -13,7 +13,9 @@ class CuisineG8OSFs(app):
         if self.isInstalled():
             return
 
-        self._cuisine.development.golang.install()
+        self._cuisine.package.mdupdate()
+        self._cuisine.package.install('build-essential')
+
         self._cuisine.development.golang.godep("github.com/g8os/fs")
         self._cuisine.core.run("cd %s && go build ." % "$goDir/src/github.com/g8os/fs", profile=True)
 

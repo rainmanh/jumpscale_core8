@@ -24,9 +24,8 @@ class CuisineCockpit(base):
         self._cuisine.processmanager.ensure('cockpit', cmd=cmd, path='/opt/jumpscale8/apps/ays_api')
 
     def install_deps(self):
-        self._cuisine.package.multiInstall([
-            'libssl-dev'
-        ])
+        self._cuisine.package.mdupdate()
+        self._cuisine.package.install('libssl-dev')
 
         deps = """
         cryptography

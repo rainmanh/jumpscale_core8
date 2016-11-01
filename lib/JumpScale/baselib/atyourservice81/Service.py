@@ -1,7 +1,7 @@
 from JumpScale import j
 
 import capnp
-
+import time
 
 class Service:
 
@@ -477,7 +477,7 @@ class Service:
         elif changeCategory.find('action_new') != -1:
             action_name = changeCategory.split('action_new_')[1]
             actor_action_pointer = actor.model.actions[action_name]
-            self.model.actionAdd(actor_action_pointer.actionKey, action_name)
+            self.model.actionAdd(key=actor_action_pointer.actionKey, name=action_name)
 
         elif changeCategory.find('action_mod') != -1:
             # update state and pointer of the action pointer in service model
@@ -586,7 +586,12 @@ class Service:
             return job
 
         while not p.isDone():
-            p.wait()
+            p.sync()
+            if p.new_stdout != "":
+                self.logger.info(p.new_stdout)
+            time.sleep(0.5)
+
+        p.wait()
 
         # if the action is a reccuring action, save last execution time in model
         if actionName in self.model.actionsRecurring:

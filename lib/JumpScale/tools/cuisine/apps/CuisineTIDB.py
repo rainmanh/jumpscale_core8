@@ -29,6 +29,8 @@ class CuisineTIDB(app):
         # SEE: https://github.com/pingcap/tidb
         # deploy on top of tikv (which is distributed database backend on top of paxos)
         # WILL BE BACKEND FOR e.g. OWNCLOUD / GOGS
+        self._cuisine.package.mdupdate()
+        self._cuisine.package.install('build-essential')
         url = 'https://raw.githubusercontent.com/pingcap/docs/master/scripts/build.sh'
         self._cuisine.core.dir_ensure('/tmp/tidb')
 

@@ -197,7 +197,7 @@ class Actor():
                 if linestrip == "" or linestrip[0] == "#":
                     continue
 
-            if state == "DEF" and (linestrip.startswith("@") or linestrip.startswith("def")):
+            if state == "DEF" and line[:7] != '    def' and (linestrip.startswith("@") or linestrip.startswith("def")):
                 # means we are at end of def to new one
                 self._addAction(actionName, amSource, amDecorator, amMethodArgs, amDoc)
                 amSource = ""

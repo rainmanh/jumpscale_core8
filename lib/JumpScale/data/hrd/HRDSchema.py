@@ -269,7 +269,9 @@ class HRDSchema:
                 ss = key.split(sep)
                 key = ss[0]
                 for s in ss[1:]:
-                    key += s.capitalize()
+                    key += s[0].upper()
+                    if len(s) > 1:
+                        key += s[1:]
         return key
 
     @property

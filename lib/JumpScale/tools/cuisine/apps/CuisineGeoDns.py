@@ -129,7 +129,8 @@ class CuisineGeoDns(app):
             return
         # deps
         # self._cuisine.development.golang.install(force=False)
-        self._cuisine.package.install("libgeoip-dev")
+        self._cuisine.package.mdupdate()
+        self._cuisine.package.multiInstall(["libgeoip-dev", 'build-essential', 'pkg-config'])
 
         # build
         self._cuisine.development.golang.get("github.com/abh/geodns")

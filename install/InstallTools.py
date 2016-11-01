@@ -21,57 +21,78 @@ if sys.platform != 'cygwin':
 class InstallTools():
 
     def __init__(self, debug=False):
-
-        self.TMP = tempfile.gettempdir().replace("\\", "/")
-
         self._whoami = None
+        self.debug = debug
+        self._extratools = False
+        self.init()
+
+    def init(self):
+
+        if self.exists("/JS8"):
+            os.environ["JSBASE"] = "/JS8/opt/jumpscale8/"
+            os.environ["HOME"] = "/JS8/home"
+            os.environ["TMPDIR"] = "/JS8/tmp"
+            os.environ["DATADIR"] = "/JS8/optvar/"
+            os.environ["CODEDIR"] = "/JS8/code"
 
         if platform.system().lower() == "windows":
             self.TYPE = "WIN"
-            self.BASE = "%s/" % os.environ["JSBASE"].replace("\\", "/")
+            os.environ["JSBASE"] = "%s/" % os.environ["JSBASE"].replace("\\", "/")
 
-        elif platform.system().lower() == "cygwin_nt-10.0":
-            self.TYPE = "WIN"
-            self.BASE = "%s/opt/jumpscale8" % os.environ["HOME"]
-            self.VARDIR = "%s/optvar" % os.environ["HOME"]
-
-        elif sys.platform.startswith("darwin"):
-            self.TYPE = "OSX"
-            self.BASE = "%s/opt/jumpscale8" % os.environ["HOME"]
-            self.VARDIR = "%s/optvar" % os.environ["HOME"]
+        elif sys.platform.startswith("darwin") or platform.system().lower() == "cygwin_nt-10.0":
+            if sys.platform.startswith("darwin"):
+                self.TYPE = "OSX"
+            else:
+                self.TYPE = "WIN"
+            if "JSBASE" not in os.environ:
+                os.environ["JSBASE"] = "%s/opt/jumpscale8" % os.environ["HOME"]
+            if "DATADIR" not in os.environ:
+                os.environ["DATADIR"] = "%s/optvar" % os.environ["HOME"]
+            if "CODEDIR" not in os.environ:
+                os.environ["CODEDIR"] = "%s/code" % os.environ["HOME"]
 
         elif sys.platform.startswith("linux"):
-            self.BASE = os.environ.get("JSBASE", "/opt/jumpscale8")
             self.TYPE = "LINUX"
-            self.VARDIR = "/optvar/"
-            # self.TYPE=platform.linux_distribution(full_distribution_name=0)[0].upper()
-            # if self.TYPE!="UBUNTU":
-            #     raise RuntimeError("Jumpscale only supports windows 7+, macosx, ubuntu 12+")
+            if "JSBASE" not in os.environ:
+                os.environ["JSBASE"] = "/opt/jumpscale8"
+            if "DATADIR" not in os.environ:
+                os.environ["DATADIR"] = "/optvar"
+            if "CODEDIR" not in os.environ:
+                os.environ["CODEDIR"] = "/opt/code"
+
         else:
             raise RuntimeError("Jumpscale only supports windows 7+, macosx, ubuntu 12+")
 
         self.TYPE += platform.architecture()[0][:2]
 
+        if "TMPDIR" in os.environ:
+            self.TMP = os.environ["TMPDIR"]
+        else:
+            self.TMP = tempfile.gettempdir().replace("\\", "/")
+
         if "JSBASE" in os.environ:
             self.BASE = os.environ["JSBASE"]
+        else:
+            raise RuntimeError("JSBASE not specified")
 
         if "CODEDIR" in os.environ:
             self.CODEDIR = os.environ["CODEDIR"]
         else:
-            if self.TYPE.startswith("WIN"):
-                self.CODEDIR = "%s/opt/code" % os.environ["HOME"]
-            elif self.TYPE.startswith("OSX"):
-                self.CODEDIR = "%s/opt/code" % os.environ["HOME"]
-            else:
-                self.CODEDIR = "/opt/code"
+            raise RuntimeError("CODEDIR not specified")
+
+        if "DATADIR" in os.environ:
+            self.VARDIR = os.environ["DATADIR"]
+        else:
+            raise RuntimeError("DATADIR not specified")
+
+        if "TMPDIR" in os.environ:
+            self.TMPDIR = os.environ["TMPDIR"]
+        else:
+            raise RuntimeError("TMPDIR not specified")
 
         while self.BASE[-1] == "/":
             self.BASE = self.BASE[:-1]
         self.BASE += "/"
-
-        self.debug = debug
-
-        self._extratools = False
 
         # if str(sys.excepthook).find("apport_excepthook")!=-1:
         # if we get here it means is std python excepthook (I hope)
@@ -489,7 +510,7 @@ class InstallTools():
         if self.TYPE == "WIN":
             cmd = "junction %s %s 2>&1 > null" % (dest, src)
             os.system(cmd)
-            #raise RuntimeError("not supported on windows yet")
+            # raise RuntimeError("not supported on windows yet")
         else:
             dest = dest.rstrip("/")
             src = src.rstrip("/")
@@ -626,11 +647,11 @@ class InstallTools():
 
         # if recursive:
         # if not self.exists(path):
-        #raise ValueError('Specified path: %s does not exist' % path)
+        # raise ValueError('Specified path: %s does not exist' % path)
         # if not self.isDir(path):
-        #raise ValueError('Specified path: %s is not a directory' % path)
-        #result = []
-        #os.path.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
+        # raise ValueError('Specified path: %s is not a directory' % path)
+        # result = []
+        # os.path.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
         # return result
         if path is None or path.strip == "":
             raise RuntimeError("path cannot be empty")
@@ -992,9 +1013,10 @@ class InstallTools():
             if cmd.strip() == "" or cmd[0] == "#":
                 continue
             cmd = cmd.strip()
-            rc, out, err = self.execute(cmd, showout, outputStderr, useShell, log, cwd, timeout, captureout, die)
-            rc_.append(str(rc))
-            out_ += out
+            self.executeInteractive(cmd)
+            # rc, out, err = self.execute(cmd, showout, outputStderr, useShell, log, cwd, timeout, captureout, die)
+            # rc_.append(str(rc))
+            # out_ += out
 
         return rc_, out_
 
@@ -1041,6 +1063,8 @@ class InstallTools():
         @param executor: If not None returns output of executor.execute(....)
         @return: (returncode, output, error). output and error defaults to empty string
         """
+        # TODO: *1 need to be brought back without async & without anything
+        # advanced, this is an isntaller should not have async, ...
 
         if executor:
             return executor.execute(command, die=die, checkok=False, async=async, showout=True, timeout=timeout)
@@ -1360,6 +1384,8 @@ class InstallTools():
         will adjust .profile file to make sure that env param is set to allow ssh-agent to find the keys
         """
         # print "loadsshkeys"
+        # TODO *1 move ssh functionality all of it to right sal or tool in
+        # jumpscale, make sure wherever we use it we adjust
 
         self._addSSHAgentToBashProfile()
 
@@ -1598,7 +1624,8 @@ class InstallTools():
             # no keys but agent loaded
             result = ""
         elif rc > 0:
-            raise RuntimeError("Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
+            raise RuntimeError(
+                "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
 
     def checkSSHAgentAvailable(self):
         if not self.exists(self._getSSHSocketpath()):
@@ -1627,7 +1654,7 @@ class InstallTools():
             branch (str): branch to be used
             ssh if auto will check if ssh-agent loaded, if True will be forced to use ssh for git
 
-        #### Process for finding authentication credentials (NOT IMPLEMENTED YET)
+        # Process for finding authentication credentials (NOT IMPLEMENTED YET)
 
         - first check there is an ssh-agent and there is a key attached to it, if yes then no login & passwd will be used & method will always be git
         - if not ssh-agent found
@@ -1640,7 +1667,7 @@ class InstallTools():
         - if at this point still no login/passwd then we will try to build url with anonymous
 
 
-        #### Process for defining branch
+        # Process for defining branch
 
         - if branch arg: None
             - check if git directory exists if yes take that branch
@@ -1697,7 +1724,7 @@ class InstallTools():
         return repository_host, repository_type, repository_account, repository_name, dest, repository_url
 
     def pullGitRepo(self, url="", dest=None, login=None, passwd=None, depth=1, ignorelocalchanges=False,
-                    reset=False, branch=None, revision=None, ssh="auto", executor=None, codeDir=None, onlyIfExists=False):
+                    reset=False, branch=None, revision=None, ssh="auto", executor=None, codeDir=None):
         """
         will clone or update repo
         if dest is None then clone underneath: /opt/code/$type/$account/$repo
@@ -1706,6 +1733,7 @@ class InstallTools():
         @param ssh ==True means will checkout ssh
         @param ssh =="first" means will checkout sss first if that does not work will go to http
         """
+
         if ssh == "first":
             try:
                 return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
@@ -1718,27 +1746,31 @@ class InstallTools():
         base, provider, account, repo, dest, url = self.getGitRepoArgs(
             url, dest, login, passwd, reset=reset, ssh=ssh, codeDir=codeDir, executor=executor)
 
-        exists = self.exists(dest) if not executor else executor.exists(dest)
+        print("pull:%s ->%s" % (url, dest))
 
-        if onlyIfExists and exists is False:
-            return
+        existsDir = self.exists(dest) if not executor else executor.exists(dest)
 
-        if dest is None and branch is None:
-            branch = "master"
-        elif branch is None and dest is not None and exists:
+        checkdir = "%s/.git" % (dest)
+        existsGit = self.exists(checkdir) if not executor else executor.exists(checkdir)
+
+        if existsDir and not existsGit:
+            raise RuntimeError("Git location does not have .git:%s\n" % dest)
+
+        if existsGit:
             # if we don't specify the branch, try to find the currently checkedout branch
             cmd = 'cd %s; git rev-parse --abbrev-ref HEAD' % dest
             rc, out, err = self.execute(cmd, die=False, showout=False, executor=executor)
             if rc == 0:
-                branch = out.strip()
+                branchFound = out.strip()
             else:  # if we can't retreive current branch, use master as default
-                branch = 'master'
-        else:
-            branch = branch
+                raise RuntimeError("Cannot retrieve branch:\n%s\n" % cmd)
 
-        checkdir = "%s/.git" % (dest)
-        exists = self.exists(checkdir) if not executor else executor.exists(checkdir)
-        if exists:
+            if branch != None and branch != branchFound and ignorelocalchanges == False:
+                raise RuntimeError("Cannot pull repo, branch on filesystem is not same as branch asked for.")
+
+            if branch == None:
+                branch = branchFound
+
             if ignorelocalchanges:
                 print(("git pull, ignore changes %s -> %s" % (url, dest)))
                 cmd = "cd %s;git fetch" % dest
@@ -1747,21 +1779,17 @@ class InstallTools():
                     self.execute(cmd, executor=executor)
                 if branch is not None:
                     print("reset branch to:%s" % branch)
-                    self.execute("cd %s;git reset --hard origin/%s" % (dest, branch), timeout=600, executor=executor)
+                    self.execute("cd %s;git fetch; git reset --hard origin/%s" %
+                                 (dest, branch), timeout=600, executor=executor)
             else:
                 # pull
                 print(("git pull %s -> %s" % (url, dest)))
                 if url.find("http") != -1:
                     print("http")
-                    if branch is not None:
-                        cmd = "cd %s;git -c http.sslVerify=false pull origin %s" % (dest, branch)
-                    else:
-                        cmd = "cd %s;git -c http.sslVerify=false pull" % dest
+                    cmd = "cd %s;git -c http.sslVerify=false pull origin %s" % (dest, branch)
                 else:
-                    if branch is not None:
-                        cmd = "cd %s; git fetch ; git reset --hard origin/%s" % (dest, branch)
-                    else:
-                        cmd = "cd %s; git fetch ; git reset --hard origin/master" % dest
+                    cmd = "cd %s; pull origin %s" % (dest, branch)
+
                 self.execute(cmd, timeout=600, executor=executor)
         else:
             print(("git clone %s -> %s" % (url, dest)))
@@ -2012,13 +2040,11 @@ class Installer():
 
         if base != "":
             os.environ["JSBASE"] = base
-        else:
-            os.environ["JSBASE"] = do.BASE
 
         if CODEDIR != "":
             os.environ["CODEDIR"] = CODEDIR
-        else:
-            os.environ["CODEDIR"] = do.CODEDIR
+
+        do.init()
 
         if sys.platform.startswith('win'):
             raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
@@ -2050,7 +2076,7 @@ class Installer():
 
         self.debug = True
 
-        self.prepare(SANDBOX=args2['SANDBOX'], base=args2['JSBASE'])
+        self.prepare()
 
         do.execute("mkdir -p %s/.ssh/" % os.environ["HOME"])
         do.execute("ssh-keyscan github.com 2> /dev/null  >> {0}/.ssh/known_hosts; ssh-keyscan git.aydo.com 2> /dev/null >> {0}/.ssh/known_hosts".format(
@@ -2096,12 +2122,13 @@ class Installer():
         dest = "%s/bin" % base
         do.symlinkFilesInDir(src, dest)
 
-        # create ays,jsdocker completion based on click magic variables
-        with open(os.path.expanduser("~/.bashrc"), "a") as f:
-            f.write('''
-eval "$(_AYS_COMPLETE=source ays)"
-eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
-            ''')
+        # DO NOT LOAD AUTOCOMPLETE AUTOMATICALLY
+#         # create ays,jsdocker completion based on click magic variables
+#         with open(os.path.expanduser("~/.bashrc"), "a") as f:
+#             f.write('''
+# eval "$(_AYS_COMPLETE=source ays)"
+# eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
+#             ''')
 
         # link python
         src = "/usr/bin/python3.5"
@@ -2124,7 +2151,7 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
             sys.path = []
         sys.path.insert(0, "%s/lib" % base)
 
-        #from JumpScale import j
+        # from JumpScale import j
 
         print("Get atYourService metadata.")
         do.pullGitRepo(args2['AYSGIT'], branch=args2['AYSBRANCH'], depth=1, ssh="first")
@@ -2444,45 +2471,38 @@ exec python3 -q "$@"
                 cmd = "cd %s;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python get-pip.py" % do.TMP
                 do.execute(cmd)
 
-    def prepare(self, SANDBOX=0, base=""):
-        print("prepare (sandbox:%s)" % SANDBOX)
-        if base == "":
-            base = do.BASE
-        if do.TYPE != ("UBUNTU64"):
-            SANDBOX = 0
+    def prepare(self):
+        return
+        print("prepare")
 
-        if SANDBOX == 1:
-            raise RuntimeError("not supported yet, will use ays fuse")
+        self.installpip()
+        cmds = """
+        pip3 install ipython
+        pip3 install redis
+        pip3 install netaddr
+        pip3 install cython
+        pip3 install pycapnp
+        pip3 install path.py
+        pip3 install colored-traceback
+        pip3 install pudb
+        pip3 install colorlog
+        pip3 install msgpack-python
+        pip3 install pyblake2
+        pip3 install click
+        """
+        do.executeCmds(cmds)
 
-        else:
-            self.installpip()
+        # do.executeInteractive("pip3 install xonsh")
+        # do.executeInteractive("pip3 install tmuxp")
+
+        if sys.platform.startswith('win'):
+            raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
+        elif sys.platform.startswith('darwin'):
             cmds = """
-            pip3 install ipython
-            pip3 install redis
-            pip3 install netaddr
-            pip3 install cython
-            pip3 install pycapnp
-            pip3 install path.py
-            pip3 install colored-traceback
-            pip3 install pudb
-            pip3 install colorlog
-            pip3 install msgpack-python
-            pip3 install pyblake2
-            pip3 install click
+            brew install tmux
+            brew install psutils
             """
             do.executeCmds(cmds)
-
-            #do.executeInteractive("pip3 install xonsh")
-            # do.executeInteractive("pip3 install tmuxp")
-
-            if sys.platform.startswith('win'):
-                raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
-            elif sys.platform.startswith('darwin'):
-                cmds = """
-                brew install tmux
-                brew install psutils
-                """
-                do.executeCmds(cmds)
 
     def updateUpgradeUbuntu(self):
         CMDS = """
@@ -2543,15 +2563,15 @@ exec python3 -q "$@"
 
         do.pullGitRepo("https://github.com/vinta/awesome-python")
 
-        if do.TYPE.startswith("OSX"):
-            dest = "%s/Library/Application Support/Sublime Text 3/Packages" % os.environ["HOME"]
-            src = "%s/opt/code/github/jumpscale/jumpscale_core8/tools/sublimetext/" % os.environ["HOME"]
-        else:
-            print("implement develtools")
-            import ipdb
-            ipdb.set_trace()
-        if do.exists(src) and do.exists(dest):
-            do.copyTree(src, dest)
+        # if do.TYPE.startswith("OSX"):
+        #     dest = "%s/Library/Application Support/Sublime Text 3/Packages" % os.environ["HOME"]
+        #     src = "%s/opt/code/github/jumpscale/jumpscale_core8/tools/sublimetext/" % os.environ["HOME"]
+        # else:
+        #     print("implement develtools")
+        #     import ipdb
+        #     ipdb.set_trace()
+        # if do.exists(src) and do.exists(dest):
+        #     do.copyTree(src, dest)
 
 
 do.installer = Installer()

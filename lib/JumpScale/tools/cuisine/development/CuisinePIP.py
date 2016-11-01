@@ -96,12 +96,12 @@ class CuisinePIP(base):
             else:
                 raise j.exceptions.Input('packagelist should be string or a list. received a %s' % type(packagelist))
 
+            to_install = []
             for dep in packages:
                 dep = dep.strip()
-                if dep.strip() == "":
+                if dep is None or dep == "" or dep[0] == '#':
                     continue
-                if dep.strip()[0] == "#":
-                    continue
-                self.install(dep)
+                to_install.append(dep)
+            self.install(' '.join(to_install), upgrade=upgrade)
         finally:
             self._cuisine.core.sudomode = previous_sudo

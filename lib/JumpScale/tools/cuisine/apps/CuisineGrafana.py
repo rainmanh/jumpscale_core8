@@ -25,7 +25,7 @@ class CuisineGrafana(app):
             raise RuntimeError("platform not supported")
 
     def install(self, start=False, influx_addr='127.0.0.1', influx_port=8086, port=3000):
-
+        self._cuisine.core.dir_ensure('$binDir')
         self._cuisine.core.file_copy("/usr/sbin/grafana*", dest="$binDir")
 
         self._cuisine.core.dir_ensure("$appDir/grafana")

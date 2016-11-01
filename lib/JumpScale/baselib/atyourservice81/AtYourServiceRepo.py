@@ -104,7 +104,7 @@ class AtYourServiceRepo():
         if version != "":
             raise NotImplementedError("actors find with version not implemented.")
         for item in self.db.actor.find(name=name):
-            if not(name == "" or item.model.name == name):
+            if not(name == "" or item.name == name):
                 # no match continue
                 continue
             if not (role == '' or item.model.role == role):
@@ -399,7 +399,7 @@ class AtYourServiceRepo():
         result = {}
         for service_model in self.db.service.find():
             for action, state in service_model.actionsState.items():
-                if state in ['scheduled', 'changed']:
+                if state in ['scheduled', 'changed', 'error']:
                     action_chain = list()
                     service_model._build_actions_chain(action, ds=action_chain)
                     action_chain.reverse()

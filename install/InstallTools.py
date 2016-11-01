@@ -2055,7 +2055,7 @@ class Installer():
 
         # this means if env var's are set they get priority
         args2 = dict(map(lambda item: (item, ''), ["GITHUBUSER", "GITHUBPASSWD", "JSGIT", "JSBRANCH",
-                                                   "AYSGIT", "AYSBRANCH", "CODEDIR", "SANDBOX", "EMAIL", "FULLNAME", "JSBASE", "PYTHONVERSION"]))
+                                                   "AYSGIT", "AYSBRANCH", "CODEDIR", "EMAIL", "FULLNAME", "JSBASE", "PYTHONVERSION"]))
         # walk over all var's & set defaults or get them from env
         for var in args2.copy():
             if var in os.environ:
@@ -2065,7 +2065,7 @@ class Installer():
 
         os.environ.update(args2)
 
-        args2['SANDBOX'] = int(args2['SANDBOX'])
+        args2['SANDBOX'] = int(do.sandbox)
 
         if EMAIL != "":
             self.gitConfig(FULLNAME, EMAIL)

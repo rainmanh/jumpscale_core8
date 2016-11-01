@@ -2049,7 +2049,6 @@ class Installer():
                   JSGIT="https://github.com/Jumpscale/jumpscale_core8.git", JSBRANCH="master",
                   AYSGIT="https://github.com/Jumpscale/ays_jumpscale8", AYSBRANCH="master", EMAIL="", FULLNAME=""):
         """
-        @param insystem means use system packaging system to deploy dependencies like python & python packages
         @param codedir is the location where the code will be installed, code which get's checked out from github
         @param base is location of root of JumpScale
         @copybinary means copy the binary files (in sandboxed mode) to the location, don't link
@@ -2141,7 +2140,7 @@ class Installer():
 
         src = "%s/github/jumpscale/jumpscale_core8/shellcmds" % do.CODEDIR
         desttest = "/usr/local/bin/js"
-        if insystem or not self.exists(desttest):
+        if not self.exists(desttest):
             dest = "/usr/local/bin"
             do.symlinkFilesInDir(src, dest)
 

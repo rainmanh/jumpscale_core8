@@ -33,7 +33,7 @@ class CuisinePortal(base):
                             influxport=influxport, grafanaip=grafanaip, grafanaport=grafanaport)
 
     def install(self, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086,
-                grafanaip="127.0.0.1", grafanaport=3000, login="", passwd="", redis_ip="127.0.0.1", redis_port=6379):
+                grafanaip="127.0.0.1", grafanaport=3000, login="", passwd="", redis_ip="127.0.0.1", redis_port=6379, branch='master'):
         self._install(mongodbip=mongodbip,
                       mongoport=mongoport,
                       influxip=influxip,
@@ -43,7 +43,8 @@ class CuisinePortal(base):
                       login=login,
                       passwd=passwd,
                       redis_ip=redis_ip,
-                      redis_port=redis_port)
+                      redis_port=redis_port,
+                      branch=branch)
         if start:
             self.start()
 
@@ -174,7 +175,7 @@ class CuisinePortal(base):
         self._cuisine.apps.redis.build(start=True)
 
     def getcode(self, branch='master'):
-        self._cuisine.development.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git", branch=None)
+        self._cuisine.development.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git", branch=branch)
 
     def linkCode(self):
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
@@ -184,6 +185,9 @@ class CuisinePortal(base):
         if self._cuisine.core.file_exists("%s/portal" % destjslib):
             self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths[
                                          "codeDir"], "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
+
+        if self._cuisine.core.file_exists("%s/portal" % self._cuisine.core.dir_paths['jsLibDir']):
+            self._cuisine.core.dir_remove("%s/portal" % self._cuisine.core.dir_paths['jsLibDir'], recursive=True)
         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" %
                                      self._cuisine.core.dir_paths["codeDir"], "%s/portal" % self._cuisine.core.dir_paths['jsLibDir'])
 

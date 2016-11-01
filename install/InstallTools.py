@@ -21,57 +21,78 @@ if sys.platform != 'cygwin':
 class InstallTools():
 
     def __init__(self, debug=False):
-
-        self.TMP = tempfile.gettempdir().replace("\\", "/")
-
         self._whoami = None
+        self.debug = debug
+        self._extratools = False
+        self.init()
+
+    def init(self):
+
+        if self.exists("/JS8"):
+            os.environ["JSBASE"] = "/JS8/opt/jumpscale8/"
+            os.environ["HOME"] = "/JS8/home"
+            os.environ["TMPDIR"] = "/JS8/tmp"
+            os.environ["DATADIR"] = "/JS8/optvar/"
+            os.environ["CODEDIR"] = "/JS8/code"
 
         if platform.system().lower() == "windows":
             self.TYPE = "WIN"
-            self.BASE = "%s/" % os.environ["JSBASE"].replace("\\", "/")
+            os.environ["JSBASE"] = "%s/" % os.environ["JSBASE"].replace("\\", "/")
 
-        elif platform.system().lower() == "cygwin_nt-10.0":
-            self.TYPE = "WIN"
-            self.BASE = "%s/opt/jumpscale8" % os.environ["HOME"]
-            self.VARDIR = "%s/optvar" % os.environ["HOME"]
-
-        elif sys.platform.startswith("darwin"):
-            self.TYPE = "OSX"
-            self.BASE = "%s/opt/jumpscale8" % os.environ["HOME"]
-            self.VARDIR = "%s/optvar" % os.environ["HOME"]
+        elif sys.platform.startswith("darwin") or platform.system().lower() == "cygwin_nt-10.0":
+            if sys.platform.startswith("darwin"):
+                self.TYPE = "OSX"
+            else:
+                self.TYPE = "WIN"
+            if "JSBASE" not in os.environ:
+                os.environ["JSBASE"] = = "%s/opt/jumpscale8" % os.environ["HOME"]
+            if "DATADIR" not in os.environ:
+                os.environ["DATADIR"] = "%s/optvar" % os.environ["HOME"]
+            if "CODEDIR" not in os.environ:
+                os.environ["CODEDIR"] = "%s/code" % os.environ["HOME"]
 
         elif sys.platform.startswith("linux"):
-            self.BASE = os.environ.get("JSBASE", "/opt/jumpscale8")
             self.TYPE = "LINUX"
-            self.VARDIR = "/optvar/"
-            # self.TYPE=platform.linux_distribution(full_distribution_name=0)[0].upper()
-            # if self.TYPE!="UBUNTU":
-            #     raise RuntimeError("Jumpscale only supports windows 7+, macosx, ubuntu 12+")
+            if "JSBASE" not in os.environ:
+                os.environ["JSBASE"] = = "/opt/jumpscale8"
+            if "DATADIR" not in os.environ:
+                os.environ["DATADIR"] = "/optvar"
+            if "CODEDIR" not in os.environ:
+                os.environ["CODEDIR"] = "/opt/code"
+
         else:
             raise RuntimeError("Jumpscale only supports windows 7+, macosx, ubuntu 12+")
 
         self.TYPE += platform.architecture()[0][:2]
 
+        if "TMPDIR" in os.environ:
+            self.TMP = os.environ["TMPDIR"]
+        else:
+            self.TMP = tempfile.gettempdir().replace("\\", "/")
+
         if "JSBASE" in os.environ:
             self.BASE = os.environ["JSBASE"]
+        else:
+            raise RuntimeError("JSBASE not specified")
 
         if "CODEDIR" in os.environ:
             self.CODEDIR = os.environ["CODEDIR"]
         else:
-            if self.TYPE.startswith("WIN"):
-                self.CODEDIR = "%s/opt/code" % os.environ["HOME"]
-            elif self.TYPE.startswith("OSX"):
-                self.CODEDIR = "%s/opt/code" % os.environ["HOME"]
-            else:
-                self.CODEDIR = "/opt/code"
+            raise RuntimeError("CODEDIR not specified")
+
+        if "DATADIR" in os.environ:
+            self.VARDIR = os.environ["DATADIR"]
+        else:
+            raise RuntimeError("DATADIR not specified")
+
+        if "TMPDIR" in os.environ:
+            self.TMPDIR = os.environ["TMPDIR"]
+        else:
+            raise RuntimeError("TMPDIR not specified")
 
         while self.BASE[-1] == "/":
             self.BASE = self.BASE[:-1]
         self.BASE += "/"
-
-        self.debug = debug
-
-        self._extratools = False
 
         # if str(sys.excepthook).find("apport_excepthook")!=-1:
         # if we get here it means is std python excepthook (I hope)
@@ -992,9 +1013,10 @@ class InstallTools():
             if cmd.strip() == "" or cmd[0] == "#":
                 continue
             cmd = cmd.strip()
-            rc, out, err = self.execute(cmd, showout, outputStderr, useShell, log, cwd, timeout, captureout, die)
-            rc_.append(str(rc))
-            out_ += out
+            self.executeInteractive(cmd)
+            # rc, out, err = self.execute(cmd, showout, outputStderr, useShell, log, cwd, timeout, captureout, die)
+            # rc_.append(str(rc))
+            # out_ += out
 
         return rc_, out_
 
@@ -1041,6 +1063,8 @@ class InstallTools():
         @param executor: If not None returns output of executor.execute(....)
         @return: (returncode, output, error). output and error defaults to empty string
         """
+        # TODO: *1 need to be brought back without async & without anything
+        # advanced, this is an isntaller should not have async, ...
 
         if executor:
             return executor.execute(command, die=die, checkok=False, async=async, showout=True, timeout=timeout)
@@ -1360,6 +1384,8 @@ class InstallTools():
         will adjust .profile file to make sure that env param is set to allow ssh-agent to find the keys
         """
         # print "loadsshkeys"
+        # TODO *1 move ssh functionality all of it to right sal or tool in
+        # jumpscale, make sure wherever we use it we adjust
 
         self._addSSHAgentToBashProfile()
 
@@ -1598,7 +1624,8 @@ class InstallTools():
             # no keys but agent loaded
             result = ""
         elif rc > 0:
-            raise RuntimeError("Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
+            raise RuntimeError(
+                "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
 
     def checkSSHAgentAvailable(self):
         if not self.exists(self._getSSHSocketpath()):
@@ -2012,13 +2039,16 @@ class Installer():
 
         if base != "":
             os.environ["JSBASE"] = base
-        else:
-            os.environ["JSBASE"] = do.BASE
 
         if CODEDIR != "":
             os.environ["CODEDIR"] = CODEDIR
-        else:
-            os.environ["CODEDIR"] = do.CODEDIR
+
+        self.init()
+
+        from IPython import embed
+        print("DEBUG NOW 9999")
+        embed()
+        raise RuntimeError("stop debug here")
 
         if sys.platform.startswith('win'):
             raise RuntimeError("Cannot find JSBASE, needs to be set as env var")

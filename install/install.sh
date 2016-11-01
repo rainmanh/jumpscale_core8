@@ -72,9 +72,8 @@ function osx_install {
     pip3 install --upgrade ptpython
     pip3 install --upgrade pymux
     pip3 install --upgrade ptpdb
-    # pip3 install --upgrade http://carey.geek.nz/code/python-fcrypt/fcrypt-1.3.1.tar.gz
+    pip3 install --upgrade http://carey.geek.nz/code/python-fcrypt/fcrypt-1.3.1.tar.gz
     pip3 install --upgrade uvloop
-    pip3 install --upgrade yaml
 }
 
 if [ "$(uname)" == "Darwin" ]; then
@@ -122,12 +121,14 @@ elif [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
     apt-cyg install wget
     apt-cyg install python3
     apt-cyg install make
+    apt-cyg install libffi-devel
     apt-cyg install unzip
 
     python3 -m ensurepip
     ln -sf /usr/bin/python3 /usr/bin/python
     apt-cyg install git
 
+    pip3 install cryptography==1.4
     pip3 install --upgrade paramiko
     pip3 install --upgrade pip setuptools
     pip3 install --upgrade ipdb
@@ -140,11 +141,7 @@ elif [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
     pip3 install --upgrade ptpython
     pip3 install --upgrade pymux
     pip3 install --upgrade ptpdb
-    pip3 install --upgrade yaml
-
-    #pip3 install cryptography==1.4
-    #apt-cyg install libffi-devel
-    # pip3 install --upgrade http://carey.geek.nz/code/python-fcrypt/fcrypt-1.3.1.tar.gz
+    pip3 install --upgrade http://carey.geek.nz/code/python-fcrypt/fcrypt-1.3.1.tar.gz
 
     export TMPDIR=/tmp
 

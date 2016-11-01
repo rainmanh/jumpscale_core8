@@ -13,7 +13,6 @@ import asyncio
 from subprocess import Popen
 import re
 import inspect
-import yaml
 
 if sys.platform != 'cygwin':
     import uvloop
@@ -24,33 +23,17 @@ class InstallTools():
     def __init__(self, debug=False):
         self._whoami = None
         self.debug = debug
-        self.readonly = False
         self._extratools = False
-        self.sandbox = False
         self.init()
 
     def init(self):
 
-        self.embed = "embed" in sys.__dict__
-
-        if self.embed:
-            os.environ["JSBASE"] = os.getcwd()
-            if not "HOME" in os.environ:
-                raise RuntimeError()
-            os.environ["TMPDIR"] = "%s/js/tmp" % os.environ["JSBASE"]
-            os.environ["DATADIR"] = "%s/js/data" % os.environ["JSBASE"]
-            os.environ["CODEDIR"] = "%s/js/code" % os.environ["JSBASE"]
-            os.environ["CFGDIR"] = "%s/js/cfg" % os.environ["JSBASE"]
-
-            self.initCreateDirs4System()
-
-        elif self.exists("/JS8"):
+        if self.exists("/JS8"):
             os.environ["JSBASE"] = "/JS8/opt/jumpscale8/"
             os.environ["HOME"] = "/JS8/home"
             os.environ["TMPDIR"] = "/JS8/tmp"
             os.environ["DATADIR"] = "/JS8/optvar/"
             os.environ["CODEDIR"] = "/JS8/code"
-            os.environ["CFGDIR"] = "/JS8/optvar/cfg/"
 
         if platform.system().lower() == "windows":
             self.TYPE = "WIN"
@@ -107,11 +90,6 @@ class InstallTools():
         else:
             raise RuntimeError("TMPDIR not specified")
 
-        if "CFGDIR" in os.environ:
-            self.CFGDIR = os.environ["CFGDIR"]
-        else:
-            raise RuntimeError("CFGDIR not specified")
-
         while self.BASE[-1] == "/":
             self.BASE = self.BASE[:-1]
         self.BASE += "/"
@@ -139,11 +117,6 @@ class InstallTools():
     #     print((44))
     #     embed()
     #     #TODO: not working yet
-
-    def initCreateDirs4System(self):
-        for item in ["JSBASE", "HOME", "TMPDIR", "DATADIR", "CODEDIR", "CFGDIR"]:
-            path = os.environ[item]
-            self.createDir(path)
 
     def log(self, msg, level=None):
         if self.debug:
@@ -1765,7 +1738,7 @@ class InstallTools():
             try:
                 return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
                                         reset, branch, revision, True, executor)
-            except Exception as e:
+            except Exception:
                 return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
                                         reset, branch, revision, False, executor)
             raise RuntimeError("Could not checkout, needs to be with ssh or without.")
@@ -1812,10 +1785,11 @@ class InstallTools():
                 # pull
                 print(("git pull %s -> %s" % (url, dest)))
                 if url.find("http") != -1:
+                    print("http")
                     cmd = "cd %s;git -c http.sslVerify=false pull origin %s" % (dest, branch)
                 else:
-                    cmd = "cd %s;git pull origin %s" % (dest, branch)
-                print(cmd)
+                    cmd = "cd %s; pull origin %s" % (dest, branch)
+
                 self.execute(cmd, timeout=600, executor=executor)
         else:
             print(("git clone %s -> %s" % (url, dest)))
@@ -2045,9 +2019,9 @@ class Installer():
         print("install jsdocs")
         do.pullGitRepo(url='git@github.com:Jumpscale/docs.git', ssh="first")
 
-    def installJS(self, base="", clean=True, GITHUBUSER="", GITHUBPASSWD="", CODEDIR="",
+    def installJS(self, base="", clean=True, insystem=True, GITHUBUSER="", GITHUBPASSWD="", CODEDIR="",
                   JSGIT="https://github.com/Jumpscale/jumpscale_core8.git", JSBRANCH="master",
-                  AYSGIT="https://github.com/Jumpscale/ays_jumpscale8", AYSBRANCH="master", EMAIL="", FULLNAME=""):
+                  AYSGIT="https://github.com/Jumpscale/ays_jumpscale8", AYSBRANCH="master", SANDBOX='0', EMAIL="", FULLNAME=""):
         """
         @param insystem means use system packaging system to deploy dependencies like python & python packages
         @param codedir is the location where the code will be installed, code which get's checked out from github
@@ -2171,14 +2145,19 @@ class Installer():
         #     do.symlink(src, "%s/bin/python3"%base)
         #     do.symlink(src, "%s/bin/python3.5"%base)
 
-        self.writeEnv()
+        self.writeenv(basedir=base, insystem=insystem, CODEDIR=args2['CODEDIR'], SANDBOX=args2['SANDBOX'])
 
+        if not insystem:
+            sys.path = []
         sys.path.insert(0, "%s/lib" % base)
+
+        # from JumpScale import j
 
         print("Get atYourService metadata.")
         do.pullGitRepo(args2['AYSGIT'], branch=args2['AYSBRANCH'], depth=1, ssh="first")
 
         print("install was successfull")
+        # if pythonversion==2:
         print("to use do 'js'")
 
     @property
@@ -2193,22 +2172,94 @@ class Installer():
             do.delete(ppath)
         return self._readonly
 
-    def writeEnv(self):
+    def writeenv(self, basedir="", insystem=False, CODEDIR="", vardir="", die=True, SANDBOX=0):
+        if basedir == "":
+            # self.BASE
+            try:
+                basedir = do.getParent(do.getParent(do.getParent(inspect.getabsfile(do.executeCmds))))
+            except Exception as e:
+                raise RuntimeError("Please specify basedir, can not find.")
 
-        print("WRITENV")
+        if basedir == "":
+            raise RuntimeError("basedir cannot be empty")
 
-        config = {}
-        for item in ["EMAIL", "FULLNAME", "GITHUBUSER", "GITHUBPASSWD", "AYSGIT", "AYSBRANCH", "DEBUG"]:
+        print("WRITENV TO:%s" % basedir)
+
+        if CODEDIR == "":
+            CODEDIR = do.CODEDIR
+
+        if vardir == "":
+            vardir = do.VARDIR
+
+        cfgdir = do.joinPaths(do.VARDIR, 'cfg')
+
+        try:
+            do.createDir(vardir)
+            do.createDir("%s/hrd/system/" % vardir)
+            do.createDir("%s/hrd/apps/" % vardir)
+            do.createDir("%s/cfg" % vardir)
+        except:
+            do.delete("%s/hrd/" % vardir)
+            do.createDir(vardir)
+            do.createDir("%s/hrd/system/" % vardir)
+            do.createDir("%s/hrd/apps/" % vardir)
+            do.createDir("%s/cfg" % vardir)
+
+        if self.readonly is False or die == True:
+            do.delete("%s/cfg" % basedir)
+            do.delete("%s/hrd" % basedir)
+            do.delete("%s/var" % basedir)
+
+        C = """
+        paths.base=$base
+        paths.bin=$base/bin
+        paths.code=$CODEDIR
+        paths.lib=$base/lib
+
+        paths.python.lib.js=$base/lib/JumpScale
+        paths.python.lib.ext=$base/libext
+        paths.app=$base/apps
+        paths.templates=$base/templates
+        paths.var=$vardir/var
+        paths.log=$vardir/log
+        paths.pid=$vardir/pid
+
+        paths.cfg=$vardir/cfg
+        paths.hrd=$vardir/hrd
+
+        system.sandbox = 1
+
+        """
+        C = C.replace("$base", basedir.rstrip("/"))
+        C = C.replace("$vardir", vardir.rstrip("/"))
+        # C=C.replace("$sandbox",str(SANDBOX))
+        C = C.replace("$CODEDIR", CODEDIR)
+
+        do.writeFile("%s/hrd/system/system.hrd" % vardir, C)
+
+        #         C="""
+        # email                   = @ASK descr:'email as used for github'
+        # fullname                = @ASK descr:'full name as used for github'
+        # git.login               = @ASK descr:'login for github'
+        # git.passwd              = @ASK descr:'passwd for github'
+        # """
+
+        C = """
+        email                   = {EMAIL}
+        fullname                = {FULLNAME}
+        git.login               = {GITHUBUSER}
+        git.passwd              = {GITHUBPASSWD}
+        """
+
+        for item in ["EMAIL", "FULLNAME", "GITHUBUSER", "GITHUBPASSWD", "EMAIL", "FULLNAME", "AYSGIT", "AYSBRANCH"]:
             if item not in os.environ:
-                if item in ["DEBUG"]:
-                    config[item] = False
-                else:
-                    config[item] = ""
-            else:
-                config[item] = os.environ[item]
+                os.environ[item] = ""
 
-        with open("%s/system.yaml" % do.CFGDIR, 'w') as outfile:
-            yaml.dump(config, outfile, default_flow_style=False)
+        C = C.format(**os.environ)
+
+        hpath = "%s/hrd/system/whoami.hrd" % vardir
+        if not do.exists(path=hpath):
+            do.writeFile(hpath, C)
 
         C = """
         # By default, AYS will use the JS redis. This is for quick testing
@@ -2232,7 +2283,7 @@ class Installer():
             os.environ["AYSBRANCH"] = "master"
         C = C.format(**os.environ)
 
-        hpath = "%s/ays.toml" % do.CFGDIR
+        hpath = "%s/ays/ays.config" % cfgdir
         if not do.exists(path=hpath):
             do.writeFile(hpath, C)
 
@@ -2245,7 +2296,7 @@ class Installer():
             'j.data.hrd',
             'j.application'
         """
-        do.writeFile("logging.hrd" % do.CFGDIR, C)
+        do.writeFile("%s/hrd/system/logging.hrd" % vardir, C)
 
         C = """
 
@@ -2289,9 +2340,9 @@ class Installer():
                 hash -r 2>/dev/null
         fi
         """
-        C = C.replace("$base", do.BASE)
+        C = C.replace("$base", basedir)
 
-        if self.sandbox:
+        if SANDBOX:
             C = C.replace('$pythonhome', 'export PYTHONHOME=$JSBASE/bin')
         else:
             C = C.replace('$pythonhome', '')
@@ -2308,18 +2359,16 @@ class Installer():
 
         # pythonversion = '3' if os.environ.get('PYTHONVERSION') == '3' else ''
 
-        C2 = """
-        #!/bin/bash
-        # set -x
-        source $base/env.sh
-        exec $JSBASE/bin/python3 -q "$@"
+        C2 = """#!/bin/bash
+# set -x
+source $base/env.sh
+exec $JSBASE/bin/python3 -q "$@"
         """
 
-        C2_insystem = """
-        #!/bin/bash
-        # set -x
-        source $base/env.sh
-        exec python3 -q "$@"
+        C2_insystem = """#!/bin/bash
+# set -x
+source $base/env.sh
+exec python3 -q "$@"
         """
 
         # C2=C2.format(base=basedir, env=envfile)
@@ -2329,7 +2378,7 @@ class Installer():
             do.delete("%s/bin/jspython" % basedir)
             do.delete("/usr/local/bin/jspython")
 
-            if self.sandbox:
+            if not insystem:
                 dest = "%s/bin/jspython" % basedir
                 C2 = C2.replace('$base', basedir)
                 do.writeFile(dest, C2)
@@ -2362,7 +2411,6 @@ class Installer():
         # custom install items
 
     def cleanSystem(self):
-        # TODO *2 no longer complete
         if do.TYPE.startswith("UBUNTU"):
             # pythonversion = os.environ.get('PYTHONVERSION', '')
             print("clean platform")
@@ -2399,7 +2447,7 @@ class Installer():
                 do.executeCmds(CMDS, showout=False, outputStderr=False, useShell=True, log=False,
                                cwd=None, timeout=60, errors=[], ok=[], captureout=False, die=False)
 
-    def updateSystem(self):
+    def updateOS(self):
 
         if self.TYPE.startswith("UBUNTU"):
             CMDS = """
@@ -2424,8 +2472,7 @@ class Installer():
                 do.execute(cmd)
 
     def prepare(self):
-        self.initCreateDirs4System()
-
+        return
         print("prepare")
 
         self.installpip()
@@ -2456,6 +2503,15 @@ class Installer():
             brew install psutils
             """
             do.executeCmds(cmds)
+
+    def updateUpgradeUbuntu(self):
+        CMDS = """
+        apt-get update
+        apt-get autoremove
+        apt-get -f install -y
+        apt-get upgrade -y
+        """
+        do.executeCmds(CMDS)
 
     def gitConfig(self, name, email):
         if name == "":

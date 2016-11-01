@@ -45,9 +45,10 @@ class Dirs:
     def normalize(self, path):
         """
         """
-        if path and "~" in path:
-            path = path.replace("~", j.dirs.homeDir)
-        path = j.sal.fs.pathDirClean(path)
+        if path:
+            if "~" in path:
+                path = path.replace("~", j.dirs.homeDir)
+            path = j.sal.fs.pathDirClean(path)
         return path
 
     def init(self):

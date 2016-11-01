@@ -143,7 +143,7 @@ class Application:
             return None
         if self._config is None:
             with open('/JS8/optvar/cfg/system.yaml', 'r') as conf:
-                self._config = yaml.load(input)
+                self._config = yaml.load(conf)
         return self._config
 
     @property

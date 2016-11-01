@@ -45,7 +45,7 @@ class Dirs:
     def normalize(self, path):
         """
         """
-        if "~" in path:
+        if path and "~" in path:
             path = path.replace("~", j.dirs.homeDir)
         path = j.sal.fs.pathDirClean(path)
         return path
@@ -56,12 +56,12 @@ class Dirs:
         if not embed():
             self.appDir = self.normalize(j.application.config["dirs"].get('app'))
             self.tmplsDir = self.normalize(j.application.config["dirs"].get("templates"))
-            self.varDir = self.normalize(j.application.config["dirs"].get("var"))
-            self.cfgDir = self.normalize(j.application.config["dirs"].get("cfg"))
+            self.varDir = self.normalize(j.application.config["dirs"].get("VARDIR"))
+            self.cfgDir = self.normalize(j.application.config["dirs"].get("CFGDIR"))
             self.libDir = self.normalize(j.application.config["dirs"].get("lib"))
             self.logDir = self.normalize(j.application.config["dirs"].get("log"))
             self.pidDir = self.normalize(j.application.config["dirs"].get("pid"))
-            self.codeDir = self.normalize(j.application.config["dirs"].get("code"))
+            self.codeDir = self.normalize(j.application.config["dirs"].get("CODEDIR"))
             self.libExtDir = self.normalize(j.application.config["dirs"].get("python.lib.ext"))
             self._createDir(self.tmplsDir)
 

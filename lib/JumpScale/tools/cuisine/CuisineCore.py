@@ -801,11 +801,12 @@ class CuisineCore(base):
                 cmd += " -n "
             else:
                 cmd += " --no-clobber "
-
-        cmd += '%s %s' % (source, dest)
-
+    
         if self.isMac:
+            cmd += '%s %s' % (source.rstrip("/"), dest)
             cmd += " 2>&1 >/dev/null ;True"
+        else:
+            cmd += '%s %s' % (source, dest)
 
         self.run(cmd)
 

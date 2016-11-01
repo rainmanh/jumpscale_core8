@@ -2239,15 +2239,15 @@ class Installer():
             do.writeFile(hpath, C)
 
         C = """
-        mode = 'DEV'
-        level = 'DEBUG'
+        mode: 'DEV'
+        level: 'DEBUG'
 
-        filter =
-            'j.sal.fs',
-            'j.data.hrd',
-            'j.application'
+        filter:
+            - 'j.sal.fs'
+            - 'j.data.hrd'
+            - 'j.application'
         """
-        do.writeFile("%s/logging.hrd" % do.CFGDIR, C)
+        do.writeFile("%s/logging.yaml" % do.CFGDIR, C)
 
         C = """
 

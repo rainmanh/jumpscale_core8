@@ -55,15 +55,15 @@ class Dirs:
         print("load dirs")
 
         if not embed():
-            self.appDir = self.normalize(j.application.config["dirs"].get('app'))
-            self.tmplsDir = self.normalize(j.application.config["dirs"].get("templates"))
-            self.varDir = self.normalize(j.application.config["dirs"].get("VARDIR"))
-            self.cfgDir = self.normalize(j.application.config["dirs"].get("CFGDIR"))
+            self.appDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get('app'))
+            self.tmplsDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("templates"))
+            self.varDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("VARDIR"))
+            self.cfgDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("CFGDIR"))
             self.libDir = j.sal.fs.joinPaths(self.base, 'lib')
-            self.logDir = self.normalize(j.application.config["dirs"].get("log"))
-            self.pidDir = self.normalize(j.application.config["dirs"].get("pid"))
-            self.codeDir = self.normalize(j.application.config["dirs"].get("CODEDIR"))
-            self.libExtDir = self.normalize(j.application.config["dirs"].get("python.lib.ext"))
+            self.logDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("log"))
+            self.pidDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("pid"))
+            self.codeDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("CODEDIR"))
+            self.libExtDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("python.lib.ext"))
             self._createDir(self.tmplsDir)
 
             pythonzip = self.normalize(os.path.join(self.libDir, 'python.zip'))

@@ -13,6 +13,22 @@ WhoAmI = namedtuple('WhoAmI', 'gid nid pid')
 def embed():
     return "embed" in sys.__dict__
 
+class Config:
+    def __getattribute__(self, attr):
+        config_path = j.sal.fs.joinPaths(j.dirs.cfgDir, attr)
+        if not j.sal.fs.isDir(config_path):
+            return None
+        config = {}
+        for config_file in j.sal.fs.listFilesInDir(config_path):
+            # support yaml, hrd, toml
+            if config_file.endswith('.yaml'):
+                with open(config_file, 'r') as conf:
+                    cfg = yaml.load(conf)
+            elif config_file.endswith('.hrd'):
+                cfg = j.data.hrd.get(config_file)
+                cfg = cfg.getHRDAsDict()
+            config[j.sal.fs.getBaseName(config_file).split('.')[0]] = cfg
+        return config
 
 class Application:
 
@@ -103,7 +119,7 @@ class Application:
         j.dirs.init()
 
         if not embed():
-            logging_cfg = self.config.getDictFromPrefix('logging')
+            logging_cfg = self.config.jumpscale.get('logging')
             level = logging_cfg.get('level', 'DEBUG')
             mode = logging_cfg.get('mode', 'DEV')
             filter_module = logging_cfg.get('filter', [])
@@ -142,8 +158,7 @@ class Application:
         if embed():
             return None
         if self._config is None:
-            with open('/JS8/optvar/cfg/system.yaml', 'r') as conf:
-                self._config = yaml.load(conf)
+            self._config = Config()
         return self._config
 
     @property

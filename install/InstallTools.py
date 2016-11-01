@@ -45,7 +45,7 @@ class InstallTools():
             else:
                 self.TYPE = "WIN"
             if "JSBASE" not in os.environ:
-                os.environ["JSBASE"] = = "%s/opt/jumpscale8" % os.environ["HOME"]
+                os.environ["JSBASE"] = "%s/opt/jumpscale8" % os.environ["HOME"]
             if "DATADIR" not in os.environ:
                 os.environ["DATADIR"] = "%s/optvar" % os.environ["HOME"]
             if "CODEDIR" not in os.environ:
@@ -54,7 +54,7 @@ class InstallTools():
         elif sys.platform.startswith("linux"):
             self.TYPE = "LINUX"
             if "JSBASE" not in os.environ:
-                os.environ["JSBASE"] = = "/opt/jumpscale8"
+                os.environ["JSBASE"] = "/opt/jumpscale8"
             if "DATADIR" not in os.environ:
                 os.environ["DATADIR"] = "/optvar"
             if "CODEDIR" not in os.environ:
@@ -510,7 +510,7 @@ class InstallTools():
         if self.TYPE == "WIN":
             cmd = "junction %s %s 2>&1 > null" % (dest, src)
             os.system(cmd)
-            #raise RuntimeError("not supported on windows yet")
+            # raise RuntimeError("not supported on windows yet")
         else:
             dest = dest.rstrip("/")
             src = src.rstrip("/")
@@ -647,11 +647,11 @@ class InstallTools():
 
         # if recursive:
         # if not self.exists(path):
-        #raise ValueError('Specified path: %s does not exist' % path)
+        # raise ValueError('Specified path: %s does not exist' % path)
         # if not self.isDir(path):
-        #raise ValueError('Specified path: %s is not a directory' % path)
-        #result = []
-        #os.path.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
+        # raise ValueError('Specified path: %s is not a directory' % path)
+        # result = []
+        # os.path.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
         # return result
         if path is None or path.strip == "":
             raise RuntimeError("path cannot be empty")
@@ -1654,7 +1654,7 @@ class InstallTools():
             branch (str): branch to be used
             ssh if auto will check if ssh-agent loaded, if True will be forced to use ssh for git
 
-        #### Process for finding authentication credentials (NOT IMPLEMENTED YET)
+        # Process for finding authentication credentials (NOT IMPLEMENTED YET)
 
         - first check there is an ssh-agent and there is a key attached to it, if yes then no login & passwd will be used & method will always be git
         - if not ssh-agent found
@@ -1667,7 +1667,7 @@ class InstallTools():
         - if at this point still no login/passwd then we will try to build url with anonymous
 
 
-        #### Process for defining branch
+        # Process for defining branch
 
         - if branch arg: None
             - check if git directory exists if yes take that branch
@@ -2043,12 +2043,7 @@ class Installer():
         if CODEDIR != "":
             os.environ["CODEDIR"] = CODEDIR
 
-        self.init()
-
-        from IPython import embed
-        print("DEBUG NOW 9999")
-        embed()
-        raise RuntimeError("stop debug here")
+        do.init()
 
         if sys.platform.startswith('win'):
             raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
@@ -2080,7 +2075,7 @@ class Installer():
 
         self.debug = True
 
-        self.prepare(SANDBOX=args2['SANDBOX'], base=args2['JSBASE'])
+        self.prepare()
 
         do.execute("mkdir -p %s/.ssh/" % os.environ["HOME"])
         do.execute("ssh-keyscan github.com 2> /dev/null  >> {0}/.ssh/known_hosts; ssh-keyscan git.aydo.com 2> /dev/null >> {0}/.ssh/known_hosts".format(
@@ -2126,12 +2121,13 @@ class Installer():
         dest = "%s/bin" % base
         do.symlinkFilesInDir(src, dest)
 
-        # create ays,jsdocker completion based on click magic variables
-        with open(os.path.expanduser("~/.bashrc"), "a") as f:
-            f.write('''
-eval "$(_AYS_COMPLETE=source ays)"
-eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
-            ''')
+        # DO NOT LOAD AUTOCOMPLETE AUTOMATICALLY
+#         # create ays,jsdocker completion based on click magic variables
+#         with open(os.path.expanduser("~/.bashrc"), "a") as f:
+#             f.write('''
+# eval "$(_AYS_COMPLETE=source ays)"
+# eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
+#             ''')
 
         # link python
         src = "/usr/bin/python3.5"
@@ -2154,7 +2150,7 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
             sys.path = []
         sys.path.insert(0, "%s/lib" % base)
 
-        #from JumpScale import j
+        # from JumpScale import j
 
         print("Get atYourService metadata.")
         do.pullGitRepo(args2['AYSGIT'], branch=args2['AYSBRANCH'], depth=1, ssh="first")
@@ -2474,45 +2470,37 @@ exec python3 -q "$@"
                 cmd = "cd %s;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python get-pip.py" % do.TMP
                 do.execute(cmd)
 
-    def prepare(self, SANDBOX=0, base=""):
-        print("prepare (sandbox:%s)" % SANDBOX)
-        if base == "":
-            base = do.BASE
-        if do.TYPE != ("UBUNTU64"):
-            SANDBOX = 0
+    def prepare(self):
+        print("prepare")
 
-        if SANDBOX == 1:
-            raise RuntimeError("not supported yet, will use ays fuse")
+        self.installpip()
+        cmds = """
+        pip3 install ipython
+        pip3 install redis
+        pip3 install netaddr
+        pip3 install cython
+        pip3 install pycapnp
+        pip3 install path.py
+        pip3 install colored-traceback
+        pip3 install pudb
+        pip3 install colorlog
+        pip3 install msgpack-python
+        pip3 install pyblake2
+        pip3 install click
+        """
+        do.executeCmds(cmds)
 
-        else:
-            self.installpip()
+        # do.executeInteractive("pip3 install xonsh")
+        # do.executeInteractive("pip3 install tmuxp")
+
+        if sys.platform.startswith('win'):
+            raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
+        elif sys.platform.startswith('darwin'):
             cmds = """
-            pip3 install ipython
-            pip3 install redis
-            pip3 install netaddr
-            pip3 install cython
-            pip3 install pycapnp
-            pip3 install path.py
-            pip3 install colored-traceback
-            pip3 install pudb
-            pip3 install colorlog
-            pip3 install msgpack-python
-            pip3 install pyblake2
-            pip3 install click
+            brew install tmux
+            brew install psutils
             """
             do.executeCmds(cmds)
-
-            #do.executeInteractive("pip3 install xonsh")
-            # do.executeInteractive("pip3 install tmuxp")
-
-            if sys.platform.startswith('win'):
-                raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
-            elif sys.platform.startswith('darwin'):
-                cmds = """
-                brew install tmux
-                brew install psutils
-                """
-                do.executeCmds(cmds)
 
     def updateUpgradeUbuntu(self):
         CMDS = """

@@ -86,6 +86,7 @@ class InstallTools():
             self.TMP = os.environ["TMPDIR"]
         else:
             self.TMP = tempfile.gettempdir().replace("\\", "/")
+            os.environ["TMPDIR"] = self.TMP
 
         if "JSBASE" in os.environ:
             self.BASE = os.environ["JSBASE"]

@@ -1090,13 +1090,11 @@ class CuisineCore(base):
         generic exection of script, default interpreter is bash
 
         """
-        self.logger.info("RUN SCRIPT:")
-
-        # self._cuisine.core.pprint(content)
-
         if args_replace:
             content = self.args_replace(content)
         content = j.data.text.strip(content)
+
+        self.logger.info("RUN SCRIPT:\n%s" % content)
 
         if content[-1] != "\n":
             content += "\n"

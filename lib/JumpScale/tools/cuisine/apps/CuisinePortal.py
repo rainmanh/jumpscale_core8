@@ -168,6 +168,10 @@ class CuisinePortal(base):
         if not "darwin" in self._cuisine.platformtype.osname:
             self._cuisine.package.ensure('libsnappy-dev')
             self._cuisine.package.ensure('libsnappy1v5')
+        else:
+            self._cuisine.core.run("brew install snappy")
+            self._cuisine.core.run('CPPFLAGS="-I/usr/local/include -L/usr/local/lib" pip install python-snappy')
+                        
         self._cuisine.development.pip.install('python-snappy')
 
         self._cuisine.apps.mongodb.build()

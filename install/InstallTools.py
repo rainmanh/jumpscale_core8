@@ -2079,7 +2079,7 @@ class Installer():
         print(("Install Jumpscale in %s" % os.environ["JSBASE"]))
 
         # this means if env var's are set they get priority
-        args2 = dict(map(lambda item: (item, ''), ["GITHUBUSER", "GITHUBPASSWD", "JSGIT", "JSBRANCH",
+        args2 = dict(map(lambda item: (item, ''), ["GITHUBUSER", "GITHUBPASSWD", "JSGIT", "JSBRANCH", "CFGDIR",
                                                    "AYSGIT", "AYSBRANCH", "CODEDIR", "EMAIL", "FULLNAME", "JSBASE", "PYTHONVERSION"]))
         # walk over all var's & set defaults or get them from env
         for var in args2.copy():
@@ -2328,7 +2328,7 @@ class Installer():
             do.delete("%s/bin/jspython" % do.BASE)
             do.delete("/usr/local/bin/jspython")
 
-            if self.sandbox:
+            if do.sandbox:
                 dest = "%s/bin/jspython" % do.BASE
                 C2 = C2.replace('$base', do.BASE)
                 do.writeFile(dest, C2)

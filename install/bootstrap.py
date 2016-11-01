@@ -1,6 +1,5 @@
 # BOOTSTRAP CODE
 
-
 import os
 import time
 import argparse

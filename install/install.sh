@@ -170,7 +170,7 @@ branch=${JSBRANCH-master}
 cd $STARTDIR
 
 if [ -e"web/bootstrap.py" ]; then
-    cp web/bootstrap.py $TMPDIR/bootstrap.py
+    cp bootstrap.py $TMPDIR/bootstrap.py
     cp InstallTools.py $TMPDIR/InstallTools.py
 else
     curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/bootstrap.py > $TMPDIR/bootstrap.py

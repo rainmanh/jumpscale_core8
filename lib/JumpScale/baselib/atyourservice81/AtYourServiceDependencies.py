@@ -145,6 +145,7 @@ class Node():
 
     def __init__(self, model, action):
         self.model = model
+        self.model.enable_cache()
         self.edges = []
         self.action = action
         self.id = "%s-%s" % (model.key, action)
@@ -166,3 +167,10 @@ class Node():
         if isinstance(other, str):
             return self.id == other
         return self.id == other.name
+
+    def __del__(self):
+        """
+        Make sure we empty the cache when we this object is not referenced anywhere
+        so baicly once the computaion on the dependecy graphs is done.
+        """
+        self.model.disable_cache()

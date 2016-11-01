@@ -230,7 +230,7 @@ class Job():
         return out
 
     def __repr__(self):
-        out = "job: %s!%s (%s)\n" % (
+        out = "job: %s!%s (%s)" % (
             (self.model.dbobj.actorName, self.model.dbobj.serviceName, self.model.dbobj.actionName))
         return out
 

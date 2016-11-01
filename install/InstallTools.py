@@ -2196,6 +2196,7 @@ class Installer():
     def writeEnv(self):
 
         print("WRITENV")
+        do.createDir("%s/jumpscale" % do.CFGDIR)
         config = {}
         for category, items in {"identity": ["EMAIL", "FULLNAME", "GITHUBUSER", "GITHUBPASSWD", "AYSGIT", "AYSBRANCH", "DEBUG"],
                                 "dirs": ["JSBASE", "HOME", "TMPDIR", "DATADIR", "CODEDIR", "CFGDIR"]}.items():
@@ -2209,7 +2210,7 @@ class Installer():
                 else:
                     config[category][item] = os.environ[item]
 
-        with open("%s/system.yaml" % do.CFGDIR, 'w') as outfile:
+        with open("%s/jumpscale/system.yaml" % do.CFGDIR, 'w') as outfile:
             yaml.dump(config, outfile, default_flow_style=False)
 
         C = """
@@ -2234,7 +2235,7 @@ class Installer():
             os.environ["AYSBRANCH"] = "master"
         C = C.format(**os.environ)
 
-        hpath = "%s/ays.toml" % do.CFGDIR
+        hpath = "%s/jumpscale/ays.toml" % do.CFGDIR
         if not do.exists(path=hpath):
             do.writeFile(hpath, C)
 
@@ -2247,7 +2248,7 @@ class Installer():
             - 'j.data.hrd'
             - 'j.application'
         """
-        do.writeFile("%s/logging.yaml" % do.CFGDIR, C)
+        do.writeFile("%s/jumpscale/logging.yaml" % do.CFGDIR, C)
 
         C = """
 

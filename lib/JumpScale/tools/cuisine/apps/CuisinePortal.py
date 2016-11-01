@@ -21,6 +21,8 @@ class CuisinePortal(base):
         To add spaces and actors, please use addSpace and addactor
         """
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
+        self._cuisine.bash.environSet("LANG", "C.UTF-8")
+        
         # if not self._cuisine.core.isMac:
         if not self._cuisine.development.js8.jumpscale_installed():
             self._cuisine.development.js8.install()
@@ -161,17 +163,13 @@ class CuisinePortal(base):
 
         if "darwin" in self._cuisine.platformtype.osname:
             self._cuisine.core.run("brew install libtiff libjpeg webp little-cms2")
-        else:
-            self._cuisine.package.multiInstall(['libjpeg-dev', 'libffi-dev', 'zlib1g-dev'])
-
-        # snappy install
-        if not "darwin" in self._cuisine.platformtype.osname:
-            self._cuisine.package.ensure('libsnappy-dev')
-            self._cuisine.package.ensure('libsnappy1v5')
-        else:
             self._cuisine.core.run("brew install snappy")
             self._cuisine.core.run('CPPFLAGS="-I/usr/local/include -L/usr/local/lib" pip install python-snappy')
-                        
+        else:
+            self._cuisine.package.multiInstall(['libjpeg-dev', 'libffi-dev', 'zlib1g-dev'])
+            self._cuisine.package.ensure('libsnappy-dev')
+            self._cuisine.package.ensure('libsnappy1v5')
+
         self._cuisine.development.pip.install('python-snappy')
 
         self._cuisine.apps.mongodb.build()
@@ -182,8 +180,12 @@ class CuisinePortal(base):
 
     def linkCode(self):
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        _, destjslib, _ = self._cuisine.core.run(
-            "js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'", showout=False)
+        _, destjslib, _ = self._cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'", 
+                                                 showout=False)
+
+        if "darwin" in self._cuisine.platformtype.osname:
+            # Needs refining,In osx destjslib='load dirs\n/usr/local/lib/python3.5/site-packages/JumpScale/'
+            destjslib = destjslib.split("\n")[1]
 
         if self._cuisine.core.file_exists("%s/portal" % destjslib):
             self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths[

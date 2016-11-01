@@ -2424,7 +2424,7 @@ class Installer():
                 do.execute(cmd)
 
     def prepare(self):
-        self.initCreateDirs4System()
+        do.initCreateDirs4System()
 
         print("prepare")
 

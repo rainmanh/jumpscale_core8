@@ -6,7 +6,6 @@ import struct
 from collections import namedtuple
 import yaml
 
-
 WhoAmI = namedtuple('WhoAmI', 'gid nid pid')
 
 
@@ -19,7 +18,7 @@ class Config:
         if not os.path.isdir(config_path):
             return None
         config = {}
-        config_files = [f for f in os.listdir(config_path) if os.path.isfile(f)]
+        config_files = [f.path for f in os.scandir(config_path) if f.is_file()]
         for config_file in config_files:
             # support yaml, hrd, toml
             if config_file.endswith('.yaml'):
@@ -28,6 +27,8 @@ class Config:
             elif config_file.endswith('.hrd'):
                 cfg = j.data.hrd.get(config_file)
                 cfg = cfg.getHRDAsDict()
+            else:
+                cfg = j.sal.fs.fileGetContents(config_file) # TODO support more common formats
             config[os.path.basename(config_file).split('.')[0]] = cfg
         return config
 

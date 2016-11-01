@@ -11,44 +11,15 @@ import locale
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 
-def embed():
-    return "embed" in sys.__dict__
+from .InstallTools import InstallTools, do, Installer
 
-if not embed():
+# INITIALIZATION OF PATHS IS IN THE INSTALLTOOLS FILE, LETS ONLY DO THERE !!!
+
+base = do.BASE
+libMetadataPath = "%s/libMetadata.db" % do.CFGDIR
+
+if not do.embed:
     from JumpScale.clients.redis.RedisFactory import RedisFactory
-
-    if sys.platform.startswith("darwin") or sys.platform.startswith("cygwin"):
-
-        base = "%s/opt/jumpscale8" % os.environ["HOME"]
-        basevar = "%s/optvar" % os.environ["HOME"]
-
-        # os.environ['JSBASE']='/Users/Shared/jumpscale/'
-        if not 'APPDATA' in os.environ:
-            os.environ['APPDATA'] = basevar
-        if not 'TMP' in os.environ:
-            os.environ['TMP'] = os.environ['TMPDIR'] + "jumpscale/"
-
-        # for p in ["%s/lib"%base,"%s/lib/lib-dynload/"%base,"%s/bin"%base,"%s/lib/plat-x86_64-linux-gnu"%base]:
-        #     if p not in sys.path:
-        #         sys.path.append(p)
-
-        os.environ["TMP"] = os.path.join(os.environ["HOME"], "tmp")
-
-    else:
-        if "JSBASE" not in os.environ:
-            os.environ["JSBASE"] = "/opt/jumpscale8"
-            # raise j.exceptions.RuntimeError("Cannot load jumpscale, please specify JSBASE as env variable.")
-        base = os.environ["JSBASE"]
-        basevar = "/optvar"
-
-        os.environ["TMP"] = os.path.join(basevar, "tmp")
-
-        os.environ['APPDATA'] = "/optvar/"
-
-    tmpdir = os.environ["TMP"]
-    if not os.path.isdir(tmpdir):
-        os.makedirs(tmpdir)
-    os.environ['TMP'] = tmpdir
 
     if not os.path.isfile("%s/lib/lsb_release.py" % base):
         sys.path.insert(0, "%s/lib" % base)
@@ -56,28 +27,13 @@ if not embed():
         sys.path.insert(0, "%s/lib/JumpScale" % base)
         sys.path.insert(0, "%s/lib/lib-dynload" % base)
 
-    else:
-        # print ("sandbox")
-        sys.path = []
-        sys.path.append("%s/lib" % base)
-        sys.path.append("%s/bin" % base)
-        sys.path.append("%s/lib/JumpScale" % base)
-        sys.path.append("%s/lib/lib-dynload" % base)
 else:
-    basevar = "%s/optvar" % os.environ["HOME"]
-    os.environ['TMP'] = os.environ['TMPDIR'] + "jumpscale/tmp/"
-    os.environ['APPDATA'] = os.environ['TMPDIR'] + "jumpscale/appdata/"
-    os.environ["JSBASE"] = os.environ['TMPDIR'] + "jumpscale/base/"
     sys.path = []
-    base = os.getcwd()
     sys.path.insert(0, "%s/lib" % base)
     sys.path.insert(1, base)
     sys.path.insert(0, "%s/lib/base_library.zip" % base)
     sys.path.insert(0, "%s/lib/base.zip" % base)
     # sys.path.insert(0, "%s/binlib/")
-    os.makedirs(os.environ["TMP"], exist_ok=True)
-    os.makedirs(os.environ["APPDATA"], exist_ok=True)
-    os.makedirs(os.environ["JSBASE"], exist_ok=True)
 
 
 class Loader:
@@ -124,7 +80,6 @@ class Loader:
 locationbases = {}
 j = Loader("j")
 j.data = Loader("j.data")
-j.embed = embed()
 j.data.serializer = Loader("j.data.serializer")
 j.data.units = Loader('j.data.units')
 j.data.models = Loader('j.data.models')
@@ -132,22 +87,21 @@ j.core = Loader("j.core")
 j.sal = Loader("j.sal")
 j.tools = Loader("j.tools")
 j.clients = Loader("j.clients")
-if not embed():
-    j.clients.redis = RedisFactory()
+# j.clients.redis = Loader("j.clients.redis")
 j.servers = Loader("j.servers")
 j.portal = Loader('j.portal')
 j.portal.tools = Loader('j.portal.tools')
 j.legacy = Loader("j.legacy")
 
-from .InstallTools import InstallTools, do, Installer
+
 j.do = do
 j.do.installer = Installer()
 
 # sets up the exception handlers for init
 from . import core
 
-if not embed():
-    sys.path.append('%s/lib/JumpScale' % j.do.BASE)
+if not do.embed:
+    sys.path.append('%s/lib/JumpScale' % do.BASE)
 
 # import importlib
 
@@ -171,26 +125,13 @@ def findjumpscalelocations(path):
     return res
 
 
-if not embed():
-    j.clients.redis.init4jscore(j, tmpdir)
-
-
 # import json
 
 
 def findModules(embed=False):
 
     result = {}
-    if embed:
-        superroot = "%s/lib/JumpScale" % os.getcwd()
-    else:
-        if os.path.isdir(j.do.BASE):
-            superroot = "%s/lib/JumpScale" % j.do.BASE
-        else:
-            if j.core.db.get("system.superroot") is None:
-                superroot = j.do.getDirName(__file__)
-                j.core.db.set("system.superroot", superroot)
-            superroot = j.core.db.get("system.superroot").decode()
+    superroot = "%s/lib/JumpScale" % j.do.BASE
 
     print("FINDMODULES in %s" % superroot)
     for rootfolder in j.do.listDirsInDir(superroot, False, True):
@@ -218,60 +159,22 @@ def findModules(embed=False):
                             result[loc] = []
                         result[loc].append((classfile, classname, item))
 
-    if not embed:
-        j.core.db.set("system.locations", json.dumps(result))
-        if base == "/opt/jumpscale8/":
-            j.do.writeFile("%s/metadata.db" % j.do.VARDIR, json.dumps(result))
-    else:
-        j.do.writeFile("%s/metadata.db" % base, json.dumps(result))
+    j.do.writeFile(libMetadataPath, json.dumps(result))
 
 
-forcereload = False
-
-if not embed():
-
-    if base != "/opt/jumpscale8/":
-        mdpath = "%s/metadata.db" % j.do.VARDIR
-        if j.do.exists(mdpath):
-            forcereload = True
-            j.do.delete(mdpath)
-            # make sure redis is empty
-            if j.core.db is not None:
-                j.core.db.flushall()
-            if base == "/optrw/jumpscale8":
-                j.do.installer.writeenv(
-                    basedir=base, insystem=False, CODEDIR='/optrw/code')
-            print("force metadata reload")
-
-    data = j.core.db.get("system.locations")
-    if forcereload or data is None:
-        if not j.do.exists(path="%s/metadata.db" % j.do.VARDIR):
-            print("RELOAD LIB METADATA")
-            res = findModules()
-            data = j.core.db.get("system.locations").decode()
-        else:
-            data = j.do.readFile("%s/metadata.db" % j.do.VARDIR)
-    else:
-        data = data.decode()
-else:
-    if not j.do.exists(path="%s/metadata.db" % base):
-        findModules(True)
-
-    data = j.do.readFile("%s/metadata.db" % base)
-
+# LOAD metadata for libs
+if not j.do.exists(path=libMetadataPath):
+    findModules()
+data = j.do.readFile(libMetadataPath)
 locations = json.loads(data)
+
 for locationbase, llist in locations.items():  # locationbase is e.g. j.sal
     loader = locationbases[locationbase]
     for classfile, classname, item in llist:
         loader._register(item, classfile, classname)
 
-if not j.do.exists("%s/hrd/system/system.hrd" % basevar):
-    j.do.installer.writeenv(die=False)
-
-if not embed():
-    data = j.core.db.get("system.dirs.%s" % j.do.BASE)
-    if data is None:
-        j.application._config = j.data.hrd.get(path="%s/hrd/system" % basevar)
+if not do.embed:
+    j.clients.redis.init4jscore(j, do.TMPDIR)
 else:
     j.core.db = None
 

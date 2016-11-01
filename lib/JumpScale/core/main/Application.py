@@ -4,6 +4,7 @@ import sys
 import atexit
 import struct
 from collections import namedtuple
+import yaml
 
 
 WhoAmI = namedtuple('WhoAmI', 'gid nid pid')
@@ -141,7 +142,8 @@ class Application:
         if embed():
             return None
         if self._config is None:
-            self._config = j.data.hrd.get(path=j.dirs.hrd)
+            with open('/JS8/optvar/cfg/system.yaml', 'r') as conf:
+                self._config = yaml.load(input)
         return self._config
 
     @property

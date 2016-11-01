@@ -36,10 +36,11 @@ class Dirs:
 
         import sys
 
-        # self.base=j.application.config.get("system.paths.base")
+        # self.base=j.application.config.get("dirs.base")
         self.base = j.do.BASE
         self.homeDir = os.environ["HOME"]
         self.cfgDir = os.environ["CFGDIR"]
+        self.tmpDir = os.environ["TMPDIR"]
 
     def normalize(self, path):
         """
@@ -52,19 +53,16 @@ class Dirs:
     def init(self):
         print("load dirs")
 
-        self.tmpDir = os.environ["TMP"]
-
         if not embed():
-            self.appDir = self.normalize(j.application.config.get("system.paths.app"))
-            self.tmplsDir = self.normalize(j.application.config.get("system.paths.templates"))
-            self.varDir = self.normalize(j.application.config.get("system.paths.var"))
-            self.cfgDir = self.normalize(j.application.config.get("system.paths.cfg"))
-            self.libDir = self.normalize(j.application.config.get("system.paths.lib"))
-            self.logDir = self.normalize(j.application.config.get("system.paths.log"))
-            self.pidDir = self.normalize(j.application.config.get("system.paths.pid"))
-            self.codeDir = self.normalize(j.application.config.get("system.paths.code"))
-            self.libExtDir = self.normalize(j.application.config.get(
-                "system.paths.python.lib.ext"))
+            self.appDir = self.normalize(j.application.config["dirs"].get('app'))
+            self.tmplsDir = self.normalize(j.application.config["dirs"].get("templates"))
+            self.varDir = self.normalize(j.application.config["dirs"].get("var"))
+            self.cfgDir = self.normalize(j.application.config["dirs"].get("cfg"))
+            self.libDir = self.normalize(j.application.config["dirs"].get("lib"))
+            self.logDir = self.normalize(j.application.config["dirs"].get("log"))
+            self.pidDir = self.normalize(j.application.config["dirs"].get("pid"))
+            self.codeDir = self.normalize(j.application.config["dirs"].get("code"))
+            self.libExtDir = self.normalize(j.application.config["dirs"].get("python.lib.ext"))
             self._createDir(self.tmplsDir)
 
             pythonzip = self.normalize(os.path.join(self.libDir, 'python.zip'))
@@ -80,7 +78,7 @@ class Dirs:
             if 'JSBASE' in os.environ:
                 self.binDir = self.normalize(os.path.join(self.base, 'bin'))
             else:
-                self.binDir = self.normalize(j.application.config.get("system.paths.bin"))
+                self.binDir = self.normalize(j.application.config.get("dirs.bin"))
 
             data = j.data.serializer.json.dumps(self.__dict__)
             j.core.db.set("system.dirs.%s" % self.base, data)

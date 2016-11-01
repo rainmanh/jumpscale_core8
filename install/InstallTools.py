@@ -2195,16 +2195,18 @@ class Installer():
     def writeEnv(self):
 
         print("WRITENV")
-
         config = {}
-        for item in ["EMAIL", "FULLNAME", "GITHUBUSER", "GITHUBPASSWD", "AYSGIT", "AYSBRANCH", "DEBUG"]:
-            if item not in os.environ:
-                if item in ["DEBUG"]:
-                    config[item] = False
+        for category, items in {"identity": ["EMAIL", "FULLNAME", "GITHUBUSER", "GITHUBPASSWD", "AYSGIT", "AYSBRANCH", "DEBUG"],
+                                "dirs": ["JSBASE", "HOME", "TMPDIR", "DATADIR", "CODEDIR", "CFGDIR"]}.items():
+            config[category] = {}
+            for item in items:
+                if item not in os.environ:
+                    if item in ["DEBUG"]:
+                        config[category][item] = False
+                    else:
+                        config[category][item] = ""
                 else:
-                    config[item] = ""
-            else:
-                config[item] = os.environ[item]
+                    config[category][item] = os.environ[item]
 
         with open("%s/system.yaml" % do.CFGDIR, 'w') as outfile:
             yaml.dump(config, outfile, default_flow_style=False)

@@ -213,7 +213,7 @@ class Job():
         return process
 
     def str_error(self, error):
-        out = ''
+        out = 'Error of %s:' % str(self)
         formatter = pygments.formatters.Terminal256Formatter(style=pygments.styles.get_style_by_name("vim"))
 
         if error.__str__() != "":

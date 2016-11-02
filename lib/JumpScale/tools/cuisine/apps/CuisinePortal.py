@@ -36,7 +36,7 @@ class CuisinePortal(base):
                             influxport=influxport, grafanaip=grafanaip, grafanaport=grafanaport)
 
     def install(self, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086,
-                grafanaip="127.0.0.1", grafanaport=3000, login="", passwd="", redis_ip="127.0.0.1", redis_port=6379):
+                grafanaip="127.0.0.1", grafanaport=3000, login="", passwd="", redis_ip="127.0.0.1", redis_port=6379, branch='master'):
         self._install(mongodbip=mongodbip,
                       mongoport=mongoport,
                       influxip=influxip,
@@ -46,7 +46,8 @@ class CuisinePortal(base):
                       login=login,
                       passwd=passwd,
                       redis_ip=redis_ip,
-                      redis_port=redis_port)
+                      redis_port=redis_port,
+                      branch=branch)
         if start:
             self.start()
 
@@ -158,6 +159,9 @@ class CuisinePortal(base):
             self._cuisine.core.run('CPPFLAGS="-I/usr/local/include -L/usr/local/lib" pip install python-snappy')
         else:
             self._cuisine.package.multiInstall(['libjpeg-dev', 'libffi-dev', 'zlib1g-dev'])
+
+        # snappy install
+        if not "darwin" in self._cuisine.platformtype.osname:
             self._cuisine.package.ensure('libsnappy-dev')
             self._cuisine.package.ensure('libsnappy1v5')
 
@@ -167,7 +171,7 @@ class CuisinePortal(base):
         self._cuisine.apps.redis.build(start=True)
 
     def getcode(self, branch='master'):
-        self._cuisine.development.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git", branch=None)
+        self._cuisine.development.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git", branch=branch)
 
     def linkCode(self):
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")

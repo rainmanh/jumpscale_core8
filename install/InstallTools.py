@@ -407,8 +407,7 @@ class Installer():
         tmpdir = self.do.config["dirs"]["TMPDIR"]
         if not self.do.exists(self.do.joinPaths(tmpdir, "get-pip.py")):
             if not self.do.TYPE.startswith("WIN"):
-                cmd = "cd %s;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python get-pip.py" % self.do.config[
-                    "system"]["TMPDIR"]
+                cmd = "cd %s;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python get-pip.py" % self.do.config["dirs"]["TMPDIR"]
                 self.do.execute(cmd)
 
     def prepare(self):
@@ -514,6 +513,8 @@ class InstallTools():
             path = "%s/lib/JumpScale/install/dependencies.py" % os.environ["JSBASE"]
             if not self.exists(path):
                 path = '%s/dependencies.py' % os.environ["TMPDIR"]
+            if not self.exists(path):
+                path = "/tmp/dependencies.py"
             if not self.exists(path):
                 raise RuntimeError("Could not find dependencies file in %s" % path)
 
@@ -2485,9 +2486,6 @@ class InstallTools():
         checkdir = "%s/.git" % (dest)
         existsGit = self.exists(checkdir) if not executor else executor.exists(checkdir)
 
-        if existsDir and not existsGit:
-            raise RuntimeError("Git location does not have .git:%s\n" % dest)
-
         if existsGit:
             # if we don't specify the branch, try to find the currently checkedout branch
             cmd = 'cd %s; git rev-parse --abbrev-ref HEAD' % dest
@@ -2495,7 +2493,8 @@ class InstallTools():
             if rc == 0:
                 branchFound = out.strip()
             else:  # if we can't retreive current branch, use master as default
-                raise RuntimeError("Cannot retrieve branch:\n%s\n" % cmd)
+                branchFound = 'master'
+                # raise RuntimeError("Cannot retrieve branch:\n%s\n" % cmd)
 
             if branch != None and branch != branchFound and ignorelocalchanges == False:
                 raise RuntimeError("Cannot pull repo, branch on filesystem is not same as branch asked for.")

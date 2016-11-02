@@ -20,7 +20,7 @@ class ExecutorLocal(ExecutorBase):
             self.env.update(env)
         if self.debug:
             print("EXECUTOR:%s" % cmds)
-        return j.do.execute(cmds, die=die, async=async, showout=showout, outputStderr=outputStderr, timeout=timeout)
+        return j.do.executeAsync(cmds, die=die, async=async, showout=showout, outputStderr=outputStderr, timeout=timeout)
 
     def executeInteractive(self, cmds, die=True, checkok=None):
         cmds = self._transformCmds(cmds, die, checkok=checkok)

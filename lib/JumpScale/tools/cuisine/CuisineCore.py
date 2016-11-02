@@ -453,7 +453,7 @@ class CuisineCore(base):
         location = self.args_replace(location)
         cmd += ' %s' % location
         rc, out, err = self.run(cmd, showout=False, die=False)
-        return not rc
+        return rc == 0
 
     def file_exists(self, location):
         """Tests if there is a *remote* file at the given location."""

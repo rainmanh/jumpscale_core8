@@ -677,10 +677,9 @@ class InstallTools():
 
     def getPythonLibSystem(self, jumpscale=False):
         PYTHONVERSION = platform.python_version()
-        do = self
-        if self.do.TYPE.startswith("OSX"):
+        if self.TYPE.startswith("OSX"):
             destjs = "/usr/local/lib/python3.5/site-packages"
-        elif self.do.TYPE.startswith("WIN"):
+        elif self.TYPE.startswith("WIN"):
             destjs = "/usr/lib/python3.4/site-packages"
         else:
             if PYTHONVERSION == '2':

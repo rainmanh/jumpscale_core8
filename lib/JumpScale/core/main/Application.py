@@ -31,7 +31,6 @@ class Config:
                 cfg = cfg.getHRDAsDict()
             else:
                 cfg = j.sal.fs.fileGetContents(config_file)  # TODO support more common formats
-                raise RuntimeError("not supported format")
             config[os.path.basename(config_file).split('.')[0]] = cfg
         return config
 
@@ -215,7 +214,7 @@ class Application:
     def getAgentId(self):
         return "%s_%s" % (self.whoAmI.gid, self.whoAmI.nid)
 
-    def start(self, name=None, appdir="."):
+    def start(self, name=None):
         '''Start the application
 
         You can only stop the application with return code 0 by calling
@@ -235,21 +234,16 @@ class Application:
         # Register exit handler for sys.exit and for script termination
         atexit.register(self._exithandler)
 
-        j.dirs.appDir = appdir
-
-        # if hasattr(self, 'config'):
-        #     self.debug = j.application.config.getBool('system.debug', default=True)
-
-        if j.core.db is not None:
-            if j.core.db.hexists("application", self.appname):
-                pids = j.data.serializer.json.loads(
-                    j.core.db.hget("application", self.appname))
-            else:
-                pids = []
-            if self.systempid not in pids:
-                pids.append(self.systempid)
-            j.core.db.hset("application", self.appname,
-                           j.data.serializer.json.dumps(pids))
+        # if j.core.db is not None:
+        #     if j.core.db.hexists("application", self.appname):
+        #         pids = j.data.serializer.json.loads(
+        #             j.core.db.hget("application", self.appname))
+        #     else:
+        #         pids = []
+        #     if self.systempid not in pids:
+        #         pids.append(self.systempid)
+        #     j.core.db.hset("application", self.appname,
+        #                    j.data.serializer.json.dumps(pids))
 
         # Set state
         self.state = "RUNNING"

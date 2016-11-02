@@ -542,6 +542,10 @@ class InstallTools():
     def TMPDIR(self):
         return self.config["dirs"]["TMPDIR"]
 
+    @property
+    def DATADIR(self):
+        return self.config["dirs"]["DATADIR"]
+
     @debug.setter
     def debug(self, value):
         if not isinstance(value, bool):

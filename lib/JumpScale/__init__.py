@@ -36,6 +36,26 @@ else:
     # sys.path.insert(0, "%s/binlib/")
 
 
+libDir = "%s/lib" % base
+libExtDir = "%s/libext" % base
+
+pythonzip = '%s/python.zip' % libDir
+if pythonzip in sys.path:
+    sys.path.pop(sys.path.index(pythonzip))
+if os.path.exists(pythonzip):
+    sys.path.insert(0, pythonzip)
+
+if libExtDir in sys.path:
+    sys.path.pop(sys.path.index(libExtDir))
+if os.path.exists(libExtDir):
+    sys.path.insert(2, libExtDir)
+
+jsLibDir = os.path.join(libDir, "JumpScale")
+if jsLibDir in sys.path:
+    sys.path.pop(sys.path.index(jsLibDir))
+sys.path.insert(0, jsLibDir)
+
+
 class Loader:
 
     def __init__(self, name):

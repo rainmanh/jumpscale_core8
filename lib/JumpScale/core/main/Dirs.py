@@ -52,55 +52,17 @@ class Dirs:
         return path
 
     def init(self):
-        print("load dirs")
-
-        if not embed():
-            self.appDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get('app'))
-            self.tmplsDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("templates"))
-            self.varDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("VARDIR"))
-            self.cfgDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("CFGDIR"))
-            self.libDir = j.sal.fs.joinPaths(self.base, 'lib')
-            self.logDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("log"))
-            self.pidDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("pid"))
-            self.codeDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("CODEDIR"))
-            self.libExtDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("python.lib.ext"))
-            self._createDir(self.tmplsDir)
-
-            pythonzip = self.normalize(os.path.join(self.libDir, 'python.zip'))
-            if os.path.exists(pythonzip):
-                if pythonzip in sys.path:
-                    sys.path.pop(sys.path.index(pythonzip))
-                sys.path.insert(0, pythonzip)
-
-            if self.libExtDir in sys.path:
-                sys.path.pop(sys.path.index(self.libExtDir))
-            sys.path.insert(2, self.libExtDir)
-
-            if 'JSBASE' in os.environ:
-                self.binDir = self.normalize(os.path.join(self.base, 'bin'))
-            else:
-                self.binDir = self.normalize(j.application.config.get("dirs.bin"))
-
-            data = j.data.serializer.json.dumps(self.__dict__)
-            j.core.db.set("system.dirs.%s" % self.base, data)
-
-            self._createDir(os.path.join(self.base, "libext"))
-
-        else:
-            self.appDir = os.getcwd()
-            self.varDir = os.environ['APPDATA']
-            self.cfgDir = "%s/cfg" % self.appDir
-            self.libDir = self.appDir
-            self.logDir = "%s/log" % self.tmpDir
-            self.pidDir = self.tmpDir
-            self.codeDir = self.tmpDir
-            self.libExtDir = ""
-
+        self.appDir = self.normalize(j.sal.fs.joinPaths(self.base, "apps"))
+        self.varDir = self.normalize(j.do.DATADIR)
+        self.tmplsDir = self.normalize(j.sal.fs.joinPaths(self.varDir, "templates"))
+        self.cfgDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("CFGDIR"))
+        self.libDir = j.sal.fs.joinPaths(self.base, 'lib')
+        self.logDir = self.normalize(j.sal.fs.joinPaths(self.varDir, "log"))
+        self.pidDir = self.normalize(j.sal.fs.joinPaths(self.varDir, "pid"))
+        self.codeDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("CODEDIR"))
+        self.libExtDir = j.sal.fs.joinPaths(self.base, 'libext')
+        self.binDir = self.normalize(os.path.join(self.base, 'bin'))
         self.jsLibDir = os.path.join(self.libDir, "JumpScale")
-
-        if self.libDir in sys.path:
-            sys.path.pop(sys.path.index(self.libDir))
-        sys.path.insert(0, self.libDir)
 
     def replaceTxtDirVars(self, txt, additionalArgs={}):
         """
@@ -178,6 +140,12 @@ class Dirs:
         return inspect.getfile(function)
 
     def __str__(self):
-        return str(self.__dict__)  # TODO: P3 implement (thisnis not working)
+        out = ""
+        for key, value in self.__dict__.items():
+            if key[0] == "_":
+                continue
+            out += "%-20s : %s\n" % (key, value)
+        out = j.data.text.sort(out)
+        return out
 
     __repr__ = __str__

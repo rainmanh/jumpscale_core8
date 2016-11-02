@@ -96,24 +96,23 @@ class AtYourServiceFactory:
 
                 global_templates_repos = j.atyourservice.config['metadata']
 
-                for item in global_templates_repos:
-                    for domain, info in item.items():
-                        url = info['url']
-                        if url.strip() == "":
-                            raise j.exceptions.RuntimeError("url cannot be empty")
-                    branch = info.get('branch', 'master')
-                    templateReponame = url.rpartition("/")[-1]
-                    if templateReponame not in list(localGitRepos.keys()):
-                        j.do.pullGitRepo(url, dest=None, depth=1, ignorelocalchanges=False, reset=False, branch=branch)
+
+                for domain, info in global_templates_repos.items():
+                    url = info['url']
+                    if url.strip() == "":
+                        raise j.exceptions.RuntimeError("url cannot be empty")
+                branch = info.get('branch', 'master')
+                templateReponame = url.rpartition("/")[-1]
+                if templateReponame not in list(localGitRepos.keys()):
+                    j.do.pullGitRepo(url, dest=None, depth=1, ignorelocalchanges=False, reset=False, branch=branch)
 
             # load global templates
-            for item in global_templates_repos:
-                for domain, repo_info in item.items():
-                    _, _, _, _, repo_path, _ = j.do.getGitRepoArgs(repo_info['url'])
-                    gitrepo = j.clients.git.get(repo_path, check_path=False)
-                    # self._templates.setdefault(gitrepo.name, {})
-                    for templ in self._actorTemplatesGet(gitrepo, repo_path):
-                        self._templates[templ.name] = templ
+            for domain, repo_info in global_templates_repos.items():
+                _, _, _, _, repo_path, _ = j.do.getGitRepoArgs(repo_info['url'])
+                gitrepo = j.clients.git.get(repo_path, check_path=False)
+                # self._templates.setdefault(gitrepo.name, {})
+                for templ in self._actorTemplatesGet(gitrepo, repo_path):
+                    self._templates[templ.name] = templ
 
             self._reposLoad()
 

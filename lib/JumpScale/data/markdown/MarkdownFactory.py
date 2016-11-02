@@ -297,7 +297,8 @@ class MarkdownDocument:
         self._dataCache = {}
 
     def _findFancyHeaders(self):
-
+        if not self.content or self.content.strip() == "":
+            return
         out = []
         for line in self.content.split("\n"):
             if line.startswith("===="):
@@ -367,7 +368,8 @@ class MarkdownDocument:
             substate = ""
             state = ""
             return ""
-
+        if not self.content or self.content.strip() == '':
+            return
         for line in self.content.split("\n"):
 
             # HEADERS

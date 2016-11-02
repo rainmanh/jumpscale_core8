@@ -17,10 +17,8 @@ if "JSBRANCH" in os.environ:
 else:
     branch = "master"
 
-if "TMPDIR" in os.environ:
-    tmpdir = os.environ["TMPDIR"]
-else:
-    tmpdir = "/tmp"
+if not "TMPDIR" in os.environ:
+    raise RuntimeError("TMPDIR should be there")
 
 os.chdir(tmpdir)
 
@@ -53,7 +51,8 @@ do = InstallTools.do
 # do.installer.prepare()
 
 print("install jumpscale8")
-do.installer.installJS(clean=reset)
+do.installer.prepare()
+do.installer.installJS()
 do.installer.installJSDocs()
 
 from JumpScale import j

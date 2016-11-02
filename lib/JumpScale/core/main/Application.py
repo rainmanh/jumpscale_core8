@@ -12,7 +12,9 @@ WhoAmI = namedtuple('WhoAmI', 'gid nid pid')
 def embed():
     return "embed" in sys.__dict__
 
+
 class Config:
+
     def __getattribute__(self, attr):
         config_path = os.path.join(j.dirs.cfgDir, attr)
         if not os.path.isdir(config_path):
@@ -28,9 +30,11 @@ class Config:
                 cfg = j.data.hrd.get(config_file)
                 cfg = cfg.getHRDAsDict()
             else:
-                cfg = j.sal.fs.fileGetContents(config_file) # TODO support more common formats
+                cfg = j.sal.fs.fileGetContents(config_file)  # TODO support more common formats
+                raise RuntimeError("not supported format")
             config[os.path.basename(config_file).split('.')[0]] = cfg
         return config
+
 
 class Application:
 

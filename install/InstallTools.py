@@ -9,25 +9,81 @@ import platform
 import subprocess
 import time
 import fnmatch
-import asyncio
 from subprocess import Popen
 import re
 import inspect
 import yaml
-
-if sys.platform != 'cygwin':
-    import uvloop
+import importlib
 
 
 class InstallTools():
 
     def __init__(self, debug=False):
-        self._whoami = None
-        self.debug = debug
-        self.readonly = False
+
         self._extratools = False
-        self.sandbox = False
+        self._asyncLoaded = False
+        self._deps = None
+
+        self.installer = Installer()
+
         self.init()
+
+    @property
+    def dependencies(self):
+        if self._deps == None:
+            path = "%s/lib/JumpScale/install/dependencies.py" % os.environ["JSBASE"]
+            if not self.exists(path):
+                path = '%s/dependencies.py' % os.environ["TMPDIR"]
+            if not self.exists(path):
+                raise RuntimeError("Could not find dependencies file in %s" % path)
+
+            loader = importlib.machinery.SourceFileLoader("deps", path)
+            handle = loader.load_module("deps")
+            deps = eval("handle.deps")
+            self._deps = deps()
+        return self._deps
+
+    @property
+    def debug(self):
+        return self.config["SYSTEM"]["DEBUG"]
+
+    @debug.setter
+    def debug(self, value):
+        if not isinstance(value, bool):
+            raise RuntimeError("input for debug needs to be bool")
+        self.config["SYSTEM"]["DEBUG"] = value
+
+    @property
+    def sandbox(self):
+        return self.config["SYSTEM"]["SANDBOX"]
+
+    @sandbox.setter
+    def sandbox(self, value):
+        if not isinstance(value, bool):
+            raise RuntimeError("input for SANDBOX needs to be bool")
+        self.config["SYSTEM"]["SANDBOX"] = value
+
+    @property
+    def config(self):
+        return yaml.load('%s/jumpscale/system.yml' % os.environ["CFGDIR"])
+
+    @config.setter
+    def config(self, ddict):
+        if not isinstance(ddict, dict):
+            raise RuntimeError("input for configSystem needs to be dict")
+        with open('%s/jumpscale/system.yml' % os.environ["CFGDIR"], 'w') as outfile:
+            yaml.dump(ddict, outfile, default_flow_style=False)
+
+    @property
+    def done(self):
+        return yaml.load('%s/jumpscale/done.yml' % os.environ["CFGDIR"])
+
+    @done.setter
+    def done(self, ddict):
+        if not isinstance(ddict, dict):
+            raise RuntimeError("input for done needs to be dict")
+        with open('%s/jumpscale/done.yml' % os.environ["CFGDIR"], 'w') as outfile:
+            yaml.dump(ddict, outfile, default_flow_style=False)
 
     def init(self):
 
@@ -48,13 +104,14 @@ class InstallTools():
             os.environ["JSBASE"] = "/JS8/opt/jumpscale8/"
             os.environ["HOME"] = "/JS8/home"
             os.environ["TMPDIR"] = "/JS8/tmp"
-            os.environ["DATADIR"] = "/JS8/optvar/"
+            os.environ["DATADIR"] = "/JS8/optvar/data/"
             os.environ["CODEDIR"] = "/JS8/code"
             os.environ["CFGDIR"] = "/JS8/optvar/cfg/"
 
         if platform.system().lower() == "windows":
             self.TYPE = "WIN"
             os.environ["JSBASE"] = "%s/" % os.environ["JSBASE"].replace("\\", "/")
+            raise RuntimeError("TODO: *3")
 
         elif sys.platform.startswith("darwin") or platform.system().lower() == "cygwin_nt-10.0":
             if sys.platform.startswith("darwin"):
@@ -64,58 +121,35 @@ class InstallTools():
             if "JSBASE" not in os.environ:
                 os.environ["JSBASE"] = "%s/opt/jumpscale8" % os.environ["HOME"]
             if "DATADIR" not in os.environ:
-                os.environ["DATADIR"] = "%s/optvar" % os.environ["HOME"]
+                os.environ["DATADIR"] = "%s/optvar/data" % os.environ["HOME"]
             if "CODEDIR" not in os.environ:
                 os.environ["CODEDIR"] = "%s/code" % os.environ["HOME"]
+            if "TMPDIR" not in os.environ:
+                os.environ["TMPDIR"] = "%s/tmp" % os.environ["HOME"]
 
         elif sys.platform.startswith("linux"):
             self.TYPE = "LINUX"
             if "JSBASE" not in os.environ:
                 os.environ["JSBASE"] = "/opt/jumpscale8"
             if "DATADIR" not in os.environ:
-                os.environ["DATADIR"] = "/optvar"
+                os.environ["DATADIR"] = "/optvar/data"
+            if "CFGDIR" not in os.environ:
+                os.environ["CFGDIR"] = "/optvar/cfg"
             if "CODEDIR" not in os.environ:
                 os.environ["CODEDIR"] = "/opt/code"
+            if "TMPDIR" not in os.environ:
+                os.environ["TMPDIR"] = "/tmp"
 
         else:
             raise RuntimeError("Jumpscale only supports windows 7+, macosx, ubuntu 12+")
 
         self.TYPE += platform.architecture()[0][:2]
 
-        if "TMPDIR" in os.environ:
-            self.TMP = os.environ["TMPDIR"]
-        else:
-            self.TMP = tempfile.gettempdir().replace("\\", "/")
-            os.environ["TMPDIR"] = self.TMP
+        if not "TMPDIR" in os.environ:
+            os.environ["TMPDIR"] = tempfile.gettempdir().replace("\\", "/")
 
-        if "JSBASE" in os.environ:
-            self.BASE = os.environ["JSBASE"]
-        else:
-            raise RuntimeError("JSBASE not specified")
-
-        if "CODEDIR" in os.environ:
-            self.CODEDIR = os.environ["CODEDIR"]
-        else:
-            raise RuntimeError("CODEDIR not specified")
-
-        if "DATADIR" in os.environ:
-            self.VARDIR = os.environ["DATADIR"]
-        else:
-            raise RuntimeError("DATADIR not specified")
-
-        if "TMPDIR" in os.environ:
-            self.TMPDIR = os.environ["TMPDIR"]
-        else:
-            raise RuntimeError("TMPDIR not specified")
-
-        if "CFGDIR" in os.environ:
-            self.CFGDIR = os.environ["CFGDIR"]
-        else:
-            raise RuntimeError("CFGDIR not specified")
-
-        while self.BASE[-1] == "/":
-            self.BASE = self.BASE[:-1]
-        self.BASE += "/"
+        if not self.exists("%s/jumpscale/system.yaml" % os.environ["CFGDIR"]):
+            self.installer.writeEnv()
 
         # if str(sys.excepthook).find("apport_excepthook")!=-1:
         # if we get here it means is std python excepthook (I hope)
@@ -495,6 +529,28 @@ class InstallTools():
     def exists(self, path):
         return os.path.exists(path)
 
+    def pip(self, items, force=False, executor=None):
+        """
+        @param items is string or list
+        """
+        if isinstance(items, list):
+            pass
+        elif isinstance(items, str):
+            items = self.strip(items)
+            items = [item.strip() for item in items.split("\n") if item.strip() != ""]
+        else:
+            raise RuntimeError("input can only be string or list")
+
+        for item in items:
+            if "pip_%s" % item not in self.done or force:
+                cmd = "pip3 install %s --upgrade" % item
+                if executor == None:
+                    self.execute(cmd)
+                else:
+                    executor.execute(cmd)
+                self.done["pip_%s" % item] = True
+
+    # TODO *3 does not belong here
     def findDependencies(self, path, deps={}):
         excl = ["libc.so", "libpthread.so", "libutil.so"]
         out = self.installtools.execute("ldd %s" % path)
@@ -1074,8 +1130,8 @@ class InstallTools():
 
         s.quit()
 
-    def execute(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=1,
-                captureout=True, die=True, async=False, executor=None):
+    def executeAsync(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=1,
+                     captureout=True, die=True, async=False):
         """
         Execute command
         @param command: Command to be executed
@@ -1083,7 +1139,6 @@ class InstallTools():
         @param outputStderr: print error line by line while processing the command
         @param useShell: Execute command as a shell command
         @param log:
-        @param cwd: If cwd is not None, the function changes the working directory to cwd before executing the child
         @param timeout: If not None, raise TimeoutError if command execution time > timeout
         @param captureout: If True, returns output of cmd. Else, it returns empty str
         @param die: If True, raises error if cmd failed. else, fails silently and returns error in the output
@@ -1091,11 +1146,14 @@ class InstallTools():
         @param executor: If not None returns output of executor.execute(....)
         @return: (returncode, output, error). output and error defaults to empty string
         """
+
+        if self._asyncLoaded == False:
+            import asyncio
+            if sys.platform != 'cygwin':
+                import uvloop
+
         # TODO: *1 need to be brought back without async & without anything
         # advanced, this is an isntaller should not have async, ...
-
-        if executor:
-            return executor.execute(command, die=die, checkok=False, async=async, showout=True, timeout=timeout)
 
         executable = '/bin/bash' if useShell else None
 
@@ -1168,9 +1226,147 @@ class InstallTools():
 
         return rc, out, err
 
-    def executeInteractive(self, command):
+    def executeInteractive(self, command, die=True):
         exitcode = os.system(command)
+        if exitcode != 0 and die:
+            raise RuntimeError("Could not execute %s" % cmd)
         return exitcode
+
+    def execute(self, command, showout=True, die=True, executor=None):
+        """
+        @return: (returncode, output, error). output and error defaults to empty string
+        """
+        if executor:
+            return executor.execute(command, die=die, checkok=False, async=async, showout=True, timeout=timeout)
+        else:
+
+            os.environ["PYTHONUNBUFFERED"] = "1"
+            ON_POSIX = 'posix' in sys.builtin_module_names
+
+            popenargs = {}
+            if hasattr(subprocess, "_mswindows"):
+                mswindows = subprocess._mswindows
+            else:
+                mswindows = subprocess.mswindows
+
+            if not mswindows:
+                # Reset all signals before calling execlp but after forking. This
+                # fixes Python issue 1652 (http://bugs.python.org/issue1652) and
+                # jumpscale ticket 189
+                def reset_signals():
+                    '''Reset all signals to SIG_DFL'''
+                    for i in range(1, signal.NSIG):
+                        if signal.getsignal(i) != signal.SIG_DFL:
+                            try:
+                                signal.signal(i, signal.SIG_DFL)
+                            except OSError:
+                                # Skip, can't set this signal
+                                pass
+                popenargs["preexec_fn"] = reset_signals
+
+            # print(":: Executing {} with LD_LIBRARY_PATH: {}".format(command, os.environ.get('LD_LIBRARY_PATH', None)))
+            p = Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX,
+                      shell=useShell, env=os.environ, universal_newlines=True, bufsize=0, **popenargs)
+
+            class StreamReader(threading.Thread):
+
+                def __init__(self, stream, queue, flag):
+                    super(StreamReader, self).__init__()
+                    self.stream = stream
+                    self.queue = queue
+                    self.flag = flag
+                    self._stopped = False
+                    self.setDaemon(True)
+
+                def run(self):
+                    while not self.stream.closed and not self._stopped:
+                        buf = ''
+                        buf = self.stream.readline()
+                        if len(buf) > 0:
+                            self.queue.put((self.flag, buf))
+                        else:
+                            break
+                    self.queue.put(('T', self.flag))
+
+            serr = p.stderr
+            sout = p.stdout
+            inp = queue.Queue()
+
+            outReader = StreamReader(sout, inp, 'O')
+            errReader = StreamReader(serr, inp, 'E')
+
+            outReader.start()
+            errReader.start()
+
+            start = time.time()
+
+            err = ""
+            out = ""
+            rc = 1000
+
+            out_eof = False
+            err_eof = False
+
+            while not out_eof or not err_eof:
+                # App still working
+                try:
+                    chan, line = inp.get(block=True, timeout=1.0)
+                    # print chan, line
+                    if chan == 'T':
+                        if line == 'O':
+                            out_eof = True
+                        elif line == 'E':
+                            err_eof = True
+                        continue
+
+                    if ok != []:
+                        for item in ok:
+                            if line.find(item) != -1:
+                                rc = 0
+                                break
+                    if errors != []:
+                        for item in errors:
+                            if line.find(item) != -1:
+                                rc = 997
+                                break
+                        if rc == 997 or rc == 0:
+                            break
+
+                    if chan == 'O':
+                        if showout:
+                            print((line.strip()))
+                        if captureout:
+                            out += line
+                    elif chan == 'E':
+                        if outputStderr:
+                            print(("E:%s" % line.strip()))
+                        if captureout:
+                            err += line
+
+                except queue.Empty:
+                    pass
+                if timeout > 0:
+                    if time.time() > start + timeout:
+                        print("TIMEOUT")
+                        rc = 999
+                        p.kill()
+
+                        break
+
+            if rc != 999:
+                outReader.join()
+                errReader.join()
+                p.wait()
+            if rc == 1000:
+                rc = p.returncode
+
+            if rc > 0 and die:
+                if err != "":
+                    raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s" % (command, err))
+                else:
+                    raise RuntimeError("Could not execute cmd:\n'%s'\nout:\n%s" % (command, out))
+
+            return rc, out, err
 
     def downloadExpandTarGz(self, url, destdir, deleteDestFirst=True, deleteSourceAfter=True):
         print((self.getBaseName(url)))
@@ -2052,7 +2248,6 @@ class Installer():
         """
         @param codedir is the location where the code will be installed, code which get's checked out from github
         @param base is location of root of JumpScale
-        @copybinary means copy the binary files (in sandboxed mode) to the location, don't link
 
         JSGIT & AYSGIT allow us to chose other install sources for jumpscale as well as AtYourService repo
 
@@ -2184,7 +2379,7 @@ class Installer():
     @property
     def readonly(self):
         if self._readonly is None:
-            ppath = "%s/bin/_writetest" % do.BASE
+            ppath = "%s/bin/_writetest" % os.environ["JSBASE"]
             try:
                 do.writeFile(ppath, "")
                 self._readonly = False
@@ -2196,21 +2391,30 @@ class Installer():
     def writeEnv(self):
 
         print("WRITENV")
-        do.createDir("%s/jumpscale" % do.CFGDIR)
+        do.createDir("%s/jumpscale" % os.environ["CFGDIR"])
         config = {}
-        for category, items in {"identity": ["EMAIL", "FULLNAME", "GITHUBUSER", "GITHUBPASSWD", "AYSGIT", "AYSBRANCH", "DEBUG"],
+        for category, items in {"identity": ["EMAIL", "FULLNAME", "GITHUBUSER"],
+                                "system": ["AYSBRANCH", "JSBRANCH", "DEBUG", "SANDBOX"],
                                 "dirs": ["JSBASE", "HOME", "TMPDIR", "DATADIR", "CODEDIR", "CFGDIR"]}.items():
             config[category] = {}
             for item in items:
+
                 if item not in os.environ:
-                    if item in ["DEBUG"]:
+                    if item in ["DEBUG", "SANDBOX"]:
                         config[category][item] = False
                     else:
                         config[category][item] = ""
                 else:
-                    config[category][item] = os.environ[item]
+                    if item in ["DEBUG", "SANDBOX"]:
+                        config[category][item] = str(os.environ[item]) == 1
+                    else:
+                        if category == "dirs":
+                            while os.environ[item][-1] == "/":
+                                os.environ[item] = os.environ[item][:-1]
+                            os.environ[item] += "/"
+                        config[category][item] = os.environ[item]
 
-        with open("%s/jumpscale/system.yaml" % do.CFGDIR, 'w') as outfile:
+        with open("%s/jumpscale/system.yaml" % os.environ["CFGDIR"], 'w') as outfile:
             yaml.dump(config, outfile, default_flow_style=False)
 
         C = """
@@ -2235,7 +2439,7 @@ class Installer():
             os.environ["AYSBRANCH"] = "master"
         C = C.format(**os.environ)
 
-        hpath = "%s/jumpscale/ays.toml" % do.CFGDIR
+        hpath = "%s/jumpscale/ays.toml" % os.environ["CFGDIR"]
         if not do.exists(path=hpath):
             do.writeFile(hpath, C)
 
@@ -2248,7 +2452,7 @@ class Installer():
             - 'j.data.hrd'
             - 'j.application'
         """
-        do.writeFile("%s/jumpscale/logging.yaml" % do.CFGDIR, C)
+        do.writeFile("%s/jumpscale/logging.yaml" % os.environ["CFGDIR"], C)
 
         C = """
 
@@ -2292,7 +2496,7 @@ class Installer():
                 hash -r 2>/dev/null
         fi
         """
-        C = C.replace("$base", do.BASE)
+        C = C.replace("$base", os.environ["JSBASE"])
 
         if do.sandbox:
             C = C.replace('$pythonhome', 'export PYTHONHOME=$JSBASE/bin')
@@ -2304,7 +2508,7 @@ class Installer():
         else:
             C = C.replace(
                 "$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu:$_OLD_PYTHONPATH")
-        envfile = "%s/env.sh" % do.BASE
+        envfile = "%s/env.sh" % os.environ["JSBASE"]
 
         if self.readonly is False or die == True:
             do.writeFile(envfile, C)
@@ -2329,17 +2533,17 @@ class Installer():
         if self.readonly is False or die == True:
 
             do.delete("/usr/bin/jspython")  # to remove link
-            do.delete("%s/bin/jspython" % do.BASE)
+            do.delete("%s/bin/jspython" % os.environ["JSBASE"])
             do.delete("/usr/local/bin/jspython")
 
             if do.sandbox:
-                dest = "%s/bin/jspython" % do.BASE
-                C2 = C2.replace('$base', do.BASE)
+                dest = "%s/bin/jspython" % os.environ["JSBASE"]
+                C2 = C2.replace('$base', os.environ["JSBASE"])
                 do.writeFile(dest, C2)
             else:
                 # in system
                 dest = "/usr/local/bin/jspython"
-                C2_insystem = C2_insystem.replace('$base', do.BASE)
+                C2_insystem = C2_insystem.replace('$base', os.environ["JSBASE"])
                 do.writeFile(dest, C2_insystem)
             do.chmod(dest, 0o770)
 
@@ -2358,7 +2562,7 @@ class Installer():
 
                         out += "%s\n" % line
                     do.writeFile(path, out)
-            changesite("%s/lib/site.py" % do.BASE)
+            changesite("%s/lib/site.py" % os.environ["JSBASE"])
             # if insystem:
             #     changesite("/usr/local/lib/python3/dist-packages/site.py"%basedir)
 
@@ -2432,33 +2636,19 @@ class Installer():
         print("prepare")
 
         self.installpip()
-        cmds = """
-        pip3 install ipython
-        pip3 install redis
-        pip3 install netaddr
-        pip3 install cython
-        pip3 install pycapnp
-        pip3 install path.py
-        pip3 install colored-traceback
-        pip3 install pudb
-        pip3 install colorlog
-        pip3 install msgpack-python
-        pip3 install pyblake2
-        pip3 install click
-        """
-        do.executeCmds(cmds)
-
-        # do.executeInteractive("pip3 install xonsh")
-        # do.executeInteractive("pip3 install tmuxp")
 
         if sys.platform.startswith('win'):
             raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
         elif sys.platform.startswith('darwin'):
-            cmds = """
-            brew install tmux
-            brew install psutils
-            """
-            do.executeCmds(cmds)
+            if "core_apps_installed" not in self.done:
+                cmds = """
+                brew install tmux
+                brew install psutils
+                """
+                do.executeCmds(cmds)
+                self.done["core_apps_installed"] = True
+
+        do.dependencies.all()
 
     def gitConfig(self, name, email):
         if name == "":
@@ -2519,9 +2709,3 @@ class Installer():
         #     ipdb.set_trace()
         # if do.exists(src) and do.exists(dest):
         #     do.copyTree(src, dest)
-
-
-do.installer = Installer()
-
-if __name__ == '__main__':
-    do.installer.installJS()

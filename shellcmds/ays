@@ -292,16 +292,6 @@ def setstate(action, state="DO", role="", instance="", force=False, producerrole
 
 
 @click.command()
-@click.option('--printonly', default=False, is_flag=True, help='if set will not really execute, only show what would have been done')
-def uninstall(printonly):
-    """
-    do uninstall
-    """
-    repo = j.atyourservice.get()
-    repo.uninstall(printonly=printonly)
-
-
-@click.command()
 @click.option('--role', '-r', default='')
 @click.option('--instance', '-i', default='')
 def show(role, instance):
@@ -534,7 +524,6 @@ cli.add_command(destroy)
 cli.add_command(init)
 cli.add_command(update)
 cli.add_command(install)
-cli.add_command(uninstall)
 cli.add_command(do)
 cli.add_command(show)
 cli.add_command(showproducers)

@@ -21,7 +21,7 @@ class CuisineGit(base):
         else:
             dest = self._cuisine.core.args_replace(dest)
 
-        self._cuisine.core.dir_ensure(dest)
+        self._cuisine.core.dir_ensure(j.sal.fs.getParent(dest))
         self._cuisine.core.dir_ensure('$homeDir/.ssh')
         keys = self._cuisine.core.run("ssh-keyscan -H github.com")[1]
         self._cuisine.core.dir_ensure('$homeDir/.ssh')

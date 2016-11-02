@@ -13,15 +13,15 @@ class CuisineCockpit(base):
     def install(self, start=True):
         self.install_deps()
         self._cuisine.development.git.pullRepo('https://github.com/Jumpscale/jscockpit')
-        self._cuisine.core.dir_ensure('/opt/jumpscale8/apps/ays_api/')
-        self._cuisine.core.file_copy('/opt/code/github/jumpscale/jscockpit/jscockpit/api_server', '/opt/jumpscale8/apps/ays_api/api_server')
-        self._cuisine.core.file_copy('/opt/code/github/jumpscale/jscockpit/jscockpit/ays_api/', '/opt/jumpscale8/apps/ays_api/ays_api', recursive=True)
+        self._cuisine.core.dir_ensure('%s/ays_api/' % j.dirs.appDir)
+        self._cuisine.core.file_copy('%s/github/jumpscale/jscockpit/jscockpit/api_server' % j.dirs.codeDir, '%s/ays_api/api_server' % j.dirs.appDir)
+        self._cuisine.core.file_copy('%s/github/jumpscale/jscockpit/jscockpit/ays_api' % j.dirs.codeDir, '%s/ays_api/ays_api' % j.dirs.appDir, recursive=True)
         if start:
             self.start()
 
     def start(self, name='cockpit'):
         cmd = 'jspython api_server'
-        self._cuisine.processmanager.ensure('cockpit', cmd=cmd, path='/opt/jumpscale8/apps/ays_api')
+        self._cuisine.processmanager.ensure('cockpit', cmd=cmd, path='%s/ays_api' % j.dirs.appDir)
 
     def install_deps(self):
         self._cuisine.package.mdupdate()

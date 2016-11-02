@@ -43,12 +43,20 @@ def run(ask, force, debug, profile):
 
 
 @click.command()
-@click.option('--path', '-p', help='path of the new AYS repo you want to create')
-def create_repo(path):
+@click.option('--path', '-p', default=None, help='path of the new AYS repo you want to create')
+@click.option('--git', '-g', default=None, help='URL of the git repository to attach to this AYS repository')
+def create_repo(path, git):
     """
     create a new AYS repository
     """
-    j.atyourservice.repoCreate(path)
+    if git is None:
+        print("you have to specify an gi repository using --git")
+        return
+
+    if path is None:
+        path = j.sal.fs.getcwd()
+
+    j.atyourservice.repoCreate(path=path, git_url=git)
 
 
 @click.command()

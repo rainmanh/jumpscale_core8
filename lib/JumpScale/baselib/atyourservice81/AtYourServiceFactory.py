@@ -247,7 +247,7 @@ class AtYourServiceFactory:
             repos.append(model.objectGet())
         return repos
 
-    def repoCreate(self, path):
+    def repoCreate(self, path, git_url=''):
         path = j.sal.fs.pathNormalize(path)
 
         if j.sal.fs.exists(path):
@@ -256,7 +256,9 @@ class AtYourServiceFactory:
         j.sal.fs.createEmptyFile(j.sal.fs.joinPaths(path, '.ays'))
         j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'actorTemplates'))
         j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'blueprints'))
-        j.tools.cuisine.local.core.run('cd %s;git init' % path)
+        j.tools.cuisine.local.core.run('cd {};git init'.format(path))
+        if git_url:
+            j.tools.cuisine.local.core.run('cd {path};git remote add origin {url}'.format(path=path, url=git_url))
         j.sal.nettools.download(
             'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
         name = j.sal.fs.getBaseName(path)

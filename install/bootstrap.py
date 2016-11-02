@@ -4,13 +4,6 @@ import os
 import time
 import argparse
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--no-reset', dest='no_reset', action='store_true', default=False,
-                    help='clean JS')
-
-args = parser.parse_args()
-
-reset = not args.no_reset
 
 if "JSBRANCH" in os.environ:
     branch = os.environ["JSBRANCH"]
@@ -19,6 +12,8 @@ else:
 
 if not "TMPDIR" in os.environ:
     raise RuntimeError("TMPDIR should be there")
+
+tmpdir = os.environ["TMPDIR"]
 
 os.chdir(tmpdir)
 
@@ -56,5 +51,3 @@ do.installer.installJS()
 do.installer.installJSDocs()
 
 from JumpScale import j
-
-# j.sal....

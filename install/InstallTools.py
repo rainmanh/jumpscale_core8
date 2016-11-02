@@ -16,6 +16,485 @@ import yaml
 import importlib
 
 
+class Installer():
+
+    def __init__(self):
+        self._readonly = None
+
+    def installJSDocs(self, ssh=True):
+        print("install jsdocs")
+        self.do.pullGitRepo(url='git@github.com:Jumpscale/docs.git', ssh="first")
+
+    def installJS(self, base="", GITHUBUSER="", GITHUBPASSWD="", CODEDIR="",
+                  JSGIT="https://github.com/Jumpscale/jumpscale_core8.git", JSBRANCH="master",
+                  AYSGIT="https://github.com/Jumpscale/ays_jumpscale8", AYSBRANCH="master", EMAIL="", FULLNAME=""):
+        """
+        @param codedir is the location where the code will be installed, code which get's checked out from github
+        @param base is location of root of JumpScale
+
+        JSGIT & AYSGIT allow us to chose other install sources for jumpscale as well as AtYourService repo
+
+        IMPORTANT: if env var's are set they get priority
+
+        """
+        # everything else is dangerous now
+        copybinary = True
+
+        tmpdir = self.do.config["dirs"]["TMPDIR"]
+
+        if base != "":
+            os.environ["JSBASE"] = base
+
+        if CODEDIR != "":
+            os.environ["CODEDIR"] = CODEDIR
+
+        self.do.init()
+
+        if sys.platform.startswith('win'):
+            raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
+
+        PYTHONVERSION = "3.5"
+
+        print(("Install Jumpscale in %s" % os.environ["JSBASE"]))
+
+        # this means if env var's are set they get priority
+        args2 = dict(map(lambda item: (item, ''), ["GITHUBUSER", "GITHUBPASSWD", "JSGIT", "JSBRANCH", "CFGDIR",
+                                                   "AYSGIT", "AYSBRANCH", "CODEDIR", "EMAIL", "FULLNAME", "JSBASE", "PYTHONVERSION"]))
+        # walk over all var's & set defaults or get them from env
+        for var in args2.copy():
+            if var in os.environ:
+                args2[var] = os.environ[var]
+            else:
+                args2[var] = eval(var)
+
+        os.environ.update(args2)
+
+        args2['SANDBOX'] = int(do.sandbox)
+
+        if EMAIL != "":
+            self.gitConfig(FULLNAME, EMAIL)
+
+        self.debug = True
+
+        self.prepare()
+
+        self.do.executeInteractive("mkdir -p %s/.ssh/" % os.environ["HOME"])
+        self.do.executeInteractive("ssh-keyscan github.com 2> /dev/null  >> {0}/.ssh/known_hosts; ssh-keyscan git.aydo.com 2> /dev/null >> {0}/.ssh/known_hosts".format(
+            os.environ["HOME"]))
+        print("pull core")
+        self.do.pullGitRepo(args2['JSGIT'], branch=args2['JSBRANCH'], depth=1, ssh="first")
+        src = "%s/github/jumpscale/jumpscale_core8/lib/JumpScale" % self.do.CODEDIR
+        self.debug = False
+
+        if self.do.TYPE.startswith("OSX"):
+            self.do.delete("/usr/local/lib/python2.7/site-packages/JumpScale")
+            self.do.delete("/usr/local/lib/python3.5/site-packages/JumpScale")
+
+        destjs = self.do.getPythonLibSystem(jumpscale=True)
+        self.do.delete(destjs)
+        self.do.createDir(destjs)
+
+        base = args2["JSBASE"]
+
+        self.do.createDir("%s/lib" % base)
+        self.do.createDir("%s/bin" % base)
+        # self.do.createDir("%s/hrd/system"%base)
+        # self.do.createDir("%s/hrd/apps"%base)
+
+        dest = "%s/lib/JumpScale" % base
+        self.do.createDir(dest)
+        self.do.symlinkFilesInDir(src, dest, includeDirs=True)
+        self.do.symlinkFilesInDir(src, destjs, includeDirs=True)
+
+        for item in ["InstallTools", "ExtraTools"]:
+            src = "%s/github/jumpscale/jumpscale_core8/install/%s.py" % (do.CODEDIR, item)
+            dest2 = "%s/%s.py" % (dest, item)
+            self.do.symlink(src, dest2)
+            dest2 = "%s/%s.py" % (destjs, item)
+            self.do.symlink(src, dest2)
+
+        src = "%s/github/jumpscale/jumpscale_core8/shellcmds" % self.do.CODEDIR
+        desttest = "/usr/local/bin/js"
+        if not self.do.exists(desttest):
+            dest = "/usr/local/bin"
+            self.do.symlinkFilesInDir(src, dest)
+
+        dest = "%s/bin" % base
+        self.do.symlinkFilesInDir(src, dest)
+
+        # DO NOT LOAD AUTOCOMPLETE AUTOMATICALLY
+        #         # create ays,jsdocker completion based on click magic variables
+        #         with open(os.path.expanduser("~/.bashrc"), "a") as f:
+        #             f.write('''
+        # eval "$(_AYS_COMPLETE=source ays)"
+        # eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
+        #             ''')
+
+        # link python
+        src = "/usr/bin/python3.5"
+        if self.do.exists(src):
+            # self.do.delete("/usr/bin/python")
+            if not self.do.TYPE.startswith("OSX"):
+                # self.do.symlink(src, "%s/bin/python"%base)
+                self.do.symlink(src, "%s/bin/python3" % base)
+                # self.do.symlink(src, "/usr/bin/python")
+
+        # if self.do.TYPE.startswith("OSX"):
+        #     src="/usr/local/bin/python3"
+        #     self.do.symlink(src, "%s/bin/python"%base)
+        #     self.do.symlink(src, "%s/bin/python3"%base)
+        #     self.do.symlink(src, "%s/bin/python3.5"%base)
+
+        self.writeEnv()
+
+        sys.path.insert(0, "%s/lib" % base)
+
+        print("Get atYourService metadata.")
+        self.do.pullGitRepo(args2['AYSGIT'], branch=args2['AYSBRANCH'], depth=1, ssh="first")
+
+        print("install was successfull")
+        print("to use do 'js'")
+
+    @property
+    def readonly(self):
+        if self._readonly is None:
+            ppath = "%s/bin/_writetest" % os.environ["JSBASE"]
+            try:
+                self.do.writeFile(ppath, "")
+                self._readonly = False
+            except:
+                self._readonly = True
+            self.do.delete(ppath)
+        return self._readonly
+
+    def writeEnv(self):
+
+        print("WRITENV")
+        self.do.createDir("%s/jumpscale" % os.environ["CFGDIR"])
+        config = {}
+        for category, items in {"identity": ["EMAIL", "FULLNAME", "GITHUBUSER"],
+                                "system": ["AYSBRANCH", "JSBRANCH", "DEBUG", "SANDBOX"],
+                                "dirs": ["JSBASE", "HOME", "TMPDIR", "DATADIR", "CODEDIR", "CFGDIR"]}.items():
+            config[category] = {}
+            for item in items:
+
+                if item not in os.environ:
+                    if item in ["DEBUG", "SANDBOX"]:
+                        config[category][item] = False
+                    else:
+                        config[category][item] = ""
+                else:
+                    if item in ["DEBUG", "SANDBOX"]:
+                        config[category][item] = str(os.environ[item]) == 1
+                    else:
+                        if category == "dirs":
+                            while os.environ[item][-1] == "/":
+                                os.environ[item] = os.environ[item][:-1]
+                            os.environ[item] += "/"
+                        config[category][item] = os.environ[item]
+
+        with open("%s/jumpscale/system.yaml" % os.environ["CFGDIR"], 'w') as outfile:
+            yaml.dump(config, outfile, default_flow_style=False)
+
+        C = """
+        # By default, AYS will use the JS redis. This is for quick testing
+        # and development. To configure a persistent/different redis, uncomment
+        # and change the redis config
+
+        # [redis]
+        # host = "localhost"
+        # port = 6379
+
+        # here domain = jumpscale, change name for more domains
+        [[metadata]]
+            [metadata.jumpscale]
+                url = {AYSGIT},
+                branch = {AYSBRANCH},
+
+        """
+        if "AYSGIT" not in os.environ or os.environ["AYSGIT"].strip() == "":
+            os.environ["AYSGIT"] = "https://github.com/Jumpscale/ays_jumpscale8"
+        if "AYSBRANCH" not in os.environ or os.environ["AYSBRANCH"].strip() == "":
+            os.environ["AYSBRANCH"] = "master"
+        C = C.format(**os.environ)
+
+        hpath = "%s/jumpscale/ays.toml" % os.environ["CFGDIR"]
+        if not self.do.exists(path=hpath):
+            self.do.writeFile(hpath, C)
+
+        C = """
+        mode: 'DEV'
+        level: 'DEBUG'
+
+        filter:
+            - 'j.sal.fs'
+            - 'j.data.hrd'
+            - 'j.application'
+        """
+        self.do.writeFile("%s/jumpscale/logging.yaml" % os.environ["CFGDIR"], C)
+
+        C = """
+
+        deactivate () {
+            export PATH=$_OLD_PATH
+            unset _OLD_PATH
+            export LD_LIBRARY_PATH=$_OLD_LD_LIBRARY_PATH
+            unset _OLD_LD_LIBRARY_PATH
+            export PYTHONPATH=$_OLD_PYTHONPATH
+            unset _OLD_PYTHONPATH
+            export PS1=$_OLD_PS1
+            unset _OLD_PS1
+            unset JSBASE
+            unset PYTHONHOME
+            if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
+                    hash -r 2>/dev/null
+            fi
+        }
+
+        if [[ "$JSBASE" == "$base" ]]; then
+           return 0
+        fi
+
+        export JSBASE=$base
+
+        export _OLD_PATH=$PATH
+        export _OLD_LDLIBRARY_PATH=$LD_LIBRARY_PATH
+        export _OLD_PS1=$PS1
+        export _OLD_PYTHONPATH=$PYTHONPATH
+
+        export PATH=$JSBASE/bin:$PATH
+
+        export LUA_PATH="/opt/jumpscale8/lib/lua/?.lua;./?.lua;/opt/jumpscale8/lib/lua/?/?.lua;/opt/jumpscale8/lib/lua/tarantool/?.lua;/opt/jumpscale8/lib/lua/?/init.lua"
+
+        $pythonhome
+        export PYTHONPATH=$pythonpath
+
+        export LD_LIBRARY_PATH=$JSBASE/bin
+        export PS1="(JS8) $PS1"
+        if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
+                hash -r 2>/dev/null
+        fi
+        """
+        C = C.replace("$base", os.environ["JSBASE"])
+
+        if self.do.sandbox:
+            C = C.replace('$pythonhome', 'export PYTHONHOME=$JSBASE/bin')
+        else:
+            C = C.replace('$pythonhome', '')
+
+        if self.do.TYPE.startswith("OSX"):
+            C = C.replace("$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/plat-x86_64-linux-gnu:/usr/local/lib/python3.5/site-packages:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/plat-darwin:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload")
+        else:
+            C = C.replace(
+                "$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu:$_OLD_PYTHONPATH")
+        envfile = "%s/env.sh" % os.environ["JSBASE"]
+
+        if self.readonly is False or die == True:
+            self.do.writeFile(envfile, C)
+
+        # pythonversion = '3' if os.environ.get('PYTHONVERSION') == '3' else ''
+
+        C2 = """
+        #!/bin/bash
+        # set -x
+        source $base/env.sh
+        exec $JSBASE/bin/python3 -q "$@"
+        """
+
+        C2_insystem = """
+        #!/bin/bash
+        # set -x
+        source $base/env.sh
+        exec python3 -q "$@"
+        """
+
+        # C2=C2.format(base=basedir, env=envfile)
+        if self.readonly is False or die == True:
+
+            self.do.delete("/usr/bin/jspython")  # to remove link
+            self.do.delete("%s/bin/jspython" % os.environ["JSBASE"])
+            self.do.delete("/usr/local/bin/jspython")
+
+            if self.do.sandbox:
+                dest = "%s/bin/jspython" % os.environ["JSBASE"]
+                C2 = C2.replace('$base', os.environ["JSBASE"])
+                self.do.writeFile(dest, C2)
+            else:
+                # in system
+                dest = "/usr/local/bin/jspython"
+                C2_insystem = C2_insystem.replace('$base', os.environ["JSBASE"])
+                self.do.writeFile(dest, C2_insystem)
+            self.do.chmod(dest, 0o770)
+
+            # change site.py file
+            def changesite(path):
+                if self.do.exists(path=path):
+                    C = self.do.readFile(path)
+                    out = ""
+                    for line in C.split("\n"):
+                        if line.find("ENABLE_USER_SITE") == 0:
+                            line = "ENABLE_USER_SITE = False"
+                        if line.find("USER_SITE") == 0:
+                            line = "USER_SITE = False"
+                        if line.find("USER_BASE") == 0:
+                            line = "USER_BASE = False"
+
+                        out += "%s\n" % line
+                    self.do.writeFile(path, out)
+            changesite("%s/lib/site.py" % os.environ["JSBASE"])
+            # if insystem:
+            #     changesite("/usr/local/lib/python3/dist-packages/site.py"%basedir)
+
+        # custom install items
+
+    def cleanSystem(self):
+        # TODO *2 no longer complete
+        if self.do.TYPE.startswith("UBUNTU"):
+            # pythonversion = os.environ.get('PYTHONVERSION', '')
+            print("clean platform")
+            CMDS = """
+            pip uninstall JumpScale-core
+            # killall tmux  #dangerous
+            killall redis-server
+            rm /usr/local/bin/js*
+            rm /usr/local/bin/ays*
+            rm -rf $base/lib/JumpScale
+            rm -rf /opt/sentry/
+            sudo stop redisac
+            sudo stop redisp
+            sudo stop redism
+            sudo stop redisc
+            killall redis-server
+            rm -rf /opt/redis/
+            """
+            CMDS = CMDS.replace("$base", self.BASE)
+            self.do.executeCmds(CMDS, showout=False, outputStderr=False, useShell=True, log=False,
+                                cwd=None, timeout=60, errors=[], ok=[], captureout=False, die=False)
+
+            for PYTHONVERSION in ["3.5", "3.4", "3.3", "2.7", ""]:
+                CMDS = """
+                rm -rf /usr/local/lib/python%(pythonversion)s/dist-packages/jumpscale*
+                rm -rf /usr/local/lib/python%(pythonversion)s/site-packages/jumpscale*
+                rm -rf /usr/local/lib/python%(pythonversion)s/dist-packages/JumpScale*
+                rm -rf /usr/local/lib/python%(pythonversion)s/site-packages/JumpScale*
+                rm -rf /usr/local/lib/python%(pythonversion)s/site-packages/JumpScale/
+                rm -rf /usr/local/lib/python%(pythonversion)s/site-packages/jumpscale/
+                rm -rf /usr/local/lib/python%(pythonversion)s/dist-packages/JumpScale/
+                rm -rf /usr/local/lib/python%(pythonversion)s/dist-packages/jumpscale/
+                """ % {'pythonversion': PYTHONVERSION}
+                self.do.executeCmds(CMDS, showout=False, outputStderr=False, useShell=True, log=False,
+                                    cwd=None, timeout=60, errors=[], ok=[], captureout=False, die=False)
+
+    def updateSystem(self):
+
+        if self.TYPE.startswith("UBUNTU"):
+            CMDS = """
+            apt-get update
+            apt-get autoremove
+            apt-get -f install -y
+            apt-get upgrade -y
+            """
+            self.do.executeCmds(CMDS)
+
+        elif self.TYPE.startswith("OSX"):
+            CMDS = """
+            brew update
+            brew upgrade
+            """
+            self.do.executeCmds(CMDS)
+
+    def installpip(self):
+        tmpdir = self.do.config["dirs"]["TMPDIR"]
+        if not self.do.exists(self.do.joinPaths(tmpdir, "get-pip.py")):
+            if not self.do.TYPE.startswith("WIN"):
+                cmd = "cd %s;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python get-pip.py" % self.do.config[
+                    "system"]["TMPDIR"]
+                self.do.execute(cmd)
+
+    def prepare(self):
+        self.do.initCreateDirs4System()
+
+        print("prepare")
+
+        self.installpip()
+
+        if sys.platform.startswith('win'):
+            raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
+        elif sys.platform.startswith('darwin'):
+            if "core_apps_installed" not in self.do.done:
+                cmds = """
+                brew install tmux
+                brew install psutils
+                """
+                self.do.executeCmds(cmds)
+                self.do.doneSet("core_apps_installed")
+            else:
+                print("no need to prepare system for base, already done.")
+
+        self.do.dependencies.all()
+
+    def gitConfig(self, name, email):
+        if name == "":
+            name = email
+        if email == "":
+            raise RuntimeError("email cannot be empty")
+        self.do.execute("git config --global user.email \"%s\"" % email)
+        self.do.execute("git config --global user.name \"%s\"" % name)
+
+    def replacesitecustomize(self):
+        if not self.TYPE == "WIN":
+            ppath = "/usr/lib/python%s/sitecustomize.py" % os.environ.get('PYTHONVERSION', '')
+            if ppath.find(ppath):
+                os.remove(ppath)
+            self.symlink("%s/utils/sitecustomize.py" % self.BASE, ppath)
+
+            def do(path, dirname, names):
+                if path.find("sitecustomize") != -1:
+                    self.symlink("%s/utils/sitecustomize.py" % self.BASE, path)
+            print("walk over /usr to find sitecustomize and link to new one")
+            os.path.walk("/usr", do, "")
+            os.path.walk("/etc", do, "")
+
+    def develtools(self):
+
+        [self.do.delete(item) for item in self.do.listDirsInDir(
+            do.getPythonLibSystem()) if item.find(".egg-info") != -1]
+        # [do.delete(item) for item in self.do.listDirsInDir(do.getPythonLibSystem()) if item.find(".dist-info")!=-1]
+        [self.do.delete(item) for item in self.do.listDirsInDir(do.getPythonLibSystem()) if item.find(".egg") != -1]
+
+        self.do.execute("rm -rf %s/pip*" % self.do.getPythonLibSystem())
+        self.do.execute("rm -rf %s/pip*" % self.do.getBinDirSystem())
+
+        # self.do.pullGitRepo("https://github.com/pypa/pip")
+        # self.do.execute("cd %s;python3 setup.py install"%do.getGitRepoArgs("https://github.com/pypa/pip")[4])
+
+        "https://bootstrap.pypa.io/get-pip.py"
+        tmpfile = self.do.download("https://bootstrap.pypa.io/get-pip.py")
+        self.do.execute("python3 %s" % tmpfile)
+        self.do.execute("pip3 install --upgrade setuptools")
+
+        #"pyvim"
+        items = ["jedi", "python-prompt-toolkit", "ipython", "ptpython", "ptpdb", "pymux", "click"]
+        for item in items:
+            self.do.pullGitRepo("git@github.com:Jumpscale/%s.git" % item)
+            path = self.do.joinPaths(do.CODEDIR, "github", "jumpscale", item)
+            cmd = "cd %s;python3 jsinstall.py" % path
+            print(cmd)
+            self.do.execute(cmd)
+
+        self.do.pullGitRepo("https://github.com/vinta/awesome-python")
+
+        # if self.do.TYPE.startswith("OSX"):
+        #     dest = "%s/Library/Application Support/Sublime Text 3/Packages" % os.environ["HOME"]
+        #     src = "%s/opt/code/github/jumpscale/jumpscale_core8/tools/sublimetext/" % os.environ["HOME"]
+        # else:
+        #     print("implement develtools")
+        #     import ipdb
+        #     ipdb.set_trace()
+        # if self.do.exists(src) and self.do.exists(dest):
+        #     self.do.copyTree(src, dest)
+
+
 class InstallTools():
 
     def __init__(self, debug=False):
@@ -25,6 +504,7 @@ class InstallTools():
         self._deps = None
 
         self.installer = Installer()
+        self.installer.do = self
 
         self.init()
 
@@ -39,51 +519,59 @@ class InstallTools():
 
             loader = importlib.machinery.SourceFileLoader("deps", path)
             handle = loader.load_module("deps")
-            deps = eval("handle.deps")
-            self._deps = deps()
+            self._deps = handle.dependencies(self)
         return self._deps
 
     @property
     def debug(self):
-        return self.config["SYSTEM"]["DEBUG"]
+        return self.config["system"]["DEBUG"]
+
+    @property
+    def CODEDIR(self):
+        return self.config["dirs"]["CODEDIR"]
 
     @debug.setter
     def debug(self, value):
         if not isinstance(value, bool):
             raise RuntimeError("input for debug needs to be bool")
-        self.config["SYSTEM"]["DEBUG"] = value
+        self.config["system"]["DEBUG"] = value
 
     @property
     def sandbox(self):
-        return self.config["SYSTEM"]["SANDBOX"]
+        return self.config["system"]["SANDBOX"]
 
     @sandbox.setter
     def sandbox(self, value):
         if not isinstance(value, bool):
             raise RuntimeError("input for SANDBOX needs to be bool")
-        self.config["SYSTEM"]["SANDBOX"] = value
+        self.config["system"]["SANDBOX"] = value
 
     @property
     def config(self):
-        return yaml.load('%s/jumpscale/system.yml' % os.environ["CFGDIR"])
+        with open('%s/jumpscale/system.yaml' % os.environ["CFGDIR"], 'r') as conf:
+            cfg = yaml.load(conf)
+        return cfg
 
-    @config.setter
-    def config(self, ddict):
-        if not isinstance(ddict, dict):
-            raise RuntimeError("input for configSystem needs to be dict")
-        with open('%s/jumpscale/system.yml' % os.environ["CFGDIR"], 'w') as outfile:
-            yaml.dump(ddict, outfile, default_flow_style=False)
+    def configSet(self, category, key, value):
+        c = self.config
+        c[category][key] = value
+        with open('%s/jumpscale/system.yaml' % os.environ["CFGDIR"], 'w') as outfile:
+            yaml.dump(c, outfile, default_flow_style=False)
 
     @property
     def done(self):
-        return yaml.load('%s/jumpscale/done.yml' % os.environ["CFGDIR"])
+        path = '%s/jumpscale/done.yaml' % os.environ["CFGDIR"]
+        if not self.exists(path):
+            return {}
+        with open(path, 'r') as conf:
+            cfg = yaml.load(conf)
+        return cfg
 
-    @done.setter
-    def done(self, ddict):
-        if not isinstance(ddict, dict):
-            raise RuntimeError("input for done needs to be dict")
-        with open('%s/jumpscale/done.yml' % os.environ["CFGDIR"], 'w') as outfile:
-            yaml.dump(ddict, outfile, default_flow_style=False)
+    def doneSet(self, key):
+        d = self.done
+        d[key] = True
+        with open('%s/jumpscale/done.yaml' % os.environ["CFGDIR"], 'w') as outfile:
+            yaml.dump(d, outfile, default_flow_style=False)
 
     def init(self):
 
@@ -190,9 +678,9 @@ class InstallTools():
     def getPythonLibSystem(self, jumpscale=False):
         PYTHONVERSION = platform.python_version()
         do = self
-        if do.TYPE.startswith("OSX"):
+        if self.do.TYPE.startswith("OSX"):
             destjs = "/usr/local/lib/python3.5/site-packages"
-        elif do.TYPE.startswith("WIN"):
+        elif self.do.TYPE.startswith("WIN"):
             destjs = "/usr/lib/python3.4/site-packages"
         else:
             if PYTHONVERSION == '2':
@@ -536,7 +1024,7 @@ class InstallTools():
         if isinstance(items, list):
             pass
         elif isinstance(items, str):
-            items = self.strip(items)
+            items = self.textstrip(items)
             items = [item.strip() for item in items.split("\n") if item.strip() != ""]
         else:
             raise RuntimeError("input can only be string or list")
@@ -545,10 +1033,12 @@ class InstallTools():
             if "pip_%s" % item not in self.done or force:
                 cmd = "pip3 install %s --upgrade" % item
                 if executor == None:
-                    self.execute(cmd)
+                    self.executeInteractive(cmd)
                 else:
                     executor.execute(cmd)
-                self.done["pip_%s" % item] = True
+                self.doneSet("pip_%s" % item)
+            else:
+                print("no need to pip install:%s" % item)
 
     # TODO *3 does not belong here
     def findDependencies(self, path, deps={}):
@@ -1130,7 +1620,7 @@ class InstallTools():
 
         s.quit()
 
-    def executeAsync(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=1,
+    def executeAsync(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=100,
                      captureout=True, die=True, async=False):
         """
         Execute command
@@ -1229,144 +1719,148 @@ class InstallTools():
     def executeInteractive(self, command, die=True):
         exitcode = os.system(command)
         if exitcode != 0 and die:
-            raise RuntimeError("Could not execute %s" % cmd)
+            raise RuntimeError("Could not execute %s" % command)
         return exitcode
 
-    def execute(self, command, showout=True, die=True, executor=None):
+    def execute(self, command, showout=True, die=True, useShell=True, log=True, executor=None, timeout=100):
         """
         @return: (returncode, output, error). output and error defaults to empty string
         """
         if executor:
-            return executor.execute(command, die=die, checkok=False, async=async, showout=True, timeout=timeout)
+            return executor.execute(command, die=die, checkok=False, showout=True, timeout=timeout)
         else:
 
-            os.environ["PYTHONUNBUFFERED"] = "1"
-            ON_POSIX = 'posix' in sys.builtin_module_names
-
-            popenargs = {}
-            if hasattr(subprocess, "_mswindows"):
-                mswindows = subprocess._mswindows
-            else:
-                mswindows = subprocess.mswindows
-
-            if not mswindows:
-                # Reset all signals before calling execlp but after forking. This
-                # fixes Python issue 1652 (http://bugs.python.org/issue1652) and
-                # jumpscale ticket 189
-                def reset_signals():
-                    '''Reset all signals to SIG_DFL'''
-                    for i in range(1, signal.NSIG):
-                        if signal.getsignal(i) != signal.SIG_DFL:
-                            try:
-                                signal.signal(i, signal.SIG_DFL)
-                            except OSError:
-                                # Skip, can't set this signal
-                                pass
-                popenargs["preexec_fn"] = reset_signals
-
-            # print(":: Executing {} with LD_LIBRARY_PATH: {}".format(command, os.environ.get('LD_LIBRARY_PATH', None)))
-            p = Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX,
-                      shell=useShell, env=os.environ, universal_newlines=True, bufsize=0, **popenargs)
-
-            class StreamReader(threading.Thread):
-
-                def __init__(self, stream, queue, flag):
-                    super(StreamReader, self).__init__()
-                    self.stream = stream
-                    self.queue = queue
-                    self.flag = flag
-                    self._stopped = False
-                    self.setDaemon(True)
-
-                def run(self):
-                    while not self.stream.closed and not self._stopped:
-                        buf = ''
-                        buf = self.stream.readline()
-                        if len(buf) > 0:
-                            self.queue.put((self.flag, buf))
-                        else:
-                            break
-                    self.queue.put(('T', self.flag))
-
-            serr = p.stderr
-            sout = p.stdout
-            inp = queue.Queue()
-
-            outReader = StreamReader(sout, inp, 'O')
-            errReader = StreamReader(serr, inp, 'E')
-
-            outReader.start()
-            errReader.start()
-
-            start = time.time()
-
-            err = ""
-            out = ""
-            rc = 1000
-
-            out_eof = False
-            err_eof = False
-
-            while not out_eof or not err_eof:
-                # App still working
-                try:
-                    chan, line = inp.get(block=True, timeout=1.0)
-                    # print chan, line
-                    if chan == 'T':
-                        if line == 'O':
-                            out_eof = True
-                        elif line == 'E':
-                            err_eof = True
-                        continue
-
-                    if ok != []:
-                        for item in ok:
-                            if line.find(item) != -1:
-                                rc = 0
-                                break
-                    if errors != []:
-                        for item in errors:
-                            if line.find(item) != -1:
-                                rc = 997
-                                break
-                        if rc == 997 or rc == 0:
-                            break
-
-                    if chan == 'O':
-                        if showout:
-                            print((line.strip()))
-                        if captureout:
-                            out += line
-                    elif chan == 'E':
-                        if outputStderr:
-                            print(("E:%s" % line.strip()))
-                        if captureout:
-                            err += line
-
-                except queue.Empty:
-                    pass
-                if timeout > 0:
-                    if time.time() > start + timeout:
-                        print("TIMEOUT")
-                        rc = 999
-                        p.kill()
-
-                        break
-
-            if rc != 999:
-                outReader.join()
-                errReader.join()
-                p.wait()
-            if rc == 1000:
-                rc = p.returncode
-
-            if rc > 0 and die:
-                if err != "":
-                    raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s" % (command, err))
-                else:
-                    raise RuntimeError("Could not execute cmd:\n'%s'\nout:\n%s" % (command, out))
-
-            return rc, out, err
+            return self.executeAsync(command, showout=showout, outputStderr=showout, useShell=useShell, log=log,
+                                     cwd=None, timeout=timeout,
+                                     captureout=True, die=die, async=False)
+            #
+            # os.environ["PYTHONUNBUFFERED"] = "1"
+            # ON_POSIX = 'posix' in sys.builtin_module_names
+            #
+            # popenargs = {}
+            # if hasattr(subprocess, "_mswindows"):
+            #     mswindows = subprocess._mswindows
+            # else:
+            #     mswindows = subprocess.mswindows
+            #
+            # if not mswindows:
+            #     # Reset all signals before calling execlp but after forking. This
+            #     # fixes Python issue 1652 (http://bugs.python.org/issue1652) and
+            #     # jumpscale ticket 189
+            #     def reset_signals():
+            #         '''Reset all signals to SIG_DFL'''
+            #         for i in range(1, signal.NSIG):
+            #             if signal.getsignal(i) != signal.SIG_DFL:
+            #                 try:
+            #                     signal.signal(i, signal.SIG_DFL)
+            #                 except OSError:
+            #                     # Skip, can't set this signal
+            #                     pass
+            #     popenargs["preexec_fn"] = reset_signals
+            #
+            # # print(":: Executing {} with LD_LIBRARY_PATH: {}".format(command, os.environ.get('LD_LIBRARY_PATH', None)))
+            # p = Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX,
+            #           shell=False, env=os.environ, universal_newlines=True, bufsize=0, **popenargs)
+            #
+            # class StreamReader(threading.Thread):
+            #
+            #     def __init__(self, stream, queue, flag):
+            #         super(StreamReader, self).__init__()
+            #         self.stream = stream
+            #         self.queue = queue
+            #         self.flag = flag
+            #         self._stopped = False
+            #         self.setDaemon(True)
+            #
+            #     def run(self):
+            #         while not self.stream.closed and not self._stopped:
+            #             buf = ''
+            #             buf = self.stream.readline()
+            #             if len(buf) > 0:
+            #                 self.queue.put((self.flag, buf))
+            #             else:
+            #                 break
+            #         self.queue.put(('T', self.flag))
+            #
+            # serr = p.stderr
+            # sout = p.stdout
+            # inp = queue.Queue()
+            #
+            # outReader = StreamReader(sout, inp, 'O')
+            # errReader = StreamReader(serr, inp, 'E')
+            #
+            # outReader.start()
+            # errReader.start()
+            #
+            # start = time.time()
+            #
+            # err = ""
+            # out = ""
+            # rc = 1000
+            #
+            # out_eof = False
+            # err_eof = False
+            #
+            # while not out_eof or not err_eof:
+            #     # App still working
+            #     try:
+            #         chan, line = inp.get(block=True, timeout=1.0)
+            #         # print chan, line
+            #         if chan == 'T':
+            #             if line == 'O':
+            #                 out_eof = True
+            #             elif line == 'E':
+            #                 err_eof = True
+            #             continue
+            #
+            #         if ok != []:
+            #             for item in ok:
+            #                 if line.find(item) != -1:
+            #                     rc = 0
+            #                     break
+            #         if errors != []:
+            #             for item in errors:
+            #                 if line.find(item) != -1:
+            #                     rc = 997
+            #                     break
+            #             if rc == 997 or rc == 0:
+            #                 break
+            #
+            #         if chan == 'O':
+            #             if showout:
+            #                 print((line.strip()))
+            #             if captureout:
+            #                 out += line
+            #         elif chan == 'E':
+            #             if outputStderr:
+            #                 print(("E:%s" % line.strip()))
+            #             if captureout:
+            #                 err += line
+            #
+            #     except queue.Empty:
+            #         pass
+            #     if timeout > 0:
+            #         if time.time() > start + timeout:
+            #             print("TIMEOUT")
+            #             rc = 999
+            #             p.kill()
+            #
+            #             break
+            #
+            # if rc != 999:
+            #     outReader.join()
+            #     errReader.join()
+            #     p.wait()
+            # if rc == 1000:
+            #     rc = p.returncode
+            #
+            # if rc > 0 and die:
+            #     if err != "":
+            #         raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s" % (command, err))
+            #     else:
+            #         raise RuntimeError("Could not execute cmd:\n'%s'\nout:\n%s" % (command, out))
+            #
+            # return rc, out, err
 
     def downloadExpandTarGz(self, url, destdir, deleteDestFirst=True, deleteSourceAfter=True):
         print((self.getBaseName(url)))
@@ -2230,482 +2724,5 @@ class InstallTools():
     def installPackage(self, path):
         pass
 
+
 do = InstallTools()
-
-
-class Installer():
-
-    def __init__(self):
-        self._readonly = None
-
-    def installJSDocs(self, ssh=True):
-        print("install jsdocs")
-        do.pullGitRepo(url='git@github.com:Jumpscale/docs.git', ssh="first")
-
-    def installJS(self, base="", clean=True, GITHUBUSER="", GITHUBPASSWD="", CODEDIR="",
-                  JSGIT="https://github.com/Jumpscale/jumpscale_core8.git", JSBRANCH="master",
-                  AYSGIT="https://github.com/Jumpscale/ays_jumpscale8", AYSBRANCH="master", EMAIL="", FULLNAME=""):
-        """
-        @param codedir is the location where the code will be installed, code which get's checked out from github
-        @param base is location of root of JumpScale
-
-        JSGIT & AYSGIT allow us to chose other install sources for jumpscale as well as AtYourService repo
-
-        IMPORTANT: if env var's are set they get priority
-
-        """
-        # everything else is dangerous now
-        copybinary = True
-
-        tmpdir = do.TMP
-
-        if base != "":
-            os.environ["JSBASE"] = base
-
-        if CODEDIR != "":
-            os.environ["CODEDIR"] = CODEDIR
-
-        do.init()
-
-        if sys.platform.startswith('win'):
-            raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
-
-        PYTHONVERSION = "3.5"
-
-        print(("Install Jumpscale in %s" % os.environ["JSBASE"]))
-
-        # this means if env var's are set they get priority
-        args2 = dict(map(lambda item: (item, ''), ["GITHUBUSER", "GITHUBPASSWD", "JSGIT", "JSBRANCH", "CFGDIR",
-                                                   "AYSGIT", "AYSBRANCH", "CODEDIR", "EMAIL", "FULLNAME", "JSBASE", "PYTHONVERSION"]))
-        # walk over all var's & set defaults or get them from env
-        for var in args2.copy():
-            if var in os.environ:
-                args2[var] = os.environ[var]
-            else:
-                args2[var] = eval(var)
-
-        os.environ.update(args2)
-
-        args2['SANDBOX'] = int(do.sandbox)
-
-        if EMAIL != "":
-            self.gitConfig(FULLNAME, EMAIL)
-
-        if clean:
-            self.cleanSystem()
-            do.delete(args2['JSBASE'])
-
-        self.debug = True
-
-        self.prepare()
-
-        do.execute("mkdir -p %s/.ssh/" % os.environ["HOME"])
-        do.execute("ssh-keyscan github.com 2> /dev/null  >> {0}/.ssh/known_hosts; ssh-keyscan git.aydo.com 2> /dev/null >> {0}/.ssh/known_hosts".format(
-            os.environ["HOME"]), showout=False)
-        print("pull core")
-        do.pullGitRepo(args2['JSGIT'], branch=args2['JSBRANCH'], depth=1, ssh="first")
-        src = "%s/github/jumpscale/jumpscale_core8/lib/JumpScale" % do.CODEDIR
-        self.debug = False
-
-        if do.TYPE.startswith("OSX"):
-            do.delete("/usr/local/lib/python2.7/site-packages/JumpScale")
-            do.delete("/usr/local/lib/python3.5/site-packages/JumpScale")
-
-        destjs = do.getPythonLibSystem(jumpscale=True)
-        do.delete(destjs)
-        do.createDir(destjs)
-
-        base = args2["JSBASE"]
-
-        do.createDir("%s/lib" % base)
-        do.createDir("%s/bin" % base)
-        # do.createDir("%s/hrd/system"%base)
-        # do.createDir("%s/hrd/apps"%base)
-
-        dest = "%s/lib/JumpScale" % base
-        do.createDir(dest)
-        do.symlinkFilesInDir(src, dest, includeDirs=True)
-        do.symlinkFilesInDir(src, destjs, includeDirs=True)
-
-        for item in ["InstallTools", "ExtraTools"]:
-            src = "%s/github/jumpscale/jumpscale_core8/install/%s.py" % (do.CODEDIR, item)
-            dest2 = "%s/%s.py" % (dest, item)
-            do.symlink(src, dest2)
-            dest2 = "%s/%s.py" % (destjs, item)
-            do.symlink(src, dest2)
-
-        src = "%s/github/jumpscale/jumpscale_core8/shellcmds" % do.CODEDIR
-        desttest = "/usr/local/bin/js"
-        if not do.exists(desttest):
-            dest = "/usr/local/bin"
-            do.symlinkFilesInDir(src, dest)
-
-        dest = "%s/bin" % base
-        do.symlinkFilesInDir(src, dest)
-
-        # DO NOT LOAD AUTOCOMPLETE AUTOMATICALLY
-#         # create ays,jsdocker completion based on click magic variables
-#         with open(os.path.expanduser("~/.bashrc"), "a") as f:
-#             f.write('''
-# eval "$(_AYS_COMPLETE=source ays)"
-# eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
-#             ''')
-
-        # link python
-        src = "/usr/bin/python3.5"
-        if do.exists(src):
-            # do.delete("/usr/bin/python")
-            if not do.TYPE.startswith("OSX"):
-                # do.symlink(src, "%s/bin/python"%base)
-                do.symlink(src, "%s/bin/python3" % base)
-                # do.symlink(src, "/usr/bin/python")
-
-        # if do.TYPE.startswith("OSX"):
-        #     src="/usr/local/bin/python3"
-        #     do.symlink(src, "%s/bin/python"%base)
-        #     do.symlink(src, "%s/bin/python3"%base)
-        #     do.symlink(src, "%s/bin/python3.5"%base)
-
-        self.writeEnv()
-
-        sys.path.insert(0, "%s/lib" % base)
-
-        print("Get atYourService metadata.")
-        do.pullGitRepo(args2['AYSGIT'], branch=args2['AYSBRANCH'], depth=1, ssh="first")
-
-        print("install was successfull")
-        print("to use do 'js'")
-
-    @property
-    def readonly(self):
-        if self._readonly is None:
-            ppath = "%s/bin/_writetest" % os.environ["JSBASE"]
-            try:
-                do.writeFile(ppath, "")
-                self._readonly = False
-            except:
-                self._readonly = True
-            do.delete(ppath)
-        return self._readonly
-
-    def writeEnv(self):
-
-        print("WRITENV")
-        do.createDir("%s/jumpscale" % os.environ["CFGDIR"])
-        config = {}
-        for category, items in {"identity": ["EMAIL", "FULLNAME", "GITHUBUSER"],
-                                "system": ["AYSBRANCH", "JSBRANCH", "DEBUG", "SANDBOX"],
-                                "dirs": ["JSBASE", "HOME", "TMPDIR", "DATADIR", "CODEDIR", "CFGDIR"]}.items():
-            config[category] = {}
-            for item in items:
-
-                if item not in os.environ:
-                    if item in ["DEBUG", "SANDBOX"]:
-                        config[category][item] = False
-                    else:
-                        config[category][item] = ""
-                else:
-                    if item in ["DEBUG", "SANDBOX"]:
-                        config[category][item] = str(os.environ[item]) == 1
-                    else:
-                        if category == "dirs":
-                            while os.environ[item][-1] == "/":
-                                os.environ[item] = os.environ[item][:-1]
-                            os.environ[item] += "/"
-                        config[category][item] = os.environ[item]
-
-        with open("%s/jumpscale/system.yaml" % os.environ["CFGDIR"], 'w') as outfile:
-            yaml.dump(config, outfile, default_flow_style=False)
-
-        C = """
-        # By default, AYS will use the JS redis. This is for quick testing
-        # and development. To configure a persistent/different redis, uncomment
-        # and change the redis config
-
-        # [redis]
-        # host = "localhost"
-        # port = 6379
-
-        # here domain = jumpscale, change name for more domains
-        [[metadata]]
-            [metadata.jumpscale]
-                url = {AYSGIT},
-                branch = {AYSBRANCH},
-
-        """
-        if "AYSGIT" not in os.environ or os.environ["AYSGIT"].strip() == "":
-            os.environ["AYSGIT"] = "https://github.com/Jumpscale/ays_jumpscale8"
-        if "AYSBRANCH" not in os.environ or os.environ["AYSBRANCH"].strip() == "":
-            os.environ["AYSBRANCH"] = "master"
-        C = C.format(**os.environ)
-
-        hpath = "%s/jumpscale/ays.toml" % os.environ["CFGDIR"]
-        if not do.exists(path=hpath):
-            do.writeFile(hpath, C)
-
-        C = """
-        mode: 'DEV'
-        level: 'DEBUG'
-
-        filter:
-            - 'j.sal.fs'
-            - 'j.data.hrd'
-            - 'j.application'
-        """
-        do.writeFile("%s/jumpscale/logging.yaml" % os.environ["CFGDIR"], C)
-
-        C = """
-
-        deactivate () {
-            export PATH=$_OLD_PATH
-            unset _OLD_PATH
-            export LD_LIBRARY_PATH=$_OLD_LD_LIBRARY_PATH
-            unset _OLD_LD_LIBRARY_PATH
-            export PYTHONPATH=$_OLD_PYTHONPATH
-            unset _OLD_PYTHONPATH
-            export PS1=$_OLD_PS1
-            unset _OLD_PS1
-            unset JSBASE
-            unset PYTHONHOME
-            if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
-                    hash -r 2>/dev/null
-            fi
-        }
-
-        if [[ "$JSBASE" == "$base" ]]; then
-           return 0
-        fi
-
-        export JSBASE=$base
-
-        export _OLD_PATH=$PATH
-        export _OLD_LDLIBRARY_PATH=$LD_LIBRARY_PATH
-        export _OLD_PS1=$PS1
-        export _OLD_PYTHONPATH=$PYTHONPATH
-
-        export PATH=$JSBASE/bin:$PATH
-
-        export LUA_PATH="/opt/jumpscale8/lib/lua/?.lua;./?.lua;/opt/jumpscale8/lib/lua/?/?.lua;/opt/jumpscale8/lib/lua/tarantool/?.lua;/opt/jumpscale8/lib/lua/?/init.lua"
-
-        $pythonhome
-        export PYTHONPATH=$pythonpath
-
-        export LD_LIBRARY_PATH=$JSBASE/bin
-        export PS1="(JS8) $PS1"
-        if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
-                hash -r 2>/dev/null
-        fi
-        """
-        C = C.replace("$base", os.environ["JSBASE"])
-
-        if do.sandbox:
-            C = C.replace('$pythonhome', 'export PYTHONHOME=$JSBASE/bin')
-        else:
-            C = C.replace('$pythonhome', '')
-
-        if do.TYPE.startswith("OSX"):
-            C = C.replace("$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/plat-x86_64-linux-gnu:/usr/local/lib/python3.5/site-packages:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/plat-darwin:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload")
-        else:
-            C = C.replace(
-                "$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu:$_OLD_PYTHONPATH")
-        envfile = "%s/env.sh" % os.environ["JSBASE"]
-
-        if self.readonly is False or die == True:
-            do.writeFile(envfile, C)
-
-        # pythonversion = '3' if os.environ.get('PYTHONVERSION') == '3' else ''
-
-        C2 = """
-        #!/bin/bash
-        # set -x
-        source $base/env.sh
-        exec $JSBASE/bin/python3 -q "$@"
-        """
-
-        C2_insystem = """
-        #!/bin/bash
-        # set -x
-        source $base/env.sh
-        exec python3 -q "$@"
-        """
-
-        # C2=C2.format(base=basedir, env=envfile)
-        if self.readonly is False or die == True:
-
-            do.delete("/usr/bin/jspython")  # to remove link
-            do.delete("%s/bin/jspython" % os.environ["JSBASE"])
-            do.delete("/usr/local/bin/jspython")
-
-            if do.sandbox:
-                dest = "%s/bin/jspython" % os.environ["JSBASE"]
-                C2 = C2.replace('$base', os.environ["JSBASE"])
-                do.writeFile(dest, C2)
-            else:
-                # in system
-                dest = "/usr/local/bin/jspython"
-                C2_insystem = C2_insystem.replace('$base', os.environ["JSBASE"])
-                do.writeFile(dest, C2_insystem)
-            do.chmod(dest, 0o770)
-
-            # change site.py file
-            def changesite(path):
-                if do.exists(path=path):
-                    C = do.readFile(path)
-                    out = ""
-                    for line in C.split("\n"):
-                        if line.find("ENABLE_USER_SITE") == 0:
-                            line = "ENABLE_USER_SITE = False"
-                        if line.find("USER_SITE") == 0:
-                            line = "USER_SITE = False"
-                        if line.find("USER_BASE") == 0:
-                            line = "USER_BASE = False"
-
-                        out += "%s\n" % line
-                    do.writeFile(path, out)
-            changesite("%s/lib/site.py" % os.environ["JSBASE"])
-            # if insystem:
-            #     changesite("/usr/local/lib/python3/dist-packages/site.py"%basedir)
-
-        # custom install items
-
-    def cleanSystem(self):
-        # TODO *2 no longer complete
-        if do.TYPE.startswith("UBUNTU"):
-            # pythonversion = os.environ.get('PYTHONVERSION', '')
-            print("clean platform")
-            CMDS = """
-            pip uninstall JumpScale-core
-            # killall tmux  #dangerous
-            killall redis-server
-            rm /usr/local/bin/js*
-            rm /usr/local/bin/ays*
-            rm -rf $base/lib/JumpScale
-            rm -rf /opt/sentry/
-            sudo stop redisac
-            sudo stop redisp
-            sudo stop redism
-            sudo stop redisc
-            killall redis-server
-            rm -rf /opt/redis/
-            """
-            CMDS = CMDS.replace("$base", self.BASE)
-            do.executeCmds(CMDS, showout=False, outputStderr=False, useShell=True, log=False,
-                           cwd=None, timeout=60, errors=[], ok=[], captureout=False, die=False)
-
-            for PYTHONVERSION in ["3.5", "3.4", "3.3", "2.7", ""]:
-                CMDS = """
-                rm -rf /usr/local/lib/python%(pythonversion)s/dist-packages/jumpscale*
-                rm -rf /usr/local/lib/python%(pythonversion)s/site-packages/jumpscale*
-                rm -rf /usr/local/lib/python%(pythonversion)s/dist-packages/JumpScale*
-                rm -rf /usr/local/lib/python%(pythonversion)s/site-packages/JumpScale*
-                rm -rf /usr/local/lib/python%(pythonversion)s/site-packages/JumpScale/
-                rm -rf /usr/local/lib/python%(pythonversion)s/site-packages/jumpscale/
-                rm -rf /usr/local/lib/python%(pythonversion)s/dist-packages/JumpScale/
-                rm -rf /usr/local/lib/python%(pythonversion)s/dist-packages/jumpscale/
-                """ % {'pythonversion': PYTHONVERSION}
-                do.executeCmds(CMDS, showout=False, outputStderr=False, useShell=True, log=False,
-                               cwd=None, timeout=60, errors=[], ok=[], captureout=False, die=False)
-
-    def updateSystem(self):
-
-        if self.TYPE.startswith("UBUNTU"):
-            CMDS = """
-            apt-get update
-            apt-get autoremove
-            apt-get -f install -y
-            apt-get upgrade -y
-            """
-            do.executeCmds(CMDS)
-
-        elif self.TYPE.startswith("OSX"):
-            CMDS = """
-            brew update
-            brew upgrade
-            """
-            do.executeCmds(CMDS)
-
-    def installpip(self):
-        if not do.exists(do.joinPaths(do.TMP, "get-pip.py")):
-            if not do.TYPE.startswith("WIN"):
-                cmd = "cd %s;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python get-pip.py" % do.TMP
-                do.execute(cmd)
-
-    def prepare(self):
-        do.initCreateDirs4System()
-
-        print("prepare")
-
-        self.installpip()
-
-        if sys.platform.startswith('win'):
-            raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
-        elif sys.platform.startswith('darwin'):
-            if "core_apps_installed" not in self.done:
-                cmds = """
-                brew install tmux
-                brew install psutils
-                """
-                do.executeCmds(cmds)
-                self.done["core_apps_installed"] = True
-
-        do.dependencies.all()
-
-    def gitConfig(self, name, email):
-        if name == "":
-            name = email
-        if email == "":
-            raise RuntimeError("email cannot be empty")
-        do.execute("git config --global user.email \"%s\"" % email)
-        do.execute("git config --global user.name \"%s\"" % name)
-
-    def replacesitecustomize(self):
-        if not self.TYPE == "WIN":
-            ppath = "/usr/lib/python%s/sitecustomize.py" % os.environ.get('PYTHONVERSION', '')
-            if ppath.find(ppath):
-                os.remove(ppath)
-            self.symlink("%s/utils/sitecustomize.py" % self.BASE, ppath)
-
-            def do(path, dirname, names):
-                if path.find("sitecustomize") != -1:
-                    self.symlink("%s/utils/sitecustomize.py" % self.BASE, path)
-            print("walk over /usr to find sitecustomize and link to new one")
-            os.path.walk("/usr", do, "")
-            os.path.walk("/etc", do, "")
-
-    def develtools(self):
-
-        [do.delete(item) for item in do.listDirsInDir(do.getPythonLibSystem()) if item.find(".egg-info") != -1]
-        # [do.delete(item) for item in do.listDirsInDir(do.getPythonLibSystem()) if item.find(".dist-info")!=-1]
-        [do.delete(item) for item in do.listDirsInDir(do.getPythonLibSystem()) if item.find(".egg") != -1]
-
-        do.execute("rm -rf %s/pip*" % do.getPythonLibSystem())
-        do.execute("rm -rf %s/pip*" % do.getBinDirSystem())
-
-        # do.pullGitRepo("https://github.com/pypa/pip")
-        # do.execute("cd %s;python3 setup.py install"%do.getGitRepoArgs("https://github.com/pypa/pip")[4])
-
-        "https://bootstrap.pypa.io/get-pip.py"
-        tmpfile = do.download("https://bootstrap.pypa.io/get-pip.py")
-        do.execute("python3 %s" % tmpfile)
-        do.execute("pip3 install --upgrade setuptools")
-
-        #"pyvim"
-        items = ["jedi", "python-prompt-toolkit", "ipython", "ptpython", "ptpdb", "pymux", "click"]
-        for item in items:
-            do.pullGitRepo("git@github.com:Jumpscale/%s.git" % item)
-            path = do.joinPaths(do.CODEDIR, "github", "jumpscale", item)
-            cmd = "cd %s;python3 jsinstall.py" % path
-            print(cmd)
-            do.execute(cmd)
-
-        do.pullGitRepo("https://github.com/vinta/awesome-python")
-
-        # if do.TYPE.startswith("OSX"):
-        #     dest = "%s/Library/Application Support/Sublime Text 3/Packages" % os.environ["HOME"]
-        #     src = "%s/opt/code/github/jumpscale/jumpscale_core8/tools/sublimetext/" % os.environ["HOME"]
-        # else:
-        #     print("implement develtools")
-        #     import ipdb
-        #     ipdb.set_trace()
-        # if do.exists(src) and do.exists(dest):
-        #     do.copyTree(src, dest)

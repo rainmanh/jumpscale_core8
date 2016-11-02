@@ -3,24 +3,6 @@ set -e
 
 export STARTDIR=$PWD
 
-reset='true'
-while getopts ":kh" opt; do
-    case $opt in
-      k)
-        reset='false'
-        ;;
-      h)
-        echo "Usage install.sh:
-        -k keep don't remove jumpscale directory if it exists before installation
-        "
-        exit 44
-    esac
-done
-
-if [ $reset == "true" ]; then
-    rm -rf /opt/jumpscale8
-fi
-
 if [ -z"/JS8" ]; then
     export JSBASE="/JS8/opt/jumpscale8"
     export TMPDIR="/JS8/tmp"
@@ -36,14 +18,24 @@ mkdir -p $TMPDIR
 cd $TMPDIR
 
 function osx_install {
-    brew install curl
-    brew install python3
-    brew install git
+    if [ -e $TMPDIR/jsinstall_systemcomponents_done ] ; then
+        echo "NO NEED TO INSTALL CURL/PYTHON/GIT"
+    else
+        brew install curl
+        brew install python3
+        brew install git
+    fi
 }
 
 function pip_install {
-    pip3 install --upgrade pip setuptools
-    pip3 install --upgrade yaml
+    if [ -e $TMPDIR/jsinstall_systemcomponents_done ] ; then
+        echo "NO NEED TO INSTALL PIP COMPONENTS"
+    else
+        pip3 install --upgrade pip setuptools
+        pip3 install --upgrade pyyaml
+        pip3 install --upgrade asyncio
+        pip3 install --upgrade uvloop
+    fi
 }
 
 if [ "$(uname)" == "Darwin" ]; then
@@ -117,6 +109,8 @@ fi
 
 pip_install
 
+touch $TMPDIR/jsinstall_systemcomponents_done
+
 set -ex
 branch=${JSBRANCH-master}
 
@@ -134,8 +128,4 @@ fi
 
 
 cd $TMPDIR
-if [ "${reset}" == "true" ]; then
-    python3 bootstrap.py
-else
-    python3 bootstrap.py --no-reset
-fi
+python3 bootstrap.py

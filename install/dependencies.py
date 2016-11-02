@@ -1,6 +1,9 @@
 
 class dependencies():
 
+    def __init__(self, do):
+        self.do = do
+
     def all(self, executor=None):
         C = """
         redis
@@ -10,7 +13,7 @@ class dependencies():
         click
         pymux
         uvloop
-        yaml
+        pyyaml
         ipdb
         requests
         netaddr
@@ -24,14 +27,14 @@ class dependencies():
         msgpack-python
         pyblake2
         """
-        do.installer.pip(C, executor=executor)
+        self.do.pip(C, executor=executor)
 
     def portal(self, executor=None):
         C = """
         mongoengine
         uvloop
         """
-        do.installer.pip(C, executor=executor)
+        self.do.pip(C, executor=executor)
 
     # OBSOLETE
     # """

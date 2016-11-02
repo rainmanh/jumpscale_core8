@@ -208,8 +208,8 @@ class Installer():
         # here domain = jumpscale, change name for more domains
         metadata:
             jumpscale:
-                url: {AYSGIT},
-                branch: {AYSBRANCH},
+                url: {AYSGIT}
+                branch: {AYSBRANCH}
 
         """
         if "AYSGIT" not in os.environ or os.environ["AYSGIT"].strip() == "":

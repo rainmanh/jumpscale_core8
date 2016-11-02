@@ -51,7 +51,7 @@ class ActorTemplate():
 
     @property
     def remoteUrl(self):
-        git = j.clients.git.get(self.path)
+        git = j.clients.git.get(self.path, False)
         return git.remoteUrl
 
     @property

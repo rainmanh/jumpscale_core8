@@ -55,16 +55,6 @@ class CuisinePortal(base):
         self._cuisine.core.file_link(source='$codeDir/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81',
                                      destination='$appDir/portals/main/base/AYS81')
 
-        # Configure ays's redis
-        LOCATION = '%s/jumpscale/ays.yaml' % j.dirs.cfgDir
-        self._cuisine.core.dir_ensure(location=LOCATION)
-        cfg = """
-        [redis]
-        host = "{host}"
-        port = {port}
-        """.format(host=redis_ip, port=redis_port)
-        self._cuisine.core.file_write("{path}/ays.conf".format(path=LOCATION), cfg)
-
     def installDeps(self):
         """
         make sure new env arguments are understood on platform
@@ -181,17 +171,17 @@ class CuisinePortal(base):
 
     def linkCode(self):
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        _, destjslib, _ = self._cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'", 
+        _, destjslib, _ = self._cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'",
                                                  showout=False)
 
         if "darwin" in self._cuisine.platformtype.osname:
             # Needs refining,In osx destjslib='load dirs\n/usr/local/lib/python3.5/site-packages/JumpScale/'
             destjslib = destjslib.split("\n")[1]
-        
+
         if self._cuisine.core.file_exists(destjslib):
-            self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths["codeDir"], 
+            self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths["codeDir"],
                                          "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
-        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths["codeDir"], 
+        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths["codeDir"],
                                      "%s/portal" % self._cuisine.core.dir_paths['jsLibDir'])
 
         self._cuisine.core.run("js --quiet 'j.application.reload()'", showout=False, die=False)
@@ -199,14 +189,14 @@ class CuisinePortal(base):
         if not self.portal_dir.endswith("/"):
             self.portal_dir += '/'
         self._cuisine.core.dir_ensure(self.portal_dir)
-        
+
         CODE_DIR = self._cuisine.core.dir_paths["codeDir"]
-        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/jslib" % CODE_DIR, 
+        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/jslib" % CODE_DIR,
                                      '%s/jslib' % self.portal_dir)
         self._cuisine.core.dir_ensure(j.sal.fs.joinPaths(self.portal_dir, 'portalbase'))
-        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/system" % CODE_DIR, 
+        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/system" % CODE_DIR,
                                      '%s/portalbase/system' % self.portal_dir)
-        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki" % CODE_DIR, 
+        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki" % CODE_DIR,
                                      '%s/portalbase/wiki' % self.portal_dir)
         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/macros" %
                                      CODE_DIR, '%s/portalbase/macros' % self.portal_dir)
@@ -220,13 +210,13 @@ class CuisinePortal(base):
 
 
         self._cuisine.core.dir_ensure('$tmplsDir/cfg/portal')
-        self._cuisine.core.file_copy(j.sal.fs.joinPaths(CODE_DIR, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'), 
+        self._cuisine.core.file_copy(j.sal.fs.joinPaths(CODE_DIR, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'),
                                      '$tmplsDir/cfg/portal/config.hrd')
 
         # copy portal_start.py
-        self._cuisine.core.file_copy(j.sal.fs.joinPaths(CODE_DIR, 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'), 
+        self._cuisine.core.file_copy(j.sal.fs.joinPaths(CODE_DIR, 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'),
                                                         self.main_portal_dir)
-        content = self._cuisine.core.file_read(j.sal.fs.joinPaths(CODE_DIR, 
+        content = self._cuisine.core.file_read(j.sal.fs.joinPaths(CODE_DIR,
                                                'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'))
         configHRD = j.data.hrd.get(content=content, prefixWithName=False)
         configHRD.set('param.cfg.appdir', j.sal.fs.joinPaths(self.portal_dir, 'portalbase'))

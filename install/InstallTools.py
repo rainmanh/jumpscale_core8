@@ -201,15 +201,15 @@ class Installer():
         # and development. To configure a persistent/different redis, uncomment
         # and change the redis config
 
-        # [redis]
-        # host = "localhost"
-        # port = 6379
+        # redis:
+        #   host: "localhost"
+        #   port: 6379
 
         # here domain = jumpscale, change name for more domains
-        [[metadata]]
-            [metadata.jumpscale]
-                url = {AYSGIT},
-                branch = {AYSBRANCH},
+        metadata:
+            jumpscale:
+                url: {AYSGIT},
+                branch: {AYSBRANCH},
 
         """
         if "AYSGIT" not in os.environ or os.environ["AYSGIT"].strip() == "":
@@ -218,7 +218,7 @@ class Installer():
             os.environ["AYSBRANCH"] = "master"
         C = C.format(**os.environ)
 
-        hpath = "%s/jumpscale/ays.toml" % os.environ["CFGDIR"]
+        hpath = "%s/jumpscale/ays.yaml" % os.environ["CFGDIR"]
         if not self.do.exists(path=hpath):
             self.do.writeFile(hpath, C)
 

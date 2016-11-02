@@ -174,7 +174,7 @@ class Installer():
         config = {}
         for category, items in {"identity": ["EMAIL", "FULLNAME", "GITHUBUSER"],
                                 "system": ["AYSBRANCH", "JSBRANCH", "DEBUG", "SANDBOX"],
-                                "dirs": ["JSBASE", "HOME", "TMPDIR", "DATADIR", "CODEDIR", "CFGDIR"]}.items():
+                                "dirs": ["JSBASE", "TMPDIR", "DATADIR", "CODEDIR", "CFGDIR"]}.items():
             config[category] = {}
             for item in items:
 
@@ -530,6 +530,18 @@ class InstallTools():
     def CODEDIR(self):
         return self.config["dirs"]["CODEDIR"]
 
+    @property
+    def BASE(self):
+        return self.config["dirs"]["JSBASE"]
+
+    @property
+    def CFGDIR(self):
+        return self.config["dirs"]["CFGDIR"]
+
+    @property
+    def TMPDIR(self):
+        return self.config["dirs"]["TMPDIR"]
+
     @debug.setter
     def debug(self, value):
         if not isinstance(value, bool):
@@ -590,7 +602,6 @@ class InstallTools():
 
         elif self.exists("/JS8"):
             os.environ["JSBASE"] = "/JS8/opt/jumpscale8/"
-            os.environ["HOME"] = "/JS8/home"
             os.environ["TMPDIR"] = "/JS8/tmp"
             os.environ["DATADIR"] = "/JS8/optvar/data/"
             os.environ["CODEDIR"] = "/JS8/code"

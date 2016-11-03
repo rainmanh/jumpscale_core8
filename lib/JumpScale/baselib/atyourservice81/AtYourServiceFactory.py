@@ -48,17 +48,16 @@ class AtYourServiceFactory:
     @property
     def config(self):
         if self._config is None:
-            if "darwin" in str(j.core.platformtype.myplatform):
-                socket = j.core.db.config_get()["unixsocket"]
-            else:
-                socket = '/tmp/ays.sock'
-
-            config_path = j.sal.fs.joinPaths(j.dirs.cfgDir, 'ays/ays.conf')
+            config_path = j.sal.fs.joinPaths(j.dirs.cfgDir, 'ays/ays.config')
             if not j.sal.fs.exists(config_path):
-                self._config = {'redis': j.core.db.config_get('unixsocket')}
+                self._config = {'redis': j.core.db.config_get('unixsocket'),
+                                'metadata': [{'jumpscale': {'url': 'https://github.com/Jumpscale/ays_jumpscale8', 'branch': 'master'}}]}
+                return self._config
             cfg = j.data.serializer.toml.load(config_path)
             if 'redis' not in cfg:
                 cfg.update({'redis': j.core.db.config_get('unixsocket')})
+            if 'metadata' not in cfg:
+                cfg.update({'metadata': [{'jumpscale': {'url': 'https://github.com/Jumpscale/ays_jumpscale8', 'branch': 'master'}}]})
             j.atyourservice._config = cfg
         return self._config
 

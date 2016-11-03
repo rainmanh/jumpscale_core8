@@ -26,8 +26,6 @@ def do_run(run_key, callback=None):
     at the end of the run or if an error occurs during exection a request is made to callback to
     notify the event (ok/error)
     """
-
-
     error_msg = None
 
     try:
@@ -130,6 +128,7 @@ class Server:
             return
 
         try:
+            self.logger.info("execute action {action} on {service_key}".format(**request))
             self._workers.apply_async(run_action, (
                 request['repo_path'],
                 request['service_key'],
@@ -174,8 +173,8 @@ class Server:
 
         self.logger.info("execute run {}".format(request['run_key']))
         self._workers.apply_async(do_run, (
-                                  request['run_key'],
-                                  request.get('callback_url')))
+            request['run_key'],
+            request.get('callback_url')))
 
 
 class RecurringLoop(Thread):
@@ -231,6 +230,13 @@ class RecurringLoop(Thread):
             self._running = False
 
 
-if __name__ == '__main__':
-    server = Server(host='localhost', port=6379)
+
+def main():
+    """
+    only for testing
+    """
+    server = Server()
     server.start()
+
+if __name__ == '__main__':
+    main()

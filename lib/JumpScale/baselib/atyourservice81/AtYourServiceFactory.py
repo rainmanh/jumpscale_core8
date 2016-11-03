@@ -224,7 +224,6 @@ class AtYourServiceFactory:
         return result
 
 # REPOS
-
     def reposDiscover(self, path=None):
         """
         Walk over FS. Register AYS repos to DB

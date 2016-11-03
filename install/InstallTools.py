@@ -1636,7 +1636,7 @@ class InstallTools():
         s.quit()
 
     def execute(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=100,
-                     captureout=True, die=True, async=False):
+                     captureout=True, die=True, async=False, executor=None):
         """
         Execute command
         @param command: Command to be executed
@@ -1651,6 +1651,8 @@ class InstallTools():
         @param executor: If not None returns output of executor.execute(....)
         @return: (returncode, output, error). output and error defaults to empty string
         """
+        if executor:
+            return executor.execute(command, die=die, checkok=False, async=async, showout=True, timeout=timeout)
 
         if self._asyncLoaded == False:
             import asyncio

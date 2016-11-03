@@ -72,6 +72,8 @@ class Resource(BaseResource):
             api = self
             for path in methodpath.split('/')[1:]:
                 api = getattr(api, path)
+            if 'post' not in methodspec:
+                continue
             docstring = methodspec['post']['description']
             for param in methodspec['post'].get('parameters', list()):
                 param['type'] = param['type'] if 'type' in param else str(

@@ -2245,9 +2245,9 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
 
         # here domain = jumpscale, change name for more domains
         [[metadata]]
-            [metadata.jumpscale]
-                url = {AYSGIT},
-                branch = {AYSBRANCH},
+        [metadata.jumpscale]
+        branch = "{AYSBRANCH}",
+        url = "{AYSGIT}"
 
         """
         if "AYSGIT" not in os.environ or os.environ["AYSGIT"].strip() == "":

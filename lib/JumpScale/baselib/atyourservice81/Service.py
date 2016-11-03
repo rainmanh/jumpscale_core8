@@ -506,14 +506,14 @@ class Service:
         job = self.getJob("input", args=args)
         job._service = self
         job.saveService = False  # this is done to make sure we don't save the service at this point !!!
-        args = job.executeInProcess(service=self)
+        args = job.executeInProcess()
         job.model.actorName = self.model.dbobj.actorName
         job.model.save()
         return args
 
     def init(self):
         job = self.getJob(actionName="init")
-        job.executeInProcess(service=self)
+        job.executeInProcess()
         job.model.save()
         return job
 

@@ -221,7 +221,6 @@ class ServiceModel(ActorServiceBaseModel):
         """
         returns an Service object created from this model
         """
-        actor = aysrepo.actorGet(self.dbobj.actorName, die=True)
         Service = aysrepo.getServiceClass()
         service = Service(name=self.dbobj.name, aysrepo=aysrepo, model=self)
         return service

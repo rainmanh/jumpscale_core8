@@ -49,7 +49,13 @@ class RepoModel(ModelBase):
         """
         returns an Actor object created from this model
         """
-        repo = j.atyourservice._repoLoad(self.dbobj.path)
+        try:
+            repo = j.atyourservice._repoLoad(self.dbobj.path)
+        except j.exceptions.NotFound as err:
+            self.logger.error("Repository at {path} doesn't exists. remove it from database".format(path=self.dbobj.path))
+            self.delete()
+            raise err
+
         return repo
 
     def _pre_save(self):

@@ -242,7 +242,10 @@ class AtYourServiceFactory:
     def reposList(self):
         repos = []
         for model in self.repodb.find():
-            repos.append(model.objectGet())
+            try:
+                repos.append(model.objectGet())
+            except j.exceptions.NotFound:
+                continue
         return repos
 
     def repoCreate(self, path, git_url=''):
@@ -308,7 +311,7 @@ class AtYourServiceFactory:
     def _repoLoad(self, path):
 
         if not j.sal.fs.exists(path=path):
-            raise j.exceptions.Input("Cannot find ays templateRepo on path:%s" % path)
+            raise j.exceptions.NotFound("Cannot find ays templateRepo on path:%s" % path)
         gitpath = j.clients.git.findGitPath(path)
         gitrepo = j.clients.git.get(gitpath, check_path=False)
 

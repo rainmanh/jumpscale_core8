@@ -156,7 +156,7 @@ class Job():
                 service_action_obj.state = str(self.model.dbobj.state)
                 self.service.saveAll()
 
-    def executeInProcess(self, service=None):
+    def executeInProcess(self):
         """
         execute the job in the process, capture output when possible
         if debug job then will not capture output so our debugging features work

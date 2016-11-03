@@ -6,10 +6,18 @@ from threading import Thread
 import requests
 
 
-def run_action(repo_path, service_key, action_name, args={}):
+def run_action(repo_path, service_key, action_name, args=None):
+    """
+    run_action execute a single action from a service
+    """
+    if not args:
+        args = {}
+
     repo = j.atyourservice.repoGet(repo_path)
     service = repo.db.service.get(service_key).objectGet(repo)
-    service.runAction(action_name, args)
+
+    job = service.getJob(action_name, args=args)
+    job.executeInProcess()
 
 
 def do_run(run_key, callback=None):

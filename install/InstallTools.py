@@ -2246,7 +2246,7 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
         # here domain = jumpscale, change name for more domains
         [[metadata]]
         [metadata.jumpscale]
-        branch = "{AYSBRANCH}",
+        branch = "{AYSBRANCH}"
         url = "{AYSGIT}"
 
         """

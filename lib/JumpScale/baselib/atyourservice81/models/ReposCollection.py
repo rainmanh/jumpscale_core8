@@ -14,6 +14,7 @@ class ReposCollections:
     def __init__(self):
         # connection to the key-value store index repository namespace
         self.category = "Repo"
+        self.capnp_schema = ModelCapnp.Repo
         self.namespace_prefix = 'ays:'
         namespace = "%s:%s" % (self.namespace_prefix, self.category.lower())
         self._db = j.servers.kvs.getRedisStore(namespace, namespace, **j.atyourservice.config['redis'])

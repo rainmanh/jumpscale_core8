@@ -13,6 +13,7 @@ class ServicesCollection:
 
     def __init__(self, repository):
         self.repository = repository
+        self.capnp_schema = ModelCapnp.Service
         self.category = "Service"
         self.namespace_prefix = 'ays:{}'.format(repository.name)
         namespace = "%s:%s" % (self.namespace_prefix, self.category.lower())

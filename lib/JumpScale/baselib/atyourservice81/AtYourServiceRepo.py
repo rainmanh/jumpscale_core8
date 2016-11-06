@@ -84,7 +84,7 @@ class AtYourServiceRepo():
             actors_dir = j.sal.fs.joinPaths(self.path, 'actors')
             results = j.sal.fs.walkExtended(actors_dir, files=False, dirPattern=name)
             if len(results) == 1:
-                actor = Actor(aysrepo=self, name=name)
+                return Actor(aysrepo=self, name=name)
             elif die:
                 raise j.exceptions.Input(message="Could not find actor with name:%s" % name, level=1, source="", tags="", msgpub="")
 

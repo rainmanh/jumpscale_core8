@@ -213,13 +213,13 @@ class Service:
         """
         self.logger.debug("load service from FS: %s" % path)
         if self.model is None:
-            self.model = self.aysrepo.services.db.new()
+            self.model = self.aysrepo.db.services.new()
 
         model_json = j.data.serializer.json.load(j.sal.fs.joinPaths(path, "service.json"))
         # for now we don't reload the actions codes.
         # when using distributed DB, the actions code could still be available
         del model_json['actions']
-        self.model.dbobj = self.aysrepo.db.capnpModel.Service.new_message(**model_json)
+        self.model.dbobj = self.aysrepo.db.services.capnp_schema.new_message(**model_json)
 
         data_json = j.data.serializer.json.load(j.sal.fs.joinPaths(path, "data.json"))
         self.model.dbobj.data = j.data.capnp.getBinaryData(

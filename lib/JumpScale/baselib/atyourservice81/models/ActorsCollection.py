@@ -15,6 +15,7 @@ class ActorsCollection:
         self.repository = repository
         self.category = "Actor"
         self.namespace_prefix = 'ays:{}'.format(repository.name)
+        self.capnp_schema = ModelCapnp.Actor
         namespace = "%s:%s" % (self.namespace_prefix, self.category.lower())
         self.repository = repository
         self._db = j.servers.kvs.getRedisStore(namespace, namespace, **j.atyourservice.config['redis'])

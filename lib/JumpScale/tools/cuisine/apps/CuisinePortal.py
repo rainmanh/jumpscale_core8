@@ -13,6 +13,7 @@ class CuisinePortal(base):
         self._cuisine = cuisine
         self.portal_dir = self._cuisine.core.args_replace('$appDir/portals/')
         self.main_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'main')
+        self._cuisine.core.dir_ensure(self.main_portal_dir)
 
     def _install(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1",
                  influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd="", branch='master', redis_ip="127.0.0.1", redis_port=6379):
@@ -151,6 +152,10 @@ class CuisinePortal(base):
         Flask-Bootstrap
         snakeviz
         """
+        self._cuisine.package.ensure('build-essential')
+        self._cuisine.package.ensure('libssl-dev')
+        self._cuisine.package.ensure('libffi-dev')
+        self._cuisine.package.ensure('python-dev')
         self._cuisine.development.pip.multiInstall(deps)
 
         if "darwin" in self._cuisine.platformtype.osname:
@@ -231,13 +236,13 @@ class CuisinePortal(base):
     def addSpace(self, spacepath):
         spacename = j.sal.fs.getBaseName(spacepath)
         dest_dir = j.sal.fs.joinPaths(self._cuisine.core.dir_paths[
-                                      'varDir'], 'cfg', 'portals', 'main', 'base', spacename)
+                                      'appDir'], 'portals', 'main', 'base', spacename)
         self._cuisine.core.file_link(spacepath, dest_dir)
 
     def addactor(self, actorpath):
         actorname = j.sal.fs.getBaseName(actorpath)
         dest_dir = j.sal.fs.joinPaths(self._cuisine.core.dir_paths[
-                                      'varDir'], 'cfg', 'portals', 'main', 'base', actorname)
+                                      'appDir'], 'portals', 'main', 'base', actorname)
         self._cuisine.core.file_link(actorpath, dest_dir)
 
     def serviceconnect(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1",

@@ -11,6 +11,8 @@ class Cache:
         self._cache = {}
 
     def get(self, runid, cat, keepInMem=False, reset=False):
+        if self.db == None:
+            keepInMem = True
         key = "%s_%s" % (runid, cat)
         if key not in self._cache:
             self._cache[key] = CacheCategory(runid, cat, keepInMem=keepInMem)
@@ -19,15 +21,17 @@ class Cache:
         return self._cache[key]
 
     def reset(self, runid=""):
-        if runid == "":
-            for key in j.core.db.keys():
-                key = key.decode()
-                if key.startswith("cuisine:cache"):
-                    print("cache delete:%s" % key)
-                    j.core.db.delete(key)
-        else:
-            key = "cuisine.cache.%s" % runid
-            j.core.db.delete(key)
+        if self.db != None:
+            self._cache = {}
+            if runid == "":
+                for key in j.core.db.keys():
+                    key = key.decode()
+                    if key.startswith("cuisine:cache"):
+                        print("cache delete:%s" % key)
+                        j.core.db.delete(key)
+            else:
+                key = "cuisine.cache.%s" % runid
+                j.core.db.delete(key)
 
 
 class CacheCategory():
@@ -45,7 +49,7 @@ class CacheCategory():
         if self.keepInMem and id in self._cache and refresh is False:
             if self._cache[id] not in ["", None]:
                 return self._cache[id]
-        if refresh is False:
+        if refresh is False and j.core.db != None:
             val = j.core.db.hget(key, hkey)
             if val is not None:
                 val = j.data.serializer.json.loads(val)
@@ -62,10 +66,12 @@ class CacheCategory():
         raise j.exceptions.RuntimeError("Cannot get '%s' from cache" % id)
 
     def set(self, id, val):
-        key = "cuisine:cache:%s" % self.runid
-        hkey = "%s:%s" % (self.cat, id)
-        val = j.data.serializer.json.dumps(val)
-        j.core.db.hset(key, hkey, val)
+        self._cache[id] = val
+        if j.core.db != None:
+            key = "cuisine:cache:%s" % self.runid
+            hkey = "%s:%s" % (self.cat, id)
+            val = j.data.serializer.json.dumps(val)
+            j.core.db.hset(key, hkey, val)
 
     def reset(self):
         j.data.cache.reset(self.runid)

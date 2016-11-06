@@ -1,8 +1,13 @@
+import sys
+
+import asyncio
+if sys.platform != 'cygwin':
+    import uvloop
+
 from urllib.request import urlopen
 
 import os
 import tarfile
-import sys
 import shutil
 import tempfile
 import platform
@@ -407,7 +412,8 @@ class Installer():
         tmpdir = self.do.config["dirs"]["TMPDIR"]
         if not self.do.exists(self.do.joinPaths(tmpdir, "get-pip.py")):
             if not self.do.TYPE.startswith("WIN"):
-                cmd = "cd %s;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python get-pip.py" % self.do.config["dirs"]["TMPDIR"]
+                cmd = "cd %s;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python get-pip.py" % self.do.config[
+                    "dirs"]["TMPDIR"]
                 self.do.execute(cmd)
 
     def prepare(self):
@@ -1636,7 +1642,7 @@ class InstallTools():
         s.quit()
 
     def execute(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=100,
-                     captureout=True, die=True, async=False, executor=None):
+                captureout=True, die=True, async=False, executor=None):
         """
         Execute command
         @param command: Command to be executed
@@ -1653,11 +1659,6 @@ class InstallTools():
         """
         if executor:
             return executor.execute(command, die=die, checkok=False, async=async, showout=True, timeout=timeout)
-
-        if self._asyncLoaded == False:
-            import asyncio
-            if sys.platform != 'cygwin':
-                import uvloop
 
         # TODO: *1 need to be brought back without async & without anything
         # advanced, this is an isntaller should not have async, ...
@@ -2359,7 +2360,8 @@ class InstallTools():
                 # raise RuntimeError("Cannot retrieve branch:\n%s\n" % cmd)
 
             if branch != None and branch != branchFound and ignorelocalchanges == False:
-                raise RuntimeError("Cannot pull repo, branch on filesystem is not same as branch asked for.")
+                raise RuntimeError(
+                    "Cannot pull repo, branch on filesystem is not same as branch asked for.\nBranch asked for:%s\nBranch found:%s\nTo choose other branch do e.g:\nexport JSBRANCH='%s'\n" % (branch, branchFound, branchFound))
 
             if branch == None:
                 branch = branchFound

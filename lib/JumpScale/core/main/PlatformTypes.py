@@ -84,6 +84,25 @@ class PlatformTypes:
         return PlatformType(executor=executor)
 
 
+# class Executor:
+#
+#     def __init__(self):
+#         self.id = "localexec"
+#
+#     def execute(self, cmd, die=True, showout=True, **args):
+#
+#         childprocess = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+#                                         stderr=subprocess.PIPE, close_fds=True, shell=True, env=os.environ)
+#         (output, error) = childprocess.communicate()
+#         exitcode = childprocess.returncode
+#
+#         if showout:
+#             print(output)
+#             print(error)
+#
+#         return exitcode, output.decode(), error.decode()
+
+
 class PlatformType:
 
     def __init__(self, name="", executor=None):
@@ -96,10 +115,14 @@ class PlatformType:
         # self._osname=""
         if executor is None:
             self.executor = j.tools.executor.getLocal()
+            # self.executor = Executor()
         else:
+            # if executor.addr == "localhost" or executor.addr == "127.0.0.1":
+            #     self.executor = Executor()
+            # else:
             self.executor = executor
         self.cache = j.data.cache.get(
-            self.executor.id, "platformtype", keepInMem=False, reset=False)
+            self.executor.id, "platformtype", keepInMem=True, reset=False)
 
         if name == "":
             self._getPlatform()
@@ -173,15 +196,12 @@ class PlatformType:
                     pkgman2dist = {
                         'pacman': 'arch', 'apt-get': 'ubuntu', 'yum': 'fedora', 'apk': 'alpine'}
                     for pkgman, dist in pkgman2dist.items():
-                        rc, _, err = self.executor.cuisine.core.run(
-                            "which %s" % pkgman, showout=False, replaceArgs=False, die=False)
+                        rc, _, err = self.executor.execute("which %s" % pkgman, showout=False, die=False)
                         if rc == 0:
                             self._osname = pkgman2dist[pkgman]
-
                             break
                     else:
-                        raise j.exceptions.RuntimeError(
-                            "Couldn't define os version.")
+                        raise j.exceptions.RuntimeError("Couldn't define os version.")
             self.cache.set("osversion", self._osversion)
             return self._osname
 

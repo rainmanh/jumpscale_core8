@@ -38,19 +38,23 @@ class CuisinePIP(base):
         '''
         The "package" argument, defines the name of the package that will be upgraded.
         '''
-        self._cuisine.core.set_sudomode()
+        # self._cuisine.core.set_sudomode()
         self._cuisine.core.run('pip3 install --upgrade %s' % (package))
 
-    def install(self, package=None, upgrade=False):
+    def install(self, package=None, upgrade=False, doneCheckMethod=None):
         '''
         The "package" argument, defines the name of the package that will be installed.
         '''
-        self._cuisine.core.set_sudomode()
+        # self._cuisine.core.set_sudomode()
         if self._cuisine.core.isArch:
             if package in ["credis", "blosc", "psycopg2"]:
                 return
 
         if self._cuisine.core.isCygwin and package in ["psycopg2", "psutil", "zmq"]:
+            return
+
+        if doneCheckMethod != None and doneCheckMethod(package) == True:
+            print("No need to pip install:%s (already done)" % package)
             return
 
         cmd = "pip3 install %s" % package
@@ -67,7 +71,7 @@ class CuisinePIP(base):
         '''
         return self._cuisine.core.run('pip3 uninstall %s' % (package))
 
-    def multiInstall(self, packagelist, upgrade=False):
+    def multiInstall(self, packagelist, upgrade=False, doneCheckMethod=None):
         """
         @param packagelist is text file and each line is name of package
         can also be list
@@ -84,24 +88,23 @@ class CuisinePIP(base):
             mimeparse
             mongoengine
 
-        @param runid, if specified actions will be used to execute
-        """
-        previous_sudo = self._cuisine.core.sudomode
-        try:
-            self._cuisine.core.sudomode = True
-            if j.data.types.string.check(packagelist):
-                packages = packagelist.split("\n")
-            elif j.data.types.list.check(packagelist):
-                packages = packagelist
-            else:
-                raise j.exceptions.Input('packagelist should be string or a list. received a %s' % type(packagelist))
+        if doneCheckMethod!=None:
+            it will ask for each pip if done or not to that method, if it returns true then already done
 
-            to_install = []
-            for dep in packages:
-                dep = dep.strip()
-                if dep is None or dep == "" or dep[0] == '#':
-                    continue
-                to_install.append(dep)
-            self.install(' '.join(to_install), upgrade=upgrade)
-        finally:
-            self._cuisine.core.sudomode = previous_sudo
+        """
+        if j.data.types.string.check(packagelist):
+            packages = packagelist.split("\n")
+        elif j.data.types.list.check(packagelist):
+            packages = packagelist
+        else:
+            raise j.exceptions.Input('packagelist should be string or a list. received a %s' % type(packagelist))
+
+        to_install = []
+        for dep in packages:
+            dep = dep.strip()
+            if dep is None or dep == "" or dep[0] == '#':
+                continue
+            to_install.append(dep)
+
+        for item in to_install:
+            self.install(item, doneCheckMethod)

@@ -1,5 +1,7 @@
 from JumpScale import j
 from ExecutorBase import ExecutorBase
+import subprocess
+import os
 
 
 class ExecutorLocal(ExecutorBase):
@@ -21,6 +23,23 @@ class ExecutorLocal(ExecutorBase):
         if self.debug:
             print("EXECUTOR:%s" % cmds)
         return j.do.execute(cmds, die=die, async=async, showout=showout, outputStderr=outputStderr, timeout=timeout)
+
+        # if isinstance(cmds, list):
+        #     raise RuntimeError("cmds can only be 1 cmd")
+        #
+        # cmd = cmds
+        #
+        # childprocess = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        #                                 stderr=subprocess.PIPE, close_fds=True, shell=True, env=os.environ)
+        # (output, error) = childprocess.communicate()
+        # exitcode = childprocess.returncode
+        #
+        #
+        # if showout:
+        #     print(output)
+        #     print(error)
+        #
+        # return exitcode, output.decode(), error.decode()
 
     def executeInteractive(self, cmds, die=True, checkok=None):
         cmds = self._transformCmds(cmds, die, checkok=checkok)

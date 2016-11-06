@@ -14,8 +14,8 @@ class CuisineCockpit(base):
         self.install_deps()
         self._cuisine.development.git.pullRepo('https://github.com/Jumpscale/jscockpit', ssh=False)
         self._cuisine.core.dir_ensure('/opt/jumpscale8/apps/ays_api/')
-        self._cuisine.core.file_copy('/opt/code/github/jumpscale/jscockpit/jscockpit/api_server', '/opt/jumpscale8/apps/ays_api/api_server')
-        self._cuisine.core.file_copy('/opt/code/github/jumpscale/jscockpit/jscockpit/ays_api/', '/opt/jumpscale8/apps/ays_api/ays_api', recursive=True)
+        self._cuisine.core.file_copy('/opt/code/github/jumpscale/jscockpit/api_server/', '/opt/jumpscale8/apps/ays_api/api_server')
+        self._cuisine.core.file_copy('/opt/code/github/jumpscale/jscockpit/ays_api/', '/opt/jumpscale8/apps/ays_api/ays_api', recursive=True)
         if start:
             self.start()
 

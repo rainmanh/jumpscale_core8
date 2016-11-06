@@ -28,6 +28,7 @@ class dependencies():
         msgpack-python
         pyblake2
         """
+        self.do.execute("apt-get install libssl-dev")
         self.do.pip(C, executor=executor)
 
     def portal(self, executor=None):

@@ -222,8 +222,7 @@ class Service:
         self.model.dbobj = self.aysrepo.db.services.capnp_schema.new_message(**model_json)
 
         data_json = j.data.serializer.json.load(j.sal.fs.joinPaths(path, "data.json"))
-        self.model.dbobj.data = j.data.capnp.getBinaryData(
-            j.data.capnp.getObj(self.model.dbobj.dataSchema, args=data_json))
+        self.model.dbobj.data = j.data.capnp.getBinaryData(j.data.capnp.getObj(self.model.dbobj.dataSchema, args=data_json))
         # data_obj = j.data.capnp.getObj(self.model.dbobj.dataSchema, data_json)
         # self.model._data = data_obj
 

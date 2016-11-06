@@ -194,17 +194,6 @@ class Client:
         self._assert_response(resp)
         return resp.json()
 
-    def uninstall(self, repository, headers=None, query_params=None):
-        """
-        simulate the execution of an action
-        It is method for POST /ays/repository/{repository}/simulate
-        """
-        query_params = query_params or {}
-
-        resp = self._client.uninstall(data=None, repository=repository, headers=headers, query_params=query_params)
-        self._assert_response(resp)
-        return resp.json()
-
     def listBlueprints(self, repository, archived=True, headers=None, query_params=None):
         """
         List all blueprint

@@ -116,6 +116,7 @@ j.legacy = Loader("j.legacy")
 
 j.do = do
 j.do.installer = Installer()
+j.do.installer.do=do
 
 # sets up the exception handlers for init
 from . import core

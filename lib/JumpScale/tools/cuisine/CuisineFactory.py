@@ -13,6 +13,22 @@ class CuisineBase:
         # maybe best to still show the cuisine, is easier
         self.cuisine = cuisine
 
+    def done(self, name,set=False,reset=False):
+        """
+        returns when a certain step is done
+        """
+        if j.core.db!=None:
+            if set==False and reset==False:
+                res=j.core.db.hexists(self._donecat+"."+self._id,name)
+                if res:
+                    print("will not install:%s"%(self._donecat+"."+self._id+"."+name))
+            elif set:
+                j.core.db.hset(self._donecat+"."+self._id,name,"1")
+            elif reset:
+                j.core.db.delete(self._donecat+"."+self._id)
+        else:
+            return False
+
     @property
     def _classname(self):
         if self.__classname is None:

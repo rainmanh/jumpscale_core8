@@ -6,6 +6,7 @@ class dependencies():
 
     def all(self, executor=None):
         C = """
+        uvloop
         redis
         paramiko
         watchdog
@@ -32,7 +33,6 @@ class dependencies():
     def portal(self, executor=None):
         C = """
         mongoengine
-        uvloop
         """
         self.do.pip(C, executor=executor)
 

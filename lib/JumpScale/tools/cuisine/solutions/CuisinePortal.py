@@ -9,21 +9,7 @@ class CuisinePortal(base):
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
-
-    def done(self, name):
-        """
-        returns when a certain step is done
-        """
-        from IPython import embed
-        print("DEBUG NOW done")
-        embed()
-        raise RuntimeError("stop debug here")
-
-    def resetState(self):
-        from IPython import embed
-        print("DEBUG NOW resetstate")
-        embed()
-        raise RuntimeError("stop debug here")
+        self._donecat="done.cuisine.solutions.portal"
 
     def install(self, start=True, reset=False):
         self.install_deps()
@@ -42,7 +28,8 @@ class CuisinePortal(base):
 
     def install_deps(self):
         self._cuisine.package.mdupdate()
-        self._cuisine.package.install('libssl-dev')
+        if not self.done('libssl-dev') and not str(j.core.platformtype.myplatform).startswith("darwin"):
+            self._cuisine.package.install('libssl-dev')
 
         deps = """
         cryptography
@@ -51,4 +38,4 @@ class CuisinePortal(base):
         flask_wtf
         python-telegram-bot
         """
-        self._cuisine.development.pip.multiInstall(deps, upgrade=True, doneCheckMethod=self.done)
+        self._cuisine.development.pip.multiInstall(deps, upgrade=True, doneMethod=self.done)

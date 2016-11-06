@@ -30,6 +30,11 @@ class Installer():
         print("install jsdocs")
         self.do.pullGitRepo(url='git@github.com:Jumpscale/docs.git', ssh="first")
 
+    def checkPython(self):
+        if sys.platform.startswith('darwin'):
+            if len([item for item in do.listDirsInDir("/usr/local/lib") if item.find("python3")!=-1])>1:
+                raise RuntimeError("Please execute clean.sh in installer of jumpscale, found too many python installs")
+
     def installJS(self, base="", GITHUBUSER="", GITHUBPASSWD="", CODEDIR="",
                   JSGIT="https://github.com/Jumpscale/jumpscale_core8.git", JSBRANCH="master",
                   AYSGIT="https://github.com/Jumpscale/ays_jumpscale8", AYSBRANCH="master", EMAIL="", FULLNAME=""):
@@ -119,10 +124,9 @@ class Installer():
             self.do.symlink(src, dest2)
 
         src = "%s/github/jumpscale/jumpscale_core8/shellcmds" % self.do.CODEDIR
-        desttest = "/usr/local/bin/js"
-        if not self.do.exists(desttest):
-            dest = "/usr/local/bin"
-            self.do.symlinkFilesInDir(src, dest)
+
+        dest = "/usr/local/bin"
+        self.do.symlinkFilesInDir(src, dest)
 
         dest = "%s/bin" % base
         self.do.symlinkFilesInDir(src, dest)
@@ -288,7 +292,9 @@ class Installer():
             C = C.replace('$pythonhome', '')
 
         if self.do.TYPE.startswith("OSX"):
-            C = C.replace("$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/plat-x86_64-linux-gnu:/usr/local/lib/python3.5/site-packages:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/plat-darwin:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload")
+            pass
+            # C = C.replace("$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/plat-x86_64-linux-gnu:/usr/local/lib/python3.5/site-packages:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/plat-darwin:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload")
+            C = C.replace("$pythonpath","")
         else:
             C = C.replace(
                 "$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu:$_OLD_PYTHONPATH")
@@ -310,25 +316,28 @@ class Installer():
         #!/bin/bash
         # set -x
         source $base/env.sh
-        exec python3 -q "$@"
+        exec python3.5 -q "$@"
         """
 
         # C2=C2.format(base=basedir, env=envfile)
-        if self.readonly is False or die == True:
+        if self.readonly is False:
 
             self.do.delete("/usr/bin/jspython")  # to remove link
             self.do.delete("%s/bin/jspython" % os.environ["JSBASE"])
             self.do.delete("/usr/local/bin/jspython")
 
             if self.do.sandbox:
+                print("jspython in sandbox")
                 dest = "%s/bin/jspython" % os.environ["JSBASE"]
                 C2 = C2.replace('$base', os.environ["JSBASE"])
                 self.do.writeFile(dest, C2)
             else:
                 # in system
+                print("jspython in system")
                 dest = "/usr/local/bin/jspython"
                 C2_insystem = C2_insystem.replace('$base', os.environ["JSBASE"])
                 self.do.writeFile(dest, C2_insystem)
+
             self.do.chmod(dest, 0o770)
 
             # change site.py file
@@ -420,6 +429,8 @@ class Installer():
         self.do.initCreateDirs4System()
 
         print("prepare")
+
+        self.checkPython()
 
         self.installpip()
 

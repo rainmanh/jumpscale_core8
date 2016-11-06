@@ -41,7 +41,7 @@ class CuisinePIP(base):
         # self._cuisine.core.set_sudomode()
         self._cuisine.core.run('pip3 install --upgrade %s' % (package))
 
-    def install(self, package=None, upgrade=False, doneCheckMethod=None):
+    def install(self, package=None, upgrade=False, doneMethod=None):
         '''
         The "package" argument, defines the name of the package that will be installed.
         '''
@@ -53,7 +53,7 @@ class CuisinePIP(base):
         if self._cuisine.core.isCygwin and package in ["psycopg2", "psutil", "zmq"]:
             return
 
-        if doneCheckMethod != None and doneCheckMethod(package) == True:
+        if doneMethod != None and doneMethod(package) == True:
             print("No need to pip install:%s (already done)" % package)
             return
 
@@ -61,6 +61,10 @@ class CuisinePIP(base):
         if upgrade:
             cmd += " --upgrade"
         self._cuisine.core.run(cmd)
+
+        if doneMethod != None:
+            doneMethod(package,set=True)
+
 
     def packageRemove(self, package):
         '''
@@ -71,7 +75,7 @@ class CuisinePIP(base):
         '''
         return self._cuisine.core.run('pip3 uninstall %s' % (package))
 
-    def multiInstall(self, packagelist, upgrade=False, doneCheckMethod=None):
+    def multiInstall(self, packagelist, upgrade=False, doneMethod=None):
         """
         @param packagelist is text file and each line is name of package
         can also be list
@@ -107,4 +111,4 @@ class CuisinePIP(base):
             to_install.append(dep)
 
         for item in to_install:
-            self.install(item, doneCheckMethod)
+            self.install(item, doneMethod)

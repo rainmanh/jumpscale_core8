@@ -66,7 +66,8 @@ class CacheCategory():
         raise j.exceptions.RuntimeError("Cannot get '%s' from cache" % id)
 
     def set(self, id, val):
-        self._cache[id] = val
+        if self.keepInMem :
+            self._cache[id] = val
         if j.core.db != None:
             key = "cuisine:cache:%s" % self.runid
             hkey = "%s:%s" % (self.cat, id)

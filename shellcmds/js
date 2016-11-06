@@ -1,5 +1,9 @@
 #!/usr/bin/env jspython
+
+import sys
+
 from JumpScale import j
+
 import argparse
 j.application.start("jsshell")
 

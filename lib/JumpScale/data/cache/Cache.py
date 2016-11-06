@@ -21,8 +21,8 @@ class Cache:
         return self._cache[key]
 
     def reset(self, runid=""):
+        self._cache = {}
         if self.db != None:
-            self._cache = {}
             if runid == "":
                 for key in j.core.db.keys():
                     key = key.decode()
@@ -59,7 +59,8 @@ class CacheCategory():
             val = method(**kwargs)
             if val is None or val == "":
                 raise j.exceptions.RuntimeError("method cannot return None or empty string.")
-            self.set(id, val)
+            if j.core.db != None:
+                self.set(id, val)
             if self.keepInMem:
                 self._cache[id] = val
             return val

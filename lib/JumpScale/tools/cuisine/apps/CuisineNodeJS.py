@@ -30,6 +30,6 @@ class CuisineNodeJS(app):
         self._cuisine.core.file_copy(src, '$binDir', recursive=True, overwrite=True)
         src = '/tmp/{version}/lib/node_modules/npm/*'.format(version=version)
         self._cuisine.core.file_copy(src, '$appDir/npm', recursive=True, overwrite=True)
-        if self._cuisine.core.exists('$binDir/npm'):
+        if self._cuisine.core.file_exists('$binDir/npm'):
             self._cuisine.core.file_unlink('$binDir/npm')
         self._cuisine.core.file_link('$appDir/npm/cli.js', '$binDir/npm')

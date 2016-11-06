@@ -1,15 +1,20 @@
 from JumpScale import j
 
 # from Worker import Worker
+from collections import namedtuple
 
 import inspect
 # import msgpack
 import time
 
-from JumpScale.baselib.jobcontroller.models import ModelsFactory
+from JumpScale.baselib.jobcontroller.models.ActionsCollection import ActionsCollection
+from JumpScale.baselib.jobcontroller.models.RunsCollection import RunsCollection
+from JumpScale.baselib.jobcontroller.models.JobsCollections import JobsCollection
 from JumpScale.baselib.jobcontroller.Job import Job
 from JumpScale.baselib.jobcontroller.Run import Run
 
+
+DBTuple = namedtuple('db', ['runs', 'jobs', 'actions'])
 
 class JobController:
     """
@@ -20,7 +25,11 @@ class JobController:
     def __init__(self):
         self.__jslocation__ = "j.core.jobcontroller"
 
-        self.db = ModelsFactory()
+        self.db = DBTuple(
+            RunsCollection(),
+            JobsCollection(),
+            ActionsCollection(),
+        )
         self._methods = {}
 
         self._init = False
@@ -117,7 +126,7 @@ class JobController:
         return run0
 
     def newRun(self, simulate=False):
-        model = self.db.run.new()
+        model = self.db.runs.new()
         run = Run(model=model)
         run.model.dbobj.lastModDate = j.data.time.getTimeEpoch()
         run.state = 'new'
@@ -131,7 +140,7 @@ class JobController:
     def getActionObjFromMethodCode(self, src, path="", actorName="", actionName=""):
         # leave this our own parsing, is much faster
 
-        action = self.db.action.new()
+        action = self.db.actions.new()
         action.dbobj.whoami = j.application.whoAmiBytestr
         action.dbobj.origin = path
         action.dbobj.name = actionName
@@ -176,7 +185,7 @@ class JobController:
         @param timeout: timeout in seconds
         @type timeout: int
         """
-        raise NotImplemented()
+        raise NotImplementedError()
         guid = self.queue.get(timeout=timeout)
         return self.db.get(guid)
 
@@ -185,7 +194,7 @@ class JobController:
         will empty queue & abort all jobs
         abort means jobs will stay in db but state will be set
         """
-        raise NotImplemented()
+        raise NotImplementedError()
         job = self.queue.get_nowait()
         while job is not None:
             job.state = "abort"
@@ -195,7 +204,7 @@ class JobController:
         """
         will empty queue & remove all jobs
         """
-        raise NotImplemented()
+        raise NotImplementedError()
         job = self.queue.get_nowait()
         while job is not None:
             self.db.delete(job.dbobj.key)

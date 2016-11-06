@@ -43,9 +43,9 @@ class Client:
         if verify_ssl is False:
             requests.packages.urllib3.disable_warnings()
         self._client.url = base_uri
-        # self._jwt = jwt
+        self._jwt = jwt
         self._client.session.headers = {
-            # "Authorization": "Bearer " + jwt,
+            "Authorization": "Bearer " + jwt,
             "Content-Type": "application/json"
         }
 
@@ -69,16 +69,6 @@ class Client:
         """
         resp = self._client.update(
             data=None, headers=headers, query_params=query_params)
-        self._assert_response(resp)
-        return resp.json()
-
-    def reloadAll(self, headers=None, query_params=None):
-        """
-        empty memory and reload all services
-        It is method for GET /ays/reload
-        """
-        resp = self._client.reloadAll(
-            headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -106,12 +96,12 @@ class Client:
         self._assert_response(resp)
         return resp.json()
 
-    def createNewRepository(self, name, headers=None, query_params=None):
+    def createNewRepository(self, name, git_url, headers=None, query_params=None):
         """
         create a new repository
         It is method for POST /ays/repository
         """
-        data = j.data.serializer.json.dumps({'name': name})
+        data = j.data.serializer.json.dumps({'name': name, 'git_url': git_url})
         resp = self._client.createNewRepository(
             data=data, headers=headers, query_params=query_params)
         self._assert_response(resp, 201)
@@ -135,24 +125,7 @@ class Client:
         resp = self._client.deleteRepository(
             repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp, 204)
-        return resp.json()
 
-    def initRepository(self, repository, role='', instance='', force=False, headers=None, query_params=None):
-        """
-        Run init action on full repository
-        It is method for POST /ays/repository/{repository}/init
-        """
-        query = {
-            'role': role,
-            'instance': instance,
-        }
-        query_params = query_params or {}
-        query_params.update(query)
-
-        resp = self._client.initRepository(
-            repository=repository, data=None, headers=headers, query_params=query_params)
-        self._assert_response(resp)
-        return resp.json()
 
     def simulateAction(self, repository, action, role='', instance='',
                        producer_roles='*', force=False, headers=None, query_params=None):
@@ -252,8 +225,7 @@ class Client:
         Update existing blueprint
         It is method for PUT /ays/repository/{repository}/blueprint/{blueprint}
         """
-        data = j.data.serializer.json.dumps(
-            {'name': blueprint, 'content': content})
+        data = j.data.serializer.json.dumps({'name': blueprint, 'content': content})
         resp = self._client.updateBlueprint(
             data=data, blueprint=blueprint, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
@@ -267,7 +239,6 @@ class Client:
         resp = self._client.deleteBlueprint(
             blueprint=blueprint, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp, 204)
-        return resp.json()
 
     def archiveBlueprint(self, repository, blueprint, headers=None, query_params=None):
         """
@@ -299,7 +270,7 @@ class Client:
         self._assert_response(resp)
         return resp.json()
 
-    def listServicesByRole(self, role, repository, headers=None, query_params=None):
+    def listServicesByRole(self, repository, role, headers=None, query_params=None):
         """
         List all services of role 'role' in the repository
         It is method for GET /ays/repository/{repository}/service/{role}
@@ -309,36 +280,23 @@ class Client:
         self._assert_response(resp)
         return resp.json()
 
-    def executeServiceActionByRole(self, action, role, repository, headers=None, query_params=None):
+    def getServiceByName(self, repository, role, name, headers=None, query_params=None):
         """
-        Perform an action on all service with the role 'role'
-        It is method for POST /ays/repository/{repository}/service/{role}/action/{action}
-        """
-        resp = self._client.executeServiceActionByRole(
-            data=None, action=action, role=role, repository=repository, headers=headers, query_params=query_params)
-        resp.raise_for_status()
-        return resp.json()
-
-    def getServiceByInstance(self, instance, role, repository, headers=None, query_params=None):
-        """
-        Get a service instance
+        Get a service by it's name
         It is method for GET /ays/repository/{repository}/service/{role}/{instance}
         """
-        resp = self._client.getServiceByInstance(
-            instance=instance, role=role, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.getServiceByName(
+            name=name, role=role, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
-    def deleteServiceByInstance(self, instance, role, repository, uninstall=False, headers=None, query_params=None):
+    def deleteServiceByName(self,repository, role, name, headers=None, query_params=None):
         """
         uninstall and delete a service
-        It is method for DELETE /ays/repository/{repository}/service/{role}/{instance}
+        It is method for DELETE /ays/repository/{repository}/service/{role}/{name}
         """
-        query_params = query_params or {}
-        query_params.update({'uninstall': uninstall})
-
-        resp = self._client.deleteServiceByInstance(
-            instance=instance, role=role, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.deleteServiceByName(
+            name=name, role=role, repository=repository, headers=headers, query_params=query_params)
         return self._assert_response(resp, 204)
 
     def listServiceActions(self, instance, role, repository, headers=None, query_params=None):
@@ -351,16 +309,6 @@ class Client:
         self._assert_response(resp)
         return resp.json()
 
-    def executeServiceActionByInstance(self, action, instance, role, repository, headers=None, query_params=None):
-        """
-        Perform an action on a services
-        It is method for POST /ays/repository/{repository}/service/{role}/{instance}/{action}
-        """
-        resp = self._client.executeServiceActionByInstance(
-            data=None, action=action, instance=instance, role=role, repository=repository, headers=headers, query_params=query_params)
-        resp.raise_for_status()
-        return resp.json()
-
     def listTemplates(self, repository, headers=None, query_params=None):
         """
         list all templates
@@ -371,20 +319,7 @@ class Client:
         self._assert_response(resp)
         return resp.json()
 
-    def createNewTemplate(self, repository, name, action, schema, headers=None, query_params=None):
-        """
-        Create new template
-        It is method for POST /ays/repository/{repository}/template
-
-        """
-        data = j.data.serializer.json.dumps(
-            {'name': 'myTemplate', 'action_py': 'valid action file', 'schema_hrd': 'valid hrd schema'})
-        resp = self._client.createNewTemplate(
-            data=data, repository=repository, headers=headers, query_params=query_params)
-        self._assert_response(resp, 201)
-        return resp.json()
-
-    def getTemplate(self, template, repository, headers=None, query_params=None):
+    def getTemplate(self, repository, template, headers=None, query_params=None):
         """
         Get a template
         It is method for GET /ays/repository/{repository}/template/{template}
@@ -404,33 +339,24 @@ class Client:
         self._assert_response(resp)
         return resp.json()
 
-    def getRun(self, aysrun, repository, headers=None, query_params=None):
+    def getRun(self, repository, aysrun, headers=None, query_params=None):
         """
         Get an aysrun
         It is method for GET /ays/repository/{repository}/aysrun/{aysrun}
         """
-        resp = self._client.getRun(aysrun=aysrun, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.getRun(
+            aysrun=aysrun, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
-    def getSource(self, source, repository, headers=None, query_params=None):
-        """
-        param:repository where source is
-        param: hash hash of source file
-        result json of source
-        """
-        resp = self._client.getSource(
-            source=source, repository=repository, headers=headers, query_params=query_params)
-        self._assert_response(resp)
-        return resp.json()
+    def createRun(self, repository, callback_url=None, simulate=False,  headers=None, query_params=None):
+        query = {
+            'simulate': simulate,
+            'callback_url': callback_url
+        }
+        query_params = query_params or {}
+        query_params.update(query)
 
-    def getHRD(self, hrd, repository, headers=None, query_params=None):
-        """
-        param:repository where source is
-        param: hash hash of hrd file
-        result json of hrd
-        """
-        resp = self._client.getHRD(
-            hrd=hrd, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.createRun(data=None, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()

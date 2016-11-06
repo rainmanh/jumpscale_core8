@@ -5,13 +5,13 @@ from collections import OrderedDict
 
 class ModelBase():
 
-    def __init__(self, modelfactory, key="", new=False):
+    def __init__(self, capnp_schema, category, db, index, key="", new=False):
         self.logger = j.atyourservice.logger
-        self._modelfactory = modelfactory
-        self._capnp = modelfactory._capnp
-        self._category = modelfactory.category
-        self._db = modelfactory._db
-        self._index = modelfactory._index
+
+        self._capnp_schema = capnp_schema
+        self._category = category
+        self._db = db
+        self._index = index
         self._key = ""
         self.dbobj = None
         self.changed = False
@@ -21,7 +21,7 @@ class ModelBase():
                 raise j.exceptions.Input("Key needs to be length 32")
 
         if new:
-            self.dbobj = self._capnp.new_message()
+            self.dbobj = self._capnp_schema.new_message()
             self._post_init()
             if key != "":
                 self._key = key
@@ -32,7 +32,7 @@ class ModelBase():
                 self._key = key
             else:
                 raise j.exceptions.Input(message="Cannot find object:%s!%s" % (
-                    modelfactory.category, key), level=1, source="", tags="", msgpub="")
+                    self._category, key), level=1, source="", tags="", msgpub="")
         else:
             raise j.exceptions.Input(message="key cannot be empty when no new obj is asked for.",
                                      level=1, source="", tags="", msgpub="")
@@ -54,21 +54,13 @@ class ModelBase():
         # return a unique key to be used in db (std the key but can be overriden)
         return j.data.hash.md5_string(j.data.idgenerator.generateGUID())
 
-    @classmethod
-    def list(**args):
-        raise NotImplemented
-
-    @classmethod
-    def find(**args):
-        raise NotImplemented
-
     def index(self):
         # put indexes in db as specified
-        raise NotImplemented
+        raise NotImplementedError
 
     def load(self, key):
         buff = self._db.get(key)
-        self.dbobj = self._capnp.from_bytes(buff, builder=True)
+        self.dbobj = self._capnp_schema.from_bytes(buff, builder=True)
 
     def save(self):
         self._pre_save()
@@ -96,8 +88,8 @@ class ModelBase():
 
 class ModelBaseWithData(ModelBase):
 
-    def __init__(self, modelfactory, key="", new=False):
-        super(ModelBaseWithData, self).__init__(modelfactory, key, new)
+    def __init__(self, capnp_schema, category, db, index, key="", new=False):
+        super().__init__(capnp_schema=capnp_schema, category=category, db=db, index=index, key=key, new=new)
         self._data = None
 
     @property

@@ -1,0 +1,72 @@
+from JumpScale import j
+from JumpScale.baselib.atyourservice81.models.RepoModel import RepoModel
+
+import capnp
+from JumpScale.baselib.atyourservice81 import model_capnp as ModelCapnp
+
+
+class ReposCollections:
+    """
+    This class represent a collection of AYS Reposities
+    It's used to list/find/create new Instance of Repository Model object
+    """
+
+    def __init__(self):
+        # connection to the key-value store index repository namespace
+        self.category = "Repo"
+        self.capnp_schema = ModelCapnp.Repo
+        self.namespace_prefix = 'ays:'
+        namespace = "%s:%s" % (self.namespace_prefix, self.category.lower())
+        self._db = j.servers.kvs.getRedisStore(namespace, namespace, **j.atyourservice.config['redis'])
+        # for now we do index same as database
+        self._index = j.servers.kvs.getRedisStore(namespace, namespace, **j.atyourservice.config['redis'])
+
+    def new(self):
+        model = RepoModel(
+            capnp_schema=ModelCapnp.Repo,
+            category=self.category,
+            db=self._db,
+            index=self._index,
+            key='',
+            new=True)
+        return model
+
+    def get(self, key):
+        model = RepoModel(
+            capnp_schema=ModelCapnp.Repo,
+            category=self.category,
+            db=self._db,
+            index=self._index,
+            key=key,
+            new=False)
+        return model
+
+
+    def _list_keys(self, path="", returnIndex=False):
+        """
+        Return a list of all the keys contained in the KVS.
+        """
+        if path == "":
+            path = ".*"
+        regex = "^%s$" % (path)
+        return self._index.list(regex, returnIndex=returnIndex)
+
+    def find(self, path=""):
+        """
+        Find look in the KVS for a Repositories with the path in argument and returns a list of Repository object
+        matching the research
+        """
+        res = []
+        for key in self._list_keys(path):
+            res.append(self.get(key))
+        return res
+
+    def destroy(self):
+        self._db.destroy()
+        self._index.destroy()
+
+
+if __name__ == '__main__':
+    repos = ReposCollections()
+    from IPython import embed
+    embed()

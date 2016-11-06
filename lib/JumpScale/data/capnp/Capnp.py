@@ -2,50 +2,9 @@
 from JumpScale import j
 import sys
 import os
-# import capnp
+
 from collections import OrderedDict
 from ModelBase import ModelBase, ModelBaseWithData
-
-
-class ModelFactory():
-
-    def __init__(self, parentfactory, category, classItem, host=None, port=None, unixsocket=None):
-        self.category = category
-        namespace = "%s:%s" % (parentfactory.namespacePrefix, self.category.lower())
-        self._db = j.servers.kvs.getRedisStore(namespace, namespace, host=host, port=port, unixsocket=unixsocket, changelog=False)
-        # for now we do index same as database
-        self._index = j.servers.kvs.getRedisStore(namespace, namespace, host=host, port=port, unixsocket=unixsocket, changelog=False)
-        self._modelClass = classItem  # eval(self.category + "Model." + self.category + "Model")
-        self._capnp = eval("parentfactory.capnpModel." + self.category)
-        self.list = self._modelClass.list
-        self.find = self._modelClass.find
-
-        # on class level we need relation to _index & _modelfactory
-        self._modelClass._index = self._index
-        self._modelClass._modelfactory = self
-
-        self.exists = self._db.exists
-        self.queueSize = self._db.queueSize
-        self.queuePut = self._db.queuePut
-        self.queueGet = self._db.queueGet
-        self.queueFetch = self._db.queueFetch
-
-    def new(self, key=""):
-        model = self._modelClass(modelfactory=self, key=key, new=True)
-        return model
-
-    def get(self, key):
-        model = self._modelClass(modelfactory=self, key=key)
-        return model
-
-    def destroy(self):
-        self._db.destroy()
-        self._index.destroy()
-
-    def __str__(self):
-        return("modelfactory:%s" % (self.category))
-
-    __repr__ = __str__
 
 
 class Capnp:
@@ -59,9 +18,6 @@ class Capnp:
         j.sal.fs.createDir(self._capnpVarDir)
         if self._capnpVarDir not in sys.path:
             sys.path.append(self._capnpVarDir)
-
-    def getModelFactoryClass(self):
-        return ModelFactory
 
     def getModelBaseClass(self):
         return ModelBase

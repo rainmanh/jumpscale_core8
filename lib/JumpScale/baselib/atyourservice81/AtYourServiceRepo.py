@@ -4,15 +4,20 @@ from JumpScale.baselib.atyourservice81.Actor import Actor
 from JumpScale.baselib.atyourservice81.Service import Service
 from JumpScale.baselib.atyourservice81.Blueprint import Blueprint
 from JumpScale.baselib.jobcontroller.Run import Run
-from JumpScale.baselib.atyourservice81.models import ModelsFactory
+from JumpScale.baselib.atyourservice81.models.ActorsCollection import ActorsCollection
+from JumpScale.baselib.atyourservice81.models.ServicesCollection import  ServicesCollection
+
 from JumpScale.baselib.atyourservice81.AtYourServiceDependencies import build_nodes, create_graphs, get_task_batches, create_job
 
 import colored_traceback
 colored_traceback.add_hook(always=True)
 
 import os
+from collections import namedtuple
+
 VALID_ACTION_STATE = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
+DBTuple = namedtuple("DB", ['actors', 'services'])
 
 class AtYourServiceRepo():
 
@@ -32,27 +37,34 @@ class AtYourServiceRepo():
 
         self.name = name
 
-        self.db = ModelsFactory(self)
+        self._db = None
         if model is None:
-            self.model = self.db.repo.find(path=path)[0]
+            self.model = j.atyourservice._repos.find(path=path)[0]
         else:
             self.model = model
 
         j.atyourservice._loadActionBase()
 
+    @property
+    def db(self):
+        if self._db is None:
+            self._db = DBTuple(
+                ActorsCollection(self),
+                ServicesCollection(self)
+            )
+        return self._db
+
+
     def destroy(self):
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "actors"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "services"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "recipes"))  # for old time sake
-        self.db.actor.destroy()
-        self.db.service.destroy()
+        self.db.actors.destroy()
+        self.db.services.destroy()
         self.model.delete()
 
+
 # ACTORS
-
-    def getActorClass(self):
-        return Actor
-
     def actorCreate(self, name):
         """
         will look for name inside & create actor from it
@@ -62,17 +74,17 @@ class AtYourServiceRepo():
         return actor
 
     def actorGet(self, name, reload=False, die=False):
-        actors = self.db.actor.find(name=name)
-        if len(actors) == 1:
-            obj = actors[0].objectGet(self)
-        elif len(actors) > 1:
+        actor_models = self.db.actors.find(name=name)
+        if len(actor_models) == 1:
+            obj = actor_models[0].objectGet(self)
+        elif len(actor_models) > 1:
             raise j.exceptions.Input(message="More than one actor found with name:%s" % name, level=1, source="", tags="", msgpub="")
-        elif len(actors) < 1:
+        elif len(actor_models) < 1:
             # checking if we have the actor on the file system
             actors_dir = j.sal.fs.joinPaths(self.path, 'actors')
             results = j.sal.fs.walkExtended(actors_dir, files=False, dirPattern=name)
             if len(results) == 1:
-                actor = Actor(aysrepo=self, name=name)
+                return Actor(aysrepo=self, name=name)
             elif die:
                 raise j.exceptions.Input(message="Could not find actor with name:%s" % name, level=1, source="", tags="", msgpub="")
 
@@ -84,34 +96,18 @@ class AtYourServiceRepo():
         return obj
 
     def actorGetByKey(self, key):
-        return self.db.actor.get(key).objectGet(self)
+        return self.db.actors.get(key).objectGet(self)
 
     def actorExists(self, name):
-        if name in self.actors:
-            return True
-        return False
+        len(self.db.actors.find(name=name)) > 0
 
     @property
     def actors(self):
         actors = {}
-        for model in self.db.actor.find():
+        for model in self.db.actors.find():
             if model.dbobj.state != "disabled":
                 actors[model.dbobj.name] = model.objectGet(aysrepo=self)
         return actors
-
-    def actorsFind(self, name="", version="", role=''):
-        res = []
-        if version != "":
-            raise NotImplementedError("actors find with version not implemented.")
-        for item in self.db.actor.find(name=name):
-            if not(name == "" or item.name == name):
-                # no match continue
-                continue
-            if not (role == '' or item.model.role == role):
-                # no match continue
-                continue
-            res.append(item)
-        return res
 
 # TEMPLATES
 
@@ -165,13 +161,10 @@ class AtYourServiceRepo():
 
 # SERVICES
 
-    def getServiceClass(self):
-        return Service
-
     @property
     def services(self):
         services = []
-        for service_model in self.db.service.find():
+        for service_model in self.db.services.find():
             if service_model.dbobj.state != "disabled":
                 services.append(service_model.objectGet(aysrepo=self))
         return services
@@ -184,7 +177,7 @@ class AtYourServiceRepo():
         if role.strip() == "" or instance.strip() == "":
             raise j.exceptions.Input("role and instance cannot be empty.")
 
-        objs = self.db.service.find(actor="%s.*" % role, name=instance)
+        objs = self.db.services.find(actor="%s.*" % role, name=instance)
         if len(objs) == 0:
             if die:
                 raise j.exceptions.Input(message="Cannot find service %s:%s" %
@@ -193,36 +186,33 @@ class AtYourServiceRepo():
         return objs[0].objectGet(self)
 
     def serviceGetByKey(self, key):
-        return self.db.service.get(key=key).objectGet(self)
+        return self.db.services.get(key=key).objectGet(self)
 
     @property
     def serviceKeys(self):
-        keys = []
-        for s in self.services:
-            keys.append(s.model.key)
-        return keys
+        return [model.key for model in self.db.services.find()]
 
-    @property
-    def servicesTree(self):
-        # TODO: implement, needs to come from db now
-        raise RuntimeError()
+    # @property
+    # def servicesTree(self):
+    #     # TODO: implement, needs to come from db now
+    #     raise RuntimeError()
 
-        if self._servicesTree:
-            return self._servicesTree
+    #     if self._servicesTree:
+    #         return self._servicesTree
 
-        producers = []
-        parents = {"name": "sudoroot", "children": []}
-        for root in j.sal.fs.walk(j.dirs.ays, recurse=1, pattern='*state.yaml', return_files=1, depth=2):
-            servicekey = j.sal.fs.getBaseName(j.sal.fs.getDirName(root))
-            service = self.services.get(servicekey)
-            for _, producerinstances in service.producers.items():
-                for producer in producerinstances:
-                    producers.append([child.key, producer.key])
-            parents["children"].append(self._nodechildren(
-                service, {"children": [], "name": servicekey}, producers))
-        self._servicesTree['parentchild'] = parents
-        self._servicesTree['producerconsumer'] = producers
-        return self._servicesTree
+    #     producers = []
+    #     parents = {"name": "sudoroot", "children": []}
+    #     for root in j.sal.fs.walk(j.dirs.ays, recurse=1, pattern='*state.yaml', return_files=1, depth=2):
+    #         servicekey = j.sal.fs.getBaseName(j.sal.fs.getDirName(root))
+    #         service = self.services.get(servicekey)
+    #         for _, producerinstances in service.producers.items():
+    #             for producer in producerinstances:
+    #                 producers.append([child.key, producer.key])
+    #         parents["children"].append(self._nodechildren(
+    #             service, {"children": [], "name": servicekey}, producers))
+    #     self._servicesTree['parentchild'] = parents
+    #     self._servicesTree['producerconsumer'] = producers
+    #     return self._servicesTree
 
     def serviceSetState(self, actions=[], role="", instance="", state="new"):
         """
@@ -273,7 +263,7 @@ class AtYourServiceRepo():
             changed
         """
         res = []
-        for service_model in self.db.service.find(name=name, actor=actor, state=state, parent=parent, producer=producer):
+        for service_model in self.db.services.find(name=name, actor=actor, state=state, parent=parent, producer=producer):
             if hasAction != "" and hasAction not in service_model.actionsState.keys():
                 continue
 
@@ -380,15 +370,15 @@ class AtYourServiceRepo():
         """
         Get Run by id
         """
-        if j.core.jobcontroller.db.run.exists(runkey):
-            return j.core.jobcontroller.db.run.get(runkey)
+        if j.core.jobcontroller.db.runs.exists(runkey):
+            return j.core.jobcontroller.db.runs.get(runkey)
         raise j.exceptions.Input('No run with key %s found' % runkey)
 
     def runsList(self):
         """
         list Runs on repo
         """
-        runs = j.core.jobcontroller.db.run.find()
+        runs = j.core.jobcontroller.db.runs.find()
         return runs
 
     def findScheduledActions(self):
@@ -397,7 +387,7 @@ class AtYourServiceRepo():
         It then creates actions chains for all schedules actions.
         """
         result = {}
-        for service_model in self.db.service.find():
+        for service_model in self.db.services.find():
             for action, state in service_model.actionsState.items():
                 if state in ['scheduled', 'changed', 'error']:
                     action_chain = list()

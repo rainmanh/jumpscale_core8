@@ -2,6 +2,7 @@ from JumpScale import j
 
 
 class Client:
+
     def __init__(self, host='localhost', port=6379, unixsocket=None):
         self.host = host
         self.port = port
@@ -41,4 +42,17 @@ class Client:
         self._do('event', {
             'event': event,
             'args': args
+        })
+
+    def execute_run(self, run, callback_url=None):
+        """
+        @param event: run object
+        @type event: JumpScale.baselib.jobcontroller.Run
+        @param callback: URL of the callback where to send status after execution
+        @type args: string
+        """
+        run.save()
+        self._do('run', {
+            'run_key': run.key,
+            'callback_url': callback_url
         })

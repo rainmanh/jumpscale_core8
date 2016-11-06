@@ -52,7 +52,7 @@ class RunStep:
     def jobs(self):
         res = []
         for obj in self.dbobj.jobs:
-            job_model = j.core.jobcontroller.db.job.get(obj.key)
+            job_model = j.core.jobcontroller.db.jobs.get(obj.key)
             res.append(job_model.objectGet())
         return res
 
@@ -114,7 +114,7 @@ class RunStep:
                 job.model.dbobj.state = 'ok'
                 service_action_obj.state = 'ok'
 
-                log_enable = j.core.jobcontroller.db.action.get(service_action_obj.actionKey).dbobj.log
+                log_enable = j.core.jobcontroller.db.actions.get(service_action_obj.actionKey).dbobj.log
                 if log_enable:
                     job.model.log(msg=process.stdout, level=5, category='out')
                     job.model.log(msg=process.stderr, level=5, category='err')

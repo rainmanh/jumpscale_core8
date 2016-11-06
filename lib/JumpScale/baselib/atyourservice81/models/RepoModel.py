@@ -1,8 +1,5 @@
-import msgpack
-from collections import OrderedDict
 from JumpScale import j
-
-ModelBase = j.data.capnp.getModelBaseClassWithData()
+from JumpScale.data.capnp.ModelBase import ModelBase
 
 
 class RepoModel(ModelBase):
@@ -22,24 +19,10 @@ class RepoModel(ModelBase):
     def name(self):
         return j.sal.fs.getBaseName(self.dbobj.path)
 
-    @classmethod
-    def list(self, path="", returnIndex=False):
-        if path == "":
-            path = ".*"
-        regex = "%s" % (path)
-        return self._index.list(regex, returnIndex=returnIndex)
-
     def index(self):
         # put indexes in db as specified
         ind = "%s" % (self.dbobj.path)
         self._index.index({ind: self.key})
-
-    @classmethod
-    def find(self, path=""):
-        res = []
-        for key in self.list(path):
-            res.append(self._modelfactory.get(key))
-        return res
 
     def delete(self):
         self._db.delete(self.key)
@@ -49,7 +32,13 @@ class RepoModel(ModelBase):
         """
         returns an Actor object created from this model
         """
-        repo = j.atyourservice._repoLoad(self.dbobj.path)
+        try:
+            repo = j.atyourservice._repoLoad(self.dbobj.path)
+        except j.exceptions.NotFound as err:
+            self.logger.error("Repository at {path} doesn't exists. remove it from database".format(path=self.dbobj.path))
+            self.delete()
+            raise err
+
         return repo
 
     def _pre_save(self):

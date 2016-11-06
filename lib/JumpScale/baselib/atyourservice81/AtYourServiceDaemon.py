@@ -3,12 +3,45 @@ import signal
 import time
 from multiprocessing import Pool
 from threading import Thread
+import requests
 
 
-def run_action(repo_path, service_key, action_name, args={}):
+def run_action(repo_path, service_key, action_name, args=None):
+    """
+    run_action execute a single action from a service
+    """
+    if not args:
+        args = {}
+
     repo = j.atyourservice.repoGet(repo_path)
     service = repo.db.service.get(service_key).objectGet(repo)
-    service.runAction(action_name, args)
+
+    job = service.getJob(action_name, args=args)
+    job.executeInProcess()
+
+
+def do_run(run_key, callback=None):
+    """
+    do_run execute a run asyncronously
+    at the end of the run or if an error occurs during exection a request is made to callback to
+    notify the event (ok/error)
+    """
+    error_msg = None
+
+    try:
+        run = j.core.jobcontroller.db.runs.get(run_key).objectGet()
+        run.execute()
+    except Exception as e:
+        error_msg = str(e)
+    finally:
+        if callback:
+            body = {
+                'state': str(run.state),
+                'key': run.key
+            }
+            if error_msg:
+                body['error'] = error_msg
+            requests.post(callback, json=body)
 
 
 class Server:
@@ -86,22 +119,26 @@ class Server:
         elif request['command'] == 'event':
             self._progagate_event(request)
 
+        elif request['command'] == 'run':
+            self._do_run(request)
+
     def _execute(self, request):
         if 'action' not in request:
             self.logger.error('execute command received but not action specified in request.')
             return
 
         try:
+            self.logger.info("execute action {action} on {service_key}".format(**request))
             self._workers.apply_async(run_action, (
                 request['repo_path'],
                 request['service_key'],
                 request['action'],
-                request.get('args', {}))
-            )
+                request.get('args', {})))
         except Exception as e:
             self.logger.error('error: %s' % str(e))
 
     def _progagate_event(self, request):
+
         if 'event' not in request:
             self.logger.error('event command received but not event type specified in request.')
             return
@@ -127,8 +164,17 @@ class Server:
                         service.aysrepo.path,
                         service.model.key,
                         event_obj.action,
-                        args,
-                    ))
+                        args))
+
+    def _do_run(self, request):
+        if 'run_key' not in request:
+            self.logger.error("run_key not present in request. can't execute run")
+            return
+
+        self.logger.info("execute run {}".format(request['run_key']))
+        self._workers.apply_async(do_run, (
+            request['run_key'],
+            request.get('callback_url')))
 
 
 class RecurringLoop(Thread):
@@ -184,6 +230,13 @@ class RecurringLoop(Thread):
             self._running = False
 
 
-if __name__ == '__main__':
-    server = Server(host='localhost', port=6379)
+
+def main():
+    """
+    only for testing
+    """
+    server = Server()
     server.start()
+
+if __name__ == '__main__':
+    main()

@@ -1706,13 +1706,13 @@ class SystemFS:
                                   return_files, followSoftlinks, depth=depth)
         return result
 
-    def getTmpDirPath(self):
+    def getTmpDirPath(self, create=True):
         """
         create a tmp dir name and makes sure the dir exists
         """
-        tmpdir = j.sal.fs.joinPaths(j.dirs.tmpDir, str(
-            j.data.idgenerator.generateRandomInt(1, 100000000)))
-        j.sal.fs.createDir(tmpdir)
+        tmpdir = j.sal.fs.joinPaths(j.dirs.tmpDir, j.data.idgenerator.generateXCharID(10))
+        if create is True:
+            j.sal.fs.createDir(tmpdir)
         return tmpdir
 
     def getTmpFilePath(self, cygwin=False):

@@ -27,7 +27,7 @@ class Job():
     @property
     def action(self):
         if self._action is None:
-            self._action = j.core.jobcontroller.db.action.get(self.model.dbobj.actionKey)
+            self._action = j.core.jobcontroller.db.actions.get(self.model.dbobj.actionKey)
         return self._action
 
     @property
@@ -82,9 +82,8 @@ class Job():
     def service(self):
         if self._service is None:
             if self.model.dbobj.actorName != "":
-                repoModel = j.atyourservice.repodb.get(self.model.dbobj.repoKey)
-                repo = repoModel.objectGet()
-                serviceModel = repo.db.service.get(self.model.dbobj.serviceKey)
+                repo = j.atyourservice.repoGetByKey(key=self.model.dbobj.repoKey)
+                serviceModel = repo.db.services.get(self.model.dbobj.serviceKey)
                 self._service = serviceModel.objectGet(repo)
         return self._service
 
@@ -156,7 +155,7 @@ class Job():
                 service_action_obj.state = str(self.model.dbobj.state)
                 self.service.saveAll()
 
-    def executeInProcess(self, service=None):
+    def executeInProcess(self):
         """
         execute the job in the process, capture output when possible
         if debug job then will not capture output so our debugging features work

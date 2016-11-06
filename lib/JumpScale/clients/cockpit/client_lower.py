@@ -91,17 +91,6 @@ class Client:
         uri = self.url + "/ays/repository/" + repository
         return self.session.delete(uri, headers=headers, params=query_params)
 
-    def initRepository(self, data, repository, headers=None, query_params=None):
-        """
-        init repository
-        It is method for POST /ays/repository/{repository}/init
-        """
-        if self.auth_header:
-            self.session.headers.update({"Authorization": self.auth_header})
-
-        uri = self.url + "/ays/repository/" + repository + "/init"
-        return self.session.post(uri, data, headers=headers, params=query_params)
-
     def listBlueprints(self, repository, headers=None, query_params=None):
         """
         List all blueprint
@@ -214,28 +203,27 @@ class Client:
         uri = self.url + "/ays/repository/" + repository + "/service/" + role
         return self.session.get(uri, headers=headers, params=query_params)
 
-    def getServiceByInstance(self, instance, role, repository, headers=None, query_params=None):
+    def getServiceByName(self, name, role, repository, headers=None, query_params=None):
         """
-        Get a service instance
-        It is method for GET /ays/repository/{repository}/service/{role}/{instance}
+        Get a service name
+        It is method for GET /ays/repository/{repository}/service/{role}/{name}
         """
         if self.auth_header:
             self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/" + \
-            repository + "/service/" + role + "/" + instance
+        uri = self.url + "/ays/repository/" + repository + "/service/" + role + "/" + name
         return self.session.get(uri, headers=headers, params=query_params)
 
-    def deleteServiceByInstance(self, instance, role, repository, headers=None, query_params=None):
+    def deleteServiceByName(self, name, role, repository, headers=None, query_params=None):
         """
         uninstall and delete a service
-        It is method for DELETE /ays/repository/{repository}/service/{role}/{instance}
+        It is method for DELETE /ays/repository/{repository}/service/{role}/{name}
         """
         if self.auth_header:
             self.session.headers.update({"Authorization": self.auth_header})
 
         uri = self.url + "/ays/repository/" + \
-            repository + "/service/" + role + "/" + instance
+            repository + "/service/" + role + "/" + name
         return self.session.delete(uri, headers=headers, params=query_params)
 
     def listServiceActions(self, instance, role, repository, headers=None, query_params=None):
@@ -305,49 +293,16 @@ class Client:
         uri = self.url + "/ays/repository/" + repository + "/aysrun/" + aysrun
         return self.session.get(uri, headers=headers, params=query_params)
 
-    def simulateAction(self, data, repository, headers=None, query_params=None):
+    def createRun(self, data, repository, headers=None, query_params=None):
         """
-        simulate the execution of an action
-        It is method for POST /ays/repository/{repository}/simulate
+        Create a run based on all the action scheduled
+        It is method for POST /ays/repository/{repository}/aysrun
         """
         if self.auth_header:
             self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/" + repository + "/simulate"
+        uri = self.url + "/ays/repository/" + repository + "/aysrun"
         return self.session.post(uri, data, headers=headers, params=query_params)
-
-    def executeAction(self, data, repository, headers=None, query_params=None):
-        """
-        Perform an action on the services matches by the query arguments
-        It is method for POST /ays/repository/{repository}/execute
-        """
-        if self.auth_header:
-            self.session.headers.update({"Authorization": self.auth_header})
-
-        uri = self.url + "/ays/repository/" + repository + "/execute"
-        return self.session.post(uri, data, headers=headers, params=query_params)
-
-    def getSource(self, source, repository, headers=None, query_params=None):
-        """
-        gets source of hash in a repo
-        It is method for GET /ays/repository/{repository}/source/{source}
-        """
-        if self.auth_header:
-            self.session.headers.update({"Authorization": self.auth_header})
-
-        uri = self.url + "/ays/repository/" + repository + "/source/" + source
-        return self.session.get(uri, headers=headers, params=query_params)
-
-    def getHRD(self, hrd, repository, headers=None, query_params=None):
-        """
-        gets hrd of hash in a repo
-        It is method for GET /ays/repository/{repository}/hrd/{hrd}
-        """
-        if self.auth_header:
-            self.session.headers.update({"Authorization": self.auth_header})
-
-        uri = self.url + "/ays/repository/" + repository + "/hrd/" + hrd
-        return self.session.get(uri, headers=headers, params=query_params)
 
     def webhooks_github_post(self, data, headers=None, query_params=None):
         """

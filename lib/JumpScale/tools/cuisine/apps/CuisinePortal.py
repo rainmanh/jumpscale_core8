@@ -21,9 +21,6 @@ class CuisinePortal(base):
         To add spaces and actors, please use addSpace and addactor
         """
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        # if not self._cuisine.core.isMac:
-        if not self._cuisine.development.js8.jumpscale_installed():
-            self._cuisine.development.js8.install()
         self._cuisine.development.pip.packageUpgrade("pip")
         self.installDeps()
         self.getcode(branch=branch)
@@ -175,7 +172,7 @@ class CuisinePortal(base):
         self._cuisine.apps.redis.build(start=True)
 
     def getcode(self, branch='master'):
-        self._cuisine.development.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git", branch=branch)
+        self._cuisine.development.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git", branch=branch, ssh=False)
 
     def linkCode(self):
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")

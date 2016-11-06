@@ -1,8 +1,5 @@
-import msgpack
-from collections import OrderedDict
 from JumpScale import j
-
-ModelBase = j.data.capnp.getModelBaseClassWithData()
+from JumpScale.data.capnp.ModelBase import ModelBase
 
 
 class RepoModel(ModelBase):
@@ -22,24 +19,10 @@ class RepoModel(ModelBase):
     def name(self):
         return j.sal.fs.getBaseName(self.dbobj.path)
 
-    @classmethod
-    def list(self, path="", returnIndex=False):
-        if path == "":
-            path = ".*"
-        regex = "%s" % (path)
-        return self._index.list(regex, returnIndex=returnIndex)
-
     def index(self):
         # put indexes in db as specified
         ind = "%s" % (self.dbobj.path)
         self._index.index({ind: self.key})
-
-    @classmethod
-    def find(self, path=""):
-        res = []
-        for key in self.list(path):
-            res.append(self._modelfactory.get(key))
-        return res
 
     def delete(self):
         self._db.delete(self.key)

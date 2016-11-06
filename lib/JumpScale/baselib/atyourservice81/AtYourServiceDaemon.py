@@ -29,7 +29,7 @@ def do_run(run_key, callback=None):
     error_msg = None
 
     try:
-        run = j.core.jobcontroller.db.run.get(run_key).objectGet()
+        run = j.core.jobcontroller.db.runs.get(run_key).objectGet()
         run.execute()
     except Exception as e:
         error_msg = str(e)

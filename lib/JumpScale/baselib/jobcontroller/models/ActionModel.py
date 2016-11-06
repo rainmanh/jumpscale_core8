@@ -1,9 +1,5 @@
-import msgpack
-from collections import OrderedDict
-
 from JumpScale import j
-
-ModelBase = j.data.capnp.getModelBaseClass()
+from JumpScale.data.capnp.ModelBase import ModelBase
 
 
 class ActionModel(ModelBase):
@@ -57,22 +53,6 @@ class ActionModel(ModelBase):
         if self._key == "":
             self._key = j.data.hash.md5_string(self.dbobj.name + self.dbobj.code + self.argsText)
         return self._key
-
-    @classmethod
-    def list(self, origin="", name="", returnIndex=False):
-        if name == "":
-            name = ".*"
-        if origin == "":
-            origin = ".*"
-        regex = "%s:%s" % (origin, name)
-        return self._index.list(regex, returnIndex=returnIndex)
-
-    @classmethod
-    def find(self, origin="", name=""):
-        res = []
-        for key in self.list(origin, name):
-            res.append(self._modelfactory.get(key))
-        return res
 
     def index(self):
         # put indexes in db as specified

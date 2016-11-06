@@ -9,7 +9,7 @@ def build_nodes(repo):
     These node are going to be used to create the dependency graphs
     """
     all_nodes = {}
-    for model in repo.db.service.find():
+    for model in repo.db.services.find():
         for action in model.actions.keys():
             node = Node(model, action)
             all_nodes[node.id] = node
@@ -125,7 +125,7 @@ def format_nodes(nodes):
 
 def create_job(repo, model, action):
     action_model = model.actions[action]
-    job_model = j.core.jobcontroller.db.job.new()
+    job_model = j.core.jobcontroller.db.jobs.new()
     job_model.dbobj.repoKey = repo.model.key
     job_model.dbobj.actionKey = action_model.actionKey
     job_model.dbobj.actionName = action_model.name

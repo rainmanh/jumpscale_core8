@@ -17,7 +17,6 @@ class Service:
 
         self.aysrepo = aysrepo
         self.logger = j.atyourservice.logger
-        self.db = aysrepo.db.service
 
         if actor is not None:
             self._initFromActor(actor, args=args, name=name)
@@ -45,7 +44,7 @@ class Service:
         if actor is None:
             raise j.exceptions.RuntimeError("service actor cannot be None")
 
-        self.model = self.aysrepo.db.service.new()
+        self.model = self.aysrepo.db.services.new()
         dbobj = self.model.dbobj
         dbobj.name = name
         dbobj.actorName = actor.model.dbobj.name
@@ -214,7 +213,7 @@ class Service:
         """
         self.logger.debug("load service from FS: %s" % path)
         if self.model is None:
-            self.model = self.db.new()
+            self.model = self.aysrepo.services.db.new()
 
         model_json = j.data.serializer.json.load(j.sal.fs.joinPaths(path, "service.json"))
         # for now we don't reload the actions codes.
@@ -488,7 +487,7 @@ class Service:
             service_action_pointer.actionKey = action_actor_pointer.actionKey
 
             # update the lastModDate of the action object
-            action = j.core.jobcontroller.db.action.get(key=service_action_pointer.actionKey)
+            action = j.core.jobcontroller.db.actions.get(key=service_action_pointer.actionKey)
             action.dbobj.lastModDate = j.data.time.epoch
             action.save()
 
@@ -568,7 +567,7 @@ class Service:
         # execute an action in process without creating a job
         # usefull for methods called very often.
         action_id = self.model.actions[action].actionKey
-        action_model = j.core.jobcontroller.db.action.get(action_id)
+        action_model = j.core.jobcontroller.db.actions.get(action_id)
         action_with_lines = ("\n %s \n" % action_model.code)
         indented_action = '\n    '.join(action_with_lines.splitlines())
         complete_action = "def %s(%s): %s" % (action, action_model.argsText, indented_action)
@@ -608,7 +607,7 @@ class Service:
             job.model.dbobj.state = 'ok'
             service_action_obj.state = 'ok'
 
-            log_enable = j.core.jobcontroller.db.action.get(service_action_obj.actionKey).dbobj.log
+            log_enable = j.core.jobcontroller.db.actions.get(service_action_obj.actionKey).dbobj.log
             if log_enable:
                 job.model.log(msg=p.stdout, level=5, category='out')
                 job.model.log(msg=p.stderr, level=5, category='err')
@@ -623,7 +622,7 @@ class Service:
 
     def getJob(self, actionName, args={}):
         action = self.model.actions[actionName]
-        jobobj = j.core.jobcontroller.db.job.new()
+        jobobj = j.core.jobcontroller.db.jobs.new()
         jobobj.dbobj.repoKey = self.aysrepo.model.key
         jobobj.dbobj.actionKey = action.actionKey
         jobobj.dbobj.actionName = action.name

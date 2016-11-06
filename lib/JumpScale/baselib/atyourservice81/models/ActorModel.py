@@ -3,49 +3,17 @@ from collections import OrderedDict
 import msgpack
 from JumpScale import j
 from JumpScale.baselib.atyourservice81.models.ActorServiceBaseModel import ActorServiceBaseModel
-
+from JumpScale.baselib.atyourservice81.Actor import Actor
 
 class ActorModel(ActorServiceBaseModel):
     """
     Model Class for an Actor object
     """
 
-    @classmethod
-    def list(self, name="", state="", returnIndex=False):
-        """
-        @param name can be the full name e.g. node.ssh or a rule but then use e.g. node.*  (are regexes, so need to use .* at end)
-        @param state
-            new
-            ok
-            error
-            disabled
-        """
-        if name == "":
-            name = ".*"
-        if state == "":
-            state = ".*"
-        regex = "%s:%s" % (name, state)
-        return self._index.list(regex, returnIndex=returnIndex)
-
     def index(self):
         # put indexes in db as specified
         ind = "%s:%s" % (self.dbobj.name, self.dbobj.state)
         self._index.index({ind: self.key})
-
-    @classmethod
-    def find(self, name="", state=""):
-        """
-        @param name can be the full name e.g. node.ssh or a rule but then use e.g. node.*  (are regexes, so need to use .* at end)
-        @param state
-            new
-            ok
-            error
-            disabled
-        """
-        res = []
-        for key in self.list(name, state):
-            res.append(self._modelfactory.get(key))
-        return res
 
     @property
     def role(self):
@@ -55,7 +23,6 @@ class ActorModel(ActorServiceBaseModel):
         """
         returns an Actor object created from this model
         """
-        Actor = aysrepo.getActorClass()
         actor = Actor(aysrepo=aysrepo, model=self)
         return actor
 

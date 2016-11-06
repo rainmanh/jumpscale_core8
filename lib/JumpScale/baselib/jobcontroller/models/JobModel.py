@@ -14,43 +14,11 @@ class JobModel(ModelBase):
     """
     """
 
-    @classmethod
-    def list(self, actor="", service="", action="", state="", serviceKey="", fromEpoch=0, toEpoch=9999999999999, returnIndex=False):
-        if actor == "":
-            actor = ".*"
-        if service == "":
-            service = ".*"
-        if action == "":
-            action = ".*"
-        if state == "":
-            state = ".*"
-        if serviceKey == "":
-            serviceKey = ".*"
-        epoch = ".*"
-        regex = "%s:%s:%s:%s:%s:%s" % (actor, service, action, state, serviceKey, epoch)
-        res0 = self._index.list(regex, returnIndex=True)
-        res1 = []
-        for index, key in res0:
-            epoch = int(index.split(":")[-1])
-            if fromEpoch < epoch and epoch < toEpoch:
-                if returnIndex:
-                    res1.append((index, key))
-                else:
-                    res1.append(key)
-        return res1
-
     def index(self):
         # put indexes in db as specified
         ind = "%s:%s:%s:%s:%s:%s" % (self.dbobj.actorName, self.dbobj.serviceName,
                                      self.dbobj.actionName, self.dbobj.state, self.dbobj.serviceKey, self.dbobj.lastModDate)
         self._index.index({ind: self.key})
-
-    @classmethod
-    def find(self, actor="", service="", action="", state="", serviceKey="", fromEpoch=0, toEpoch=9999999999999):
-        res = []
-        for key in self.list(actor, service, action, state, serviceKey, fromEpoch, toEpoch):
-            res.append(self._modelfactory.get(key))
-        return res
 
     def log(self, msg, level=5, category="msg", epoch=None, tags=''):
         """
@@ -144,7 +112,7 @@ class JobModel(ModelBase):
         ddict2 = OrderedDict(self.result)
         return j.data.serializer.json.dumps(ddict2, sort_keys=True, indent=True)
 
-    @args.setter
+    @result.setter
     def result(self, val):
         result = msgpack.dumps(val)
         self.dbobj.result = result

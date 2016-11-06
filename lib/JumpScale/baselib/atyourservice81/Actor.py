@@ -2,6 +2,8 @@ import msgpack
 
 from JumpScale import j
 from JumpScale.baselib.atyourservice81.Service import Service
+import capnp
+from JumpScale.baselib.atyourservice81 import model_capnp as ModelCapnp
 
 
 class Actor():
@@ -14,7 +16,6 @@ class Actor():
         self.aysrepo = aysrepo
         self.logger = j.atyourservice.logger
         self._schema = None
-        self.db = aysrepo.db.actor
         self.model = None
 
         if template is not None:
@@ -36,7 +37,7 @@ class Actor():
         get content from fs and load in object
         """
         if self.model is None:
-            self.model = self.db.new()
+            self.model = self.aysrepo.db.actors.new()
 
         actor_path = j.sal.fs.joinPaths(self.aysrepo.path, "actors", name)
         self.logger.debug("load actor from FS: %s" % actor_path)
@@ -45,7 +46,7 @@ class Actor():
         # for now we don't reload the actions codes.
         # when using distributed DB, the actions code could still be available
         del json['actions']
-        self.model.dbobj = self.aysrepo.db.capnpModel.Actor.new_message(**json)
+        self.model.dbobj = ModelCapnp.Actor.new_message(**json)
 
         # need to save already here cause processActionFile is doing a find
         # and it need to be able to find this new actor model we are creating
@@ -79,7 +80,7 @@ class Actor():
 
     def _initFromTemplate(self, template):
         if self.model is None:
-            self.model = self.db.new()
+            self.model = self.aysrepo.db.actors.new()
             self.model.dbobj.name = template.name
             self.model.dbobj.state = "new"
 
@@ -279,7 +280,7 @@ class Actor():
         # THIS COULD BE DANGEROUS !!! (despiegk)
         amSource = amSource.strip(" \n")
 
-        ac = j.core.jobcontroller.db.action.new()
+        ac = j.core.jobcontroller.db.actions.new()
         ac.dbobj.code = amSource
         ac.dbobj.actorName = self.model.name
         ac.dbobj.doc = amDoc
@@ -288,11 +289,11 @@ class Actor():
         ac.dbobj.lastModDate = j.data.time.epoch
         ac.dbobj.origin = "actoraction:%s:%s" % (self.model.dbobj.name, actionName)
 
-        if not j.core.jobcontroller.db.action.exists(ac.key):
+        if not j.core.jobcontroller.db.actions.exists(ac.key):
             # will save in DB
             ac.save()
         else:
-            ac = j.core.jobcontroller.db.action.get(key=ac.key)
+            ac = j.core.jobcontroller.db.actions.get(key=ac.key)
 
         self._addAction2(actionName, ac)
 

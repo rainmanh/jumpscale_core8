@@ -2,9 +2,9 @@ from JumpScale import j
 
 from JumpScale.baselib.atyourservice81.ActorTemplate import ActorTemplate
 from JumpScale.baselib.atyourservice81 import ActionsBase
+from JumpScale.baselib.atyourservice81.models.ReposCollection import ReposCollections
 from JumpScale.baselib.atyourservice81.AtYourServiceRepo import AtYourServiceRepo
 from JumpScale.baselib.atyourservice81.AtYourServiceTester import AtYourServiceTester
-from JumpScale.baselib.atyourservice81.models import ModelsFactory
 
 import colored_traceback
 import os
@@ -29,7 +29,6 @@ class AtYourServiceFactory:
         self._domains = []
         self._templates = {}
         self._templateRepos = {}
-        self._repos = {}
 
         self._type = None
 
@@ -39,7 +38,7 @@ class AtYourServiceFactory:
 
         self.logger = j.logger.get('j.atyourservice')
 
-        self._repodb = None
+        self._repos_collection = None
 
         self._test = None
 
@@ -62,10 +61,10 @@ class AtYourServiceFactory:
         return self._config
 
     @property
-    def repodb(self):
-        if self._repodb is None:
-            self._repodb = ModelsFactory().repo
-        return self._repodb
+    def _repos(self):
+        if self._repos_collection is None:
+            self._repos_collection = ReposCollections()
+        return self._repos_collection
 
     def test(self):
         r = self.get()
@@ -124,7 +123,6 @@ class AtYourServiceFactory:
 
     def reset(self):
         self._templateRepos = {}
-        self._repos = {}
         self._domains = []
         self._templates = {}
         self._init = False
@@ -241,9 +239,9 @@ class AtYourServiceFactory:
 
     def reposList(self):
         repos = []
-        for model in self.repodb.find():
+        for model in self._repos.find():
             try:
-                repos.append(model.objectGet())
+                repos.append(self._repoLoad(model.path))
             except j.exceptions.NotFound:
                 continue
         return repos
@@ -264,7 +262,7 @@ class AtYourServiceFactory:
             'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
         name = j.sal.fs.getBaseName(path)
 
-        model = self.repodb.new()
+        model = self._repos.new()
         model.path = path
         model.save()
 
@@ -322,17 +320,17 @@ class AtYourServiceFactory:
                 "AYS templateRepo with name:%s already exists at %s, cannot have duplicate names." % (name, path))
 
         # if the repo we are curently loading in not in db yet. add it.
-        models = self.repodb.find(path)
+        models = self._repos.find(path)
 
         if len(models) <= 0:
-            model = self.repodb.new()
+            model = self._repos.new()
             model.path = path
             model.save()
         else:
             model = models[0]
 
         repo = AtYourServiceRepo(name, gitrepo, path, model=model)
-        self._repos[name] = repo
+        # self._repos[name] = repo
 
         return repo
 
@@ -351,23 +349,27 @@ class AtYourServiceFactory:
         """
         self._doinit()
 
-        def findRepo(path):
-            for key, repo in self._repos.items():
-                if repo.path == path:
-                    return repo
-            return None
+        repo_models = self._repos.find(path)
+        if len(repo_models) <= 0:
+                raise j.exceptions.Input(message="Could not find repo in path:%s" %
+                                        path, level=1, source="", tags="", msgpub="")
 
-        repo = findRepo(path)
-        if repo is None:
-            # repo does not exist yet
-            self._repoLoad(path)
-            repo = findRepo(path)
-
-        if repo is None:
-            raise j.exceptions.Input(message="Could not find repo in path:%s" %
-                                     path, level=1, source="", tags="", msgpub="")
+        repo = self._repoLoad(repo_models[0].path)
 
         return repo
+
+    def repoGetByKey(self, key):
+        self._doinit()
+
+        repo_model = self._repos.get(key)
+        if repo_model is None:
+                raise j.exceptions.Input(message="Could not find repo in path:%s" %
+                                        path, level=1, source="", tags="", msgpub="")
+
+        repo = self._repoLoad(repo_model.path)
+
+        return repo
+
 
 # FACTORY
 
@@ -390,7 +392,7 @@ class AtYourServiceFactory:
         if self.baseActions == {}:
             for method in [item[1] for item in inspect.getmembers(ActionsBase) if item[0][0] != "_"]:
                 action_code_model = j.core.jobcontroller.getActionObjFromMethod(method)
-                if not j.core.jobcontroller.db.action.exists(action_code_model.key):
+                if not j.core.jobcontroller.db.actions.exists(action_code_model.key):
                     # will save in DB
                     action_code_model.save()
                 self.baseActions[action_code_model.dbobj.name] = action_code_model, method

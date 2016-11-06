@@ -1,13 +1,14 @@
 from JumpScale import j
 from JumpScale.baselib.atyourservice81.models.ActorServiceBaseModel import ActorServiceBaseModel
-
+from JumpScale.baselib.atyourservice81.Service import Service
 
 VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 class ServiceModel(ActorServiceBaseModel):
 
-    def __init__(self, modelfactory, key="", new=False):
-        super(ServiceModel, self).__init__(modelfactory, key=key, new=new)
+    def __init__(self, aysrepo, capnp_schema, category, db, index, key="", new=False):
+        super().__init__(aysrepo=aysrepo, capnp_schema=capnp_schema, category=category, db=db, index=index, key=key, new=new)
+        self._aysrepo = aysrepo
         self._cache = False
         self._producers = []
         self._consumers = []
@@ -30,7 +31,7 @@ class ServiceModel(ActorServiceBaseModel):
         if self.dbobj.parent.serviceName == '' or self.dbobj.parent.actorName == '':
             return None
 
-        parentModels = self.find(name=self.dbobj.parent.serviceName, actor=self.dbobj.parent.actorName)
+        parentModels = self._aysrepo.db.services.find(name=self.dbobj.parent.serviceName, actor=self.dbobj.parent.actorName)
         if len(parentModels) <= 0:
             return None
         elif len(parentModels) > 1:
@@ -43,7 +44,7 @@ class ServiceModel(ActorServiceBaseModel):
         # execute an action in process without creating a job
         # usefull for methods called very often.
         action_id = self.actions[action].actionKey
-        action_model = j.core.jobcontroller.db.action.get(action_id)
+        action_model = j.core.jobcontroller.db.actions.get(action_id)
         action_with_lines = ("\n%s \n" % action_model.code)
         indented_action = '\n    '.join(action_with_lines.splitlines())
         complete_action = "def %s(%s): %s" % (action, action_model.argsText, indented_action)
@@ -84,7 +85,7 @@ class ServiceModel(ActorServiceBaseModel):
             producers = []
 
         for prod in self.dbobj.producers:
-            producers.extend(self.find(name=prod.serviceName, actor=prod.actorName))
+            producers.extend(self._aysrepo.db.services.find(name=prod.serviceName, actor=prod.actorName))
         return producers
 
     def getProducersRecursive(self, producers=set(), action="", producerRoles="*"):
@@ -107,7 +108,7 @@ class ServiceModel(ActorServiceBaseModel):
             consumers = []
 
         for prod in self.dbobj.consumers:
-            consumers.extend(self.find(name=prod.serviceName, actor=prod.actorName))
+            consumers.extend(self._aysrepo.db.services.find(name=prod.serviceName, actor=prod.actorName))
         return consumers
 
     def getConsumersRecursive(self, consumers=set(), action="", consumersRoles="*"):
@@ -117,43 +118,6 @@ class ServiceModel(ActorServiceBaseModel):
                         consumers.add(consumer_model)
                 consumers = consumer_model.getProducersRecursive(consumers=consumers, action=action, consumersRoles=producerRoles)
         return consumers
-
-    @classmethod
-    def list(self, name="", actor="", state="", parent="", producer="", returnIndex=False):
-        """
-        @param name can be the full name e.g. myappserver or a prefix but then use e.g. myapp.*
-        @param actor can be the full name e.g. node.ssh or role e.g. node.* (but then need to use the .* extension, which will match roles)
-        @param parent is in form $actorName!$instance
-        @param producer is in form $actorName!$instance
-
-        @param state:
-            new
-            installing
-            ok
-            error
-            disabled
-            changed
-
-        """
-        if name == "":
-            name = ".*"
-        if actor == "":
-            actor = ".*"
-        if state == "":
-            state = ".*"
-
-        if parent == "":
-            parent = ".*"
-        elif parent.find("!") == -1:
-            raise j.exceptions.Input(message="parent needs to be in format: $actorName!$instance",
-                                     level=1, source="", tags="", msgpub="")
-        if producer == "":
-            producer = ".*"
-        elif producer.find("!") == -1:
-            raise j.exceptions.Input(message="producer needs to be in format: $actorName!$instance",
-                                     level=1, source="", tags="", msgpub="")
-        regex = "%s:%s:%s:%s:%s" % (name, actor, state, parent, producer)
-        return self._index.list(regex, returnIndex=returnIndex)
 
     def index(self):
         # put indexes in db as specified
@@ -174,28 +138,6 @@ class ServiceModel(ActorServiceBaseModel):
                 ind = "%s:%s:%s:%s:%s" % (self.dbobj.name, self.dbobj.actorName, self.dbobj.state, parent, producer2)
                 index[ind] = self.key
             self._index.index(index)
-
-    @classmethod
-    def find(self, name="", actor="", state="", parent="", producer=""):
-        """
-        @param name can be the full name e.g. myappserver or a prefix but then use e.g. myapp.*
-        @param actor can be the full name e.g. node.ssh or role e.g. node.* (but then need to use the .* extension, which will match roles)
-        @param parent is in form $actorName!$instance
-        @param producer is in form $actorName!$instance
-
-        @param state:
-            new
-            installing
-            ok
-            error
-            disabled
-            changed
-
-        """
-        res = []
-        for key in self.list(name, actor, state, producer=producer, parent=parent):
-            res.append(self._modelfactory.get(key))
-        return res
 
     def delete(self):
         # delete indexes from db
@@ -221,7 +163,6 @@ class ServiceModel(ActorServiceBaseModel):
         """
         returns an Service object created from this model
         """
-        Service = aysrepo.getServiceClass()
         service = Service(name=self.dbobj.name, aysrepo=aysrepo, model=self)
         return service
 

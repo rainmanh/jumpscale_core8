@@ -3,14 +3,17 @@ from collections import OrderedDict
 import msgpack
 from JumpScale import j
 
-ModelBase = j.data.capnp.getModelBaseClassWithData()
+from JumpScale.data.capnp.ModelBase import ModelBaseWithData
 
 
-class ActorServiceBaseModel(ModelBase):
+class ActorServiceBaseModel(ModelBaseWithData):
     """
     Base class for ActorModel and ServiceModel class.
-    You should not instanciate this class directly but one of it's children instead
+    You should not instanciate this class directly but one of its children instead
     """
+    def __init__(self, aysrepo, capnp_schema, category, db, index, key="", new=False):
+        super().__init__(capnp_schema=capnp_schema, category=category, db=db, index=index, key=key, new=new)
+        self._aysrepo = aysrepo
 
     @property
     def name(self):
@@ -66,7 +69,7 @@ class ActorServiceBaseModel(ModelBase):
         """
         methods = {}
         for action in self.dbobj.actions:
-            action_model = j.core.jobcontroller.db.action.get(action.actionKey)
+            action_model = j.core.jobcontroller.db.actions.get(action.actionKey)
             methods[action.name] = action_model.code
         return methods
 
@@ -75,7 +78,7 @@ class ActorServiceBaseModel(ModelBase):
         out = ""
         for action in self.dbobj.actions:
             actionKey = action.actionKey
-            actionCode = j.core.jobcontroller.db.action.get(actionKey)
+            actionCode = j.core.jobcontroller.db.actions.get(actionKey)
             defstr = ""
             # defstr = "@%s\n" % action.type
             defstr += "def %s (%s):\n" % (actionCode.dbobj.name, actionCode.dbobj.args)

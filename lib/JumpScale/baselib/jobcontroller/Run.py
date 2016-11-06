@@ -84,9 +84,11 @@ class RunStep:
                             self.logger.info("stdout of %s" % job)
                         self.logger.info(process.new_stdout)
                         last_output = job.model.key
+                    # some jobs are still running
+                    time.sleep(0.5)
                     continue
+                # if we reach this point, all jobs are done
                 all_done = True
-            time.sleep(0.5)
 
         # save state of jobs, process logs and errors
         self.logger.debug("all jobs should be done. process results")

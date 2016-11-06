@@ -173,16 +173,6 @@ def blueprint(path, role, instance):
 
 
 @click.command()
-@click.argument('servicekey')
-def build(servicekey):
-    """
-    builds specific service
-    """
-    repo = j.atyourservice.get()
-    repo.get(servicekey)
-
-
-@click.command()
 def showactions():
     """
     shows all services with relevant actions

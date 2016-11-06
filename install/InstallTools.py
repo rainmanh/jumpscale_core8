@@ -1650,6 +1650,7 @@ class InstallTools():
         @param outputStderr: print error line by line while processing the command
         @param useShell: Execute command as a shell command
         @param log:
+        @param cwd: If cwd is not None, the function changes the working directory to cwd before executing the child
         @param timeout: If not None, raise TimeoutError if command execution time > timeout
         @param captureout: If True, returns output of cmd. Else, it returns empty str
         @param die: If True, raises error if cmd failed. else, fails silently and returns error in the output
@@ -1657,6 +1658,7 @@ class InstallTools():
         @param executor: If not None returns output of executor.execute(....)
         @return: (returncode, output, error). output and error defaults to empty string
         """
+
         if executor:
             return executor.execute(command, die=die, checkok=False, async=async, showout=True, timeout=timeout)
 

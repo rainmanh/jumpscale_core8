@@ -13,7 +13,7 @@ else
         export TMPDIR="$HOME/tmp"
         export JSBASE="$HOME/opt/jumpscale8"
         export CFGDIR="$HOME/optvar/cfg/jumpscale/"
-    else:
+    else
         export TMPDIR="/tmp"
         export JSBASE="/opt/jumpscale8"
         export CFGDIR="/optvar/cfg/jumpscale/"

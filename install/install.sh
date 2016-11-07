@@ -3,7 +3,7 @@ set -ex
 
 export STARTDIR=$PWD
 
-if [ -z"/JS8" ]; then
+if [ -d "/JS8" ]; then
     export JSBASE="/JS8/opt/jumpscale8"
     export TMPDIR="/JS8/tmp"
     export CFGDIR="/JS8/optvar/cfg/jumpscale/"
@@ -13,6 +13,10 @@ else
         export TMPDIR="$HOME/tmp"
         export JSBASE="$HOME/opt/jumpscale8"
         export CFGDIR="$HOME/optvar/cfg/jumpscale/"
+    else:
+        export TMPDIR="/tmp"
+        export JSBASE="/opt/jumpscale8"
+        export CFGDIR="/optvar/cfg/jumpscale/"
     fi
 fi
 
@@ -23,6 +27,12 @@ rm -f $CFGDIR/done.yaml
 
 mkdir -p $TMPDIR
 cd $TMPDIR
+
+function clean_system {
+    sed -i.bak /AYS_/d $HOME/.bashrc
+    sed -i.bak /JSDOCKER_/d $HOME/.bashrc
+    sed -i.bak /'            '/d $HOME/.bashrc
+}
 
 function osx_install {
     if [ -e $TMPDIR/jsinstall_systemcomponents_done ] ; then
@@ -38,6 +48,8 @@ function pip_install {
     if [ -e $TMPDIR/jsinstall_systemcomponents_done ] ; then
         echo "NO NEED TO INSTALL PIP COMPONENTS"
     else
+        cd $TMPDIR
+        curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python3 get-pip.py
         pip3 install --upgrade pip setuptools
         pip3 install --upgrade pyyaml
         pip3 install --upgrade asyncio
@@ -58,7 +70,6 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     locale-gen en_US.UTF-8
     export LANG=en_US.UTF-8
     export LC_ALL=en_US.UTF-8
-    dist=''
     dist=`grep DISTRIB_ID /etc/*-release | awk -F '=' '{print $2}'`
     if [ "$dist" == "Ubuntu" ]; then
         echo "found ubuntu"
@@ -67,19 +78,8 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
         rm -f /usr/bin/python3
         ln -s /usr/bin/python3.5 /usr/bin/python
         ln -s /usr/bin/python3.5 /usr/bin/python3
-        apt-get install python3-pip python3-click -y
-        pip3 install --upgrade uvloop
-    elif [ -f "/etc/slitaz-release" ]; then
-      echo "found slitaz"
-      tazpkg get-install curl
-      tazpkg get-install git
-      tazpkg get-install python3.5
     fi
 
-    if [ -z $JSBASE ]; then
-        export JSBASE='/opt/jumpscale8'
-    fi
-    export TMPDIR=/tmp
 elif [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
     # Do something under Windows NT platform
     export LANG=C; export LC_ALL=C
@@ -87,16 +87,12 @@ elif [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
     install apt-cyg /bin
     apt-cyg install curl
     apt-cyg install openssl-devel
-    apt-cyg install wget
     apt-cyg install python3
     apt-cyg install make
     apt-cyg install unzip
-
-    python3 -m ensurepip
-    ln -sf /usr/bin/python3 /usr/bin/python
     apt-cyg install git
 
-    export TMPDIR=/tmp
+    ln -sf /usr/bin/python3 /usr/bin/python
 
     # #install redis
     # cd $TMPDIR
@@ -108,12 +104,9 @@ elif [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
     # chmod +x redis-server.exe
     # cp -f  redis-server.exe /usr/local/bin
 
-    if [ -z"$JSBASE" ]; then
-        export JSBASE="$HOME/opt/jumpscale8"
-    fi
-    mkdir -p $TMPDIR
-    cd $TMPDIR
 fi
+
+clean_system
 
 pip_install
 

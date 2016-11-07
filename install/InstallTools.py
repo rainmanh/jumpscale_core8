@@ -32,7 +32,7 @@ class Installer():
 
     def checkPython(self):
         if sys.platform.startswith('darwin'):
-            if len([item for item in do.listDirsInDir("/usr/local/lib") if item.find("python3")!=-1])>1:
+            if len([item for item in do.listDirsInDir("/usr/local/lib") if item.find("python3") != -1]) > 1:
                 raise RuntimeError("Please execute clean.sh in installer of jumpscale, found too many python installs")
 
     def installJS(self, base="", GITHUBUSER="", GITHUBPASSWD="", CODEDIR="",
@@ -294,7 +294,7 @@ class Installer():
         if self.do.TYPE.startswith("OSX"):
             pass
             # C = C.replace("$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/plat-x86_64-linux-gnu:/usr/local/lib/python3.5/site-packages:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/plat-darwin:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload")
-            C = C.replace("$pythonpath","")
+            C = C.replace("$pythonpath", "")
         else:
             C = C.replace(
                 "$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu:$_OLD_PYTHONPATH")
@@ -421,7 +421,7 @@ class Installer():
         tmpdir = self.do.config["dirs"]["TMPDIR"]
         if not self.do.exists(self.do.joinPaths(tmpdir, "get-pip.py")):
             if not self.do.TYPE.startswith("WIN"):
-                cmd = "cd %s;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python get-pip.py" % self.do.config[
+                cmd = "cd %s;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python3 get-pip.py" % self.do.config[
                     "dirs"]["TMPDIR"]
                 self.do.execute(cmd)
 
@@ -432,7 +432,7 @@ class Installer():
 
         self.checkPython()
 
-        self.installpip()
+        # self.installpip()
 
         if sys.platform.startswith('win'):
             raise RuntimeError("Cannot find JSBASE, needs to be set as env var")

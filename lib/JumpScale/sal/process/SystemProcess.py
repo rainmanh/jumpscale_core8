@@ -1556,6 +1556,45 @@ class SystemProcess:
 
     kill = staticmethod(kill)
 
+
+    def getPidsByFilterSortable(self, filterstr, sortkey=None):
+        """
+        Get pids of process by a filter string and optionally sort by sortkey
+
+        @param filterstr string: filter string.
+        @param sortkey   string: sort key for ps command
+        sortkey can be one of the following:
+            %cpu           cpu utilization of the process in 
+            %mem           ratio of the process's resident set size  to the physical memory on the machine, expressed as a percentage.
+            cputime        cumulative CPU time, "[DD-]hh:mm:ss" format.  (alias time).
+            egid           effective group ID number of the process as a decimal integer.  (alias gid).
+            egroup         effective group ID of the process.  This will be the textual group ID, if it can be obtained and the field width permits, or a decimal representation otherwise.  (alias group).
+            euid           effective user ID (alias uid).
+            euser          effective user name.
+            gid            see egid.  (alias egid).
+            pid            a number representing the process ID (alias tgid).
+            ppid           parent process ID.
+            psr            processor that process is currently assigned to.
+            start_time     starting time or date of the process.
+
+
+        """
+        if sortkey is not None:
+            cmd = "ps aux --sort={sortkey} | grep '{filterstr}'".format(filterstr=filterstr, sortkey=sortkey)
+        else:
+            cmd = "ps ax | grep '{filterstr}'".format(filterstr=filterstr)
+        rcode, out = j.sal.process.execute(cmd)
+        # print out
+        found = []
+        for line in out.split("\n"):
+            if line.find("grep") != -1 or line.strip() == "":
+                continue
+            if line.strip() != "":
+                if line.find(filterstr) != -1:
+                    line = line.strip()
+                    found.append(int([x for x in line.split(" ") if x][1]))
+        return found
+
     def getPidsByFilter(self, filterstr):
         cmd = "ps ax | grep '%s'" % filterstr
         rcode, out = j.sal.process.execute(cmd)
@@ -1568,6 +1607,7 @@ class SystemProcess:
                 if line.find(filterstr) != -1:
                     line = line.strip()
                     # print "found pidline:%s"%line
+
                     found.append(int(line.split(" ")[0]))
         return found
 

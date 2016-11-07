@@ -305,15 +305,15 @@ class Installer():
 
         # pythonversion = '3' if os.environ.get('PYTHONVERSION') == '3' else ''
 
-        C2 = """
-        #!/bin/bash
+        C2 = \
+        """#!/bin/bash
         # set -x
         source $base/env.sh
         exec $JSBASE/bin/python3 -q "$@"
         """
 
-        C2_insystem = """
-        #!/bin/bash
+        C2_insystem = \
+        """#!/bin/bash
         # set -x
         source $base/env.sh
         exec python3.5 -q "$@"

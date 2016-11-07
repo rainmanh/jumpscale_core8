@@ -124,10 +124,11 @@ branch=${JSBRANCH-master}
 
 cd $STARTDIR
 
+rm -f $TMPDIR/bootstrap.py
+rm -f $TMPDIR/InstallTools.py
+rm -f $TMPDIR/dependencies.py
+
 if [ -e "bootstrap.py" ]; then
-    rm -f $TMPDIR/bootstrap.py
-    rm -f $TMPDIR/InstallTools.py
-    rm -f $TMPDIR/dependencies.py
     cp bootstrap.py $TMPDIR/bootstrap.py
     cp InstallTools.py $TMPDIR/InstallTools.py
     cp dependencies.py $TMPDIR/dependencies.py

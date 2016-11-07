@@ -77,6 +77,8 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
         echo "found ubuntu"
         apt-get install mc curl git ssh python3.5 -y
         apt-get install libssl-dev -y
+        apt-get install python3-dev
+        apt-get install build-essential
         rm -f /usr/bin/python
         rm -f /usr/bin/python3
         ln -s /usr/bin/python3.5 /usr/bin/python
@@ -89,6 +91,8 @@ elif [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
     lynx -source rawgit.com/transcode-open/apt-cyg/master/apt-cyg > apt-cyg
     install apt-cyg /bin
     apt-cyg install curl
+    apt-cyg install python3-dev
+    apt-cyg install build-essential
     apt-cyg install openssl-devel
     apt-cyg install python3
     apt-cyg install make

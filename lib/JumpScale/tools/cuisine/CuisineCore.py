@@ -232,6 +232,7 @@ class CuisineCore(base):
 
     @property
     def dir_paths(self):
+        import ipdb; ipdb.set_trace()
         def get():
             res = {}
             env = self.getenv()
@@ -246,10 +247,14 @@ class CuisineCore(base):
                 res["codeDir"] = "%s/opt/code/" % env["HOME"]
                 res["optDir"] = "%s/opt/" % env["HOME"]
                 res["varDir"] = "%s/optvar/" % env["HOME"]
-            else:
+            elif self.dir_exists('/JS8'):
                 res["codeDir"] = "/JS8/code/"
                 res["optDir"] = "/JS8/opt/"
                 res["varDir"] = "/JS8/optvar/"
+            else:
+                res["codeDir"] = "/opt/code"
+                res["optDir"] = "/opt"
+                res["varDir"] = "/optvar"
             res["appDir"] = "%s/apps" % res["base"]
             res['tmplsDir'] = "%s/templates" % res["base"]
             res["binDir"] = "%s/bin" % res["base"]
@@ -262,10 +267,10 @@ class CuisineCore(base):
             res["tmpDir"] = "%s/tmp" % res["varDir"]
             res["hrdDir"] = "%s/hrd" % res["varDir"]
 
-            res["goDir"] = "%sgo/" % res["varDir"]
+            res["goDir"] = "%s/go/" % res["varDir"]
 
             return res
-        return self._cache.get("dir_paths", get)
+        return get()#self._cache.get("dir_paths", get)
 
     # =============================================================================
     #

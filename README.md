@@ -27,3 +27,14 @@ curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/fix_installe
 export JSBRANCH="fix_installer"
 bash install.sh
 ```
+
+## remark to do with cachin on internet
+
+- sometimes if can be you think you download the right install.sh script but it doesn't because its cached somewhere
+- best way how to get around that is to do
+
+```
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/fix_installer/install/install.sh?12 > install.sh
+```
+
+- see the install.sh?12 choose a different nr everytime (here it was 12), this will make sure caching does not happen

@@ -29,9 +29,11 @@ mkdir -p $TMPDIR
 cd $TMPDIR
 
 function clean_system {
+    set +ex
     sed -i.bak /AYS_/d $HOME/.bashrc
     sed -i.bak /JSDOCKER_/d $HOME/.bashrc
     sed -i.bak /'            '/d $HOME/.bashrc
+    set -ex
 }
 
 function osx_install {

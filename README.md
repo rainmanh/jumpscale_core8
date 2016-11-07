@@ -6,8 +6,24 @@ JumpScale 8
 
 JumpScale is A cloud automation product and a branch from what used to be Pylabs. About 7 years ago Pylabs was the basis of a cloud automation product which was acquired by SUN Microsystems from a company called Q-Layer. In the mean time we are 4 versions further and we rebranded to JumpScale.
 
-Please check our [GitBook](https://gig.gitbooks.io/jumpscale-core8/content/) for a full documentation
+Please check our [GitBook](https://gig.gitbooks.io/jumpscale-core8/content/) for a full documentation (alwasy shows the master)
 
-for install see
+## how to install from master
 
-[Install Instructions](https://gig.gitbooks.io/jumpscale-core8/content/GettingStarted/Installation.html)
+```
+cd /tmp
+rm -f install.sh
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh
+bash install.sh
+```
+
+
+## how to install from a branch
+
+```
+cd /tmp
+rm -f install.sh
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/fix_installer/install/install.sh > install.sh
+export JSBRANCH="fix_installer"
+bash install.sh
+```

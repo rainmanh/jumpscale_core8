@@ -1592,7 +1592,10 @@ class SystemProcess:
             if line.strip() != "":
                 if line.find(filterstr) != -1:
                     line = line.strip()
-                    found.append(int([x for x in line.split(" ") if x][1]))
+                    if sortkey is not None:
+                        found.append(int([x for x in line.split(" ") if x][1]))
+                    else:
+                        found.append(int(line.split(" ")[0]))
         return found
 
     def getPidsByFilter(self, filterstr):

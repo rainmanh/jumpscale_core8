@@ -232,7 +232,6 @@ class CuisineCore(base):
 
     @property
     def dir_paths(self):
-        import ipdb; ipdb.set_trace()
         def get():
             res = {}
             env = self.getenv()
@@ -270,7 +269,7 @@ class CuisineCore(base):
             res["goDir"] = "%s/go/" % res["varDir"]
 
             return res
-        return get()#self._cache.get("dir_paths", get)
+        return self._cache.get("dir_paths", get)
 
     # =============================================================================
     #

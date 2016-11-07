@@ -1472,7 +1472,7 @@ class InstallTools():
         if ddir=="" then will go to tmpdir
         """
         if ddir == "":
-            ddir = self.TMP
+            ddir = self.TMPDIR
         os.chdir(ddir)
 
     # NON FS
@@ -1514,10 +1514,9 @@ class InstallTools():
                     handle = urlopen(url)
                     nr += 1
 
-        # os.chdir(self.TMP)
         print(('Downloading %s ' % (url)))
         if to == "":
-            to = self.TMP + "/" + url.replace("\\", "/").split("/")[-1]
+            to = self.TMPDIR + "/" + url.replace("\\", "/").split("/")[-1]
 
         if overwrite:
             if self.exists(to):
@@ -1763,7 +1762,7 @@ class InstallTools():
         import gzip
 
         self.lastdir = os.getcwd()
-        os.chdir(self.TMP)
+        os.chdir(self.TMPDIR)
         basename = os.path.basename(path)
         if basename.find(".tar.gz") == -1:
             raise RuntimeError("Can only expand a tar gz file now %s" % path)
@@ -1797,12 +1796,13 @@ class InstallTools():
         self.lastdir = ""
 
     def getTmpPath(self, filename):
-        return "%s/jumpscaleinstall/%s" % (self.TMP, filename)
+        return "%s/jumpscaleinstall/%s" % (sef.TMPDIR, filename)
 
     def downloadJumpScaleCore(self, dest):
         # csid=getLastChangeSetBitbucket()
-        self.download("https://bitbucket.org/jumpscale/jumpscale-core/get/default.tar.gz", "%s/pl6core.tgz" % self.TMP)
-        self.expand("%s/pl6core.tgz" % self.TMP, dest)
+        self.download("https://bitbucket.org/jumpscale/jumpscale-core/get/default.tar.gz",
+                      "%s/pl6core.tgz" % self.TMPDIR)
+        self.expand("%s/pl6core.tgz" % sef.TMPDIR, dest)
 
     def getPythonSiteConfigPath(self):
         minl = 1000000
@@ -2109,7 +2109,7 @@ class InstallTools():
         self.executeInteractive(cmd)
 
     def authorize_root(self, sftp_client, ip_address, keyname):
-        tmppath = "%s/authorized_keys" % self.TMP
+        tmppath = "%s/authorized_keys" % self.TMPDIR
         auth_key_path = "/root/.ssh/authorized_keys"
         self.delete(tmppath)
         try:
@@ -2192,7 +2192,7 @@ class InstallTools():
             self.execute(cmd, showout=False, outputStderr=False, die=False)
             # remove previous socketpath
             self.delete(socketpath)
-            self.delete(self.joinPaths(self.TMP, "ssh-agent-pid"))
+            self.delete(self.joinPaths(sef.TMPDIR, "ssh-agent-pid"))
 
         if not self.exists(socketpath):
             self.createDir(self.getParent(socketpath))
@@ -2218,7 +2218,7 @@ class InstallTools():
                     raise RuntimeError("Cannot find items in ssh-add -l")
                 self._initSSH_ENV(True)
                 pid = int(piditems[-1].split(" ")[-1].strip("; "))
-                self.writeFile(self.joinPaths(self.TMP, "ssh-agent-pid"), str(pid))
+                self.writeFile(self.joinPaths(sef.TMPDIR, "ssh-agent-pid"), str(pid))
                 self._addSSHAgentToBashProfile()
 
         # ssh agent should be loaded because ssh-agent socket has been found

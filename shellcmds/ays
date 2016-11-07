@@ -418,6 +418,16 @@ def commit(message, branch="master", push=False):
     repo = j.atyourservice.get()
     repo.commit(message, branch, push=push)
 
+@click.command()
+def restore():
+    """
+    Use this command when you want to populate the database with the service present on the file system.
+    This is usefull when you download an AYS repository from a git and want to start using it locally.
+    """
+    from JumpScale.baselib.atyourservice81.Service import Service
+    repo = j.atyourservice.get()
+    for service_path in j.sal.fs.listDirsInDir('{repo}/services'.format(repo=repo.path), recursive=True):
+        Service(repo, path=service_path)
 
 @click.command()
 @click.option('--branch', '-b', help="Name of branch, can be used in pull request to do change mgmt.", default='master')
@@ -515,6 +525,7 @@ cli.add_command(simulate)
 cli.add_command(test)
 cli.add_command(setstate)
 cli.add_command(commit)
+cli.add_command(restore)
 cli.add_command(update_md)
 cli.add_command(blueprint)
 # cli.add_command(new)

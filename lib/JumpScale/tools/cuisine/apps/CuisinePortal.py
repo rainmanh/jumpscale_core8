@@ -1,6 +1,5 @@
 from JumpScale import j
 import time
-import os
 
 
 base = j.tools.cuisine._getBaseClass()
@@ -176,7 +175,7 @@ class CuisinePortal(base):
         self._cuisine.apps.redis.build(start=True)
 
     def getcode(self, branch='master'):
-        self._cuisine.development.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git", branch=branch)
+        self._cuisine.development.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git", branch=branch, ssh=False)
 
     def linkCode(self):
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")

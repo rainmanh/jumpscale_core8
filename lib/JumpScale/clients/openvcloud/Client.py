@@ -398,6 +398,24 @@ class Space:
     def delete(self):
         self.client.api.cloudapi.cloudspaces.delete(cloudspaceId=self.id)
 
+    def get_space_ip(self):
+        space = self.client.api.cloudapi.cloudspaces.get(cloudspaceId=self.id)
+
+        def getSpaceIP(space):
+            if space['publicipaddress'] == '':
+                space = self.client.api.cloudapi.cloudspaces.get(cloudspaceId=self.id)
+            return space['publicipaddress']
+
+        space_ip = getSpaceIP(space)
+        start = time.time()
+        timeout = 120
+        while space_ip == '' and start + timeout > time.time():
+            time.sleep(5)
+            space_ip = getSpaceIP(space)
+        if space_ip == '':
+            raise j.exceptions.RuntimeError("Could not get IP Address for space %(name)s" % space)
+        return space_ip
+
     def __repr__(self):
         return "space: %s (%s)" % (self.model["name"], self.id)
 

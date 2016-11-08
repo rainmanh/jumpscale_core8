@@ -515,7 +515,6 @@ def delete(role, instance, ask):
 def start(config):
     from JumpScale.baselib.atyourservice81.AtYourServiceDaemon import Server
     if config:
-        import ipdb; ipdb.set_trace()
         cfg = j.data.serializer.yaml.load(config)
         if 'redis' not in cfg:
             raise j.exceptions.Input('format of the config file not valid. Missing redis section')

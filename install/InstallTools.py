@@ -100,9 +100,9 @@ class Installer():
             self.do.delete("/usr/local/lib/python2.7/site-packages/JumpScale")
             self.do.delete("/usr/local/lib/python3.5/site-packages/JumpScale")
 
-        destjs = self.do.getPythonLibSystem(jumpscale=True)
-        self.do.delete(destjs)
-        self.do.createDir(destjs)
+        # destjs = self.do.getPythonLibSystem(jumpscale=True)
+        # self.do.delete(destjs)
+        # self.do.createDir(destjs)
 
         base = args2["JSBASE"]
 
@@ -114,14 +114,14 @@ class Installer():
         dest = "%s/lib/JumpScale" % base
         self.do.createDir(dest)
         self.do.symlinkFilesInDir(src, dest, includeDirs=True)
-        self.do.symlinkFilesInDir(src, destjs, includeDirs=True)
+        # self.do.symlinkFilesInDir(src, destjs, includeDirs=True)
 
         for item in ["InstallTools", "ExtraTools"]:
             src = "%s/github/jumpscale/jumpscale_core8/install/%s.py" % (do.CODEDIR, item)
             dest2 = "%s/%s.py" % (dest, item)
             self.do.symlink(src, dest2)
-            dest2 = "%s/%s.py" % (destjs, item)
-            self.do.symlink(src, dest2)
+            # dest2 = "%s/%s.py" % (destjs, item)
+            # self.do.symlink(src, dest2)
 
         src = "%s/github/jumpscale/jumpscale_core8/shellcmds" % self.do.CODEDIR
 

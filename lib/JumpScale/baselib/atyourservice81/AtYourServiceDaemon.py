@@ -47,8 +47,9 @@ def do_run(run_key, callback=None):
 class Server:
     """AtYourService server"""
 
-    def __init__(self):
-        self._command_queue = j.servers.kvs.getRedisStore("ays_server", namespace='db', **j.atyourservice.config['redis'])
+    def __init__(self, redis_config=None):
+        redis_config = redis_config or j.atyourservice.config['redis']
+        self._command_queue = j.servers.kvs.getRedisStore("ays_server", namespace='db', **redis_config)
 
         self.logger = j.atyourservice.logger
 

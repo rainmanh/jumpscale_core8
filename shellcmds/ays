@@ -511,9 +511,18 @@ def delete(role, instance, ask):
 
 
 @click.command()
-def start():
+@click.option('--config', '-c', default="", help='path of ays config file')
+def start(config):
     from JumpScale.baselib.atyourservice81.AtYourServiceDaemon import Server
-    server = Server()
+    if config:
+        cfg = j.data.serializer.yaml.load(config)
+        if 'redis' not in cfg:
+            raise j.exceptions.Input('format of the config file not valid. Missing redis section')
+
+        redis_config = cfg['redis']
+        server = Server(redis_config=redis_config)
+    else:
+        server = Server()
     server.start()
 
 cli.add_command(run)

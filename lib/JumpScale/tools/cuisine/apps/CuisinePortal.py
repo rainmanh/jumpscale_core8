@@ -24,9 +24,6 @@ class CuisinePortal(base):
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
         self._cuisine.bash.environSet("LANG", "C.UTF-8")
 
-        # if not self._cuisine.core.isMac:
-        if not self._cuisine.development.js8.jumpscale_installed():
-            self._cuisine.development.js8.install()
         self._cuisine.development.pip.packageUpgrade("pip")
         self.installDeps()
         self.getcode(branch=branch)
@@ -110,6 +107,7 @@ class CuisinePortal(base):
         # pexpect
         # pickleshare
         psutil
+        pyjwt
         # psycopg2
         # ptyprocess
         # pycparser
@@ -154,7 +152,7 @@ class CuisinePortal(base):
         self._cuisine.package.ensure('build-essential')
         self._cuisine.package.ensure('libssl-dev')
         self._cuisine.package.ensure('libffi-dev')
-        self._cuisine.package.ensure('python-dev')
+        self._cuisine.package.ensure('python3-dev')
         self._cuisine.development.pip.multiInstall(deps)
 
         if "darwin" in self._cuisine.platformtype.osname:

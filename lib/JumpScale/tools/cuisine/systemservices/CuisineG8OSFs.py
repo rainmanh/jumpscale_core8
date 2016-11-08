@@ -9,15 +9,15 @@ class CuisineG8OSFs(app):
     """
     NAME = 'fs'
 
-    def build(self, start=False, install=True):
-        if self.isInstalled():
+    def build(self, start=False, install=True, reset=False):
+        if reset is False and self.isInstalled():
             return
 
         self._cuisine.package.mdupdate()
         self._cuisine.package.install('build-essential')
 
-        self._cuisine.development.golang.godep("github.com/g8os/fs")
-        self._cuisine.core.run("cd %s && go build ." % "$goDir/src/github.com/g8os/fs", profile=True)
+        self._cuisine.development.golang.get("github.com/g8os/fs")
+        self._cuisine.core.file_copy("$goDir/bin/fs", "$base/bin")
 
         if install:
             self.install(start)
@@ -48,7 +48,7 @@ class CuisineG8OSFs(app):
             passwd=""
         """
         self._cuisine.core.dir_ensure("$tmplsDir/cfg/fs")
-        self._cuisine.core.file_copy("$goDir/src/github.com/g8os/fs/fs", "$base/bin")
+        self._cuisine.core.file_copy("$goDir/bin/fs", "$base/bin")
         self._cuisine.core.file_write("$goDir/src/github.com/g8os/fs/config/config.toml", content)
         self._cuisine.core.file_copy("$goDir/src/github.com/g8os/fs/config/config.toml", "$tmplsDir/cfg/fs")
         self._cuisine.core.file_download(

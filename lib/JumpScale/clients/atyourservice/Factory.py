@@ -19,9 +19,9 @@ class Factory:
         cfg = j.data.serializer.yaml.load(config_path)
         if 'redis' not in cfg:
             raise j.exceptions.Input('format of the config file not valid. Missing redis section')
-        if cfg.get('redis', None):
-            redis = cfg['redis']
-            return Client(host=redis.get('host', 'localhost'),
-                          port=redis.get('port', 6379),
-                          unixsocket=redis.get('unixsocket', None))
+
+        redis = cfg['redis']
+        return Client(host=redis.get('host', 'localhost'),
+                      port=redis.get('port', 6379),
+                      unixsocket=redis.get('unixsocket', None))
         return Client(unixsocket=j.atyourservice.config['redis']['unixsocket'])

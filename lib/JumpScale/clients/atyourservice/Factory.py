@@ -24,4 +24,4 @@ class Factory:
             return Client(host=redis.get('host', 'localhost'),
                           port=redis.get('port', 6379),
                           unixsocket=redis.get('unixsocket', None))
-        return Client(unixsocket=j.core.db.config_get()['unixsocket'])
+        return Client(unixsocket=j.atyourservice.config['redis']['unixsocket'])

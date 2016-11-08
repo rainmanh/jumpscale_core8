@@ -199,6 +199,7 @@ class CuisinePortal(base):
         self._cuisine.core.dir_ensure(self.portal_dir)
 
         CODE_DIR = self._cuisine.core.dir_paths["codeDir"]
+        self._cuisine.core.dir_ensure("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % CODE_DIR)
         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/jslib" % CODE_DIR,
                                      '%s/jslib' % self.portal_dir)
         self._cuisine.core.dir_ensure(j.sal.fs.joinPaths(self.portal_dir, 'portalbase'))

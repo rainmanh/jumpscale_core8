@@ -12,6 +12,7 @@ class StoreFactory:
     def __init__(self):
         self.__jslocation__ = "j.servers.kvs"
         self._cache = dict()
+        self._redisCacheLocal = None
 
     # def getMongoDBStore(self, namespace='',serializers=[]):
     #     '''
@@ -87,17 +88,30 @@ class StoreFactory:
 
         """
         # for now just local to test
-        cache = self.getRedisStore(
-            name='kvs-cache',
-            namespace='cache',
-            host='localhost',
-            port=6379,
-            db=0,
-            password='',
-            serializers=[]
-        )
 
-        return cache
+        # the std redis is not on tcp, so this will not work in all cases, had to modify
+
+        if self._redisCacheLocal == None:
+            cache = self.getRedisStore(
+                name='kvs-cache',
+                namespace='cache',
+                host='localhost',
+                port=6379,
+                db=0,
+                password='',
+                serializers=[]
+            )
+            try:
+                cache.set("test", "test")
+            except Exception as e:
+                cache = self.getRedisStore('kvs-cache', namespace='cache', host='localhost',
+                                           unixsocket='%s/redis.sock' % j.dirs.tmpDir,
+                                           db=0, password='',
+                                           serializers=[])
+                cache.set("test", "test")
+            self._redisCacheLocal = cache
+
+        return self._redisCacheLocal
 
     # def getFSStore(self, name, namespace='', baseDir=None, serializers=[], cache=None, changelog=None, masterdb=None):
     #     '''
@@ -124,16 +138,16 @@ class StoreFactory:
     #             name, namespace=namespace, baseDir=baseDir, serializers=serializers, cache=cache, masterdb=masterdb, changelog=changelog)
     #     return self._cache[name]
     #
-    # def getMemoryStore(self, name, namespace=None, changelog=None):
-    #     '''
-    #     Gets a memory key value store.
-    #
-    #     @return: key value store
-    #     @rtype: MemoryKeyValueStore
-    #     '''
-    #     from servers.key_value_store.memory_store import MemoryKeyValueStore
-    #     return MemoryKeyValueStore(name=name, namespace=namespace, changelog=changelog)
-    #
+    def getMemoryStore(self, name, namespace=None, changelog=None):
+        '''
+        Gets a memory key value store.
+
+        @return: key value store
+        @rtype: MemoryKeyValueStore
+        '''
+        from servers.key_value_store.memory_store import MemoryKeyValueStore
+        return MemoryKeyValueStore(name=name, namespace=namespace)
+
     def getRedisStore(self, name, namespace='db', host='localhost', port=6379, unixsocket=None, db=0, password='',
                       serializers=None, masterdb=None, cache=None, changelog=None):
         '''
@@ -149,22 +163,21 @@ class StoreFactory:
         @rtype: MemoryKeyValueStore
         '''
         from servers.key_value_store.redis_store import RedisKeyValueStore
-        if name not in self._cache:
-            self._cache[name] = RedisKeyValueStore(
-                name=name,
-                namespace=namespace,
-                host=host,
-                port=port,
-                unixsocket=unixsocket,
-                db=db,
-                password=password,
-                serializers=serializers,
-                masterdb=masterdb,
-                changelog=changelog,
-                cache=cache
-            )
+        res = RedisKeyValueStore(
+            name=name,
+            namespace=namespace,
+            host=host,
+            port=port,
+            unixsocket=unixsocket,
+            db=db,
+            password=password,
+            serializers=serializers,
+            masterdb=masterdb,
+            changelog=changelog,
+            cache=cache
+        )
 
-        return self._cache[name]
+        return res
 
     def _aclSerialze(self, acl={}):
         """

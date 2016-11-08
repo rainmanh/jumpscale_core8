@@ -211,17 +211,15 @@ class CuisineCore(base):
         return path
 
     def getenv(self, refresh=False):
-        def get():
-            res = {}
-            _, out, _ = self._cuisine.core.run("printenv", profile=False, showout=False, replaceArgs=False)
-            for line in out.splitlines():
-                if '=' in line:
-                    name, val = line.split("=", 1)
-                    name = name.strip()
-                    val = val.strip().strip("'").strip("\"")
-                    res[name] = val
-            return res
-        return self._cache.get("getenv", get)
+        res = {}
+        _, out, _ = self._cuisine.core.run("printenv", profile=False, showout=False, replaceArgs=False)
+        for line in out.splitlines():
+            if '=' in line:
+                name, val = line.split("=", 1)
+                name = name.strip()
+                val = val.strip().strip("'").strip("\"")
+                res[name] = val
+        return res
 
     @property
     def isJS8Sandbox(self):
@@ -232,48 +230,46 @@ class CuisineCore(base):
 
     @property
     def dir_paths(self):
-        def get():
-            res = {}
-            env = self.getenv()
-            if 'JSBASE' in env:
-                res["base"] = env["JSBASE"]
-            else:
-                if self.dir_exists("/JS8"):
-                    res["base"] = "/JS8/opt/jumpscale8/"
-                elif self.isMac or self.isCygwin:
-                    res["base"] = "%s/opt/jumpscale8/" % env["HOME"]
-                else:
-                    res["base"] = j.dirs.base
-
-            if self.dir_exists('/JS8'):
-                res["codeDir"] = "/JS8/code/"
-                res["optDir"] = "/JS8/opt/"
-                res["varDir"] = "/JS8/optvar/"
+        res = {}
+        env = self.getenv()
+        if 'JSBASE' in env:
+            res["base"] = env["JSBASE"]
+        else:
+            if self.dir_exists("/JS8"):
+                res["base"] = "/JS8/opt/jumpscale8/"
             elif self.isMac or self.isCygwin:
-                res["codeDir"] = "%s/opt/code/" % env["HOME"]
-                res["optDir"] = "%s/opt/" % env["HOME"]
-                res["varDir"] = "%s/optvar/" % env["HOME"]
+                res["base"] = "%s/opt/jumpscale8/" % env["HOME"]
             else:
-                res["codeDir"] = "/opt/code"
-                res["optDir"] = "/opt"
-                res["varDir"] = "/optvar"
+                res["base"] = j.dirs.base
 
-            res["appDir"] = "%s/apps" % res["base"]
-            res['tmplsDir'] = "%s/templates" % res["base"]
-            res["binDir"] = "%s/bin" % res["base"]
-            res["cfgDir"] = "%s/cfg" % res["varDir"]
-            res["jsLibDir"] = "%s/lib/JumpScale/" % res["base"]
-            res["libDir"] = "%s/lib/" % res["base"]
-            res["homeDir"] = env["HOME"]
-            res["logDir"] = "%s/log" % res["varDir"]
-            res["pidDir"] = "%s/pid" % res["varDir"]
-            res["tmpDir"] = "%s/tmp" % res["varDir"]
-            res["hrdDir"] = "%s/hrd" % res["varDir"]
+        if self.dir_exists('/JS8'):
+            res["codeDir"] = "/JS8/code/"
+            res["optDir"] = "/JS8/opt/"
+            res["varDir"] = "/JS8/optvar/"
+        elif self.isMac or self.isCygwin:
+            res["codeDir"] = "%s/opt/code/" % env["HOME"]
+            res["optDir"] = "%s/opt/" % env["HOME"]
+            res["varDir"] = "%s/optvar/" % env["HOME"]
+        else:
+            res["codeDir"] = "/opt/code"
+            res["optDir"] = "/opt"
+            res["varDir"] = "/optvar"
 
-            res["goDir"] = "%s/go/" % res["varDir"]
+        res["appDir"] = "%s/apps" % res["base"]
+        res['tmplsDir'] = "%s/templates" % res["base"]
+        res["binDir"] = "%s/bin" % res["base"]
+        res["cfgDir"] = "%s/cfg" % res["varDir"]
+        res["jsLibDir"] = "%s/lib/JumpScale/" % res["base"]
+        res["libDir"] = "%s/lib/" % res["base"]
+        res["homeDir"] = env["HOME"]
+        res["logDir"] = "%s/log" % res["varDir"]
+        res["pidDir"] = "%s/pid" % res["varDir"]
+        res["tmpDir"] = "%s/tmp" % res["varDir"]
+        res["hrdDir"] = "%s/hrd" % res["varDir"]
 
-            return res
-        return self._cache.get("dir_paths", get)
+        res["goDir"] = "%s/go/" % res["varDir"]
+
+        return res
 
     # =============================================================================
     #
@@ -317,6 +313,7 @@ class CuisineCore(base):
         if "$" in text:
             for key, var in self.dir_paths.items():
                 text = text.replace("$%s" % key, var)
+                text = text.replace("$%s" % key.lower(), var)
             text = text.replace("$hostname", self.hostname)
         return text
 

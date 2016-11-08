@@ -301,15 +301,15 @@ class Installer():
 
         # pythonversion = '3' if os.environ.get('PYTHONVERSION') == '3' else ''
 
-        C2 = \
-            """#!/bin/bash
+        C2 = """
+        #!/bin/bash
         # set -x
         source $base/env.sh
         exec $JSBASE/bin/python3 -q "$@"
         """
 
-        C2_insystem = \
-            """#!/bin/bash
+        C2_insystem = """
+        #!/bin/bash
         # set -x
         source $base/env.sh
         exec python3.5 -q "$@"
@@ -752,6 +752,14 @@ class InstallTools():
                 minchars = prechars
 
         if minchars > 0:
+
+            # if first line is empty, remove
+            lines = content.split("\n")
+            if len(lines) > 0:
+                if lines[0].strip() == "":
+                    lines.pop(0)
+            content = "\n".join(lines)
+
             # remove the prechars
             content = "\n".join([line[minchars:] for line in content.split("\n")])
 

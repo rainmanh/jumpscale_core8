@@ -24,8 +24,8 @@ class CuisinePortal(base):
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
         self._cuisine.bash.environSet("LANG", "C.UTF-8")
 
-        # self._cuisine.development.pip.packageUpgrade("pip")
-        # self.installDeps()
+        self._cuisine.development.pip.packageUpgrade("pip")
+        self.installDeps()
         self.getcode(branch=branch)
         self.linkCode()
         self.ays_prepare(redis_ip=redis_ip, redis_port=redis_port)
@@ -183,7 +183,7 @@ class CuisinePortal(base):
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
 
         destjslib=self._cuisine.core.dir_paths['jsLibDir']
-        
+
         # _, destjslib, _ = self._cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'",
         #                                          showout=False)
         #
@@ -271,7 +271,7 @@ class CuisinePortal(base):
         passwd : if not None, change the admin password to passwd after start
         """
 
-        dest_dir = j.sal.fs.joinPaths(self._cuisine.core.dir_paths['varDir'], 'cfg')
+        dest_dir = j.sal.fs.joinPaths(self._cuisine.core.dir_paths['appDir'])
         cfg_path = j.sal.fs.joinPaths(dest_dir, 'portals/main/config.hrd')
         app_dir = j.sal.fs.joinPaths(dest_dir, 'portals/portalbase')
 

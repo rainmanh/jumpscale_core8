@@ -172,8 +172,6 @@ class CuisinePortal(base):
 
         self._cuisine.development.pip.install('python-snappy')
 
-        self._cuisine.apps.mongodb.build()
-        self._cuisine.apps.redis.build(start=True)
 
     def getcode(self, branch='master'):
         self._cuisine.development.git.pullRepo(

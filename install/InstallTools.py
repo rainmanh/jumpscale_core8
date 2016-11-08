@@ -1796,13 +1796,13 @@ class InstallTools():
         self.lastdir = ""
 
     def getTmpPath(self, filename):
-        return "%s/jumpscaleinstall/%s" % (sef.TMPDIR, filename)
+        return "%s/jumpscaleinstall/%s" % (self.TMPDIR, filename)
 
     def downloadJumpScaleCore(self, dest):
         # csid=getLastChangeSetBitbucket()
         self.download("https://bitbucket.org/jumpscale/jumpscale-core/get/default.tar.gz",
                       "%s/pl6core.tgz" % self.TMPDIR)
-        self.expand("%s/pl6core.tgz" % sef.TMPDIR, dest)
+        self.expand("%s/pl6core.tgz" % self.TMPDIR, dest)
 
     def getPythonSiteConfigPath(self):
         minl = 1000000
@@ -2192,7 +2192,7 @@ class InstallTools():
             self.execute(cmd, showout=False, outputStderr=False, die=False)
             # remove previous socketpath
             self.delete(socketpath)
-            self.delete(self.joinPaths(sef.TMPDIR, "ssh-agent-pid"))
+            self.delete(self.joinPaths(self.TMPDIR, "ssh-agent-pid"))
 
         if not self.exists(socketpath):
             self.createDir(self.getParent(socketpath))
@@ -2218,7 +2218,7 @@ class InstallTools():
                     raise RuntimeError("Cannot find items in ssh-add -l")
                 self._initSSH_ENV(True)
                 pid = int(piditems[-1].split(" ")[-1].strip("; "))
-                self.writeFile(self.joinPaths(sef.TMPDIR, "ssh-agent-pid"), str(pid))
+                self.writeFile(self.joinPaths(self.TMPDIR, "ssh-agent-pid"), str(pid))
                 self._addSSHAgentToBashProfile()
 
         # ssh agent should be loaded because ssh-agent socket has been found

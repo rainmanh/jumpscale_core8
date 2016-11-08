@@ -24,8 +24,8 @@ class CuisinePortal(base):
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
         self._cuisine.bash.environSet("LANG", "C.UTF-8")
 
-        self._cuisine.development.pip.packageUpgrade("pip")
-        self.installDeps()
+        # self._cuisine.development.pip.packageUpgrade("pip")
+        # self.installDeps()
         self.getcode(branch=branch)
         self.linkCode()
         self.ays_prepare(redis_ip=redis_ip, redis_port=redis_port)
@@ -149,16 +149,20 @@ class CuisinePortal(base):
         Flask-Bootstrap
         snakeviz
         """
-        self._cuisine.package.ensure('build-essential')
-        self._cuisine.package.ensure('libssl-dev')
-        self._cuisine.package.ensure('libffi-dev')
-        self._cuisine.package.ensure('python3-dev')
+
+
+        if not "darwin" in self._cuisine.platformtype.osname:
+            self._cuisine.package.ensure('build-essential')
+            self._cuisine.package.ensure('libssl-dev')
+            self._cuisine.package.ensure('libffi-dev')
+            self._cuisine.package.ensure('python3-dev')
+
         self._cuisine.development.pip.multiInstall(deps)
 
         if "darwin" in self._cuisine.platformtype.osname:
             self._cuisine.core.run("brew install libtiff libjpeg webp little-cms2")
             self._cuisine.core.run("brew install snappy")
-            self._cuisine.core.run('CPPFLAGS="-I/usr/local/include -L/usr/local/lib" pip install python-snappy')
+            self._cuisine.core.run('CPPFLAGS="-I/usr/local/include -L/usr/local/lib" pip3 install python-snappy')
         else:
             self._cuisine.package.multiInstall(['libjpeg-dev', 'libffi-dev', 'zlib1g-dev'])
 
@@ -177,12 +181,15 @@ class CuisinePortal(base):
 
     def linkCode(self):
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        _, destjslib, _ = self._cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'",
-                                                 showout=False)
 
-        if "darwin" in self._cuisine.platformtype.osname:
-            # Needs refining,In osx destjslib='load dirs\n/usr/local/lib/python3.5/site-packages/JumpScale/'
-            destjslib = destjslib.split("\n")[1]
+        destjslib=self._cuisine.core.dir_paths['jsLibDir']
+        
+        # _, destjslib, _ = self._cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'",
+        #                                          showout=False)
+        #
+        # if "darwin" in self._cuisine.platformtype.osname:
+        #     # Needs refining,In osx destjslib='load dirs\n/usr/local/lib/python3.5/site-packages/JumpScale/'
+        #     destjslib = destjslib.split("\n")[1]
 
         if self._cuisine.core.file_exists(destjslib):
             self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths["codeDir"],

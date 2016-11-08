@@ -238,22 +238,26 @@ class CuisineCore(base):
             if 'JSBASE' in env:
                 res["base"] = env["JSBASE"]
             else:
-                if self.isMac or self.isCygwin:
+                if self.dir_exists("/JS8"):
+                    res["base"] = "/JS8/opt/jumpscale8/"
+                elif self.isMac or self.isCygwin:
                     res["base"] = "%s/opt/jumpscale8/" % env["HOME"]
                 else:
                     res["base"] = j.dirs.base
-            if self.isMac or self.isCygwin:
-                res["codeDir"] = "%s/opt/code/" % env["HOME"]
-                res["optDir"] = "%s/opt/" % env["HOME"]
-                res["varDir"] = "%s/optvar/" % env["HOME"]
-            elif self.dir_exists('/JS8'):
+
+            if self.dir_exists('/JS8'):
                 res["codeDir"] = "/JS8/code/"
                 res["optDir"] = "/JS8/opt/"
                 res["varDir"] = "/JS8/optvar/"
+            elif self.isMac or self.isCygwin:
+                res["codeDir"] = "%s/opt/code/" % env["HOME"]
+                res["optDir"] = "%s/opt/" % env["HOME"]
+                res["varDir"] = "%s/optvar/" % env["HOME"]
             else:
                 res["codeDir"] = "/opt/code"
                 res["optDir"] = "/opt"
                 res["varDir"] = "/optvar"
+                
             res["appDir"] = "%s/apps" % res["base"]
             res['tmplsDir'] = "%s/templates" % res["base"]
             res["binDir"] = "%s/bin" % res["base"]

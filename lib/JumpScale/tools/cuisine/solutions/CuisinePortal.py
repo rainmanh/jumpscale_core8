@@ -12,6 +12,7 @@ class CuisinePortal(base):
         self._donecat="done.cuisine.solutions.portal"
 
     def install(self, start=True, reset=False):
+        raise RuntimeError("not implemented")
         self.install_deps()
         self._cuisine.development.git.pullRepo('https://github.com/Jumpscale/jscockpit')
         self._cuisine.core.dir_ensure('%s/ays_api/' % j.dirs.appDir)

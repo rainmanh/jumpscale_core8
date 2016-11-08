@@ -137,6 +137,10 @@ class CuisineSystemd(ProcessManagerBase):
         self._cuisine.core.run("systemctl enable %s" % name, die=False, showout=False)
         self.start(name)
 
+    def __str__(self):
+        return "cuisine:%s:%s:processmanager_systemd" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
+
+    __repr__=__str__
 
 class CuisineRunit(ProcessManagerBase):
 
@@ -224,6 +228,10 @@ class CuisineRunit(ProcessManagerBase):
             self._cuisine.core.run("sv -w %d stop /etc/service/%s/" % (self.timeout, name), profile=True)
         self._cuisine.process.kill(name, signal=9, exact=False)
 
+    def __str__(self):
+        return "cuisine:%s:%s:processmanager_runinit" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
+
+    __repr__=__str__
 
 class CuisineTmuxec(ProcessManagerBase):
 
@@ -278,3 +286,8 @@ class CuisineTmuxec(ProcessManagerBase):
             pid = self._cuisine.tmux.getPid('main', name)
             self._cuisine.core.run("kill -9 %s" % pid)
             self._cuisine.tmux.killWindow("main", name)
+
+    def __str__(self):
+        return "cuisine:%s:%s:processmanager_tmux" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
+
+    __repr__=__str__

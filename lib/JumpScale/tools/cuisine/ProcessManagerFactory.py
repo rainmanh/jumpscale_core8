@@ -10,10 +10,14 @@ class ProcessManagerFactory:
         self._cuisine = cuisine
 
     def systemdOK(self):
-        return not self._cuisine.core.isDocker and self._cuisine.core.command_check("systemctl")
+        res= not self._cuisine.core.isDocker and self._cuisine.core.command_check("systemctl")
+        print ("systemd:%s"%res)
+        return res
 
     def svOK(self):
-        return self._cuisine.core.command_check("sv")
+        res= self._cuisine.core.command_check("sv")
+        print ("systemd:%s"%res)
+        return res
 
     def get_prefered(self):
         for pm in ["systemd", "sv", "tmux"]:

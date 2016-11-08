@@ -1,3 +1,4 @@
+import os
 from JumpScale import j
 
 
@@ -8,6 +9,9 @@ class CuisineRedis(app):
     NAME = 'redis-server'
 
     def build(self, reset=False, start=False):
+        os.environ["LC_ALL"] = "C.UTF-8"
+        os.environ["LANG"] = "C.UTF-8"
+
         """Building and installing redis"""
         if reset is False and self.isInstalled():
             print('Redis is already installed, pass reset=True to reinstall.')

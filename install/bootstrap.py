@@ -48,6 +48,5 @@ do = InstallTools.do
 print("install jumpscale8")
 do.installer.prepare()
 do.installer.installJS()
-do.installer.installJSDocs()
 
 from JumpScale import j

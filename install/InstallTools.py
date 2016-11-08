@@ -26,10 +26,6 @@ class Installer():
     def __init__(self):
         self._readonly = None
 
-    def installJSDocs(self, ssh=True):
-        print("install jsdocs")
-        self.do.pullGitRepo(url='git@github.com:Jumpscale/docs.git', ssh="first")
-
     def checkPython(self):
         if sys.platform.startswith('darwin'):
             if len([item for item in do.listDirsInDir("/usr/local/lib") if item.find("python3") != -1]) > 1:
@@ -294,7 +290,7 @@ class Installer():
         if self.do.TYPE.startswith("OSX"):
             pass
             # C = C.replace("$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/plat-x86_64-linux-gnu:/usr/local/lib/python3.5/site-packages:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/plat-darwin:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload")
-            C = C.replace("$pythonpath", "")
+            C = C.replace("$pythonpath", ".:$JSBASE/lib:$_OLD_PYTHONPATH")
         else:
             C = C.replace(
                 "$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu:$_OLD_PYTHONPATH")
@@ -306,14 +302,14 @@ class Installer():
         # pythonversion = '3' if os.environ.get('PYTHONVERSION') == '3' else ''
 
         C2 = \
-        """#!/bin/bash
+            """#!/bin/bash
         # set -x
         source $base/env.sh
         exec $JSBASE/bin/python3 -q "$@"
         """
 
         C2_insystem = \
-        """#!/bin/bash
+            """#!/bin/bash
         # set -x
         source $base/env.sh
         exec python3.5 -q "$@"

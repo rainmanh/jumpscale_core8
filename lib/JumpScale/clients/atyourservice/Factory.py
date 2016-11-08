@@ -1,6 +1,7 @@
 from JumpScale.clients.atyourservice.Client import Client
 from JumpScale import j
 
+
 class Factory:
 
     def __init__(self):
@@ -13,4 +14,9 @@ class Factory:
         cfg = j.data.serializer.toml.load(config_path)
         if 'redis' not in cfg:
             raise j.exceptions.Input('format of the config file not valid. Missing redis section')
-        return Client(host=cfg['redis']['host'], port=cfg['redis']['port'], unixsocket=cfg['redis']['unixsocket'])
+        if cfg.get('redis', None):
+            redis = cfg['redis']
+            return Client(host=redis.get('host', 'localhost'),
+                          port=redis.get('port', 6379),
+                          unixsocket=redis.get('unixsocket', None))
+        return Client(unixsocket=j.core.db.config_get()['unixsocket'])

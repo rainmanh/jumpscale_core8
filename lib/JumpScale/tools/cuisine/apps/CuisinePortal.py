@@ -24,9 +24,9 @@ class CuisinePortal(base):
         """
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
         self._cuisine.bash.environSet("LANG", "C.UTF-8")
-        # self._cuisine.development.pip.packageUpgrade("pip")
-        # self.installDeps()
-        # self.getcode(branch=branch)
+
+        self.installDeps()
+        self.getcode(branch=branch)
         self.linkCode()
         self.ays_prepare(redis_ip=redis_ip, redis_port=redis_port)
         self.serviceWriteConfig(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip,

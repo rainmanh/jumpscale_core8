@@ -257,7 +257,7 @@ class CuisineCore(base):
                 res["codeDir"] = "/opt/code"
                 res["optDir"] = "/opt"
                 res["varDir"] = "/optvar"
-                
+
             res["appDir"] = "%s/apps" % res["base"]
             res['tmplsDir'] = "%s/templates" % res["base"]
             res["binDir"] = "%s/bin" % res["base"]
@@ -1054,9 +1054,17 @@ class CuisineCore(base):
         #     path += [old_path] if old_path else []
         #     path += env.get("PATH", [])
         #     env = {"PATH": ":".join(path)}
+
         rc, out, err = self._executor.execute(cmd, checkok=checkok, die=False, showout=showout, env=env)
 
         out = self._clean(out)
+
+        if rc > 0 and "brew unlink" in out and "To install this version" in out:
+            from IPython import embed
+            print("DEBUG NOW brew unlink")
+            embed()
+            raise RuntimeError("stop debug here")
+            self._executor.execute("brew unlink ", checkok=checkok, die=False, showout=showout, env=env)
 
         # If command fails and die is true, raise error
         if rc and die:

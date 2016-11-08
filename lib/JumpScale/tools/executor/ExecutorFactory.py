@@ -98,7 +98,8 @@ class ExecutorFactory:
                                                allow_agent=allow_agent,
                                                look_for_keys=look_for_keys,
                                                timeout=timeout,
-                                               key_filename=key_filename)
+                                               key_filename=key_filename,
+                                               passphrase=passphrase)
         return self._executors[key]
 
     def getJSAgentBased(self, agentControllerClientKey, debug=False, checkok=False):

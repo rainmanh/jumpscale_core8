@@ -195,17 +195,15 @@ class SSHClient:
                 j.tools.console.hideOutput()
                 try:
                     self._client = paramiko.SSHClient()
-                    self._client.set_missing_host_key_policy(
-                        paramiko.AutoAddPolicy())
+                    self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
                     self.pkey = None
                     if self.key_filename:
                         # self.allow_agent = False
                         self.look_for_keys = False
-                        self.pkey = paramiko.RSAKey.from_private_key_file(
-                            self.key_filename, password=self.passphrase)
+                        self.pkey = paramiko.RSAKey.from_private_key_file(self.key_filename, password=self.passphrase)
                         if not j.do.checkSSHAgentAvailable():
                             j.do._loadSSHAgent()
-                        if not j.do.getSSHKeyPathFromAgent(self.key_filename, die=False):
+                        if not j.do.getSSHKeyPathFromAgent(self.key_filename, die=False) and not self.passphrase:
                             j.do.loadSSHKeys(self.key_filename)
                     self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,
                                          pkey=self.pkey, allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,

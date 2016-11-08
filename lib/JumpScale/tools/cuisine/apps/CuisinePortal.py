@@ -204,7 +204,6 @@ class CuisinePortal(base):
         self._cuisine.core.dir_ensure(self.portal_dir)
 
         CODE_DIR = self._cuisine.core.dir_paths["codeDir"]
-        self._cuisine.core.dir_ensure("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % CODE_DIR)
         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/jslib" % CODE_DIR,
                                      '%s/jslib' % self.portal_dir)
         self._cuisine.core.dir_ensure(j.sal.fs.joinPaths(self.portal_dir, 'portalbase'))
@@ -271,11 +270,11 @@ class CuisinePortal(base):
         passwd : if not None, change the admin password to passwd after start
         """
 
-        dest_dir = j.sal.fs.joinPaths(self._cuisine.core.dir_paths['appDir'])
+        dest_dir = j.sal.fs.joinPaths(self._cuisine.core.dir_paths['varDir'], 'cfg')
         cfg_path = j.sal.fs.joinPaths(dest_dir, 'portals/main/config.hrd')
         app_dir = j.sal.fs.joinPaths(dest_dir, 'portals/portalbase')
 
-        self._cuisine.core.file_copy(self.portal_dir, dest_dir, recursive=True, overwrite=True)
+        self._cuisine.core.file_copy(self.cfg, dest_dir, recursive=True, overwrite=True)
 
         content = self._cuisine.core.file_read(cfg_path)
         hrd = j.data.hrd.get(content=content, prefixWithName=False)

@@ -44,7 +44,7 @@ class JSCuisine:
         self._tmux = None
         self._cuisine = self
         self._fqn = ""
-        self._builder = None
+        # self._builder = None
 
         self._apps = None
         self._development = None
@@ -124,11 +124,11 @@ class JSCuisine:
             self._tmux = CuisineTmux(self._executor, self)
         return self._tmux
 
-    @property
-    def builder(self):
-        if self._builder is None:
-            self._builder = CuisineBuilder(self._executor, self)
-        return self._builder
+    # @property
+    # def builder(self):
+    #     if self._builder is None:
+    #         self._builder = CuisineBuilder(self._executor, self)
+    #     return self._builder
 
     @property
     def id(self):

@@ -43,6 +43,7 @@ function osx_install {
         brew install curl
         brew install python3
         brew install git
+        brew install libtiff libjpeg webp little-cms2
     fi
 }
 
@@ -57,6 +58,7 @@ function pip_install {
         pip3 install --upgrade asyncio
         pip3 install --upgrade uvloop
         pip3 install --upgrade ipython
+        pip3 install --upgrade snappy
     fi
 }
 
@@ -80,6 +82,7 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
         apt-get install python3-dev -y
         apt-get install build-essential -y
         apt-get install libffi-dev -y
+        apt-get install libsnappy-dev libsnappy1v5 -y
         rm -f /usr/bin/python
         rm -f /usr/bin/python3
         ln -s /usr/bin/python3.5 /usr/bin/python

@@ -270,8 +270,8 @@ class CuisinePortal(base):
         # self._cuisine.core.file_copy(self.cfg, dest_dir, recursive=True, overwrite=True)
 
         cmd = "jspython portal_start.py"
-
-        self._cuisine.processmanager.ensure('portal', cmd=cmd, path=self.main_portal_dir)
+        pm = self._cuisine.processmanager.get("tmux")
+        pm.ensure('portal', cmd=cmd, path=j.sal.fs.joinPaths(self.portal_dir, 'main'))
 
         if passwd is not None:
             self.set_admin_password(passwd)

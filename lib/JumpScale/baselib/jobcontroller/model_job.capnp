@@ -161,4 +161,6 @@ struct Run {
     }
 
     lastModDate @4: UInt32;
+
+    logs @5:List(Text);
 }

@@ -42,6 +42,14 @@ class RunModel(ModelBase):
 
         return job
 
+    def logNew(self, msg, **kwargs):
+        olditems = [item.to_dict() for item in self.dbobj.logs]
+        newlist = self.dbobj.init("logs", len(olditems) + 1)
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        newlist[-1] = msg
+        return
+
     def objectGet(self):
         return Run(model=self)
 

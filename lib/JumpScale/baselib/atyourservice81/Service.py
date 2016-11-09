@@ -494,9 +494,8 @@ class Service:
         if 'processChange' in self.model.actions.keys():
             args.update({'changeCategory': changeCategory})
             job = self.getJob("processChange", args=args)
-            args = job.executeInProcess(service=self)
+            args = job.executeInProcess()
             job.model.save()
-            # self.runAction('processChange', args={'changeCategory': changeCategory})
 
         self.model.save()
 
@@ -574,9 +573,15 @@ class Service:
         res = eval(action)(service=self, args=args)
         return res
 
-    def executeActionJob(self, actionName, args={}):
+    def executeActionJob(self, actionName, args={}, inprocess=False):
         self.logger.debug('execute action %s on %s' % (actionName, self))
         job = self.getJob(actionName=actionName, args=args)
+
+        # inprocess means we don't want to create subprocesses for this job
+        # used mainly for action called from other actions.
+        if inprocess:
+            job.model.dbobj.debug = True
+
         now = j.data.time.epoch
         p = job.execute()
 

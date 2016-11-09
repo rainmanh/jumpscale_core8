@@ -59,11 +59,16 @@ class RunsCollection:
                     res1.append(key)
         return res1
 
-    def find(self, state="", fromEpoch=0, toEpoch=9999999999999):
+    def find(self, state="", repo="", fromEpoch=0, toEpoch=9999999999999):
         res = []
         for key in self._list_keys(state, fromEpoch, toEpoch):
+            if repo:
+                model = self.get(key)
+                if model.dbobj.repo != repo:
+                    continue
             res.append(self.get(key))
         return res
+
     def destroy(self):
         self._db.destroy()
         self._index.destroy()

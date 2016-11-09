@@ -163,4 +163,7 @@ struct Run {
     lastModDate @4: UInt32;
 
     logs @5:List(Text);
+
+    #key of repo where run is created
+    repo @6 :Text;
 }

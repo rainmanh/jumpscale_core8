@@ -378,7 +378,8 @@ class AtYourServiceRepo():
         """
         list Runs on repo
         """
-        runs = j.core.jobcontroller.db.runs.find()
+        runs = j.core.jobcontroller.db.runs.find(repo=self.model.key)
+
         return runs
 
     def findScheduledActions(self):
@@ -402,7 +403,7 @@ class AtYourServiceRepo():
         """
         all_nodes = build_nodes(self)
         nodes = create_graphs(self, all_nodes)
-        run = j.core.jobcontroller.newRun()
+        run = j.core.jobcontroller.newRun(repo=self.model.key)
 
         for bundle in get_task_batches(nodes):
             to_add = []

@@ -125,11 +125,12 @@ class JobController:
         run0 = Run(model=model)
         return run0
 
-    def newRun(self, simulate=False):
+    def newRun(self, repo, simulate=False):
         model = self.db.runs.new()
         run = Run(model=model)
         run.model.dbobj.lastModDate = j.data.time.getTimeEpoch()
         run.state = 'new'
+        run.model.dbobj.repo = repo
         return run
 
     def getActionObjFromMethod(self, method):

@@ -58,7 +58,7 @@ function pip_install {
         pip3 install --upgrade asyncio
         pip3 install --upgrade uvloop
         pip3 install --upgrade ipython
-        pip3 install --upgrade snappy
+        pip3 install --upgrade python-snappy
     fi
 }
 

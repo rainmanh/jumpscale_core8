@@ -111,7 +111,6 @@ class RunStep:
                 service_action_obj.state = 'error'
                 # processError creates the logs entry in job object
                 job._processError(process.error)
-                self.run.model.logNew(process.error)
             else:
                 self.state = 'ok'
                 job.model.dbobj.state = 'ok'

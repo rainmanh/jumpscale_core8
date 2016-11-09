@@ -42,13 +42,18 @@ class RunModel(ModelBase):
 
         return job
 
-    def logNew(self, msg, **kwargs):
-        olditems = [item.to_dict() for item in self.dbobj.logs]
-        newlist = self.dbobj.init("logs", len(olditems) + 1)
-        for i, item in enumerate(olditems):
-            newlist[i] = item
-        newlist[-1] = msg
-        return
+    @property
+    def logs(self):
+        logs = list()
+        steps = [item.to_dict() for item in self.dbobj.steps]
+        steps_with_errors = [step for step in steps if step['state'] == 'error']
+        jobs = [job for step in steps_with_errors for job in step['jobs']]
+        for job in jobs:
+            job_model = j.core.jobcontroller.db.jobs.get(job['key'])
+            logs.extend(job_model.dictFiltered['logs'])
+
+        return logs
+
 
     def objectGet(self):
         return Run(model=self)

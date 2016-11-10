@@ -10,48 +10,53 @@ class CuisinePortal(base):
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
+        self._config = None
         self.portal_dir = j.sal.fs.joinPaths(self._cuisine.core.dir_paths["appDir"], "portals/")
         self.main_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'main')
         self._cuisine.core.dir_ensure(self.main_portal_dir)
         self.cfg_path = j.sal.fs.joinPaths(self.main_portal_dir, 'config.hrd')
 
-    def _install(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1",
-                 influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd="", branch='master', redis_ip="127.0.0.1", redis_port=6379):
+    def configure(self, mongodbip="127.0.0.1", mongoport=27017,influxip="127.0.0.1",
+                  influxport=8086,grafanaip="127.0.0.1", grafanaport=3000):
+
+        # go from template dir which go the file above
+        content = self._cuisine.core.file_read('$tmplsDir/cfg/portal/config.hrd')
+
+        hrd = j.data.hrd.get(content=content, prefixWithName=False)
+
+        # ITS ALREADY THE DEFAULT IN THE CONFIG DIR
+        # hrd.set('param.cfg.appdir', j.sal.fs.joinPaths(self.portal_dir, 'portalbase'))
+
+        hrd.set('param.mongoengine.connection', {'host': mongodbip, 'port': mongoport})
+        hrd.set('param.cfg.influx', {'host': influxip, 'port': influxport})
+        hrd.set('param.cfg.grafana', {'host': grafanaip, 'port': grafanaport})
+
+        if "darwin" in self._cuisine.platformtype.osname:
+            hrd.set('param.cfg.port', '8200')
+        self._config = hrd
+
+
+
+    def install(self, start=True, installdeps=True, branch='master'):
         """
         grafanaip and port should be the external ip of the machine
         Portal install will only install the portal and libs. No spaces but the system ones will be add by default.
         To add spaces and actors, please use addSpace and addactor
         """
+        #set encoding to utf-8
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
         self._cuisine.bash.environSet("LANG", "C.UTF-8")
 
-        self.installDeps()
+        #install the dependencies if required
+        if installdeps:
+            self.installDeps()
+
+        #pull repo with required branch ; then link dirs and files in required places
         self.getcode(branch=branch)
         self.linkCode()
-        self.ays_prepare(redis_ip=redis_ip, redis_port=redis_port)
-        self.serviceWriteConfig(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip,
-                                influxport=influxport, grafanaip=grafanaip, grafanaport=grafanaport)
 
-    def install(self, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086,
-                grafanaip="127.0.0.1", grafanaport=3000, login="", passwd="", redis_ip="127.0.0.1", redis_port=6379, branch='master'):
-        self._install(mongodbip=mongodbip,
-                      mongoport=mongoport,
-                      influxip=influxip,
-                      influxport=influxport,
-                      grafanaip=grafanaip,
-                      grafanaport=grafanaport,
-                      login=login,
-                      passwd=passwd,
-                      redis_ip=redis_ip,
-                      redis_port=redis_port,
-                      branch=branch)
         if start:
             self.start()
-
-    def ays_prepare(self, redis_ip="127.0.0.1", redis_port=6379):
-        # Linking ays81 portal
-        self._cuisine.core.file_link(source='$codeDir/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81',
-                                     destination='$appDir/portals/main/base/AYS81')
 
     def installDeps(self):
         """
@@ -192,8 +197,6 @@ class CuisinePortal(base):
         if self._cuisine.core.file_exists(destjslib):
             self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths["codeDir"],
                                          "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
-        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths["codeDir"],
-                                     "%s/portal" % self._cuisine.core.dir_paths['jsLibDir'])
 
         self._cuisine.core.run("js --quiet 'j.application.reload()'", showout=False, die=False)
 
@@ -228,6 +231,10 @@ class CuisinePortal(base):
                                      self.main_portal_dir)
         self._cuisine.core.file_copy("%s/jslib/old/images" % self.portal_dir,
                                      "%s/jslib/old/elfinder" % self.portal_dir, recursive=True)
+        #link for ays
+        self._cuisine.core.file_link(source='$codeDir/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81',
+                                     destination='$appDir/portals/main/base/AYS81')
+
 
     def addSpace(self, spacepath):
         spacename = j.sal.fs.getBaseName(spacepath)
@@ -241,37 +248,27 @@ class CuisinePortal(base):
             'appDir'], 'portals', 'main', 'base', actorname)
         self._cuisine.core.file_link(actorpath, dest_dir)
 
-    def serviceWriteConfig(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1",
-                           influxport=8086, grafanaip="127.0.0.1", grafanaport=3000):
 
-        # go from template dir which go the file above
-        content = self._cuisine.core.file_read('$tmplsDir/cfg/portal/config.hrd')
-
-        hrd = j.data.hrd.get(content=content, prefixWithName=False)
-
-        # ITS ALREADY THE DEFAULT IN THE CONFIG DIR
-        # hrd.set('param.cfg.appdir', j.sal.fs.joinPaths(self.portal_dir, 'portalbase'))
-
-        hrd.set('param.mongoengine.connection', {'host': mongodbip, 'port': mongoport})
-        hrd.set('param.cfg.influx', {'host': influxip, 'port': influxport})
-        hrd.set('param.cfg.grafana', {'host': grafanaip, 'port': grafanaport})
-
-        if "darwin" in self._cuisine.platformtype.osname:
-            hrd.set('param.cfg.port', '8200')
-
-        self._cuisine.core.file_write(self.cfg_path, str(hrd), replaceArgs=True)
+    def serviceconnect(self, hrd):
+        dest_cfg = j.sal.fs.joinPaths(self._cuisine.core.dir_paths['varDir'],
+                                      'cfg', "portals", "main", "config.hrd")
+        self._cuisine.core.file_write(dest_cfg, str(hrd))
 
     def start(self, passwd=None):
         """
         Start the portal
         passwd : if not None, change the admin password to passwd after start
         """
+        dest_dir = j.sal.fs.joinPaths(self._cuisine.core.dir_paths['varDir'], 'cfg', 'portals', 'main')
+        self._cuisine.core.dir_ensure(dest_dir)
 
-        # self._cuisine.core.file_copy(self.cfg, dest_dir, recursive=True, overwrite=True)
+        if not self._config:
+            self.configure()
 
+        self.serviceconnect(self._config)
         cmd = "jspython portal_start.py"
-
-        self._cuisine.processmanager.ensure('portal', cmd=cmd, path=self.main_portal_dir)
+        pm = self._cuisine.processmanager.get("tmux")
+        pm.ensure('portal', cmd=cmd, path=j.sal.fs.joinPaths(self.portal_dir, 'main'))
 
         if passwd is not None:
             self.set_admin_password(passwd)

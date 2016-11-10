@@ -9,8 +9,8 @@ class SerializerYAML(SerializerBase):
     def __init__(self):
         self.__jslocation__ = "j.data.serializer.yaml"
 
-    def dumps(self, obj):
-        return yaml.dump(obj)
+    def dumps(self, obj, default_flow_style=False):
+        return yaml.dump(obj, default_flow_style=default_flow_style)
 
     def loads(self, s):
         # out=cStringIO.StringIO(s)

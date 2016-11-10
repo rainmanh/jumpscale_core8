@@ -101,8 +101,10 @@ class CuisineSystemd(ProcessManagerBase):
             cmd = cmd.replace(cmd0, cmd1)
 
         envstr = ""
+        env.update(self._cuisine.bash.environ)
         for name0, value in list(env.items()):
-            envstr += "%s=%s " % (name0, value)
+            if value:
+                envstr += "%s='%s'" % (name0, value)
 
         cmd = self._cuisine.core._clean(cmd)
 

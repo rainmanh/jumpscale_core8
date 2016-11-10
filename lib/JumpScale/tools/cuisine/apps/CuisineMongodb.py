@@ -62,7 +62,8 @@ class CuisineMongodb(app):
         self._cuisine.core.dir_ensure('$varDir/data/%s' % name)
         cmd = "%s --dbpath $varDir/data/%s" % (which, name)
         # self._cuisine.process.kill("mongod")
-        self._cuisine.processmanager.ensure(name, cmd=cmd, env={}, path="")
+        pm = self._cuisine.processmanager.get("tmux")
+        pm.ensure(name, cmd=cmd, env={}, path="")
 
     def stop(self, name='mongod'):
         self._cuisine.processmanager.stop(name)

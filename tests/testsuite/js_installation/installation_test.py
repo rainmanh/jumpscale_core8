@@ -1,5 +1,6 @@
 from tests.utils.utils import BaseTest
 from ast import literal_eval
+import time
 
 class InstallationTests(BaseTest):
 
@@ -34,9 +35,10 @@ class InstallationTests(BaseTest):
         self.run_cmd_via_subprocess('docker pull kheirj/ssh-docker:V3')
 
         self.lg('Create a container to install JumpScale on it')
-        #self.run_cmd_via_subprocess('docker run -d -t -i --name=js --hostname=js kheirj/ssh-docker:V3')
+        self.run_cmd_via_subprocess('docker run -d -t -i --name=js --hostname=js kheirj/ssh-docker:V3')
 
-        self.lg('update the docker and install jumpscale8')
+        self.lg('Update the docker and install jumpscale8')
+        time.sleep(5)
         self.execute_command_on_docker('js', 'apt-get update')
         self.execute_command_on_docker('js', 'echo Y | apt-get install curl')
         self.execute_command_on_docker('js', 'curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/'
@@ -46,6 +48,7 @@ class InstallationTests(BaseTest):
         self.execute_command_on_docker('js', 'bash install.sh')
 
         # Validation steps
+        time.sleep(50)
         self.lg('Check if js is working, should succeed')
         response = self.execute_command_on_docker('js', 'js "print(j.sal.fs.getcwd())"')
         self.assertEqual(response, '/\n')

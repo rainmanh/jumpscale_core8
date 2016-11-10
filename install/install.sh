@@ -6,17 +6,17 @@ export STARTDIR=$PWD
 if [ -d "/JS8" ]; then
     export JSBASE="/JS8/opt/jumpscale8"
     export TMPDIR="/JS8/tmp"
-    export CFGDIR="/JS8/optvar/cfg/jumpscale/"
+    export CFGDIR="/JS8/optvar/cfg/"
     mkdir -p $JSBASE
 else
     if [ "$(uname)" == "Darwin" ]; then
         export TMPDIR="$HOME/tmp"
         export JSBASE="$HOME/opt/jumpscale8"
-        export CFGDIR="$HOME/optvar/cfg/jumpscale/"
+        export CFGDIR="$HOME/optvar/cfg/"
     else
         export TMPDIR="/tmp"
         export JSBASE="/opt/jumpscale8"
-        export CFGDIR="/optvar/cfg/jumpscale/"
+        export CFGDIR="/optvar/cfg/"
     fi
 fi
 

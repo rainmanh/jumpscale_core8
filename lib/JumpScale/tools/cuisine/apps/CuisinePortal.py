@@ -33,9 +33,8 @@ class CuisinePortal(base):
 
         if "darwin" in self._cuisine.platformtype.osname:
             hrd.set('param.cfg.port', '8200')
-
         self._config = hrd
-        return dest_cfg, tmp
+
 
 
     def install(self, start=True, installdeps=True, branch='master'):
@@ -250,12 +249,9 @@ class CuisinePortal(base):
         self._cuisine.core.file_link(actorpath, dest_dir)
 
 
-    def serviceconnect(self, hrd, dest_cfg=None, tmp=None):
-        if not dest_cfg:
-            dest_cfg = j.sal.fs.joinPaths(self._cuisine.core.dir_paths['varDir'],
-                                          'cfg', "portals", "main", "config.hrd")
-        if tmp:
-            j.sal.fs.remove(tmp)
+    def serviceconnect(self, hrd):
+        dest_cfg = j.sal.fs.joinPaths(self._cuisine.core.dir_paths['varDir'],
+                                      'cfg', "portals", "main", "config.hrd")
         self._cuisine.core.file_write(dest_cfg, str(hrd))
 
     def start(self, passwd=None):
@@ -267,8 +263,9 @@ class CuisinePortal(base):
         self._cuisine.core.dir_ensure(dest_dir)
 
         if not self._config:
-            _, tmp = self.configure()
-            self.serviceconnect(self._config, tmp=tmp)
+            self.configure()
+
+        self.serviceconnect(self._config)
         cmd = "jspython portal_start.py"
         pm = self._cuisine.processmanager.get("tmux")
         pm.ensure('portal', cmd=cmd, path=j.sal.fs.joinPaths(self.portal_dir, 'main'))

@@ -29,7 +29,7 @@ class CuisineCockpit(base):
 
         deps = """
         cryptography
-        pyjwt
+        python-jose
         wtforms_json
         flask_wtf
         python-telegram-bot

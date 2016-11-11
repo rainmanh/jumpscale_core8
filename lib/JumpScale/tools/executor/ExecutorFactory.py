@@ -89,7 +89,6 @@ class ExecutorFactory:
         """
         key = '%s:%s:%s' % (addr, port, login)
         if key not in self._executors or usecache is False:
-            print("ssh no cache")
             self._executors[key] = ExecutorSSH(addr=addr,
                                                port=port,
                                                login=login,

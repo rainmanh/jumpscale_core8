@@ -497,8 +497,6 @@ class Service:
             args = job.executeInProcess()
             job.model.save()
 
-        self.model.save()
-
     def input(self, args={}):
         job = self.getJob("input", args=args)
         job._service = self

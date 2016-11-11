@@ -65,6 +65,8 @@ class ModelBase():
     def save(self):
         self._pre_save()
         buff = self.dbobj.to_bytes()
+        if hasattr(self.dbobj, 'clear_write_flag'):
+            self.dbobj.clear_write_flag()
         self._db.set(self.key, buff)
         self.index()
 

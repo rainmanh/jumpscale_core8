@@ -589,11 +589,12 @@ class Service:
             return job
 
         while not p.isDone():
+            time.sleep(0.5)
             p.sync()
             if p.new_stdout != "":
                 self.logger.info(p.new_stdout)
-            time.sleep(0.5)
 
+        # just to make sure process is cleared
         p.wait()
 
         # if the action is a reccuring action, save last execution time in model
@@ -607,6 +608,9 @@ class Service:
             service_action_obj.state = 'error'
             # processError creates the logs entry in job object
             job._processError(p.error)
+            # print error
+            log = job.model.dbobj.logs[-1]
+            print(job.str_error(log.log))
         else:
             job.model.dbobj.state = 'ok'
             service_action_obj.state = 'ok'
@@ -615,13 +619,11 @@ class Service:
             if log_enable:
                 job.model.log(msg=p.stdout, level=5, category='out')
                 job.model.log(msg=p.stderr, level=5, category='err')
-
-            if p.stdout != '':
-                print(p.stdout)
+            self.logger.info("job {} done sucessfuly".format(str(job)))
 
         job.model.save()
         job.service.saveAll()
-        self.logger.debug('end execute action %s on %s' % (actionName, self))
+
         return job
 
     def getJob(self, actionName, args={}):

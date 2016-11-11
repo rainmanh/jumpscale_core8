@@ -78,25 +78,23 @@ class RunStep:
 
                 if not process.isDone():
                     all_done = False
+                    time.sleep(0.5)
                     process.sync()
+
                     if process.new_stdout != "":
                         if last_output != job.model.key:
                             self.logger.info("stdout of %s" % job)
                         self.logger.info(process.new_stdout)
                         last_output = job.model.key
-                    # some jobs are still running
-                    time.sleep(0.5)
-                    continue
-                # if we reach this point, all jobs are done
-                all_done = True
 
         # save state of jobs, process logs and errors
-        self.logger.debug("all jobs should be done. process results")
         for job, process_info in processes.items():
             process = process_info['process']
             action_name = job.model.dbobj.actionName
 
             while not process.isDone():
+                self.logger.debug('wait for {}'.format(str(job)))
+                # just to make sure process is cleared
                 process.wait()
 
             # if the action is a reccuring action, save last execution time in model
@@ -120,8 +118,7 @@ class RunStep:
                 if log_enable:
                     job.model.log(msg=process.stdout, level=5, category='out')
                     job.model.log(msg=process.stderr, level=5, category='err')
-
-                print(process.stdout)
+                self.logger.info("job {} done sucessfuly".format(str(job)))
 
             job.save()
 
@@ -227,18 +224,26 @@ class Run:
         self.model.save()
 
     def execute(self):
+        """
+        Execute executes all the steps contained in this run
+        if a step finishes with an error state. print the error of all jobs in the step that has error states then raise any
+        exeception to stop execution
+        """
         self.state = 'running'
         try:
             for step in self.steps:
+
                 step.execute()
+
                 if step.state == 'error':
                     self.state = 'error'
+
                     for job in step.jobs:
                         if job.model.state == 'error':
                             log = job.model.dbobj.logs[-1]
-                            job.str_error(log.log)
-                    raise j.exceptions.RuntimeError(
-                        "Error during execution of step %d\n See stacktrace above to identify the issue" % step.dbobj.number)
+                            print(job.str_error(log.log))
+
+                    raise j.exceptions.RuntimeError("Error during execution of step %d\n See stacktrace above to identify the issue" % step.dbobj.number)
 
             self.state = 'ok'
         finally:

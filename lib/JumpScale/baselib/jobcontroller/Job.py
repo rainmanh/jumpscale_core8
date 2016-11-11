@@ -102,10 +102,7 @@ class Job():
                 category = 'errormsg'
                 msg = eco['errormessage']
             else:
-                # TODO
-                print("error message empty")
-                import ipdb
-                ipdb.set_trace()
+                raise j.exceptions.RuntimeError("error message empty, can't process error")
 
             level = int(eco['level'])
             tags = eco['tags']
@@ -119,15 +116,11 @@ class Job():
                 category = 'errormsg'
                 msg = eco.errormessage
             else:
-                # TODO
-                print("error message empty")
-                import ipdb
-                ipdb.set_trace()
+                raise j.exceptions.RuntimeError("error message empty, can't process error")
 
             level = eco.level
             tags = eco.tags
 
-        print(msg)
         self.model.log(
             msg=msg,
             level=level,
@@ -178,6 +171,8 @@ class Job():
             self.model.dbobj.state = 'error'
             eco = j.errorconditionhandler.processPythonExceptionObject(e)
             self._processError(eco)
+            log = self.model.dbobj.logs[-1]
+            print(self.str_error(log.log))
             raise j.exceptions.RuntimeError("could not execute job:%s" % self)
 
         finally:
@@ -217,14 +212,11 @@ class Job():
 
         if error.__str__() != "":
             out += "\n*TRACEBACK*********************************************************************************\n"
-            # self.logger.error("\n*TRACEBACK*********************************************************************************\n")
 
             lexer = pygments.lexers.get_lexer_by_name("pytb", stripall=True)
             tb_colored = pygments.highlight(error.__str__(), lexer, formatter)
-            print(tb_colored)
             out += tb_colored
 
-        # self.logger.error("\n\n******************************************************************************************\n")
         out += "\n\n******************************************************************************************\n"
         return out
 

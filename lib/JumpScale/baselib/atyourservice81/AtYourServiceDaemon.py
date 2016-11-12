@@ -14,10 +14,13 @@ def run_action(repo_path, service_key, action_name, args=None):
         args = {}
 
     repo = j.atyourservice.repoGet(repo_path)
-    service = repo.db.service.get(service_key).objectGet(repo)
+    service = repo.db.services.get(service_key).objectGet(repo)
 
     job = service.getJob(action_name, args=args)
     job.executeInProcess()
+
+    service.model.actions[action_name].lastRun = j.data.time.epoch
+    service.saveAll()
 
 
 def do_run(run_key, callback=None):
@@ -207,12 +210,11 @@ class RecurringLoop(Thread):
                     if len(service.model.actionsRecurring) <= 0:
                         continue
 
+                    now = j.data.time.epoch
                     for action_name, recurring_obj in service.model.actionsRecurring.items():
 
-                        now = j.data.time.epoch
                         if recurring_obj.lastRun == 0 or now > (recurring_obj.lastRun + recurring_obj.period):
-                            recurring_obj.lastRun = now
-                            service.save()
+
                             self.logger.info('recurring job for %s' % service)
 
                             try:

@@ -21,6 +21,8 @@ class CuisineRedis(app):
             self._cuisine.package.update()
             self._cuisine.package.install("build-essential")
 
+            self._cuisine.core.dir_remove("$tmpDir/build/redis")
+
             C = """
             #!/bin/bash
             set -ex

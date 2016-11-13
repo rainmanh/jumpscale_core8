@@ -53,7 +53,7 @@ class Dirs:
 
     def init(self):
         self.appDir = self.normalize(j.sal.fs.joinPaths(self.base, "apps"))
-        self.varDir = self.normalize(j.do.DATADIR)
+        self.varDir = self.normalize(j.do.VARDIR)
         self.tmplsDir = self.normalize(j.sal.fs.joinPaths(self.varDir, "templates"))
         self.cfgDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("CFGDIR"))
         self.libDir = j.sal.fs.joinPaths(self.base, 'lib')

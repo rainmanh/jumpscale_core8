@@ -179,7 +179,7 @@ class Installer():
         config = {}
         for category, items in {"identity": ["EMAIL", "FULLNAME", "GITHUBUSER"],
                                 "system": ["AYSBRANCH", "JSBRANCH", "DEBUG", "SANDBOX"],
-                                "dirs": ["JSBASE", "TMPDIR", "DATADIR", "CODEDIR", "CFGDIR"]}.items():
+                                "dirs": ["JSBASE", "TMPDIR", "VARDIR", "DATADIR", "CODEDIR", "CFGDIR"]}.items():
             config[category] = {}
             for item in items:
 
@@ -560,6 +560,10 @@ class InstallTools():
     def DATADIR(self):
         return self.config["dirs"]["DATADIR"]
 
+    @property
+    def VARDIR(self):
+        return self.config["dirs"]["VARDIR"]
+
     @debug.setter
     def debug(self, value):
         if not isinstance(value, bool):
@@ -612,6 +616,7 @@ class InstallTools():
             if not "HOME" in os.environ:
                 raise RuntimeError()
             os.environ["TMPDIR"] = "%s/js/tmp" % os.environ["JSBASE"]
+            os.environ["VARDIR"] = "%s/js/optvar/" % os.environ["JSBASE"]
             os.environ["DATADIR"] = "%s/js/data" % os.environ["JSBASE"]
             os.environ["CODEDIR"] = "%s/js/code" % os.environ["JSBASE"]
             os.environ["CFGDIR"] = "%s/js/cfg" % os.environ["JSBASE"]
@@ -621,6 +626,7 @@ class InstallTools():
         elif self.exists("/JS8"):
             os.environ["JSBASE"] = "/JS8/opt/jumpscale8/"
             os.environ["TMPDIR"] = "/JS8/tmp"
+            os.environ["VARDIR"] = "/JS8/optvar/"
             os.environ["DATADIR"] = "/JS8/optvar/data/"
             os.environ["CODEDIR"] = "/JS8/code"
             os.environ["CFGDIR"] = "/JS8/optvar/cfg/"
@@ -637,6 +643,8 @@ class InstallTools():
                 self.TYPE = "WIN"
             if "JSBASE" not in os.environ:
                 os.environ["JSBASE"] = "%s/opt/jumpscale8" % os.environ["HOME"]
+            if "VARDIR" not in os.environ:
+                os.environ["VARDIR"] = "%s/optvar" % os.environ["HOME"]
             if "DATADIR" not in os.environ:
                 os.environ["DATADIR"] = "%s/optvar/data" % os.environ["HOME"]
             if "CODEDIR" not in os.environ:
@@ -648,6 +656,8 @@ class InstallTools():
             self.TYPE = "LINUX"
             if "JSBASE" not in os.environ:
                 os.environ["JSBASE"] = "/opt/jumpscale8"
+            if "VARDIR" not in os.environ:
+                os.environ["VARDIR"] = "/optvar/"
             if "DATADIR" not in os.environ:
                 os.environ["DATADIR"] = "/optvar/data"
             if "CFGDIR" not in os.environ:
@@ -693,7 +703,7 @@ class InstallTools():
     #     #TODO: not working yet
 
     def initCreateDirs4System(self):
-        for item in ["JSBASE", "HOME", "TMPDIR", "DATADIR", "CODEDIR", "CFGDIR"]:
+        for item in ["JSBASE", "HOME", "TMPDIR", "VARDIR", "DATADIR", "CODEDIR", "CFGDIR"]:
             path = os.environ[item]
             self.createDir(path)
 

@@ -85,15 +85,17 @@ class CuisinePackage(base):
                 package = "extra/python"
 
             # ignore
-            if package in ["libpython3.5-dev", "libffi-dev", "build-essential", "libpq-dev", "libsqlite3-dev"]:
-                return
+            for unsupported in ["libpython3.5-dev", "libffi-dev", "build-essential", "libpq-dev", "libsqlite3-dev"]:
+                if unsupported in package:
+                    return
 
             cmd = "pacman -S %s  --noconfirm" % package
 
         elif self._cuisine.core.isMac:
-            if package in ["libpython3.4-dev", "python3.4-dev", "libpython3.5-dev", "python3.5-dev",
-                           "libffi-dev", "make", "build-essential", "libpq-dev", "libsqlite3-dev"]:
-                return
+            for unsupported in ["libpython3.4-dev", "python3.4-dev", "libpython3.5-dev", "python3.5-dev",
+                                "libffi-dev", "make", "build-essential", "libpq-dev", "libsqlite3-dev"]:
+                if unsupported in package:
+                    return
 
             _, installed, _ = self._cuisine.core.run("brew list")
             if package in installed:

@@ -55,7 +55,6 @@ function pip_install {
         curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python3 get-pip.py
         pip3 install --upgrade pip setuptools
         pip3 install --upgrade pyyaml
-        pip3 install --upgrade asyncio
         pip3 install --upgrade uvloop
         pip3 install --upgrade ipython
         pip3 install --upgrade python-snappy

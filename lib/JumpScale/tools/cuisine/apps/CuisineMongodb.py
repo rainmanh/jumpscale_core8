@@ -28,12 +28,7 @@ class CuisineMongodb(app):
             elif self._cuisine.core.isMac:  # TODO: better platform mgmt
                 url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
             else:
-                from IPython import embed
-                print("DEBUG NOW sds")
-                embed()
-                raise RuntimeError("stop debug here")
-                raise RuntimeError("unsupported platform")
-                return
+                raise j.exceptions.RuntimeError("unsupported platform")
 
             if url:
                 print('Downloading mongodb.')

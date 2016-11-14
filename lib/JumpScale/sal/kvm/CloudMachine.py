@@ -8,7 +8,7 @@ class CloudMachine(Machine):
     """
 
     def __init__(self, controller, name, os, disks, nics, memory,
-                 cpucount, poolname='vms', uuid=None, cloud_init=False):
+                 cpucount, poolname='vms', cloud_init=False):
         """
         Machine object instance.
 
@@ -33,7 +33,7 @@ class CloudMachine(Machine):
         else:
             new_disks = []
 
-        super().__init__(controller, name, new_disks, new_nics, memory, cpucount, uuid=uuid, cloud_init=cloud_init)
+        super().__init__(controller, name, new_disks, new_nics, memory, cpucount, cloud_init=cloud_init)
 
     @classmethod
     def from_xml(cls, controller, xml):

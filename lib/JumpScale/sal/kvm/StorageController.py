@@ -2,7 +2,7 @@ from JumpScale import j
 from BaseKVMComponent import BaseKVMComponent
 
 
-class Storage(BaseKVMComponent):
+class StorageController(BaseKVMComponent):
 
     def __init__(self, controller):
         self.controller = controller

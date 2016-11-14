@@ -3,7 +3,7 @@ from Network import Network
 from Interface import Interface
 from Disk import Disk
 from Pool import Pool
-from Storage import Storage
+from StorageController import StorageController
 from KVMController import KVMController
 from Machine import Machine
 from CloudMachine import CloudMachine
@@ -22,5 +22,5 @@ class KVM:
         self.Interface = Interface
         self.Disk = Disk
         self.Pool = Pool
-        self.Storage = Storage
+        self.StorageController = StorageController
         self.CloudMachine = CloudMachine

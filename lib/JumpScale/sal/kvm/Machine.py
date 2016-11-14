@@ -41,7 +41,6 @@ class Machine(BaseKVMComponent):
         self.memory = memory
         self.cpucount = cpucount
         self.controller = controller
-        self._uuid = uuid
         self.cloud_init = cloud_init
         self.image_path = "%s/%s_ci.iso" % (self.controller.base_path,
                                             self.name) if cloud_init else ""

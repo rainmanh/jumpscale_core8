@@ -1,7 +1,7 @@
 from JumpScale import j
 from xml.etree import ElementTree
 from BaseKVMComponent import BaseKVMComponent
-from Storage import Storage
+from StorageController import StorageController
 
 
 class Disk(BaseKVMComponent):
@@ -39,7 +39,7 @@ class Disk(BaseKVMComponent):
         disk = ElementTree.fromstring(diskxml)
         name = disk.findtext('name')
         pool_name = disk.find('source').get('pool')
-        pool = Storage(controller).get_pool(pool_name)
+        pool = StorageController(controller).get_pool(pool_name)
         size = disk.findtext('capacity')
         if disk.find('backingStore') is not None and disk.find('backingStore').find('source') is not None:
             path = disk.find('backingStore').find('source').get('file')

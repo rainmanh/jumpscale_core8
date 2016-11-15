@@ -64,7 +64,7 @@ class ActorTemplate():
             if j.sal.fs.exists(hrdpath):
                 self._schemaHrd = j.data.hrd.getSchema(hrdpath)
             else:
-                self._schemaHrd = ""
+                self._schemaHrd = j.data.hrd.getSchema(content="")
         return self._schemaHrd
 
     @property

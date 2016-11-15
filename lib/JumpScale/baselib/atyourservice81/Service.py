@@ -489,6 +489,8 @@ class Service:
             action = j.core.jobcontroller.db.actions.get(key=service_action_pointer.actionKey)
             action.dbobj.lastModDate = j.data.time.epoch
             action.save()
+        # save the change for the service
+        self.saveAll()
 
         # execute the processChange method if it exists
         if 'processChange' in self.model.actions.keys():

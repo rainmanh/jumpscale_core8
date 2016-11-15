@@ -240,7 +240,7 @@ class CuisineCore(base):
             elif self.isMac or self.isCygwin:
                 res["base"] = "%s/opt/jumpscale8/" % env["HOME"]
             else:
-                res["base"] = j.dirs.base
+                res["base"] = "/opt/jumpscale8"
 
         if self.dir_exists('/JS8'):
             res["codeDir"] = "/JS8/code/"

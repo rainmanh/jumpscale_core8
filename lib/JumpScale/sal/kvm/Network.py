@@ -33,7 +33,7 @@ class Network(BaseKVMComponent):
                 return []
         return self._interfaces
 
-    def create(self, start=True, autostart=True):
+    def create(self):
         '''
         @param start bool: will start the network after creating it
         @param autostart bool: will autostart Network on host boot
@@ -49,22 +49,35 @@ class Network(BaseKVMComponent):
                 self.controller.executor.execute(
                     "ovs-vsctl --may-exist add-port %s %s" % (self.name, nic))
 
-            self.controller.connection.networkDefineXML(self.to_xml())
-            nw = self.controller.connection.networkLookupByName(self.name)
-            if autostart:
-                nw.setAutostart(1)
         else:
             self.controller.executor.execute(
                 "ip link add %s type bridge" % self.name)
             for nic in nics:
                 self.controller.executor.execute(
                     "ip link set %s master %s" % (nic, self.name))
-            if autostart:
-                self.controller.executor.execute(
-                    "ip link set %s up" % (self.name))
 
-        if start:
-            nw.create()
+        self.controller.connection.networkDefineXML(self.to_xml())
+
+    @property
+    def nw(self):
+        if not self._nw:
+            self._nw = self.controller.connection.networkLookupByName(self.name)
+        return self._nw
+
+    def start(self, autostart=True):
+        if self.ovs:
+            pass
+        else:
+            self.controller.executor.execute(
+                "ip link set %s up" % (self.name))
+
+        if autostart:
+            self.nw.setAutostart(1)
+
+        self.nw.create()
+
+    def stop(self):
+        self.nw.destroy()
 
     def to_xml(self):
         """
@@ -90,6 +103,11 @@ class Network(BaseKVMComponent):
         ovs = rc == 0
         return cls(controller, name, bridge, None, ovs=ovs)
 
+    @classmethod
+    def get_by_name(cls, controller, name):
+        nw = controller.connection.networkLookupByName(name)
+        return cls.from_xml(controller, nw.XMLDesc())
+
     def destroy(self):
         """
         Destroy network.
@@ -100,3 +118,5 @@ class Network(BaseKVMComponent):
         else:
             self.controller.executor.execute(
                 'ip link delete %s' % self.name)
+
+        self.nw.undefine()

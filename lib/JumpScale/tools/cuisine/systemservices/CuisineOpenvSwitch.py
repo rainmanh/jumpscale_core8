@@ -63,7 +63,7 @@ class CuisineOpenvSwitch(app):
         # do checks if openvswitch installed & configured properly if not
         # install
 
-    def networkCreate(self, network_name, bridge_name=None, interfaces=None):
+    def networkCreate(self, network_name, bridge_name=None, interfaces=None, ovs=True, start=True):
         """
         Create a network interface using libvirt and open v switch.
 
@@ -72,8 +72,10 @@ class CuisineOpenvSwitch(app):
         @interfaces [str]: names of the interfaces to be added to the bridge
         """
         network = j.sal.kvm.Network(
-            self._controller, network_name, bridge_name, interfaces)
-        return network.create()
+            self._controller, network_name, bridge_name, interfaces, ovs=ovs)
+        network.create()
+        if start:
+            network.start()
 
     def networkDelete(self, bridge_name):
         """

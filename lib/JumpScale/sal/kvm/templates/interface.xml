@@ -7,7 +7,9 @@
         <outbound average='{{rate}}'  burst='{{burst}}'/>
     </bandwidth>
     {% endif %}
+    {% if name %}
     <virtualport type='openvswitch'>
         <parameters profileid='{{name}}'/>
     </virtualport>
+    {% endit %}
 </interface>

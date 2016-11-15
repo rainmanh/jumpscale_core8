@@ -489,6 +489,11 @@ class Service:
             action = j.core.jobcontroller.db.actions.get(key=service_action_pointer.actionKey)
             action.dbobj.lastModDate = j.data.time.epoch
             action.save()
+
+        elif changeCategory.find('action_del') != -1:
+            action_name = action_name = changeCategory.split('action_del_')[1]
+            self.model.actionDelete(action_name)
+            
         # save the change for the service
         self.saveAll()
 

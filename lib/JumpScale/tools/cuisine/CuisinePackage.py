@@ -93,7 +93,7 @@ class CuisinePackage(base):
 
         elif self._cuisine.core.isMac:
             for unsupported in ["libpython3.4-dev", "python3.4-dev", "libpython3.5-dev", "python3.5-dev",
-                                "libffi-dev", "make", "build-essential", "libpq-dev", "libsqlite3-dev"]:
+                                "libffi-dev", "libssl-dev", "make", "build-essential", "libpq-dev", "libsqlite3-dev"]:
                 if 'libsnappy-dev' in package or 'libsnappy1v5' in package:
                     package = 'snappy'
 

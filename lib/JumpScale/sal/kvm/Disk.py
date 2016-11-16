@@ -9,7 +9,7 @@ class Disk(BaseKVMComponent):
     Wrapper class around libvirt's storage volume object , to use with jumpscale libs.
     """
 
-    def __init__(self, controller, pool, name, size, image_name="", disk_iops=None):
+    def __init__(self, controller, pool, name, size, image_path="", disk_iops=None):
         """
         Disk object instance.
 
@@ -17,11 +17,11 @@ class Disk(BaseKVMComponent):
         @param pool str: name of the pool to add disk to.
         @param name str: name of the disk.
         @param size int: size of disk in Mb.
-        @param image_name  str: name of image to load on disk  if available.
+        @param image_path  str: name of image to load on disk  if available.
         @param disk_iops int: total throughput limit in bytes per second.
         """
         self.size = size
-        self.image_name = image_name
+        self.image_path = image_path
         self.controller = controller
         self.pool = pool
         self.name = name
@@ -42,11 +42,10 @@ class Disk(BaseKVMComponent):
         pool = StorageController(controller).get_pool(pool_name)
         size = disk.findtext('capacity')
         if disk.find('backingStore') is not None and disk.find('backingStore').find('source') is not None:
-            path = disk.find('backingStore').find('source').get('file')
-            image_name = path.split("/")[-1].split('.')[0]
+            image_path = disk.find('backingStore').find('source').get('file')
         else:
-            image_name = ''
-        return cls(controller, pool, name, size, image_name)
+            image_path = ''
+        return cls(controller, pool, name, size, image_path)
 
     def to_xml(self):
         """
@@ -54,14 +53,9 @@ class Disk(BaseKVMComponent):
         """
 
         disktemplate = self.controller.get_template('disk.xml')
-        if self.image_name:
-            diskbasevolume = self.controller.executor.cuisine.core.joinpaths(
-                self.controller.base_path, "images", '%s' % self.image_name)
-        else:
-            diskbasevolume = ''
         diskpath = self.controller.executor.cuisine.core.joinpaths(self.pool.poolpath, '%s.qcow2' % self.name)
         diskxml = disktemplate.render({'diskname': self.name, 'diskpath': diskpath,
-                                       'disksize': self.size, 'diskbasevolume': diskbasevolume})
+                                       'disksize': self.size, 'diskbasevolume': self.image_path})
         return diskxml
 
     def create(self):

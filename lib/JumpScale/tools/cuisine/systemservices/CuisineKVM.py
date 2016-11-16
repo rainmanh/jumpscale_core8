@@ -37,7 +37,7 @@ class CuisineKVM(base):
     def download_image(self, url, overwrite=False):
         name = url.split('/')[-1]
         path = j.sal.fs.joinPaths(self._controller.base_path, 'images', name)
-        self._controller.executor.cuisine.core.file_download(url, path, overwrite=True)
+        self._controller.executor.cuisine.core.file_download(url, path, overwrite=overwrite)
 
     def poolCreate(self, name):
         pool = j.sal.kvm.Pool(self._controller, name)
@@ -74,12 +74,12 @@ class CuisineKVM(base):
         path = j.sal.fs.joinPaths(self._controller.base_path, 'images', name)
         self._controller.executor.cuisine.core.file_download(image, path, overwrite=True)
 
-    def vdiskCreate(self, pool, name, size=100, image_name=""):
+    def vdiskCreate(self, pool, name, size=100, image_path=""):
         """
         create an empty disk we can attachl
         @param size in GB
         """
-        disk = j.sal.kvm.Disk(self._controller, pool, name, size, image_name)
+        disk = j.sal.kvm.Disk(self._controller, pool, name, size, image_path)
         disk.create()
 
     def vdiskDelete(self, name):

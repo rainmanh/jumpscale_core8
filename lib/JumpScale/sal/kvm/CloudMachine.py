@@ -24,10 +24,14 @@ class CloudMachine(Machine):
         """
         self.pool = j.sal.kvm.Pool(controller, poolname)
         self.os = os
+
+        os_path = controller.executor.cuisine.core.joinpaths(
+            controller.base_path, "images", '%s' % os)
+
         new_nics = list(map(lambda x: j.sal.kvm.Interface(controller, x,
                                                           j.sal.kvm.Network(controller, x, x, [])), nics))
         if disks:
-            new_disks = [j.sal.kvm.Disk(controller, self.pool, "%s-base.qcow2" % name, disks[0], os)]
+            new_disks = [j.sal.kvm.Disk(controller, self.pool, "%s-base.qcow2" % name, disks[0], os_path)]
             for i, disk in enumerate(disks[1:]):
                 new_disks.append(j.sal.kvm.Disk(controller, self.pool, "%s-data-%s.qcow2" % (name, i), disk))
         else:

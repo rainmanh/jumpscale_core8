@@ -154,7 +154,7 @@ class Service:
 
             for i in instances:
                 res = self.aysrepo.servicesFind(name=i, actor='%s.*' % producer_role)
-                res = [s for s in res if s.model.role == producer_role]
+                res = [s for s in res if s.model.role == producer_role and s != self]
 
                 if len(res) == 0:
                     if producer_model.minServices == 0:

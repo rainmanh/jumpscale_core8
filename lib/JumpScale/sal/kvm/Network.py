@@ -19,6 +19,7 @@ class Network(BaseKVMComponent):
         self.bridge = bridge if bridge else name
         self._interfaces = interfaces
         self.controller = controller
+        self._nw = None
 
     @property
     def interfaces(self):

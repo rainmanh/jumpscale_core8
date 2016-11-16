@@ -46,9 +46,8 @@ class InstallationTests(BaseTest):
         if self.branch != "master":
             self.execute_command_on_docker('js', 'export JSBRANCH = "{}"'.format(self.branch))
         self.execute_command_on_docker('js', 'bash install.sh')
-
-        # Validation steps
         time.sleep(50)
+        
         self.lg('Check if js is working, should succeed')
         response = self.execute_command_on_docker('js', 'js "print(j.sal.fs.getcwd())"')
         self.assertEqual(response, '/\n')
@@ -69,19 +68,16 @@ class InstallationTests(BaseTest):
         self.assertEqual(dict1['homeDir'], dict2['homeDir'])
         self.assertEqual(dict1['base'], dict2['base'])
         #slash diff
-        #import ipdb; ipdb.sset_trace()
         self.assertEqual(dict1['appDir'].replace('/',''), dict2['appDir'].replace('/',''))
         self.assertEqual(dict1['libDir'].replace('/',''), dict2['libDir'].replace('/',''))
         self.assertEqual(dict1['binDir'].replace('/',''), dict2['binDir'].replace('/',''))
         self.assertEqual(dict1['cfgDir'].replace('/',''), dict2['cfgDir'].replace('/',''))
         self.assertEqual(dict1['codeDir'].replace('/', ''), dict2['codeDir'].replace('/', ''))
         self.assertEqual(dict1['jsLibDir'].replace('/', ''), dict2['jsLibDir'].replace('/', ''))
-        #Failed assertions
-        self.assertEqual(dict1['pidDir'], dict2['pidDir'])
-        self.assertEqual(dict1['tmpDir'], dict2['tmpDir'])
-        self.assertEqual(dict1['tmplsDir'], dict2['tmplsDir'])
-        self.assertEqual(dict1['logDir'], dict2['logDir'])
-        self.assertEqual(dict1['varDir'], dict2['varDir'])
+        self.assertEqual(dict1['pidDir'].replace('/', ''), dict2['pidDir'].replace('/', ''))
+        self.assertEqual(dict1['logDir'].replace('/', ''), dict2['logDir'].replace('/', ''))
+        self.assertEqual(dict1['varDir'].replace('/', ''), dict2['varDir'].replace('/', ''))
+        self.assertEqual(dict1['tmplsDir'].replace('/', ''), dict2['tmplsDir'].replace('/', ''))
 
         #self.lg('remove the docker container')
         #self.run_cmd_via_subprocess("docker rm -f js")

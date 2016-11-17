@@ -68,10 +68,10 @@ class Docker:
         return self._weaveSocket
 
     def weaveInstall(self, ufw=False):
-        j.tools.cuisine.local.apps.weave.install(start=True)
+        j.tools.cuisine.local.systemservices.weave.install(start=True)
         if ufw:
-            j.tools.cuisine.local.ufw.allowIncoming(6783)
-            j.tools.cuisine.local.ufw.allowIncoming(6783, protocol="udp")
+            j.tools.cuisine.local.systemservices.ufw.allowIncoming(6783)
+            j.tools.cuisine.local.systemservices.ufw.allowIncoming(6783, protocol="udp")
 
     # def connectRemoteTCP(self, base_url):
     #     self.base_url = base_url

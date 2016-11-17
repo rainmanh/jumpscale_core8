@@ -218,7 +218,7 @@ class Service:
         model_json = j.data.serializer.json.load(j.sal.fs.joinPaths(path, "service.json"))
         # for now we don't reload the actions codes.
         # when using distributed DB, the actions code could still be available
-        del model_json['actions']
+        actions_bak = model_json.pop('actions')
         self.model.dbobj = self.aysrepo.db.services.capnp_schema.new_message(**model_json)
 
         data_json = j.data.serializer.json.load(j.sal.fs.joinPaths(path, "data.json"))
@@ -232,12 +232,15 @@ class Service:
         actions = self.model.dbobj.init("actions", len(actor.model.dbobj.actions))
         counter = 0
         for action in actor.model.dbobj.actions:
+            for backup_action in actions_bak:
+                if action.name == backup_action['name']:
+                    break
             actionnew = actions[counter]
-            actionnew.state = "new"
+            actionnew.state = backup_action['state']
             actionnew.actionKey = action.actionKey
             actionnew.name = action.name
-            actionnew.log = action.log
-            actionnew.period = action.period
+            actionnew.log = backup_action['log']
+            actionnew.period = backup_action['period']
             counter += 1
 
         self.saveAll()

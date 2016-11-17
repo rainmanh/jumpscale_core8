@@ -493,7 +493,7 @@ class Service:
         elif changeCategory.find('action_del') != -1:
             action_name = action_name = changeCategory.split('action_del_')[1]
             self.model.actionDelete(action_name)
-            
+
         # save the change for the service
         self.saveAll()
 
@@ -622,8 +622,10 @@ class Service:
 
             log_enable = j.core.jobcontroller.db.actions.get(service_action_obj.actionKey).dbobj.log
             if log_enable:
-                job.model.log(msg=p.stdout, level=5, category='out')
-                job.model.log(msg=p.stderr, level=5, category='err')
+                if process.stdout != '':
+                    job.model.log(msg=process.stdout, level=5, category='out')
+                if process.stderr != '':
+                    job.model.log(msg=process.stderr, level=5, category='err')
             self.logger.info("job {} done sucessfuly".format(str(job)))
 
         job.model.save()

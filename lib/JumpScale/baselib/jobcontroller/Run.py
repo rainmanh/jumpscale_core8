@@ -116,8 +116,10 @@ class RunStep:
 
                 log_enable = j.core.jobcontroller.db.actions.get(service_action_obj.actionKey).dbobj.log
                 if log_enable:
-                    job.model.log(msg=process.stdout, level=5, category='out')
-                    job.model.log(msg=process.stderr, level=5, category='err')
+                    if process.stdout != '':
+                        job.model.log(msg=process.stdout, level=5, category='out')
+                    if process.stderr != '':
+                        job.model.log(msg=process.stderr, level=5, category='err')
                 self.logger.info("job {} done sucessfuly".format(str(job)))
 
             job.save()

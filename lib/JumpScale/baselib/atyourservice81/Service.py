@@ -625,10 +625,10 @@ class Service:
 
             log_enable = j.core.jobcontroller.db.actions.get(service_action_obj.actionKey).dbobj.log
             if log_enable:
-                if process.stdout != '':
-                    job.model.log(msg=process.stdout, level=5, category='out')
-                if process.stderr != '':
-                    job.model.log(msg=process.stderr, level=5, category='err')
+                if p.stdout != '':
+                    job.model.log(msg=p.stdout, level=5, category='out')
+                if p.stderr != '':
+                    job.model.log(msg=p.stderr, level=5, category='err')
             self.logger.info("job {} done sucessfuly".format(str(job)))
 
         job.model.save()

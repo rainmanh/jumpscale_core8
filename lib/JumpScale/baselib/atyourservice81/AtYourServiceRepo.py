@@ -11,7 +11,7 @@ from JumpScale.baselib.atyourservice81.AtYourServiceDependencies import build_no
 
 import colored_traceback
 colored_traceback.add_hook(always=True)
-
+import yaml
 import os
 from collections import namedtuple
 
@@ -279,14 +279,19 @@ class AtYourServiceRepo():
 
 # BLUEPRINTS
 
-    def _load_blueprints(self):
-        bps = {}
+    def get_blueprints_paths(self):
         bpdir = j.sal.fs.joinPaths(self.path, "blueprints")
+        items = []
         if j.sal.fs.exists(path=bpdir):
             items = j.sal.fs.listFilesInDir(bpdir)
-            for path in items:
-                if path not in bps:
-                    bps[path] = Blueprint(self, path=path)
+            return items
+
+    def _load_blueprints(self):
+        bps = {}
+        items = self.get_blueprints_paths()
+        for path in items:
+            if path not in bps:
+                bps[path] = Blueprint(self, path=path)
         return bps
 
     @property
@@ -317,10 +322,14 @@ class AtYourServiceRepo():
     def blueprintExecute(self, path="", content="", role="", instance=""):
         if path == "" and content == "":
             for bp in self.blueprints:
+                if not bp.is_valid:
+                    return
                 bp.load(role=role, instance=instance)
         else:
             bp = Blueprint(self, path=path, content=content)
             # self._blueprints[bp.path] = bp
+            if not bp.is_valid:
+                return
             bp.load(role=role, instance=instance)
 
         self.init(role=role, instance=instance)

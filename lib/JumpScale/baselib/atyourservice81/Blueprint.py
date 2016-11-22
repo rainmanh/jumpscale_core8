@@ -13,6 +13,11 @@ class Blueprint:
         self.aysrepo = aysrepo
         self.path = path
         self.active = True
+        self.models = []  # can be actions or services or recurring
+        self.actions = []
+        self.eventFilters = []
+        self._contentblocks = []
+
         if path != "":
             self.name = j.sal.fs.getBaseName(path)
             if self.name[0] == "_":
@@ -23,41 +28,34 @@ class Blueprint:
             self.name = 'unknown'
             self.content = content
 
-        try:
-            j.data.serializer.yaml.loads(self.content)
-        except yaml.YAMLError:
-            msg = 'Yaml format of the blueprint is not valid.'
-            raise j.exceptions.Input(message=msg, msgpub=msg)
+        # ensure that this is a valid yaml file
+        self.is_valid = self.validate()
+        if self.is_valid:
+            content = ""
+            nr = 0
+            # we need to do all this work because the yaml parsing does not
+            # maintain order because its a dict
+            for line in self.content.split("\n"):
+                if len(line) > 0 and line[0] == "#":
+                    continue
+                if content == "" and line.strip() == "":
+                    continue
 
-        self.models = []  # can be actions or services or recurring
-        self.actions = []
-        self.eventFilters = []
-        self._contentblocks = []
+                line = line.replace("\t", "    ")
+                nr += 1
+                if len(content) > 0 and (len(line) > 0 and line[0] != " "):
+                    self._add2models(content, nr)
+                    content = ""
 
-        content = ""
+                content += "%s\n" % line
 
-        nr = 0
-        # we need to do all this work because the yaml parsing does not
-        # maintain order because its a dict
-        for line in self.content.split("\n"):
-            if len(line) > 0 and line[0] == "#":
-                continue
-            if content == "" and line.strip() == "":
-                continue
+            # to process the last one
+            self._add2models(content, nr)
+            self._contentblocks = []
 
-            line = line.replace("\t", "    ")
-            nr += 1
-            if len(content) > 0 and (len(line) > 0 and line[0] != " "):
-                self._add2models(content, nr)
-                content = ""
-
-            content += "%s\n" % line
-
-        # to process the last one
-        self._add2models(content, nr)
-        self._contentblocks = []
-
-        self.hash = j.data.hash.md5_string(self.content)
+            self.hash = j.data.hash.md5_string(self.content)
+            # the second call to validate to validate on self.models
+            self.is_valid = self.validate()
 
     def load(self, role="", instance=""):
         self.actions = []
@@ -252,6 +250,12 @@ class Blueprint:
             self.active = True
 
     def validate(self):
+        try:
+            j.data.serializer.yaml.loads(self.content)
+        except yaml.YAMLError:
+            self.logger.error('Yaml format is not valid for %s please fix this to continue' % self.name)
+            return False
+
         for model in self.models:
             if model is not None:
                 for key, item in model.items():

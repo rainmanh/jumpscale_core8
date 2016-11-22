@@ -26,6 +26,8 @@ class CuisineKVM(base):
         self._cuisine = cuisine
         self._path = None
         self.__controller = None
+        self._apt_packages = ['libvirt-bin', 'libvirt-dev', 'qemu-system-x86', 'qemu-system-common', 'genisoimage']
+        self._pip_packages = ['libvirt-python==1.3.2']
 
     @property
     def _controller(self):
@@ -49,6 +51,12 @@ class CuisineKVM(base):
             raise RuntimeError("only support ubuntu 16.04")
         self._libvirt()
 
+    def uninstall(self):
+        for package in self._apt_packages:
+            self._cuisine.package.remove(package)
+        for package in self._pip_packages:
+            self._cuisine.development.pip.packageRemove(package)
+
     @property
     def path(self):
         return self._controller.base_path
@@ -63,12 +71,8 @@ class CuisineKVM(base):
         """
         Install required packages for kvm
         """
-        self._cuisine.package.install('libvirt-bin')
-        self._cuisine.package.install('libvirt-dev')
-        self._cuisine.package.install('qemu-system-x86')
-        self._cuisine.package.install('qemu-system-common')
-        self._cuisine.package.install('genisoimage')
-        self._cuisine.development.pip.install("libvirt-python==1.3.2", upgrade=False)
+        self._cuisine.package.multiInstall(self._apt_packages)
+        self._cuisine.development.pip.multiInstall(self._pip_packages, upgrade=False)
 
     def vdiskBootCreate(self, name, image='http://fs.aydo.com/kvm/ub_small.img'):
         path = j.sal.fs.joinPaths(self._controller.base_path, 'images', name)
@@ -93,7 +97,7 @@ class CuisineKVM(base):
         return disks
 
     def machineCreate(self, name, os='xenial-server-cloudimg-amd64-uefi1.img', disks=[10],
-            nics=['vms1'], memory=2000, cpucount=4, cloud_init=True, start=True, resetPassword=True):
+            nics=['vms1'], memory=2000, cpucount=4, cloud_init=True, start=True, resetPassword=True, username="root", passwd="gig1234"):
         """
         @param disks is array of disk names (after using diskCreate)
         @param nics is array of nic names (after using nicCreate)
@@ -106,7 +110,7 @@ class CuisineKVM(base):
         machine = j.sal.kvm.CloudMachine(self._controller, name, os, disks,
             nics, memory, cpucount, cloud_init=cloud_init)
 
-        machine.create()
+        machine.create(username=username, passwd=passwd)
 
         if start:
             machine.start()

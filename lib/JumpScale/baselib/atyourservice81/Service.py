@@ -563,11 +563,11 @@ class Service:
 
         self.saveAll()
 
-    def executeAction(self, action, args={}):
+    def executeAction(self, action, args={}, inprocess=False):
         if action[-1] == "_":
             return self.executeActionService(action)
         else:
-            return self.executeActionJob(action, args)
+            return self.executeActionJob(action, args, inprocess=inprocess)
 
     def executeActionService(self, action, args={}):
         # execute an action in process without creating a job

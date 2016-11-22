@@ -1,4 +1,5 @@
 from xml.etree import ElementTree
+import libvirt
 from BaseKVMComponent import BaseKVMComponent
 
 
@@ -11,8 +12,9 @@ class Network(BaseKVMComponent):
 
         @param controller object: connection to libvirt controller.
         @param name string: name of network.
-        @param bridge string: bridge name.
+        @param bridge string: bridge name. if empty use the self.name as bridge name
         @param interfaces list: interfaces list.
+        @param ovs boolean: use ovs to create bridge. if False use ip commands
         """
         self.name = name
         self.ovs = ovs
@@ -20,6 +22,15 @@ class Network(BaseKVMComponent):
         self._interfaces = interfaces
         self.controller = controller
         self._nw = None
+
+    @property
+    def nw(self):
+        """
+        underlying libvirt network object
+        """
+        if not self._nw:
+            self._nw = self.controller.connection.networkLookupByName(self.name)
+        return self._nw
 
     @property
     def interfaces(self):
@@ -34,7 +45,21 @@ class Network(BaseKVMComponent):
                 return []
         return self._interfaces
 
-    def create(self):
+    @property
+    def is_created(self):
+        try:
+            self.controller.connection.networkLookupByName(self.name)
+            return True
+        except libvirt.libvirtError as e:
+            if e.get_error_code() == libvirt.VIR_ERR_NO_NETWORK:
+                return False
+            raise e
+
+    @property
+    def is_started(self):
+        return self.nw.isActive == 1
+
+    def create(self, start=True, autostart=True):
         '''
         @param start bool: will start the network after creating it
         @param autostart bool: will autostart Network on host boot
@@ -59,13 +84,20 @@ class Network(BaseKVMComponent):
 
         self.controller.connection.networkDefineXML(self.to_xml())
 
-    @property
-    def nw(self):
-        if not self._nw:
-            self._nw = self.controller.connection.networkLookupByName(self.name)
-        return self._nw
+        if start:
+            self.start()
+
+        if autostart:
+            self.nw.setAutostart(1)
+        else:
+            self.nw.setAutostart(0)
+
 
     def start(self, autostart=True):
+        """
+        start a (previously defined) inactive network
+        @param autostart bool: set autostart flag.
+        """
         if self.ovs:
             pass
         else:
@@ -74,11 +106,30 @@ class Network(BaseKVMComponent):
 
         if autostart:
             self.nw.setAutostart(1)
+        else:
+            self.nw.setAutostart(0)
 
-        self.nw.create()
+        if not self.is_started:
+            self.nw.create()
+
+    def delete(self):
+        """
+        Delete the network.
+        """
+        self.stop()
+
+        if self.ovs:
+            self.controller.executor.execute(
+                'ovs-vsctl --if-exists del-br %s' % self.name)
+        else:
+            self.controller.executor.execute(
+                'ip link delete %s' % self.name)
+
+        self.nw.undefine()
 
     def stop(self):
-        self.nw.destroy()
+        if self.is_started:
+            self.nw.destroy()
 
     def to_xml(self):
         """
@@ -108,16 +159,3 @@ class Network(BaseKVMComponent):
     def get_by_name(cls, controller, name):
         nw = controller.connection.networkLookupByName(name)
         return cls.from_xml(controller, nw.XMLDesc())
-
-    def destroy(self):
-        """
-        Destroy network.
-        """
-        if self.ovs:
-            self.controller.executor.execute(
-                'ovs-vsctl --if-exists del-br %s' % self.name)
-        else:
-            self.controller.executor.execute(
-                'ip link delete %s' % self.name)
-
-        self.nw.undefine()

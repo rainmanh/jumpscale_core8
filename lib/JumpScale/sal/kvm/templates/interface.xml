@@ -11,5 +11,5 @@
     <virtualport type='openvswitch'>
         <parameters profileid='{{name}}'/>
     </virtualport>
-    {% endit %}
+    {% endif %}
 </interface>

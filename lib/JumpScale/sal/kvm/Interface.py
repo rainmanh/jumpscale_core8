@@ -1,4 +1,5 @@
 from JumpScale import j
+import libvirt
 from xml.etree import ElementTree
 from BaseKVMComponent import BaseKVMComponent
 import random
@@ -26,6 +27,7 @@ class Interface(BaseKVMComponent):
         Interface object instance.
 
         @param controller object(j.sal.kvm.KVMController()): controller object to use.
+        @param bridge object(j.sal.kvm.Network()): network object that create the bridge
         @param name str: name of interface
         @param mac str: mac address to be assigned to port
         @param interface_rate int: qos interface rate to bound to in Kb
@@ -43,38 +45,53 @@ class Interface(BaseKVMComponent):
             self.burst = str(int(interface_rate * 0.1))
         self.mac = mac if mac else Interface.generate_mac()
         self._ip = None
+        self._iface = None
 
-    def destroy(self):
+    def iface(self):
+        if self._iface is None:
+            self._iface = self.controller.connection.interfaceLookupByName(self.name)
+        return self._iface
+
+    @property
+    def is_created(self):
+        try:
+            self.controller.connection.interfaceLookupByName(self.name)
+            return True
+        except libvirt.libvirtError as e:
+            if e.get_error_code == libvirt.VIR_ERR_NO_INTERFACE:
+                return False
+            raise e
+
+    @property
+    def is_started(self):
+        return self.iface.isActive() == 1
+
+    def create(self, start=True, autostart=True):
+        return NotImplementedError()
+
+    def start(self, autostart=True):
+        return NotImplementedError()
+
+    def delete(self):
         """
         Delete interface and port related to certain machine.
-
-        @bridge str: name of bridge
-        @name str: name of port and interface to be deleted
         """
         if self.ovs:
             return self.controller.executor.execute('ovs-vsctl del-port %s %s' % (self.bridge.name, self.name))
         else:
-            pass
+            raise NotImplementedError("delete on non ovs network is not supported")
 
-    def qos(self, qos, burst=None):
-        """
-        Limit the throughtput into an interface as a for of qos.
+    def stop(self):
+        return NotImplementedError()
 
-        @interface str: name of interface to limit rate on
-        @qos int: rate to be limited to in Kb
-        @burst int: maximum allowed burst that can be reached in Kb/s
+    def to_xml(self):
         """
-        # TODO: *1 spec what is relevant for a vnic from QOS perspective, what can we do
-        # goal is we can do this at runtime
-        if self.ovs:
-            self.controller.executor.execute(
-                'ovs-vsctl set interface %s ingress_policing_rate=%d' % (self.name, qos))
-            if not burst:
-                burst = int(qos * 0.1)
-            self.controller.executor.execute(
-                'ovs-vsctl set interface %s ingress_policing_burst=%d' % (self.name, burst))
-        else:
-            raise NotImplementedError('qos for std bridge not implemeted')
+        Return libvirt's xml string representation of the interface.
+        """
+        Interfacexml = self.controller.get_template('interface.xml').render(
+            macaddress=self.mac, bridge=self.bridge.name, qos=self.qos, rate=self.interface_rate, burst=self.burst, name=self.name
+        )
+        return Interfacexml
 
     @classmethod
     def from_xml(cls, controller, xml):
@@ -100,7 +117,12 @@ class Interface(BaseKVMComponent):
         else:
             interface_rate = burst = None
         mac = interface.find('mac').get('address')
-        return cls(controller, bridge, mac, name=name, interface_rate=interface_rate, burst=burst)
+        return cls(controller=controller, bridge=bridge, name=name, mac=mac,interface_rate=interface_rate, burst=burst)
+
+    @classmethod
+    def get_by_name(cls, controller, name):
+        iface = interfaceLookupByName(name)
+        return cls.from_xml(controller, iface.XMLDesc())
 
     @property
     def ip(self):
@@ -115,11 +137,22 @@ class Interface(BaseKVMComponent):
                 self._ip = m.group()
         return self._ip
 
-    def to_xml(self):
+    def qos(self, qos, burst=None):
         """
-        Return libvirt's xml string representation of the interface.
+        Limit the throughtput into an interface as a for of qos.
+
+        @interface str: name of interface to limit rate on
+        @qos int: rate to be limited to in Kb
+        @burst int: maximum allowed burst that can be reached in Kb/s
         """
-        Interfacexml = self.controller.get_template('interface.xml').render(
-            macaddress=self.mac, bridge=self.bridge.name, qos=self.qos, rate=self.interface_rate, burst=self.burst, name=self.name
-        )
-        return Interfacexml
+        # TODO: *1 spec what is relevant for a vnic from QOS perspective, what can we do
+        # goal is we can do this at runtime
+        if self.ovs:
+            self.controller.executor.execute(
+                'ovs-vsctl set interface %s ingress_policing_rate=%d' % (self.name, qos))
+            if not burst:
+                burst = int(qos * 0.1)
+            self.controller.executor.execute(
+                'ovs-vsctl set interface %s ingress_policing_burst=%d' % (self.name, burst))
+        else:
+            raise NotImplementedError('qos for std bridge not implemeted')

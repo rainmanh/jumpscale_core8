@@ -12,16 +12,16 @@ class BaseKVMComponent:
         return True
 
     def create(self):
-        return NotImplemented
+        return NotImplementedError()
 
     def start(self):
-        return NotImplemented
+        return NotImplementedError()
 
     def delete(self):
-        return NotImplemented
+        return NotImplementedError()
 
     def stop(self):
-        return NotImplemented
+        return NotImplementedError()
 
     def to_xml(self):
         raise NotImplementedError()

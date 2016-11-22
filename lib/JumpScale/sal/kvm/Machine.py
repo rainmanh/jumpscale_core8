@@ -68,16 +68,22 @@ class Machine(BaseKVMComponent):
         return bool(self.domain.isActive())
 
 
-    def create(self, username="root", passwd="gig1234"):
+    def create(self, username="root", passwd="gig1234", sshkey=None):
         """
         Create and define the instanse of the machine xml onto libvirt.
 
         @param username  str: set the username to be set in the machine on boot.
         @param passwd str: set the passwd to be set in the machine on boot.
+        @param sshkey str: public sshkey to authorize in the vm
         """
         cuisine = self.controller.executor.cuisine
         cuisine.core.dir_ensure("%s/metadata/%s" % (self.controller.base_path, self.name))
         if self.cloud_init:
+
+            sshkeys_to_authorize = [self.controller.pubkey]
+            if sshkey:
+                sshkeys_to_authorize.append(sshkey)
+
             cuisine.core.dir_ensure("%s/metadata/%s" % (self.controller.base_path, self.name))
             userdata = "#cloud-config\n"
             userdata += yaml.dump({'chpasswd': {'expire': False},
@@ -86,7 +92,7 @@ class Machine(BaseKVMComponent):
                                               'name': username,
                                               'plain_text_passwd': passwd,
                                               'shell': '/bin/bash',
-                                              'ssh-authorized-keys': [self.controller.pubkey],
+                                              'ssh-authorized-keys': sshkeys_to_authorize,
                                               'sudo': 'ALL=(ALL) NOPASSWD: ALL'}]
                                    })
             metadata = '{"local-hostname":"vm-%s"}' % self.name

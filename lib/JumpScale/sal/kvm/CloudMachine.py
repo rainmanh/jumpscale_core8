@@ -15,7 +15,8 @@ class CloudMachine(Machine):
         @param contrller object(j.sal.kvm.KVMController()): controller object to use.
         @param name str: machine name.
         @param os str: os name to use.
-        @param disks int: no of disk names to be used with machine.
+        @param disks list of int: size of disk names to be used by the machine.
+                                  first of the list is the size of the boot disk, remaining are data disks
         @param nics [str]: name of networks to be used with machine.
         @param memory int: disk memory in Mb.
         @param cpucount int: number of cpus to use.
@@ -48,18 +49,19 @@ class CloudMachine(Machine):
                    list(map(lambda disk: disk.size, m.disks)), list(map(lambda nic: nic.name, m.nics)),
                    m.memory, m.cpucount, m.disks and m.disks[0].pool.name, cloud_init=m.cloud_init)
 
-    def create(self, username="root", passwd="gig1234"):
+    def create(self, username="root", passwd="gig1234", sshkey=None):
         """
         Create and define the instanse of the machine xml onto libvirt.
 
         @param username  str: set the username to be set in the machine on boot.
         @param passwd str: set the passwd to be set in the machine on boot.
+        @param sshkey str: public sshkey to authorize in the vm
         """
         if self.is_created:
             return False
         else:
             [disk.create() for disk in self.disks if not disk.is_created]
-            return super().create()
+            return super().create(username=username, passwd=passwd, sshkey=sshkey)
 
     def start(self):
         """

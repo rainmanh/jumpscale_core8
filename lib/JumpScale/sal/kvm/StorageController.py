@@ -57,9 +57,21 @@ class StorageController(BaseKVMComponent):
         storagepool = self.controller.connection.storagePoolLookupByName(pool_name)
         return storagepool
 
-    def list_disks(self):
+    def list_pools(self):
+        """
+        List all pools
+        """
+        from JumpScale.sal.kvm.Pool import Pool
+        pools = []
+        for pool_kvm in self.controller.connection.listAllStoragePools():
+            pools.append(Pool.from_xml(controller=self.controller, source=pool_kvm.XMLDesc()))
+        return pools
+
+    def list_disks(self, pool_name=None):
         """
         List all disks from all pools
+
+        @param pool_name string: if specified, only return disks from this pool
         """
 
         disks = []

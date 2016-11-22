@@ -1,7 +1,8 @@
 from JumpScale import j
 import libvirt
 from xml.etree import ElementTree
-from BaseKVMComponent import BaseKVMComponent
+from JumpScale.sal.kvm.BaseKVMComponent import BaseKVMComponent
+from JumpScale.sal.kvm.Disk import Disk
 
 
 class Pool(BaseKVMComponent):
@@ -48,7 +49,7 @@ class Pool(BaseKVMComponent):
         """
         start a (previously defined) inactive pool
         """
-        if self.lvpool.is_started:
+        if self.is_started:
             return
         self.lvpool.create()
 
@@ -107,6 +108,14 @@ class Pool(BaseKVMComponent):
     def get_by_name(cls, controller, name):
         pool = controller.connection.storagePoolLookupByName(name)
         return cls.from_xml(controller, pool.XMLDesc())
+
+    def list_disks(self):
+        disks = []
+        if self.is_started:
+            for vol in self.lvpool.listAllVolumes():
+                disk = Disk.from_xml(self.controller, vol.XMLDesc())
+                disks.append(disk)
+        return disks
 
     @property
     def lvpool(self):

@@ -1,14 +1,11 @@
 
 from JumpScale import j
+from JumpScale.tools.cuisine.systemservices.kvm.Machines import Machines
+from JumpScale.tools.cuisine.systemservices.kvm.Disks import Disks
+from JumpScale.tools.cuisine.systemservices.kvm.StoragePools import StoragePools
 
 base = j.tools.cuisine._getBaseClass()
 
-# TODO: to implement this good first make sure there is a KVM SAL, then create jskvm just like ther eis a jsdocker
-# see how we did for docker, we need same approach, make sure that in sal
-# we expose all kvm/qemu properties e.g. limits from IOPS, ...
-# make sure use click for the jskvm
-
-# this cuisine obj required jumpscale installed remotely otherwise jskvm is not accessible
 
 class CuisineKVM(base):
     """
@@ -24,48 +21,32 @@ class CuisineKVM(base):
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
-        self._path = None
         self.__controller = None
         self._apt_packages = ['libvirt-bin', 'libvirt-dev', 'qemu-system-x86', 'qemu-system-common', 'genisoimage']
         self._pip_packages = ['libvirt-python==1.3.2']
+        # submodules
+        self._machines = None
+        self._storage_pools = None
+        self._disks = None
+        self._networks = None
 
     @property
     def _controller(self):
         if not self.__controller:
-            self.__controller = j.sal.kvm.KVMController(
-                executor=self._cuisine._executor)
+            self.__controller = j.sal.kvm.KVMController(executor=self._cuisine._executor)
         return self.__controller
-
-    def download_image(self, url, overwrite=False):
-        name = url.split('/')[-1]
-        path = j.sal.fs.joinPaths(self._controller.base_path, 'images', name)
-        self._controller.executor.cuisine.core.file_download(url, path, overwrite=overwrite)
-
-    def poolCreate(self, name):
-        pool = j.sal.kvm.Pool(self._controller, name)
-        pool.create()
-        return pool
-
-    def install(self):
-        if not self._cuisine.core.isUbuntu or self._cuisine.platformtype.osversion != '16.04':
-            raise RuntimeError("only support ubuntu 16.04")
-        self._libvirt()
-
-    def uninstall(self):
-        for package in self._apt_packages:
-            self._cuisine.package.remove(package)
-        for package in self._pip_packages:
-            self._cuisine.development.pip.packageRemove(package)
 
     @property
     def path(self):
         return self._controller.base_path
 
-    def vmGetPath(self, name):
-        return j.sal.fs.joinPaths(self.path, "vms", name)
-
-    def iamgeGetPath(self, name):
-        return j.sal.fs.joinPaths(self.path, "images", name)
+    def install(self):
+        """
+        Install the dependencies required to run kvm (kvm, qemy, libvirt)
+        """
+        if not self._cuisine.core.isUbuntu or self._cuisine.platformtype.osversion != '16.04':
+            raise RuntimeError("only support ubuntu 16.04")
+        self._libvirt()
 
     def _libvirt(self):
         """
@@ -74,64 +55,37 @@ class CuisineKVM(base):
         self._cuisine.package.multiInstall(self._apt_packages)
         self._cuisine.development.pip.multiInstall(self._pip_packages, upgrade=False)
 
-    def vdiskBootCreate(self, name, image='http://fs.aydo.com/kvm/ub_small.img'):
-        path = j.sal.fs.joinPaths(self._controller.base_path, 'images', name)
-        self._controller.executor.cuisine.core.file_download(image, path, overwrite=True)
+    def uninstall(self):
+        for package in self._apt_packages:
+            self._cuisine.package.remove(package)
+        for package in self._pip_packages:
+            self._cuisine.development.pip.packageRemove(package)
 
-    def vdiskCreate(self, pool, name, size=100, image_path=""):
-        """
-        create an empty disk we can attachl
-        @param size in GB
-        """
-        disk = j.sal.kvm.Disk(self._controller, pool, name, size, image_path)
-        disk.create()
+    """
+    Sub modules of the cuisine KVM
+    """
 
-    def vdiskDelete(self, name):
-        vol = self._controller.connection.get_volume(name)
-        disk = j.sal.kvm.Disk.from_xml(self._controller, vol.XMLDesc())
-        disk.delete()
+    @property
+    def machines(self):
+        if self._machines is None:
+            self._machines = Machines(self._controller)
+        return self._machines
 
-    def vdisksList(self):
-        storagecontroller = j.sal.kvm.StorageController(self._controller)
-        disks = storagecontroller.list_disks()
-        return disks
+    @property
+    def storage_pools(self):
+        if self._storage_pools is None:
+            self._storage_pools = StoragePools(self._controller)
+        return self._storage_pools
 
-    def machineCreate(self, name, os='xenial-server-cloudimg-amd64-uefi1.img', disks=[10],
-            nics=['vms1'], memory=2000, cpucount=4, cloud_init=True, start=True, resetPassword=True, username="root", passwd="gig1234"):
-        """
-        @param disks is array of disk names (after using diskCreate)
-        @param nics is array of nic names (after using nicCreate)
+    @property
+    def disks(self):
+        if self._disks is None:
+            self._disks = Disks(self._controller)
+        return self._disks
 
-
-        will return kvmCuisineObj: is again a cuisine obj on which all kinds of actions can be executed
-
-        @param pubkey is the key which will be used to get access to this kvm, if none then use the std ssh key as used for docker
-        """
-        machine = j.sal.kvm.CloudMachine(self._controller, name, os, disks,
-            nics, memory, cpucount, cloud_init=cloud_init)
-
-        machine.create(username=username, passwd=passwd)
-
-        if start:
-            machine.start()
-            if resetPassword:
-                machine.cuisine.core.sudo("echo '%s:%s' | chpasswd"%(
-                    getattr(machine.executor, 'login', 'root'),
-                    j.data.idgenerator.generatePasswd(10).replace("'", "'\"'\"'")))
-
-        return machine
-
-    def get_machine_by_name(self, name):
-        return j.sal.kvm.Machine.get_by_name(self._controller, name)
-
-    def vpoolCreate(self, name):
-        pool = j.sal.kvm.StorageController(self._controller).get_or_create_pool(name)
-        return pool
-
-    def vpoolDestroy(self, name):
-        j.sal.kvm.StorageController(self._controller).delete(name)
-        return True
-
-    def vmachinesList(self):
-        machines = j.sal.kvm.controller.list_machines()
-        return machines
+    @property
+    def networks(self):
+        raise NotImplementedError("Not implemented yet. use 'cuisine.systemservices.openvswitch' for now")
+        # if self._networks is None:
+        #     self._networks = Machines(self._controller)
+        # return self._networks

@@ -471,7 +471,7 @@ class GogsClient:
         if not owner:
             owner = self._login
 
-        body = {"closed": True}
+        body = {"state": "closed"}
 
         response_close = self.session.patch(
             self.get_url("repos", owner, repo_name, "issues", index), json=body)

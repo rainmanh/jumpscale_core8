@@ -22,25 +22,26 @@ def create_graphs(repo, all_nodes):
     """
     nodes = set()
 
-    for model, actions in repo.findScheduledActions().items():
-        actions.reverse()
+    for model, actions_chain_list in repo.findScheduledActions().items():
+        for actions in actions_chain_list:
+            actions.reverse()
 
-        for i, action in enumerate(actions):
-            name = "%s-%s" % (model.key, action)
-            node = all_nodes[name]
-            nodes.add(node)
-
-            if action in ['stop', 'uninstall']:
-                addConsumerEdges(node, action, all_nodes, nodes)
-            else:
-                addEdges(node, action, all_nodes, nodes)
-
-            if i + 1 < len(actions):
-                action = actions[i + 1]
+            for i, action in enumerate(actions):
                 name = "%s-%s" % (model.key, action)
-                edge = all_nodes[name]
-                node.addEdge(edge)
-                nodes.add(edge)
+                node = all_nodes[name]
+                nodes.add(node)
+
+                if action in ['stop', 'uninstall']:
+                    addConsumerEdges(node, action, all_nodes, nodes)
+                else:
+                    addEdges(node, action, all_nodes, nodes)
+
+                if i + 1 < len(actions):
+                    action = actions[i + 1]
+                    name = "%s-%s" % (model.key, action)
+                    edge = all_nodes[name]
+                    node.addEdge(edge)
+                    nodes.add(edge)
 
     return nodes
 

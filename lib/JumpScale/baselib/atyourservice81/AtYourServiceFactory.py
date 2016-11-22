@@ -47,7 +47,7 @@ class AtYourServiceFactory:
     @property
     def config(self):
         if self._config is None:
-            default_metadata = {'metadata': [{'jumpscale': {'url': 'https://github.com/Jumpscale/ays_jumpscale8', 'branch': 'master'}}]}
+            default_metadata = {'metadata': {'jumpscale': {'url': 'https://github.com/Jumpscale/ays_jumpscale8', 'branch': 'master'}}}
             cfg = j.application.config.jumpscale['ays']
             if not cfg:
                 self._config = {'redis': j.core.db.config_get('unixsocket')}

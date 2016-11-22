@@ -168,7 +168,7 @@ class Actor():
                                  "consume", "action_pre_", "action_post_", "init_actions_"]
 
         actorMethods = ["input", "build"]
-
+        parsedActorMethods = actionmethodsRequired[:]
         if j.sal.fs.exists(path):
             content = j.sal.fs.fileGetContents(path)
         else:
@@ -203,6 +203,7 @@ class Actor():
 
             if state == "DEF" and line[:7] != '    def' and (linestrip.startswith("@") or linestrip.startswith("def")):
                 # means we are at end of def to new one
+                parsedActorMethods.append(actionName)
                 self._addAction(actionName, amSource, amDecorator, amMethodArgs, amDoc)
                 amSource = ""
                 actionName = ""
@@ -256,10 +257,13 @@ class Actor():
                     raise j.exceptions.Input(message="error in source of action from %s (indentation):\nline:%s\n%s" % (
                         self, line, content), level=1, source="", tags="", msgpub="")
                 amSource += "%s\n" % line[4:]
-
         # process the last one
         if actionName != "":
+            parsedActorMethods.append(actionName)
             self._addAction(actionName, amSource, amDecorator, amMethodArgs, amDoc)
+
+        # check for removed actions in the actor
+        self._checkRemovedActions(parsedActorMethods)
 
         for actionname in actionmethodsRequired:
             if actionname not in self.model.actionsSortedList:
@@ -277,6 +281,12 @@ class Actor():
                     else:
                         self._addAction(actionName=actionname, amSource="",
                                         amDecorator="service", amMethodArgs="job", amDoc="")
+
+    def _checkRemovedActions(self, parsedMethods):
+        for action in self.model.actionsSortedList:
+            if action not in parsedMethods:
+                self.processChange('action_del_%s' % action)
+
 
     def _addAction(self, actionName, amSource, amDecorator, amMethodArgs, amDoc):
 
@@ -325,6 +335,7 @@ class Actor():
             - config
             - action_new_actionname
             - action_mod_actionname
+            - action_del_actionname
         """
         # self.logger.debug('process change for %s (%s)' % (self, changeCategory))
         if changeCategory == 'dataschema':
@@ -345,6 +356,11 @@ class Actor():
         elif changeCategory.find('action_mod') != -1:
             # TODO
             pass
+        elif changeCategory.find('action_del') != -1:
+            action_name = changeCategory.split('action_del_')[1]
+            self.model.actionDelete(action_name)
+        
+        self.saveAll()
 
         for service in self.aysrepo.servicesFind(actor=self.model.name):
             service.processChange(actor=self, changeCategory=changeCategory)

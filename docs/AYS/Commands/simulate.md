@@ -11,8 +11,5 @@ ays simulate [OPTIONS] ACTION
 Options:
   --role TEXT           optional role for ays instances execute an action on
   --instance TEXT       optional name of instance
-  --force               if True then will ignore state of service action.
-  --producerroles TEXT  roles of producers which will be taken into
-                        consideration, if * all
   --help                Show this message and exit.
 ```

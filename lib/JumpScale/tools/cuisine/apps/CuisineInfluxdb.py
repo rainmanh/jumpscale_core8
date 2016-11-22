@@ -14,6 +14,8 @@ class CuisineInfluxdb(app):
         if dependencies:
             self._cuisine.package.mdupdate()
 
+        self._cuisine.core.dir_ensure('$binDir')
+
         if self._cuisine.core.isMac:
             self._cuisine.package.install('influxdb')
             self._cuisine.core.dir_ensure("$tmplsDir/cfg/influxdb")
@@ -26,13 +28,13 @@ class CuisineInfluxdb(app):
             cd $tmpDir
             wget https://dl.influxdata.com/influxdb/releases/influxdb-0.13.0_linux_amd64.tar.gz
             tar xvfz influxdb-0.13.0_linux_amd64.tar.gz
-            cp influxdb-0.13.0-1/usr/bin/influxd $binDir
+            cp influxdb-0.13.0-1/usr/bin/influxd $binDir/influxd
             cp influxdb-0.13.0-1/etc/influxdb/influxdb.conf $tmplsDir/cfg/influxdb/influxdb.conf"""
             self._cuisine.core.execute_bash(C, profile=True)
-            self._cuisine.bash.addPath(self._cuisine.core.args_replace("$binDir"))
         else:
             raise RuntimeError("cannot install, unsuported platform")
 
+        self._cuisine.bash.addPath(self._cuisine.core.args_replace("$binDir"))
         binPath = self._cuisine.bash.cmdGetPath('influxd')
         self._cuisine.core.dir_ensure("$varDir/data/influxdb")
         self._cuisine.core.dir_ensure("$varDir/data/influxdb/meta")

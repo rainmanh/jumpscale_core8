@@ -170,6 +170,18 @@ class ActorServiceBaseModel(ModelBaseWithData):
         self.changed = True
         return action
 
+    def actionDelete(self, name):
+        olditems = [item.to_dict() for item in self.dbobj.actions]
+        for item in olditems:
+            if item['name'] == name:
+                olditems.remove(item)
+                break
+        newlist = self.dbobj.init("actions", len(olditems))
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        self.changed = True
+
+
     def actionGet(self, name, die=True):
         for action in self.dbobj.actions:
             if action.name == name:

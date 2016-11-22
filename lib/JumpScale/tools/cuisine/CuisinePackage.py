@@ -85,15 +85,20 @@ class CuisinePackage(base):
                 package = "extra/python"
 
             # ignore
-            if package in ["libpython3.5-dev", "libffi-dev", "build-essential", "libpq-dev", "libsqlite3-dev"]:
-                return
+            for unsupported in ["libpython3.5-dev", "libffi-dev", "build-essential", "libpq-dev", "libsqlite3-dev"]:
+                if unsupported in package:
+                    return
 
             cmd = "pacman -S %s  --noconfirm" % package
 
         elif self._cuisine.core.isMac:
-            if package in ["libpython3.4-dev", "python3.4-dev", "libpython3.5-dev", "python3.5-dev",
-                           "libffi-dev", "make", "build-essential", "libpq-dev", "libsqlite3-dev"]:
-                return
+            for unsupported in ["libpython3.4-dev", "python3.4-dev", "libpython3.5-dev", "python3.5-dev",
+                                "libffi-dev", "libssl-dev", "make", "build-essential", "libpq-dev", "libsqlite3-dev"]:
+                if 'libsnappy-dev' in package or 'libsnappy1v5' in package:
+                    package = 'snappy'
+
+                if unsupported in package:
+                    return
 
             _, installed, _ = self._cuisine.core.run("brew list")
             if package in installed:
@@ -204,6 +209,10 @@ class CuisinePackage(base):
                 return res
         elif self._cuisine.core.isArch:
             self._cuisine.core.run("pacman -S %s" % package)
+            return
+        elif self._cuisine.core.isMac:
+            self.install(package)
+            return
         else:
             raise j.exceptions.RuntimeError("could not install/ensure:%s, platform not supported" % package)
 

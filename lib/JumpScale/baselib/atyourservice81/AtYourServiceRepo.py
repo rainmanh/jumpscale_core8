@@ -391,10 +391,12 @@ class AtYourServiceRepo():
         for service_model in self.db.services.find():
             for action, state in service_model.actionsState.items():
                 if state in ['scheduled', 'changed', 'error']:
+                    if service_model not in result:
+                        result[service_model] = list()
                     action_chain = list()
                     service_model._build_actions_chain(action, ds=action_chain)
                     action_chain.reverse()
-                    result[service_model] = action_chain
+                    result[service_model].append(action_chain)
         return result
 
     def runCreate(self, debug=False, profile=False):

@@ -5,7 +5,7 @@ from BaseKVMComponent import BaseKVMComponent
 class Network(BaseKVMComponent):
     """Network object representation of xml and actual Network."""
 
-    def __init__(self, controller, name, bridge=None, interfaces=[]):
+    def __init__(self, controller, name, bridge=None, interfaces=[], ovs=True):
         """
         Instance of network object representation of open vstorage network.
 
@@ -15,6 +15,7 @@ class Network(BaseKVMComponent):
         @param interfaces list: interfaces list.
         """
         self.name = name
+        self.ovs = ovs
         self.bridge = bridge if bridge else name
         self._interfaces = interfaces
         self.controller = controller
@@ -32,29 +33,51 @@ class Network(BaseKVMComponent):
                 return []
         return self._interfaces
 
-    def create(self, start=True, autostart=True):
+    def create(self):
         '''
         @param start bool: will start the network after creating it
         @param autostart bool: will autostart Network on host boot
         create and start network
         '''
         nics = [interface for interface in self.interfaces]
-
-        self.controller.executor.execute(
-            "ovs-vsctl --may-exist add-br %s" % self.name)
-        self.controller.executor.execute(
-            "ovs-vsctl set Bridge %s stp_enable=true" % self.name)
-        if nics:
+        if self.ovs:
+            self.controller.executor.execute(
+                "ovs-vsctl --may-exist add-br %s" % self.name)
+            self.controller.executor.execute(
+                "ovs-vsctl set Bridge %s stp_enable=true" % self.name)
             for nic in nics:
                 self.controller.executor.execute(
                     "ovs-vsctl --may-exist add-port %s %s" % (self.name, nic))
 
+        else:
+            self.controller.executor.execute(
+                "ip link add %s type bridge" % self.name)
+            for nic in nics:
+                self.controller.executor.execute(
+                    "ip link set %s master %s" % (nic, self.name))
+
         self.controller.connection.networkDefineXML(self.to_xml())
-        nw = self.controller.connection.networkLookupByName(self.name)
+
+    @property
+    def nw(self):
+        if not self._nw:
+            self._nw = self.controller.connection.networkLookupByName(self.name)
+        return self._nw
+
+    def start(self, autostart=True):
+        if self.ovs:
+            pass
+        else:
+            self.controller.executor.execute(
+                "ip link set %s up" % (self.name))
+
         if autostart:
-            nw.setAutostart(1)
-        if start:
-            nw.create()
+            self.nw.setAutostart(1)
+
+        self.nw.create()
+
+    def stop(self):
+        self.nw.destroy()
 
     def to_xml(self):
         """
@@ -75,11 +98,25 @@ class Network(BaseKVMComponent):
         network = ElementTree.fromstring(source)
         name = network.findtext('name')
         bridge = network.findall('bridge')[0].get('name')
-        return cls(controller, name, bridge, None)
+        rc, _, _ = controller.executor.execute(
+            'ovs-vsctl br-exists %s' % name, die=False)
+        ovs = rc == 0
+        return cls(controller, name, bridge, None, ovs=ovs)
+
+    @classmethod
+    def get_by_name(cls, controller, name):
+        nw = controller.connection.networkLookupByName(name)
+        return cls.from_xml(controller, nw.XMLDesc())
 
     def destroy(self):
         """
         Destroy network.
         """
-        self.controller.executor.execute(
-            'ovs-vsctl --if-exists del-br %s' % self.name)
+        if self.ovs:
+            self.controller.executor.execute(
+                'ovs-vsctl --if-exists del-br %s' % self.name)
+        else:
+            self.controller.executor.execute(
+                'ip link delete %s' % self.name)
+
+        self.nw.undefine()

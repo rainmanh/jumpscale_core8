@@ -24,6 +24,10 @@ def cli():
 @click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
 @click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
 def run(ask, force, debug, profile):
+    """
+    Look for all action with a state 'schedule', 'changed' or 'error' and create a run.
+    A run is an collection of actions that will be run on the repository.
+    """
     repo = j.atyourservice.get()
     print("Compute dependency graph...")
     run = repo.runCreate(debug=debug, profile=profile)
@@ -79,52 +83,13 @@ def discover(path=None):
 
 @click.command()
 def repo_list():
+    """
+    List all known repositories
+    """
     print("AYS Repositories: ")
     repos = j.atyourservice.reposList()
     for repo in sorted(repos):
         print(repo.path)
-
-
-@click.command()
-@click.option('--role', '-r', default="", help='optional role for ays instances to init')
-@click.option('--instance', '-i', default="", help='optional name of instance')
-@click.option('--data', '-d', default="", help='data to populate a specific instance')
-def init(role="", instance="", data=""):
-    """
-==== BASE ====
-
-    when using data the data is passed to the specific instance
-    if data used the role & instance needs to be used
-
-    step1:
-    init will walk over all existing recipes (ays templates in local context)
-    and will see if recipe actions or hrd's changed
-    if there is change than all ays instance originating from this recipe's state will be changed
-    this will allow the further install action to execute on the change
-
-    if there is change in hrd then:
-        - change_hrd_template() on the ays instance actions is called
-    if there is change in ine if the actions methods then:
-        - change_method() on the ays instance actions is called
-    This allows action to manipulate the ays tree as result of change
-
-    step2:
-    init will walk over all existing ays instances
-    init will detect if instance.hrd got changed
-    if change than the change will be marked in the state file
-
-    if change in hrd then
-        - change_hrd_instance() will be called on ays instance actions
-
-    REMARK:
-    blueprints are no longer processed in init step, use the ays blueprint command
-
-    """
-    repo = j.atyourservice.get()
-    if data != "" and (role == "" or instance == ""):
-        raise j.exceptions.Input("need to specify role & instance to pass data")
-
-    repo.init(role=role, instance=instance, data=data)
 
 
 @click.command()
@@ -170,19 +135,6 @@ def blueprint(path, role, instance):
     """
     repo = j.atyourservice.get()
     repo.blueprintExecute(role=role, instance=instance, path=path)
-
-
-@click.command()
-def showactions():
-    """
-    shows all services with relevant actions
-    """
-    repo = j.atyourservice.get()
-    for service in repo.services:
-        print("%s" % service)
-        for action, state in service.model.actionsState.items():
-            print("- %-20s" % action)
-
 
 def _do(action, role, instance, force, producerroles, args, ask, debug, profile):
     repo = j.atyourservice.get()
@@ -230,7 +182,8 @@ or a path to a file containing the argument. Format of the file can be json, yam
 @click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
 def do(action, role, instance, force, producerroles, args, ask, debug, profile):
     """
-    call an action (which is a method in the action file e.g. start/stop/export/...)
+    Schedule an action then immediatly create a run.
+    This is a shortcut from sending a blueprint with an actions block and the do `ays run`
     """
     _do(action=action, role=role, instance=instance, force=force, producerroles=producerroles, ask=ask, debug=debug, profile=profile, args=args)
 
@@ -255,44 +208,51 @@ def install(role, instance, force, producerroles, ask, args, debug, profile):
 
 
 @click.command()
-@click.argument('action')
 @click.option('--role', '-r', default="", help='optional role for ays instances execute an action on')
 @click.option('--instance', '-i', default="", help='optional name of instance')
-@click.option('--force', default=False, is_flag=True, help='if True then will ignore state of service action.')
-@click.option('--producerroles', default="*", help='roles of producers which will be taken into consideration, if * all')
-def simulate(action, role="", instance="", force=False, producerroles="*"):
+def simulate(role="", instance=""):
     """
     is like do only does not execute it,
     is ideal to figure out what would happen if you run a certain action
     """
     repo = j.atyourservice.get()
-    run = repo.runGet(role=role, instance=instance, action=action,
-                      force=force, producerRoles=producerroles, simulate=True)
+    run = repo.runCreate(profile=False, debug=False)
+    if len(run.steps) <= 0:
+        print("Nothing to do.")
+        return
+
     print(run)
 
 
 @click.command()
 @click.argument('action')
-@click.option('--state', default="DO", help='state to set')
+@click.option('--state', default="ok", help='state to set, can be: new, ok, scheduled')
 @click.option('--role', default="", help='optional role for ays instances execute an action on')
-@click.option('--instance', default="", help='optional name of instance')
-@click.option('--force', default=False, is_flag=True, help='if True then will ignore state of service action.')
-@click.option('--producerroles', default="", help='roles of producers which will be taken into consideration, if empty then none')
-def setstate(action, state="DO", role="", instance="", force=False, producerroles=""):
+@click.option('--instance', default="", help='optional name of the service')
+def set_state(action, state, role, instance):
     """
-    be careful what you do with this command
-    this sets the state of an ays instance manually
+    Manually set the state of an action.
+    You can filter on which services to apply the state using --role and --instance
+    Only use this command if you know what you're doing !!
     """
-    repo = j.atyourservice.get()
-    repo.setState(actions=[action], role=role, instance=instance, state=state)
-    run = repo.runGet(role=role, instance=instance, action=action, force=False, producerRoles=producerroles)
-    print(run)
 
+    if state not in ['ok', 'new', 'scheduled']:
+        print("State {} not supported.".format(state))
+        return
+
+    repo = j.atyourservice.get()
+    services = repo.servicesFind(name=instance, actor='{}.*'.format(role))
+    for service in services:
+        if action in service.model.actions:
+            print('setting state of action {action} from service {service} to {state}'.format(state=state, action=action, service=service))
+            service.model.actions[action].state = state
+        service.saveAll()
 
 @click.command()
 @click.option('--role', '-r', default='')
 @click.option('--instance', '-i', default='')
-def show(role, instance):
+@click.option('--deep', default=False, is_flag=True, help='show producers and consumers recursivlely')
+def show(role, instance, deep):
     '''
     show information about a service
     '''
@@ -312,8 +272,16 @@ def show(role, instance):
         for k in sorted(instance_data):
             print("- %s : %s" % (k, instance_data[k]))
 
+        if service.parent is not None:
+            print("\nParent:")
+            print(service.parent)
+
         print("\nProducers:")
-        service.printProducersRecursive()
+        if deep:
+            service.printProducersRecursive()
+        else:
+            for producer in service.producers:
+                print(producer)
 
         print("\nRecurring actions:")
         for name, model in service.model.actionsRecurring.items():
@@ -326,35 +294,6 @@ def show(role, instance):
             print('  channel: %s' % event_filter.channel)
             print('  tags: %s' % event_filter.tags)
             print('  secrets: not shown')
-
-
-@click.command()
-@click.argument('role')
-@click.argument('instance')
-def showproducers(role, instance):
-    '''
-    find the producers for this service & show
-    '''
-    repo = j.atyourservice.get()
-    print("producers:")
-    ays = repo.serviceGet(role=role, instance=instance)
-    ays.printProducersRecursive()
-
-
-@click.command()
-@click.argument('role')
-@click.argument('instance')
-def showparents(role, instance):
-    """
-    Display the list of parent of a specific service instance.
-    """
-    repo = j.atyourservice.get()
-    service = repo.serviceGet(role, instance)
-    out = "parents:\n"
-    for parent in service.parents:
-        out += "- %s\n" % parent
-    print(out)
-
 
 @click.command()
 @click.option('--role', '-r', default='')
@@ -430,38 +369,36 @@ def restore():
         Service(repo, path=service_path)
 
 @click.command()
-@click.option('--branch', '-b', help="Name of branch, can be used in pull request to do change mgmt.", default='master')
-def update_md(branch="master"):
+@click.option('--id', default=None)
+@click.option('--list',default=False, is_flag=True, help='list all run ids')
+def run_info(id, list):
     """
-    update the metdata for the templates as well as the current ays repo
-    """
-    repo = j.atyourservice.get()
-    repo.update(branch=branch)
-
-
-@click.command()
-@click.option('--runid', default=None)
-@click.option('--list', is_flag=True, help='list all runid')
-def runinfo(runid, list):
-    """
-    print info about run, if not specified will be latest run
+    Print info about run, if not specified will be latest run
     """
     repo = j.atyourservice.get()
     if list:
         print("Run IDs:")
-        for i, key in enumerate(j.core.jobcontroller.db.run.list()):
-            print("%d - %s" % (i + 1, key))
+
+        runs = repo.runsList()
+        if len(runs) <= 0:
+            print("no run in this repo yet")
+
+        for model in sorted(runs, key=lambda r: r.dbobj.lastModDate):
+            print('{key} - mod date: {epoch}'.format(key=model.key, epoch=j.data.time.epoch2HRDateTime(model.dbobj.lastModDate)))
+
         return
 
-    if runid is None:
-        runid = j.core.jobcontroller.db.run.list()[-1]
-    run = repo.runGet(key=runid)
-    print(run)
+    if id is None:
+        print("No run id specified")
+        return
+
+    run = repo.runGet(id)
+    print(run.objectGet())
 
 
 @click.command()
-@click.option('--role', default="", help='optional role for ays instances execute an action on')
-@click.option('--instance', default="", help='optional name of instance')
+@click.option('--role', '-r', default="", help='optional role for ays instances execute an action on')
+@click.option('--instance', '-i', default="", help='optional name of instance')
 def state(role='', instance=''):
     """
     Print the state of the selected services. If not role or instances specified, all services from the repository are selected
@@ -482,7 +419,7 @@ def state(role='', instance=''):
 @click.option('--ask', default=True, is_flag=True, help='ask confirmation before delete services')
 def delete(role, instance, ask):
     """
-    Delete a service and all it's children
+    Delete a service and all its children
     Be carefull with this action, there is no come back once a service is deleted.
     """
     repo = j.atyourservice.get()
@@ -513,6 +450,9 @@ def delete(role, instance, ask):
 @click.command()
 @click.option('--config', '-c', default="", help='path of ays config file')
 def start(config):
+    """
+    Start the AYS daemon
+    """
     from JumpScale.baselib.atyourservice81.AtYourServiceDaemon import Server
     if config:
         cfg = j.data.serializer.yaml.load(config)
@@ -529,24 +469,18 @@ cli.add_command(run)
 cli.add_command(create_repo)
 cli.add_command(discover)
 cli.add_command(repo_list)
-cli.add_command(runinfo)
+cli.add_command(run_info)
 cli.add_command(simulate)
 cli.add_command(test)
-cli.add_command(setstate)
+cli.add_command(set_state)
 cli.add_command(commit)
 cli.add_command(restore)
-cli.add_command(update_md)
 cli.add_command(blueprint)
-# cli.add_command(new)
 cli.add_command(destroy)
-cli.add_command(init)
 cli.add_command(update)
 cli.add_command(install)
 cli.add_command(do)
 cli.add_command(show)
-cli.add_command(showproducers)
-cli.add_command(showparents)
-cli.add_command(showactions)
 cli.add_command(list)
 cli.add_command(state)
 cli.add_command(delete)

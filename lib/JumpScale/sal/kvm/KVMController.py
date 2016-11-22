@@ -10,10 +10,10 @@ class KVMController:
         if executor is None:
             executor = j.tools.executor.getLocal()
         self.executor = executor
-        if self.executor._cuisine.id == 'localhost':
+        if self.executor.cuisine.id == 'localhost':
             host = 'localhost'
         else:
-            host = '%s@%s' % (getattr(self.executor, '_login', 'root'), self.executor._cuisine.id)
+            host = '%s@%s' % (getattr(self.executor, '_login', 'root'), self.executor.cuisine.id)
         self._host = host
         self.user = host.split('@')[0] if '@' in host else 'root'
         self.open()
@@ -21,7 +21,7 @@ class KVMController:
         self.template_path = j.sal.fs.joinPaths(
             j.sal.fs.getParent(__file__), 'templates')
         self.base_path = base_path or "/tmp/base"
-        self.executor._cuisine.core.dir_ensure(self.base_path)
+        self.executor.cuisine.core.dir_ensure(self.base_path)
         self._env = Environment(loader=FileSystemLoader(self.template_path))
 
     def open(self):
@@ -45,7 +45,7 @@ class KVMController:
         close(self.connection)
         close(self.readonly)
         if self.authorized:
-            self.executor._cuisine.ssh.unauthorize(self.user, self.pubkey)
+            self.executor.cuisine.ssh.unauthorize(self.user, self.pubkey)
 
     def get_template(self, template):
         return self._env.get_template(template)

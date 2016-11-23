@@ -2468,8 +2468,6 @@ class InstallTools():
                     repodir = "%s/%s/%s/%s" % (self.CODEDIR, top, accountfound, reponame)
                     if self.exists(path="%s/.git" % repodir):
                         repos[reponame] = repodir
-        if len(list(repos.keys())) == 0:
-            raise RuntimeError("Cannot find git repo '%s':'%s':'%s'" % (provider, account, name))
         return repos
 
     def pushGitRepos(self, message, name="", update=True, provider="", account=""):

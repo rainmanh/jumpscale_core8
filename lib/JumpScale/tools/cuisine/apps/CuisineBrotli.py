@@ -27,3 +27,4 @@ class CuisineBrotli(app):
         rm -rf /tmp/brotli
         """
         self._cuisine.core.execute_bash(C)
+        self._cuisine.development.pip.install('brotli>=0.5.2')

@@ -101,30 +101,29 @@ class CuisineSystemd(ProcessManagerBase):
             cmd = cmd.replace(cmd0, cmd1)
 
         envstr = ""
-        env.update(self._cuisine.bash.environ)
         for name0, value in list(env.items()):
             if value:
-                envstr += "%s='%s'" % (name0, value)
+                envstr += "Environment=%s=%s\n" % (name0, self._cuisine.core.args_replace(value))
 
         cmd = self._cuisine.core._clean(cmd)
 
         if systemdunit != "":
             C = systemdunit
         else:
-            C = """
-            [Unit]
-            Description=$descr
-            Wants=network-online.target
-            After=network-online.target
+            C = """\
+[Unit]
+Description=$descr
+Wants=network-online.target
+After=network-online.target
 
-            [Service]
-            ExecStart=$cmd
-            Restart=always
-            WorkingDirectory=$cwd
-            Environment=$env
+[Service]
+ExecStart=$cmd
+Restart=always
+WorkingDirectory=$cwd
+$env
 
-            [Install]
-            WantedBy=multi-user.target
+[Install]
+WantedBy=multi-user.target
             """
         C = C.replace("$cmd", cmd)
         C = C.replace("$cwd", path)
@@ -168,7 +167,7 @@ class CuisineRunit(ProcessManagerBase):
 
         envstr = ""
         for name0, value in list(env.items()):
-            envstr += "export %s=%s\n" % (name0, value)
+            envstr += "export %s=%s\n" % (name0, self._cuisine.core.args_replace(value))
 
         sv_text = """#!/bin/sh
         set -e
@@ -265,7 +264,7 @@ class CuisineTmuxec(ProcessManagerBase):
 
         envstr = ""
         for name0, value in list(env.items()):
-            envstr += "export %s=%s && " % (name0, value)
+            envstr += "export %s=%s && " % (name0, self._cuisine.core.args_replace(value))
         if path:
             cwd = "cd %s &&" % path
             cmd = "%s %s" % (cwd, cmd)

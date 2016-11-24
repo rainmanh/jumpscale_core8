@@ -51,8 +51,11 @@ class Client:
         @param callback: URL of the callback where to send status after execution
         @type args: string
         """
-        run.save()
+        if not j.core.jobcontroller.db.runs.exists(run.key):
+            run.save()
+
         self._do('run', {
             'run_key': run.key,
             'callback_url': callback_url
         })
+

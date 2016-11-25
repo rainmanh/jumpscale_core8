@@ -27,7 +27,7 @@ class Pool(BaseKVMComponent):
     def is_started(self):
         return self.lvpool.isActive() == 1
 
-    def create(self, start=True, autostart=True):
+    def create(self, start=True):
         """
         Create the bool
         """
@@ -40,23 +40,13 @@ class Pool(BaseKVMComponent):
         if start:
             self.start()
 
-        if autostart:
-            self.lvpool.setAutostart(1)
-        else:
-            self.lvpool.setAutostart(0)
-
-    def start(self, autostart=True):
+    def start(self):
         """
         start a (previously defined) inactive pool
         """
         if self.is_started:
             return
         self.lvpool.create()
-
-        if autostart:
-            self.lvpool.setAutostart(1)
-        else:
-            self.lvpool.setAutostart(0)
 
     def delete(self):
         """

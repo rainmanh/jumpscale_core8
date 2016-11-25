@@ -7,19 +7,18 @@ class StoragePools:
         self._controller = controller
         self._storage_controller =  j.sal.kvm.StorageController(controller)
 
-    def create(self, name, start=True, autostart=True):
+    def create(self, name, start=True):
         """
         create a new storage pool
 
         @param name string: name of the storage pool
         @param start bool: start pool after creation
-        @param autostart bool: enable autostart of pool at boot time.
         """
         pool = j.sal.kvm.Pool(self._controller, name)
         if not pool.is_created:
-            pool.create(start=start, autostart=autostart)
+            pool.create(start=start)
         if start:
-            pool.start(autostart=autostart)
+            pool.start()
         return pool
 
     def list(self):

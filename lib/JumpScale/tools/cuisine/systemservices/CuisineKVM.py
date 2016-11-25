@@ -46,6 +46,8 @@ class CuisineKVM(base):
         """
         if not self._cuisine.core.isUbuntu or self._cuisine.platformtype.osversion != '16.04':
             raise RuntimeError("only support ubuntu 16.04")
+        self._cuisine.package.mdupdate()
+        self._cuisine.development.pip.ensure()
         self._libvirt()
 
     def _libvirt(self):

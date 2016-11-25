@@ -57,7 +57,7 @@ class Network(BaseKVMComponent):
 
     @property
     def is_started(self):
-        return self.nw.isActive == 1
+        return self.nw.isActive() == 1
 
     def create(self, start=True, autostart=True):
         '''

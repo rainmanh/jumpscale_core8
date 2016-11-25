@@ -75,9 +75,10 @@ class CuisinePackage(base):
     def install(self, package, allow_unauthenticated=False):
 
         if self._cuisine.core.isUbuntu:
-            cmd = "apt-get install -y --assume-yes "
+            cmd = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes install '
             if allow_unauthenticated:
                 cmd += ' --allow-unauthenticated '
+
             cmd += package
 
         elif self._cuisine.core.isArch:

@@ -1,5 +1,5 @@
 from JumpScale import j
-from Jumpscale.clients.portal.PortalClient import ApiError
+from JumpScale.clients.portal.PortalClient import ApiError
 import time
 import datetime
 import os

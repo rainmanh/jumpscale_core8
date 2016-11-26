@@ -46,7 +46,6 @@ class RunStep:
         jobdbobj.key = job.model.key
         jobdbobj.serviceName = job.model.dbobj.serviceName
         jobdbobj.serviceKey = job.model.dbobj.serviceKey
-        jobdbobj.state = str(job.model.state)
 
     @property
     def jobs(self):
@@ -116,17 +115,18 @@ class RunStep:
 
                 log_enable = j.core.jobcontroller.db.actions.get(service_action_obj.actionKey).dbobj.log
                 if log_enable:
-                    job.model.log(msg=process.stdout, level=5, category='out')
-                    job.model.log(msg=process.stderr, level=5, category='err')
+                    if process.stdout != '':
+                        job.model.log(msg=process.stdout, level=5, category='out')
+                    if process.stderr != '':
+                        job.model.log(msg=process.stderr, level=5, category='err')
                 self.logger.info("job {} done sucessfuly".format(str(job)))
-
             job.save()
 
     def __repr__(self):
         out = "step:%s (%s)\n" % (self.dbobj.number, self.state)
         for job in self.jobs:
-            out += "- %-25s %-25s ! %-15s\n" % \
-                (job.model.dbobj.actorName, job.model.dbobj.serviceName, job.model.dbobj.actionName)
+            out += "- %-25s %-25s ! %-15s (%s)\n" % \
+                (job.model.dbobj.actorName, job.model.dbobj.serviceName, job.model.dbobj.actionName, job.model.dbobj.state)
         return out
 
     __str__ = __repr__

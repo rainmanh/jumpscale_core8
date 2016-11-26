@@ -139,15 +139,14 @@ struct Run {
 
           #NEXT IS CACHED INFO, THE MAIN SOURCE OF NEXT INFO IS IN Job
           #BUT is good practice will make all run very much faster& allow fast vizualization
-          state @1 :State;
           #e.g. node.ssh
-          actorName @2 :Text;
+          actorName @1 :Text;
           #name e.g. install
-          actionName @3 :Text;
+          actionName @2 :Text;
           #name of service run by actor e.g. myhost
-          serviceName @4 :Text;
+          serviceName @3 :Text;
 
-          serviceKey @5:Text;
+          serviceKey @4:Text;
       }
     }
 

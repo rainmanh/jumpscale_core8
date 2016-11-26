@@ -1,8 +1,7 @@
-import msgpack
-
 from JumpScale import j
 from JumpScale.baselib.atyourservice81.Service import Service
 import capnp
+import msgpack
 from JumpScale.baselib.atyourservice81 import model_capnp as ModelCapnp
 
 
@@ -159,6 +158,9 @@ class Actor():
             flistObj.content = info['content']
 
     def _processActionsFile(self, path):
+        def string_has_triple_quotes(s):
+            return "'''" in s or '"""' in s
+
         self._out = ""
 
         actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
@@ -184,11 +186,12 @@ class Actor():
         amDoc = ""
         amDecorator = ""
         amMethodArgs = {}
-
         # DO NOT CHANGE TO USE PYTHON PARSING UTILS
         lines = content.splitlines()
         for line in lines:
             linestrip = line.strip()
+            if linestrip.startswith("#"):  # general guard for comments in the beginning of the line
+                continue
             # if state == "INIT" and linestrip.startswith("class Actions"):
             if state == "INIT" and linestrip != '':
                 state = "MAIN"
@@ -225,18 +228,21 @@ class Actor():
                     else:
                         amDecorator = "@service"
                 state = "DEF"
+                canbeInDocString = True
+
                 continue
 
             if state == "DEF" and line.strip() == "":
                 continue
 
-            if state == "DEF" and line[4:8] in ["'''", "\"\"\""]:
+            if state == "DEF" and string_has_triple_quotes(line[4:8]) and canbeInDocString:
                 state = "DEFDOC"
                 amDoc = ""
                 continue
 
-            if state == "DEFDOC" and line[4:8] in ["'''", "\"\"\""]:
+            if state == "DEFDOC" and string_has_triple_quotes(line[4:8]):
                 state = "DEF"
+                canbeInDocString = False
                 continue
 
             if state == "DEFDOC":
@@ -244,6 +250,8 @@ class Actor():
                 continue
 
             if state == "DEF":
+                if not string_has_triple_quotes(linestrip):
+                    canbeInDocString = False
                 if linestrip != line[4:].strip():
                     # means we were not rightfully intented
                     raise j.exceptions.Input(message="error in source of action from %s (indentation):\nline:%s\n%s" % (

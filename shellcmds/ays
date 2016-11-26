@@ -375,18 +375,24 @@ def run_info(id, list):
     """
     Print info about run, if not specified will be latest run
     """
+    repo = j.atyourservice.get()
     if list:
         print("Run IDs:")
-        runs = j.core.jobcontroller.db.runs.find()
+
+        runs = repo.runsList()
+        if len(runs) <= 0:
+            print("no run in this repo yet")
+
         for model in sorted(runs, key=lambda r: r.dbobj.lastModDate):
             print('{key} - mod date: {epoch}'.format(key=model.key, epoch=j.data.time.epoch2HRDateTime(model.dbobj.lastModDate)))
+
         return
 
     if id is None:
         print("No run id specified")
         return
 
-    run = j.core.jobcontroller.db.runs.get(id)
+    run = repo.runGet(id)
     print(run.objectGet())
 
 

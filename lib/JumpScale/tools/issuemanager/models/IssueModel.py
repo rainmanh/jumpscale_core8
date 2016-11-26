@@ -2,8 +2,8 @@ from collections import OrderedDict
 
 import msgpack
 from JumpScale import j
-from JumpScale.clients.gogs.models.IssueServiceBaseModel import IssueServiceBaseModel
-from JumpScale.clients.gogs.Issue import Issue
+from JumpScale.tools.issuemanager.models.IssueServiceBaseModel import IssueServiceBaseModel
+from JumpScale.tools.issuemanager.Issue import Issue
 
 class IssueModel(IssueServiceBaseModel):
     """

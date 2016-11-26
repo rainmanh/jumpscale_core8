@@ -36,7 +36,6 @@ class Dirs:
 
         import sys
 
-        # self.base=j.application.config.get("dirs.base")
         self.base = j.do.BASE
         self.homeDir = os.environ["HOME"]
         self.cfgDir = os.environ["CFGDIR"]
@@ -55,11 +54,10 @@ class Dirs:
         self.appDir = self.normalize(j.sal.fs.joinPaths(self.base, "apps"))
         self.varDir = self.normalize(j.do.VARDIR)
         self.tmplsDir = self.normalize(j.sal.fs.joinPaths(self.varDir, "templates"))
-        self.cfgDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("CFGDIR"))
         self.libDir = j.sal.fs.joinPaths(self.base, 'lib')
         self.logDir = self.normalize(j.sal.fs.joinPaths(self.varDir, "log"))
         self.pidDir = self.normalize(j.sal.fs.joinPaths(self.varDir, "pid"))
-        self.codeDir = self.normalize(j.application.config.jumpscale['system']["dirs"].get("CODEDIR"))
+        self.codeDir = self.normalize(j.do.CODEDIR)
         self.libExtDir = j.sal.fs.joinPaths(self.base, 'libext')
         self.binDir = self.normalize(os.path.join(self.base, 'bin'))
         self.jsLibDir = os.path.join(self.libDir, "JumpScale")

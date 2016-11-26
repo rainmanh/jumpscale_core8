@@ -1,11 +1,11 @@
 from JumpScale import j
-from JumpScale.clients.gogs.models.IssueModel import IssueModel
+from JumpScale.tools.issuemanager.models.IssueModel import IssueModel
 
 import capnp
-from JumpScale.clients.gogs import model_capnp as ModelCapnp
+from JumpScale.tools.issuemanager import model as ModelCapnp
 
 
-class IssuesCollection:
+class IssueCollection:
     """
     This class represent a collection of AYS Issues contained in an AYS repository
     It's used to list/find/create new Instance of Issue Model object

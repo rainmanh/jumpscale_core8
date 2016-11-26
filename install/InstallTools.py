@@ -514,11 +514,110 @@ class InstallTools():
         self._extratools = False
         self._asyncLoaded = False
         self._deps = None
+        self._config=None
 
         self.installer = Installer()
         self.installer.do = self
 
         self.init()
+
+
+    @property
+    def debug(self):
+        if self.config!={}:
+            return self.config["system"]["DEBUG"]
+        else:
+            return os.environ["DEBUG"]
+
+
+    @property
+    def CODEDIR(self):
+        if self.config!={}:
+            return self.config["dirs"]["CODEDIR"]
+        else:
+            return os.environ["CODEDIR"]
+
+    @property
+    def BASE(self):
+        if self.config!={}:
+            return self.config["dirs"]["JSBASE"]
+        else:
+            return os.environ["JSBASE"]
+
+    @property
+    def CFGDIR(self):
+        #IMPORTANT can never come from configfile!
+        return os.environ["CFGDIR"]
+
+    @property
+    def TMPDIR(self):
+        if self.config!={}:
+            return self.config["dirs"]["TMPDIR"]
+        else:
+            return os.environ["TMPDIR"]
+
+    @property
+    def DATADIR(self):
+        if self.config!={}:
+            return self.config["dirs"]["DATADIR"]
+        else:
+            return os.environ["DATADIR"]
+
+    @property
+    def VARDIR(self):
+        if self.config!={}:
+            return self.config["dirs"]["VARDIR"]
+        else:
+            return os.environ["VARDIR"]
+
+    @debug.setter
+    def debug(self, value):
+        if not isinstance(value, bool):
+            raise RuntimeError("input for debug needs to be bool")
+        if self.config!={}:
+            self.config["system"]["DEBUG"] = value
+        else:
+            raise RuntimeError("cannot set debug, system is in readonly.")
+
+    @property
+    def sandbox(self):
+        if self.config!={}:
+            return self.config["system"]["SANDBOX"]
+        else:
+            return False
+
+    @sandbox.setter
+    def sandbox(self, value):
+        if not isinstance(value, bool):
+            raise RuntimeError("input for SANDBOX needs to be bool")
+        if self.config!={}:
+            self.config["system"]["SANDBOX"] = value
+        else:
+            raise RuntimeError("cannot set sandbox config arg, system is in readonly.")
+
+    @property
+    def configPath(self):
+        return '%s/jumpscale/system.yaml' % self.CFGDIR
+
+    @property
+    def config(self):
+        if self._config==None:
+            if self.exists(self.configPath):
+                with open(self.configPath, 'r') as conf:
+                    self._config = yaml.load(conf)
+            else:
+                    self._config={}
+        return self._config
+
+    def configDestroy(self):
+        self.remove(self.configPath)
+
+    def configSet(self, category, key, value):
+        #TODO *1
+        c = self.config
+        c[category][key] = value
+        with open(self.configPath, 'w') as outfile:
+            yaml.dump(c, outfile, default_flow_style=False)
 
     @property
     def dependencies(self):
@@ -537,84 +636,49 @@ class InstallTools():
         return self._deps
 
     @property
-    def debug(self):
-        return self.config["system"]["DEBUG"]
-
-    @property
-    def CODEDIR(self):
-        return self.config["dirs"]["CODEDIR"]
-
-    @property
-    def BASE(self):
-        return self.config["dirs"]["JSBASE"]
-
-    @property
-    def CFGDIR(self):
-        return self.config["dirs"]["CFGDIR"]
-
-    @property
-    def TMPDIR(self):
-        return self.config["dirs"]["TMPDIR"]
-
-    @property
-    def DATADIR(self):
-        return self.config["dirs"]["DATADIR"]
-
-    @property
-    def VARDIR(self):
-        return self.config["dirs"]["VARDIR"]
-
-    @debug.setter
-    def debug(self, value):
-        if not isinstance(value, bool):
-            raise RuntimeError("input for debug needs to be bool")
-        self.config["system"]["DEBUG"] = value
-
-    @property
-    def sandbox(self):
-        return self.config["system"]["SANDBOX"]
-
-    @sandbox.setter
-    def sandbox(self, value):
-        if not isinstance(value, bool):
-            raise RuntimeError("input for SANDBOX needs to be bool")
-        self.config["system"]["SANDBOX"] = value
-
-    @property
-    def config(self):
-        with open('%s/jumpscale/system.yaml' % os.environ["CFGDIR"], 'r') as conf:
-            cfg = yaml.load(conf)
-        return cfg
-
-    def configSet(self, category, key, value):
-        c = self.config
-        c[category][key] = value
-        with open('%s/jumpscale/system.yaml' % os.environ["CFGDIR"], 'w') as outfile:
-            yaml.dump(c, outfile, default_flow_style=False)
-
-    @property
     def done(self):
-        path = '%s/jumpscale/done.yaml' % os.environ["CFGDIR"]
-        if not self.exists(path):
+        if self.readonly==False:
+            path = '%s/jumpscale/done.yaml' % os.environ["CFGDIR"]
+            if not self.exists(path):
+                return {}
+            with open(path, 'r') as conf:
+                cfg = yaml.load(conf)
+            return cfg
+        else:
+            #this to make sure works in readonly mode
             return {}
-        with open(path, 'r') as conf:
-            cfg = yaml.load(conf)
-        return cfg
 
     def doneSet(self, key):
-        d = self.done
-        d[key] = True
-        with open('%s/jumpscale/done.yaml' % os.environ["CFGDIR"], 'w') as outfile:
-            yaml.dump(d, outfile, default_flow_style=False)
+        if self.readonly==False:
+            d = self.done
+            d[key] = True
+            with open('%s/jumpscale/done.yaml' % os.environ["CFGDIR"], 'w') as outfile:
+                yaml.dump(d, outfile, default_flow_style=False)
 
     def init(self):
 
-        self.embed = "embed" in sys.__dict__
+        if "DEBUG" in os.environ and str(os.environ["DEBUG"]).lower() in ["true","1","yes"]:
+            os.environ["DEBUG"]="1"
+        else:
+            os.environ["DEBUG"]="0"
+
+        if "READONLY" in os.environ and str(os.environ["READONLY"]).lower() in ["true","1","yes"]:
+            os.environ["READONLY"]="1"
+            self.readonly=True
+        else:
+            os.environ["READONLY"]="0"
+            self.readonly=False
+
+        if "JSRUN" in os.environ and str(os.environ["JSRUN"]).lower() in ["true","1","yes"]:
+            os.environ["JSRUN"]="1"
+            self.embed=True
+        else:
+            os.environ["JSRUN"]="0"
+            self.embed=False
 
         if self.embed:
-            os.environ["JSBASE"] = os.getcwd()
-            if not "HOME" in os.environ:
-                raise RuntimeError()
+            if not "JSBASE" in os.environ:
+                os.environ["JSBASE"] = os.getcwd()
             os.environ["TMPDIR"] = "%s/js/tmp" % os.environ["JSBASE"]
             os.environ["VARDIR"] = "%s/js/optvar/" % os.environ["JSBASE"]
             os.environ["DATADIR"] = "%s/js/data" % os.environ["JSBASE"]
@@ -631,16 +695,20 @@ class InstallTools():
             os.environ["CODEDIR"] = "/JS8/code"
             os.environ["CFGDIR"] = "/JS8/optvar/cfg/"
 
-        if platform.system().lower() == "windows":
+        if platform.system().lower() == "windows" or platform.system().lower() == "cygwin_nt-10.0":
+            if not "JSBASE" in os.environ:
+                raise RuntimeError()
             self.TYPE = "WIN"
             os.environ["JSBASE"] = "%s/" % os.environ["JSBASE"].replace("\\", "/")
             raise RuntimeError("TODO: *3")
 
-        elif sys.platform.startswith("darwin") or platform.system().lower() == "cygwin_nt-10.0":
+        elif sys.platform.startswith("darwin") :
             if sys.platform.startswith("darwin"):
                 self.TYPE = "OSX"
-            else:
-                self.TYPE = "WIN"
+
+            if not "HOME" in os.environ:
+                raise RuntimeError()
+
             if "JSBASE" not in os.environ:
                 os.environ["JSBASE"] = "%s/opt/jumpscale8" % os.environ["HOME"]
             if "VARDIR" not in os.environ:
@@ -675,8 +743,10 @@ class InstallTools():
         if not "TMPDIR" in os.environ:
             os.environ["TMPDIR"] = tempfile.gettempdir().replace("\\", "/")
 
-        if not self.exists("%s/jumpscale/system.yaml" % os.environ["CFGDIR"]):
-            self.installer.writeEnv()
+
+        #DO NOT DO THIS, this should only be written when doing install
+        # if not self.exists("%s/jumpscale/system.yaml" % os.environ["CFGDIR"]):
+        #     self.installer.writeEnv()
 
         # if str(sys.excepthook).find("apport_excepthook")!=-1:
         # if we get here it means is std python excepthook (I hope)

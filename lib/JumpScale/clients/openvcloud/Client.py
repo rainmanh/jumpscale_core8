@@ -1,4 +1,5 @@
 from JumpScale import j
+from JumpScale.clients.portal.PortalClient import ApiError
 import time
 import datetime
 import os
@@ -10,18 +11,9 @@ class Factory:
 
     def __init__(self):
         self.__jslocation__ = "j.clients.openvcloud"
-        # self._clients = {}
 
-    def get(self, url, login, password=None, secret=None, port=443):
-        dbkey = "%s:%s:%s" % (url, login, j.data.hash.md5_string(password))
-        # if dbkey in self._clients:
-        #     return self._clients[dbkey]
-        # else:
-        #     cl = Client(url, login, password, secret, port)
-
-        # self._clients[dbkey] = cl
-
-        cl = Client(url, login, password, secret, port)
+    def get(self, url, login=None, password=None, secret=None, port=443, jwt=None):
+        cl = Client(url, login, password, secret, port, jwt)
         return cl
 
     def getFromService(self, service):
@@ -53,20 +45,20 @@ def patchMS1(api):
 
 class Client:
 
-    def __init__(self, url, login, password=None, secret=None, port=443):
+    def __init__(self, url, login, password=None, secret=None, port=443, jwt=None):
         if not password and not secret:
             raise ValueError("Either secret or password should be given")
         self._url = url
         self._login = login
-        # portal support login with md5 of the password
-        self._password = j.data.hash.md5_string(password)
+        self._password = password
         self._secret = secret
+        self._jwt = jwt
         self.api = j.clients.portal.get(url, port)
         # patch handle the case where the connection dies because of inactivity
         self.__patch_portal_client(self.api)
 
         self._isms1 = 'mothership1' in url
-        self.__login(password, secret)
+        self.__login(password, secret, jwt)
         if self._isms1:
             jsonpath = os.path.join(os.path.dirname(__file__), 'ms1.json')
             self.api.load_swagger(file=jsonpath, group='cloudapi')
@@ -90,21 +82,30 @@ class Client:
                 return origcall(that, *args, **kwargs)
             except ApiError:
                 if ApiError.response.status_code == 419:
-                    self._login(self._password, self._secret)
+                    # TODO: this should handle token refresh
+                    self.__login(self._password, self._secret, self._jwt)
+                    return origcall(that, *args, **kwargs)
+                raise
 
         api.__call__ = patch_call
 
-    def __login(self, password, secret):
-        if not secret:
-            if self._isms1:
-                secret = self.api.cloudapi.users.authenticate(
-                    username=self._login, password=password)
-            else:
-                secret = self.api.system.usermanager.authenticate(
-                    name=self._login, secret=password)
-        # make sure cookies are empty, clear guest cookie
-        self.api._session.cookies.clear()
-        self.api._session.cookies['beaker.session.id'] = secret
+    def __login(self, password, secret, jwt):
+        if not password and not secret and not jwt:
+            raise RuntimeError("Can not connect to openvcloud without either password, secret or jwt")
+        if jwt:
+            self.api._session.headers['Authorization'] = 'token {}'.format(jwt)
+            # TODO: set self._login from the jwt
+        else:
+            if password:
+                if self._isms1:
+                    secret = self.api.cloudapi.users.authenticate(
+                        username=self._login, password=password)
+                else:
+                    secret = self.api.system.usermanager.authenticate(
+                        name=self._login, secret=password)
+            # make sure cookies are empty, clear guest cookie
+            self.api._session.cookies.clear()
+            self.api._session.cookies['beaker.session.id'] = secret
 
     @property
     def accounts(self):

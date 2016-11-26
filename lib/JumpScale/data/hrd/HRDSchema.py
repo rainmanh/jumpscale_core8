@@ -285,8 +285,8 @@ class HRDSchema:
         typesmap = {
             'str': 'Text',
             'multiline': 'Text',
-            'int': 'UInt32',
-            'integer': 'UInt32',
+            'int': 'Int64',
+            'integer': 'Int64',
             'bool': 'Bool',
             'float': 'Float32',
         }

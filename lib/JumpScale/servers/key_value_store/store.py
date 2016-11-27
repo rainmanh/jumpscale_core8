@@ -4,14 +4,18 @@ from JumpScale import j
 import time
 # from abc import ABCMeta, abstractmethod
 import collections
-
+import msgpack
 
 import snappy
+
+import re
 
 # IMPORTANT: had to remove class for manipulating kvs object, class was more clear but 2 issues
 # - this needs to be converted to a functional C module which can be reused in many languages, doing this in OO is much more complex
 # - its slower, python is not very efficient with objects
 # - if its too slow now we can go to cython module quite easily because is just a method
+# - suggest to use nimlang to create c module
+
 
 class KeyValueStoreBase:  # , metaclass=ABCMeta):
     '''KeyValueStoreBase defines a store interface.'''
@@ -27,6 +31,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         self.masterdb = masterdb
         self._schema = b""
         self.owner = j.application.owner
+        self.inMem = False
 
     def __new__(cls, *args, **kwargs):
         '''
@@ -178,16 +183,13 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
         return (val, owner, schema, expire, acl)
 
-    def set(self, key, value=None, expire=None, acl={}, secret=None):
+    def set(self, key, value=None, expire=None, acl={}, secret=""):
         """
         @param secret, when not specified the owner will be used, allows to specify different secret than youw own owner key
         @param expire is seconds from now, when obj will expire
             if you want to set then needs to be an int>0 or 0
 
         """
-
-        if secret is None:
-            secret = self.owner
 
         res = self.getraw(key, secret=secret, die=False, modecheck="w")
 
@@ -294,7 +296,8 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         val, owner, schema, expire, acl = self.getraw(key, secret=secret, modecheck='d', die=True)
 
         if secret is not None and secret != '' and owner != secret:
-            raise j.exceptions.Input(message="Cannot delete object, only owner can delete an object", level=1, source="", tags="", msgpub="")
+            raise j.exceptions.Input(message="Cannot delete object, only owner can delete an object",
+                                     level=1, source="", tags="", msgpub="")
 
         self._delete(key=key)
 
@@ -325,29 +328,45 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         if secret == "":
             secret = self.owner
 
-        raise NotImplemented()
+        indexobj = self.getraw("index", die=False, secret=secret)
 
-        # TOO: load data
-        ddict = msgpack.loads(data)
+        if indexobj == None:
+            ddict = {}
+        else:
+            ddict = msgpack.loads(indexobj)
         ddict.update(items)
+
         data2 = msgpack.dumps(ddict)
-        # TOO: save data2
+        self.set("index", data2, secret=secret)
 
     def index_remove(self, keys, secret=""):
-        raise NotImplementedError()
+        self.delete("index")
 
     def list(self, regex=".*", returnIndex=False, secret=""):
         """
         regex is regex on the index, will return matched keys
-        e.g. .*:new:.* would match all actors with state new
-
-        allows to walk over index & find required objects
-
+        e.g. .*:new:.* would match e.g. all obj with state new
         """
-        # TODO: needs to be implemented by walking overindex objects (capnproto or flat text? (compressed))
-        if secret == "":
-            secret = self.owner
-        raise NotImplemented()
+
+        indexobj = self.getraw("index", die=False, secret=secret)
+
+        if indexobj == None:
+            ddict = {}
+        else:
+            ddict = msgpack.loads(indexobj)
+
+        res = set()
+        for item, key in ddict.items():
+            item = item.decode()
+            key = key.decode()
+            if re.match(regex, item) is not None:
+                if returnIndex is False:
+                    for key2 in key.split(","):
+                        res.add(key2)
+                else:
+                    for key2 in key.split(","):
+                        res.add((item, key2))
+        return list(res)
 
 
 # DO NOT LOOK AT BELOW RIGHT NOW IS FOR FUTURE

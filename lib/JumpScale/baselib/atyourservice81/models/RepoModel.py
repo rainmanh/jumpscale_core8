@@ -1,5 +1,6 @@
 from JumpScale import j
-from JumpScale.data.capnp.ModelBase import ModelBase
+
+ModelBaseWithData = j.data.capnp.getModelBaseClass()
 
 
 class RepoModel(ModelBase):
@@ -35,7 +36,8 @@ class RepoModel(ModelBase):
         try:
             repo = j.atyourservice._repoLoad(self.dbobj.path)
         except j.exceptions.NotFound as err:
-            self.logger.error("Repository at {path} doesn't exists. remove it from database".format(path=self.dbobj.path))
+            self.logger.error(
+                "Repository at {path} doesn't exists. remove it from database".format(path=self.dbobj.path))
             self.delete()
             raise err
 

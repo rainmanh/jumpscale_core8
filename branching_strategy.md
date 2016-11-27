@@ -14,7 +14,10 @@
         
   * 8.1.1:
      * Branch: master (new development)
-     * Core0/CoreX (@zaibon please add more)
+     * New developement of Core0/CoreX
+     * Stories involving this version:
+       * [g8os.alpha]https://github.com/gig-projects/org_development/issues/1218
+     
   
 ## Branching Strategy:
 Branches are only created by product owner (because product owner should have full overview of everything happening in the product)

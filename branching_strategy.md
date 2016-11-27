@@ -3,14 +3,6 @@
   * 8.1.0:
      * Branch: 8.1.0
      * Used for cockpit v8.1 with OpenVCloud 8.1.x
-     * Stories involving this version:
-        * [js81](https://github.com/gig-projects/org_development/issues/1212): branch 8.1.0_story_js81
-        * [cockpit_installation](https://github.com/gig-projects/org_development/issues/1301): branch 8.1.0_story_cockpit_installation
-        * [autotest_216](https://github.com/gig-projects/org_development/issues/1223): branch 8.1.0_story_autotest_216
-        * [cockpit-doc](https://github.com/gig-projects/org_development/issues/862): branch 8.1.0_story_cockpit-doc
-        * [mvp-cockpit](https://github.com/gig-projects/org_development/issues/1318): branch 8.1.0_story_mvp-cockpit
-        * [cockpit_chatbot](https://github.com/gig-projects/org_development/issues/1304): branch 8.1.0_story_cockpit_chatbot
-        * [cockpit_portal](https://github.com/gig-projects/org_development/issues/1303): branch 8.1.0_story_cockpit_portal
         
   * 8.1.1:
      * Branch: master (new development)
@@ -36,26 +28,20 @@ Branches are only created by product owner (because product owner should have fu
 MASTER
 |              8.1.0
 |-------------->|
-|               |    8.1.0_story_<storycard_name>
-|               | ----->|
-|               |       |
-|               | <-----x (SC done, merged back into release branch. Tested.)
+|               | 
+|               | 
+|               | 
+|               |
 |               |
 |<------------- | (update master with changes from release branch)
 |               v
 |
 |
-|           8.1.1_story_storycard_name
-| ------------->| 
-|               |
-* blocking fix  |
-|               |
-|-------------->| (merge upstream into SC branch)
-|               |
-|               |
-|               |
-| <-------------x (SC done, merged back into release branch. Tested.)
+8.1.1           
 |
+|
+* blocking fix
+| 
 |
 |
 |

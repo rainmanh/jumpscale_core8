@@ -10,9 +10,9 @@ class CuisineCockpit(base):
         self._executor = executor
         self._cuisine = cuisine
 
-    def install(self, start=True):
+    def install(self, start=True, branch="master"):
         self.install_deps()
-        self._cuisine.development.git.pullRepo('https://github.com/Jumpscale/jscockpit', ssh=False)
+        self._cuisine.development.git.pullRepo('https://github.com/Jumpscale/jscockpit', ssh=False, branch=branch)
         self._cuisine.core.dir_ensure('%s/ays_api/' % j.dirs.appDir)
         self._cuisine.core.file_copy('%s/github/jumpscale/jscockpit/api_server' % j.dirs.codeDir, '%s/ays_api/api_server' % j.dirs.appDir)
         self._cuisine.core.file_copy('%s/github/jumpscale/jscockpit/ays_api' % j.dirs.codeDir, '%s/ays_api/ays_api' % j.dirs.appDir, recursive=True)

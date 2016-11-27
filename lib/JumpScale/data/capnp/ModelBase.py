@@ -6,7 +6,6 @@ from collections import OrderedDict
 class ModelBase():
 
     def __init__(self, capnp_schema, category, db, index, key="", new=False):
-        self.logger = j.atyourservice.logger
 
         self._capnp_schema = capnp_schema
         self._category = category
@@ -56,18 +55,24 @@ class ModelBase():
 
     def index(self):
         # put indexes in db as specified
-        raise NotImplementedError
+        ind = "%s" % (self.dbobj.name)
+        self._index.index({ind: self.key})
 
     def load(self, key):
+        if self._db.inMem:
+            raise RuntimeError("should not get here")
         buff = self._db.get(key)
         self.dbobj = self._capnp_schema.from_bytes(buff, builder=True)
 
     def save(self):
         self._pre_save()
-        buff = self.dbobj.to_bytes()
-        if hasattr(self.dbobj, 'clear_write_flag'):
-            self.dbobj.clear_write_flag()
-        self._db.set(self.key, buff)
+        if not self._db.inMem:
+            # no need to store when in mem because we are the object which does not have to be serialized
+            # so this one stores when not mem
+            buff = self.dbobj.to_bytes()
+            if hasattr(self.dbobj, 'clear_write_flag'):
+                self.dbobj.clear_write_flag()
+            self._db.set(self.key, buff)
         self.index()
 
     @property
@@ -111,3 +116,108 @@ class ModelBaseWithData(ModelBase):
     @property
     def dataBinary(self):
         return j.data.capnp.getBinaryData(self.data)
+
+
+class ModelBaseCollection:
+    """
+    This class represent a collection
+    It's used to list/find/create new Instance of Model objects
+
+    """
+
+    def __init__(self, schema, category, modelBaseClass=None, db=None, indexDb=None):
+        """
+        @param modelBaseClass, important to pass the class not the object
+        """
+
+        self.category = category
+        namespace = self.category
+        self.capnp_schema = schema
+
+        if db == None:
+            self._db = j.servers.kvs.getMemoryStore(name=namespace, namespace=namespace)
+        else:
+            self._db = db
+        if indexDb == None:
+            # for now we do index same as database
+            self._index = self._db
+        else:
+            self._index = indexDb
+
+        if not modelBaseClass == None:
+            self.modelBaseClass = modelBaseClass
+        else:
+            self.modelBaseClass = ModelBase
+
+    def new(self):
+        model = self.modelBaseClass(
+            capnp_schema=self.capnp_schema,
+            category=self.category,
+            db=self._db,
+            index=self._index,
+            key='',
+            new=True)
+
+        if self._db.inMem:
+            self._db.db[model.key] = model
+
+        return model
+
+    def get(self, key):
+        if self._db.inMem:
+            if key in self._db.db:
+                model = self._db.db[key]
+            else:
+                raise j.exceptions.Input(message="Could not find key:%s for model:%s" %
+                                         (key, self.category), level=1, source="", tags="", msgpub="")
+        else:
+            model = self.modelBaseClass(
+                capnp_schema=self.capnp_schema,
+                category=self.category,
+                db=self._db,
+                index=self._index,
+                key=key,
+                new=False)
+        return model
+
+    def list(self, name="", state=None):
+        """
+        @param name can be the full name e.g. node.ssh or a rule but then use e.g. node.*  (are regexes, so need to use .* at end)
+        @param state
+            new
+            ok
+            error
+            disabled
+        """
+        if name == "":
+            name = ".*"
+        if state == "":
+            state = ".*"
+        if state != None and name != None:
+            regex = "%s:%s" % (name, state)
+        elif name != None:
+            regex = "%s" % (name)
+        elif state != None:
+            regex = "%s" % (state)
+        else:
+            regex = ".*"
+        res = self._index.list(regex)
+        return res
+
+    def find(self, name="", state=None):
+        """
+        @param name can be the full name e.g. node.ssh or a rule but then use e.g. node.*  (are regexes, so need to use .* at end)
+        @param state
+            new
+            ok
+            error
+            disabled
+        """
+        res = []
+        for key in self.list(name=name, state=state):
+            res.append(self.get(key))
+        return res
+
+    def destroy(self):
+        self._db.destroy()
+        self._index.destroy()

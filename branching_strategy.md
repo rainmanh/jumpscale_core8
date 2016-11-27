@@ -4,13 +4,13 @@
      * Branch: 8.1
      * Used for cockpit v8.1 with OpenVCloud 8.1.x
      * Stories involving this version:
-        * js81: branch 8.1_story_js81
-        * cockpit_installation: branch 8.1_story_cockpit_installation
-        * autotest_216: branch 8.1_story_autotest_216
-        * cockpit-doc: branch 8.1_story_cockpit-doc
-        * mvp-cockpit: branch 8.1_story_mvp-cockpit
-        * cockpit_chatbot: branch 8.1_story_cockpit_chatbot
-        * cockpit_portal: branch 8.1_story_cockpit_portal
+        * [js81](https://github.com/gig-projects/org_development/issues/1212): branch 8.1_story_js81
+        * [cockpit_installation](https://github.com/gig-projects/org_development/issues/1301): branch 8.1_story_cockpit_installation
+        * [autotest_216](https://github.com/gig-projects/org_development/issues/1223): branch 8.1_story_autotest_216
+        * [cockpit-doc](https://github.com/gig-projects/org_development/issues/862): branch 8.1_story_cockpit-doc
+        * [mvp-cockpit](https://github.com/gig-projects/org_development/issues/1318): branch 8.1_story_mvp-cockpit
+        * [cockpit_chatbot](https://github.com/gig-projects/org_development/issues/1304): branch 8.1_story_cockpit_chatbot
+        * [cockpit_portal](https://github.com/gig-projects/org_development/issues/1303): branch 8.1_story_cockpit_portal
         
   * 8.1.1:
      * Branch: master (new development)

@@ -46,7 +46,7 @@ class Installer():
         # everything else is dangerous now
         copybinary = True
 
-        tmpdir = self.do.config["dirs"]["TMPDIR"]
+        tmpdir = self.do.TMPDIR
 
         if base != "":
             os.environ["JSBASE"] = base

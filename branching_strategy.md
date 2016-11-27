@@ -14,13 +14,8 @@
 ## Branching Strategy:
 Branches are only created by product owner (because product owner should have full overview of everything happening in the product)
 ### Branches on repo:
-  * Version branches:
     * Currently 8.1.0 and master (8.1.1).
     * Should not be deleted.
-    * Will be base for StoryCard braches
-  * StoryCard:
-    * Will usually branch off of version branches.
-    * Will be deleted after their conclusion. (should be always tested before merging back into version branch)
 
 ### Branches overview
     

@@ -20,7 +20,7 @@
 Branches are only created by product owner (because product owner should have full overview of everything happening in the product)
 ### Branches on repo:
   * Version branches:
-    * Currently 8.1 and 8.1.1.
+    * Currently 8.1 and master (8.1.1).
     * Should not be deleted.
     * Will be base for StoryCard braches
   * StoryCard:

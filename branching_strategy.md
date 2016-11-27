@@ -1,15 +1,24 @@
 
 ## Versions:
-  * 8.1
-     *  Used for cockpit v8.1 with OpenVCloud 8.1.x
-  * 8.1.1
+  * 8.1:
+     * Branch: 8.1
+     * Used for cockpit v8.1 with OpenVCloud 8.1.x
+     * Stories involving this version:
+        * js81: branch 8.1_story_js81
+        * cockpit_installation: branch 8.1_story_cockpit_installation
+        * autotest_216: branch 8.1_story_autotest_216
+        * cockpit-doc: branch 8.1_story_cockpit-doc
+        * mvp-cockpit: branch 8.1_story_mvp-cockpit
+        * cockpit_chatbot: branch 8.1_story_cockpit_chatbot
+        * cockpit_portal: branch 8.1_story_cockpit_portal
+        
+  * 8.1.1:
+     * Branch: master (new development)
      * Core0/CoreX (@zaibon please add more)
   
 ## Branching Strategy:
-### Branches on this repo:
-  * BLOCKING:
-    * Will contain blocking fixes that apply to all branches.
-    * Will be periodically merged back into master and other branches
+Branches are only created by product owner (because product owner should have full overview of everything happening in the product)
+### Branches on repo:
   * Version branches:
     * Currently 8.1 and 8.1.1.
     * Should not be deleted.
@@ -21,22 +30,28 @@
     
 ```
 MASTER
+|              8.1
+|-------------->|
+|               |    8.1_story_<storycard_name>
+|               | ----->|
+|               |       |
+|               | <-----x (SC done, merged back into release branch. Tested.)
+|               |
+|<------------- | (update master with changes from release branch)
+|               v
 |
-|----|
-|    | 8.1
-|    | ------| 8.1_storycard_name
-|    |       |
-|    | <-----v
-|    |
-|    v
 |
-|----|
-|    | 8.1.1
-|    | ------| 8.1.1_storycard_name
-|    |       |
-|    | <-----v
-|    |
-|    v
+|           8.1.1_story_storycard_name
+| ------------->| 
+|               |
+* blocking fix  |
+|               |
+|-------------->| (merge upstream into SC branch)
+|               |
+|               |
+|               |
+| <-------------x (SC done, merged back into release branch. Tested.)
+|
 |
 |
 |

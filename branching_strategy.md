@@ -16,7 +16,7 @@
      * Branch: master (new development)
      * New developement of Core0/CoreX
      * Stories involving this version:
-       * [g8os.alpha]https://github.com/gig-projects/org_development/issues/1218
+       * [g8os.alpha](https://github.com/gig-projects/org_development/issues/1218)
      
   
 ## Branching Strategy:

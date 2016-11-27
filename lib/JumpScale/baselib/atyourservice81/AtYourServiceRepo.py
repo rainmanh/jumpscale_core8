@@ -323,6 +323,7 @@ class AtYourServiceRepo():
         if path == "" and content == "":
             for bp in self.blueprints:
                 if not bp.is_valid:
+                    self.logger.warning("blueprint %s not executed because it doesn't have a valid format" % bp.path)
                     return
                 bp.load(role=role, instance=instance)
         else:

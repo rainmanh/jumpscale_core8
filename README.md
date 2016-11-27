@@ -23,8 +23,8 @@ bash install.sh
 ```
 cd /tmp
 rm -f install.sh
-curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/fix_installer/install/install.sh > install.sh
 export JSBRANCH="fix_installer"
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JS_BRANCH/install/install.sh > install.sh
 bash install.sh
 ```
 
@@ -34,7 +34,7 @@ bash install.sh
 - best way how to get around that is to do
 
 ```
-curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/fix_installer/install/install.sh?12 > install.sh
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh?12 > install.sh
 ```
 
 - see the install.sh?12 choose a different nr everytime (here it was 12), this will make sure caching does not happen

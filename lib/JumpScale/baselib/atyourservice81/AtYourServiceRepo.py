@@ -291,7 +291,8 @@ class AtYourServiceRepo():
         items = self.get_blueprints_paths()
         for path in items:
             if path not in bps:
-                bps[path] = Blueprint(self, path=path)
+                bp =  Blueprint(self, path=path)
+                bps[path] = bp
         return bps
 
     @property
@@ -323,6 +324,7 @@ class AtYourServiceRepo():
         if path == "" and content == "":
             for bp in self.blueprints:
                 if not bp.is_valid:
+                    self.logger.warning("blueprint %s not executed because it doesn't have a valid format" % bp.path)
                     return
                 bp.load(role=role, instance=instance)
         else:

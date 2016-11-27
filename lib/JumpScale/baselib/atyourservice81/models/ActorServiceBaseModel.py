@@ -3,7 +3,7 @@ from collections import OrderedDict
 import msgpack
 from JumpScale import j
 
-ModelBaseWithData = j.data.capnp.getModelBaseClassWithData()
+from JumpScale.data.capnp.ModelBase import ModelBaseWithData
 
 
 class ActorServiceBaseModel(ModelBaseWithData):
@@ -11,7 +11,6 @@ class ActorServiceBaseModel(ModelBaseWithData):
     Base class for ActorModel and ServiceModel class.
     You should not instanciate this class directly but one of its children instead
     """
-
     def __init__(self, aysrepo, capnp_schema, category, db, index, key="", new=False):
         super().__init__(capnp_schema=capnp_schema, category=category, db=db, index=index, key=key, new=new)
         self._aysrepo = aysrepo
@@ -181,6 +180,7 @@ class ActorServiceBaseModel(ModelBaseWithData):
         for i, item in enumerate(olditems):
             newlist[i] = item
         self.changed = True
+
 
     def actionGet(self, name, die=True):
         for action in self.dbobj.actions:

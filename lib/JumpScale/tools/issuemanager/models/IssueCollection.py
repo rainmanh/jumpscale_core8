@@ -7,22 +7,24 @@ from JumpScale.tools.issuemanager import model as ModelCapnp
 
 class IssueCollection:
     """
-    This class represent a collection of Issues
+    This class represent a collection of AYS Issues contained in an AYS repository
     It's used to list/find/create new Instance of Issue Model object
     """
 
-    def __init__(self):
+    def __init__(self, repository, host=None, port=None, unixsocket=None):
         self.repository = repository
         self.category = "Issue"
-        namespace=self.category
+        self.namespace_prefix = 'ays:{}'.format(repository.name)
         self.capnp_schema = ModelCapnp.Issue
+        namespace = "%s:%s" % (self.namespace_prefix, self.category.lower())
         self.repository = repository
-        self._db = j.servers.kvs.getRedisStore(name=namespace, namespace=namespace)
+        self._db = j.servers.kvs.getRedisStore(namespace, namespace, **j.atyourservice.config['redis'])
         # for now we do index same as database
-        self._index = j.servers.kvs.getRedisStore(namespace, namespace)
+        self._index = j.servers.kvs.getRedisStore(namespace, namespace, **j.atyourservice.config['redis'])
 
     def new(self):
         model = IssueModel(
+            aysrepo=self.repository,
             capnp_schema=ModelCapnp.Issue,
             category=self.category,
             db=self._db,

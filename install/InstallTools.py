@@ -652,7 +652,11 @@ class InstallTools():
         if self.readonly==False:
             d = self.done
             d[key] = True
-            with open('%s/jumpscale/done.yaml' % os.environ["CFGDIR"], 'w') as outfile:
+            path = '%s/jumpscale/done.yaml' % os.environ["CFGDIR"]
+            parent = os.path.abspath(os.path.join(path, os.pardir))
+            if not os.path.exists(parent):
+                os.mkdir(parent)
+            with open(path, 'w') as outfile:
                 yaml.dump(d, outfile, default_flow_style=False)
 
     def init(self):

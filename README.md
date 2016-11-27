@@ -24,7 +24,7 @@ bash install.sh
 cd /tmp
 rm -f install.sh
 export JSBRANCH="fix_installer"
-curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JS_BRANCH/install/install.sh > install.sh
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/install.sh > install.sh
 bash install.sh
 ```
 

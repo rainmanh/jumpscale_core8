@@ -19,8 +19,8 @@ class CuisineAysBot(app):
 
     def install(self, start=True, link=True, reset=False):
         """
-        Install aysbot
         python dependencies are:
+        Install aysbot
                 flask
                 python-telegram-bot
         If start is True,
@@ -30,11 +30,6 @@ class CuisineAysBot(app):
             return
 
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        if not self._cuisine.core.isMac and not self._cuisine.core.isCygwin:
-            self._cuisine.development.js8.install()
-            self._cuisine.development.pip.packageUpgrade("pip")
-
-        self.install_deps()
         self._cuisine.development.git.pullRepo('https://github.com/Jumpscale/jscockpit.git')
         if link:
             self.link_code()

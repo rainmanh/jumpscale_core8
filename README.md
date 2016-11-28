@@ -8,6 +8,8 @@ JumpScale is A cloud automation product and a branch from what used to be Pylabs
 
 Please check our [GitBook](https://gig.gitbooks.io/jumpscale-core8/content/) for a full documentation (alwasy shows the master)
 
+- [version & roadmap infp](../master/releases.md)
+
 ## how to install from master
 
 ```
@@ -24,7 +26,7 @@ bash install.sh
 cd /tmp
 rm -f install.sh
 export JSBRANCH="fix_installer"
-curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/install.sh > install.sh
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JS_BRANCH/install/install.sh > install.sh
 bash install.sh
 ```
 

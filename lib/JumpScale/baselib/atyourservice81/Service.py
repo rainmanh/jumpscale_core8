@@ -84,7 +84,7 @@ class Service:
             raise j.exceptions.Input(message="result from input needs to be dict,service:%s" % self,
                                      level=1, source="", tags="", msgpub="")
 
-        dbobj.data = j.data.capnp.getBinaryData(j.data.capnp.getObj(dbobj.dataSchema, args=args))
+        dbobj.data = j.data.capnp.getBinaryData(j.data.capnp.getObj(dbobj.dataSchema, args=args, name='Schema'))
 
         # parents/producers
         parent = self._initParent(actor, args)

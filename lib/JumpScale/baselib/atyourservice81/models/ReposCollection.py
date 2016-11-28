@@ -1,46 +1,20 @@
 from JumpScale import j
-from JumpScale.baselib.atyourservice81.models.RepoModel import RepoModel
-
+from JumpScale.data.capnp.ModelBase import ModelBaseCollection
 import capnp
 from JumpScale.baselib.atyourservice81 import model_capnp as ModelCapnp
+from JumpScale.baselib.atyourservice81.models.RepoModel import RepoModel
 
 
-class ReposCollections:
+class ReposCollections(ModelBaseCollection):
     """
     This class represent a collection of AYS Reposities
     It's used to list/find/create new Instance of Repository Model object
     """
+    #
 
     def __init__(self):
-        # connection to the key-value store index repository namespace
-        self.category = "Repo"
-        self.capnp_schema = ModelCapnp.Repo
-        self.namespace_prefix = 'ays:'
-        namespace = "%s:%s" % (self.namespace_prefix, self.category.lower())
-        self._db = j.servers.kvs.getRedisStore(namespace, namespace, **j.atyourservice.config['redis'])
-        # for now we do index same as database
-        self._index = j.servers.kvs.getRedisStore(namespace, namespace, **j.atyourservice.config['redis'])
-
-    def new(self):
-        model = RepoModel(
-            capnp_schema=ModelCapnp.Repo,
-            category=self.category,
-            db=self._db,
-            index=self._index,
-            key='',
-            new=True)
-        return model
-
-    def get(self, key):
-        model = RepoModel(
-            capnp_schema=ModelCapnp.Repo,
-            category=self.category,
-            db=self._db,
-            index=self._index,
-            key=key,
-            new=False)
-        return model
-
+        db = j.servers.kvs.getRedisStore("ays:repo", "ays:repo", **j.atyourservice.config['redis'])
+        super().__init__(schema=ModelCapnp.Repo, category="Repo", namespace="ays:repo", modelBaseClass=RepoModel, db=db, indexDb=db)
 
     def _list_keys(self, path="", returnIndex=False):
         """
@@ -60,11 +34,6 @@ class ReposCollections:
         for key in self._list_keys(path):
             res.append(self.get(key))
         return res
-
-    def destroy(self):
-        self._db.destroy()
-        self._index.destroy()
-
 
 if __name__ == '__main__':
     repos = ReposCollections()

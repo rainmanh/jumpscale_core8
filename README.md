@@ -30,7 +30,7 @@ curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JS_BRANCH/i
 bash install.sh
 ```
 
-## remark to do with cachin on internet
+## remark to do with caching on internet
 
 - sometimes if can be you think you download the right install.sh script but it doesn't because its cached somewhere
 - best way how to get around that is to do

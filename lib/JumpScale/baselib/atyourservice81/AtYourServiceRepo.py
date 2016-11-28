@@ -299,8 +299,7 @@ class AtYourServiceRepo():
         """
         bps = []
         for path, bp in self._load_blueprints().items():
-            if bp.active:
-                bps.append(bp)
+            bps.append(bp)
 
         bps = sorted(bps, key=lambda bp: bp.name)
         return bps

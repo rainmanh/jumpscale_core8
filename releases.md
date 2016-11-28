@@ -22,4 +22,15 @@
  - is most usable up to date release
     - today this is 8.0.9, now used in field by other products like openvcloud, ONLY FIX blocking items
  
+ ### 8.1.0
+ ### 8.2.0
+ ### QA branches
+   - autotest_216
+   - js_install_test
+   Already merged into 8.1.0 but will be deleted after relevant components are updated
+   
+ ### installation_optimization_wip
+    validated on windows and ubuntu16.04. Needs to be validated on OSX. Should be cleaned up this week
+ 
+ 
  

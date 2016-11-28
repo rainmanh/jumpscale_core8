@@ -5,6 +5,7 @@
    * Used for portal 8.1, cockpit v8.1 with OpenVCloud 8.1.x
    * beta release
    * all blocking bugs fixed
+   * see [kanban](https://waffle.io/gig-projects/org_products?milestone=8.1.0&source=Jumpscale%2Fjscockpit,Jumpscale%2Fjumpscale_core8,Jumpscale%2Fjumpscale_portal8,Jumpscale%2Fays_jumpscale8)
    
 * 8.2.0:
    * Branch: 8.2.0 (serious new features)

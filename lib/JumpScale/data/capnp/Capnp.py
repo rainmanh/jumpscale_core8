@@ -25,7 +25,7 @@ class Capnp:
     def getModelBaseClassWithData(self):
         return ModelBaseWithData
 
-    def getModelCollection(self, schema, category, modelBaseClass=None, db=None, indexDb=None):
+    def getModelCollection(self, schema, category, namespace=None, modelBaseClass=None, db=None, indexDb=None):
         """
         @param schema is capnp_schema
 
@@ -57,7 +57,7 @@ class Capnp:
 
             ```
         """
-        return ModelBaseCollection(schema=schema, category=category, db=db, indexDb=indexDb)
+        return ModelBaseCollection(schema=schema, category=category, namespace=namespace, db=db, indexDb=indexDb)
 
     def getId(self, schemaInText):
         id = [item for item in schemaInText.split("\n") if item.strip() != ""][0][3:-1]
@@ -85,12 +85,12 @@ class Capnp:
             self._cache[schemaId] = cl
         return self._cache[schemaId]
 
-    def getSchema(self, schemaInText, name="MyObj"):
+    def getSchema(self, schemaInText, name="Schema"):
         schemas = self.getSchemas(schemaInText)
         schema = eval("schemas.%s" % name)
         return schema
 
-    def getObj(self, schemaInText, name="MyObj", args={}, binaryData=None):
+    def getObj(self, schemaInText, name="Schema", args={}, binaryData=None):
 
         # . are removed from . to Uppercase
         args = args.copy()  # to not change the args passed in argument
@@ -130,6 +130,7 @@ class Capnp:
         return configdata
 
     def test(self):
+        import time
         capnpschema = '''
         @0x93c1ac9f09464fc9;
 
@@ -159,7 +160,7 @@ class Capnp:
         mydb = None  # is memory
 
         collection = self.getModelCollection(schema, category="test", modelBaseClass=None, db=mydb, indexDb=mydb)
-
+        start = time.time()
         print("start populate 100.000 records")
         for i in range(100000):
             obj = collection.new()
@@ -167,8 +168,11 @@ class Capnp:
             obj.save()
 
         print("population done")
-
+        end_populate = time.time()
         print(collection.find(name="test8639"))
+        end_find = time.time()
+        print("population in %.2fs" % (end_populate - start))
+        print("find in %.2fs" % (end_find - end_populate))
 
     def getJSON(self, obj):
         configdata2 = obj.to_dict()

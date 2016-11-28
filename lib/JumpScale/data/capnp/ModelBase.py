@@ -55,12 +55,12 @@ class ModelBase():
 
     def index(self):
         # put indexes in db as specified
-        ind = "%s" % (self.dbobj.name)
-        self._index.index({ind: self.key})
+        self._index.index({self.dbobj.name: self.key})
 
     def load(self, key):
         if self._db.inMem:
-            raise RuntimeError("should not get here")
+            raise RuntimeError("when using in memory store it should not try to load")
+
         buff = self._db.get(key)
         self.dbobj = self._capnp_schema.from_bytes(buff, builder=True)
 
@@ -125,29 +125,32 @@ class ModelBaseCollection:
 
     """
 
-    def __init__(self, schema, category, modelBaseClass=None, db=None, indexDb=None):
+    def __init__(self, schema, category, namespace=None, modelBaseClass=None, db=None, indexDb=None):
         """
-        @param modelBaseClass, important to pass the class not the object
+        @param schema: object created by the capnp librairies after it load a .capnp file.
+        example :
+            import capnp
+            # load the .capnp file
+            import model_capnp as ModelCapnp
+            # pass this to the constructor.
+            ModelCapnp.MyStruct
+        @param category str: category of the model. need to be the same as the category of the single model class
+        @param namespace: namespace used to store these object in key-value store
+        @param modelBaseClass: important to pass the class not the object. Class used to create instance of this category.
+                               Need to inherits from JumpScale.data.capnp.ModelBase.ModelBalse
+        @param db: connection object to the key-value store
+        @param indexDb: connection object to the key-value store used for indexing
         """
 
         self.category = category
-        namespace = self.category
+        self.namespace = namespace if namespace else category
         self.capnp_schema = schema
 
-        if db == None:
-            self._db = j.servers.kvs.getMemoryStore(name=namespace, namespace=namespace)
-        else:
-            self._db = db
-        if indexDb == None:
-            # for now we do index same as database
-            self._index = self._db
-        else:
-            self._index = indexDb
+        self._db = db if db else j.servers.kvs.getMemoryStore(name=self.namespace, namespace=self.namespace)
+        # for now we do index same as database
+        self._index = indexDb if indexDb else self._db
 
-        if not modelBaseClass == None:
-            self.modelBaseClass = modelBaseClass
-        else:
-            self.modelBaseClass = ModelBase
+        self.modelBaseClass = modelBaseClass if modelBaseClass else ModelBase
 
     def new(self):
         model = self.modelBaseClass(

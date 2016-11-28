@@ -1,11 +1,11 @@
 from JumpScale import j
 from JumpScale.baselib.atyourservice81.models.ServiceModel import ServiceModel
-
+from JumpScale.data.capnp.ModelBase import ModelBaseCollection
 import capnp
 from JumpScale.baselib.atyourservice81 import model_capnp as ModelCapnp
 
 
-class ServicesCollection:
+class ServicesCollection(ModelBaseCollection):
     """
     This class represent a collection of AYS Services contained in an AYS repository
     It's used to list/find/create new Instance of Service Model object
@@ -13,13 +13,16 @@ class ServicesCollection:
 
     def __init__(self, repository):
         self.repository = repository
-        self.capnp_schema = ModelCapnp.Service
-        self.category = "Service"
-        self.namespace_prefix = 'ays:{}'.format(repository.name)
-        namespace = "%s:%s" % (self.namespace_prefix, self.category.lower())
-        self._db = j.servers.kvs.getRedisStore(namespace, namespace, **j.atyourservice.config['redis'])
-        # for now we do index same as database
-        self._index = j.servers.kvs.getRedisStore(namespace, namespace, **j.atyourservice.config['redis'])
+        namespace = "ays:%s:service" % repository.name
+        db = j.servers.kvs.getRedisStore(namespace, namespace, **j.atyourservice.config['redis'])
+        super().__init__(
+            schema=ModelCapnp.Service,
+            category="Service",
+            namespace=namespace,
+            modelBaseClass=ServiceModel,
+            db=db,
+            indexDb=db
+        )
 
     def new(self):
         model = ServiceModel(
@@ -99,7 +102,3 @@ class ServicesCollection:
         for key in self._list_keys(name, actor, state, producer=producer, parent=parent):
             res.append(self.get(key))
         return res
-
-    def destroy(self):
-        self._db.destroy()
-        self._index.destroy()

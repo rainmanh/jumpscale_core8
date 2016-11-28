@@ -1,26 +1,28 @@
 from JumpScale import j
-from JumpScale.baselib.atyourservice81.models.ActorModel import ActorModel
-
+from JumpScale.data.capnp.ModelBase import ModelBaseCollection
 import capnp
 from JumpScale.baselib.atyourservice81 import model_capnp as ModelCapnp
+from JumpScale.baselib.atyourservice81.models.ActorModel import ActorModel
 
 
-class ActorsCollection:
+class ActorsCollection(ModelBaseCollection):
     """
     This class represent a collection of AYS Actors contained in an AYS repository
     It's used to list/find/create new Instance of Actor Model object
     """
 
-    def __init__(self, repository, host=None, port=None, unixsocket=None):
+    def __init__(self, repository):
         self.repository = repository
-        self.category = "Actor"
-        self.namespace_prefix = 'ays:{}'.format(repository.name)
-        self.capnp_schema = ModelCapnp.Actor
-        namespace = "%s:%s" % (self.namespace_prefix, self.category.lower())
-        self.repository = repository
-        self._db = j.servers.kvs.getRedisStore(namespace, namespace, **j.atyourservice.config['redis'])
-        # for now we do index same as database
-        self._index = j.servers.kvs.getRedisStore(namespace, namespace, **j.atyourservice.config['redis'])
+        namespace = "ays:%s:actor" % repository.name
+        db = j.servers.kvs.getRedisStore(namespace, namespace, **j.atyourservice.config['redis'])
+        super().__init__(
+            schema=ModelCapnp.Actor,
+            category="Actor",
+            namespace=namespace,
+            modelBaseClass=ActorModel,
+            db=db,
+            indexDb=db
+        )
 
     def new(self):
         model = ActorModel(
@@ -73,7 +75,3 @@ class ActorsCollection:
         for key in self._list_keys(name, state):
             res.append(self.get(key))
         return res
-
-    def destroy(self):
-        self._db.destroy()
-        self._index.destroy()

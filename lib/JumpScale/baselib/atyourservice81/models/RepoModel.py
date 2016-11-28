@@ -1,6 +1,5 @@
 from JumpScale import j
-
-ModelBaseWithData = j.data.capnp.getModelBaseClass()
+from JumpScale.data.capnp.ModelBase import ModelBase
 
 
 class RepoModel(ModelBase):

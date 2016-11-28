@@ -95,7 +95,6 @@ class AtYourServiceFactory:
 
                 global_templates_repos = j.atyourservice.config['metadata']
 
-
                 for domain, info in global_templates_repos.items():
                     url = info['url']
                     if url.strip() == "":
@@ -347,8 +346,8 @@ class AtYourServiceFactory:
 
         repo_models = self._repos.find(path)
         if len(repo_models) <= 0:
-                raise j.exceptions.Input(message="Could not find repo in path:%s" %
-                                        path, level=1, source="", tags="", msgpub="")
+            raise j.exceptions.Input(message="Could not find repo in path:%s" %
+                                     path, level=1, source="", tags="", msgpub="")
 
         repo = self._repoLoad(repo_models[0].path)
 
@@ -359,8 +358,8 @@ class AtYourServiceFactory:
 
         repo_model = self._repos.get(key)
         if repo_model is None:
-                raise j.exceptions.Input(message="Could not find repo in path:%s" %
-                                        path, level=1, source="", tags="", msgpub="")
+            raise j.exceptions.Input(message="Could not find repo in path:%s" %
+                                     path, level=1, source="", tags="", msgpub="")
 
         repo = self._repoLoad(repo_model.path)
 

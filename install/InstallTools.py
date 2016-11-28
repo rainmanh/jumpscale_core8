@@ -155,6 +155,7 @@ class Installer():
         sys.path.insert(0, "%s/lib" % base)
 
         print("Get atYourService metadata.")
+
         self.do.pullGitRepo(args2['AYSGIT'], branch=args2['AYSBRANCH'], depth=1, ssh="first")
 
         print("install was successfull")
@@ -514,58 +515,56 @@ class InstallTools():
         self._extratools = False
         self._asyncLoaded = False
         self._deps = None
-        self._config=None
+        self._config = None
 
         self.installer = Installer()
         self.installer.do = self
 
         self.init()
 
-
     @property
     def debug(self):
-        if self.config!={}:
+        if self.config != {}:
             return self.config["system"]["DEBUG"]
         else:
             return os.environ["DEBUG"]
 
-
     @property
     def CODEDIR(self):
-        if self.config!={}:
+        if self.config != {}:
             return self.config["dirs"]["CODEDIR"]
         else:
             return os.environ["CODEDIR"]
 
     @property
     def BASE(self):
-        if self.config!={}:
+        if self.config != {}:
             return self.config["dirs"]["JSBASE"]
         else:
             return os.environ["JSBASE"]
 
     @property
     def CFGDIR(self):
-        #IMPORTANT can never come from configfile!
+        # IMPORTANT can never come from configfile!
         return os.environ["CFGDIR"]
 
     @property
     def TMPDIR(self):
-        if self.config!={}:
+        if self.config != {}:
             return self.config["dirs"]["TMPDIR"]
         else:
             return os.environ["TMPDIR"]
 
     @property
     def DATADIR(self):
-        if self.config!={}:
+        if self.config != {}:
             return self.config["dirs"]["DATADIR"]
         else:
             return os.environ["DATADIR"]
 
     @property
     def VARDIR(self):
-        if self.config!={}:
+        if self.config != {}:
             return self.config["dirs"]["VARDIR"]
         else:
             return os.environ["VARDIR"]
@@ -574,14 +573,14 @@ class InstallTools():
     def debug(self, value):
         if not isinstance(value, bool):
             raise RuntimeError("input for debug needs to be bool")
-        if self.config!={}:
+        if self.config != {}:
             self.config["system"]["DEBUG"] = value
         else:
             raise RuntimeError("cannot set debug, system is in readonly.")
 
     @property
     def sandbox(self):
-        if self.config!={}:
+        if self.config != {}:
             return self.config["system"]["SANDBOX"]
         else:
             return False
@@ -590,7 +589,7 @@ class InstallTools():
     def sandbox(self, value):
         if not isinstance(value, bool):
             raise RuntimeError("input for SANDBOX needs to be bool")
-        if self.config!={}:
+        if self.config != {}:
             self.config["system"]["SANDBOX"] = value
         else:
             raise RuntimeError("cannot set sandbox config arg, system is in readonly.")
@@ -601,19 +600,18 @@ class InstallTools():
 
     @property
     def config(self):
-        if self._config==None:
+        if self._config == None:
             if self.exists(self.configPath):
                 with open(self.configPath, 'r') as conf:
                     self._config = yaml.load(conf)
             else:
-                    self._config={}
+                self._config = {}
         return self._config
 
     def configDestroy(self):
         self.remove(self.configPath)
 
     def configSet(self, category, key, value):
-        #TODO *1
         c = self.config
         c[category][key] = value
         with open(self.configPath, 'w') as outfile:
@@ -637,7 +635,7 @@ class InstallTools():
 
     @property
     def done(self):
-        if self.readonly==False:
+        if self.readonly == False:
             path = '%s/jumpscale/done.yaml' % os.environ["CFGDIR"]
             if not self.exists(path):
                 return {}
@@ -645,11 +643,11 @@ class InstallTools():
                 cfg = yaml.load(conf)
             return cfg
         else:
-            #this to make sure works in readonly mode
+            # this to make sure works in readonly mode
             return {}
 
     def doneSet(self, key):
-        if self.readonly==False:
+        if self.readonly == False:
             d = self.done
             d[key] = True
             path = '%s/jumpscale/done.yaml' % os.environ["CFGDIR"]
@@ -661,24 +659,27 @@ class InstallTools():
 
     def init(self):
 
-        if "DEBUG" in os.environ and str(os.environ["DEBUG"]).lower() in ["true","1","yes"]:
-            os.environ["DEBUG"]="1"
+        if "DEBUG" in os.environ and str(os.environ["DEBUG"]).lower() in ["true", "1", "yes"]:
+            os.environ["DEBUG"] = "1"
         else:
-            os.environ["DEBUG"]="0"
+            os.environ["DEBUG"] = "0"
 
-        if "READONLY" in os.environ and str(os.environ["READONLY"]).lower() in ["true","1","yes"]:
-            os.environ["READONLY"]="1"
-            self.readonly=True
+        if "READONLY" in os.environ and str(os.environ["READONLY"]).lower() in ["true", "1", "yes"]:
+            os.environ["READONLY"] = "1"
+            self.readonly = True
         else:
-            os.environ["READONLY"]="0"
-            self.readonly=False
+            os.environ["READONLY"] = "0"
+            self.readonly = False
 
-        if "JSRUN" in os.environ and str(os.environ["JSRUN"]).lower() in ["true","1","yes"]:
-            os.environ["JSRUN"]="1"
-            self.embed=True
+        if "AYSBRANCH" not in os.environ and "JSBRANCH" in os.environ:
+            os.environ["AYSBRANCH"] = os.environ["JSBRANCH"]
+
+        if "JSRUN" in os.environ and str(os.environ["JSRUN"]).lower() in ["true", "1", "yes"]:
+            os.environ["JSRUN"] = "1"
+            self.embed = True
         else:
-            os.environ["JSRUN"]="0"
-            self.embed=False
+            os.environ["JSRUN"] = "0"
+            self.embed = False
 
         if self.embed:
             if not "JSBASE" in os.environ:
@@ -706,7 +707,7 @@ class InstallTools():
             os.environ["JSBASE"] = "%s/" % os.environ["JSBASE"].replace("\\", "/")
             raise RuntimeError("TODO: *3")
 
-        elif sys.platform.startswith("darwin") :
+        elif sys.platform.startswith("darwin"):
             if sys.platform.startswith("darwin"):
                 self.TYPE = "OSX"
 
@@ -747,8 +748,7 @@ class InstallTools():
         if not "TMPDIR" in os.environ:
             os.environ["TMPDIR"] = tempfile.gettempdir().replace("\\", "/")
 
-
-        #DO NOT DO THIS, this should only be written when doing install
+        # DO NOT DO THIS, this should only be written when doing install
         # if not self.exists("%s/jumpscale/system.yaml" % os.environ["CFGDIR"]):
         #     self.installer.writeEnv()
 

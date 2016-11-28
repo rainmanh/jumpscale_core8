@@ -13,7 +13,7 @@ Please check our [GitBook](https://gig.gitbooks.io/jumpscale-core8/content/) for
 ## how to install from master
 
 ```
-cd /tmp
+cd $TMPDIR
 rm -f install.sh
 curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh
 bash install.sh
@@ -23,10 +23,10 @@ bash install.sh
 ## how to install from a branch
 
 ```
-cd /tmp
+cd $TMPDIR
 rm -f install.sh
-export JSBRANCH="fix_installer"
-curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JS_BRANCH/install/install.sh > install.sh
+export JSBRANCH="8.1.0"
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/install.sh > install.sh
 bash install.sh
 ```
 

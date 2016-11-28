@@ -1781,12 +1781,10 @@ class InstallTools():
                 line = yield from stream.readline()
                 if not line:
                     break
-
-                _line = line.decode('UTF-8', errors='replace').strip()
                 if _showout:
-                    print(_line)
+                    sys.stdout.buffer.write(line)
                 if captureout:
-                    out += _line + '\n'
+                    out += line.decode('UTF-8', errors='replace').strip() + '\n'
             return out
 
         @asyncio.coroutine

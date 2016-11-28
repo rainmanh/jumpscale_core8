@@ -88,7 +88,7 @@ class Installer():
         self.do.executeInteractive("ssh-keyscan github.com 2> /dev/null  >> {0}/.ssh/known_hosts; ssh-keyscan git.aydo.com 2> /dev/null >> {0}/.ssh/known_hosts".format(
             os.environ["HOME"]))
         print("pull core")
-        self.do.pullGitRepo(args2['JSGIT'], branch=args2['JSBRANCH'], depth=1, ssh="first")
+        self.do.pullGitRepo(args2['JSGIT'], branch=args2['JSBRANCH'], ssh="first")
         src = "%s/github/jumpscale/jumpscale_core8/lib/JumpScale" % self.do.CODEDIR
         self.debug = False
 
@@ -156,7 +156,7 @@ class Installer():
 
         print("Get atYourService metadata.")
 
-        self.do.pullGitRepo(args2['AYSGIT'], branch=args2['AYSBRANCH'], depth=1, ssh="first")
+        self.do.pullGitRepo(args2['AYSGIT'], branch=args2['AYSBRANCH'], ssh="first")
 
         print("install was successfull")
         print("to use do 'js'")
@@ -2418,7 +2418,7 @@ class InstallTools():
 
         return repository_host, repository_type, repository_account, repository_name, dest, repository_url
 
-    def pullGitRepo(self, url="", dest=None, login=None, passwd=None, depth=1, ignorelocalchanges=False,
+    def pullGitRepo(self, url="", dest=None, login=None, passwd=None, depth=None, ignorelocalchanges=False,
                     reset=False, branch=None, revision=None, ssh="auto", executor=None, codeDir=None):
         """
         will clone or update repo
@@ -2487,7 +2487,7 @@ class InstallTools():
         else:
             print(("git clone %s -> %s" % (url, dest)))
             extra = ""
-            if depth:
+            if depth is not None:
                 extra = "--depth=%s" % depth
             if url.find("http") != -1:
                 if branch is not None:

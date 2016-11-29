@@ -288,6 +288,9 @@ class Account(Authorizables):
             raise j.exceptions.RuntimeError("Account has been deleted")
         self.client._accounts_cache.set(account, id=self.id)
 
+    def delete(self):
+        self.client.api.cloudbroker.account.delete(accountId=self.id, reason='API request')
+
     def __str__(self):
         return "openvcloud client account: %(name)s" % (self.model)
 

@@ -634,19 +634,12 @@ class CuisineCore(base):
     def file_write(self, location, content, mode=None, owner=None, group=None, check=False,
                    sudo=False, replaceArgs=False, strip=True, showout=True, append=False):
         """
-        @param append if append then will add to file and check if each line exists, if not will remove
+        @param append if append then will add to file
         """
         if append:
             content = j.data.text.strip(content)
             C = self.file_read(location)
-            tocheck = [item.strip() for item in content.split("\n") if item.strip() != ""]
-            C2 = ""
-            for line in C.split("\n"):
-                if line.strip() in tocheck:
-                    continue
-                C2 += "%s\n" % line
-            C2 = C2.rstrip() + "\n"
-            C2 += content
+            C += '\n' + content
             self.file_write(location, C, mode, owner, group, check, sudo, replaceArgs, strip, showout)
 
         else:

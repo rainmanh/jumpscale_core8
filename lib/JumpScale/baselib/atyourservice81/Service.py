@@ -19,7 +19,12 @@ class Service:
         self.logger = j.atyourservice.logger
 
         if actor is not None:
-            self._initFromActor(actor, args=args, name=name)
+            try:
+                self._initFromActor(actor, args=args, name=name)
+            except:
+                # cleanup if init fails
+                self.delete()
+                raise
         elif model is not None:
             self.model = model
         elif path is not None:

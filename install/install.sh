@@ -42,10 +42,13 @@ function osx_install {
     else
         brew unlink curl
         brew install curl
+        brew link --overwrite curl
         brew unlink python3
         brew install python3
+        brew link --overwrite python3
         brew unlink git
         brew install git
+        brew link --overwrite git
     fi
 }
 

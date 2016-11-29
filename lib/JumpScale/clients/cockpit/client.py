@@ -335,7 +335,7 @@ class Client:
         It is method for GET /ays/repository/{repository}/template/{template}
         """
         resp = self._client.getTemplate(
-            template=template, repository=j.sal.fs.repository, headers=headers, query_params=query_params)
+            template=template, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 

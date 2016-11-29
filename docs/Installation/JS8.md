@@ -6,7 +6,7 @@
 
 js8 is a simple binary, written in Go.
 
-You can downloads js8 and put the binary in your PATH location.
+You can download js8 and put the binary in your PATH location:
 
 ```shell
 wget https://stor.jumpscale.org/storx/static/js8 -O /usr/local/bin/js8
@@ -19,9 +19,9 @@ Following commands are supported:
 
 - **init** bootstraps your system and starts the FUSE layer
 - **start** starts the FUSE layer
-- **stop** stops the FUSE layer and unmounts it
-- **reload** reloads the metatada
-- **update** updates the metadata file, then reload
+- **stop** stops the FUSE layer and then unmounts it
+- **reload** reloads the metadata
+- **update** updates the metadata file, then reloads the metadata
 
 Below more details.
 
@@ -29,12 +29,12 @@ Below more details.
 
 `js8 init` will:
 
-- Automatically install all packets required to run AYS File System, including
+- Automatically install all packets required to run the AYS filesystem, including:
 
   - FUSE
-  - tmux, or another startup manager if you specify that explicitelly since tmux is the default
+  - tmux or another startup manager if you specify that explicitly; tmux is the default
 
-- Download the AYF File Sytem binary and install it at `/usr/loca/bin/aysfs`
+- Download the AYF Filesystem binary and install it at `/usr/loca/bin/aysfs`
 
 - Create a directory `/etc/ays/local/`
 - Download the **js8_opt.flist** metadata file and put it at `/etc/ays/local/js8_opt.flist`
@@ -42,30 +42,28 @@ Below more details.
 
   - This default configuration uses <https://stor.jumpscale.org/storx/> as global store
 
-- Add the -rw option to enable read/write support of the FUSE layer instead of read only
+- Add the ```-rw``` option to enable read/write support of the FUSE layer instead of read only
 
 ### start/stop
 
-Starts and stops the AYS File System.
+Starts and stops the AYS filesystem.
 
-AYS File System supports 3 startup manager:
+Three startup managers are supported, use one of the below options to indicate which one you want:
 
-- tmux: lanch AYSfs in a tmux session
-- systemd: install a service file in `/etc/systemd/system/aysfs.service` and use systemd to start/stop/reload AYSfs
-- default: run the AYS File System directly. This will block on start
+- **tmux** launches the AYS filesystem in a tmux session
+- **systemd** install a service file in `/etc/systemd/system/aysfs.service` and uses **systemd** to start/stop/reload the AYS filesystem
+- **default** runs the AYS filesystem directly; this will block on start
 
 If you don't specify any startup manager, tmux is used.
 
 ### reload
 
-This command ask AYS File System to reload the metadata file. Use it if you add/edit/remove some metadata files and want them to be reflected in the FUSE layer.
+This command asks the AYS filesystem to reload the metadata file. Use it if you add/edit/remove some metadata files and want them to be reflected in the FUSE layer.
 
 ### update
 
-Downloads the last version of JumpScale.flist from <https://stor.jumpscale.org/storx/static/js8_opt.flist> and put it at `/etc/ays/local/jumpscale.flist` then triggers a reload.
+Downloads the lastest version of **JumpScale.flist** from https://stor.jumpscale.org/storx/static/js8_opt.flist, puts it at `/etc/ays/local/jumpscale.flist`, and then triggers a reload.
 
 ## build
 
-how to build the js8 tool
-
-- see: <https://github.com/Jumpscale/js8/blob/master/doc/build.md> -
+Check the [how to build the js8](https://github.com/Jumpscale/js8/blob/master/doc/build.md) documentation.

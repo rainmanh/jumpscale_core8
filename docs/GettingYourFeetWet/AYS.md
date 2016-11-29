@@ -18,4 +18,4 @@ AYS Service Manager (`ays`) is a standalone command line tool that comes with Ju
 ays
 ```
 
-It provides a full featured application/service management toolset for install, configuring and controlling any service based on an [AYS service template](../../AYS/Definitions/2-Templates-Recipes-Instances.md). To get full understanding use check the [AYS documentation](../../AYS/AYS-introduction.md) type the following at the command line:
+It provides a full featured application/service management toolset for install, configuring and controlling any service based on an [AYS service template](../AYS/Definitions/2-Templates-Recipes-Instances.md). To get full understanding use check the [AYS documentation](../AYS/AYS-introduction.md) type the following at the command line:

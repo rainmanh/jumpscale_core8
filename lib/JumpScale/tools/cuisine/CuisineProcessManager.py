@@ -266,7 +266,7 @@ class CuisineTmuxec(ProcessManagerBase):
 
         envstr = ""
         for name0, value in list(env.items()):
-            envstr += "export %s=%s && " % (name0, self._cuisine.core.args_replace(value))
+            envstr += 'export %s="%s" && ' % (name0, self._cuisine.core.args_replace(value))
         if path:
             cwd = "cd %s &&" % path
             cmd = "%s %s" % (cwd, cmd)

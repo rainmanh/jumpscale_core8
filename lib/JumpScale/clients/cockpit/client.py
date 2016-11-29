@@ -325,7 +325,7 @@ class Client:
         It is method for GET /ays/repository/{repository}/template/{template}/update
         """
         resp = self._client.updateTemplate(
-            template=template, repository=j.sal.fs.getBaseName(repository), headers=headers, query_params=query_params)
+            template=template, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -335,7 +335,7 @@ class Client:
         It is method for GET /ays/repository/{repository}/template/update
         """
         resp = self._client.updateTemplates(
-            repository=j.sal.fs.getBaseName(repository), headers=headers, query_params=query_params)
+            repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 

@@ -14,12 +14,14 @@ class CuisineGogs(app):
         self.gogspath = os.path.join(self.gopath, "src", "github.com", "gogits", "gogs")
         self.appini = os.path.join(self.gogspath, "custom", "conf", "app.ini")
 
-    def build(self, install=True, start=True, reset=False):
+    def build(self, install=True, start=True, reset=False, installDeps=False):
         # THIS IS WIP (not stable yet)
         # if reset is False and self.isInstalled():
         #     return
-        self._cuisine.development.golang.install()
         # GOPATH: /optvar/go
+        if installDeps:
+            self._cuisine.development.golang.install()
+
         script = """
         #set -xe
         . ~/.profile_js
@@ -69,3 +71,4 @@ class CuisineGogs(app):
 
     def restart(self):
         self._cuisine.processmanager.stop("gogs")
+        self.start()

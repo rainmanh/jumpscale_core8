@@ -117,7 +117,7 @@ class Service:
             # if none of the two is available in the args, don't use instance name and
             # expect the parent service to be unique in the repo
             parent_name = args.get(actor.model.dbobj.parent.argKey, args.get(parent_role, ''))
-            res = self.aysrepo.servicesFind(name=parent_name, actor='%s.*' % parent_role)
+            res = self.aysrepo.servicesFind(name=parent_name, actor='%s(\..*)?' % parent_role)
             res = [s for s in res if s.model.role == parent_role]
             if len(res) == 0:
                 if actor.model.dbobj.parent.optional:

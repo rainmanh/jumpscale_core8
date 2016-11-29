@@ -88,7 +88,7 @@ class Installer():
         self.do.executeInteractive("ssh-keyscan github.com 2> /dev/null  >> {0}/.ssh/known_hosts; ssh-keyscan git.aydo.com 2> /dev/null >> {0}/.ssh/known_hosts".format(
             os.environ["HOME"]))
         print("pull core")
-        self.do.pullGitRepo(args2['JSGIT'], branch=args2['JSBRANCH'], depth=1, ssh="first")
+        self.do.pullGitRepo(args2['JSGIT'], branch=args2['JSBRANCH'], ssh="first")
         src = "%s/github/jumpscale/jumpscale_core8/lib/JumpScale" % self.do.CODEDIR
         self.debug = False
 
@@ -156,7 +156,7 @@ class Installer():
 
         print("Get atYourService metadata.")
 
-        self.do.pullGitRepo(args2['AYSGIT'], branch=args2['AYSBRANCH'], depth=1, ssh="first")
+        self.do.pullGitRepo(args2['AYSGIT'], branch=args2['AYSBRANCH'], ssh="first")
 
         print("install was successfull")
         print("to use do 'js'")
@@ -442,11 +442,11 @@ class Installer():
             raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
         elif sys.platform.startswith('darwin'):
             if "core_apps_installed" not in self.do.done:
-                cmds = """
-                brew install tmux
-                brew install psutils
-                """
-                self.do.executeCmds(cmds)
+                cmds = "tmux psutils libtiff libjpeg webp little-cms2"
+                for item in cmds.split(" "):
+                    if item.strip() != "":
+                        cmd = "brew unlink %s;brew install %s" % (item, item)
+                        self.do.execute(cmd)
                 self.do.doneSet("core_apps_installed")
             else:
                 print("no need to prepare system for base, already done.")
@@ -2495,7 +2495,7 @@ class InstallTools():
         else:
             print(("git clone %s -> %s" % (url, dest)))
             extra = ""
-            if depth:
+            if depth is not None:
                 extra = "--depth=%s" % depth
             if url.find("http") != -1:
                 if branch is not None:

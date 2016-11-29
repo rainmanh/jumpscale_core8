@@ -20,7 +20,8 @@ class Factory:
         return self.get(
             url=service.model.data.url,
             login=service.model.data.login,
-            password=service.model.data.password)
+            password=service.model.data.password,
+            port=service.model.data.port)
 
 
 def patchMS1(api):
@@ -126,11 +127,26 @@ class Client:
                 self._locations_cache.set(item)
         return [x.struct for x in self._locations_cache]
 
-    def account_get(self, name):
+    def account_get(self, name, create=True,
+                    maxMemoryCapacity=-1, maxVDiskCapacity=-1, maxCPUCapacity=-1, maxNASCapacity=-1,
+                    maxNetworkOptTransfer=-1, maxNetworkPeerTransfer=-1, maxNumPublicIP=-1):
         for account in self.accounts:
             if account.model['name'] == name:
                 return account
-        raise KeyError("Not account with name %s" % name)
+        else:
+            if create is False:
+                raise KeyError("Not account with name %s" % name)
+            self.api.cloudbroker.account.create(username=self.login,
+                                                name=name,
+                                                maxMemoryCapacity=maxMemoryCapacity,
+                                                maxVDiskCapacity=maxVDiskCapacity,
+                                                maxCPUCapacity=maxCPUCapacity,
+                                                maxNASCapacity=maxNASCapacity,
+                                                maxNetworkOptTransfer=maxNetworkOptTransfer,
+                                                maxNetworkPeerTransfer=maxNetworkPeerTransfer,
+                                                maxNumPublicIP=maxNumPublicIP)
+            self._accounts_cache.delete()
+            return self.account_get(name, False)
 
     def reset(self):
         """
@@ -150,7 +166,35 @@ class Client:
     __str__ = __repr__
 
 
-class Account:
+class Authorizables:
+
+    @property
+    def owners(self):
+        _owners = []
+        for user in self.model['acl']:
+            if not user['canBeDeleted']:
+                _owners.append(user['userGroupId'])
+        return _owners
+
+    @property
+    def authorized_users(self):
+        return [u['userGroupId'] for u in self.model['acl']]
+
+    def authorize_user(self, username, right="ACDRUX"):
+        if username not in self.authorized_users:
+            self._addUser(username, right)
+            self.refresh()
+        return True
+
+    def unauthorize_user(self, username):
+        canBeDeleted = [u['userGroupId'] for u in self.model['acl'] if u.get('canBeDeleted', True) is True]
+        if username in self.authorized_users and username in canBeDeleted:
+            self._deleteUser(username)
+            self.refresh()
+        return True
+
+
+class Account(Authorizables):
 
     def __init__(self, client, model):
         self.client = client
@@ -174,7 +218,7 @@ class Account:
 
     def space_get(self, name, location="", create=True,
                   maxMemoryCapacity=-1, maxVDiskCapacity=-1, maxCPUCapacity=-1, maxNASCapacity=-1,
-                  maxArchiveCapacity=-1, maxNetworkOptTransfer=-1, maxNetworkPeerTransfer=-1, maxNumPublicIP=-1):
+                  maxNetworkOptTransfer=-1, maxNetworkPeerTransfer=-1, maxNumPublicIP=-1):
         """
         will get space if it exists,if not will create it
         to retrieve existing one location does not have to be specified
@@ -197,7 +241,6 @@ class Account:
                                                             maxVDiskCapacity=maxVDiskCapacity,
                                                             maxCPUCapacity=maxCPUCapacity,
                                                             maxNASCapacity=maxNASCapacity,
-                                                            maxArchiveCapacity=maxArchiveCapacity,
                                                             maxNetworkOptTransfer=maxNetworkOptTransfer,
                                                             maxNetworkPeerTransfer=maxNetworkPeerTransfer,
                                                             maxNumPublicIP=maxNumPublicIP)
@@ -216,13 +259,42 @@ class Account:
                                                     type=type)
         return res
 
+    def _addUser(self, username, right):
+        self.client.api.cloudapi.accounts.addUser(
+            accountId=self.id, userId=username, accesstype=right)
+
+    def _deleteUser(self, username):
+        self.client.api.cloudapi.accounts.deleteUser(accountId=self.id, userId=username, recursivedelete=True)
+
+    def save(self):
+        self.client.api.cloudapi.accounts.update(accountId=self.model['id'],
+                                                 name=self.model['name'],
+                                                 maxMemoryCapacity=self.model.get('maxMemoryCapacity'),
+                                                 maxVDiskCapacity=self.model.get('maxVDiskCapacity'),
+                                                 maxCPUCapacity=self.model.get('maxCPUCapacity'),
+                                                 maxNASCapacity=self.model.get('maxNASCapacity'),
+                                                 maxNetworkOptTransfer=self.model.get('maxNetworkOptTransfer'),
+                                                 maxNetworkPeerTransfer=self.model.get('maxNetworkPeerTransfer'),
+                                                 maxNumPublicIP=self.model.get('maxNumPublicIP')
+                                                 )
+
+    def refresh(self):
+        accounts = self.client.api.cloudapi.accounts.list()
+        for account in accounts:
+            if account['id'] == self.id:
+                self.model = account
+                break
+        else:
+            raise j.exceptions.RuntimeError("Account has been deleted")
+        self.client._accounts_cache.set(account, id=self.id)
+
     def __str__(self):
         return "openvcloud client account: %(name)s" % (self.model)
 
     __repr__ = __str__
 
 
-class Space:
+class Space(Authorizables):
 
     def __init__(self, account, model):
         self.account = account
@@ -252,22 +324,13 @@ class Space:
     def save(self):
         self.client.api.cloudapi.cloudspaces.update(cloudspaceId=self.model['id'],
                                                     name=self.model['name'],
-                                                    maxMemoryCapacity=self.model[
-                                                        'maxMemoryCapacity'],
-                                                    maxVDiskCapacity=self.model[
-                                                        'maxVDiskCapacity'],
-                                                    maxCPUCapacity=self.model[
-                                                        'maxCPUCapacity'],
-                                                    maxNASCapacity=self.model[
-                                                        'maxNASCapacity'],
-                                                    maxArchiveCapacity=self.model[
-                                                        'maxArchiveCapacity'],
-                                                    maxNetworkOptTransfer=self.model[
-                                                        'maxNetworkOptTransfer'],
-                                                    maxNetworkPeerTransfer=self.model[
-                                                        'maxNetworkPeerTransfer'],
-                                                    maxNumPublicIP=self.model[
-                                                        'maxNumPublicIP']
+                                                    maxMemoryCapacity=self.model.get('maxMemoryCapacity'),
+                                                    maxVDiskCapacity=self.model.get('maxVDiskCapacity'),
+                                                    maxCPUCapacity=self.model.get('maxCPUCapacity'),
+                                                    maxNASCapacity=self.model.get('maxNASCapacity'),
+                                                    maxNetworkOptTransfer=self.model.get('maxNetworkOptTransfer'),
+                                                    maxNetworkPeerTransfer=self.model.get('maxNetworkPeerTransfer'),
+                                                    maxNumPublicIP=self.model.get('maxNumPublicIP')
                                                     )
 
     @property
@@ -280,6 +343,13 @@ class Space:
         for machine in self._machines_cache:
             machines[machine.struct['name']] = Machine(self, machine.struct)
         return machines
+
+    def _addUser(self, username, right):
+        self.client.api.cloudapi.cloudspaces.addUser(
+            cloudspaceId=self.id, userId=username, accesstype=right)
+
+    def _deleteUser(self, username):
+        self.client.api.cloudapi.cloudspaces.deleteUser(cloudspaceId=self.id, userId=username, recursivedelete=True)
 
     def refresh(self):
         cloudspaces = self.client.api.cloudapi.cloudspaces.list()
@@ -324,33 +394,6 @@ class Space:
             if pf['publicIp'] == publicIp and int(pf['publicPort']) == int(publicport) and pf['protocol'] == protocol:
                 return True
         return False
-
-    @property
-    def owners(self):
-        _owners = []
-        for user in self.model['acl']:
-            if not user['canBeDeleted']:
-                _owners.append(user['userGroupId'])
-        return _owners
-
-    @property
-    def authorized_users(self):
-        return [u['userGroupId'] for u in self.model['acl']]
-
-    def authorize_user(self, username, right="ACDRUX"):
-        if username not in self.authorized_users:
-            self.client.api.cloudapi.cloudspaces.addUser(
-                cloudspaceId=self.id, userId=username, accesstype=right)
-            self.refresh()
-        return True
-
-    def unauthorize_user(self, username):
-        canBeDeleted = [u['userGroupId'] for u in self.model['acl'] if u['canBeDeleted'] is True]
-
-        if username in self.authorized_users and username in canBeDeleted:
-            self.client.api.cloudapi.cloudspaces.deleteUser(cloudspaceId=self.id, userId=username, recursivedelete=True)
-            self.refresh()
-        return True
 
     def size_find_id(self, memory=None, vcpus=None):
         if memory < 100:

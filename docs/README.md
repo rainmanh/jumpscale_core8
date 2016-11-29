@@ -4,7 +4,7 @@
 
 - [Why Using JumpScale](Introduction/WhyJumpScale.md)
 - [Solutions Built with JumpScale](Introduction/JumpScaleSolutions.md)
-- [Getting Started](GettingStarted/GettingStarted.md)
+- [Getting Your Feed Wet](GettingYourFeetWet/GettingYourFeetWet.md)
 
 ## More info
 

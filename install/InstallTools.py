@@ -445,9 +445,14 @@ class Installer():
                 cmds = "tmux psutils libtiff libjpeg webp little-cms2"
                 for item in cmds.split(" "):
                     if item.strip() != "":
-                        cmd = "brew unlink %s;brew install %s" % (item, item)
+                        cmd = "brew unlink %s" % (item)
                         self.do.execute(cmd)
-                self.do.doneSet("core_apps_installed")
+                        cmd = "brew install %s" % (item)
+                        self.do.execute(cmd)
+                        cmd = "brew link --overwrite %s" % (item)
+                        self.do.execute(cmd)
+
+                        self.do.doneSet("core_apps_installed")
             else:
                 print("no need to prepare system for base, already done.")
 

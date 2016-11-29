@@ -321,11 +321,21 @@ class Client:
 
     def updateTemplate(self, repository, template=None,  headers=None, query_params=None):
         """
-        list all templates
-        It is method for GET /ays/repository/{repository}/template
+        update template in repo
+        It is method for GET /ays/repository/{repository}/template/{template}/update
         """
         resp = self._client.updateTemplate(
             template=template, repository=j.sal.fs.getBaseName(repository), headers=headers, query_params=query_params)
+        self._assert_response(resp)
+        return resp.json()
+
+    def updateTemplates(self, repository, headers=None, query_params=None):
+        """
+        update all templates in repo
+        It is method for GET /ays/repository/{repository}/template/update
+        """
+        resp = self._client.updateTemplates(
+            repository=j.sal.fs.getBaseName(repository), headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 

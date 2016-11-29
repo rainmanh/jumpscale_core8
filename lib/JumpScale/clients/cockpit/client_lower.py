@@ -262,7 +262,7 @@ class Client:
 
     def updateTemplate(self, template, repository, headers=None, query_params=None):
         """
-        update actors from template repo
+        update actor from template repo
         """
         if self.auth_header:
             self.session.headers.update({"Authorization": self.auth_header})
@@ -270,6 +270,16 @@ class Client:
         uri = self.url + "/ays/repository/" + repository + "/template/" + template + "/update"
         return self.session.get(uri, headers=headers, params=query_params)
 
+
+    def updateTemplates(self, repository, headers=None, query_params=None):
+        """
+        update all actors in template repo
+        """
+        if self.auth_header:
+            self.session.headers.update({"Authorization": self.auth_header})
+
+        uri = self.url + "/ays/repository/" + repository + "/template/" + "update"
+        return self.session.get(uri, headers=headers, params=query_params)
 
     def getTemplate(self, template, repository, headers=None, query_params=None):
         """

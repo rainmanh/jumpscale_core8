@@ -1,14 +1,10 @@
-
-## More details about installation process
+# More Details about the Installation Process
 
 Several scripts are involved to complete the installation:
 
-- [install.sh](https://github.com/Jumpscale/jumpscale_core8/blob/master/install/install.sh)
-    - this is the main entry point of the installation process, it will make sure that at least Python 3 and curl packages are installed, then it will download `bootstrap.py`, the second installation script, and run it it.
-- [bootstrap.py](https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/bootstrap.py)
-    - this is a very simple script that only downloads the `InstallTools.py` script and execute the main installation function.
-- [InstallTools.py](https://github.com/Jumpscale/jumpscale_core8/blob/master/install/InstallTools.py):
-    -this script includes all the helpers functions to install the whole JumpScale framework on your system. The main function of the installer is the following `installJS` function from the `InstallTools.py` script
+- [install.sh](https://github.com/Jumpscale/jumpscale_core8/blob/master/install/install.sh) is the main entry point of the installation process, it will make sure that at least Python 3 and curl packages are installed, then it will download `bootstrap.py`, the second installation script, and run it it
+- [bootstrap.py](https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/bootstrap.py) is a very simple script that only downloads the `InstallTools.py` script and executes the main installation function
+- [InstallTools.py](https://github.com/Jumpscale/jumpscale_core8/blob/master/install/InstallTools.py) includes all the helpers functions to install the whole JumpScale framework on your system. The main function of the installer is the following `installJS` function from the `InstallTools.py` script
 
 ```python
 installJS(self,base="",clean=False,insystem=True,GITHUBUSER="",GITHUBPASSWD="",CODEDIR="",\
@@ -31,7 +27,7 @@ installJS(self,base="",clean=False,insystem=True,GITHUBUSER="",GITHUBPASSWD="",C
 
 
 
-## Dependencies (need to be verified)
+## Dependencies (needs to be verified)
 
 To minimize the size of the installation some of the dependencies were opted to be installed separately, only
 dependencies which affect modular components of JumpScale where moved out to allow JumpScale's key components to function

@@ -1,6 +1,6 @@
 # Running JumpScale in a Sandbox
 
-`js8`is a small command line tool that helps to install JumpScale 8 from scratch using the G8OS Virtual Filesystem.
+`js8` is a small command line tool that helps to install JumpScale 8 from scratch using the G8OS Virtual Filesystem.
 
 ## Installation of js8
 

@@ -9,6 +9,7 @@
 * [Installation](Installation/Installation.md)
   - [Installation of the JumpScale Sandbox](Installation/JS8.md)
   - [Installation for Development Purposes](Installation/JSDevelopment.md)
+  - [More Details about the Installation Process](Installation/JSInstaller.md)
   - [Installing the JumpScale Docker Container](Installation/JSDocker.md)
 
 * [Getting Your Feet Wet](GettingYourFeetWet/GettingYourFeetWet.md)

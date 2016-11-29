@@ -260,6 +260,17 @@ class Client:
         uri = self.url + "/ays/repository/" + repository + "/template"
         return self.session.post(uri, data, headers=headers, params=query_params)
 
+    def updateTemplate(self, template, repository, headers=None, query_params=None):
+        """
+        update actors from template repo
+        """
+        if self.auth_header:
+            self.session.headers.update({"Authorization": self.auth_header})
+
+        uri = self.url + "/ays/repository/" + repository + "/template/" + template + "/update"
+        return self.session.get(uri, headers=headers, params=query_params)
+
+
     def getTemplate(self, template, repository, headers=None, query_params=None):
         """
         Get a template

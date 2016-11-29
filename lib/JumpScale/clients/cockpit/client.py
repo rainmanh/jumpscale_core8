@@ -319,13 +319,23 @@ class Client:
         self._assert_response(resp)
         return resp.json()
 
+    def updateTemplate(self, repository, template=None,  headers=None, query_params=None):
+        """
+        list all templates
+        It is method for GET /ays/repository/{repository}/template
+        """
+        resp = self._client.updateTemplate(
+            template=template, repository=j.sal.fs.getBaseName(repository), headers=headers, query_params=query_params)
+        self._assert_response(resp)
+        return resp.json()
+
     def getTemplate(self, repository, template, headers=None, query_params=None):
         """
         Get a template
         It is method for GET /ays/repository/{repository}/template/{template}
         """
         resp = self._client.getTemplate(
-            template=template, repository=repository, headers=headers, query_params=query_params)
+            template=template, repository=j.sal.fs.repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 

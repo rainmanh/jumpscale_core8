@@ -275,6 +275,9 @@ class Installer():
         $pythonhome
         export PYTHONPATH=$pythonpath
 
+        $locale1
+        $locale2
+
         export LD_LIBRARY_PATH=$JSBASE/bin
         export PS1="(JS8) $PS1"
         if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
@@ -289,10 +292,14 @@ class Installer():
             C = C.replace('$pythonhome', '')
 
         if self.do.TYPE.startswith("OSX"):
-            pass
             # C = C.replace("$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/plat-x86_64-linux-gnu:/usr/local/lib/python3.5/site-packages:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/plat-darwin:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload")
             C = C.replace("$pythonpath", ".:$JSBASE/lib:$_OLD_PYTHONPATH")
+            C = C.replace("$locale1", "export LC_ALL=en_US.UTF-8")
+            C = C.replace("$locale2", "export LANG=en_US.UTF-8")
+
         else:
+            C = C.replace("$locale1", "")
+            C = C.replace("$locale2", "")
             C = C.replace(
                 "$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu:$_OLD_PYTHONPATH")
         envfile = "%s/env.sh" % os.environ["JSBASE"]

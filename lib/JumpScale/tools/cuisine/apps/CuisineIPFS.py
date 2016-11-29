@@ -11,7 +11,7 @@ class CuisineIPFS(app):
         self._executor = executor
         self._cuisine = cuisine
 
-    def install(self, reset=False):
+    def install(self, start=True):
         "ipfsapi"
 
         if self._cuisine.platformtype.isLinux():
@@ -21,8 +21,11 @@ class CuisineIPFS(app):
 
         path = j.do.download(url, overwrite=False)
 
-        j.sal.fs.targzUncompress(path, j.dirs.tmpDir, "ipfs")
+        j.sal.fs.targzUncompress(path, "%s/%s" % (j.dirs.tmpDir, "ipfs"))
 
-        cmd = j.sal.fs.joinPaths(j.dirs.tmpDir, "go-ips", "install.sh")
+        cmd = j.sal.fs.joinPaths(j.dirs.tmpDir, "ipfs", "go-ipfs", "install.sh")
 
         self._cuisine.core.run(cmd)
+
+        if start:
+            self.start()

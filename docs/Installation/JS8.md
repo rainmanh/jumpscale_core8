@@ -58,12 +58,8 @@ If you don't specify any startup manager, tmux is used.
 
 ### reload
 
-This command asks the AYS filesystem to reload the metadata file. Use it if you add/edit/remove some metadata files and want them to be reflected in the FUSE layer.
+This command asks the AYS filesystem to reload the metadata file. Use it if you added, edited or removed some metadata files and want them to be reflected in the FUSE layer.
 
 ### update
 
-Downloads the lastest version of **JumpScale.flist** from https://stor.jumpscale.org/storx/static/js8_opt.flist, puts it at `/etc/ays/local/jumpscale.flist`, and then triggers a reload.
-
-## build
-
-Check the [how to build the js8](https://github.com/Jumpscale/js8/blob/master/doc/build.md) documentation.
+Downloads the latest version of **JumpScale.flist** from https://stor.jumpscale.org/storx/static/js8_opt.flist, puts it at `/etc/ays/local/jumpscale.flist`, and then triggers a reload.

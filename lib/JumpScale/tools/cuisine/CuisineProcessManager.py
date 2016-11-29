@@ -101,6 +101,7 @@ class CuisineSystemd(ProcessManagerBase):
             cmd = cmd.replace(cmd0, cmd1)
 
         envstr = ""
+        env.update(self._cuisine.bash.environ)
         for name0, value in list(env.items()):
             if value:
                 envstr += "Environment=%s=%s\n" % (name0, self._cuisine.core.args_replace(value))
@@ -166,6 +167,7 @@ class CuisineRunit(ProcessManagerBase):
         path = self._cuisine.core.args_replace(path)
 
         envstr = ""
+        env.update(self._cuisine.bash.environ)
         for name0, value in list(env.items()):
             envstr += "export %s=%s\n" % (name0, self._cuisine.core.args_replace(value))
 
@@ -263,6 +265,7 @@ class CuisineTmuxec(ProcessManagerBase):
         path = self._cuisine.core.args_replace(path)
 
         envstr = ""
+        env.update(self._cuisine.bash.environ)
         for name0, value in list(env.items()):
             envstr += "export %s=%s && " % (name0, self._cuisine.core.args_replace(value))
         if path:

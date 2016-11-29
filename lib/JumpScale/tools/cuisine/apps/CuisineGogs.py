@@ -10,9 +10,30 @@ class CuisineGogs(app):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gopath = self._cuisine.bash.environ.get('GOPATH')
-        self.gogspath = os.path.join(self.gopath, "src", "github.com", "gogits", "gogs")
-        self.appini = os.path.join(self.gogspath, "custom", "conf", "app.ini")
+
+    @property
+    def gopath(self):
+        if not self._gopath:
+            self._gopath = self._cuisine.bash.environ.get('GOPATH')
+            return self._gopath
+        else:
+            return self._gopath
+
+    @property
+    def gogspath(self):
+        if not self._gogspath:
+            self._gogspath = os.path.join(self.gopath, "src", "github.com", "gogits", "gogs")
+            return self._gogspath
+        else:
+            return self._gogspath
+
+    @property
+    def appini(self):
+        if not self._appini:
+            self._appini = os.path.join(self.gogspath, "custom", "conf", "app.ini")
+            return self._appini
+        else:
+            return self._appini
 
     def build(self, install=True, start=True, reset=False, installDeps=False):
         # THIS IS WIP (not stable yet)

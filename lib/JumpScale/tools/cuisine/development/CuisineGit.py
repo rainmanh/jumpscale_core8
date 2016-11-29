@@ -12,13 +12,11 @@ class CuisineGit(base):
         self._cuisine = cuisine
 
     def pullRepo(self, url, dest=None, login=None, passwd=None, depth=None,
-                 ignorelocalchanges=True, reset=False, branch=None, revision=None, ssh="first", codedir=None):
+                 ignorelocalchanges=True, reset=False, branch=None, revision=None, ssh="first"):
 
-        if not codedir:
-            codedir = self._cuisine.core.dir_paths["codeDir"]
         if dest is None:
             base, provider, account, repo, dest, url = j.do.getGitRepoArgs(
-                url, dest, login, passwd, reset=reset, ssh=ssh, codeDir=codedir)
+                url, dest, login, passwd, reset=reset, ssh=ssh, codeDir=self._cuisine.core.dir_paths["codeDir"])
             # we need to work in remote linux so we only support /opt/code
         else:
             dest = self._cuisine.core.args_replace(dest)

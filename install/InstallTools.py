@@ -1775,6 +1775,7 @@ class InstallTools():
 
         @asyncio.coroutine
         def _read_stream(_showout, stream):
+            # print("showout:%s" % showout)
             """coroutine to read prints output based on stream"""
             out = ''
             while True:
@@ -2418,7 +2419,7 @@ class InstallTools():
 
         return repository_host, repository_type, repository_account, repository_name, dest, repository_url
 
-    def pullGitRepo(self, url="", dest=None, login=None, passwd=None, depth=1, ignorelocalchanges=False,
+    def pullGitRepo(self, url="", dest=None, login=None, passwd=None, depth=None, ignorelocalchanges=False,
                     reset=False, branch=None, revision=None, ssh="auto", executor=None, codeDir=None):
         """
         will clone or update repo
@@ -2491,13 +2492,13 @@ class InstallTools():
                 extra = "--depth=%s" % depth
             if url.find("http") != -1:
                 if branch is not None:
-                    cmd = "cd %s;git -c http.sslVerify=false clone %s --single-branch -b %s %s %s" % (
+                    cmd = "cd %s;git -c http.sslVerify=false clone %s -b %s %s %s" % (
                         self.getParent(dest), extra, branch, url, dest)
                 else:
                     cmd = "cd %s;git -c http.sslVerify=false clone %s  %s %s" % (self.getParent(dest), extra, url, dest)
             else:
                 if branch is not None:
-                    cmd = "cd %s;git clone %s --single-branch -b %s %s %s" % (
+                    cmd = "cd %s;git clone %s -b %s %s %s" % (
                         self.getParent(dest), extra, branch, url, dest)
                 else:
                     cmd = "cd %s;git clone %s  %s %s" % (self.getParent(dest), extra, url, dest)

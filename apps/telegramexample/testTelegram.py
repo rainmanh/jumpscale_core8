@@ -1,6 +1,6 @@
 import logging
-import telegram
-from telegram.error import NetworkError, Unauthorized
+from telegram.ext import Updater
+from telegram.ext import CommandHandler
 import os
 
 from JumpScale import j
@@ -35,7 +35,6 @@ logging.basicConfig(level=logging.DEBUG,
 
 key = os.environ["telegramkey"]
 
-bot = telegram.Bot(key)
 
 updater = Updater(token=key)
 dispatcher = updater.dispatcher

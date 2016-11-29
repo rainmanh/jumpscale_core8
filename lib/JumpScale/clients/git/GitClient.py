@@ -10,6 +10,7 @@ class GitClient:
             raise j.exceptions.Input("git repo on %s not found." % baseDir)
 
         # split path to find parts
+        baseDir = j.sal.fs.pathClean(baseDir)
         baseDir = baseDir.replace("\\", "/")  # NOQA
         baseDir = baseDir.rstrip("/")
 

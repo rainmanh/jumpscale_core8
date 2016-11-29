@@ -69,3 +69,4 @@ class CuisineGogs(app):
 
     def restart(self):
         self._cuisine.processmanager.stop("gogs")
+        self.start()

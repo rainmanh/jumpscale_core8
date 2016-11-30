@@ -100,6 +100,8 @@
   - [AYS Portal](AYS/AYS-Portal.md)
   - [Building an AYS Service](AYS/Building.md)
   - [AYS Examples](AYS/Examples/Home.md)
+    - [Automate the Creation Docker Containers](AYS/Examples/DockerExample.md)
+    - [Automate the Creation of 2 Virtual Machines in OpenvCloud](AYS/Examples/OVCExample.md)
 
 * [Agent & Agent Controller]
   - [Agent Configuration](AgentController8/AgentConfiguration.md)

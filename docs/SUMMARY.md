@@ -75,6 +75,7 @@
     - [AYS Parents & Children](AYS/Definitions/6-Parents-Children.md)
     - [AYS Service Actions](AYS/Definitions/7-Actions.md)
     - [AYS Blueprints](AYS/Definitions/8-Blueprints.md)
+  - [What's new in AYS v8.1](AYS/whatsnew.md)
   - [Life Cycle of an AYS Service](AYS/Service-Lifecycle.md)
   - [Commands](AYS/Commands/commands.md)
     - [create_repo](AYS/Commands/create_repo.md)

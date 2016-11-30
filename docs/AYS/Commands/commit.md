@@ -2,8 +2,6 @@
 
 It is a best practice to commit your changes back to the Git repository.
 
-This will allow changes to be recorded and use Git workflow management, such as first accepting the changes before using `ays install` to make the change reality.
-
 ```shell
 ays commit --help
 

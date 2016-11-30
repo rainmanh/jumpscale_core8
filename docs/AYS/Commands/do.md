@@ -1,6 +1,6 @@
 # Do
 
-The `do` command if for calling an action of a service instance.
+The `do` command is for calling an action of a service instance.
 
 ```shell
 Usage: ays do [OPTIONS] ACTION

@@ -870,9 +870,11 @@ class SystemFS:
             raise j.exceptions.RuntimeError(
                 'Failed to get current working directory')
 
-    def readlink(self, path):
+    def readlink(self, path, absolute=True):
         """Works only for unix
         Return a string representing the path to which the symbolic link points.
+        @param absolute, if True then look for absolute source location
+        returns the source location
         """
         while path[-1] == "/" or path[-1] == "\\":
             path = path[:-1]
@@ -881,12 +883,25 @@ class SystemFS:
             raise TypeError('Path is not passed in system.fs.readLink')
         if j.core.platformtype.myplatform.isUnix():
             try:
-                return os.readlink(path)
+                res = os.readlink(path)
             except Exception as e:
                 raise j.exceptions.RuntimeError(
                     'Failed to read link with path: %s \nERROR: %s' % (path, str(e)))
         elif j.core.platformtype.myplatform.isWindows():
             raise j.exceptions.RuntimeError('Cannot readLink on windows')
+
+        if res.startswith("..") and absolute:
+            if self.isFile(path):
+                srcDir = self.getDirName(path)
+            elif self.isDir(path):
+                srcDir = res
+            else:
+                raise j.exceptions.Input(message="link can only be file or dir", level=1, source="", tags="", msgpub="")
+
+            path = self.joinPaths(srcDir, res)
+            res = os.path.abspath(path)
+
+        return res
 
     def removeLinks(self, path):
         """
@@ -981,6 +996,9 @@ class SystemFS:
         # 2. `sensitive`: case-sensitive comparison
         # 3. `insensitive`: case-insensitive comparison
         """
+
+        if self.isLink(path):
+            path = self.readlink(path)
 
         dircontent = self._listInDir(path)
         filesreturn = []
@@ -1499,7 +1517,6 @@ class SystemFS:
             fp.write(contents)
         # fp.write(contents)
         fp.close()
-
 
     def fileSize(self, filename):
         """Get Filesize of file in bytes

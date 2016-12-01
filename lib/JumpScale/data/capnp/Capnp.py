@@ -25,7 +25,11 @@ class Capnp:
     def getModelBaseClassWithData(self):
         return ModelBaseWithData
 
-    def getModelCollection(self, schema, category, namespace=None, modelBaseClass=None, db=None, indexDb=None):
+    def getModelBaseClassCollection(self):
+        return ModelBaseCollection
+
+    def getModelCollection(self, schema, category, namespace=None, modelBaseClass=None,
+                           modelBaseCollectionClass=None, db=None, indexDb=None):
         """
         @param schema is capnp_schema
 
@@ -57,6 +61,9 @@ class Capnp:
 
             ```
         """
+        if modelBaseCollectionClass == None:
+            modelBaseCollectionClass = ModelBaseCollection
+
         return ModelBaseCollection(schema=schema, category=category, namespace=namespace, db=db, indexDb=indexDb)
 
     def getId(self, schemaInText):
@@ -85,10 +92,19 @@ class Capnp:
             self._cache[schemaId] = cl
         return self._cache[schemaId]
 
-    def getSchema(self, schemaInText, name="Schema"):
+    def getSchemaFromText(self, schemaInText, name="Schema"):
         schemas = self.getSchemas(schemaInText)
         schema = eval("schemas.%s" % name)
         return schema
+
+    def getSchemaFromPath(self, path, name):
+        """
+        @param path is path to schema
+        """
+        # need to check if dirname of path is in sys.path
+        # load the schema
+        # return the schema
+        #@TODO *1
 
     def getObj(self, schemaInText, name="Schema", args={}, binaryData=None):
 
@@ -100,7 +116,7 @@ class Capnp:
                 args[sanitize_key] = args[key]
                 args.pop(key)
 
-        schema = self.getSchema(schemaInText, name=name)
+        schema = self.getSchemaFromText(schemaInText, name=name)
 
         if binaryData is not None and binaryData != b'':
             configdata = schema.from_bytes_packed(binaryData).as_builder()
@@ -150,11 +166,12 @@ class Capnp:
         }
         '''
 
+        # dummy test, not used later
         obj = self.getObj(capnpschema, name="Issue")
         obj.state = "ok"
 
         # now we just get the capnp schema for this object
-        schema = self.getSchema(capnpschema, name="Issue")
+        schema = self.getSchemaFromText(capnpschema, name="Issue")
 
         # mydb = j.servers.kvs.getRedisStore(name="mymemdb")
         mydb = None  # is memory
@@ -173,6 +190,35 @@ class Capnp:
         end_find = time.time()
         print("population in %.2fs" % (end_populate - start))
         print("find in %.2fs" % (end_find - end_populate))
+
+    def testWithRedis(self):
+        capnpschema = '''
+        @0x93c1ac9f09464fc9;
+
+        struct Issue {
+
+          state @0 :State;
+          enum State {
+            new @0;
+            ok @1;
+            error @2;
+            disabled @3;
+          }
+
+          #name of actor e.g. node.ssh (role is the first part of it)
+          name @1 :Text;
+
+        }
+        '''
+        # mydb = j.servers.kvs.getRedisStore("test")
+        mydb = j.servers.kvs.getRedisStore(name="test", unixsocket="%s/redis.sock" % j.dirs.tmpDir)
+        schema = self.getSchemaFromText(capnpschema, name="Issue")
+        collection = self.getModelCollection(schema, category="test", modelBaseClass=None, db=mydb, indexDb=mydb)
+        for i in range(100):
+            obj = collection.new()
+            obj.dbobj.name = "test%s" % i
+            obj.save()
+        print(collection.list())
 
     def getJSON(self, obj):
         configdata2 = obj.to_dict()

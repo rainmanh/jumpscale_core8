@@ -996,10 +996,6 @@ class SystemFS:
         # 2. `sensitive`: case-sensitive comparison
         # 3. `insensitive`: case-insensitive comparison
         """
-
-        if self.isLink(path):
-            path = self.readlink(path)
-
         dircontent = self._listInDir(path)
         filesreturn = []
 

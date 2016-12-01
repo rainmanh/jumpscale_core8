@@ -43,9 +43,51 @@ class CuisineCockpit(base):
         if start:
             self.start()
 
-    def start(self, name='cockpit'):
+    def install_all_in_one(self, start=True, branch="master"):
+        """
+        This will install the all the component of the cockpit in one command.
+        (mongodb, portal, ays_api, ays_daemon)
+
+        Make sure that you don't have uncommitted code in any code repository cause this method will discard them !!!
+        """
+
+        # install mongodb, required for portal
+        self._cuisine.apps.mongodb.build(install=start, start=start)
+        self._cuisine.apps.mongodb.install(start=start)
+
+        # install portal
+        self._cuisine.apps.portal.install(start=False, installdeps=False, branch=branch)
+        # add link from portal to API
+        content = self._cuisine.core.file_read('$codeDir/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81/.space/nav.wiki')
+        if 'REST API:/api' not in content:
+            self._cuisine.core.cuisine.core.file_write('$codeDir/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81/.space/nav.wiki',
+                                    'AYS API:http://localhost:5000/apidocs/index.html?raml=api.raml',
+                                    append=True)
+        self._cuisine.apps.portal.start()
+
+        # install REST API AND ays daemon
+        self.install(start=start, branch=branch)
+
+        # configure base URI for api-console
+        raml = self._cuisine.core.file_read('$appDir/ays_api/ays_api/apidocs/api.raml')
+        raml = raml.replace('$(baseuri)', "https://localhost:5000")
+        self._cuisine.core.file_write('$appDir/ays_api/ays_api/apidocs/api.raml', raml)
+
+        # start API and daemon
+        self.start()
+
+    def start(self, name='main'):
+        # start AYS REST API
         cmd = 'jspython api_server'
-        self._cuisine.processmanager.ensure('cockpit', cmd=cmd, path='%s/ays_api' % j.dirs.appDir)
+        self._cuisine.processmanager.ensure(cmd=cmd, name='cockpit_%s' % name,  path='%s/ays_api' % j.dirs.appDir)
+
+        # start daemon
+        cmd = 'ays start'
+        self._cuisine.processmanager.ensure(cmd=cmd, name='cockpit_daemon_%s' % name)
+
+    def stop(self, name='main'):
+        self._cuisine.processmanager.stop('cockpit_%s' % name,)
+        self._cuisine.processmanager.stop('cockpit_daemon_%s' % name,)
 
     def install_deps(self):
         self._cuisine.package.mdupdate()

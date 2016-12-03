@@ -1,8 +1,8 @@
 
 from JumpScale import j
 
-from JumpScale.clients.gogs.models import IssueModel
-from JumpScale.clients.gogs.models import IssueCollection
+from JumpScale.tools.issuemanager.models.IssueModel import IssueModel
+from JumpScale.tools.issuemanager.models.IssueCollection import IssueCollection
 
 import capnp
 from JumpScale.tools.issuemanager import model_capnp as ModelCapnp
@@ -26,10 +26,10 @@ class IssueManager:
         std keyvalue stor is redis used by core
         """
         schema = self.getCapnpSchema()
-        if kvs == None:
+        if not kvs:
             kvs = j.servers.kvs.getRedisStore(name="test", unixsocket="%s/redis.sock" % j.dirs.tmpDir)
 
         collection = j.data.capnp.getModelCollection(
-            schema, category="issues", modelBaseClass=IssueModel.IssueModel,
-            modelBaseCollectionClass=IssueCollection.IssueCollection, db=kvs, indexDb=kvs)
+            schema, category="issues", modelBaseClass=IssueModel,
+            modelBaseCollectionClass=IssueCollection, db=kvs, indexDb=kvs)
         return collection

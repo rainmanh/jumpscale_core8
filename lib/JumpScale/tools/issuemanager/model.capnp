@@ -1,42 +1,27 @@
-@0xd80b12c2d2d132c5;
+@0x93c1qq9f09464fd9;
+
+# # common struct
+# enum ActionState {
+#   new @0;
+#   changed @1;
+#   ok @2;
+#   scheduled @3;
+#   disabled @4;
+#   error @5;
+#   running @6;
+# }
+
 struct Issue {
-    #all the id variables will be replaces with full structs such as repo and label , but WIP so for now 
-    title @0 :Text;
-    repoId @1: UInt32; 
-    milestoneId @2: UInt16;
-    assigneeId @3: UInt16;
-    isClosed @4: Bool; 
-    numComments @5: UInt16;
-    labelId @6: UInt16;
-    content @7: Text;
-    
+
+  state @0 :State;
+  enum State {
+    new @0;
+    ok @1;
+    error @2;
+    disabled @3;
+  }
+
+  #name of actor e.g. node.ssh (role is the first part of it)
+  name @1 :Text;
+
 }
-
-
-
-# issue
-#     id 
-#     repo_id
-#     title
-#     content
-#     milestone_id
-#     assignee_id 
-#     is_closed
-#     is_pull
-#     no_comments
-# 
-# issue_label 
-#     id
-#     issue_id
-#     label_id
-# 
-# issue_user 
-#     id
-#     issue_id 
-#     repo_id
-#     milestone_id
-#     is_read
-#     is_assigned
-#     is_mentioned 
-#     is_closed
-

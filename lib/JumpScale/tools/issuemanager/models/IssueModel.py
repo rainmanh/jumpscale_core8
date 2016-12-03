@@ -11,10 +11,10 @@ class IssueModel(base):
 
     def index(self):
         # put indexes in db as specified
-        import ipdb; ipdb.set_trace()
-        ind = "%s:%s:%s:%s:%s:%s" % (self.dbobj.repoId, self.dbobj.title, self.dbobj.milestoneId,
-                                     self.dbobj.assigneeId, self.dbobj.isClosed, self.dbobj.numComments)
+        #@TODO: *1 needs to be implemented
+        ind = "%s:%s" % (self.dbobj.name, self.dbobj.state)
         self._index.index({ind: self.key})
+
 
 # producers
     # def producerAdd(self, name, maxServices=1, actorFQDN="", actorKey=""):

@@ -1,5 +1,6 @@
 from GogsClient import GogsClient
 from JumpScale import j
+from JumpScale.tools.issuemanager.models.IssueCollection import IssuesCollection
 
 
 class GogsFactory:
@@ -17,8 +18,16 @@ class GogsFactory:
         get peewee model from psql database from gogs & then load in our capnp database
         """
         model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
-        print([item.name for item in model.Issue.select()])
-        from IPython import embed
-        print("DEBUG NOW ")
-        embed()
-        raise RuntimeError("stop debug here")
+        for issue in model.Issue.select():
+            issues_obj = IssuesCollection()
+            issue_model = issues_obj.new()
+            issue_model.dbobj.title = issue.name
+            issue_model.dbobj.content = issue.content
+            issue_model.dbobj.isClosed = issue.is_closed
+            issue_model.dbobj.milestoneId = issue.milestone
+            issue_model.dbobj.numComments = issue.num_comments
+            issue_model.dbobj.repoId = issue.repo
+
+            #getting from differnet database
+            issue_model.dbobj.labelId = model.IssueLabel.get(model.IssueLabel.issue == issue.id).label
+            issue_model.save()

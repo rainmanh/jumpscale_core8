@@ -152,13 +152,13 @@ class ModelBaseCollection:
 
         self.modelBaseClass = modelBaseClass if modelBaseClass else ModelBase
 
-    def new(self):
+    def new(self, key=""):
         model = self.modelBaseClass(
             capnp_schema=self.capnp_schema,
             category=self.category,
             db=self._db,
             index=self._index,
-            key='',
+            key=key,
             new=True)
 
         if self._db.inMem:
@@ -166,14 +166,23 @@ class ModelBaseCollection:
 
         return model
 
-    def get(self, key):
+    def get(self, key, autoCreate=False):
+
         if self._db.inMem:
             if key in self._db.db:
                 model = self._db.db[key]
             else:
-                raise j.exceptions.Input(message="Could not find key:%s for model:%s" %
-                                         (key, self.category), level=1, source="", tags="", msgpub="")
+                if autoCreate:
+                    return self.new(key=key)
+                else:
+                    raise j.exceptions.Input(message="Could not find key:%s for model:%s" %
+                                             (key, self.category), level=1, source="", tags="", msgpub="")
         else:
+            if autoCreate:
+                from IPython import embed
+                print("DEBUG NOW get autocreate modelbase capnp")
+                embed()
+                raise RuntimeError("stop debug here")
             model = self.modelBaseClass(
                 capnp_schema=self.capnp_schema,
                 category=self.category,

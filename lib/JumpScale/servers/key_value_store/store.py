@@ -58,7 +58,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
     @schema.setter
     def schema(self, val):
         """
-        is any free text to define the schema used for this store category
+        is 32 or 16 byte key to schema as used for this namespace
         """
         if len(val) == 32:
             val = j.data.hash.hex2bin(val)

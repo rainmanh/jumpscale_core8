@@ -185,7 +185,7 @@ def do(action, role, instance, force, producerroles, args, ask, debug, profile):
     Schedule an action then immediatly create a run.
     This is a shortcut from sending a blueprint with an actions block and the do `ays run`
     """
-    _do(action=action, role=role, instance=instance, force=force, producerroles=producerroles, ask=ask, debug=debug, profile=profile, args=args, no_exec=no_exec)
+    _do(action=action, role=role, instance=instance, force=force, producerroles=producerroles, ask=ask, debug=debug, profile=profile, args=args)
 
 
 @click.command()

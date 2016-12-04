@@ -466,10 +466,24 @@ def noexec(enable, disable, show):
         print(out)
         return
 
+    ok = j.tools.console.askYesNo("warning ! Changing the noexec mode of your repo required to destroy it first.\nAre you sure you want to continue?")
+    if not ok:
+        return
+
     if enable and not disable:
-        repo.enable_noexec()
+        if not repo.model.no_exec:
+            repo.destroy()
+            print("enable noexec mode")
+            repo.enable_noexec()
+        else:
+            print("already enabled")
     elif not enable and disable:
-        repo.disable_noexec()
+        if repo.model.no_exec:
+            repo.destroy()
+            print("disable noexec mode")
+            repo.disable_noexec()
+        else:
+            print("already disabled")
     else:
         print("can't enable and disable at the same time")
 #

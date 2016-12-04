@@ -19,7 +19,7 @@ class IssueManager:
         self.dbIssues = IssueCollection()
 
     def getCapnpSchema(self):
-        return ModelCapnp
+        return ModelCapnp.Issue
 
     def getIssueCollectionFromDB(self, kvs=None):
         """
@@ -27,9 +27,9 @@ class IssueManager:
         """
         schema = self.getCapnpSchema()
         if not kvs:
-            kvs = j.servers.kvs.getRedisStore(name="test", unixsocket="%s/redis.sock" % j.dirs.tmpDir)
+            kvs = j.servers.kvs.getRedisStore(name="gogs", namespace="gogs:issue", unixsocket="%s/redis.sock" % j.dirs.tmpDir)
 
         collection = j.data.capnp.getModelCollection(
-            schema, category="issues", modelBaseClass=IssueModel,
+            schema, namespace="gogs:issue", category="issues", modelBaseClass=IssueModel,
             modelBaseCollectionClass=IssueCollection, db=kvs, indexDb=kvs)
         return collection

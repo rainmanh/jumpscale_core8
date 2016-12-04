@@ -11,16 +11,23 @@ class IssueCollection(base):
     This class represent a collection of AYS Issues contained in an AYS repository
     It's used to list/find/create new Instance of Issue Model object
     """
-    def __init__(self):
-        namespace = "gogs:issue"
-        db = j.servers.kvs.getRedisStore(namespace, namespace, unixsocket='/tmp/redis.sock')
+    def __init__(self, schema=None, category="issues", namespace="gogs:issue", modelBaseClass=None, db=None,
+                 indexDb=None):
+        if not schema:
+            schema = ModelCapnp.Issue
+        if not db:
+            db = j.servers.kvs.getRedisStore(namespace, namespace, unixsocket='/tmp/redis.sock')
+        if not modelBaseClass:
+            modelBaseClass = IssueModel
+        if not indexDb:
+            indexDb = db
         super().__init__(
-            schema=ModelCapnp.Issue,
-            category="Issue",
+            schema=schema,
+            category=category,
             namespace=namespace,
             modelBaseClass=IssueModel,
             db=db,
-            indexDb=db
+            indexDb=indexDb
         )
 
 

@@ -368,6 +368,11 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
                         res.add((item, key2))
         return list(res)
 
+    def lookupSet(self, name, key, fkey):
+        raise NotImplemented()
+
+    def lookupGet(self, name, key):
+        raise NotImplemented()
 
 # DO NOT LOOK AT BELOW RIGHT NOW IS FOR FUTURE
 

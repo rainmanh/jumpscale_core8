@@ -17,23 +17,24 @@ struct Dir {
       blocks @2 :List(Data); #list of the hashes of the blocks
       size @3 : UInt64; #in bytes
       aclkey @4: UInt32; #is pointer to ACL
+      modificationTime @5: UInt32;
+      creationTime @6: UInt32;
   }
 
   dirs @3 :List(SubDir);
   struct SubDir{
       name @0 : Text;
-      size @1 : UInt64; #in bytes
-      aclkey @2: UInt32; #is pointer to ACL
-      key @3: Text;
-      isLink @4: Bool; #if is link and not physically on disk
+      key @1: Text;
   }
 
   links @4 :List(Link); #only for non dirs
   struct Link{
       name @0 : Text;
       aclkey @1: UInt32; #is pointer to ACL
-      key @2: Text; #key of dir in which destination is
+      destDirKey @2: Text; #key of dir in which destination is
       destName @3: Text;
+      modificationTime @4: UInt32;
+      creationTime @5: UInt32;
   }
 
   specials @5 :List(Special);
@@ -49,10 +50,22 @@ struct Dir {
         block @1;
         chardev @2;
         fifopipe @3;
+        unknown @4;
       }
       #data relevant for type of item
       data @2 :Data;
+      modificationTime @3: UInt32;
+      creationTime @4: UInt32;
   }
+
+  parent @6 :Text; #dir key of parent
+
+  #metadata for dir
+  size @7 : UInt64; #in bytes
+  aclkey @8: UInt32; #is pointer to ACL
+  isLink @9: Bool; #if is link and not physically on disk
+  modificationTime @10: UInt32;
+  creationTime @11: UInt32;
 
 
 }
@@ -71,8 +84,9 @@ struct ACI {
     #for backwards compatibility with posix
     uname @0 :Text;
     gname @1 :Text;
+    mode @2 : UInt16;
 
-    rights @2 :List(Right);
+    rights @3 :List(Right);
     struct Right {
       #text e.g. rwdl- (admin read write delete list -), freely to be chosen
       #admin means all rights (e.g. on / = namespace or filesystem level all rights for everything)
@@ -80,4 +94,6 @@ struct ACI {
       right @0 :Text;
       usergroupid @1 : UInt16;
     }
+
+    id @4 :UInt32;
 }

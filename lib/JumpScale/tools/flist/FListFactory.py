@@ -87,12 +87,14 @@ class FListFactory(object):
         return FListArchiver()
 
     def test(self):
-        flist = self.getFlist()
-        flist.add("/JS8/opt/jumpscale8")
-        from IPython import embed
-        print("DEBUG NOW test flist")
-        embed()
-        raise RuntimeError("stop debug here")
+        testDir = "/JS8/opt/"
+        flist = self.getFlist(rootpath=testDir)
+        flist.add(testDir)
+
+        def pprint(path, ddir, name):
+            print(path)
+
+        flist.walk(fileFunction=pprint, dirFunction=pprint, specialFunction=pprint, linkFunction=pprint)
 
 
 class FListArchiver:

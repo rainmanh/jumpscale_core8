@@ -12,8 +12,35 @@ class ACIModel(base):
     @property
     def key(self):
         if self._key == "":
-            from IPython import embed
-            print("DEBUG NOW generate key")
-            embed()
-            raise RuntimeError("stop debug here acimodel")
+            self._key = j.data.hash.md5_string(self.getAsText())
         return self._key
+
+    @property
+    def id(self):
+        if self.dbobj.id == 0:
+            raise RuntimeError("id cannot be 0")
+        return self.dbobj.id
+
+    def index(self):
+        # ind = "%s" % (self.id)
+        # self._index.index({ind: self.key})
+        self._index.lookupSet("id", self.id, self.key)
+
+    def getAsText(self, withUserNames=False):
+        out = "user:%s\ngroup:%s\n" % (self.dbobj.uname, self.dbobj.gname)
+        out += "mode:%s\n" % oct(self.dbobj.mode)[4:]
+        out2 = []
+        for right in self.dbobj.rights:
+            out2.append("%s|%s" % (right.usergroupid, sorted(right.right)))
+        out2.sort()
+        out += "\n".join(out2)
+        out = out.rstrip() + "\n"
+        return out
+
+    @property
+    def text(self):
+        return self.getAsText()
+
+    @property
+    def modeInOctFormat(self):
+        return oct(self.dbobj.mode)[4:]

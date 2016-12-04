@@ -8,7 +8,7 @@ class DirCollection(base):
     It's used to list/find/create new Instance of Dir Model object
     """
 
-    def find(self, name="", state=""):
+    def find(self, name=""):
         """
         @param state
             new
@@ -16,8 +16,7 @@ class DirCollection(base):
             error
             disabled
         """
-        #@TODO: *1 needs to be properly implemented
-        res = []
-        for key in self._list_keys(name, state):
-            res.append(self.get(key))
-        return res
+        from IPython import embed
+        print("DEBUG NOW oo")
+        embed()
+        raise RuntimeError("stop debug here")

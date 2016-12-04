@@ -13,6 +13,5 @@ Options:
  --force    force execution even if no change
  --debug    enable debug in jobs
  --profile  enable profiling of the jobs
- --no-exec  don't actually execute any actions
  --help     Show this message and exit.
 ```

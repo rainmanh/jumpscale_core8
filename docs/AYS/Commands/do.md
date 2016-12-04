@@ -23,6 +23,5 @@ Options:
   --ask                     ask before confirmation before executing
   --debug                   enable debug in jobs
   --profile                 enable profiling of the jobs
-  --no-exec                 don't actually execute any actions
   --help                    Show this message and exit.
 ```

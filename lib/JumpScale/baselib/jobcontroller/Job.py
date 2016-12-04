@@ -158,7 +158,7 @@ class Job():
         # to make sure we don't put it in the profiler
         self.method
 
-        if self.model.dbobj.noExec is False:
+        if self.service.aysrepo.model.no_exec is False:
 
             if self.model.dbobj.profile:
                 pr = cProfile.Profile()
@@ -198,7 +198,7 @@ class Job():
         self.model.dbobj.state = 'running'
         self.save()
 
-        if self.model.dbobj.noExec is True:
+        if self.service.aysrepo.model.no_exec is True:
             return None
 
         # TODO improve debug detection

@@ -71,7 +71,7 @@ class RunStep:
         for job in self.jobs:
             self.logger.info('execute %s' % job)
             # don't actually execute anything
-            if job.model.dbobj.noExec is True:
+            if job.service.aysrepo.model.no_exec is True:
                 self._fake_exec(job)
             else:
                 process = job.execute()

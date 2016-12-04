@@ -23,15 +23,14 @@ def cli():
 @click.option('--force', default=False, is_flag=True, help='force execution even if no change')
 @click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
 @click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
-@click.option('--no-exec', default=False, is_flag=True, help="don't actually execute any actions")
-def run(ask, force, debug, profile, no_exec):
+def run(ask, force, debug, profile):
     """
     Look for all action with a state 'schedule', 'changed' or 'error' and create a run.
     A run is an collection of actions that will be run on the repository.
     """
     repo = j.atyourservice.get()
     print("Compute dependency graph...")
-    run = repo.runCreate(debug=debug, profile=profile, no_exec=no_exec)
+    run = repo.runCreate(debug=debug, profile=profile)
 
     if len(run.steps) <= 0:
         print("Nothing to do.")
@@ -137,7 +136,7 @@ def blueprint(path, role, instance):
     repo = j.atyourservice.get()
     repo.blueprintExecute(role=role, instance=instance, path=path)
 
-def _do(action, role, instance, force, producerroles, args, ask, debug, profile, no_exec):
+def _do(action, role, instance, force, producerroles, args, ask, debug, profile):
     repo = j.atyourservice.get()
     data = {}
     if args is not None:
@@ -157,7 +156,7 @@ def _do(action, role, instance, force, producerroles, args, ask, debug, profile,
     for service in repo.servicesFind(actor="%s.*" % role, name=instance):
         service.scheduleAction(action=action, period=None, log=True, force=force)
 
-    run = repo.runCreate(profile=profile, debug=debug, no_exec=no_exec)
+    run = repo.runCreate(profile=profile, debug=debug)
     if len(run.steps) <= 0:
         print("Nothing to do.")
         return
@@ -181,8 +180,7 @@ or a path to a file containing the argument. Format of the file can be json, yam
 @click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
 @click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
 @click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
-@click.option('--no-exec', default=False, is_flag=True, help="don't actually execute any actions")
-def do(action, role, instance, force, producerroles, args, ask, debug, profile, no_exec):
+def do(action, role, instance, force, producerroles, args, ask, debug, profile):
     """
     Schedule an action then immediatly create a run.
     This is a shortcut from sending a blueprint with an actions block and the do `ays run`
@@ -200,14 +198,13 @@ or a path to a file containing the argument. Format of the file can be json, yam
 @click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
 @click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
 @click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
-@click.option('--no-exec', default=False, is_flag=True, help="don't actually execute any actions")
-def install(role, instance, force, producerroles, ask, args, debug, profile, no_exec):
+def install(role, instance, force, producerroles, ask, args, debug, profile):
     """
     alias for 'ays do install'
     make it reality
     if you want more finegrained controle please use the do cmd
     """
-    _do(action='install', role=role, instance=instance, force=force, producerroles=producerroles, ask=ask, debug=debug, profile=profile, args=args, no_exec=no_exec)
+    _do(action='install', role=role, instance=instance, force=force, producerroles=producerroles, ask=ask, debug=debug, profile=profile, args=args)
 
 
 @click.command()
@@ -449,6 +446,39 @@ def delete(role, instance, ask):
         print('delete %s' % service)
         service.delete()
 
+@click.command()
+@click.option('--enable', is_flag=True, default=False)
+@click.option('--disable', is_flag=True, default=False)
+@click.option('--show', is_flag=True, default=False)
+def noexec(enable, disable, show):
+    """
+    Enable/Disable the no_exec mode.
+    Once this mode is enabled, no action will ever be execute.
+    But the state of the action will be updated as if everything went fine (state ok)
+
+    This mode can be used for demo or testing
+    """
+    repo = j.atyourservice.get()
+
+    if show:
+        out = 'no-exec mode is '
+        out += 'enable' if repo.model.no_exec else "disable"
+        print(out)
+        return
+
+    if enable and not disable:
+        repo.enable_noexec()
+    elif not enable and disable:
+        repo.disable_noexec()
+    else:
+        print("can't enable and disable at the same time")
+#
+# @click.command()
+# def disable_noexec():
+#     repo = j.atyourservice.get()
+#     repo.disable_noexec()
+
+
 
 @click.command()
 @click.option('--config', '-c', default="", help='path of ays config file')
@@ -487,6 +517,7 @@ cli.add_command(show)
 cli.add_command(list)
 cli.add_command(state)
 cli.add_command(delete)
+cli.add_command(noexec)
 cli.add_command(start)
 
 if __name__ == '__main__':

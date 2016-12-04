@@ -42,6 +42,18 @@ class RepoModel(ModelBase):
 
         return repo
 
+    @property
+    def no_exec(self):
+        return self.dbobj.noExec
+
+    def enable_no_exec(self):
+        self.dbobj.noExec = True
+        self.save()
+
+    def disable_no_exec(self):
+        self.dbobj.noExec = False
+        self.save()
+
     def _pre_save(self):
         pass
 

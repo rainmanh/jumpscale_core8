@@ -15,6 +15,7 @@ the following commands show you the typical order in which you need to execute a
 - [destroy](destroy.md) : destroy the repo go back to step 1 which is the blueprinting process
 
 ## advanced
+- [noexec](noexec.md) : Enable/Disable noexec mode
 - [delete](delete.md) : Delete a service and all its children
 - [discover](discover.md) : Discover AYS repository on the filesystem
 - [restore](restore.md)  : Load service from the filesystem

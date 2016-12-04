@@ -147,6 +147,7 @@ class CuisineJS8(base):
         crontab
         beautifulsoup4
         lxml
+        pycapnp
         """
         self._cuisine.development.pip.multiInstall(C, upgrade=True)
 

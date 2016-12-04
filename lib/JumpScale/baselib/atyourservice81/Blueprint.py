@@ -89,7 +89,7 @@ class Blueprint:
                             raise j.exceptions.Input(message="need to specify action.",
                                                      level=1, source="", tags="", msgpub="")
 
-                        actions = [item.strip() for item in actionModel["action"].split(",") if item.strip != ""]
+                        actions = [item.strip() for item in actionModel["action"].split(",") if item.strip() != ""]
 
                         for serviceObj in servicesFound:
                             for actionName in actions:

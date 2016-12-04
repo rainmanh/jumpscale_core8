@@ -17,7 +17,7 @@ class CuisinePortal(base):
         self.cfg_path = j.sal.fs.joinPaths(self.main_portal_dir, 'config.hrd')
 
     def configure(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1",
-                  influxport=8086, grafanaip="127.0.0.1", grafanaport=3000):
+                  influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, production=True):
 
         # go from template dir which go the file above
         content = self._cuisine.core.file_read('$tmplsDir/cfg/portal/config.hrd')
@@ -30,6 +30,7 @@ class CuisinePortal(base):
         hrd.set('param.mongoengine.connection', {'host': mongodbip, 'port': mongoport})
         hrd.set('param.cfg.influx', {'host': influxip, 'port': influxport})
         hrd.set('param.cfg.grafana', {'host': grafanaip, 'port': grafanaport})
+        hrd.set('param.cfg.production', production)
 
         if "darwin" in self._cuisine.platformtype.osname:
             hrd.set('param.cfg.port', '8200')

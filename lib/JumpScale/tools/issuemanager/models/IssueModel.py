@@ -11,7 +11,6 @@ class IssueModel(base):
 
     def index(self):
         # put indexes in db as specified
-        import ipdb; ipdb.set_trace()
         ind = "%s:%s:%s:%s:%s:%s" % (self.dbobj.repo.name, self.dbobj.title, self.dbobj.milestone.name,
                                      self.dbobj.assignee.name, self.dbobj.isClosed, self.dbobj.numComments)
         self._index.index({ind: self.key})

@@ -52,12 +52,12 @@ class IssueCollection(base):
             isClosed = ".*"
         if numComments == "":
             numComments = ".*"
-        regex = "%s:%s:%s:%s:%s" % (repo, title, milestone, assignee, isClosed)
+        regex = "%s:%s:%s:%s:%s:%s" % (repo, title, milestone, assignee, isClosed, numComments)
         return self._index.list(regex, returnIndex=returnIndex)
 
     def find(self, issueId='', repo='', title='', milestone='', assignee='', is_closed='', num_comments=''):
 
         res = []
-        for key in self._list_keys(repo, title, milestone, assignee, is_closed):
+        for key in self._list_keys(repo, title, milestone, assignee, is_closed, num_comments):
             res.append(self.get(key))
         return res

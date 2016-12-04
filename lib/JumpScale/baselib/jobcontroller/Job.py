@@ -158,31 +158,35 @@ class Job():
         # to make sure we don't put it in the profiler
         self.method
 
-        if self.model.dbobj.profile:
-            pr = cProfile.Profile()
-            pr.enable()
+        if self.model.dbobj.noExec is False:
 
-        try:
-            if self.model.dbobj.actorName != "":
-                res = self.method(job=self)
-            else:
-                res = self.method(**self.model.args)
-
-        except Exception as e:
-            self.model.dbobj.state = 'error'
-            eco = j.errorconditionhandler.processPythonExceptionObject(e)
-            self._processError(eco)
-            log = self.model.dbobj.logs[-1]
-            print(self.str_error(log.log))
-            raise j.exceptions.RuntimeError("could not execute job:%s" % self)
-
-        finally:
             if self.model.dbobj.profile:
-                pr.create_stats()
-                stat_file = j.sal.fs.getTempFileName()
-                pr.dump_stats(stat_file)
-                self.model.dbobj.profileData = j.sal.fs.fileGetBinaryContents(stat_file)
-                j.sal.fs.remove(stat_file)
+                pr = cProfile.Profile()
+                pr.enable()
+
+            try:
+                if self.model.dbobj.actorName != "":
+                    res = self.method(job=self)
+                else:
+                    res = self.method(**self.model.args)
+
+            except Exception as e:
+                self.model.dbobj.state = 'error'
+                eco = j.errorconditionhandler.processPythonExceptionObject(e)
+                self._processError(eco)
+                log = self.model.dbobj.logs[-1]
+                print(self.str_error(log.log))
+                raise j.exceptions.RuntimeError("could not execute job:%s" % self)
+
+            finally:
+                if self.model.dbobj.profile:
+                    pr.create_stats()
+                    stat_file = j.sal.fs.getTempFileName()
+                    pr.dump_stats(stat_file)
+                    self.model.dbobj.profileData = j.sal.fs.fileGetBinaryContents(stat_file)
+                    j.sal.fs.remove(stat_file)
+        else:
+            res = None
 
         self.model.dbobj.state = 'ok'
 
@@ -193,6 +197,9 @@ class Job():
     def execute(self):
         self.model.dbobj.state = 'running'
         self.save()
+
+        if self.model.dbobj.noExec is True:
+            return None
 
         # TODO improve debug detection
         if self.model.dbobj.debug is False:

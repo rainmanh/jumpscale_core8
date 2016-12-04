@@ -23,14 +23,15 @@ def cli():
 @click.option('--force', default=False, is_flag=True, help='force execution even if no change')
 @click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
 @click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
-def run(ask, force, debug, profile):
+@click.option('--no-exec', default=False, is_flag=True, help="don't actually execute any actions")
+def run(ask, force, debug, profile, no_exec):
     """
     Look for all action with a state 'schedule', 'changed' or 'error' and create a run.
     A run is an collection of actions that will be run on the repository.
     """
     repo = j.atyourservice.get()
     print("Compute dependency graph...")
-    run = repo.runCreate(debug=debug, profile=profile)
+    run = repo.runCreate(debug=debug, profile=profile, no_exec=no_exec)
 
     if len(run.steps) <= 0:
         print("Nothing to do.")
@@ -136,7 +137,7 @@ def blueprint(path, role, instance):
     repo = j.atyourservice.get()
     repo.blueprintExecute(role=role, instance=instance, path=path)
 
-def _do(action, role, instance, force, producerroles, args, ask, debug, profile):
+def _do(action, role, instance, force, producerroles, args, ask, debug, profile, no_exec):
     repo = j.atyourservice.get()
     data = {}
     if args is not None:
@@ -156,7 +157,7 @@ def _do(action, role, instance, force, producerroles, args, ask, debug, profile)
     for service in repo.servicesFind(actor="%s.*" % role, name=instance):
         service.scheduleAction(action=action, period=None, log=True, force=force)
 
-    run = repo.runCreate(profile=profile, debug=debug)
+    run = repo.runCreate(profile=profile, debug=debug, no_exec=no_exec)
     if len(run.steps) <= 0:
         print("Nothing to do.")
         return
@@ -180,12 +181,13 @@ or a path to a file containing the argument. Format of the file can be json, yam
 @click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
 @click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
 @click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
-def do(action, role, instance, force, producerroles, args, ask, debug, profile):
+@click.option('--no-exec', default=False, is_flag=True, help="don't actually execute any actions")
+def do(action, role, instance, force, producerroles, args, ask, debug, profile, no_exec):
     """
     Schedule an action then immediatly create a run.
     This is a shortcut from sending a blueprint with an actions block and the do `ays run`
     """
-    _do(action=action, role=role, instance=instance, force=force, producerroles=producerroles, ask=ask, debug=debug, profile=profile, args=args)
+    _do(action=action, role=role, instance=instance, force=force, producerroles=producerroles, ask=ask, debug=debug, profile=profile, args=args, no_exec=no_exec)
 
 
 @click.command()
@@ -198,13 +200,14 @@ or a path to a file containing the argument. Format of the file can be json, yam
 @click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
 @click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
 @click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
-def install(role, instance, force, producerroles, ask, args, debug, profile):
+@click.option('--no-exec', default=False, is_flag=True, help="don't actually execute any actions")
+def install(role, instance, force, producerroles, ask, args, debug, profile, no_exec):
     """
     alias for 'ays do install'
     make it reality
     if you want more finegrained controle please use the do cmd
     """
-    _do(action='install', role=role, instance=instance, force=force, producerroles=producerroles, ask=ask, debug=debug, profile=profile, args=args)
+    _do(action='install', role=role, instance=instance, force=force, producerroles=producerroles, ask=ask, debug=debug, profile=profile, args=args, no_exec=no_exec)
 
 
 @click.command()

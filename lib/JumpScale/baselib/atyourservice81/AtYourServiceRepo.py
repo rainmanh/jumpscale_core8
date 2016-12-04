@@ -407,7 +407,7 @@ class AtYourServiceRepo():
                     result[service_model].append(action_chain)
         return result
 
-    def runCreate(self, debug=False, profile=False):
+    def runCreate(self, debug=False, profile=False, no_exec=False):
         """
         Create a run from all the scheduled actions in the repository.
         """
@@ -430,6 +430,7 @@ class AtYourServiceRepo():
 
                 job.model.dbobj.profile = profile
                 job.model.dbobj.debug = profile if profile is True else debug
+                job.model.dbobj.noExec = no_exec
 
                 step.addJob(job)
 

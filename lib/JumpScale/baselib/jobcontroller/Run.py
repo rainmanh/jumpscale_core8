@@ -55,15 +55,30 @@ class RunStep:
             res.append(job_model.objectGet())
         return res
 
+    def _fake_exec(self, job):
+        job.model.dbobj.state = 'ok'
+        action_name = job.model.dbobj.actionName
+        # if the action is a reccuring action, save last execution time in model
+        if action_name in job.service.model.actionsRecurring:
+            job.service.model.actionsRecurring[action_name].lastRun = j.data.time.epoch
+
+        service_action_obj = job.service.model.actions[action_name]
+        service_action_obj.state = 'ok'
+        job.save()
+
     def execute(self):
         processes = {}
         for job in self.jobs:
             self.logger.info('execute %s' % job)
-            process = job.execute()
+            # don't actually execute anything
+            if job.model.dbobj.noExec is True:
+                self._fake_exec(job)
+            else:
+                process = job.execute()
 
-            if job.model.dbobj.debug is False:
-                now = j.data.time.epoch
-                processes[job] = {'process': process, 'epoch': j.data.time.epoch}
+                if job.model.dbobj.debug is False:
+                    now = j.data.time.epoch
+                    processes[job] = {'process': process, 'epoch': j.data.time.epoch}
 
         # loop over all jobs from a step, waiting for them to be done
         # printing output of the jobs as it get synced from the subprocess

@@ -16,9 +16,9 @@ class ModelBase():
         self.changed = False
         self._subobjects = {}
 
-        if key != "":
-            if len(key) != 16 and len(key) != 32 and len(key) != 64:
-                raise j.exceptions.Input("Key needs to be length 16,32,64")
+        # if key != "":
+        #     if len(key) != 16 and len(key) != 32 and len(key) != 64:
+        #         raise j.exceptions.Input("Key needs to be length 16,32,64")
 
         if new:
             self.dbobj = self._capnp_schema.new_message()

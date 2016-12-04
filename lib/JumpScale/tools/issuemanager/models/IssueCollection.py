@@ -1,50 +1,16 @@
 from JumpScale import j
-import capnp
-from JumpScale.tools.issuemanager import model_capnp as ModelCapnp
-from JumpScale.tools.issuemanager.models.IssueModel import IssueModel
 
 base = j.data.capnp.getModelBaseClassCollection()
 
 
 class IssueCollection(base):
     """
-    This class represent a collection of AYS Issues contained in an AYS repository
-    It's used to list/find/create new Instance of Issue Model object
+    This class represent a collection of Issues
     """
-    def __init__(self, schema=None, category="issues", namespace="gogs:issue", modelBaseClass=None, db=None,
-                 indexDb=None):
-        if not schema:
-            schema = ModelCapnp.Issue
-        if not db:
-            db = j.servers.kvs.getRedisStore(namespace, namespace, unixsocket='/tmp/redis.sock')
-        if not modelBaseClass:
-            modelBaseClass = IssueModel
-        if not indexDb:
-            indexDb = db
-        super().__init__(
-            schema=schema,
-            category=category,
-            namespace=namespace,
-            modelBaseClass=IssueModel,
-            db=db,
-            indexDb=indexDb
-        )
 
-
-    def _list_keys(self, repo='', title='', milestone='', assignee='', isClosed='', numComments='', returnIndex=False):
+    def list(self, repo='', title='', milestone='', assignee='', isClosed='', returnIndex=False, id=0, source=""):
         """
-        @param name can be the full name e.g. myappserver or a prefix but then use e.g. myapp.*
-        @param actor can be the full name e.g. node.ssh or role e.g. node.* (but then need to use the .* extension, which will match roles)
-        @param parent is in form $actorName!$instance
-        @param producer is in form $actorName!$instance
-
-        @param state:
-            new
-            installing
-            ok
-            error
-            disabled
-            changed
+        #TODO: *1
 
         """
         if repo == "":
@@ -57,14 +23,21 @@ class IssueCollection(base):
             assignee = ".*"
         if isClosed == "":
             isClosed = ".*"
-        if numComments == "":
-            numComments = ".*"
-        regex = "%s:%s:%s:%s:%s:%s" % (repo, title, milestone, assignee, isClosed, numComments)
+        if id == "" or id == 0:
+            id = ".*"
+        if source == "":
+            source = ".*"
+
+        regex = "%s:%s:%s:%s:%s:%s:%s" % (repo, title, milestone, assignee, isClosed, id, source)
         return self._index.list(regex, returnIndex=returnIndex)
 
-    def find(self, issueId='', repo='', title='', milestone='', assignee='', is_closed='', num_comments=''):
+    def find(self, issueId='', repo='', title='', milestone='', assignee='', is_closed='', id=0, source=""):
 
         res = []
-        for key in self._list_keys(repo, title, milestone, assignee, is_closed, num_comments):
+        for key in self.list(repo, title, milestone, assignee, is_closed, id, source):
             res.append(self.get(key))
         return res
+
+    def getFromId(self, id):
+        key = self._index.lookupGet("issue_id", id)
+        return self.get(key)

@@ -61,6 +61,23 @@ class AtYourServiceRepo():
         self.db.services.destroy()
         self.model.delete()
 
+    def enable_noexec(self):
+        """
+        Enable the no_exec mode.
+        Once this mode is enabled, no action will ever be execute.
+        But the state of the action will be updated as if everything went fine (state ok)
+
+        This mode can be used for demo or testing
+        """
+        self.model.enable_no_exec()
+
+    def disable_noexec(self):
+        """
+        Enable the no_exec mode.
+
+        see enable_no_exec for further info
+        """
+        self.model.disable_no_exec()
 
 # ACTORS
     def actorCreate(self, name):

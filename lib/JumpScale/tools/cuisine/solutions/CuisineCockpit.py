@@ -56,13 +56,14 @@ class CuisineCockpit(base):
         self._cuisine.apps.mongodb.install(start=start)
 
         # install portal
-        self._cuisine.apps.portal.install(start=False, installdeps=False, branch=branch)
+        self._cuisine.apps.portal.install(start=False, installdeps=True, branch=branch)
         # add link from portal to API
         content = self._cuisine.core.file_read('$codeDir/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81/.space/nav.wiki')
         if 'REST API:/api' not in content:
             self._cuisine.core.cuisine.core.file_write('$codeDir/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81/.space/nav.wiki',
                                     'AYS API:http://localhost:5000/apidocs/index.html?raml=api.raml',
                                     append=True)
+        self._cuisine.apps.portal.configure(production=False)
         self._cuisine.apps.portal.start()
 
         # install REST API AND ays daemon

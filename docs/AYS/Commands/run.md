@@ -4,8 +4,8 @@
 ays run --help
 Usage: ays run [OPTIONS]
 
- Look for all action with a state 'schedule', 'changed' or 'error' and
- create a run. A run is an collection of actions that will be run on the
+ Looks for all actions with a state 'schedule', 'changed' or 'error' and
+ creates a run. A run is a collection of actions that will be run on the
  repository.
 
 Options:

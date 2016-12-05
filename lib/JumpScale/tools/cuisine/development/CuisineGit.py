@@ -28,6 +28,8 @@ class CuisineGit(base):
         self._cuisine.core.file_append("$homeDir/.ssh/known_hosts", keys)
         self._cuisine.core.file_attribs("$homeDir/.ssh/known_hosts", mode=600)
 
+        print("pull %s with depth:%s" % (url, depth))
+
         return j.do.pullGitRepo(url=url, dest=dest, login=login, passwd=passwd, depth=depth,
                                 ignorelocalchanges=ignorelocalchanges, reset=reset, branch=branch, revision=revision,
                                 ssh=ssh, executor=self._executor)

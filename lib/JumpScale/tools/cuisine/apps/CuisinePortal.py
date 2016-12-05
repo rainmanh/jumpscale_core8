@@ -35,7 +35,7 @@ class CuisinePortal(base):
             hrd.set('param.cfg.port', '8200')
         self._config = hrd
 
-    def install(self, start=True, installdeps=True, branch='master'):
+    def install(self, start=True, installdeps=False, branch='master'):
         """
         grafanaip and port should be the external ip of the machine
         Portal install will only install the portal and libs. No spaces but the system ones will be add by default.

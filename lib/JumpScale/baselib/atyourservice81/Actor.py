@@ -368,7 +368,7 @@ class Actor():
 # SERVICE
 
     def serviceCreate(self, instance="main", args={}):
-        instance = instance.lower()
+        instance = instance
         service = self.aysrepo.serviceGet(role=self.model.role, instance=instance, die=False)
         if service is not None:
             service._check_args(self, args)

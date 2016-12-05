@@ -147,7 +147,7 @@ class Blueprint:
                         if key.find("__") == -1:
                             raise j.exceptions.Input(
                                 "Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
-                        actorname, bpinstance = key.lower().split("__", 1)
+                        actorname, bpinstance = key.split("__", 1)
 
                         if instance != "" and bpinstance != instance:
                             self.logger.info(
@@ -213,7 +213,7 @@ class Blueprint:
             if model is not None:
                 for key in model.keys():
 
-                    aysname, aysinstance = key.lower().split("__", 1)
+                    aysname, aysinstance = key.split("__", 1)
                     if aysname.find(".") != -1:
                         rolefound, _ = aysname.split(".", 1)
                     else:
@@ -271,7 +271,7 @@ class Blueprint:
                             self.logger.error("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
                             return False
 
-                        aysname, _ = key.lower().split("__", 1)
+                        aysname, _ = key.split("__", 1)
                         if aysname not in self.aysrepo.templates:
                             self.logger.error("Service template %s not found. Can't execute this blueprint" % aysname)
                             return False

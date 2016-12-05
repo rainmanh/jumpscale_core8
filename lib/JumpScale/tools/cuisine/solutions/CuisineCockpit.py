@@ -71,7 +71,7 @@ class CuisineCockpit(base):
 
         # configure base URI for api-console
         raml = self._cuisine.core.file_read('$appDir/ays_api/ays_api/apidocs/api.raml')
-        raml = raml.replace('$(baseuri)', "https://localhost:5000")
+        raml = raml.replace('$(baseuri)', "http://localhost:5000")
         self._cuisine.core.file_write('$appDir/ays_api/ays_api/apidocs/api.raml', raml)
 
         # start API and daemon

@@ -42,7 +42,7 @@ class Service:
         return self._path
 
     def _initFromActor(self, actor, name, args={}):
-        self.logger.info("init service %s from %s" % (name, actor.model.name))
+        self.logger.info("create service %s from %s" % (name, actor.model.name))
         if j.data.types.string.check(actor):
             raise j.exceptions.RuntimeError("no longer supported, pass actor")
 

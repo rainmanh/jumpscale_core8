@@ -66,3 +66,6 @@ Vagrantfile
 #legacy
 apps/jsagent/jumpscripts/
 lib/JumpScale/jscompl.py
+
+# gitbook
+docs/_book

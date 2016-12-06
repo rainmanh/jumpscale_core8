@@ -190,7 +190,7 @@ class Actor():
         lines = content.splitlines()
         for line in lines:
             linestrip = line.strip()
-            if linestrip.startswith("#"):  # general guard for comments in the beginning of the line
+            if linestrip.startswith("#") or linestrip.startswith('"""'):  # general guard for comments in the beginning of the line
                 continue
             # if state == "INIT" and linestrip.startswith("class Actions"):
             if state == "INIT" and linestrip != '':
@@ -359,7 +359,7 @@ class Actor():
         elif changeCategory.find('action_del') != -1:
             action_name = changeCategory.split('action_del_')[1]
             self.model.actionDelete(action_name)
-        
+
         self.saveAll()
 
         for service in self.aysrepo.servicesFind(actor=self.model.name):

@@ -21,10 +21,11 @@ class IssueModel(base):
             closed = 1
         else:
             closed = 0
-        ind = "%s:%s:%s:%s:%s:%s:%s" % (self.dbobj.repo.name.lower(), self.dbobj.title.lower(), self.dbobj.milestone.name.lower(),
-                                        self.dbobj.assignee.name.lower(), closed, self.dbobj.id, self.dbobj.source)
+        ind = "%d:%d:%d:%d:%d:%d:%s:%s" % (self.dbobj.id, self.dbobj.milestone, self.dbobj.creationTime,
+                                           self.dbobj.modTime, closed, self.dbobj.repo,
+                                           self.dbobj.title.lower(), self.dbobj.source)
         self._index.index({ind: self.key})
-        self._index.lookupSet("issue_id", self.id, self.key)
+        self._index.lookupSet("issue_id", self.dbobj.id, self.key)
 
     def _pre_save(self):
         pass

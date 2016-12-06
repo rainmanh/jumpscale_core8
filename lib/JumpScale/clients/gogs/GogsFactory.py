@@ -12,70 +12,295 @@ class GogsFactory:
     def getRestClient(self, addr='https://127.0.0.1', port=3000, login='root', passwd='root'):
         return GogsClient(addr=addr, port=port, login=login, passwd=passwd)
 
-    def getDataFromPSQL(self, ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs"):
+    def getIssuesFromPSQL(self, ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs"):
         """
-        get peewee model from psql database from gogs & then load in our capnp database
+        Load issues from remote database into model.
+
+        @ipaddr str,,ip address where remote database is on.
+        @port int,, port number remote database is listening on.
+        @login str,,database login.
+        @passwd str,,database passwd.
+        @dbname str,, database name.
         """
+        IssueCollection = j.tools.issuemanager.getIssueCollectionFromDB()
+        model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
+        queryString = """
+        select i.id,
+               i.name,
+               i.repo_id,
+               i.content, 
+               i.milestone_id,
+               i.assignee_id,
+               i.num_comments,
+               i.created_unix,
+               i.updated_unix,
+               i.is_closed,
+               c.id as comment_id,
+               c.content as comment_content,
+               l.name as label_name
+        from issue as i 
+        left join comment as c on c.issue_id=i.id
+        left join issue_label as il on il.issue_id=i.id
+        left join label as l on l.id=il.label_id
+        """
+        query = model.User.raw(queryString)
+        issues = {}
+        try:
+            for issue in query:
+                if issue.name not in issues:
+                    issues[issue.id] = {'title': issue.name,
+                                        'content': issue.content,
+                                        'milestone': issue.milestone_id,
+                                        'is_closed': issue.is_closed,
+                                        'repo': issue.repo_id, 
+                                        'time_created': issue.created_unix,
+                                        'time_updated': issue.updated_unix,
+                                        'comments': dict(),
+                                        'assignees': list(),
+                                        'labels': list()
+                                      }
+                issue_dict = issues[issue.id]
+                if issue.assignee_id and issue.assignee_id not in issue_dict['assignees']:
+                    issue_dict['assignees'].append(issue.assignee_id)
+                if issue.label_name and issue.label_name not in issue_dict['labels']:
+                    issue_dict['labels'].append(issue.label_name)
+                if issue.comment_id:
+                    issue_dict['comments'][issue.comment_id] = {'owner': 0,
+                                                                'content':issue.comment_content
+                                                                }
+        except model.User.DoesNotExist:
+            pass
 
-        issueCollection = j.tools.issuemanager.getIssueCollectionFromDB()
+        for key, val in issues.items():
+            issue_model = IssueCollection.new()
+            if val['assignees']:
+                issue_model.dbobj.init('assignees', len(val['assignees']))
+                for count, user in enumerate(val['assignees']):
+                    issue_model.dbobj.assignees[count] = user
 
+            if val['comments']:
+                issue_model.dbobj.init('comments', len(val['comments']))
+                for count, (commentid, comment) in enumerate(val['comments'].items()):
+                    member_scheme = issue_model.dbobj.comments[count]
+                    member_scheme.owner = comment['owner']
+                    member_scheme.content = comment['content']
+                    member_scheme.id = commentid
+
+            if val['labels']:
+                issue_model.dbobj.init('labels', len(val['labels']))
+                for count, label in enumerate(val['labels']):
+                    issue_model.dbobj.labels[count] = label
+
+            issue_model.dbobj.id = key
+            issue_model.dbobj.title = val['title']
+            issue_model.dbobj.content = val['content']
+            issue_model.dbobj.content = val['content']
+            issue_model.dbobj.milestone = val['milestone']
+            issue_model.dbobj.isClosed = val['is_closed']
+            issue_model.dbobj.repo = val['repo']
+            issue_model.dbobj.creationTime = val['time_created']
+            issue_model.dbobj.modTime = val['time_updated']
+            issue_model.save()
+        else:
+            del issues
+
+    def getOrgsFromPSQL(self, ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs"):
+        """
+        Load organizations from remote database into model.
+
+        @ipaddr str,,ip address where remote database is on.
+        @port int,, port number remote database is listening on.
+        @login str,,database login.
+        @passwd str,,database passwd.
+        @dbname str,, database name.
+        """
+        OrgCollection = j.tools.issuemanager.getOrgCollectionFromDB()
+        model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
+        queryString = """
+        select org.name,
+           org.full_name,
+           org.id,
+           org.num_repos,
+           r.name as repo_name,
+           r.id as repo_id,
+           ou.is_owner,
+           member.id as memberid,
+           access.mode
+        from "user" as org
+        left join repository as r on org.id=r.owner_id
+        left join org_user as ou on org.id=ou.org_id
+        left join "user" as member on ou.uid=member.id
+        left join access on member.id=access.user_id
+        where org.type=1;
+        """
+        query = model.User.raw(queryString)
+        orgs = {}
+        try:
+            for org in query:
+                if org.name not in orgs:
+                    orgs[org.id] = {'name': org.name,
+                                    'description': org.full_name,
+                                    'num_repos': org.num_repos,
+                                    'num_members': org.num_members,
+                                    'members': dict(),
+                                    'repos': list(),
+                                    'owners': list()
+                                    }
+                org_dict = orgs[org.id]
+                if org.memberid:
+                    org_dict['members'][org.memberid] = org.mode
+                if org.is_owner and org.memberid not in org_dict['owners']:
+                    org_dict['owners'].append(org.memberid)
+                if org.repo_id and org.repo_id not in org_dict['repos']:
+                    org_dict['repos'].append(org.repo_id)
+        except model.User.DoesNotExist:
+            pass
+
+        for key, val in orgs.items():
+            org_model = OrgCollection.new()
+            if val['repos']:
+                org_model.dbobj.init('repos', val['num_repos'])
+                for count, repo in enumerate(val['repos']):
+                    org_model.dbobj.repos[count] = repo
+
+            if val['members']:
+                org_model.dbobj.init('members', len(val['members']))
+                for count, (memberid, member) in enumerate(val['members'].items()):
+                    member_scheme = org_model.dbobj.members[count]
+                    member_scheme.userKey = memberid
+                    member_scheme.access = member
+
+            if val['owners']:
+                org_model.dbobj.init('owners', len(val['owners']))
+                for count, memberid in enumerate(val['owners']):
+                    org_model.dbobj.owners[count] = memberid
+
+            org_model.dbobj.id = key
+            org_model.dbobj.name = val['name']
+            org_model.dbobj.description = val['description']
+            org_model.save()
+        else:
+            del orgs
+
+    def getReposFromPSQL(self, ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs",
+                         model=None):
+        """
+        Load repos from remote database into model.
+
+        @ipaddr str,,ip address where remote database is on.
+        @port int,, port number remote database is listening on.
+        @login str,,database login.
+        @passwd str,,database passwd.
+        @dbname str,, database name.
+        """
+        repoCollection = j.tools.issuemanager.getRepoCollectionFromDB()
+        model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
+        queryString = """
+        select r.id,
+               r.name,
+               r.owner_id,
+               r.description,
+               r.num_issues,
+               r.num_milestones,
+               member.user_id as memberid,
+               a.mode,
+               l.name as label_name,
+               m.name as milestone_name,
+               m.id as milestone_id,
+               m.is_closed as milestone_is_closed,
+               m.num_issues as milestone_num_issues,
+               m.num_closed_issues  as milestone_num_closed_issues,
+               m.deadline_unix as milestone_deadline,
+               m.completeness as milestone_completeness
+        from repository as r
+        left join collaboration as member on r.id=member.repo_id
+        left join access as a on member.user_id=a.user_id
+        left join label as l on l.repo_id=r.id
+        left join milestone as m on m.repo_id=r.id
+        """
+        query = model.User.raw(queryString)
+        repos = {}
+        try:
+            for repo in query:
+                if repo.id not in repos:
+                    repos[repo.id] = {'name': repo.name,
+                                      'owner': repo.owner_id,
+                                      'description': repo.description,
+                                      'num_issues': repo.num_issues,
+                                      'num_milestones': repo.num_milestones,
+                                      'members': dict(),
+                                      'milestones': dict(),
+                                      'labels': list()
+                                      }
+                repo_dict = repos[repo.id]
+                if repo.memberid:
+                    repo_dict['members'][repo.memberid] = repo.mode
+                if repo.label_name and repo.label_name not in repo_dict['labels']:
+                    repo_dict['labels'].append(repo.label_name)
+                if repo.milestone_id and repo.milestone_id not in repo_dict['milestones']:
+                    repo_dict['milestones'][repo.milestone_id] = {'name': repo.milestone_name,
+                                                                  'is_closed': repo.milestone_is_closed,
+                                                                  'num_issues': repo.milestone_num_issues,
+                                                                  'num_closed_issues': repo.milestone_num_closed_issues,
+                                                                  'completeness': repo.milestone_completeness,
+                                                                  'deadline': repo.milestone_deadline}
+        except model.User.DoesNotExist:
+            pass
+
+        for key, val in repos.items():
+            repo_model = repoCollection.new()
+            if val['labels']:
+                repo_model.dbobj.init('labels', len(val['labels']))
+                for count, repo in enumerate(val['labels']):
+                    repo_model.dbobj.labels[count] = str(repo)
+
+            if val['members']:
+                repo_model.dbobj.init('members', len(val['members']))
+                for count, (memberid, member) in enumerate(val['members'].items()):
+                    member_scheme = repo_model.dbobj.members[count]
+                    member_scheme.userKey = str(memberid)
+                    member_scheme.access = member
+
+            if val['milestones']:
+                repo_model.dbobj.init('milestones', val['num_milestones'])
+                for count, (milestoneid, milestone) in enumerate(val['milestones'].items()):
+                    milestone_scheme = repo_model.dbobj.milestones[count]
+                    milestone_scheme.name = milestone['name']
+                    milestone_scheme.isClosed = milestone['is_closed']
+                    milestone_scheme.nrIssues = milestone['num_issues']
+                    milestone_scheme.nrClosedIssues = milestone['num_closed_issues']
+                    milestone_scheme.completeness = milestone['completeness']
+                    milestone_scheme.deadline = milestone['deadline']
+                    milestone_scheme.id = milestoneid
+
+            repo_model.dbobj.id = key
+            repo_model.dbobj.name = val['name']
+            repo_model.dbobj.description = val['description']
+            repo_model.dbobj.owner = str(val['owner'])
+            repo_model.dbobj.nrIssues = val['num_issues']
+            repo_model.dbobj.nrMilestones = val['num_milestones']
+            repo_model.save()
+        else:
+            del repos
+
+    def getUsersFromPSQL(self, ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs",
+                         model=None):
+        """
+        Load users from remote database into model.
+
+        @ipaddr str,,ip address where remote database is on.
+        @port int,, port number remote database is listening on.
+        @login str,,database login.
+        @passwd str,,database passwd.
+        @dbname str,, database name.
+        """
+        userCollection = j.tools.issuemanager.getUserCollectionFromDB()
         model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
 
-        # TODO: *1 need to be only 1 query
-
-        for issue in model.Issue.select():
-            # setting issue info
-            issue_model = issueCollection.new()
-            issue_model.dbobj.title = issue.name
-            issue_model.dbobj.content = issue.content
-            issue_model.dbobj.isClosed = issue.is_closed
-            issue_model.dbobj.nrComments = issue.num_comments
-            issue_model.dbobj.id = issue.id
-
-            try:
-                # label info
-                label_id = model.IssueLabel.get(model.IssueLabel.issue == issue.id).label
-                label = model.Label.get(model.Label.id == label_id)
-
-                issue_model.dbobj.label.name = label.name
-                issue_model.dbobj.label.color = label.color
-            except model.IssueLabel.DoesNotExist:
-                pass
-
-            try:
-                # milestone info
-                milestone = model.Milestone.get(model.Milestone.id == issue.milestone)
-                issue_model.dbobj.milestone.name = milestone.name
-                issue_model.dbobj.milestone.isClosed = milestone.is_closed
-                issue_model.dbobj.milestone.numIssues = milestone.num_issues
-                issue_model.dbobj.milestone.numClosed = milestone.num_closed_issues
-                issue_model.dbobj.milestone.completeness = milestone.completeness
-                issue_model.dbobj.milestone.deadline = milestone.deadline_unix
-            except model.Milestone.DoesNotExist:
-                pass
-
-            try:
-                # assignee info
-                user = model.User.get(model.User.id == issue.assignee)
-                issue_model.dbobj.assignee.name = user.name
-                issue_model.dbobj.assignee.fullname = user.full_name
-                issue_model.dbobj.assignee.email = user.email
-            except model.User.DoesNotExist:
-                pass
-
-            try:
-                # repository info
-                repo = model.Repository.get(model.Repository.id == issue.repo)
-                issue_model.dbobj.repo.name = repo.name
-                issue_model.dbobj.repo.description = repo.description
-                issue_model.dbobj.repo.numIssues = repo.num_issues
-                issue_model.dbobj.repo.numMilestones = repo.num_milestones
-                # repository owner info
-                owner = model.User.get(model.User.id == repo.owner)
-                issue_model.dbobj.repo.owner.name = owner.name
-                issue_model.dbobj.repo.owner.fullname = owner.full_name
-                issue_model.dbobj.repo.owner.email = owner.email
-            except model.Repository.DoesNotExist:
-                pass
-
-            issue_model.save()
+        for user in model.User.select():
+            user_model = userCollection.new()
+            user_model.dbobj.name = user.name
+            user_model.dbobj.fullname = user.full_name
+            user_model.dbobj.email = user.email
+            user_model.dbobj.id = user.id
+            user_model.save()

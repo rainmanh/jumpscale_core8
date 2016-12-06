@@ -8,33 +8,38 @@ class IssueCollection(base):
     This class represent a collection of Issues
     """
 
-    def list(self, repo='', title='', milestone='', assignee='', isClosed='', returnIndex=False, id=0, source=""):
+    def list(self, repo='', title='', milestone='', isClosed='', id=0, creationTime=0, modTime=0, source="",
+             returnIndex=False,):
         """
         #TODO: *1
 
         """
-        if repo == "":
+        if repo == "" or repo == 0:
             repo = ".*"
+        if creationTime == "" or creationTime == 0:
+            creationTime = ".*"
+        if modTime == "" or modTime == 0:
+            modTime = ".*"
         if title == "":
             title = ".*"
-        if milestone == "":
+        if milestone == "" or milestone == 0:
             milestone = ".*"
-        if assignee == "":
-            assignee = ".*"
-        if isClosed == "":
+        if isClosed is None:
             isClosed = ".*"
         if id == "" or id == 0:
             id = ".*"
         if source == "":
             source = ".*"
 
-        regex = "%s:%s:%s:%s:%s:%s:%s" % (repo, title, milestone, assignee, isClosed, id, source)
+        regex = "%s:%s:%s:%s:%s:%s:%s:%s" % (id, milestone, creationTime, modTime, isClosed, repo, title, source)
         return self._index.list(regex, returnIndex=returnIndex)
 
-    def find(self, issueId='', repo='', title='', milestone='', assignee='', is_closed='', id=0, source=""):
+    def find(self, repo=0, title='', milestone='', isClosed=None, id=0, creationTime=0, modTime=0, source=""):
 
         res = []
-        for key in self.list(repo, title, milestone, assignee, is_closed, id, source):
+        for key in self.list(id=id, milestone=milestone, creationTime=creationTime,
+                             modTime=modTime, isClosed=isClosed,
+                             repo=repo, title=title, source=source):
             res.append(self.get(key))
         return res
 

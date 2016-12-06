@@ -146,7 +146,7 @@ class HRDSchema:
             name = name.strip()
 
             tags = j.data.tags.getObject(tagstr)
-            tags_dict = {key.lower():value for key, value in tags.getDict().items()}
+            tags_dict = {key.casefold():value for key, value in tags.getDict().items()}
 
             if "type" in tags_dict:
                 ttype = tags_dict.get("type").strip().lower()

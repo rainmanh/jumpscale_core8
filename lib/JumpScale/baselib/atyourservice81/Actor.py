@@ -192,7 +192,7 @@ class Actor():
             linestrip = line.strip()
             if linestrip.startswith("#"):  # general guard for comments in the beginning of the line
                 continue
-            if linestrip.startswith('"""') and linestrip.endswith('"""'):
+            if linestrip.startswith('"""') and len(linestrip.split('"""')) > 2:
                 continue
 
             # if state == "INIT" and linestrip.startswith("class Actions"):

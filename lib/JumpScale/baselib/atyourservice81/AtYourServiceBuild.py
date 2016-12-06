@@ -97,6 +97,17 @@ def build(service, build_func, build_destination='/mnt/building'):
     # do the actual building
     build_func(cuisine)
 
+    cfg_path = cuisine.core.args_replace("$optDir/build.yaml")
+    branch = service.model.data.branch if hasattr(service.model.data, 'branch') else 'master'
+    versions = {service.model.role: branch}
+    if cuisine.core.file_exists(cfg_path):
+        config = j.data.serializer.yaml.loads(cuisine.core.file_read(cfg_path))
+        config.update(versions)
+    else:
+        config = versions
+    cuisine.core.file_write(cfg_path, j.data.serializer.yaml.dumps(config))
+
+
     # find the os layer of the build host
     os_hostbuidler = None
     to_check = [service]

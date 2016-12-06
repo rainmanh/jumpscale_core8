@@ -3,8 +3,22 @@ from JumpScale.clients.portal.PortalClient import ApiError
 import time
 import datetime
 import os
+import requests
 
 CACHETIME = 60
+
+
+def refresh_jwt(jwt, payload):
+    if payload['iss'] == 'itsyouonline':
+        refreshurl = "https://itsyou.online/v1/oauth/jwt/refresh"
+        response = requests.get(refreshurl, headers={'Authorization': 'bearer {}'.format(jwt)})
+        if response.ok:
+            return response.text
+        else:
+            raise RuntimeError("Failed to refresh JWT eror: {}:{}".format(response.status_code, response.text))
+        pass
+    else:
+        raise RuntimeError('Refresh JWT with issuers {} not support'.format(payload['iss']))
 
 
 class Factory:
@@ -21,6 +35,7 @@ class Factory:
             url=service.model.data.url,
             login=service.model.data.login,
             password=service.model.data.password,
+            jwt=service.model.data.jwt,
             port=service.model.data.port)
 
 
@@ -47,8 +62,8 @@ def patchMS1(api):
 class Client:
 
     def __init__(self, url, login, password=None, secret=None, port=443, jwt=None):
-        if not password and not secret:
-            raise ValueError("Either secret or password should be given")
+        if not password and not secret and not jwt:
+            raise ValueError("Can not connect to openvcloud without either password, secret or jwt")
         self._url = url
         self._login = login
         self._password = password
@@ -83,7 +98,6 @@ class Client:
                 return origcall(that, *args, **kwargs)
             except ApiError:
                 if ApiError.response.status_code == 419:
-                    # TODO: this should handle token refresh
                     self.__login(self._password, self._secret, self._jwt)
                     return origcall(that, *args, **kwargs)
                 raise
@@ -94,8 +108,12 @@ class Client:
         if not password and not secret and not jwt:
             raise RuntimeError("Can not connect to openvcloud without either password, secret or jwt")
         if jwt:
-            self.api._session.headers['Authorization'] = 'token {}'.format(jwt)
-            # TODO: set self._login from the jwt
+            import jose.jwt
+            payload = jose.jwt.get_unverified_claims(jwt)
+            if payload['exp'] < time.time():
+                jwt = refresh_jwt(jwt, payload)
+            self.api._session.headers['Authorization'] = 'bearer {}'.format(jwt)
+            self._login = payload['username']
         else:
             if password:
                 if self._isms1:

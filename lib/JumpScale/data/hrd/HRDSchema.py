@@ -144,19 +144,19 @@ class HRDSchema:
 
             name, tagstr = line.split("=", 1)
             name = name.strip()
-            tagstr = tagstr.lower()
 
             tags = j.data.tags.getObject(tagstr)
+            tags_dict = {key.casefold():value for key, value in tags.getDict().items()}
 
-            if tags.tagExists("type"):
-                ttype = tags.tagGet("type").strip().lower()
+            if "type" in tags_dict:
+                ttype = tags_dict.get("type").strip().lower()
                 if ttype == "string":
                     ttype = "str"
             else:
                 ttype = "str"
 
-            if tags.tagExists("regex"):
-                regex = tags.tagGet("regex")
+            if "regex" in tags_dict:
+                regex = tags_dict.get("regex")
             else:
                 regex = None
 
@@ -164,7 +164,7 @@ class HRDSchema:
                 raise ValueError(
                     "Hrd schema not properly formatted, type can only be string when regex used, see '%s'" % line)
 
-            if tags.tagExists("minval") or tags.tagExists("maxval"):
+            if "minval" in tags_dict or "maxval" in tags_dict:
                 if ttype == "str":
                     ttype = "int"
                 if ttype not in ["int", "integer", "float"]:
@@ -177,16 +177,16 @@ class HRDSchema:
 
             hrdtype.typeclass = j.data.types.getTypeClass(ttype)
 
-            if tags.labelExists("list"):
+            if "list" in tags_dict:
                 hrdtype.list = True
 
-            if tags.tagExists("default"):
+            if "default" in tags_dict:
                 if hrdtype.list:
                     hrdtype.default = j.data.types.list.fromString(
-                        tags.tagGet("default"), hrdtype.typeclass)
+                        tags_dict.get("default"), hrdtype.typeclass)
                 else:
                     hrdtype.default = hrdtype.typeclass.fromString(
-                        tags.tagGet("default"))
+                        tags_dict.get("default"))
             else:
                 if hrdtype.list == True:
                     hrdtype.default = []
@@ -196,15 +196,15 @@ class HRDSchema:
                     except:
                         self._raiseError("issue in default from hrdtype")
 
-            if tags.tagExists("descr"):
-                hrdtype.description = tags.tagGet("descr")
+            if "descr" in tags_dict:
+                hrdtype.description = tags_dict.get("descr")
                 hrdtype.description = hrdtype.description.replace("__", " ")
                 hrdtype.description = hrdtype.description.replace("\\n", "\n")
 
-            if tags.tagExists("consume"):
-                c = tags.tagGet("consume")
+            if "consume" in tags_dict:
+                c = tags_dict.get("consume")
                 for item in c.split(","):
-                    item = item.strip().lower()
+                    item = item.strip()
                     items = item.split(":")
                     if len(items) == 2:
                         # min defined
@@ -215,38 +215,38 @@ class HRDSchema:
                         hrdtype.consume_nr_max = items[2]
                     hrdtype.consume_link = items[0]
 
-            if tags.tagExists("parent"):
-                c = tags.tagGet("parent")
+            if "parent" in tags_dict:
+                c = tags_dict.get("parent")
                 hrdtype.consume_nr_min = 1
                 hrdtype.consume_nr_max = 1
                 hrdtype.consume_link = c
                 hrdtype.parent = c
 
-            if tags.labelExists("auto"):
+            if "auto" in tags_dict:
                 hrdtype.auto = True
 
-            if tags.labelExists("optional"):
+            if "optional" in tags_dict:
                 hrdtype.optional = True
 
-            if tags.tagExists("minval"):
+            if "minval" in tags_dict:
                 hrdtype.minVal = hrdtype.typeclass.fromString(
-                    tags.tagGet("minval"))
+                    tags_dict.get("minval"))
 
-            if tags.tagExists("maxval"):
+            if "maxval" in tags_dict:
                 hrdtype.maxVal = hrdtype.typeclass.fromString(
-                    tags.tagGet("maxval"))
+                    tags_dict.get("maxval"))
 
-            if tags.tagExists("multichoice"):
+            if "multichoice" in tags_dict:
                 hrdtype.multichoice = j.data.types.list.fromString(
-                    tags.tagGet("multichoice"), "str")
+                    tags_dict.get("multichoice"), "str")
 
-            if tags.tagExists("singlechoice"):
+            if "singlechoice" in tags_dict:
                 hrdtype.singlechoice = j.data.types.list.fromString(
-                    tags.tagGet("singlechoice"), "str")
+                    tags_dict.get("singlechoice"), "str")
 
-            if tags.tagExists("alias"):
+            if "alias" in tags_dict:
                 hrdtype.alias = j.data.types.list.fromString(
-                    tags.tagGet("alias"), "str")
+                    tags_dict.get("alias"), "str")
 
             if line.find("@ask") != -1 or line.find("@ASK") != -1:
                 hrdtype.doAsk = True

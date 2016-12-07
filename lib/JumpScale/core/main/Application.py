@@ -123,8 +123,12 @@ class Application:
         j.errorconditionhandler.setExceptHook()
         j.dirs.init()
 
-        if not embed() and self.config.jumpscale != None:
+        if not embed() and self.config.jumpscale is not None:
             logging_cfg = self.config.jumpscale.get('logging')
+            if not logging_cfg:
+                # auto recover logging settings
+                j.do.installer._writeLoggingEnv(j.dirs.cfgDir)
+                logging_cfg = self.config.jumpscale.get('logging')
             level = logging_cfg.get('level', 'DEBUG')
             mode = logging_cfg.get('mode', 'DEV')
             filter_module = logging_cfg.get('filter', [])

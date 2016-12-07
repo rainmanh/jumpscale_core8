@@ -173,9 +173,7 @@ class Installer():
             self.do.delete(ppath)
         return self._readonly
 
-    def writeEnv(self):
-
-        print("WRITENV")
+    def _writeSystemEnv(self, cfgDir=None):
         self.do.createDir("%s/jumpscale" % os.environ["CFGDIR"])
         config = {}
         for category, items in {"identity": ["EMAIL", "FULLNAME", "GITHUBUSER"],
@@ -199,9 +197,11 @@ class Installer():
                             os.environ[item] += "/"
                         config[category][item] = os.environ[item]
 
-        with open("%s/jumpscale/system.yaml" % os.environ["CFGDIR"], 'w') as outfile:
+        cfgDir = cfgDir or os.environ["CFGDIR"]
+        with open("%s/jumpscale/system.yaml" % cfgDir, 'w') as outfile:
             yaml.dump(config, outfile, default_flow_style=False)
 
+    def _writeAYSEnv(self, cfgDir=None):
         C = """
         # By default, AYS will use the JS redis. This is for quick testing
         # and development. To configure a persistent/different redis, uncomment
@@ -222,12 +222,16 @@ class Installer():
             os.environ["AYSGIT"] = "https://github.com/Jumpscale/ays_jumpscale8"
         if "AYSBRANCH" not in os.environ or os.environ["AYSBRANCH"].strip() == "":
             os.environ["AYSBRANCH"] = "master"
+
         C = C.format(**os.environ)
 
-        hpath = "%s/jumpscale/ays.yaml" % os.environ["CFGDIR"]
+        cfgDir = cfgDir or os.environ["CFGDIR"]
+
+        hpath = "%s/jumpscale/ays.yaml" % cfgDir
         if not self.do.exists(path=hpath):
             self.do.writeFile(hpath, C)
 
+    def _writeLoggingEnv(self, cfgDir=None):
         C = """
         mode: 'DEV'
         level: 'DEBUG'
@@ -237,7 +241,15 @@ class Installer():
             - 'j.data.hrd'
             - 'j.application'
         """
-        self.do.writeFile("%s/jumpscale/logging.yaml" % os.environ["CFGDIR"], C)
+        cfgDir = cfgDir or os.environ["CFGDIR"]
+        self.do.writeFile("%s/jumpscale/logging.yaml" % cfgDir, C)
+
+    def writeEnv(self):
+
+        print("WRITENV")
+        self._writeSystemEnv()
+        self._writeAYSEnv()
+        self._writeLoggingEnv()
 
         C = """
 
@@ -612,7 +624,7 @@ class InstallTools():
 
     @property
     def config(self):
-        if self._config == None:
+        if self._config is None:
             if self.exists(self.configPath):
                 with open(self.configPath, 'r') as conf:
                     self._config = yaml.load(conf)

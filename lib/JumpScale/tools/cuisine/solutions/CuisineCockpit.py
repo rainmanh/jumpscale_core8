@@ -34,11 +34,12 @@ class CuisineCockpit(base):
     def install(self, start=True, branch="master"):
         self.install_deps()
         self._cuisine.development.git.pullRepo('https://github.com/Jumpscale/jscockpit', branch=branch)
-        self._cuisine.core.dir_ensure('%s/ays_api/' % j.dirs.appDir)
+        dir_paths = self._cuisine.core.dir_paths
+        self._cuisine.core.dir_ensure('%s/ays_api/' % dir_paths['appDir'])
         self._cuisine.core.file_link('%s/github/jumpscale/jscockpit/api_server' %
-                                     j.dirs.codeDir, '%s/ays_api/api_server' % j.dirs.appDir)
+                                     dir_paths['codeDir'], '%s/ays_api/api_server' % dir_paths['appDir'])
         self._cuisine.core.file_link('%s/github/jumpscale/jscockpit/ays_api' %
-                                     j.dirs.codeDir, '%s/ays_api/ays_api' % j.dirs.appDir)
+                                     dir_paths['codeDir'], '%s/ays_api/ays_api' % dir_paths['appDir'])
         self.configure()
         if start:
             self.start()
@@ -94,7 +95,8 @@ class CuisineCockpit(base):
     def start(self, name='main'):
         # start AYS REST API
         cmd = 'jspython api_server'
-        self._cuisine.processmanager.ensure(cmd=cmd, name='cockpit_%s' % name,  path='%s/ays_api' % j.dirs.appDir)
+        dir_paths = self._cuisine.core.dir_paths
+        self._cuisine.processmanager.ensure(cmd=cmd, name='cockpit_%s' % name,  path='%s/ays_api' % dir_paths['appDir'])
 
         # start daemon
         cmd = 'ays start'

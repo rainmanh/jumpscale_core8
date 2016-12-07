@@ -17,7 +17,6 @@ class OrgModel(base):
 
     def index(self):
         # put indexes in db as specified
-        import ipdb; ipdb.set_trace()
         ind = "%s:%s:%s" % (self.dbobj.name.lower(), str(self.dbobj.id),
                             self.dbobj.source.lower())
         self._index.index({ind: self.key})

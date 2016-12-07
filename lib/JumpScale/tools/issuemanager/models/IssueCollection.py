@@ -8,7 +8,7 @@ class IssueCollection(base):
     This class represent a collection of Issues
     """
 
-    def list(self, repo=0, title='', milestone='', isClosed='', id=0, creationTime=0, modTime=0, source="",
+    def list(self, repo=0, title='', milestone='', isClosed=None, id=0, creationTime=0, modTime=0, source="",
              returnIndex=False,):
         """
         List all keys of issue model with specified params.
@@ -37,7 +37,7 @@ class IssueCollection(base):
             isClosed = ".*"
         elif isClosed is True:
             isClosed = '1'
-        elif isClosed == False:
+        elif isClosed is False:
             isClosed = '0'
         if id == "" or id == 0:
             id = ".*"

@@ -105,6 +105,7 @@ class GogsFactory:
             issue_model.dbobj.repo = val['repo']
             issue_model.dbobj.creationTime = val['time_created']
             issue_model.dbobj.modTime = val['time_updated']
+            issue_model.dbobj.source = ''
             issue_model.save()
         else:
             del issues
@@ -183,6 +184,7 @@ class GogsFactory:
             org_model.dbobj.id = key
             org_model.dbobj.name = val['name']
             org_model.dbobj.description = val['description']
+            org_model.dbobj.source = ''
             org_model.save()
         else:
             del orgs
@@ -284,6 +286,7 @@ class GogsFactory:
             repo_model.dbobj.owner = str(val['owner'])
             repo_model.dbobj.nrIssues = val['num_issues']
             repo_model.dbobj.nrMilestones = val['num_milestones']
+            repo_model.dbobj.source = ''
             repo_model.save()
         else:
             del repos
@@ -308,4 +311,5 @@ class GogsFactory:
             user_model.dbobj.fullname = user.full_name
             user_model.dbobj.email = user.email
             user_model.dbobj.id = user.id
+            user_model.dbobj.source = ''
             user_model.save()

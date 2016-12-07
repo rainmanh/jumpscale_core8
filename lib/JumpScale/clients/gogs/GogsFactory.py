@@ -16,11 +16,11 @@ class GogsFactory:
         """
         Load issues from remote database into model.
 
-        @ipaddr str,,ip address where remote database is on.
-        @port int,, port number remote database is listening on.
-        @login str,,database login.
-        @passwd str,,database passwd.
-        @dbname str,, database name.
+        @param ipaddr str,,ip address where remote database is on.
+        @param port int,, port number remote database is listening on.
+        @param login str,,database login.
+        @param passwd str,,database passwd.
+        @param dbname str,, database name.
         """
         IssueCollection = j.tools.issuemanager.getIssueCollectionFromDB()
         model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
@@ -28,7 +28,7 @@ class GogsFactory:
         select i.id,
                i.name,
                i.repo_id,
-               i.content, 
+               i.content,
                i.milestone_id,
                i.assignee_id,
                i.num_comments,
@@ -37,8 +37,9 @@ class GogsFactory:
                i.is_closed,
                c.id as comment_id,
                c.content as comment_content,
+               c.poster_id,
                l.name as label_name
-        from issue as i 
+        from issue as i
         left join comment as c on c.issue_id=i.id
         left join issue_label as il on il.issue_id=i.id
         left join label as l on l.id=il.label_id
@@ -65,8 +66,8 @@ class GogsFactory:
                 if issue.label_name and issue.label_name not in issue_dict['labels']:
                     issue_dict['labels'].append(issue.label_name)
                 if issue.comment_id:
-                    issue_dict['comments'][issue.comment_id] = {'owner': 0,
-                                                                'content':issue.comment_content
+                    issue_dict['comments'][issue.comment_id] = {'owner': issue.poster_id,
+                                                                'content': issue.comment_content
                                                                 }
         except model.User.DoesNotExist:
             pass
@@ -108,11 +109,11 @@ class GogsFactory:
         """
         Load organizations from remote database into model.
 
-        @ipaddr str,,ip address where remote database is on.
-        @port int,, port number remote database is listening on.
-        @login str,,database login.
-        @passwd str,,database passwd.
-        @dbname str,, database name.
+        @param ipaddr str,,ip address where remote database is on.
+        @param port int,, port number remote database is listening on.
+        @param login str,,database login.
+        @param passwd str,,database passwd.
+        @param dbname str,, database name.
         """
         OrgCollection = j.tools.issuemanager.getOrgCollectionFromDB()
         model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
@@ -187,11 +188,11 @@ class GogsFactory:
         """
         Load repos from remote database into model.
 
-        @ipaddr str,,ip address where remote database is on.
-        @port int,, port number remote database is listening on.
-        @login str,,database login.
-        @passwd str,,database passwd.
-        @dbname str,, database name.
+        @param ipaddr str,,ip address where remote database is on.
+        @param port int,, port number remote database is listening on.
+        @param login str,,database login.
+        @param passwd str,,database passwd.
+        @param dbname str,, database name.
         """
         repoCollection = j.tools.issuemanager.getRepoCollectionFromDB()
         model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
@@ -288,11 +289,11 @@ class GogsFactory:
         """
         Load users from remote database into model.
 
-        @ipaddr str,,ip address where remote database is on.
-        @port int,, port number remote database is listening on.
-        @login str,,database login.
-        @passwd str,,database passwd.
-        @dbname str,, database name.
+        @param ipaddr str,,ip address where remote database is on.
+        @param port int,, port number remote database is listening on.
+        @param login str,,database login.
+        @param passwd str,,database passwd.
+        @param dbname str,, database name.
         """
         userCollection = j.tools.issuemanager.getUserCollectionFromDB()
         model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)

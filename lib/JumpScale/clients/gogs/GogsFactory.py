@@ -48,7 +48,7 @@ class GogsFactory:
         issues = {}
         try:
             for issue in query:
-                if issue.name not in issues:
+                if issue.id not in issues:
                     issues[issue.id] = {'title': issue.name,
                                         'content': issue.content,
                                         'milestone': issue.milestone_id,
@@ -59,7 +59,7 @@ class GogsFactory:
                                         'comments': dict(),
                                         'assignees': list(),
                                         'labels': list()
-                                      }
+                                        }
                 issue_dict = issues[issue.id]
                 if issue.assignee_id and issue.assignee_id not in issue_dict['assignees']:
                     issue_dict['assignees'].append(issue.assignee_id)
@@ -70,9 +70,13 @@ class GogsFactory:
                                                                 'content': issue.comment_content
                                                                 }
         except model.User.DoesNotExist:
-            pass
+            from IPython import embed
+            print("DEBUG NOW does not exist exception")
+            embed()
+            raise RuntimeError("stop debug here")
 
         for key, val in issues.items():
+            print(val)
             issue_model = IssueCollection.new()
             if val['assignees']:
                 issue_model.dbobj.init('assignees', len(val['assignees']))

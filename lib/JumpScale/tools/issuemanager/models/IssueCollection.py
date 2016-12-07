@@ -36,8 +36,8 @@ class IssueCollection(base):
         if isClosed is None:
             isClosed = ".*"
         elif isClosed is True:
-            isclosed = '1'
-        elif isclosed == False:
+            isClosed = '1'
+        elif isClosed == False:
             isClosed = '0'
         if id == "" or id == 0:
             id = ".*"
@@ -60,7 +60,7 @@ class IssueCollection(base):
         @param creationTime int,, epoch of creation of issue.
         @param modTime int,, epoch of modification of issue.
         @param comment int,, id of comment in issue.
-        @param assignee int,, id of assignee in issue. 
+        @param assignee int,, id of assignee in issue.
         @param source str,, source of remote database.
         """
         res = []

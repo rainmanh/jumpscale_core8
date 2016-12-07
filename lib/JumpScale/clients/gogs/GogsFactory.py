@@ -53,7 +53,7 @@ class GogsFactory:
                                         'content': issue.content,
                                         'milestone': issue.milestone_id,
                                         'is_closed': issue.is_closed,
-                                        'repo': issue.repo_id, 
+                                        'repo': issue.repo_id,
                                         'time_created': issue.created_unix,
                                         'time_updated': issue.updated_unix,
                                         'comments': dict(),

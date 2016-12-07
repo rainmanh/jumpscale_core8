@@ -47,7 +47,8 @@ class IssueCollection(base):
         regex = "%s:%s:%s:%s:%s:%s:%s:%s" % (id, milestone, creationTime, modTime, isClosed, repo, title, source)
         return self._index.list(regex, returnIndex=returnIndex)
 
-    def find(self, repo=0, title='', milestone=0, isClosed=None, id=0, creationTime=0, modTime=0, source=""):
+    def find(self, repo=0, title='', milestone=0, isClosed=None, id=0, creationTime=0, modTime=0, comment=0,
+             assignee=0, label='', source=""):
         """
         find all instances of issue model with specified params.
 
@@ -58,6 +59,8 @@ class IssueCollection(base):
         @param id int,, issue id in db.
         @param creationTime int,, epoch of creation of issue.
         @param modTime int,, epoch of modification of issue.
+        @param comment int,, id of comment in issue.
+        @param assignee int,, id of assignee in issue. 
         @param source str,, source of remote database.
         """
         res = []
@@ -65,6 +68,23 @@ class IssueCollection(base):
                              modTime=modTime, isClosed=isClosed,
                              repo=repo, title=title, source=source):
             res.append(self.get(key))
+
+        if comment:
+            for model in res[::-1]:
+                for comment_model in model.dictFiltered.get('comments', []):
+                    if comment == comment_model['id']:
+                        break
+                else:
+                    res.remove(model)
+        if assignee:
+            for model in res[::-1]:
+                if (assignee not in model.dictFiltered.get('assignees', [])) or not model.dictFiltered.get('assignees', False):
+                    res.remove(model)
+        if label:
+            for model in res[::-1]:
+                if (label not in model.dictFiltered.get('labels', [])) or not model.dictFiltered.get('labels', False):
+                    res.remove(model)
+
         return res
 
     def getFromId(self, id):

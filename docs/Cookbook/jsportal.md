@@ -1,5 +1,6 @@
 ## jsportal
 
+- open js schell ```js```
 - to install through cuisine
 
 ```
@@ -11,6 +12,10 @@ j.tools.cuisine.local.solutions.cockpit.install_deps()
 j.tools.cuisine.local.solutions.cockpit.install(True,"8.1.0")
 ```
 
+## login
+
+- http://localhost:8200/
+- admin/admin
 
 ## make yourself an ays repo
 

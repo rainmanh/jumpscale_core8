@@ -446,6 +446,53 @@ def delete(role, instance, ask):
         print('delete %s' % service)
         service.delete()
 
+@click.command()
+@click.option('--enable', is_flag=True, default=False)
+@click.option('--disable', is_flag=True, default=False)
+@click.option('--show', is_flag=True, default=False)
+def noexec(enable, disable, show):
+    """
+    Enable/Disable the no_exec mode.
+    Once this mode is enabled, no action will ever be execute.
+    But the state of the action will be updated as if everything went fine (state ok)
+
+    This mode can be used for demo or testing
+    """
+    repo = j.atyourservice.get()
+
+    if show:
+        out = 'no-exec mode is '
+        out += 'enable' if repo.model.no_exec else "disable"
+        print(out)
+        return
+
+    ok = j.tools.console.askYesNo("warning ! Changing the noexec mode of your repo required to destroy it first.\nAre you sure you want to continue?")
+    if not ok:
+        return
+
+    if enable and not disable:
+        if not repo.model.no_exec:
+            repo.destroy()
+            print("enable noexec mode")
+            repo.enable_noexec()
+        else:
+            print("already enabled")
+    elif not enable and disable:
+        if repo.model.no_exec:
+            repo.destroy()
+            print("disable noexec mode")
+            repo.disable_noexec()
+        else:
+            print("already disabled")
+    else:
+        print("can't enable and disable at the same time")
+#
+# @click.command()
+# def disable_noexec():
+#     repo = j.atyourservice.get()
+#     repo.disable_noexec()
+
+
 
 @click.command()
 @click.option('--config', '-c', default="", help='path of ays config file')
@@ -484,6 +531,7 @@ cli.add_command(show)
 cli.add_command(list)
 cli.add_command(state)
 cli.add_command(delete)
+cli.add_command(noexec)
 cli.add_command(start)
 
 if __name__ == '__main__':

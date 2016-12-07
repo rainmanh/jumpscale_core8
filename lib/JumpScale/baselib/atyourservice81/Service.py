@@ -148,36 +148,53 @@ class Service:
         return None
 
     def _initProducers(self, actor, args):
+        """
+        Initialize the producers of an actor.
 
-        for i, producer_model in enumerate(actor.model.dbobj.producers):
+        actor: is the actor to init its producers.
+        args: passed arguments in the blueprint (i.e {'ssh1':'main', 'sshlist':[]} )
+
+        """
+
+        # for every producer model in the producers, we get the user set services `argKey` to be consumed in the blueprint itself.
+        # calculate the difference of the available services and the user set
+        # calculate the min required services and see if we should create new ones if auto is set
+        # create the services required till the minServices is reached.
+        # set add each to our producers and add ourself the their consumers list.
+        # maintain the parent relationship (parent is always a producer and we are always a consumer of the parent.)
+
+        for producer_model in actor.model.dbobj.producers:
             producer_role = producer_model.actorRole
+            usersetservices = []
+            passedservicesnames = args.get(producer_model.argKey, args.get(producer_role, ""))
+            if not j.data.types.list.check(passedservicesnames):
+                passedservicesnames = [passedservicesnames]
+            for svname in passedservicesnames:
+                if svname:
+                    foundservices = self.aysrepo.servicesFind(name=svname, actor="%s(\..*)?" % producer_model.actorRole)
+                    usersetservices.extend(foundservices)
 
-            instances = args.get(producer_model.argKey, args.get(producer_role, ""))
+            available_services = self.aysrepo.servicesFind(actor=producer_role)
+            available_services = list(set(available_services)-set(usersetservices))
 
-            if not j.data.types.list.check(instances):
-                instances = [instances]
+            extraservices = len(usersetservices) - producer_model.maxServices
+            if extraservices > 0:
+                raise j.exceptions.Input(message="Specified services [%s] are more than maximum services: [%s]"%(str(usersetservices), str(producer_model.maxServices)),
+                                         level=1, source="", tags="", msgpub="")
 
-            for i in instances:
-                res = self.aysrepo.servicesFind(name=i, actor='%s.*' % producer_role)
-                res = [s for s in res if s.model.role == producer_role and s != self]
-
-                if len(res) == 0:
-                    if producer_model.minServices == 0:
-                        continue
-
-                    if producer_model.auto is False:
-                        raise j.exceptions.Input(message="could not find producer:%s for %s, found 0" %
-                                                 (producer_role, self), level=1, source="", tags="", msgpub="")
-                    else:
+            tocreate = producer_model.minServices-len(available_services)-len(usersetservices)
+            if tocreate > 0:
+                if producer_model.auto:
+                    for idx in range(tocreate):
                         auto_actor = self.aysrepo.actorGet(producer_role)
-                        instance = j.data.idgenerator.generateIncrID('service_%s' % producer_role)
-                        res.append(auto_actor.serviceCreate(instance="auto_%d" % instance, args={}))
-                elif len(res) > 1:
-                    raise j.exceptions.Input(message="could not find producer:%s for %s, found more than 1." %
-                                             (producer_role, self), level=1, source="", tags="", msgpub="")
+                        available_services.append(auto_actor.serviceCreate(instance="auto_%s" % idx, args={}))
+                else:
+                    raise j.exceptions.Input(message="Minimum number of services required is %s and only %s are provided. [Hint: Maybe you want to set auto to auto create the missing services?]" % (producer_model.minServices, len(usersetservices)),
+                                             level=1, source="", tags="", msgpub="")
 
-                producer_obj = res[0]
-                # add the service we consumer in the producers list
+            for idx, producer_obj in enumerate(usersetservices + available_services):
+                if idx >= len(usersetservices) and idx >= producer_model.minServices:
+                    break
                 self.model.producerAdd(
                     actorName=producer_obj.model.dbobj.actorName,
                     serviceName=producer_obj.model.dbobj.name,
@@ -188,10 +205,9 @@ class Service:
                     serviceName=self.model.dbobj.name,
                     key=self.model.key)
 
-
-        # add the parent to the producers
         if self.parent is not None:
-            producer = self.model.producerAdd(
+            # add parent to the producers list.
+            self.model.producerAdd(
                 actorName=self.parent.model.dbobj.actorName,
                 serviceName=self.parent.model.dbobj.name,
                 key=self.parent.model.key)

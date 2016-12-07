@@ -76,7 +76,6 @@ struct Job {
 
   profile @17: Bool;
   profileData @18: Data;
-
 }
 
 #is one specific piece of code which can be executed

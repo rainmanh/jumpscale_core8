@@ -6,7 +6,7 @@ from collections import OrderedDict
 class ModelBase():
 
     def __init__(self, capnp_schema, category, db, index, key="", new=False):
-
+        self.logger = j.logger.get(capnp_schema.schema.node.displayName) # TODO find something better than this
         self._capnp_schema = capnp_schema
         self._category = category
         self._db = db

@@ -35,6 +35,7 @@ struct EventFilter {
 struct Repo {
   name @0 :Text;
   path @1 :Text;
+  noExec @2 :Bool;
 }
 
 struct Actor {

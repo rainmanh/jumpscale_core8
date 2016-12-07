@@ -2439,17 +2439,18 @@ class InstallTools():
         will ignore changes !!!!!!!!!!!
 
         @param ssh ==True means will checkout ssh
-        @param ssh =="first" means will checkout sss first if that does not work will go to http
+        @param ssh =="auto" means will checkout ssh first if that does not work will go to http
         """
-
-        if ssh == "first":
+        if ssh == "auto":
             try:
                 return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
                                         reset, branch, revision, True, executor)
             except Exception as e:
-                return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
+                try:
+                    return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
                                         reset, branch, revision, False, executor)
-            raise RuntimeError("Could not checkout, needs to be with ssh or without.")
+                except Exception as e:
+                    raise RuntimeError("Could not checkout, needs to be with ssh or without.")
 
         base, provider, account, repo, dest, url = self.getGitRepoArgs(
             url, dest, login, passwd, reset=reset, ssh=ssh, codeDir=codeDir, executor=executor)

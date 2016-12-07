@@ -169,7 +169,7 @@ class CuisineRunit(ProcessManagerBase):
         envstr = ""
         env.update(self._cuisine.bash.environ)
         for name0, value in list(env.items()):
-            envstr += "export %s=%s\n" % (name0, self._cuisine.core.args_replace(value))
+            envstr += "export %s=\"%s\"\n" % (name0, self._cuisine.core.args_replace(value))
 
         sv_text = """#!/bin/sh
         set -e

@@ -503,12 +503,13 @@ class Machine:
     def delete_snapshot(self, epoch):
         self.client.api.cloudapi.machines.deleteSnapshot(machineId=self.id, epoch=epoch)
 
-    def add_disk(self, name, description, size=10, type='D'):
+    def add_disk(self, name, description, size=10, type='D', ssdSize=0):
         disk_id = self.client.api.cloudapi.machines.addDisk(machineId=self.id,
                                                             diskName=name,
                                                             description=description,
                                                             size=size,
-                                                            type=type)
+                                                            type=type,
+                                                            ssdSize=ssdSize)
         return disk_id
 
     def disk_limit_io(self, disk_id, iops=50):

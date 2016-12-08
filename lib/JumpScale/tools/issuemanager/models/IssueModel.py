@@ -9,35 +9,23 @@ class IssueModel(base):
     Model Class for an Issue object
     """
 
+    @property
+    def key(self):
+        if self._key == "":
+            self._key = j.data.hash.md5_string(self.dictJson)
+        return self._key
+
     def index(self):
         # put indexes in db as specified
-        #@TODO: *1 needs to be implemented
-        ind = "%s:%s" % (self.dbobj.name, self.dbobj.state)
+        if self.dbobj.isClosed:
+            closed = 1
+        else:
+            closed = 0
+        ind = "%d:%d:%d:%d:%d:%d:%s:%s" % (self.dbobj.id, self.dbobj.milestone, self.dbobj.creationTime,
+                                           self.dbobj.modTime, closed, self.dbobj.repo,
+                                           self.dbobj.title.lower(), self.dbobj.source)
         self._index.index({ind: self.key})
-
-
-# producers
-    # def producerAdd(self, name, maxServices=1, actorFQDN="", actorKey=""):
-    #     """
-    #     name @0 :Text;
-    #     actorFQDN @1 :Text;
-    #     maxServices @2 :UInt8;
-    #     actorKey  @3 :Text;
-    #     """
-    #     obj = self.producerNewObj()
-    #     obj.maxServices = maxServices
-    #     obj.actorFQDN = actorFQDN
-    #     obj.actorKey = actorKey
-    #     obj.name = name
-    #     self.changed = changed
-    #     return obj
-
-    # @property
-    # def dictFiltered(self):
-    #     ddict = self.dbobj.to_dict()
-    #     if "data" in ddict:
-    #         ddict.pop("data")
-    #     return ddict
+        self._index.lookupSet("issue_id", self.dbobj.id, self.key)
 
     def _pre_save(self):
         pass

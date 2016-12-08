@@ -703,7 +703,10 @@ class SystemFS:
         if self.pathClean(toremove) == self.pathClean(path):
             return ""
         path = self.pathClean(path)
-        path = path.replace(self.pathDirClean(toremove), "")
+
+        if path.startswith(toremove):
+            path = path[len(toremove):]
+
         if removeTrailingSlash:
             if len(path) > 0 and path[0] == os.sep:
                 path = path[1:]

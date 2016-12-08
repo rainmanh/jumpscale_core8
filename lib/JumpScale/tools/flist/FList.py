@@ -1,39 +1,29 @@
 from JumpScale import j
-from stat import *
+
 import brotli
 import hashlib
-import functools
-import subprocess
+import binascii
 import pwd
 import grp
+from stat import *
+import functools
+import subprocess
 import os
 import sys
 import re
+import pyblake2
+import capnp
+from JumpScale.tools.flist import model_capnp as ModelCapnp
 
+from JumpScale.tools.flist.models import DirModel
+from JumpScale.tools.flist.models import DirCollection
 
-class FListFactory(object):
-
-    def __init__(self):
-        self.__jslocation__ = "j.tools.flist"
-
-    def get_flist(self):
-        """
-        Return a Flist object
-        """
-        return FList()
-
-    def get_archiver(self):
-        """
-        Return a FListArchiver object
-
-        This is used to push flist to IPFS
-        """
-        return FListArchiver()
+from path import Path
 
 
 class FList(object):
     """
-        FList (sometime "plist") files contains a plain/text representation of
+    FList (sometime "plist") files contains a plain/text representation of
     a complete file system tree
 
         FList stand for "file list" (plist for "path list"), this format is made
@@ -53,7 +43,7 @@ class FList(object):
         - filepath: the complete file path on the filesystem
         - hash: md5 checksum of the file
           - if the file is a special file (block, sylink, ...), use this hash:
-            md5("flist:" + filename (fullpath) + ":" + mtime)
+            md5("flist:" + fpath (fullpath) + ":" + mtime)
         - filesize: size in bytes
 
         - uname: username owner of the file (used for permissions)
@@ -82,288 +72,194 @@ class FList(object):
 
     """
 
-    def __init__(self):
-        self._data = []
-        self._hash = {}
-        self._path = {}
+    def __init__(self, namespace="main", rootpath="", dirCollection=None, aciCollection=None, userGroupCollection=None):
+        self.namespace = namespace
+        self.dirCollection = dirCollection
+        self.aciCollection = aciCollection
+        self.userGroupCollection = userGroupCollection
+        self.rootpath = rootpath
+        if not j.sal.fs.exists(self.rootpath, followlinks=True):
+            raise j.exceptions.Input(message="Rootpath: '%s' needs to exist" %
+                                     self.rootpath, level=1, source="", tags="", msgpub="")
 
-    def parse(self, filename):
-        del self._data[:]
-        self._hash.clear()
-        self._path.clear()
-
-        index = 0
-
-        with open(filename) as flist:
-            for line in flist:
-                f = line.strip().split('|')
-
-                index = self._indexForPath(f[1])
-
-                self._data[index] = [
-                    f[0],        # path
-                    f[1],        # hash
-                    int(f[2]),   # size
-                    f[3],        # uname
-                    f[4],        # gname
-                    f[5],        # permission
-                    int(f[6]),   # filetype
-                    int(f[7]),   # ctime
-                    int(f[8]),   # mtime
-                    f[9]         # extended
-                ]
-
-        return index
-
-    """
-    Getters
-    """
-
-    def _indexsFromHash(self, hash):
-        if hash not in self._hash:
-            return None
-
-        return self._hash[hash]
-
-    def getHashList(self):
-        hashes = []
-
-        for x in self._data:
-            hashes.append(x[1])
-
-        return hashes
-
-    def filesFromHash(self, hash):
-        paths = []
-        ids = self._indexsFromHash(hash)
-
-        # adding paths from ids list
-        for x in ids:
-            paths.append(self._data[x][0])
-
-        return paths
-
-    def _getItem(self, filename, index):
-        id = self._path[filename]
-        if id is not None:
-            return self._data[id][index]
-
-        return None
-
-    def getHash(self, filename):
-        return self._getItem(filename, 1)
-
-    def getType(self, filename):
-        type = self._getItem(filename, 0)
-        if type is None:
-            return None
-
-        # FIXME
-
-        return None
-
-    def isRegular(self, filename):
-        return self._getItem(filename, 6) == 2
-
-    def getSize(self, filename):
-        return self._getItem(filename, 2)
-
-    def getMode(self, filename):
-        return self._getItem(filename, 5)
-
-    def getOwner(self, filename):
-        return self._getItem(filename, 3)
-
-    def getGroup(self, filename):
-        return self._getItem(filename, 4)
-
-    def getExtended(self, filename):
-        # return self._getItem(filename, 0)
-        return -1
-
-    def getCreationTime(self, filename):
-        return self._getItem(filename, 7)
-
-    def getModificationTime(self, filename):
-        return self._getItem(filename, 8)
-
-    """
-    Setters
-    """
-
-    def _indexForPath(self, filename):
-        if filename not in self._path:
-            # creating new entry
-            self._data.append([None] * 10)
-            id = len(self._data) - 1
-            self._data[id][0] = filename
-            self._path[filename] = id
-
-        return self._path[filename]
-
-    def _setItem(self, filename, value, index):
-        id = self._indexForPath(filename)
-        if id is None:
-            return None
-
-        self._data[id][index] = value
-        return value
-
-    def setHash(self, filename, value):
-        self._setItem(filename, value, 1)
-
-        # updating hash list
-        id = self._indexForPath(filename)
-
-        if value in self._hash:
-            self._hash[value].append(id)
-
-        else:
-            self._hash[value] = [id]
-
-        return value
-
-    def setType(self, filename, value):
-        # testing regular first, it will probably be
-        # the most often used type
-        if S_ISREG(value):
-            return self._setItem(filename, 2, 6)
-
-        # testing special files type
-        if S_ISSOCK(value):
-            return self._setItem(filename, 0, 6)
-
-        if S_ISLNK(value):
-            return self._setItem(filename, 1, 6)
-
-        if S_ISBLK(value):
-            return self._setItem(filename, 3, 6)
-
-        if S_ISCHR(value):
-            return self._setItem(filename, 5, 6)
-
-        if S_ISFIFO(value):
-            return self._setItem(filename, 6, 6)
-
-        # keep track of empty directories
-        if S_ISDIR(value):
-            return self._setItem(filename, 4, 6)
-
-        return None
-
-    def setSize(self, filename, value):
-        return self._setItem(filename, value, 2)
-
-    def setMode(self, filename, value):
-        return self._setItem(filename, value, 5)
-
-    def setOwner(self, filename, value):
-        return self._setItem(filename, value, 3)
-
-    def setGroup(self, filename, value):
-        return self._setItem(filename, value, 4)
-
-    def setExtended(self, filename, value):
+    def _valid(self, fpath, excludes):
         """
-        value: need to be a stat struct
+        check if full path is in excludes
         """
-        path = self._getItem(filename, 0)
-
-        # symlink
-        if S_ISLNK(value.st_mode):
-            xtd = os.readlink(path)
-            return self._setItem(filename, xtd, 9)
-
-        # block device
-        if S_ISBLK(value.st_mode) or S_ISCHR(value.st_mode):
-            id = '%d,%d' % (os.major(value.st_rdev), os.minor(value.st_rdev))
-            return self._setItem(filename, id, 9)
-
-        return self._setItem(filename, "", 9)
-
-    def setModificationTime(self, filename, value):
-        return self._setItem(filename, int(value), 7)
-
-    def setCreationTime(self, filename, value):
-        return self._setItem(filename, int(value), 8)
-
-    """
-    Builder
-    """
-
-    def _build(self, filename):
-        stat = os.stat(filename, follow_symlinks=False)
-        mode = oct(stat.st_mode)[4:]
-
-        # grab username from userid, if not found, use userid
-        try:
-            uname = pwd.getpwuid(stat.st_uid).pw_name
-        except:
-            uname = stat.st_uid
-
-        # grab groupname from groupid, if not found, use groupid
-        try:
-            gname = grp.getgrgid(stat.st_gid).gr_name
-        except:
-            gname = stat.st_gid
-
-        # compute hash only if it's a regular file, otherwise, comute filename hash
-        # the hash is used to access the file "id" in the list, we cannot have empty hash
-        if not S_ISREG(stat.st_mode):
-            hashstr = "flist:%s:%d" % (filename, stat.st_mtime)
-            hash = j.data.hash.md5_string(hashstr)
-
-        else:
-            hash = j.data.hash.md5(filename)
-
-        self.setHash(filename, hash)
-        self.setType(filename, stat.st_mode)
-        self.setSize(filename, stat.st_size)
-        self.setMode(filename, mode)
-        self.setOwner(filename, uname)
-        self.setGroup(filename, gname)
-        self.setExtended(filename, stat)
-        self.setModificationTime(filename, stat.st_mtime)
-        self.setCreationTime(filename, stat.st_ctime)
-
-    def __valid(self, fname, excludes):
+        fpath = fpath.lower()
         for ex in excludes:
-            if ex.match(fname):
+            if ex.match(fpath):
                 return False
-
         return True
 
-    def build(self, path, excludes=[]):
-        if len(self._data) > 0:
-            # this can be only done on empty list
-            return None
+    def path2key(self, fpath):
+        """
+        @param fpath is full path
+        """
+        if not fpath.startswith(self.rootpath):
+            raise j.exceptions.Input(message="fpath:%s needs to start with rootpath:%s" %
+                                     (fpath, self.rootpath), level=1, source="", tags="", msgpub="")
+        relPath = fpath[len(self.rootpath):].strip("/")
+        toHash = self.namespace + relPath
+        bl = pyblake2.blake2b(toHash.encode(), 32)
+        binhash = bl.digest()
+        return relPath, binascii.hexlify(binhash)
+
+    def add(self, path, excludes=[".*\.pyc", ".*__pycache__", ".*\.bak"]):
+        """
+        walk over path and put in plist
+        @param excludes are regex expressions
+        """
 
         # compiling regex for exclusion
-        __excludes = []
+        _excludes = []
         for ex in excludes:
-            __excludes.append(re.compile(ex))
+            _excludes.append(re.compile(ex))
 
-        for dirpath, dirs, files in os.walk(path, followlinks=True):
-            for dirname in dirs:
-                fname = os.path.join(dirpath, dirname)
+        # topdown=False means we do the lowest level dirs first
+        for dirpath, dirs, files in os.walk(path, followlinks=True, topdown=False):
 
-                # exclusion checking
-                if not self.__valid(fname, __excludes):
-                    continue
+            if self._valid(dirpath, _excludes):
 
-                if j.sal.fs.isEmptyDir(fname):
-                    self._build(fname)
+                relPath, dirkey = self.path2key(dirpath)
+                ddir = self.dirCollection.get(dirkey, autoCreate=True)
 
-            for filename in files:
-                fname = os.path.join(dirpath, filename)
+                if ddir.dbobj.location == "":
+                    ddir.dbobj.location = relPath
+                else:
+                    if ddir.location != relPath:
+                        raise RuntimeError("serious bug, location should always be same")
 
-                # exclusion checking
-                if not self.__valid(fname, __excludes):
-                    continue
+                # sec base properties of current dirobj
+                statCurDir = os.stat(dirpath, follow_symlinks=True)
+                self._setMetadata(ddir.dbobj, statCurDir, dirpath)
 
-                self._build(fname)
+                # now we have our core object, from db or is new
+                ffiles = []
+                llinks = []
+                sspecials = []
+                for fname in files:
+                    fullpath = os.path.join(dirpath, fname)
 
-        return len(self._data)
+                    # exclusion checking
+                    if self._valid(fullpath, _excludes):
+
+                        stat = os.stat(fullpath, follow_symlinks=False)
+                        st_mode = stat.st_mode
+
+                        if S_ISLNK(st_mode):
+                            destlink = os.readlink(fullpath)
+                            if not destlink.startswith(self.rootpath):  # check if is link & if outside of FS
+                                ffiles.append((fullpath, stat))  # are links which point to outside of fs
+                            else:
+                                llinks.append((fullpath, stat, destlink))
+                        else:
+                            if S_ISREG(st_mode):
+                                ffiles.append((fullpath, stat))
+                            else:
+                                sspecials.append((fullpath, stat))
+
+                # initialize right amount of objects in capnp
+                ddir.initNewSubObj("files", len(ffiles))
+                ddir.initNewSubObj("links", len(llinks))
+                ddir.initNewSubObj("specials", len(sspecials))
+
+                # process files
+                counter = 0
+                for fullpathSub, stat in ffiles:
+                    dbobj = ddir.dbobj.files[counter]
+                    self._setMetadata(dbobj, stat, fullpathSub)
+                    counter += 1
+
+                # process links
+                counter = 0
+                for fullpathSub, stat, destlink in llinks:
+                    obj = ddir.dbobj.files[counter]
+                    relPath, dirkey = self.path2key(destlink)
+                    obj.destDirKey = dirkey  # link to other directory
+                    obj.destname = j.sal.fs.getBaseName(destlink)
+                    self._setMetadata(obj, stat, fullpathSub)
+                    counter += 1
+
+                # process special files
+                counter = 0
+                for fullpathSub, stat, destlink in llinks:
+                    obj = ddir.dbobj.files[counter]
+                    # testing special files type
+                    if S_ISSOCK(stat.st_mode):
+                        obj.type = "socket"
+                    elif S_ISBLK(stat.st_mode):
+                        obj.type = "block"
+                    elif S_ISCHR(stat.st_mode):
+                        obj.type = "chardev"
+                    elif S_ISFIFO(stat.st_mode):
+                        obj.type = "fifopipe"
+                    else:
+                        obj.type = "unknown"
+                    if S_ISBLK(stat.st_mode) or S_ISCHR(stat.st_mode):
+                        id = '%d,%d' % (os.major(stat.st_rdev), os.minor(stat.st_rdev))
+                        obj.data = id
+                    self._setMetadata(obj, stat, fullpathSub)
+                    counter += 1
+
+                # filter the dirs based on the exclusions
+                dirs = [os.path.join(dirpath, item)
+                        for item in dirs if self._valid(os.path.join(dirpath, item), _excludes)]
+
+                ddir.initNewSubObj("dirs", len(dirs))
+
+                counter = 0
+                for dir_sub_name in dirs:
+                    dir_sub_path = os.path.join(dirpath, dir_sub_name)
+                    dir_sub_obj = ddir.dbobj.dirs[counter]
+                    counter += 1
+
+                    dir_sub_relpath, dir_sub_key = self.path2key(dir_sub_path)
+                    dir_sub_obj.key = dir_sub_key  # link to directory
+                    dir_sub_obj.name = dir_sub_name
+
+                    # needs to exist because of way how we walk (lowest to upper)
+                    dir_obj = self.dirCollection.get(dir_sub_key, autoCreate=False)
+                    dir_obj.setParent(ddir)
+                    dir_obj.save()
+
+                print("#################################")
+                print(ddir)
+                ddir.save()
+
+    def _setMetadata(self, dbobj, stat, fpath):
+        dbobj.name = j.sal.fs.getBaseName(fpath)
+
+        dbobj.modificationTime = stat.st_mtime
+        dbobj.creationTime = stat.st_ctime
+
+        uname = pwd.getpwuid(stat.st_uid).pw_name
+        # uname_id = stat.st_uid
+
+        gname = grp.getgrgid(stat.st_gid).gr_name
+
+        aci = self.aciCollection.new()
+        aci.dbobj.uname = uname
+        aci.dbobj.gname = gname
+        aci.dbobj.mode = stat.st_mode
+
+        if self.aciCollection.exists(aci.key):
+            aci2 = self.aciCollection.get(aci.key)
+            id = aci2.id
+        else:
+            id = int(aci.key[0: 4], 16)
+            while self.aciCollection.lookup(id) != None:  # means exists
+                id += 1
+
+            aci.dbobj.id = id
+            aci.save()
+
+        dbobj.aclkey = id
+
+    def walk(self, dirFunction=None, fileFunction=None, specialFunction=None, linkFunction=None, currentDirKey=""):
+        if currentDirKey == "":
+            relkey, currentDirKey = self.path2key(self.rootpath)
+        ddir = self.dirCollection.get(currentDirKey)
 
     """
     Exporting
@@ -383,81 +279,3 @@ class FList(object):
             data.append(line)
 
         return "\n".join(data) + "\n"
-
-    def _debug(self):
-        tableMain = sys.getsizeof(self._data)
-        tableHash = sys.getsizeof(self._hash)
-        tablePath = sys.getsizeof(self._path)
-
-        print("Main table: %.2f ko" % (float(tableMain) / 1024))
-        print("Hash table: %.2f ko" % (float(tableHash) / 1024))
-        print("Path table: %.2f ko" % (float(tablePath) / 1024))
-
-
-class FListArchiver:
-    # This is a not efficient way, the only other possibility
-    # is to call brotli binary to compress big file if needed
-    # currently, this in-memory way is used
-
-    def __init__(self, ipfs_cfgdir=None):
-        cl = j.tools.cuisine.local
-        self._ipfs = cl.core.command_location('ipfs')
-        if not ipfs_cfgdir:
-            self._env = 'IPFS_PATH=%s' % cl.core.args_replace('$cfgDir/ipfs/main')
-        else:
-            self._env = 'IPFS_PATH=%s' % ipfs_cfgdir
-
-    def _compress(self, source, destination):
-        with open(source, 'rb') as content_file:
-            content = content_file.read()
-
-        compressed = brotli.compress(content, quality=6)
-
-        with open(destination, "wb") as output:
-            output.write(compressed)
-
-    def push_to_ipfs(self, source):
-        cmd = "%s %s add '%s'" % (self._env, self._ipfs, source)
-        out = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE)
-
-        m = re.match(r'^added (.+) (.+)$', out.stdout.decode())
-        if m is None:
-            raise RuntimeError('invalid output from ipfs add: %s' % out)
-
-        return m.group(1)
-
-    def build(self, flist, backend):
-        hashes = flist.getHashList()
-
-        if not os.path.exists(backend):
-            os.makedirs(backend)
-
-        for hash in hashes:
-            files = flist.filesFromHash(hash)
-
-            # skipping non regular files
-            if not flist.isRegular(files[0]):
-                continue
-
-            print("Processing: %s" % hash)
-
-            root = "%s/%s/%s" % (backend, hash[0:2], hash[2:4])
-            file = hash
-
-            target = "%s/%s" % (root, file)
-
-            if not os.path.exists(root):
-                os.makedirs(root)
-
-            # compressing the file
-            self._compress(files[0], target)
-
-            # adding it to ipfs network
-            hash = self.push_to_ipfs(target)
-            print("Network hash: %s" % hash)
-
-            # updating flist hash with ipfs hash
-            for f in files:
-                flist.setHash(f, hash)
-
-        print("Files compressed and shared")

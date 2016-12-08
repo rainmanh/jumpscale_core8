@@ -64,7 +64,7 @@ class Capnp:
         if modelBaseCollectionClass == None:
             modelBaseCollectionClass = ModelBaseCollection
 
-        return ModelBaseCollection(schema=schema, category=category, namespace=namespace, db=db, indexDb=indexDb)
+        return modelBaseCollectionClass(schema=schema, category=category, namespace=namespace, db=db, indexDb=indexDb, modelBaseClass=modelBaseClass)
 
     def getId(self, schemaInText):
         id = [item for item in schemaInText.split("\n") if item.strip() != ""][0][3:-1]

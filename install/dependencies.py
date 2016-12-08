@@ -27,6 +27,8 @@ class dependencies():
         colorlog
         msgpack-python
         pyblake2
+        brotli
+        pysodium
         """
         self.do.pip(C, executor=executor)
 

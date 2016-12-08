@@ -1803,12 +1803,9 @@ class InstallTools():
             """coroutine to read prints output based on stream"""
             out = ''
             while True:
-                try:
-                    line = yield from asyncio.wait_for(stream.readline(), timeout=timeout)
-                    if not line:
-                        break
-                except asyncio.TimeoutError:
-                    return 124, '', 'Timeout Error'
+                line = yield from stream.readline()
+                if not line:
+                    break
                 if _showout:
                     sys.stdout.buffer.write(line)
                 if captureout:

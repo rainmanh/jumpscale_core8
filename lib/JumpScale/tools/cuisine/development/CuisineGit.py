@@ -15,7 +15,15 @@ class CuisineGit(base):
         """
         pull repo of git code & build git command line, goal is to have smallest possible git binary
         """
-        pass
+        self._cuisine.package.multiInstall([
+            "tcl",
+            "libcurl4-gnutls-dev",
+            "gettext",
+            "libssl-dev",
+        ])
+
+        path = self.pullRepo(url="https://github.com/git/git.git")
+        self._cuisine.core.run('cd {} && make install'.format(path))
 
     def pullRepo(self, url, dest=None, login=None, passwd=None, depth=None,
                  ignorelocalchanges=True, reset=False, branch=None, revision=None, ssh="first"):

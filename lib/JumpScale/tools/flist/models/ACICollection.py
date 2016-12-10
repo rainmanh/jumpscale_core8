@@ -14,7 +14,7 @@ class ACICollection(base):
             name = ".*"
         else:
             regex = "%s" % (id)
-        res = self._index.list(regex)
+        res = self._index.list(regex, returnIndex=True)
         return res
 
     def find(self, id=0):

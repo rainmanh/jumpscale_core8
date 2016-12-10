@@ -6,7 +6,7 @@ from collections import OrderedDict
 class ModelBase():
 
     def __init__(self, capnp_schema, category, db, index, key="", new=False):
-        self.logger = j.logger.get(capnp_schema.schema.node.displayName) # TODO find something better than this
+        self.logger = j.logger.get(capnp_schema.schema.node.displayName)  # TODO find something better than this
         self._capnp_schema = capnp_schema
         self._category = category
         self._db = db
@@ -222,18 +222,14 @@ class ModelBaseCollection:
                     raise j.exceptions.Input(message="Could not find key:%s for model:%s" %
                                              (key, self.category), level=1, source="", tags="", msgpub="")
         else:
-            if autoCreate:
-                from IPython import embed
-                print("DEBUG NOW get autocreate modelbase capnp")
-                embed()
-                raise RuntimeError("stop debug here")
+
             model = self.modelBaseClass(
                 capnp_schema=self.capnp_schema,
                 category=self.category,
                 db=self._db,
                 index=self._index,
                 key=key,
-                new=False)
+                new=autoCreate)
         return model
 
     def list(self, name="", state=None):
@@ -257,7 +253,7 @@ class ModelBaseCollection:
             regex = "%s" % (state)
         else:
             regex = ".*"
-        res = self._index.list(regex)
+        res = self._index.list(regex, returnIndex=True)
         return res
 
     def find(self, name="", state=None):

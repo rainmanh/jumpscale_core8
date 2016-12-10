@@ -20,7 +20,7 @@ class RedisKeyValueStore(KeyValueStoreBase):
         # self.redisclient.host = host
         KeyValueStoreBase.__init__(self, namespace=namespace, name=name, serializers=serializers,
                                    masterdb=masterdb, cache=cache, changelog=changelog)
-        self._indexkey = "%s:index" % namespace
+        self._indexkey = "index:%s" % namespace
 
         self.inMem = False
 

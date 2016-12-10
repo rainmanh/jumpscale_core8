@@ -11,6 +11,12 @@ class CuisineGit(base):
         self._executor = executor
         self._cuisine = cuisine
 
+    def build(self):
+        """
+        pull repo of git code & build git command line, goal is to have smallest possible git binary
+        """
+        pass
+
     def pullRepo(self, url, dest=None, login=None, passwd=None, depth=None,
                  ignorelocalchanges=True, reset=False, branch=None, revision=None, ssh="first"):
 

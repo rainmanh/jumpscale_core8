@@ -78,9 +78,6 @@ class FList(object):
         self.aciCollection = aciCollection
         self.userGroupCollection = userGroupCollection
         self.rootpath = rootpath
-        if not j.sal.fs.exists(self.rootpath, followlinks=True):
-            raise j.exceptions.Input(message="Rootpath: '%s' needs to exist" %
-                                     self.rootpath, level=1, source="", tags="", msgpub="")
 
     def _valid(self, fpath, excludes):
         """
@@ -103,7 +100,7 @@ class FList(object):
         toHash = self.namespace + relPath
         bl = pyblake2.blake2b(toHash.encode(), 32)
         binhash = bl.digest()
-        return relPath, binascii.hexlify(binhash)
+        return relPath, binascii.hexlify(binhash).decode()
 
     def add(self, path, excludes=[".*\.pyc", ".*__pycache__", ".*\.bak"]):
         """
@@ -111,10 +108,21 @@ class FList(object):
         @param excludes are regex expressions
         """
 
+        if not j.sal.fs.exists(self.rootpath, followlinks=True):
+            raise j.exceptions.Input(message="Rootpath: '%s' needs to exist" %
+                                     self.rootpath, level=1, source="", tags="", msgpub="")
+
         # compiling regex for exclusion
         _excludes = []
         for ex in excludes:
             _excludes.append(re.compile(ex))
+
+        if not j.sal.fs.exists(path, followlinks=True):
+            if j.sal.fs.exists(j.sal.fs.joinPaths(self.rootpath, path), followlinks=True):
+                path = j.sal.fs.joinPaths(self.rootpath, path)
+
+        if not j.sal.fs.exists(path, followlinks=True):
+            raise j.exceptions.Input(message="Could not find path:%s" % path, level=1, source="", tags="", msgpub="")
 
         # topdown=False means we do the lowest level dirs first
         for dirpath, dirs, files in os.walk(path, followlinks=True, topdown=False):
@@ -257,16 +265,105 @@ class FList(object):
         dbobj.aclkey = id
 
     def walk(self, dirFunction=None, fileFunction=None, specialFunction=None, linkFunction=None, currentDirKey=""):
+        """
+        the function are taking following arguments:
+
+        def dirFunction(dirobj, ttype, name ,key):
+            # if you want to save do, this will make sure it gets changed
+            dirObj.changed=True
+
+            if you return True, then  will recurse, otherwise not
+
+
+        def fileFunction(dirobj, ttype, name,structAsBelow):
+
+            struct Link{
+                name @0 : Text;
+                aclkey @1: UInt32; #is pointer to ACL
+                destDirKey @2: Text; #key of dir in which destination is
+                destName @3: Text;
+                modificationTime @4: UInt32;
+                creationTime @5: UInt32;
+            }
+
+            # if you want to save do, this will make sure it gets changed
+            dirObj.changed=True
+
+
+        def linkFunction(dirobj, ttype, name,structAsBelow):
+
+              struct Link{
+                  name @0 : Text;
+                  aclkey @1: UInt32; #is pointer to ACL
+                  destDirKey @2: Text; #key of dir in which destination is
+                  destName @3: Text;
+                  modificationTime @4: UInt32;
+                  creationTime @5: UInt32;
+              }
+
+            # if you want to save do, this will make sure it gets changed
+            dirObj.changed=True
+
+
+        def specialFunction(dirobj, ttype, name,structAsBelow):
+
+              struct Special{
+                  name @0 : Text;
+                  type @1 :State;
+                  # - 0: socket       (S_IFSOCK)
+                  # - 1: block device (S_IFBLK)
+                  # - 2: char. device (S_IFCHR)
+                  # - 3: fifo pipe    (S_IFIFO)
+                  enum State {
+                    socket @0;
+                    block @1;
+                    chardev @2;
+                    fifopipe @3;
+                    unknown @4;
+                  }
+                  # data relevant for type of item
+                  data @2 :Data;
+                  modificationTime @3: UInt32;
+                  creationTime @4: UInt32;
+              }
+
+            # if you want to save do, this will make sure it gets changed
+            dirObj.changed=True
+
+
+
+        """
         if currentDirKey == "":
             relkey, currentDirKey = self.path2key(self.rootpath)
         ddir = self.dirCollection.get(currentDirKey)
 
-    """
-    Exporting
-    """
+        for item in ddir.dbobj.dirs:
+            recurse = dirFunction(ddir.dbobj, item.name, "D", item.key)
+            if recurse:
+                self.walk(dirFunction=dirFunction, fileFunction=fileFunction, specialFunction=specialFunction,
+                          linkFunction=linkFunction, currentDirKey=ddir.key)
+
+        for item in ddir.dbobj.files:
+            dirFunction(ddir.dbobj, item.name, "F", item)
+
+        for item in ddir.dbobj.links:
+            dirFunction(ddir.dbobj, item.name, "L", item)
+
+        for item in ddir.dbobj.specials:
+            dirFunction(ddir.dbobj, item.name, "S", item)
 
     def dumps(self, trim=''):
         data = []
+
+        def pprint(dirobj, ttype, name, *args):
+            print("%s/%s (%s)" % (dirobj.location, name, ttype))
+
+        self.walk(pprint, pprint, pprint, pprint)
+
+        from IPython import embed
+        print("DEBUG NOW in dumps")
+        embed()
+        raise RuntimeError("stop debug here")
 
         for f in self._data:
             p = f[0]
@@ -279,3 +376,8 @@ class FList(object):
             data.append(line)
 
         return "\n".join(data) + "\n"
+
+    def destroy(self):
+        self.aciCollection.destroy()
+        self.userGroupCollection.destroy()
+        self.dirCollection.destroy()

@@ -37,8 +37,8 @@ class FListFactory(object):
         schema = self.getCapnpSchema()
 
         # now default is mem, if we want redis as default store uncomment next, but leave for now, think mem here ok
-        # if kvs == None:
-        #     kvs = j.servers.kvs.getRedisStore(name="flist", unixsocket="%s/redis.sock" % j.dirs.tmpDir)
+        if kvs == None:
+            kvs = j.servers.kvs.getRedisStore(name="flist", namespace=name, unixsocket="%s/redis.sock" % j.dirs.tmpDir)
 
         collection = j.data.capnp.getModelCollection(
             schema.Dir, category="flist_%s" % name, modelBaseClass=DirModel.DirModel,
@@ -52,6 +52,9 @@ class FListFactory(object):
         """
         schema = self.getCapnpSchema()
 
+        if kvs == None:
+            kvs = j.servers.kvs.getRedisStore(name="flist", namespace=name, unixsocket="%s/redis.sock" % j.dirs.tmpDir)
+
         collection = j.data.capnp.getModelCollection(
             schema.ACI, category="ACI_%s" % name, modelBaseClass=ACIModel.ACIModel,
             modelBaseCollectionClass=ACICollection.ACICollection, db=kvs, indexDb=kvs)
@@ -63,6 +66,9 @@ class FListFactory(object):
         """
         schema = self.getCapnpSchema()
 
+        if kvs == None:
+            kvs = j.servers.kvs.getRedisStore(name="flist", namespace=name, unixsocket="%s/redis.sock" % j.dirs.tmpDir)
+
         collection = j.data.capnp.getModelCollection(
             schema.UserGroup, category="ug_%s" % name, modelBaseClass=ACIModel.ACIModel,
             modelBaseCollectionClass=ACICollection.ACICollection, db=kvs, indexDb=kvs)
@@ -73,9 +79,9 @@ class FListFactory(object):
         @param namespace, this normally is some name you cannot guess, important otherwise no security
         Return a Flist object
         """
-        dirCollection = self.getDirCollectionFromDB(name="dir_%s" % namespace, kvs=kvs)
-        aciCollection = self.getACICollectionFromDB(name="aci_%s" % namespace, kvs=kvs)
-        userGroupCollection = self.getUserGroupCollectionFromDB(name="ug_%s" % namespace, kvs=kvs)
+        dirCollection = self.getDirCollectionFromDB(name="%s:dir" % namespace, kvs=kvs)
+        aciCollection = self.getACICollectionFromDB(name="%s:aci" % namespace, kvs=kvs)
+        userGroupCollection = self.getUserGroupCollectionFromDB(name="%s:users" % namespace, kvs=kvs)
         return FList(rootpath=rootpath, namespace=namespace, dirCollection=dirCollection, aciCollection=aciCollection, userGroupCollection=userGroupCollection)
 
     def get_archiver(self):
@@ -95,6 +101,10 @@ class FListFactory(object):
             print(path)
 
         flist.walk(fileFunction=pprint, dirFunction=pprint, specialFunction=pprint, linkFunction=pprint)
+
+    def destroy(self, rootpath="/", namespace="main", kvs=None):
+        fl = self.getFlist(rootpath, namespace, kvs)
+        fl.destroy()
 
 
 class FListArchiver:

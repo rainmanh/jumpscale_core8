@@ -62,7 +62,7 @@ class SshFS:
         self.logger.info("SshFS: executing command [%s]" % command)
 
         exitCode, output = j.sal.process.execute(
-            command, die=False, outputToStdout=False)
+            command, die=False, showout=False)
         if not exitCode == 0:
             raise j.exceptions.RuntimeError(
                 'Failed to execute command %s' % command)
@@ -142,7 +142,7 @@ class SshFS:
         command = "umount %s" % self.mntpoint
 
         exitCode, output = j.sal.process.execute(
-            command, die=False, outputToStdout=False)
+            command, die=False, showout=False)
         if not exitCode == 0:
             raise j.exceptions.RuntimeError(
                 'Failed to execute command %s' % command)

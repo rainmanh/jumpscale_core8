@@ -26,11 +26,13 @@ apt-get install -y python3.5 curl
 ```
 
 If you are using an image of Ubuntu prepared for [OpenvCloud](https://gig.gitbooks.io/ovcdoc_public/content/), please be sure the hostname is well set:
+
 ```
 grep $(hostname) /etc/hosts || sed -i "s/.1 localhost/.1 localhost $(hostname)/g" /etc/hosts
 ```
 
 Then you can run the following command:
+
 ```shell
 cd /tmp
 rm -f install.sh
@@ -40,14 +42,16 @@ bash install.sh
 
 ## Mac OSX
 
-- Make sure Brew and curl are installed
+- Make sure Brew and curl are installed:
+
 ```
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 brew install curl
 brew install python3
 ```
 
-- install pip3
+- install pip3:
+
 ```
 sudo -s
 cd ~/tmp;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python3 get-pip.py
@@ -80,7 +84,7 @@ bash reset.sh
 
 ##  Environment variables that influence the installation process
 
-none of the following env variables are required but can all optionally set
+None of the following environment variables are required, but can all optionally be set:
 
 ```
 DEBUG = 0
@@ -97,19 +101,16 @@ DATADIR = #'/optvar/data' on ubuntu if /JS8 does not exist, else $HOME/optvar/da
 
 ```
 
-- JSBASE: root directory where JumpScale will be installed
-- GITHUBUSER: user used to connect to GitHub (no must to set if ssh used)
+- **JSBASE**: root directory where JumpScale will be installed
+- **GITHUBUSER**: user used to connect to GitHub (only relevant when connecting to GitHub over HTTP)
 
-how to set these env variables on linux/osx
+  > It is strongly recommended to use SSH to access GitHub instead of HTTP, using ```ssh-add``` to load your private ssh-key(s)
+
+Setting these environment variables on Linux and OSX is simple:
+
 ```
 export JSBRANCH="fix_installer"
 ```
-
-
-## Use SSH for Git Access
-
-- strongly recommended to use SSH to access github
-- make sure your required ssh-keys are loaded (ssh-add ...)
 
 ## Windows 10 (Cygwin)
 

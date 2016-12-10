@@ -1,5 +1,6 @@
 # Run
 
+<<<<<<< HEAD
 ```shell
 ays run --help
 Usage: ays run [OPTIONS]
@@ -15,3 +16,6 @@ Options:
  --profile  enable profiling of the jobs
  --help     Show this message and exit.
 ```
+=======
+@todo
+>>>>>>> master

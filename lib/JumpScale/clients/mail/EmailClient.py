@@ -104,3 +104,29 @@ class EmailClient:
                 msg.attach(attachement)
         server.sendmail(sender, recipients, msg.as_string())
         server.close()
+
+    # def sendmail(self, ffrom, to, subject, msg, smtpuser, smtppasswd,
+    #              smtpserver="smtp.mandrillapp.com", port=587, html=""):
+    #     from email.mime.multipart import MIMEMultipart
+    #     from email.mime.text import MIMEText
+    #
+    #     msg = MIMEMultipart('alternative')
+    #
+    #     msg['Subject'] = subject
+    #     msg['From'] = ffrom
+    #     msg['To'] = to
+    #
+    #     if msg != "":
+    #         part1 = MIMEText(str(msg), 'plain')
+    #         msg.attach(part1)
+    #
+    #     if html != "":
+    #         part2 = MIMEText(html, 'html')
+    #         msg.attach(part2)
+    #
+    #     s = smtplib.SMTP(smtpserver, port)
+    #
+    #     s.login(smtpuser, smtppasswd)
+    #     s.sendmail(msg['From'], msg['To'], msg.as_string())
+    #
+    #     s.quit()

@@ -1,5 +1,6 @@
 # Delete
 
+<<<<<<< HEAD
 ```
 Usage: ays delete [OPTIONS]
 
@@ -29,3 +30,6 @@ child that will also be deleted:
 Are you sure you want to delete ? (y/n):
 ```
 It will prompt a confirmation message before deleting any service so you have a chance to validate your action before executing it.
+=======
+@todo
+>>>>>>> master

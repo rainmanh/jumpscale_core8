@@ -41,6 +41,7 @@ We use only one command `ays` to control everything:
 Next you will want to learn about:
 
 - [AYS Definitions](Definitions/0-Definitions.md)
+- [What's new in AYS v8.1](whatsnew.md)
 - [Life Cycle of an AYS Service](Service-Lifecycle.md)
 - [AYS Commands](Commands/commands.md)
 - [AYS File Locations & Details](FileDetails/FileDetails.md)

@@ -29,6 +29,7 @@ docker run --rm -t -i --name=js jumpscale/ubuntu1604_js_development
 ```
 
 In the Docker container let's test the JumpScale interactive shell:
+
 ```
 export HOME=/root
 js
@@ -37,6 +38,7 @@ js
 An SSH server is installed in the Docker container, but you will have to remap port 22 to some other port on localhost, e.g. 2022.
 
 Create a new one specifying the port mapping:
+
 ```
 docker run --rm -i -t -p 2022:22 --name="js" jumpscale/ubuntu1604_js_development /sbin/my_init -- bash -l
 ```

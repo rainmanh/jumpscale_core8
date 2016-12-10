@@ -177,7 +177,7 @@ class GitlabInstance:
             url = proj['web_url']
             if group:
                 return group
-            j.do.pullGitRepo(url=url, dest=None, login=self.login, passwd=self.passwd,
+            j.clients.git.pullGitRepo(url=url, dest=None, login=self.login, passwd=self.passwd,
                              depth=1, ignorelocalchanges=False, reset=False, branch=None, revision=None)
 
         return proj, path

@@ -8,6 +8,10 @@ class GitFactory:
     def __init__(self):
         self.__jslocation__ = "j.clients.git"
         self.logger = j.logger.get('j.clients.git')
+        self.pullGitRepo = j.do.pullGitRepo
+        self.getGitRepoArgs = j.do.getGitRepoArgs
+        self.rewriteGitRepoUrl = j.do.rewriteGitRepoUrlsel
+        self.getGitBranch = j.do.getGitBranch
 
     def get(self, basedir="", check_path=True):
         """
@@ -131,3 +135,126 @@ class GitFactory:
                 return path
             path = j.sal.fs.getParent(path)
         raise j.exceptions.Input("Cannot find git path in:%s" % path)
+
+    def parseGitConfig(self, repopath):
+        """
+        @param repopath is root path of git repo
+        @return (giturl,account,reponame,branch,login,passwd)
+        login will be ssh if ssh is used
+        login & passwd is only for https
+        """
+        path = j.sal.fs.joinPaths(repopath, ".git", "config")
+        if not j.sal.fs.exists(path=path):
+            raise RuntimeError("cannot find %s" % path)
+        config = j.sal.fs.readFile(path)
+        state = "start"
+        for line in config.split("\n"):
+            line2 = line.lower().strip()
+            if state == "remote":
+                if line.startswith("url"):
+                    url = line.split("=", 1)[1]
+                    url = url.strip().strip("\"").strip()
+            if line2.find("[remote") != -1:
+                state = "remote"
+            if line2.find("[branch"):
+                branch = line.split(" \"")[1].strip("]\" ").strip("]\" ").strip("]\" ")
+
+    def getGitReposListLocal(self, provider="", account="", name="", errorIfNone=True):
+        repos = {}
+        for top in j.sal.fs.listDirsInDir(j.dirs.codeDir, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+            if provider != "" and provider != top:
+                continue
+            for accountfound in j.sal.fs.listDirsInDir("%s/%s" % (j.dirs.codeDir, top),
+                                                       recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+                if account != "" and account != accountfound:
+                    continue
+                accountfounddir = "/%s/%s/%s" % (j.dirs.codeDir, top, accountfound)
+                for reponame in j.sal.fs.listDirsInDir(
+                        "%s/%s/%s" % (j.dirs.codeDir, top, accountfound), recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+                    if name != "" and name != reponame:
+                        continue
+                    repodir = "%s/%s/%s/%s" % (j.dirs.codeDir, top, accountfound, reponame)
+                    if j.sal.fs.exists(path="%s/.git" % repodir):
+                        repos[reponame] = repodir
+        if len(list(repos.keys())) == 0:
+            raise RuntimeError("Cannot find git repo '%s':'%s':'%s'" % (provider, account, name))
+        return repos
+
+    def pushGitRepos(self, message, name="", update=True, provider="", account=""):
+        """
+        if name specified then will look under code dir if repo with path can be found
+        if not or more than 1 there will be error
+        @param provider e.g. git, github
+        """
+        # TODO: make sure we use gitlab or github account if properly filled in
+        repos = self.getGitReposListLocal(provider, account, name)
+        for name, path in list(repos.items()):
+            print(("push git repo:%s" % path))
+            cmd = "cd %s;git add . -A" % (path)
+            j.sal.process.executeInteractive(cmd)
+            cmd = "cd %s;git commit -m \"%s\"" % (path, message)
+            j.sal.process.executeInteractive(cmd)
+            branch = self.getGitBranch(path)
+            if update:
+                cmd = "cd %s;git pull origin %s" % (path, branch)
+                j.sal.process.executeInteractive(cmd)
+            cmd = "cd %s;git push origin %s" % (path, branch)
+            j.sal.process.executeInteractive(cmd)
+
+    def updateGitRepos(self, provider="", account="", name="", message=""):
+        repos = self.getGitReposListLocal(provider, account, name)
+        for name, path in list(repos.items()):
+            print(("push git repo:%s" % path))
+            branch = self.getGitBranch(path)
+            cmd = "cd %s;git add . -A" % (path)
+            j.sal.process.executeInteractive(cmd)
+            cmd = "cd %s;git commit -m \"%s\"" % (path, message)
+            j.sal.process.executeInteractive(cmd)
+            cmd = "cd %s;git pull origin %s" % (path, branch)
+            j.sal.process.executeInteractive(cmd)
+
+    def changeLoginPasswdGitRepos(self, provider="", account="", name="",
+                                  login="", passwd="", ssh=True, pushmessage=""):
+        """
+        walk over all git repo's found in account & change login/passwd
+        """
+        if ssh is False:
+            for reponame, repopath in list(self.getGitReposListLocal(provider, account, name).items()):
+                import re
+                configpath = "%s/.git/config" % repopath
+                text = j.sal.fs.readFile(configpath)
+                text2 = text
+                for item in re.findall(re.compile(r'//.*@%s' % provider), text):
+                    newitem = "//%s:%s@%s" % (login, passwd, provider)
+                    text2 = text.replace(item, newitem)
+                if text2.strip() != text:
+                    j.sal.fs.writeFile(configpath, text2)
+        else:
+            for reponame, repopath in list(self.getGitReposListLocal(provider, account, name).items()):
+                configpath = "%s/.git/config" % repopath
+                text = j.sal.fs.readFile(configpath)
+                text2 = ""
+                change = False
+                for line in text.split("\n"):
+                    if line.replace(" ", "").find("url=") != -1:
+                        # print line
+                        if line.find("@git") == -1:
+                            # print 'REPLACE'
+                            provider2 = line.split("//", 1)[1].split("/", 1)[0].strip()
+                            account2 = line.split("//", 1)[1].split("/", 2)[1]
+                            name2 = line.split("//", 1)[1].split("/", 2)[2].replace(".git", "")
+                            line = "\turl = git@%s:%s/%s.git" % (provider2, account2, name2)
+                            change = True
+                        # print line
+                    text2 += "%s\n" % line
+
+                if change:
+                    # print text
+                    # print "===="
+                    # print text2
+                    # print "++++"
+                    print(("changed login/passwd/git on %s" % configpath))
+                    j.sal.fs.writeFile(configpath, text2)
+
+        if pushmessage != "":
+            self.pushGitRepos(pushmessage, name=name, update=True, provider=provider, account=account)

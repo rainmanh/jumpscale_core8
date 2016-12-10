@@ -1,6 +1,6 @@
 # HRD
 
-HRD is the abreviation for **Human Readeable Data**.
+HRD is the abbreviation for **Human Readable Data**.
 
 We use it as the file format of all configuration files of JumpScale.
 
@@ -92,7 +92,7 @@ nameserver = type:str list consume:ns
 ## Get HRD from HRD schema
 
 ```
-TODO: 
+TODO:
 ```
 
 ## Usage As template engine

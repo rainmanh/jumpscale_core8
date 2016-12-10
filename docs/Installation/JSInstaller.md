@@ -1,5 +1,4 @@
-
-## More details about installation process
+# More Details about the Installation Process
 
 Several scripts are involved to complete the installation:
 
@@ -31,7 +30,7 @@ installJS(self,base="",clean=False,insystem=True,GITHUBUSER="",GITHUBPASSWD="",C
 
 
 
-## Dependencies (need to be verified)
+## Dependencies (needs to be verified)
 
 To minimize the size of the installation some of the dependencies were opted to be installed separately, only
 dependencies which affect modular components of JumpScale where moved out to allow JumpScale's key components to function

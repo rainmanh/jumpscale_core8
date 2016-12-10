@@ -55,9 +55,9 @@ class RedisFactory:
         tmpdir = tmpdir.rstrip("/")
 
         counter = 0
-        while counter < 40:
+        while counter < 10:
             pl = sys.platform.lower()
-            if 'w32' in pl or 'w64' in pl or 'win' in pl:
+            if 'w32' in pl or 'w64' in pl or 'win' in pl and not "darwin" in pl:
                 j.core.db = Redis()
             else:
                 j.core.db = Redis(unix_socket_path='%s/redis.sock' % tmpdir)
@@ -90,8 +90,8 @@ class RedisFactory:
         sys.exit(1)
 
     def kill(self):
-        j.do.execute("redis-cli -s %s/redis.sock shutdown" % j.do.TMPDIR, die=False, showout=False)
-        j.do.execute("redis-cli shutdown" % j.do.TMPDIR, die=False, showout=False)
+        j.do.execute("redis-cli -s %s/redis.sock shutdown" % j.do.TMPDIR, die=False, showout=False, outputStderr=False)
+        j.do.execute("redis-cli shutdown", die=False, showout=False, outputStderr=False)
         j.do.killall("redis")
 
     def _start4JScore(self, j, tmpdir):
@@ -100,22 +100,25 @@ class RedisFactory:
         standard on $tmpdir/redis.sock
         """
         if j.tools.cuisine.local.core.isMac:
-            #--port 0
-
             if not j.do.checkInstalled("redis-server"):
-                self.kill()
                 j.do.execute("brew unlink redis;brew install redis;brew link redis")
             if not j.do.checkInstalled("redis-server"):
                 raise RuntimeError("Cannot find redis-server even after install")
-            cmd = "redis-server --port 0 --unixsocket %s/redis.sock --maxmemory 100000000 --daemonize yes" % tmpdir  # 100MB
+            j.do.execute("redis-cli -s %s/redis.sock shutdown" %
+                         j.do.TMPDIR, die=False, showout=False, outputStderr=False)
+            j.do.execute("redis-cli shutdown", die=False, showout=False, outputStderr=False)
+            j.do.killall("redis")
+            cmd = "redis-server --port 6379 --unixsocket %s/redis.sock --maxmemory 100000000 --daemonize yes" % tmpdir  # 100MB
             print("start redis in background (osx)")
             os.system(cmd)
             print("started")
+            time.sleep(1)
+
         elif j.tools.cuisine.local.core.isCygwin:
             cmd = "redis-server --maxmemory 100000000 & "
             print("start redis in background (win)")
             os.system(cmd)
-        else:
+        elif j.tools.cuisine.local.core.isLinux:
             cmd = "echo never > /sys/kernel/mm/transparent_hugepage/enabled"
             os.system(cmd)
             cmd = "sysctl vm.overcommit_memory=1"
@@ -132,3 +135,5 @@ class RedisFactory:
             os.system(cmd1)
             os.system(sync_cmd)
             os.system(cmd2)
+        else:
+            raise RuntimeError("platform not supported")

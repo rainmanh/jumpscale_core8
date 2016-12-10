@@ -1695,20 +1695,22 @@ class ExecutorMethods():
                 resout = None
                 reserr = None
 
+            rc = 0
+
             done, pending = await asyncio.wait([
                 _read_stream(process.stdout, stdout_cb, resout),
                 _read_stream(process.stderr, stderr_cb, reserr)
-            ], timeout=timeout)
+            ], timeout=timeout, return_when=asyncio.ALL_COMPLETED)
 
             if pending != set():
                 # timeout happened
+                print("ERROR TIMEOUT happend")
                 for task in pending:
                     task.cancel()
                 process.kill()
-                rc = 124
-            else:
-                rc = await process.wait()
+                return 124, resout, reserr
 
+            await process.wait()
             return rc, resout, reserr
 
         loop = asyncio.get_event_loop()
@@ -1808,6 +1810,7 @@ class ExecutorMethods():
     def killall(self, name):
         rc, out, err = self.execute("ps ax | grep %s" % name, showout=False)
         for line in out.split("\n"):
+            print("L:%s" % line)
             if line.strip() == "":
                 continue
             if "grep" in line:
@@ -1817,6 +1820,7 @@ class ExecutorMethods():
             print("kill:%s (%s)" % (name, pid))
             self.execute("kill -9 %s" % pid, showout=False)
         if self.psfind(name):
+            raise RuntimeError("stop debug here")
             raise RuntimeError("Could not kill:%s, is still, there check if its not autorestarting." % name)
 
     def removeFromAutostart(self, name):

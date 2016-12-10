@@ -21,10 +21,10 @@ import yaml
 import importlib
 
 
-class GitMethod():
+class GitMethods():
 
 
-class FS():
+class FSMethods():
 
     def getBinDirSystem(self):
         return "/usr/local/bin/"
@@ -1355,7 +1355,7 @@ class Installer():
         #     self.do.copyTree(src, dest)
 
 
-class InstallTools(GitMethod, FS):
+class InstallTools(GitMethods, FSMethods):
 
     def __init__(self, debug=False):
 
@@ -1605,23 +1605,6 @@ class InstallTools(GitMethod, FS):
         # sys.excepthook = self.excepthook
 
         # self._initSSH_ENV()
-
-    # def excepthook(self, ttype, exceptionObject, tb):
-
-    #     # if isinstance(exceptionObject, HaltException):
-    #     #     sys.exit(1)
-
-    #     # print "jumpscale EXCEPTIONHOOK"
-    #     # if self.inException:
-    #     #     print("ERROR IN EXCEPTION HANDLING ROUTINES, which causes recursive errorhandling behavior.")
-    #     #     print(exceptionObject)
-    #     #     return
-
-    #     print ("WE ARE IN EXCEPTHOOL OF INSTALLTOOLS, DEVELOP THIS FURTHER")
-    #     from IPython import embed
-    #     print((44))
-    #     embed()
-    #     #TODO: not working yet
 
     def initCreateDirs4System(self):
         for item in ["JSBASE", "HOME", "TMPDIR", "VARDIR", "DATADIR", "CODEDIR", "CFGDIR"]:

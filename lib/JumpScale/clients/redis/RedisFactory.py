@@ -56,8 +56,8 @@ class RedisFactory:
 
         counter = 0
         while counter < 40:
-
-            if j.do.TYPE.startswith("WIN"):
+            pl = sys.platform.lower()
+            if 'w32' in pl or 'w64' in pl or 'win' in pl:
                 j.core.db = Redis()
             else:
                 j.core.db = Redis(unix_socket_path='%s/redis.sock' % tmpdir)
@@ -94,13 +94,16 @@ class RedisFactory:
         starts a redis instance in separate ProcessLookupError
         standard on $tmpdir/redis.sock
         """
-        if j.do.TYPE.startswith("OSX"):
+        if j.tools.cuisine.local.core.isMac:
             #--port 0
+            if 'redis-server' not in os.listdir(path='%s/bin/' % j.dirs.base):
+                    j.tools.cuisine.local.core.run("brew install redis")
+                    j.tools.cuisine.local.core.file_copy("/usr/local/bin/redis-server", '%s/bin/' % j.dirs.base)
             cmd = "redis-server --port 0 --unixsocket %s/redis.sock --maxmemory 100000000 --daemonize yes" % tmpdir
             print("start redis in background (osx)")
             os.system(cmd)
             print("started")
-        elif j.do.TYPE.startswith("WIN"):
+        elif j.tools.cuisine.local.core.isCygwin:
             cmd = "redis-server --maxmemory 100000000 & "
             print("start redis in background (win)")
             os.system(cmd)
@@ -109,10 +112,10 @@ class RedisFactory:
             os.system(cmd)
             cmd = "sysctl vm.overcommit_memory=1"
             os.system(cmd)
-            redis_bin = '%s/bin/redis-server' % j.do.BASE
-            if 'redis-server' not in os.listdir(path='%s/bin/' % j.do.BASE):
+            redis_bin = '%s/bin/redis-server' % j.dirs.base
+            if 'redis-server' not in os.listdir(path='%s/bin/' % j.dirs.base):
                 url = "https://stor.jumpscale.org/public/redis-server"
-                j.do.download(url, to=redis_bin, overwrite=False, retry=3)
+                j.tools.cuisine.local.core.file_download(url, to=redis_bin, overwrite=False, retry=3)
             # import subprocess
             sync_cmd = 'sync'
             cmd1 = "chmod 550 %s 2>&1" % redis_bin

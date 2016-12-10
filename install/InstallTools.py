@@ -21,6 +21,853 @@ import yaml
 import importlib
 
 
+class GitMethod():
+
+
+class FS():
+
+    def getBinDirSystem(self):
+        return "/usr/local/bin/"
+
+    def getPythonLibSystem(self, jumpscale=False):
+        PYTHONVERSION = platform.python_version()
+        if self.TYPE.startswith("OSX"):
+            destjs = "/usr/local/lib/python3.5/site-packages"
+        elif self.TYPE.startswith("WIN"):
+            destjs = "/usr/lib/python3.4/site-packages"
+        else:
+            if PYTHONVERSION == '2':
+                destjs = "/usr/local/lib/python/dist-packages"
+            else:
+                destjs = "/usr/local/lib/python3.5/dist-packages"
+
+        if jumpscale:
+            destjs += "/JumpScale/"
+
+        self.createDir(destjs)
+        return destjs
+
+    def readFile(self, filename):
+        """Read a file and get contents of that file
+        @param filename: string (filename to open for reading )
+        @rtype: string representing the file contents
+        """
+        with open(filename) as fp:
+            data = fp.read()
+        return data
+
+    def touch(self, path):
+        self.writeFile(path, "")
+
+    def textstrip(self, content, ignorecomments=False):
+        # remove all spaces at beginning & end of line when relevant
+
+        # find generic prepend for full file
+        minchars = 9999
+        prechars = 0
+        for line in content.split("\n"):
+            if line.strip() == "":
+                continue
+            if ignorecomments:
+                if line.strip().startswith('#') and not line.strip().startswith("#!"):
+                    continue
+            prechars = len(line) - len(line.lstrip())
+            # print ("'%s':%s:%s"%(line,prechars,minchars))
+            if prechars < minchars:
+                minchars = prechars
+
+        if minchars > 0:
+
+            # if first line is empty, remove
+            lines = content.split("\n")
+            if len(lines) > 0:
+                if lines[0].strip() == "":
+                    lines.pop(0)
+            content = "\n".join(lines)
+
+            # remove the prechars
+            content = "\n".join([line[minchars:] for line in content.split("\n")])
+
+        return content
+
+    def writeFile(self, path, content, strip=True):
+
+        self.createDir(self.getDirName(path))
+
+        if strip:
+            content = self.textstrip(content, True)
+
+        with open(path, "w") as fo:
+            fo.write(content)
+
+    def delete(self, path, force=False):
+
+        self.removeSymlink(path)
+
+        if path.strip().rstrip("/") in ["", "/", "/etc", "/root", "/usr",
+                                        "/opt", "/usr/bin", "/usr/sbin", self.CODEDIR]:
+            raise RuntimeError('cannot delete protected dirs')
+
+        # if not force and path.find(self.CODEDIR)!=-1:
+        #     raise RuntimeError('cannot delete protected dirs')
+
+        if self.debug:
+            print(("delete: %s" % path))
+        if os.path.exists(path) or os.path.islink(path):
+            if os.path.isdir(path):
+                # print "delete dir %s" % path
+                if os.path.islink(path):
+                    os.remove(path)
+                else:
+                    shutil.rmtree(path)
+            else:
+                # print "delete file %s" % path
+                os.remove(path)
+
+    def joinPaths(self, *args):
+        return os.path.join(*args)
+
+    def copyTree(self, source, dest, keepsymlinks=False, deletefirst=False,
+                 overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
+                 ssh=False, sshport=22, recursive=True, rsyncdelete=False, createdir=False):
+        """
+        if ssh format of source or dest is: remoteuser@remotehost:/remote/dir
+        """
+        if self.debug:
+            print(("copy %s %s" % (source, dest)))
+        if not ssh and not self.exists(source):
+            raise RuntimeError("copytree:Cannot find source:%s" % source)
+        if rsync:
+            excl = ""
+            for item in ignoredir:
+                excl += "--exclude '*%s*/' " % item
+            for item in ignorefiles:
+                excl += "--exclude '*%s*' " % item
+            excl += "--exclude '*.pyc' "
+            excl += "--exclude '*.bak' "
+            excl += "--exclude '*__pycache__*' "
+
+            if self.isDir(source):
+                if dest[-1] != "/":
+                    dest += "/"
+                if source[-1] != "/":
+                    source += "/"
+                if ssh:
+                    pass
+                    # if dest.find(":")!=-1:
+                    #     if dest.find("@")!=-1:
+                    #         desthost=dest.split(":")[0].split("@", 1)[1].strip()
+                    #     else:
+                    #         desthost=dest.split(":")[0].strip()
+                    #     dir_dest=dest.split(":",1)[1]
+                    #     cmd="ssh -o StrictHostKeyChecking=no -p %s  %s 'mkdir -p %s'" % (sshport,sshport,dir_dest)
+                    #     print cmd
+                    #     self.executeInteractive(cmd)
+                else:
+                    self.createDir(dest)
+            if dest.find(':') == -1:  # download
+                self.createDir(self.getParent(dest))
+
+            destpath = dest.split(':')[1] if ':' in dest else dest
+
+            cmd = "rsync "
+            if keepsymlinks:
+                #-l is keep symlinks, -L follow
+                cmd += " -rlptgo --partial %s" % excl
+            else:
+                cmd += " -rLptgo --partial %s" % excl
+            if not recursive:
+                cmd += " --exclude \"*/\""
+            if self.debug:
+                cmd += ' --progress'
+            if rsyncdelete:
+                cmd += " --delete"
+            if ssh:
+                cmd += " -e 'ssh -o StrictHostKeyChecking=no -p %s' " % sshport
+            if createdir:
+                cmd += "--rsync-path='mkdir -p %s && rsync' " % self.getParent(destpath)
+            cmd += " '%s' '%s'" % (source, dest)
+            print(cmd)
+            rc, out, err = self.execute(cmd)
+            print(rc)
+            print(out)
+            return
+        else:
+            old_debug = self.debug
+            self.debug = False
+            self._copyTree(source, dest, keepsymlinks, deletefirst, overwriteFiles,
+                           ignoredir=ignoredir, ignorefiles=ignorefiles)
+            self.debug = old_debug
+
+    def _copyTree(self, src, dst, keepsymlinks=False, deletefirst=False, overwriteFiles=True,
+                  ignoredir=[".egg-info", "__pycache__"], ignorefiles=[".egg-info"]):
+        """Recursively copy an entire directory tree rooted at src.
+        The dst directory may already exist; if not,
+        it will be created as well as missing parent directories
+        @param src: string (source of directory tree to be copied)
+        @param dst: string (path directory to be copied to...should not already exist)
+        @param keepsymlinks: bool (True keeps symlinks instead of copying the content of the file)
+        @param deletefirst: bool (Set to True if you want to erase destination first, be carefull, this can erase directories)
+        @param overwriteFiles: if True will overwrite files, otherwise will not overwrite when destination exists
+        """
+
+        self.log('Copy directory tree from %s to %s' % (src, dst), 6)
+        if ((src is None) or (dst is None)):
+            raise TypeError(
+                'Not enough parameters passed in system.fs.copyTree to copy directory from %s to %s ' % (src, dst))
+        if self.isDir(src):
+            if ignoredir != []:
+                for item in ignoredir:
+                    if src.find(item) != -1:
+                        return
+            names = os.listdir(src)
+
+            if not self.exists(dst):
+                self.createDir(dst)
+
+            errors = []
+            for name in names:
+                # is only for the name
+                name2 = name
+
+                srcname = self.joinPaths(src, name)
+                dstname = self.joinPaths(dst, name2)
+                if deletefirst and self.exists(dstname):
+                    if self.isDir(dstname, False):
+                        self.removeDirTree(dstname)
+                    if self.isLink(dstname):
+                        self.unlink(dstname)
+
+                if keepsymlinks and self.isLink(srcname):
+                    linkto = self.readLink(srcname)
+                    # self.symlink(linkto, dstname)#, overwriteFiles)
+                    try:
+                        os.symlink(linkto, dstname)
+                    except:
+                        pass
+                        # TODO: very ugly change
+                elif self.isDir(srcname):
+                    # print "1:%s %s"%(srcname,dstname)
+                    self.copyTree(srcname, dstname, keepsymlinks, deletefirst,
+                                  overwriteFiles=overwriteFiles, ignoredir=ignoredir)
+                else:
+                    # print "2:%s %s"%(srcname,dstname)
+                    extt = self.getFileExtension(srcname)
+                    if extt == "pyc" or extt == "egg-info":
+                        continue
+                    if ignorefiles != []:
+                        for item in ignorefiles:
+                            if srcname.find(item) != -1:
+                                continue
+                    self.copyFile(srcname, dstname, deletefirst=overwriteFiles)
+        else:
+            raise RuntimeError('Source path %s in system.fs.copyTree is not a directory' % src)
+
+    def copyFile(self, source, dest, deletefirst=False, skipIfExists=False, makeExecutable=False):
+        """
+        """
+        if self.isDir(dest):
+            dest = self.joinPaths(dest, self.getBaseName(source))
+
+        if skipIfExists:
+            if self.exists(dest):
+                return
+
+        if deletefirst:
+            self.delete(dest)
+        if self.debug:
+            print(("copy %s %s" % (source, dest)))
+
+        shutil.copy(source, dest)
+
+        if makeExecutable:
+            self.chmod(dest, 0o770)
+
+    def createDir(self, path):
+        if not os.path.exists(path) and not os.path.islink(path):
+            os.makedirs(path)
+
+    def changeDir(self, path, create=False):
+        """Changes Current Directory
+        @param path: string (Directory path to be changed to)
+        """
+        self.log('Changing directory to: %s' % path, 6)
+        if create:
+            self.createDir(path)
+        if self.exists(path):
+            if self.isDir(path):
+                os.chdir(path)
+            else:
+                raise ValueError("Path: %s in system.fs.changeDir is not a Directory" % path)
+        else:
+            raise RuntimeError("Path: %s in system.fs.changeDir does not exist" % path)
+
+    def isDir(self, path, followSoftlink=False):
+        """Check if the specified Directory path exists
+        @param path: string
+        @param followSoftlink: boolean
+        @rtype: boolean (True if directory exists)
+        """
+        if self.isLink(path):
+            if not followSoftlink:
+                return False
+            else:
+                link = self.readLink(path)
+                return self.isDir(link)
+        else:
+            return os.path.isdir(path)
+
+    def isExecutable(self, path):
+        stat.S_IXUSR & statobj.st_mode
+
+    def isFile(self, path, followSoftlink=False):
+        """Check if the specified file exists for the given path
+        @param path: string
+        @param followSoftlink: boolean
+        @rtype: boolean (True if file exists for the given path)
+        """
+        if self.isLink(path):
+            if not followSoftlink:
+                return False
+            else:
+                link = self.readLink(path)
+                return self.isFile(link)
+        else:
+            return os.path.isfile(path)
+
+    def isLink(self, path, checkJunction=False):
+        """Check if the specified path is a link
+        @param path: string
+        @rtype: boolean (True if the specified path is a link)
+        """
+        if path[-1] == os.sep:
+            path = path[:-1]
+        if (path is None):
+            raise TypeError('Link path is None in system.fs.isLink')
+
+        if checkJunction and self.isWindows():
+            cmd = "junction %s" % path
+            try:
+                rc, result, err = self.execute(cmd)
+            except Exception as e:
+                raise RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s." % cmd)
+            if rc != 0:
+                raise RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s." % cmd)
+            if result.lower().find("substitute name") != -1:
+                return True
+            else:
+                return False
+
+        if(os.path.islink(path)):
+            # self.log('path %s is a link'%path,8)
+            return True
+        # self.log('path %s is not a link'%path,8)
+        return False
+
+    def list(self, path):
+        # self.log("list:%s"%path)
+        if(self.isDir(path)):
+            s = sorted(["%s/%s" % (path, item) for item in os.listdir(path)])
+            return s
+        elif(self.isLink(path)):
+            link = self.readLink(path)
+            return self.list(link)
+        else:
+            raise ValueError("Specified path: %s is not a Directory in self.listDir" % path)
+
+    def exists(self, path):
+        return os.path.exists(path)
+
+    def pip(self, items, force=False, executor=None):
+        """
+        @param items is string or list
+        """
+        if isinstance(items, list):
+            pass
+        elif isinstance(items, str):
+            items = self.textstrip(items)
+            items = [item.strip() for item in items.split("\n") if item.strip() != ""]
+        else:
+            raise RuntimeError("input can only be string or list")
+
+        for item in items:
+            if "pip_%s" % item not in self.done or force:
+                cmd = "pip3 install %s --upgrade" % item
+                if executor == None:
+                    self.executeInteractive(cmd)
+                else:
+                    executor.execute(cmd)
+                self.doneSet("pip_%s" % item)
+            else:
+                print("no need to pip install:%s" % item)
+
+    def symlink(self, src, dest, delete=False):
+        """
+        dest is where the link will be created pointing to src
+        """
+        if self.debug:
+            print(("symlink: src:%s dest(islink):%s" % (src, dest)))
+
+        if self.isLink(dest):
+            self.removeSymlink(dest)
+
+        if delete:
+            if self.TYPE == "WIN":
+                self.removeSymlink(dest)
+                self.delete(dest)
+            else:
+                self.delete(dest)
+
+        if self.TYPE == "WIN":
+            cmd = "junction %s %s 2>&1 > null" % (dest, src)
+            os.system(cmd)
+            # raise RuntimeError("not supported on windows yet")
+        else:
+            dest = dest.rstrip("/")
+            src = src.rstrip("/")
+            if not self.exists(src):
+                raise RuntimeError("could not find src for link:%s" % src)
+            if not self.exists(dest):
+                os.symlink(src, dest)
+
+    def symlinkFilesInDir(self, src, dest, delete=True, includeDirs=False):
+        if includeDirs:
+            items = self.listFilesAndDirsInDir(src, recursive=False, followSymlinks=False, listSymlinks=False)
+        else:
+            items = self.listFilesInDir(src, recursive=False, followSymlinks=True, listSymlinks=True)
+        for item in items:
+            dest2 = "%s/%s" % (dest, self.getBaseName(item))
+            dest2 = dest2.replace("//", "/")
+            print(("link %s:%s" % (item, dest2)))
+            self.symlink(item, dest2, delete=delete)
+
+    def removeSymlink(self, path):
+        if self.TYPE == "WIN":
+            try:
+                cmd = "junction -d %s 2>&1 > null" % (path)
+                print(cmd)
+                os.system(cmd)
+            except Exception as e:
+                pass
+        else:
+            if self.isLink(path):
+                os.unlink(path.rstrip("/"))
+
+    def getBaseName(self, path):
+        """Return the base name of pathname path."""
+        # self.log('Get basename for path: %s'%path,9)
+        if path is None:
+            raise TypeError('Path is not passed in system.fs.getDirName')
+        try:
+            return os.path.basename(path.rstrip(os.path.sep))
+        except Exception as e:
+            raise RuntimeError('Failed to get base name of the given path: %s, Error: %s' % (path, str(e)))
+
+    def checkDirOrLinkToDir(self, fullpath):
+        """
+        check if path is dir or link to a dir
+        """
+        if fullpath is None or fullpath.strip == "":
+            raise RuntimeError("path cannot be empty")
+
+        if not self.isLink(fullpath) and os.path.isdir(fullpath):
+            return True
+        if self.isLink(fullpath):
+            link = self.readLink(fullpath)
+            if self.isDir(link):
+                return True
+        return False
+
+    def getDirName(self, path, lastOnly=False, levelsUp=None):
+        """
+        Return a directory name from pathname path.
+        @param path the path to find a directory within
+        @param lastOnly means only the last part of the path which is a dir (overrides levelsUp to 0)
+        @param levelsUp means, return the parent dir levelsUp levels up
+         e.g. ...getDirName("/opt/qbase/bin/something/test.py", levelsUp=0) would return something
+         e.g. ...getDirName("/opt/qbase/bin/something/test.py", levelsUp=1) would return bin
+         e.g. ...getDirName("/opt/qbase/bin/something/test.py", levelsUp=10) would raise an error
+        """
+        # self.log('Get directory name of path: %s' % path,9)
+        if path is None:
+            raise TypeError('Path is not passed in system.fs.getDirName')
+        dname = os.path.dirname(path)
+        dname = dname.replace("/", os.sep)
+        dname = dname.replace("//", os.sep)
+        dname = dname.replace("\\", os.sep)
+        if lastOnly:
+            dname = dname.split(os.sep)[-1]
+            return dname
+        if levelsUp is not None:
+            parts = dname.split(os.sep)
+            if len(parts) - levelsUp > 0:
+                return parts[len(parts) - levelsUp - 1]
+            else:
+                raise RuntimeError("Cannot find part of dir %s levels up, path %s is not long enough" %
+                                   (levelsUp, path))
+        return dname + os.sep
+
+    def readLink(self, path):
+        """Works only for unix
+        Return a string representing the path to which the symbolic link points.
+        """
+        while path[-1] == "/" or path[-1] == "\\":
+            path = path[:-1]
+        # self.log('Read link with path: %s'%path,8)
+        if path is None:
+            raise TypeError('Path is not passed in system.fs.readLink')
+        if self.isWindows():
+            raise RuntimeError('Cannot readLink on windows')
+        try:
+            return os.readlink(path)
+        except Exception as e:
+            raise RuntimeError('Failed to read link with path: %s \nERROR: %s' % (path, str(e)))
+
+    def removeLinks(self, path):
+        """
+        find all links & remove
+        """
+        if not self.exists(path):
+            return
+        items = self._listAllInDir(path=path, recursive=True, followSymlinks=False, listSymlinks=True)
+        items = [item for item in items[0] if self.isLink(item)]
+        for item in items:
+            self.unlink(item)
+
+    def _listInDir(self, path, followSymlinks=True):
+        """returns array with dirs & files in directory
+        @param path: string (Directory path to list contents under)
+        """
+        if path is None:
+            raise TypeError('Path is not passed in system.fs.listDir')
+        if(self.exists(path)):
+            if(self.isDir(path)) or (followSymlinks and self.checkDirOrLinkToDir(path)):
+                names = os.listdir(path)
+                return names
+            else:
+                raise ValueError("Specified path: %s is not a Directory in system.fs.listDir" % path)
+        else:
+            raise RuntimeError("Specified path: %s does not exist in system.fs.listDir" % path)
+
+    def listDirsInDir(self, path, recursive=False, dirNameOnly=False, findDirectorySymlinks=True):
+        """ Retrieves list of directories found in the specified directory
+        @param path: string represents directory path to search in
+        @rtype: list
+        """
+        # self.log('List directories in directory with path: %s, recursive = %s' % (path, str(recursive)),9)
+
+        # if recursive:
+        # if not self.exists(path):
+        # raise ValueError('Specified path: %s does not exist' % path)
+        # if not self.isDir(path):
+        # raise ValueError('Specified path: %s is not a directory' % path)
+        # result = []
+        # os.path.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
+        # return result
+        if path is None or path.strip == "":
+            raise RuntimeError("path cannot be empty")
+        files = self._listInDir(path, followSymlinks=True)
+        filesreturn = []
+        for file in files:
+            fullpath = os.path.join(path, file)
+            if (findDirectorySymlinks and self.checkDirOrLinkToDir(fullpath)) or self.isDir(fullpath):
+                if dirNameOnly:
+                    filesreturn.append(file)
+                else:
+                    filesreturn.append(fullpath)
+                if recursive:
+                    filesreturn.extend(self.listDirsInDir(fullpath, recursive, dirNameOnly, findDirectorySymlinks))
+        return filesreturn
+
+    def listFilesInDir(self, path, recursive=False, filter=None, minmtime=None, maxmtime=None,
+                       depth=None, case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=False):
+        """Retrieves list of files found in the specified directory
+        @param path:       directory path to search in
+        @type  path:       string
+        @param recursive:  recursively look in all subdirs
+        @type  recursive:  boolean
+        @param filter:     unix-style wildcard (e.g. *.py) - this is not a regular expression
+        @type  filter:     string
+        @param minmtime:   if not None, only return files whose last modification time > minmtime (epoch in seconds)
+        @type  minmtime:   integer
+        @param maxmtime:   if not None, only return files whose last modification time < maxmtime (epoch in seconds)
+        @Param depth: is levels deep wich we need to go
+        @type  maxmtime:   integer
+        @Param exclude: list of std filters if matches then exclude
+        @rtype: list
+        """
+        if depth is not None:
+            depth = int(depth)
+        # self.log('List files in directory with path: %s' % path,9)
+        if depth == 0:
+            depth = None
+        # if depth is not None:
+        #     depth+=1
+        filesreturn, depth = self._listAllInDir(path, recursive, filter, minmtime, maxmtime, depth, type="f",
+                                                case_sensitivity=case_sensitivity, exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
+        return filesreturn
+
+    def listFilesAndDirsInDir(self, path, recursive=False, filter=None, minmtime=None,
+                              maxmtime=None, depth=None, type="fd", followSymlinks=True, listSymlinks=False):
+        """Retrieves list of files found in the specified directory
+        @param path:       directory path to search in
+        @type  path:       string
+        @param recursive:  recursively look in all subdirs
+        @type  recursive:  boolean
+        @param filter:     unix-style wildcard (e.g. *.py) - this is not a regular expression
+        @type  filter:     string
+        @param minmtime:   if not None, only return files whose last modification time > minmtime (epoch in seconds)
+        @type  minmtime:   integer
+        @param maxmtime:   if not None, only return files whose last modification time < maxmtime (epoch in seconds)
+        @Param depth: is levels deep wich we need to go
+        @type  maxmtime:   integer
+        @param type is string with f & d inside (f for when to find files, d for when to find dirs)
+        @rtype: list
+        """
+        if depth is not None:
+            depth = int(depth)
+        self.log('List files in directory with path: %s' % path, 9)
+        if depth == 0:
+            depth = None
+        # if depth is not None:
+        #     depth+=1
+        filesreturn, depth = self._listAllInDir(
+            path, recursive, filter, minmtime, maxmtime, depth, type=type, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
+        return filesreturn
+
+    def _listAllInDir(self, path, recursive, filter=None, minmtime=None, maxmtime=None, depth=None,
+                      type="df", case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=True):
+        """
+        # There are 3 possible options for case-sensitivity for file names
+        # 1. `os`: the same behavior as the OS
+        # 2. `sensitive`: case-sensitive comparison
+        # 3. `insensitive`: case-insensitive comparison
+        """
+
+        dircontent = self._listInDir(path)
+        filesreturn = []
+
+        if case_sensitivity.lower() == 'sensitive':
+            matcher = fnmatch.fnmatchcase
+        elif case_sensitivity.lower() == 'insensitive':
+            def matcher(fname, pattern):
+                return fnmatch.fnmatchcase(fname.lower(), pattern.lower())
+        else:
+            matcher = fnmatch.fnmatch
+
+        for direntry in dircontent:
+            fullpath = self.joinPaths(path, direntry)
+
+            if followSymlinks:
+                if self.isLink(fullpath):
+                    fullpath = self.readLink(fullpath)
+
+            if self.isFile(fullpath) and "f" in type:
+                includeFile = False
+                if (filter is None) or matcher(direntry, filter):
+                    if (minmtime is not None) or (maxmtime is not None):
+                        mymtime = os.stat(fullpath)[ST_MTIME]
+                        if (minmtime is None) or (mymtime > minmtime):
+                            if (maxmtime is None) or (mymtime < maxmtime):
+                                includeFile = True
+                    else:
+                        includeFile = True
+                if includeFile:
+                    if exclude != []:
+                        for excludeItem in exclude:
+                            if matcher(direntry, excludeItem):
+                                includeFile = False
+                    if includeFile:
+                        filesreturn.append(fullpath)
+            elif self.isDir(fullpath):
+                if "d" in type:
+                    if not(listSymlinks is False and self.isLink(fullpath)):
+                        filesreturn.append(fullpath)
+                if recursive:
+                    if depth is not None and depth != 0:
+                        depth = depth - 1
+                    if depth is None or depth != 0:
+                        exclmatch = False
+                        if exclude != []:
+                            for excludeItem in exclude:
+                                if matcher(fullpath, excludeItem):
+                                    exclmatch = True
+                        if exclmatch is False:
+                            if not(followSymlinks is False and self.isLink(fullpath)):
+                                r, depth = self._listAllInDir(fullpath, recursive, filter, minmtime, maxmtime, depth=depth,
+                                                              type=type, exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
+                                if len(r) > 0:
+                                    filesreturn.extend(r)
+            elif self.isLink(fullpath) and followSymlinks is False and listSymlinks:
+                filesreturn.append(fullpath)
+
+        return filesreturn, depth
+
+    def download(self, url, to="", overwrite=True, retry=3, timeout=0, login="",
+                 passwd="", minspeed=0, multithread=False, curl=False):
+        """
+        @return path of downloaded file
+        @param minspeed is kbytes per sec e.g. 50, if less than 50 kbytes during 10 min it will restart the download (curl only)
+        @param when multithread True then will use aria2 download tool to get multiple threads
+        """
+        def download(url, to, retry=3):
+            if timeout == 0:
+                handle = urlopen(url)
+            else:
+                handle = urlopen(url, timeout=timeout)
+            nr = 0
+            while nr < retry + 1:
+                try:
+                    with open(to, 'wb') as out:
+                        while True:
+                            data = handle.read(1024)
+                            if len(data) == 0:
+                                break
+                            out.write(data)
+                    handle.close()
+                    out.close()
+                    return
+                except Exception as e:
+                    print("DOWNLOAD ERROR:%s\n%s" % (url, e))
+                    try:
+                        handle.close()
+                    except:
+                        pass
+                    try:
+                        out.close()
+                    except:
+                        pass
+                    handle = urlopen(url)
+                    nr += 1
+
+        print(('Downloading %s ' % (url)))
+        if to == "":
+            to = self.TMPDIR + "/" + url.replace("\\", "/").split("/")[-1]
+
+        if overwrite:
+            if self.exists(to):
+                self.delete(to)
+                self.delete("%s.downloadok" % to)
+        else:
+            if self.exists(to) and self.exists("%s.downloadok" % to):
+                # print "NO NEED TO DOWNLOAD WAS DONE ALREADY"
+                return to
+
+        self.createDir(self.getDirName(to))
+
+        if curl and self.checkInstalled("curl"):
+            minspeed = 0
+            if minspeed != 0:
+                minsp = "-y %s -Y 600" % (minspeed * 1024)
+            else:
+                minsp = ""
+            if login:
+                user = "--user %s:%s " % (login, passwd)
+            else:
+                user = ""
+
+            cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (
+                url, to, user, minsp, retry, timeout)
+            if self.exists(to):
+                cmd += " -C -"
+            print(cmd)
+            self.delete("%s.downloadok" % to)
+            rc, out, err = self.execute(cmd, die=False)
+            if rc == 33:  # resume is not support try again withouth resume
+                self.delete(to)
+                cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (
+                    url, to, user, minsp, retry, timeout)
+                rc, out, err = self.execute(cmd, die=False)
+            if rc:
+                raise RuntimeError("Could not download:{}.\nErrorcode: {}".format(url, rc))
+            else:
+                self.touch("%s.downloadok" % to)
+        elif multithread:
+            raise RuntimeError("not implemented yet")
+        else:
+            download(url, to, retry)
+            self.touch("%s.downloadok" % to)
+
+        return to
+
+    def getParent(self, path):
+        """
+        Returns the parent of the path:
+        /dir1/dir2/file_or_dir -> /dir1/dir2/
+        /dir1/dir2/            -> /dir1/
+        TODO: why do we have 2 implementations which are almost the same see getParentDirName()
+        """
+        parts = path.split(os.sep)
+        if parts[-1] == '':
+            parts = parts[:-1]
+        parts = parts[:-1]
+        if parts == ['']:
+            return os.sep
+        return os.sep.join(parts)
+
+    def getFileExtension(self, path):
+        extcand = path.split(".")
+        if len(extcand) > 0:
+            ext = extcand[-1]
+        else:
+            ext = ""
+        return ext
+
+    def chown(self, path, user):
+
+        from pwd import getpwnam
+
+        getpwnam(user)[2]
+        uid = getpwnam(user).pw_uid
+        gid = getpwnam(user).pw_gid
+        os.chown(path, uid, gid)
+        for root, dirs, files in os.walk(path):
+            for ddir in dirs:
+                path = os.path.join(root, ddir)
+                try:
+                    os.chown(path, uid, gid)
+                except Exception as e:
+                    if str(e).find("No such file or directory") == -1:
+                        raise RuntimeError("%s" % e)
+            for file in files:
+                path = os.path.join(root, file)
+                try:
+                    os.chown(path, uid, gid)
+                except Exception as e:
+                    if str(e).find("No such file or directory") == -1:
+                        raise RuntimeError("%s" % e)
+
+    def chmod(self, path, permissions):
+        """
+        @param permissions e.g. 0o660 (USE OCTAL !!!)
+        """
+        os.chmod(path, permissions)
+        for root, dirs, files in os.walk(path):
+            for ddir in dirs:
+                path = os.path.join(root, ddir)
+                try:
+                    os.chmod(path, permissions)
+                except Exception as e:
+                    if str(e).find("No such file or directory") == -1:
+                        raise RuntimeError("%s" % e)
+
+            for file in files:
+                path = os.path.join(root, file)
+                try:
+                    os.chmod(path, permissions)
+                except Exception as e:
+                    if str(e).find("No such file or directory") == -1:
+                        raise RuntimeError("%s" % e)
+
+    def chdir(self, ddir=""):
+        """
+        if ddir=="" then will go to tmpdir
+        """
+        if ddir == "":
+            ddir = self.TMPDIR
+        os.chdir(ddir)
+
+
 class Installer():
 
     def __init__(self):
@@ -508,7 +1355,7 @@ class Installer():
         #     self.do.copyTree(src, dest)
 
 
-class InstallTools():
+class InstallTools(GitMethod, FS):
 
     def __init__(self, debug=False):
 
@@ -785,872 +1632,7 @@ class InstallTools():
         if self.debug:
             print(msg)
 
-    def getBinDirSystem(self):
-        return "/usr/local/bin/"
-
-    def getPythonLibSystem(self, jumpscale=False):
-        PYTHONVERSION = platform.python_version()
-        if self.TYPE.startswith("OSX"):
-            destjs = "/usr/local/lib/python3.5/site-packages"
-        elif self.TYPE.startswith("WIN"):
-            destjs = "/usr/lib/python3.4/site-packages"
-        else:
-            if PYTHONVERSION == '2':
-                destjs = "/usr/local/lib/python/dist-packages"
-            else:
-                destjs = "/usr/local/lib/python3.5/dist-packages"
-
-        if jumpscale:
-            destjs += "/JumpScale/"
-
-        self.createDir(destjs)
-        return destjs
-
-    def readFile(self, filename):
-        """Read a file and get contents of that file
-        @param filename: string (filename to open for reading )
-        @rtype: string representing the file contents
-        """
-        with open(filename) as fp:
-            data = fp.read()
-        return data
-
-    def touch(self, path):
-        self.writeFile(path, "")
-
-    def textstrip(self, content, ignorecomments=False):
-        # remove all spaces at beginning & end of line when relevant
-
-        # find generic prepend for full file
-        minchars = 9999
-        prechars = 0
-        for line in content.split("\n"):
-            if line.strip() == "":
-                continue
-            if ignorecomments:
-                if line.strip().startswith('#') and not line.strip().startswith("#!"):
-                    continue
-            prechars = len(line) - len(line.lstrip())
-            # print ("'%s':%s:%s"%(line,prechars,minchars))
-            if prechars < minchars:
-                minchars = prechars
-
-        if minchars > 0:
-
-            # if first line is empty, remove
-            lines = content.split("\n")
-            if len(lines) > 0:
-                if lines[0].strip() == "":
-                    lines.pop(0)
-            content = "\n".join(lines)
-
-            # remove the prechars
-            content = "\n".join([line[minchars:] for line in content.split("\n")])
-
-        return content
-
-    def writeFile(self, path, content, strip=True):
-
-        self.createDir(self.getDirName(path))
-
-        if strip:
-            content = self.textstrip(content, True)
-
-        with open(path, "w") as fo:
-            fo.write(content)
-
-    def delete(self, path, force=False):
-
-        self.removeSymlink(path)
-
-        if path.strip().rstrip("/") in ["", "/", "/etc", "/root", "/usr",
-                                        "/opt", "/usr/bin", "/usr/sbin", self.CODEDIR]:
-            raise RuntimeError('cannot delete protected dirs')
-
-        # if not force and path.find(self.CODEDIR)!=-1:
-        #     raise RuntimeError('cannot delete protected dirs')
-
-        if self.debug:
-            print(("delete: %s" % path))
-        if os.path.exists(path) or os.path.islink(path):
-            if os.path.isdir(path):
-                # print "delete dir %s" % path
-                if os.path.islink(path):
-                    os.remove(path)
-                else:
-                    shutil.rmtree(path)
-            else:
-                # print "delete file %s" % path
-                os.remove(path)
-
-    def joinPaths(self, *args):
-        return os.path.join(*args)
-
-    def copyTree(self, source, dest, keepsymlinks=False, deletefirst=False,
-                 overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
-                 ssh=False, sshport=22, recursive=True, rsyncdelete=False, createdir=False):
-        """
-        if ssh format of source or dest is: remoteuser@remotehost:/remote/dir
-        """
-        if self.debug:
-            print(("copy %s %s" % (source, dest)))
-        if not ssh and not self.exists(source):
-            raise RuntimeError("copytree:Cannot find source:%s" % source)
-        if rsync:
-            excl = ""
-            for item in ignoredir:
-                excl += "--exclude '*%s*/' " % item
-            for item in ignorefiles:
-                excl += "--exclude '*%s*' " % item
-            excl += "--exclude '*.pyc' "
-            excl += "--exclude '*.bak' "
-            excl += "--exclude '*__pycache__*' "
-
-            if self.isDir(source):
-                if dest[-1] != "/":
-                    dest += "/"
-                if source[-1] != "/":
-                    source += "/"
-                if ssh:
-                    pass
-                    # if dest.find(":")!=-1:
-                    #     if dest.find("@")!=-1:
-                    #         desthost=dest.split(":")[0].split("@", 1)[1].strip()
-                    #     else:
-                    #         desthost=dest.split(":")[0].strip()
-                    #     dir_dest=dest.split(":",1)[1]
-                    #     cmd="ssh -o StrictHostKeyChecking=no -p %s  %s 'mkdir -p %s'" % (sshport,sshport,dir_dest)
-                    #     print cmd
-                    #     self.executeInteractive(cmd)
-                else:
-                    self.createDir(dest)
-            if dest.find(':') == -1:  # download
-                self.createDir(self.getParent(dest))
-
-            destpath = dest.split(':')[1] if ':' in dest else dest
-
-            cmd = "rsync "
-            if keepsymlinks:
-                #-l is keep symlinks, -L follow
-                cmd += " -rlptgo --partial %s" % excl
-            else:
-                cmd += " -rLptgo --partial %s" % excl
-            if not recursive:
-                cmd += " --exclude \"*/\""
-            if self.debug:
-                cmd += ' --progress'
-            if rsyncdelete:
-                cmd += " --delete"
-            if ssh:
-                cmd += " -e 'ssh -o StrictHostKeyChecking=no -p %s' " % sshport
-            if createdir:
-                cmd += "--rsync-path='mkdir -p %s && rsync' " % self.getParent(destpath)
-            cmd += " '%s' '%s'" % (source, dest)
-            print(cmd)
-            rc, out, err = self.execute(cmd)
-            print(rc)
-            print(out)
-            return
-        else:
-            old_debug = self.debug
-            self.debug = False
-            self._copyTree(source, dest, keepsymlinks, deletefirst, overwriteFiles,
-                           ignoredir=ignoredir, ignorefiles=ignorefiles)
-            self.debug = old_debug
-
-    def _copyTree(self, src, dst, keepsymlinks=False, deletefirst=False, overwriteFiles=True,
-                  ignoredir=[".egg-info", "__pycache__"], ignorefiles=[".egg-info"]):
-        """Recursively copy an entire directory tree rooted at src.
-        The dst directory may already exist; if not,
-        it will be created as well as missing parent directories
-        @param src: string (source of directory tree to be copied)
-        @param dst: string (path directory to be copied to...should not already exist)
-        @param keepsymlinks: bool (True keeps symlinks instead of copying the content of the file)
-        @param deletefirst: bool (Set to True if you want to erase destination first, be carefull, this can erase directories)
-        @param overwriteFiles: if True will overwrite files, otherwise will not overwrite when destination exists
-        """
-
-        self.log('Copy directory tree from %s to %s' % (src, dst), 6)
-        if ((src is None) or (dst is None)):
-            raise TypeError(
-                'Not enough parameters passed in system.fs.copyTree to copy directory from %s to %s ' % (src, dst))
-        if self.isDir(src):
-            if ignoredir != []:
-                for item in ignoredir:
-                    if src.find(item) != -1:
-                        return
-            names = os.listdir(src)
-
-            if not self.exists(dst):
-                self.createDir(dst)
-
-            errors = []
-            for name in names:
-                # is only for the name
-                name2 = name
-
-                srcname = self.joinPaths(src, name)
-                dstname = self.joinPaths(dst, name2)
-                if deletefirst and self.exists(dstname):
-                    if self.isDir(dstname, False):
-                        self.removeDirTree(dstname)
-                    if self.isLink(dstname):
-                        self.unlink(dstname)
-
-                if keepsymlinks and self.isLink(srcname):
-                    linkto = self.readLink(srcname)
-                    # self.symlink(linkto, dstname)#, overwriteFiles)
-                    try:
-                        os.symlink(linkto, dstname)
-                    except:
-                        pass
-                        # TODO: very ugly change
-                elif self.isDir(srcname):
-                    # print "1:%s %s"%(srcname,dstname)
-                    self.copyTree(srcname, dstname, keepsymlinks, deletefirst,
-                                  overwriteFiles=overwriteFiles, ignoredir=ignoredir)
-                else:
-                    # print "2:%s %s"%(srcname,dstname)
-                    extt = self.getFileExtension(srcname)
-                    if extt == "pyc" or extt == "egg-info":
-                        continue
-                    if ignorefiles != []:
-                        for item in ignorefiles:
-                            if srcname.find(item) != -1:
-                                continue
-                    self.copyFile(srcname, dstname, deletefirst=overwriteFiles)
-        else:
-            raise RuntimeError('Source path %s in system.fs.copyTree is not a directory' % src)
-
-    def copyFile(self, source, dest, deletefirst=False, skipIfExists=False, makeExecutable=False):
-        """
-        """
-        if self.isDir(dest):
-            dest = self.joinPaths(dest, self.getBaseName(source))
-
-        if skipIfExists:
-            if self.exists(dest):
-                return
-
-        if deletefirst:
-            self.delete(dest)
-        if self.debug:
-            print(("copy %s %s" % (source, dest)))
-
-        shutil.copy(source, dest)
-
-        if makeExecutable:
-            self.chmod(dest, 0o770)
-
-    def createDir(self, path):
-        if not os.path.exists(path) and not os.path.islink(path):
-            os.makedirs(path)
-
-    def changeDir(self, path, create=False):
-        """Changes Current Directory
-        @param path: string (Directory path to be changed to)
-        """
-        self.log('Changing directory to: %s' % path, 6)
-        if create:
-            self.createDir(path)
-        if self.exists(path):
-            if self.isDir(path):
-                os.chdir(path)
-            else:
-                raise ValueError("Path: %s in system.fs.changeDir is not a Directory" % path)
-        else:
-            raise RuntimeError("Path: %s in system.fs.changeDir does not exist" % path)
-
-    def isDir(self, path, followSoftlink=False):
-        """Check if the specified Directory path exists
-        @param path: string
-        @param followSoftlink: boolean
-        @rtype: boolean (True if directory exists)
-        """
-        if self.isLink(path):
-            if not followSoftlink:
-                return False
-            else:
-                link = self.readLink(path)
-                return self.isDir(link)
-        else:
-            return os.path.isdir(path)
-
-    def isExecutable(self, path):
-        stat.S_IXUSR & statobj.st_mode
-
-    def isFile(self, path, followSoftlink=False):
-        """Check if the specified file exists for the given path
-        @param path: string
-        @param followSoftlink: boolean
-        @rtype: boolean (True if file exists for the given path)
-        """
-        if self.isLink(path):
-            if not followSoftlink:
-                return False
-            else:
-                link = self.readLink(path)
-                return self.isFile(link)
-        else:
-            return os.path.isfile(path)
-
-    def isLink(self, path, checkJunction=False):
-        """Check if the specified path is a link
-        @param path: string
-        @rtype: boolean (True if the specified path is a link)
-        """
-        if path[-1] == os.sep:
-            path = path[:-1]
-        if (path is None):
-            raise TypeError('Link path is None in system.fs.isLink')
-
-        if checkJunction and self.isWindows():
-            cmd = "junction %s" % path
-            try:
-                rc, result, err = self.execute(cmd)
-            except Exception as e:
-                raise RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s." % cmd)
-            if rc != 0:
-                raise RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s." % cmd)
-            if result.lower().find("substitute name") != -1:
-                return True
-            else:
-                return False
-
-        if(os.path.islink(path)):
-            # self.log('path %s is a link'%path,8)
-            return True
-        # self.log('path %s is not a link'%path,8)
-        return False
-
-    def list(self, path):
-        # self.log("list:%s"%path)
-        if(self.isDir(path)):
-            s = sorted(["%s/%s" % (path, item) for item in os.listdir(path)])
-            return s
-        elif(self.isLink(path)):
-            link = self.readLink(path)
-            return self.list(link)
-        else:
-            raise ValueError("Specified path: %s is not a Directory in self.listDir" % path)
-
-    def exists(self, path):
-        return os.path.exists(path)
-
-    def pip(self, items, force=False, executor=None):
-        """
-        @param items is string or list
-        """
-        if isinstance(items, list):
-            pass
-        elif isinstance(items, str):
-            items = self.textstrip(items)
-            items = [item.strip() for item in items.split("\n") if item.strip() != ""]
-        else:
-            raise RuntimeError("input can only be string or list")
-
-        for item in items:
-            if "pip_%s" % item not in self.done or force:
-                cmd = "pip3 install %s --upgrade" % item
-                if executor == None:
-                    self.executeInteractive(cmd)
-                else:
-                    executor.execute(cmd)
-                self.doneSet("pip_%s" % item)
-            else:
-                print("no need to pip install:%s" % item)
-
-    # TODO *3 does not belong here
-    def findDependencies(self, path, deps={}):
-        excl = ["libc.so", "libpthread.so", "libutil.so"]
-        out = self.installtools.execute("ldd %s" % path)
-        result = []
-        for item in [item.strip() for item in out.split("\n") if item.strip() != ""]:
-            if item.find("=>") != -1:
-                link = item.split("=>")[1].strip()
-                link = link.split("(")[0].strip()
-                if self.exists(link):
-                    name = os.path.basename(link)
-                    if name not in deps:
-                        print(link)
-                        deps[name] = link
-                        deps = self.findDependencies(link)
-        return deps
-
-    def copyDependencies(self, path, dest):
-        self.installtools.createDir(dest)
-        deps = self.findDependencies(path)
-        for name in list(deps.keys()):
-            path = deps[name]
-            self.installtools.copydeletefirst(path, "%s/%s" % (dest, name))
-
-    def symlink(self, src, dest, delete=False):
-        """
-        dest is where the link will be created pointing to src
-        """
-        if self.debug:
-            print(("symlink: src:%s dest(islink):%s" % (src, dest)))
-
-        if self.isLink(dest):
-            self.removeSymlink(dest)
-
-        if delete:
-            if self.TYPE == "WIN":
-                self.removeSymlink(dest)
-                self.delete(dest)
-            else:
-                self.delete(dest)
-
-        if self.TYPE == "WIN":
-            cmd = "junction %s %s 2>&1 > null" % (dest, src)
-            os.system(cmd)
-            # raise RuntimeError("not supported on windows yet")
-        else:
-            dest = dest.rstrip("/")
-            src = src.rstrip("/")
-            if not self.exists(src):
-                raise RuntimeError("could not find src for link:%s" % src)
-            if not self.exists(dest):
-                os.symlink(src, dest)
-
-    def symlinkFilesInDir(self, src, dest, delete=True, includeDirs=False):
-        if includeDirs:
-            items = self.listFilesAndDirsInDir(src, recursive=False, followSymlinks=False, listSymlinks=False)
-        else:
-            items = self.listFilesInDir(src, recursive=False, followSymlinks=True, listSymlinks=True)
-        for item in items:
-            dest2 = "%s/%s" % (dest, self.getBaseName(item))
-            dest2 = dest2.replace("//", "/")
-            print(("link %s:%s" % (item, dest2)))
-            self.symlink(item, dest2, delete=delete)
-
-    def removeSymlink(self, path):
-        if self.TYPE == "WIN":
-            try:
-                cmd = "junction -d %s 2>&1 > null" % (path)
-                print(cmd)
-                os.system(cmd)
-            except Exception as e:
-                pass
-        else:
-            if self.isLink(path):
-                os.unlink(path.rstrip("/"))
-
-    def getBaseName(self, path):
-        """Return the base name of pathname path."""
-        # self.log('Get basename for path: %s'%path,9)
-        if path is None:
-            raise TypeError('Path is not passed in system.fs.getDirName')
-        try:
-            return os.path.basename(path.rstrip(os.path.sep))
-        except Exception as e:
-            raise RuntimeError('Failed to get base name of the given path: %s, Error: %s' % (path, str(e)))
-
-    def checkDirOrLinkToDir(self, fullpath):
-        """
-        check if path is dir or link to a dir
-        """
-        if fullpath is None or fullpath.strip == "":
-            raise RuntimeError("path cannot be empty")
-
-        if not self.isLink(fullpath) and os.path.isdir(fullpath):
-            return True
-        if self.isLink(fullpath):
-            link = self.readLink(fullpath)
-            if self.isDir(link):
-                return True
-        return False
-
-    def getDirName(self, path, lastOnly=False, levelsUp=None):
-        """
-        Return a directory name from pathname path.
-        @param path the path to find a directory within
-        @param lastOnly means only the last part of the path which is a dir (overrides levelsUp to 0)
-        @param levelsUp means, return the parent dir levelsUp levels up
-         e.g. ...getDirName("/opt/qbase/bin/something/test.py", levelsUp=0) would return something
-         e.g. ...getDirName("/opt/qbase/bin/something/test.py", levelsUp=1) would return bin
-         e.g. ...getDirName("/opt/qbase/bin/something/test.py", levelsUp=10) would raise an error
-        """
-        # self.log('Get directory name of path: %s' % path,9)
-        if path is None:
-            raise TypeError('Path is not passed in system.fs.getDirName')
-        dname = os.path.dirname(path)
-        dname = dname.replace("/", os.sep)
-        dname = dname.replace("//", os.sep)
-        dname = dname.replace("\\", os.sep)
-        if lastOnly:
-            dname = dname.split(os.sep)[-1]
-            return dname
-        if levelsUp is not None:
-            parts = dname.split(os.sep)
-            if len(parts) - levelsUp > 0:
-                return parts[len(parts) - levelsUp - 1]
-            else:
-                raise RuntimeError("Cannot find part of dir %s levels up, path %s is not long enough" %
-                                   (levelsUp, path))
-        return dname + os.sep
-
-    def readLink(self, path):
-        """Works only for unix
-        Return a string representing the path to which the symbolic link points.
-        """
-        while path[-1] == "/" or path[-1] == "\\":
-            path = path[:-1]
-        # self.log('Read link with path: %s'%path,8)
-        if path is None:
-            raise TypeError('Path is not passed in system.fs.readLink')
-        if self.isWindows():
-            raise RuntimeError('Cannot readLink on windows')
-        try:
-            return os.readlink(path)
-        except Exception as e:
-            raise RuntimeError('Failed to read link with path: %s \nERROR: %s' % (path, str(e)))
-
-    def removeLinks(self, path):
-        """
-        find all links & remove
-        """
-        if not self.exists(path):
-            return
-        items = self._listAllInDir(path=path, recursive=True, followSymlinks=False, listSymlinks=True)
-        items = [item for item in items[0] if self.isLink(item)]
-        for item in items:
-            self.unlink(item)
-
-    def _listInDir(self, path, followSymlinks=True):
-        """returns array with dirs & files in directory
-        @param path: string (Directory path to list contents under)
-        """
-        if path is None:
-            raise TypeError('Path is not passed in system.fs.listDir')
-        if(self.exists(path)):
-            if(self.isDir(path)) or (followSymlinks and self.checkDirOrLinkToDir(path)):
-                names = os.listdir(path)
-                return names
-            else:
-                raise ValueError("Specified path: %s is not a Directory in system.fs.listDir" % path)
-        else:
-            raise RuntimeError("Specified path: %s does not exist in system.fs.listDir" % path)
-
-    def listDirsInDir(self, path, recursive=False, dirNameOnly=False, findDirectorySymlinks=True):
-        """ Retrieves list of directories found in the specified directory
-        @param path: string represents directory path to search in
-        @rtype: list
-        """
-        # self.log('List directories in directory with path: %s, recursive = %s' % (path, str(recursive)),9)
-
-        # if recursive:
-        # if not self.exists(path):
-        # raise ValueError('Specified path: %s does not exist' % path)
-        # if not self.isDir(path):
-        # raise ValueError('Specified path: %s is not a directory' % path)
-        # result = []
-        # os.path.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
-        # return result
-        if path is None or path.strip == "":
-            raise RuntimeError("path cannot be empty")
-        files = self._listInDir(path, followSymlinks=True)
-        filesreturn = []
-        for file in files:
-            fullpath = os.path.join(path, file)
-            if (findDirectorySymlinks and self.checkDirOrLinkToDir(fullpath)) or self.isDir(fullpath):
-                if dirNameOnly:
-                    filesreturn.append(file)
-                else:
-                    filesreturn.append(fullpath)
-                if recursive:
-                    filesreturn.extend(self.listDirsInDir(fullpath, recursive, dirNameOnly, findDirectorySymlinks))
-        return filesreturn
-
-    def listFilesInDir(self, path, recursive=False, filter=None, minmtime=None, maxmtime=None,
-                       depth=None, case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=False):
-        """Retrieves list of files found in the specified directory
-        @param path:       directory path to search in
-        @type  path:       string
-        @param recursive:  recursively look in all subdirs
-        @type  recursive:  boolean
-        @param filter:     unix-style wildcard (e.g. *.py) - this is not a regular expression
-        @type  filter:     string
-        @param minmtime:   if not None, only return files whose last modification time > minmtime (epoch in seconds)
-        @type  minmtime:   integer
-        @param maxmtime:   if not None, only return files whose last modification time < maxmtime (epoch in seconds)
-        @Param depth: is levels deep wich we need to go
-        @type  maxmtime:   integer
-        @Param exclude: list of std filters if matches then exclude
-        @rtype: list
-        """
-        if depth is not None:
-            depth = int(depth)
-        # self.log('List files in directory with path: %s' % path,9)
-        if depth == 0:
-            depth = None
-        # if depth is not None:
-        #     depth+=1
-        filesreturn, depth = self._listAllInDir(path, recursive, filter, minmtime, maxmtime, depth, type="f",
-                                                case_sensitivity=case_sensitivity, exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
-        return filesreturn
-
-    def listFilesAndDirsInDir(self, path, recursive=False, filter=None, minmtime=None,
-                              maxmtime=None, depth=None, type="fd", followSymlinks=True, listSymlinks=False):
-        """Retrieves list of files found in the specified directory
-        @param path:       directory path to search in
-        @type  path:       string
-        @param recursive:  recursively look in all subdirs
-        @type  recursive:  boolean
-        @param filter:     unix-style wildcard (e.g. *.py) - this is not a regular expression
-        @type  filter:     string
-        @param minmtime:   if not None, only return files whose last modification time > minmtime (epoch in seconds)
-        @type  minmtime:   integer
-        @param maxmtime:   if not None, only return files whose last modification time < maxmtime (epoch in seconds)
-        @Param depth: is levels deep wich we need to go
-        @type  maxmtime:   integer
-        @param type is string with f & d inside (f for when to find files, d for when to find dirs)
-        @rtype: list
-        """
-        if depth is not None:
-            depth = int(depth)
-        self.log('List files in directory with path: %s' % path, 9)
-        if depth == 0:
-            depth = None
-        # if depth is not None:
-        #     depth+=1
-        filesreturn, depth = self._listAllInDir(
-            path, recursive, filter, minmtime, maxmtime, depth, type=type, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
-        return filesreturn
-
-    def _listAllInDir(self, path, recursive, filter=None, minmtime=None, maxmtime=None, depth=None,
-                      type="df", case_sensitivity='os', exclude=[], followSymlinks=True, listSymlinks=True):
-        """
-        # There are 3 possible options for case-sensitivity for file names
-        # 1. `os`: the same behavior as the OS
-        # 2. `sensitive`: case-sensitive comparison
-        # 3. `insensitive`: case-insensitive comparison
-        """
-
-        dircontent = self._listInDir(path)
-        filesreturn = []
-
-        if case_sensitivity.lower() == 'sensitive':
-            matcher = fnmatch.fnmatchcase
-        elif case_sensitivity.lower() == 'insensitive':
-            def matcher(fname, pattern):
-                return fnmatch.fnmatchcase(fname.lower(), pattern.lower())
-        else:
-            matcher = fnmatch.fnmatch
-
-        for direntry in dircontent:
-            fullpath = self.joinPaths(path, direntry)
-
-            if followSymlinks:
-                if self.isLink(fullpath):
-                    fullpath = self.readLink(fullpath)
-
-            if self.isFile(fullpath) and "f" in type:
-                includeFile = False
-                if (filter is None) or matcher(direntry, filter):
-                    if (minmtime is not None) or (maxmtime is not None):
-                        mymtime = os.stat(fullpath)[ST_MTIME]
-                        if (minmtime is None) or (mymtime > minmtime):
-                            if (maxmtime is None) or (mymtime < maxmtime):
-                                includeFile = True
-                    else:
-                        includeFile = True
-                if includeFile:
-                    if exclude != []:
-                        for excludeItem in exclude:
-                            if matcher(direntry, excludeItem):
-                                includeFile = False
-                    if includeFile:
-                        filesreturn.append(fullpath)
-            elif self.isDir(fullpath):
-                if "d" in type:
-                    if not(listSymlinks is False and self.isLink(fullpath)):
-                        filesreturn.append(fullpath)
-                if recursive:
-                    if depth is not None and depth != 0:
-                        depth = depth - 1
-                    if depth is None or depth != 0:
-                        exclmatch = False
-                        if exclude != []:
-                            for excludeItem in exclude:
-                                if matcher(fullpath, excludeItem):
-                                    exclmatch = True
-                        if exclmatch is False:
-                            if not(followSymlinks is False and self.isLink(fullpath)):
-                                r, depth = self._listAllInDir(fullpath, recursive, filter, minmtime, maxmtime, depth=depth,
-                                                              type=type, exclude=exclude, followSymlinks=followSymlinks, listSymlinks=listSymlinks)
-                                if len(r) > 0:
-                                    filesreturn.extend(r)
-            elif self.isLink(fullpath) and followSymlinks is False and listSymlinks:
-                filesreturn.append(fullpath)
-
-        return filesreturn, depth
-
-    def getParent(self, path):
-        """
-        Returns the parent of the path:
-        /dir1/dir2/file_or_dir -> /dir1/dir2/
-        /dir1/dir2/            -> /dir1/
-        TODO: why do we have 2 implementations which are almost the same see getParentDirName()
-        """
-        parts = path.split(os.sep)
-        if parts[-1] == '':
-            parts = parts[:-1]
-        parts = parts[:-1]
-        if parts == ['']:
-            return os.sep
-        return os.sep.join(parts)
-
-    def getFileExtension(self, path):
-        extcand = path.split(".")
-        if len(extcand) > 0:
-            ext = extcand[-1]
-        else:
-            ext = ""
-        return ext
-
-    def chown(self, path, user):
-
-        from pwd import getpwnam
-
-        getpwnam(user)[2]
-        uid = getpwnam(user).pw_uid
-        gid = getpwnam(user).pw_gid
-        os.chown(path, uid, gid)
-        for root, dirs, files in os.walk(path):
-            for ddir in dirs:
-                path = os.path.join(root, ddir)
-                try:
-                    os.chown(path, uid, gid)
-                except Exception as e:
-                    if str(e).find("No such file or directory") == -1:
-                        raise RuntimeError("%s" % e)
-            for file in files:
-                path = os.path.join(root, file)
-                try:
-                    os.chown(path, uid, gid)
-                except Exception as e:
-                    if str(e).find("No such file or directory") == -1:
-                        raise RuntimeError("%s" % e)
-
-    def chmod(self, path, permissions):
-        """
-        @param permissions e.g. 0o660 (USE OCTAL !!!)
-        """
-        os.chmod(path, permissions)
-        for root, dirs, files in os.walk(path):
-            for ddir in dirs:
-                path = os.path.join(root, ddir)
-                try:
-                    os.chmod(path, permissions)
-                except Exception as e:
-                    if str(e).find("No such file or directory") == -1:
-                        raise RuntimeError("%s" % e)
-
-            for file in files:
-                path = os.path.join(root, file)
-                try:
-                    os.chmod(path, permissions)
-                except Exception as e:
-                    if str(e).find("No such file or directory") == -1:
-                        raise RuntimeError("%s" % e)
-
-    def chdir(self, ddir=""):
-        """
-        if ddir=="" then will go to tmpdir
-        """
-        if ddir == "":
-            ddir = self.TMPDIR
-        os.chdir(ddir)
-
     # NON FS
-
-    def download(self, url, to="", overwrite=True, retry=3, timeout=0, login="",
-                 passwd="", minspeed=0, multithread=False, curl=False):
-        """
-        @return path of downloaded file
-        @param minspeed is kbytes per sec e.g. 50, if less than 50 kbytes during 10 min it will restart the download (curl only)
-        @param when multithread True then will use aria2 download tool to get multiple threads
-        """
-        def download(url, to, retry=3):
-            if timeout == 0:
-                handle = urlopen(url)
-            else:
-                handle = urlopen(url, timeout=timeout)
-            nr = 0
-            while nr < retry + 1:
-                try:
-                    with open(to, 'wb') as out:
-                        while True:
-                            data = handle.read(1024)
-                            if len(data) == 0:
-                                break
-                            out.write(data)
-                    handle.close()
-                    out.close()
-                    return
-                except Exception as e:
-                    print("DOWNLOAD ERROR:%s\n%s" % (url, e))
-                    try:
-                        handle.close()
-                    except:
-                        pass
-                    try:
-                        out.close()
-                    except:
-                        pass
-                    handle = urlopen(url)
-                    nr += 1
-
-        print(('Downloading %s ' % (url)))
-        if to == "":
-            to = self.TMPDIR + "/" + url.replace("\\", "/").split("/")[-1]
-
-        if overwrite:
-            if self.exists(to):
-                self.delete(to)
-                self.delete("%s.downloadok" % to)
-        else:
-            if self.exists(to) and self.exists("%s.downloadok" % to):
-                # print "NO NEED TO DOWNLOAD WAS DONE ALREADY"
-                return to
-
-        self.createDir(self.getDirName(to))
-
-        if curl and self.checkInstalled("curl"):
-            minspeed = 0
-            if minspeed != 0:
-                minsp = "-y %s -Y 600" % (minspeed * 1024)
-            else:
-                minsp = ""
-            if login:
-                user = "--user %s:%s " % (login, passwd)
-            else:
-                user = ""
-
-            cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (
-                url, to, user, minsp, retry, timeout)
-            if self.exists(to):
-                cmd += " -C -"
-            print(cmd)
-            self.delete("%s.downloadok" % to)
-            rc, out, err = self.execute(cmd, die=False)
-            if rc == 33:  # resume is not support try again withouth resume
-                self.delete(to)
-                cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (
-                    url, to, user, minsp, retry, timeout)
-                rc, out, err = self.execute(cmd, die=False)
-            if rc:
-                raise RuntimeError("Could not download:{}.\nErrorcode: {}".format(url, rc))
-            else:
-                self.touch("%s.downloadok" % to)
-        elif multithread:
-            raise RuntimeError("not implemented yet")
-        else:
-            download(url, to, retry)
-            self.touch("%s.downloadok" % to)
-
-        return to
 
     def isUnix(self):
         if sys.platform.lower().find("linux") != -1:
@@ -1706,10 +1688,9 @@ class InstallTools():
             if cmd.strip() == "" or cmd[0] == "#":
                 continue
             cmd = cmd.strip()
-            self.executeInteractive(cmd)
-            # rc, out, err = self.execute(cmd, showout, outputStderr, useShell, log, cwd, timeout, captureout, die)
-            # rc_.append(str(rc))
-            # out_ += out
+            rc, out, err = self.execute(cmd, showout, outputStderr, useShell, log, cwd, timeout, captureout, die)
+            rc_.append(str(rc))
+            out_ += out
 
         return rc_, out_
 
@@ -2523,58 +2504,6 @@ class InstallTools():
         else:
             return False
 
-    def getGitReposListLocal(self, provider="", account="", name="", errorIfNone=True):
-        repos = {}
-        for top in self.listDirsInDir(self.CODEDIR, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
-            if provider != "" and provider != top:
-                continue
-            for accountfound in self.listDirsInDir("%s/%s" % (self.CODEDIR, top),
-                                                   recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
-                if account != "" and account != accountfound:
-                    continue
-                accountfounddir = "/%s/%s/%s" % (self.CODEDIR, top, accountfound)
-                for reponame in self.listDirsInDir(
-                        "%s/%s/%s" % (self.CODEDIR, top, accountfound), recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
-                    if name != "" and name != reponame:
-                        continue
-                    repodir = "%s/%s/%s/%s" % (self.CODEDIR, top, accountfound, reponame)
-                    if self.exists(path="%s/.git" % repodir):
-                        repos[reponame] = repodir
-        return repos
-
-    def pushGitRepos(self, message, name="", update=True, provider="", account=""):
-        """
-        if name specified then will look under code dir if repo with path can be found
-        if not or more than 1 there will be error
-        @param provider e.g. git, github
-        """
-        # TODO: make sure we use gitlab or github account if properly filled in
-        repos = self.getGitReposListLocal(provider, account, name)
-        for name, path in list(repos.items()):
-            print(("push git repo:%s" % path))
-            cmd = "cd %s;git add . -A" % (path)
-            self.executeInteractive(cmd)
-            cmd = "cd %s;git commit -m \"%s\"" % (path, message)
-            self.executeInteractive(cmd)
-            branch = self.getGitBranch(path)
-            if update:
-                cmd = "cd %s;git pull origin %s" % (path, branch)
-                self.executeInteractive(cmd)
-            cmd = "cd %s;git push origin %s" % (path, branch)
-            self.executeInteractive(cmd)
-
-    def updateGitRepos(self, provider="", account="", name="", message=""):
-        repos = self.getGitReposListLocal(provider, account, name)
-        for name, path in list(repos.items()):
-            print(("push git repo:%s" % path))
-            branch = self.getGitBranch(path)
-            cmd = "cd %s;git add . -A" % (path)
-            self.executeInteractive(cmd)
-            cmd = "cd %s;git commit -m \"%s\"" % (path, message)
-            self.executeInteractive(cmd)
-            cmd = "cd %s;git pull origin %s" % (path, branch)
-            self.executeInteractive(cmd)
-
     def getGitBranch(self, path):
 
         # if we don't specify the branch, try to find the currently checkedout branch
@@ -2589,62 +2518,6 @@ class InstallTools():
             branch = 'master'
 
         return branch
-
-        # cmd="cd %s;git branch"%path
-        # rc,out,err=self.execute(cmd)
-        # branch=""
-        # for line in out.split("\n"):
-        #     if line.startswith("*"):
-        #         branch=line.strip().strip("*").strip(" ").strip()
-        # if branch=="":
-        #     raise RuntimeError("could not find branch")
-        # return branch
-
-    def changeLoginPasswdGitRepos(self, provider="", account="", name="",
-                                  login="", passwd="", ssh=True, pushmessage=""):
-        """
-        walk over all git repo's found in account & change login/passwd
-        """
-        if ssh is False:
-            for reponame, repopath in list(self.getGitReposListLocal(provider, account, name).items()):
-                import re
-                configpath = "%s/.git/config" % repopath
-                text = self.readFile(configpath)
-                text2 = text
-                for item in re.findall(re.compile(r'//.*@%s' % provider), text):
-                    newitem = "//%s:%s@%s" % (login, passwd, provider)
-                    text2 = text.replace(item, newitem)
-                if text2.strip() != text:
-                    self.writeFile(configpath, text2)
-        else:
-            for reponame, repopath in list(self.getGitReposListLocal(provider, account, name).items()):
-                configpath = "%s/.git/config" % repopath
-                text = self.readFile(configpath)
-                text2 = ""
-                change = False
-                for line in text.split("\n"):
-                    if line.replace(" ", "").find("url=") != -1:
-                        # print line
-                        if line.find("@git") == -1:
-                            # print 'REPLACE'
-                            provider2 = line.split("//", 1)[1].split("/", 1)[0].strip()
-                            account2 = line.split("//", 1)[1].split("/", 2)[1]
-                            name2 = line.split("//", 1)[1].split("/", 2)[2].replace(".git", "")
-                            line = "\turl = git@%s:%s/%s.git" % (provider2, account2, name2)
-                            change = True
-                        # print line
-                    text2 += "%s\n" % line
-
-                if change:
-                    # print text
-                    # print "===="
-                    # print text2
-                    # print "++++"
-                    print(("changed login/passwd/git on %s" % configpath))
-                    self.writeFile(configpath, text2)
-
-        if pushmessage != "":
-            self.pushGitRepos(pushmessage, name=name, update=True, provider=provider, account=account)
 
     def _initExtra(self):
         """

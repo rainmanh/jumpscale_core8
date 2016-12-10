@@ -10,7 +10,7 @@ try:
     import github
 except:
     cmd = "pip3 install pygithub"
-    j.do.execute(cmd)
+    j.sal.process.execute(cmd)
     import github
 
 

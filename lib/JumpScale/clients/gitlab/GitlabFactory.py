@@ -49,7 +49,7 @@ class GitlabFactory:
         return GitlabInstance(addr=gitlaburl, login=login, passwd=passwd, instance=instance)
 
     def getAccountnameReponameFromUrl(self, url):
-        repository_host, repository_type, repository_account, repository_name, repository_url = j.do.rewriteGitRepoUrl(
+        repository_host, repository_type, repository_account, repository_name, repository_url = j.clients.git.rewriteGitRepoUrl(
             url)
         repository_name = repository_name.replace(".git", "")
         return (repository_account, repository_name)

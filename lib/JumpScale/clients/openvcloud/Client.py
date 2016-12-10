@@ -298,7 +298,8 @@ class Space:
 
         """
         imageId = self.image_find_id(image)
-        sizeId = self.size_find_id(memsize)
+        if sizeId is None:
+            sizeId = self.size_find_id(memsize)
         if name in self.machines:
             raise j.exceptions.RuntimeError(
                 "Name is not unique, already exists in %s" % self)

@@ -257,3 +257,26 @@ class Sandboxer:
 
         out = j.data.text.sort(out)
         j.sal.fs.writeFile(plistfile, out)
+
+    # def findDependencies(self, path, deps={}):
+    #     excl = ["libc.so", "libpthread.so", "libutil.so"]
+    #     out = self.installtools.execute("ldd %s" % path)
+    #     result = []
+    #     for item in [item.strip() for item in out.split("\n") if item.strip() != ""]:
+    #         if item.find("=>") != -1:
+    #             link = item.split("=>")[1].strip()
+    #             link = link.split("(")[0].strip()
+    #             if self.exists(link):
+    #                 name = os.path.basename(link)
+    #                 if name not in deps:
+    #                     print(link)
+    #                     deps[name] = link
+    #                     deps = self.findDependencies(link)
+    #     return deps
+    #
+    # def copyDependencies(self, path, dest):
+    #     self.installtools.createDir(dest)
+    #     deps = self.findDependencies(path)
+    #     for name in list(deps.keys()):
+    #         path = deps[name]
+    #         self.installtools.copydeletefirst(path, "%s/%s" % (dest, name))

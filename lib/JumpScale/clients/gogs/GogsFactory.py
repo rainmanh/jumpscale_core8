@@ -11,7 +11,7 @@ class GogsFactory:
         self.logger = j.logger.get("j.clients.gogs")
         self.db = ModelsFactory()
 
-    def get(self, addr='https://192.168.1.1', port=443, login='abdu', passwd='gig1234'):
+    def get(self, addr='https://127.0.0.1', port=3000, login='root', passwd='root'):
         return GogsClient(addr=addr, port=port, login=login, passwd=passwd)
 
     def getDataFromPSQL(self, ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs"):

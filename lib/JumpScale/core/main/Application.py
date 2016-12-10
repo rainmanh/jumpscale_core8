@@ -371,12 +371,12 @@ class Application:
             if j.core.platformtype.myplatform.isLinux():
                 command = "ps -o pcpu %d | grep -E --regex=\"[0.9]\"" % pid
                 self.logger.debug("getCPUusage on linux with: %s" % command)
-                exitcode, output = j.sal.process.execute(command, True, False)
+                exitcode, output, err = j.sal.process.execute(command, True, False)
                 return output
             elif j.core.platformtype.myplatform.isSolaris():
                 command = 'ps -efo pcpu,pid |grep %d' % pid
                 self.logger.debug("getCPUusage on linux with: %s" % command)
-                exitcode, output = j.sal.process.execute(command, True, False)
+                exitcode, output, err = j.sal.process.execute(command, True, False)
                 cpuUsage = output.split(' ')[1]
                 return cpuUsage
         except Exception:
@@ -396,12 +396,12 @@ class Application:
             elif j.core.platformtype.myplatform.isLinux():
                 command = "ps -o pmem %d | grep -E --regex=\"[0.9]\"" % pid
                 self.logger.debug("getMemoryUsage on linux with: %s" % command)
-                exitcode, output = j.sal.process.execute(command, True, False)
+                exitcode, output, err = j.sal.process.execute(command, True, False)
                 return output
             elif j.core.platformtype.myplatform.isSolaris():
                 command = "ps -efo pcpu,pid |grep %d" % pid
                 self.logger.debug("getMemoryUsage on linux with: %s" % command)
-                exitcode, output = j.sal.process.execute(command, True, False)
+                exitcode, output, err = j.sal.process.execute(command, True, False)
                 memUsage = output.split(' ')[1]
                 return memUsage
         except Exception:

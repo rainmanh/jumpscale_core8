@@ -144,7 +144,7 @@ class Diskmanager:
 
     def mirrorsFind(self):
         cmd = "cat /proc/mdstat"
-        rcode, out = j.sal.process.execute(cmd)
+        rcode, out, _ = j.sal.process.execute(cmd)
         return out
 
     def partitionsFind(self, mounted=None, ttype=None, ssd=None, prefix="sd", minsize=5, maxsize=5000, devbusy=None,

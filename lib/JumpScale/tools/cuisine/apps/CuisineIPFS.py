@@ -11,6 +11,13 @@ class CuisineIPFS(app):
         self._executor = executor
         self._cuisine = cuisine
 
+    def isInstalled(self):
+        """
+        Checks if a package is installed or not
+        You can ovveride it to use another way for checking
+        """
+        return self._cuisine.core.file_exists('$binDir/ipfs')
+
     def install(self, name='main', reset=False):
         if reset is False and self.isInstalled():
             return
@@ -38,18 +45,17 @@ class CuisineIPFS(app):
         if self._cuisine.core.file_exists('$binDir/ipfs'):
             self._cuisine.core.file_unlink('$binDir/ipfs')
 
-
     def start(self, name='main', readonly=False):
         cfg_dir = '$cfgDir/ipfs/{}'.format(name)
         if not self._cuisine.core.file_exists(cfg_dir):
             self._cuisine.core.dir_ensure(cfg_dir)
 
         # check if the ipfs repo has not been created yet.
-        if not self._cuisine.core.file_exists(cfg_dir+'/config'):
+        if not self._cuisine.core.file_exists(cfg_dir + '/config'):
             cmd = 'IPFS_PATH={} $binDir/ipfs init'.format(cfg_dir)
             self._cuisine.core.run(cmd)
 
-        cmd = '$binDir/ipfs daemon --init'
+        cmd = '$binDir/ipfs daemon'
         if not readonly:
             cmd += '  --writable'
 

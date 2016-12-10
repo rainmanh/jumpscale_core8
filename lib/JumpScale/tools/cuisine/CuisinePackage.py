@@ -101,7 +101,7 @@ class CuisinePackage(base):
                 if unsupported in package:
                     return
 
-            _, installed, _ = self._cuisine.core.run("brew list")
+            _, installed, _ = self._cuisine.core.run("brew list", showout=False)
             if package in installed:
                 return  # means was installed
 

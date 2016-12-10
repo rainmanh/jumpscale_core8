@@ -1,6 +1,8 @@
 import sys
 
 import asyncio
+import selectors
+
 if sys.platform != 'cygwin':
     import uvloop
 
@@ -21,7 +23,604 @@ import yaml
 import importlib
 
 
+class UI():
+
+    def askItemsFromList(self, items, msg=""):
+        if len(items) == 0:
+            return []
+        if msg != "":
+            print(msg)
+        nr = 0
+        for item in items:
+            nr += 1
+            print(" - %s: %s" % (nr, item))
+        print("select item(s) from list (nr or comma separated list of nr, * is all)")
+        item = input()
+        if item.strip() == "*":
+            return items
+        elif item.find(",") != -1:
+            res = []
+            itemsselected = [item.strip() for item in item.split(",") if item.strip() != ""]
+            for item in itemsselected:
+                item = int(item) - 1
+                res.append(items[item])
+            return res
+        else:
+            item = int(item) - 1
+            return [items[item]]
+
+
+class SSHMethods():
+
+    def _addSSHAgentToBashProfile(self, path=None):
+
+        bashprofile_path = os.path.expanduser("~/.bash_profile")
+        if not self.exists(bashprofile_path):
+            self.execute('touch %s' % bashprofile_path)
+
+        content = self.readFile(bashprofile_path)
+        out = ""
+        for line in content.split("\n"):
+            if line.find("#JSSSHAGENT") != -1:
+                continue
+            if line.find("SSH_AUTH_SOCK") != -1:
+                continue
+
+            out += "%s\n" % line
+
+        if "SSH_AUTH_SOCK" in os.environ:
+            print("NO NEED TO ADD SSH_AUTH_SOCK to env")
+            self.writeFile(bashprofile_path, out)
+            return
+
+        # out += "\njs 'j.do._.loadSSHAgent()' #JSSSHAGENT\n"
+        out += "export SSH_AUTH_SOCK=%s" % self._getSSHSocketpath()
+        out = out.replace("\n\n\n", "\n\n")
+        out = out.replace("\n\n\n", "\n\n")
+        self.writeFile(bashprofile_path, out)
+
+    def _initSSH_ENV(self, force=False):
+        if force or "SSH_AUTH_SOCK" not in os.environ:
+            os.putenv("SSH_AUTH_SOCK", self._getSSHSocketpath())
+            os.environ["SSH_AUTH_SOCK"] = self._getSSHSocketpath()
+
+    def _getSSHSocketpath(self):
+
+        if "SSH_AUTH_SOCK" in os.environ:
+            return(os.environ["SSH_AUTH_SOCK"])
+
+        socketpath = "%s/sshagent_socket" % os.environ.get("HOME", '/root')
+        os.environ['SSH_AUTH_SOCK'] = socketpath
+        return socketpath
+
+    def loadSSHKeys(self, path=None, duration=3600 * 24, die=False):
+        """
+        will see if ssh-agent has been started
+        will check keys in home dir
+        will ask which keys to load
+        will adjust .profile file to make sure that env param is set to allow ssh-agent to find the keys
+        """
+        # print "loadsshkeys"
+        # TODO *1 move ssh functionality all of it to right sal or tool in
+        # jumpscale, make sure wherever we use it we adjust
+
+        self._addSSHAgentToBashProfile()
+
+        if path is None:
+            path = os.path.expanduser("~/.ssh")
+        self.createDir(path)
+
+        if "SSH_AUTH_SOCK" not in os.environ:
+            self._initSSH_ENV(True)
+
+        self._loadSSHAgent()
+
+        keysloaded = [self.getBaseName(item) for item in self.listSSHKeyFromAgent()]
+
+        if self.isDir(path):
+            keysinfs = [self.getBaseName(item).replace(".pub", "") for item in self.listFilesInDir(
+                path, filter="*.pub") if self.exists(item.replace(".pub", ""))]
+            keysinfs = [item for item in keysinfs if item not in keysloaded]
+
+            res = self.askItemsFromList(
+                keysinfs, "select ssh keys to load, use comma separated list e.g. 1,4,3 and press enter.")
+        else:
+            res = [self.getBaseName(path).replace(".pub", "")]
+            path = self.getParent(path)
+
+        for item in res:
+            pathkey = "%s/%s" % (path, item)
+            # timeout after 24 h
+            print("load sshkey: %s" % pathkey)
+            cmd = "ssh-add -t %s %s " % (duration, pathkey)
+            self.executeInteractive(cmd)
+
+    def getSSHKeyPathFromAgent(self, keyname, die=True):
+        try:
+            # TODO: why do we use subprocess here and not self.execute?
+            out = subprocess.check_output(["ssh-add", "-L"])
+        except:
+            return None
+
+        for line in out.splitlines():
+            delim = ("/%s" % keyname).encode()
+
+            if line.endswith(delim):
+                line = line.strip()
+                keypath = line.split(" ".encode())[-1]
+                content = line.split(" ".encode())[-2]
+                if not self.exists(path=keypath):
+                    if self.exists("keys/%s" % keyname):
+                        keypath = "keys/%s" % keyname
+                    else:
+                        raise RuntimeError("could not find keypath:%s" % keypath)
+                return keypath.decode()
+        if die:
+            raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l" % keyname)
+        return None
+
+    def getSSHKeyFromAgentPub(self, keyname, die=True):
+        try:
+            # TODO: why do we use subprocess here and not self.execute?
+            out = subprocess.check_output(["ssh-add", "-L"])
+        except:
+            return None
+
+        for line in out.splitlines():
+            delim = (".ssh/%s" % keyname).encode()
+            if line.endswith(delim):
+                content = line.strip()
+                content = content.decode()
+                return content
+        if die:
+            raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l" % keyname)
+        return None
+
+    def listSSHKeyFromAgent(self, keyIncluded=False):
+        """
+        returns list of paths
+        """
+        if "SSH_AUTH_SOCK" not in os.environ:
+            self._initSSH_ENV(True)
+        self._loadSSHAgent()
+        cmd = "ssh-add -L"
+        rc, out, err = self.execute(cmd, False, False, die=False)
+        if rc:
+            if rc == 1 and out.find("The agent has no identities") != -1:
+                return []
+            raise RuntimeError("error during listing of keys :%s" % err)
+        keys = [line.split() for line in out.splitlines() if len(line.split()) == 3]
+        if keyIncluded:
+            return list(map(lambda key: key[2:0:-1], keys))
+        else:
+            return list(map(lambda key: key[2], keys))
+
+    def ensure_keyname(self, keyname="", username="root"):
+        if not self.exists(keyname):
+            rootpath = "/root/.ssh/" if username == "root" else "/home/%s/.ssh/"
+            fullpath = self.joinPaths(rootpath, keyname)
+            if self.exists(fullpath):
+                return fullpath
+        return keyname
+
+    def authorize_user(self, sftp_client, ip_address, keyname, username):
+        basename = self.getBaseName(keyname)
+        tmpfile = "/home/%s/.ssh/%s" % (username, basename)
+        print("push key to /home/%s/.ssh/%s" % (username, basename))
+        sftp_client.put(keyname, tmpfile)
+
+        # cannot upload directly to root dir
+        auth_key_path = "/home/%s/.ssh/authorized_keys" % username
+        cmd = "ssh %s@%s 'cat %s | sudo tee -a %s '" % username, ip_address, tmpfile, auth_key_path
+        print("do the following on the console\nsudo -s\ncat %s >> %s" % (tmpfile, auth_key_path))
+        print(cmd)
+        self.executeInteractive(cmd)
+
+    def authorize_root(self, sftp_client, ip_address, keyname):
+        tmppath = "%s/authorized_keys" % self.TMPDIR
+        auth_key_path = "/root/.ssh/authorized_keys"
+        self.delete(tmppath)
+        try:
+            sftp_client.get(auth_key_path, tmppath)
+        except Exception as e:
+            if str(e).find("No such file") != -1:
+                try:
+                    auth_key_path += "2"
+                    sftp_client.get(auth_key_path, tmppath)
+                except Exception as e:
+                    if str(e).find("No such file") != -1:
+                        self.writeFile(tmppath, "")
+                    else:
+                        raise RuntimeError("Could not get authorized key,%s" % e)
+
+            C = self.readFile(tmppath)
+            Cnew = self.readFile(keyname)
+            key = Cnew.split(" ")[1]
+            if C.find(key) == -1:
+                C2 = "%s\n%s\n" % (C.strip(), Cnew)
+                C2 = C2.strip() + "\n"
+                self.writeFile(tmppath, C2)
+                print("sshauthorized adjusted")
+                sftp_client.put(tmppath, auth_key_path)
+            else:
+                print("ssh key was already authorized")
+
+    def authorizeSSHKey(self, remoteipaddr, keyname, login="root", passwd=None, sshport=22, removeothers=False):
+        """
+        this required ssh-agent to be loaded !!!
+        the keyname is the name of the key as loaded in ssh-agent
+
+        if remoteothers==True: then other keys will be removed
+        """
+        keyname = self.ensure_keyname(keyname=keyname, username=login)
+        import paramiko
+        paramiko.util.log_to_file("/tmp/paramiko.log")
+        ssh = paramiko.SSHClient()
+
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        print("ssh connect:%s %s" % (remoteipaddr, login))
+
+        if not self.listSSHKeyFromAgent(self.getBaseName(keyname)):
+            self.loadSSHKeys(self.getParent(keyname))
+        ssh.connect(remoteipaddr, username=login, password=passwd, allow_agent=True, look_for_keys=False)
+        print("ok")
+
+        ftp = ssh.open_sftp()
+
+        if login != "root":
+            self.authorize_user(sftp_client=ftp, ip_address=remoteipaddr, keyname=keyname, username=login)
+        else:
+            self.authorize_root(sftp_client=ftp, ip_address=remoteipaddr, keyname=keyname)
+
+    def _loadSSHAgent(self, path=None, createkeys=False, killfirst=False):
+        """
+        check if ssh-agent is available & there is key loaded
+
+        @param path: is path to private ssh key
+
+        the primary key is 'id_rsa' and will be used as default e.g. if authorizing another node then this key will be used
+
+        """
+        # check if more than 1 agent
+        socketpath = self._getSSHSocketpath()
+        res = [item for item in self.execute("ps aux|grep ssh-agent", False, False)
+               [1].split("\n") if item.find("grep ssh-agent") == -1]
+        res = [item for item in res if item.strip() != ""]
+        res = [item for item in res if item[-2:] != "-l"]
+
+        if len(res) > 1:
+            print("more than 1 ssh-agent, will kill all")
+            killfirst = True
+        if len(res) == 0 and self.exists(socketpath):
+            self.delete(socketpath)
+
+        if killfirst:
+            cmd = "killall ssh-agent"
+            # print(cmd)
+            self.execute(cmd, showout=False, outputStderr=False, die=False)
+            # remove previous socketpath
+            self.delete(socketpath)
+            self.delete(self.joinPaths(self.TMPDIR, "ssh-agent-pid"))
+
+        if not self.exists(socketpath):
+            self.createDir(self.getParent(socketpath))
+            # ssh-agent not loaded
+            print("load ssh agent")
+            rc, result, err = self.execute("ssh-agent -a %s" % socketpath, die=False, showout=False, outputStderr=False)
+
+            if rc > 0:
+                # could not start ssh-agent
+                raise RuntimeError(
+                    "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
+            else:
+                # get pid from result of ssh-agent being started
+                if not self.exists(socketpath):
+                    raise RuntimeError(
+                        "Serious bug, ssh-agent not started while there was no error, should never get here")
+                piditems = [item for item in result.split("\n") if item.find("pid") != -1]
+                # print(piditems)
+                if len(piditems) < 1:
+                    print("results was:")
+                    print(result)
+                    print("END")
+                    raise RuntimeError("Cannot find items in ssh-add -l")
+                self._initSSH_ENV(True)
+                pid = int(piditems[-1].split(" ")[-1].strip("; "))
+                self.writeFile(self.joinPaths(self.TMPDIR, "ssh-agent-pid"), str(pid))
+                self._addSSHAgentToBashProfile()
+
+        # ssh agent should be loaded because ssh-agent socket has been found
+        if os.environ.get("SSH_AUTH_SOCK") != socketpath:
+            self._initSSH_ENV(True)
+        rc, result, err = self.execute("ssh-add -l", die=False, showout=False, outputStderr=False)
+        if rc == 2:
+            # no ssh-agent found
+            print(result)
+            raise RuntimeError("Could not connect to ssh-agent, this is bug, ssh-agent should be loaded by now")
+        elif rc == 1:
+            # no keys but agent loaded
+            result = ""
+        elif rc > 0:
+            raise RuntimeError(
+                "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
+
+    def checkSSHAgentAvailable(self):
+        if not self.exists(self._getSSHSocketpath()):
+            return False
+        if "SSH_AUTH_SOCK" not in os.environ:
+            self._initSSH_ENV(True)
+        rc, out, err = self.execute("ssh-add -l", showout=False, outputStderr=False, die=False)
+        if 'The agent has no identities.' in out:
+            return True
+        if rc != 0:
+            return False
+        else:
+            return True
+
+
 class GitMethods():
+
+    def rewriteGitRepoUrl(self, url="", login=None, passwd=None, ssh="auto"):
+        """
+        Rewrite the url of a git repo with login and passwd if specified
+
+        Args:
+            url (str): the HTTP URL of the Git repository. ex: 'https://github.com/odoo/odoo'
+            login (str): authentication login name
+            passwd (str): authentication login password
+            ssh = if True will build ssh url, if "auto" will check if there is ssh-agent available & keys are loaded, if yes will use ssh
+
+        Returns:
+            (repository_host, repository_type, repository_account, repository_name, repository_url)
+        """
+
+        if ssh == "auto":
+            ssh = self.checkSSHAgentAvailable()
+
+        url_pattern_ssh = re.compile('^(git@)(.*?):(.*?)/(.*?)/?$')
+        sshmatch = url_pattern_ssh.match(url)
+        url_pattern_http = re.compile('^(https?://)(.*?)/(.*?)/(.*?)/?$')
+        httpmatch = url_pattern_http.match(url)
+        if not sshmatch:
+            match = httpmatch
+        else:
+            match = sshmatch
+
+        if not match:
+            raise RuntimeError(
+                "Url is invalid. Must be in the form of 'http(s)://hostname/account/repo' or 'git@hostname:account/repo'")
+
+        protocol, repository_host, repository_account, repository_name = match.groups()
+        if protocol.startswith("git") and ssh is False:
+            protocol = "https://"
+
+        if not repository_name.endswith('.git'):
+            repository_name += '.git'
+
+        if login == 'ssh' or ssh == True:
+            repository_url = 'git@%(host)s:%(account)s/%(name)s' % {
+                'host': repository_host,
+                'account': repository_account,
+                'name': repository_name,
+            }
+            protocol = "ssh"
+
+        elif login and login != 'guest':
+            repository_url = '%(protocol)s%(login)s:%(password)s@%(host)s/%(account)s/%(repo)s' % {
+                'protocol': protocol,
+                'login': login,
+                'password': passwd,
+                'host': repository_host,
+                'account': repository_account,
+                'repo': repository_name,
+            }
+
+        else:
+            repository_url = '%(protocol)s%(host)s/%(account)s/%(repo)s' % {
+                'protocol': protocol,
+                'host': repository_host,
+                'account': repository_account,
+                'repo': repository_name,
+            }
+        if repository_name.endswith(".git"):
+            repository_name = repository_name[:-4]
+
+        return protocol, repository_host, repository_account, repository_name, repository_url
+
+    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False,
+                       branch=None, ssh="auto", codeDir=None, executor=None):
+        """
+        Extracts and returns data useful in cloning a Git repository.
+
+        Args:
+            url (str): the HTTP/GIT URL of the Git repository to clone from. eg: 'https://github.com/odoo/odoo.git'
+            dest (str): the local filesystem path to clone to
+            login (str): authentication login name (only for http)
+            passwd (str): authentication login password (only for http)
+            reset (boolean): if True, any cached clone of the Git repository will be removed
+            branch (str): branch to be used
+            ssh if auto will check if ssh-agent loaded, if True will be forced to use ssh for git
+
+        # Process for finding authentication credentials (NOT IMPLEMENTED YET)
+
+        - first check there is an ssh-agent and there is a key attached to it, if yes then no login & passwd will be used & method will always be git
+        - if not ssh-agent found
+            - then we will check if url is github & ENV argument GITHUBUSER & GITHUBPASSWD is set
+                - if env arguments set, we will use those & ignore login/passwd arguments
+            - we will check if login/passwd specified in URL, if yes willl use those (so they get priority on login/passwd arguments)
+            - we will see if login/passwd specified as arguments, if yes will use those
+        - if we don't know login or passwd yet then
+            - login/passwd will be fetched from local git repo directory (if it exists and reset==False)
+        - if at this point still no login/passwd then we will try to build url with anonymous
+
+
+        # Process for defining branch
+
+        - if branch arg: None
+            - check if git directory exists if yes take that branch
+            - default to 'master'
+        - if it exists, use the branch arg
+
+        Returns:
+            (repository_host, repository_type, repository_account, repository_name,branch, login, passwd)
+
+            - repository_type http or git
+
+        Remark:
+            url can be empty, then the git params will be fetched out of the git configuration at that path
+        """
+
+        if url == "":
+            if dest is None:
+                raise RuntimeError("dest cannot be None (url is also '')")
+            if not self.exists(dest):
+                raise RuntimeError(
+                    "Could not find git repo path:%s, url was not specified so git destination needs to be specified." % (dest))
+
+        if login is None and url.find("github.com/") != -1:
+            # can see if there if login & passwd in OS env
+            # if yes fill it in
+            if "GITHUBUSER" in os.environ:
+                login = os.environ["GITHUBUSER"]
+            if "GITHUBPASSWD" in os.environ:
+                passwd = os.environ["GITHUBPASSWD"]
+
+        protocol, repository_host, repository_account, repository_name, repository_url = self.rewriteGitRepoUrl(
+            url=url, login=login, passwd=passwd, ssh=ssh)
+
+        repository_type = repository_host.split('.')[0] if '.' in repository_host else repository_host
+
+        if not dest:
+            if codeDir is None:
+                if not executor:
+                    codeDir = self.CODEDIR
+                else:
+                    codeDir = executor.cuisine.core.dir_paths['codeDir']
+            dest = '%(codedir)s/%(type)s/%(account)s/%(repo_name)s' % {
+                'codedir': codeDir,
+                'type': repository_type.lower(),
+                'account': repository_account.lower(),
+                'repo_name': repository_name,
+            }
+
+        if reset:
+            self.delete(dest)
+
+        # self.createDir(dest)
+
+        return repository_host, repository_type, repository_account, repository_name, dest, repository_url
+
+    def pullGitRepo(self, url="", dest=None, login=None, passwd=None, depth=None, ignorelocalchanges=False,
+                    reset=False, branch=None, revision=None, ssh="auto", executor=None, codeDir=None):
+        """
+        will clone or update repo
+        if dest is None then clone underneath: /opt/code/$type/$account/$repo
+        will ignore changes !!!!!!!!!!!
+
+        @param ssh ==True means will checkout ssh
+        @param ssh =="first" means will checkout sss first if that does not work will go to http
+        """
+
+        if ssh == "first":
+            try:
+                return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
+                                        reset, branch, revision, True, executor)
+            except Exception as e:
+                try:
+                    return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
+                                            reset, branch, revision, False, executor)
+                except Exception as e:
+                    raise RuntimeError("Could not checkout, needs to be with ssh or without.")
+
+        base, provider, account, repo, dest, url = self.getGitRepoArgs(
+            url, dest, login, passwd, reset=reset, ssh=ssh, codeDir=codeDir, executor=executor)
+
+        print("pull:%s ->%s" % (url, dest))
+
+        existsDir = self.exists(dest) if not executor else executor.exists(dest)
+
+        checkdir = "%s/.git" % (dest)
+        existsGit = self.exists(checkdir) if not executor else executor.exists(checkdir)
+
+        if existsGit:
+            # if we don't specify the branch, try to find the currently checkedout branch
+            cmd = 'cd %s; git rev-parse --abbrev-ref HEAD' % dest
+            rc, out, err = self.execute(cmd, die=False, showout=False, executor=executor)
+            if rc == 0:
+                branchFound = out.strip()
+            else:  # if we can't retreive current branch, use master as default
+                branchFound = 'master'
+                # raise RuntimeError("Cannot retrieve branch:\n%s\n" % cmd)
+
+            if branch != None and branch != branchFound and ignorelocalchanges == False:
+                raise RuntimeError(
+                    "Cannot pull repo, branch on filesystem is not same as branch asked for.\nBranch asked for:%s\nBranch found:%s\nTo choose other branch do e.g:\nexport JSBRANCH='%s'\n" % (branch, branchFound, branchFound))
+
+            if branch == None:
+                branch = branchFound
+
+            if ignorelocalchanges:
+                print(("git pull, ignore changes %s -> %s" % (url, dest)))
+                cmd = "cd %s;git fetch" % dest
+                if depth is not None:
+                    cmd += " --depth %s" % depth
+                    self.execute(cmd, executor=executor)
+                if branch is not None:
+                    print("reset branch to:%s" % branch)
+                    self.execute("cd %s;git fetch; git reset --hard origin/%s" %
+                                 (dest, branch), timeout=600, executor=executor)
+            else:
+                # pull
+                print(("git pull %s -> %s" % (url, dest)))
+                if url.find("http") != -1:
+                    cmd = "cd %s;git -c http.sslVerify=false pull origin %s" % (dest, branch)
+                else:
+                    cmd = "cd %s;git pull origin %s" % (dest, branch)
+                print(cmd)
+                self.execute(cmd, timeout=600, executor=executor)
+        else:
+            print(("git clone %s -> %s" % (url, dest)))
+            extra = ""
+            if depth is not None:
+                extra = "--depth=%s" % depth
+            if url.find("http") != -1:
+                if branch is not None:
+                    cmd = "cd %s;git -c http.sslVerify=false clone %s --single-branch -b %s %s %s" % (
+                        self.getParent(dest), extra, branch, url, dest)
+                else:
+                    cmd = "cd %s;git -c http.sslVerify=false clone %s  %s %s" % (self.getParent(dest), extra, url, dest)
+            else:
+                if branch is not None:
+                    cmd = "cd %s;git clone %s --single-branch -b %s %s %s" % (
+                        self.getParent(dest), extra, branch, url, dest)
+                else:
+                    cmd = "cd %s;git clone %s  %s %s" % (self.getParent(dest), extra, url, dest)
+
+            print(cmd)
+
+            self.execute(cmd, timeout=600, executor=executor)
+
+        if revision is not None:
+            cmd = "cd %s;git checkout %s" % (dest, revision)
+            print(cmd)
+            self.execute(cmd, timeout=600, executor=executor)
+
+        return dest
+
+    def getGitBranch(self, path):
+
+        # if we don't specify the branch, try to find the currently checkedout branch
+        cmd = 'cd %s;git rev-parse --abbrev-ref HEAD' % path
+        try:
+            rc, out, err = self.execute(cmd, showout=False, outputStderr=False)
+            if rc == 0:
+                branch = out.strip()
+            else:  # if we can't retreive current branch, use master as default
+                branch = 'master'
+        except:
+            branch = 'master'
+
+        return branch
 
 
 class FSMethods():
@@ -790,6 +1389,49 @@ class FSMethods():
 
         return to
 
+    def downloadExpandTarGz(self, url, destdir, deleteDestFirst=True, deleteSourceAfter=True):
+        print((self.getBaseName(url)))
+        tmppath = self.getTmpPath(self.getBaseName(url))
+        self.download(url, tmppath)
+        self.expandTarGz(tmppath, destdir)
+
+    def expandTarGz(self, path, destdir, deleteDestFirst=True, deleteSourceAfter=False):
+        import gzip
+
+        self.lastdir = os.getcwd()
+        os.chdir(self.TMPDIR)
+        basename = os.path.basename(path)
+        if basename.find(".tar.gz") == -1:
+            raise RuntimeError("Can only expand a tar gz file now %s" % path)
+        tarfilename = ".".join(basename.split(".gz")[:-1])
+        self.delete(tarfilename)
+
+        if deleteDestFirst:
+            self.delete(destdir)
+
+        if self.TYPE == "WIN":
+            cmd = "gzip -d %s" % path
+            os.system(cmd)
+        else:
+            handle = gzip.open(path)
+            with open(tarfilename, 'wb') as out:
+                for line in handle:
+                    out.write(line)
+            out.close()
+            handle.close()
+
+        t = tarfile.open(tarfilename, 'r')
+        t.extractall(destdir)
+        t.close()
+
+        self.delete(tarfilename)
+
+        if deleteSourceAfter:
+            self.delete(path)
+
+        os.chdir(self.lastdir)
+        self.lastdir = ""
+
     def getParent(self, path):
         """
         Returns the parent of the path:
@@ -866,6 +1508,329 @@ class FSMethods():
         if ddir == "":
             ddir = self.TMPDIR
         os.chdir(ddir)
+
+    def getTmpPath(self, filename):
+        return "%s/jumpscaleinstall/%s" % (self.TMPDIR, filename)
+
+    def getPythonSiteConfigPath(self):
+        minl = 1000000
+        result = ""
+        for item in sys.path:
+            if len(item) < minl and item.find("python") != -1:
+                result = item
+                minl = len(item)
+        return result
+
+    def getWalker(self):
+        self._initExtra()
+        return self.extra.getWalker(self)
+
+
+class ExecutorMethods():
+
+    def isUnix(self):
+        if sys.platform.lower().find("linux") != -1:
+            return True
+        return False
+
+    def isMac(self):
+        if sys.platform.lower().find("darwin") != -1:
+            return True
+        return False
+
+    def isWindows(self):
+        if sys.platform.startswith("win") == 1:
+            return True
+        return False
+
+    def executeBashScript(self, content="", path=None, die=True, remote=None,
+                          sshport=22, showout=True, outputStderr=True, sshkey=""):
+        """
+        @param remote can be ip addr or hostname of remote, if given will execute cmds there
+        """
+        if path is not None:
+            content = self.readFile(path)
+        if content[-1] != "\n":
+            content += "\n"
+
+        if remote is None:
+            tmppath = self.getTmpPath("")
+            content = "cd %s\n%s" % (tmppath, content)
+        else:
+            content = "cd /tmp\n%s" % content
+
+        if die:
+            content = "set -ex\n%s" % content
+
+        path2 = self.getTmpPath("do.sh")
+        self.writeFile(path2, content, strip=True)
+
+        if remote is not None:
+            tmppathdest = "/tmp/do.sh"
+            if sshkey:
+                if not self.getSSHKeyPathFromAgent(sshkey, die=False):
+                    self.execute('ssh-add %s' % sshkey)
+                sshkey = '-i %s ' % sshkey.replace('!', '\!')
+            self.execute("scp %s -oStrictHostKeyChecking=no -P %s %s root@%s:%s " %
+                         (sshkey, sshport, path2, remote, tmppathdest), die=die)
+            rc, res, err = self.execute("ssh %s -oStrictHostKeyChecking=no -A -p %s root@%s 'bash %s'" %
+                                        (sshkey, sshport, remote, tmppathdest), die=die)
+        else:
+            rc, res, err = self.execute("bash %s" % path2, die=die, showout=showout, outputStderr=outputStderr)
+        return rc, res, err
+
+    def executeCmds(self, cmdstr, showout=True, outputStderr=True, useShell=True,
+                    log=True, cwd=None, timeout=120, captureout=True, die=True):
+        rc_ = []
+        out_ = ""
+        for cmd in cmdstr.split("\n"):
+            if cmd.strip() == "" or cmd[0] == "#":
+                continue
+            cmd = cmd.strip()
+            rc, out, err = self.execute(cmd, showout, outputStderr, useShell, log, cwd, timeout, captureout, die)
+            rc_.append(str(rc))
+            out_ += out
+
+        return rc_, out_
+
+    def executeInteractive(self, command, die=True):
+        exitcode = os.system(command)
+        if exitcode != 0 and die:
+            raise RuntimeError("Could not execute %s" % command)
+        return exitcode
+
+    def checkInstalled(self, cmdname):
+        """
+        @param cmdname is cmd to check e.g. curl
+        """
+        rc, out, err = self.execute("which %s" % cmdname, die=False, showout=False, outputStderr=False)
+        if rc == 0:
+            return True
+        else:
+            return False
+
+    def loadScript(self, path):
+        print(("load jumpscript: %s" % path))
+        source = self.readFile(path)
+        out, tags = self._preprocess(source)
+
+        def md5_string(s):
+            import hashlib
+            s = s.encode('utf-8')
+            impl = hashlib.new('md5', s)
+            return impl.hexdigest()
+        md5sum = md5_string(out)
+        modulename = 'JumpScale.jumpscript_%s' % md5sum
+
+        codepath = self.joinPaths(self.getTmpPath(), "jumpscripts", "%s.py" % md5sum)
+        self.writeFile(filename=codepath, contents=out)
+
+        linecache.checkcache(codepath)
+        self.module = imp.load_source(modulename, codepath)
+
+        self.author = getattr(self.module, 'author', "unknown")
+        self.organization = getattr(self.module, 'organization', "unknown")
+        self.version = getattr(self.module, 'version', 0)
+        self.modtime = getattr(self.module, 'modtime', 0)
+        self.descr = getattr(self.module, 'descr', "")
+
+        # identifies the actions & tags linked to it
+        self.tags = tags
+
+        for name, val in list(tags.items()):
+            self.actions[name] = eval("self.module.%s" % name)
+
+    def executeAsyncIO(self, command, outMethod="print", errMethod="print", timeout=300,
+                       buffersize=5000000, useShell=True, cwd=None, die=True,
+                       captureOutput=True):
+        """
+        @outmethod gets a byte string as input, deal with it e.g. print
+        same for errMethod
+        resout&reserr are lists with output/error
+        return rc, resout, reserr
+        @param captureOutput, if that one == False then will not populate resout/reserr
+        @param outMethod,errMethod if None then will print to out
+        """
+
+        # TODO: *2 check if this works on windows
+        # TODO: *2 there is an ugly error when there is a timeout (on some systems seems to work though)
+
+        if cwd != None:
+            if useShell == False:
+                raise j.exceptions.Input(message="when using cwd, useshell needs to be used",
+                                         level=1, source="", tags="", msgpub="")
+            if "cd %s;" % cwd not in command:
+                command = "cd %s;%s" % (cwd, command)
+
+        if useShell:
+            if "set -e;" not in command:
+                command = "set -e;%s" % command
+
+        # if not specified then print to stdout/err
+        if outMethod == "print":
+            outMethod = lambda x: print("STDOUT: %s" % x)
+        if errMethod == "print":
+            errMethod = lambda x: print("STDERR: %s" % x)
+
+        async def _read_stream(stream, cb, res):
+            while True:
+                line = await stream.readline()
+                if res != None:
+                    res.append(line)
+                if line and cb != None:
+                    cb(line)
+                else:
+                    break
+
+        async def _stream_subprocess(cmd, stdout_cb, stderr_cb, timeout=1, buffersize=500000, captureOutput=True):
+
+            process = await asyncio.create_subprocess_exec(*cmd,
+                                                           stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+                                                           limit=buffersize)
+
+            if captureOutput:
+                resout = []
+                reserr = []
+            else:
+                resout = None
+                reserr = None
+
+            done, pending = await asyncio.wait([
+                _read_stream(process.stdout, stdout_cb, resout),
+                _read_stream(process.stderr, stderr_cb, reserr)
+            ], timeout=timeout)
+
+            if pending != set():
+                # timeout happened
+                for task in pending:
+                    task.cancel()
+                process.kill()
+                rc = 124
+            else:
+                rc = await process.wait()
+
+            return rc, resout, reserr
+
+        loop = asyncio.get_event_loop()
+        # executor = concurrent.futures.ThreadPoolExecutor(5)
+        # loop.set_default_executor(executor)
+        # loop.set_debug(True)
+
+        if useShell:
+            cmds = ["bash", "-c", command]
+        else:
+            cmds = [command]
+
+        rc, resout, reserr = loop.run_until_complete(
+            _stream_subprocess(
+                cmds,
+                outMethod,
+                errMethod,
+                timeout=timeout,
+                buffersize=buffersize,
+                captureOutput=captureOutput
+            ))
+
+        # TODO: *1 if I close this then later on there is problem, says loop is closed
+        # # if loop.is_closed() == False:
+        # print("STOP")
+        # # executor.shutdown(wait=True)
+        # loop.stop()
+        # loop.run_forever()
+        # loop.close()
+
+        if len(reserr) > 0 and reserr[-1] == b"":
+            reserr = reserr[:-1]
+        if len(resout) > 0 and resout[-1] == b"":
+            resout = resout[:-1]
+
+        if die and rc > 0:
+            out = "\n".join([item.rstrip().decode("UTF-8") for item in resout])
+            err = "\n".join([item.rstrip().decode("UTF-8") for item in reserr])
+            if rc == 124:
+                raise RuntimeError("\nOUT:\n%s\nSTDERR:\n%s\nERROR: Cannot execute (TIMEOUT):'%s'\nreturncode (%s)" %
+                                   (out, err, command, rc))
+            else:
+                raise RuntimeError("\nOUT:\n%s\nSTDERR:\n%s\nERROR: Cannot execute:'%s'\nreturncode (%s)" %
+                                   (out, err, command, rc))
+
+        return rc, resout, reserr
+
+    def execute(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=100,
+                captureout=True, die=True, executor=None):
+        """
+        Execute command
+        @param command: Command to be executed
+        @param showout: print output line by line while processing the command
+        @param outputStderr: print error line by line while processing the command
+        @param useShell: Execute command as a shell command
+        @param log:
+        @param cwd: If cwd is not None, the function changes the working directory to cwd before executing the child
+        @param timeout: If not None, raise TimeoutError if command execution time > timeout
+        @param captureout: If True, returns output of cmd. Else, it returns empty str
+        @param die: If True, raises error if cmd failed. else, fails silently and returns error in the output
+        @param async: If true, return Process object. DO CLOSE THE PROCESS AFTER FINISHING BY process.wait()
+        @param executor: If not None returns output of executor.execute(....)
+        @return: (returncode, output, error). output and error defaults to empty string
+        """
+
+        if executor:
+            return executor.execute(command, die=die, checkok=False, async=async, showout=True, timeout=timeout)
+
+        if showout == False:
+            outMethod = None
+        else:
+            outMethod = "print"
+        if outputStderr == False:
+            errMethod = None
+        else:
+            errMethod = "print"
+
+        rc, resout, reserr = self.executeAsyncIO(command, outMethod=outMethod, errMethod=errMethod, timeout=timeout,
+                                                 buffersize=5000000, useShell=useShell, cwd=cwd, die=die,
+                                                 captureOutput=captureout)
+
+        out = "\n".join([item.rstrip().decode("UTF-8") for item in resout])
+        err = "\n".join([item.rstrip().decode("UTF-8") for item in reserr])
+
+        return rc, out, err
+
+    def psfind(self, name):
+        rc, out, err = self.execute("ps ax | grep %s" % name, showout=False)
+        for line in out.split("\n"):
+            if line.strip() == "":
+                continue
+            if "grep" in line:
+                continue
+            return True
+        return False
+
+    def killall(self, name):
+        rc, out, err = self.execute("ps ax | grep %s" % name, showout=False)
+        for line in out.split("\n"):
+            if line.strip() == "":
+                continue
+            if "grep" in line:
+                continue
+            line = line.strip()
+            pid = line.split(" ")[0]
+            print("kill:%s (%s)" % (name, pid))
+            self.execute("kill -9 %s" % pid, showout=False)
+        if self.psfind(name):
+            raise RuntimeError("Could not kill:%s, is still, there check if its not autorestarting." % name)
+
+    def removeFromAutostart(self, name):
+        if self.isMac:
+            items = ["~/Library/LaunchAgents", "/Library/LaunchAgents", "/Library/LaunchDaemons",
+                     "/System/Library/LaunchAgents", "/System/Library/LaunchDaemons"]
+            for item in items:
+                item = item.replace("~", os.environ["HOME"])
+                for item2 in self.listFilesInDir(item):
+                    if name in item2:
+                        print("Remove autostart:%s" % item2)
+                        self.execute("sudo rm -f %s" % item2)
+        else:
+            raise RuntimeError("not implemented")
 
 
 class Installer():
@@ -1137,7 +2102,8 @@ class Installer():
 
         if self.do.TYPE.startswith("OSX"):
             pass
-            # C = C.replace("$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/plat-x86_64-linux-gnu:/usr/local/lib/python3.5/site-packages:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/plat-darwin:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload")
+            # C = C.replace("$pythonpath",
+            # ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/plat-x86_64-linux-gnu:/usr/local/lib/python3.5/site-packages:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/plat-darwin:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload")
             C = C.replace("$pythonpath", ".:$JSBASE/lib:$_OLD_PYTHONPATH")
         else:
             C = C.replace(
@@ -1355,7 +2321,7 @@ class Installer():
         #     self.do.copyTree(src, dest)
 
 
-class InstallTools(GitMethods, FSMethods):
+class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
 
     def __init__(self, debug=False):
 
@@ -1615,323 +2581,11 @@ class InstallTools(GitMethods, FSMethods):
         if self.debug:
             print(msg)
 
-    # NON FS
-
-    def isUnix(self):
-        if sys.platform.lower().find("linux") != -1:
-            return True
-        return False
-
-    def isWindows(self):
-        if sys.platform.startswith("win") == 1:
-            return True
-        return False
-
-    def executeBashScript(self, content="", path=None, die=True, remote=None,
-                          sshport=22, showout=True, outputStderr=True, sshkey=""):
-        """
-        @param remote can be ip addr or hostname of remote, if given will execute cmds there
-        """
-        if path is not None:
-            content = self.readFile(path)
-        if content[-1] != "\n":
-            content += "\n"
-
-        if remote is None:
-            tmppath = self.getTmpPath("")
-            content = "cd %s\n%s" % (tmppath, content)
-        else:
-            content = "cd /tmp\n%s" % content
-
-        if die:
-            content = "set -ex\n%s" % content
-
-        path2 = self.getTmpPath("do.sh")
-        self.writeFile(path2, content, strip=True)
-
-        if remote is not None:
-            tmppathdest = "/tmp/do.sh"
-            if sshkey:
-                if not self.getSSHKeyPathFromAgent(sshkey, die=False):
-                    self.execute('ssh-add %s' % sshkey)
-                sshkey = '-i %s ' % sshkey.replace('!', '\!')
-            self.execute("scp %s -oStrictHostKeyChecking=no -P %s %s root@%s:%s " %
-                         (sshkey, sshport, path2, remote, tmppathdest), die=die)
-            rc, res, err = self.execute("ssh %s -oStrictHostKeyChecking=no -A -p %s root@%s 'bash %s'" %
-                                        (sshkey, sshport, remote, tmppathdest), die=die)
-        else:
-            rc, res, err = self.execute("bash %s" % path2, die=die, showout=showout, outputStderr=outputStderr)
-        return rc, res, err
-
-    def executeCmds(self, cmdstr, showout=True, outputStderr=True, useShell=True,
-                    log=True, cwd=None, timeout=120, captureout=True, die=True):
-        rc_ = []
-        out_ = ""
-        for cmd in cmdstr.split("\n"):
-            if cmd.strip() == "" or cmd[0] == "#":
-                continue
-            cmd = cmd.strip()
-            rc, out, err = self.execute(cmd, showout, outputStderr, useShell, log, cwd, timeout, captureout, die)
-            rc_.append(str(rc))
-            out_ += out
-
-        return rc_, out_
-
-    def execute(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=100,
-                captureout=True, die=True, async=False, executor=None):
-        """
-        Execute command
-        @param command: Command to be executed
-        @param showout: print output line by line while processing the command
-        @param outputStderr: print error line by line while processing the command
-        @param useShell: Execute command as a shell command
-        @param log:
-        @param cwd: If cwd is not None, the function changes the working directory to cwd before executing the child
-        @param timeout: If not None, raise TimeoutError if command execution time > timeout
-        @param captureout: If True, returns output of cmd. Else, it returns empty str
-        @param die: If True, raises error if cmd failed. else, fails silently and returns error in the output
-        @param async: If true, return Process object. DO CLOSE THE PROCESS AFTER FINISHING BY process.wait()
-        @param executor: If not None returns output of executor.execute(....)
-        @return: (returncode, output, error). output and error defaults to empty string
-        """
-
-        if executor:
-            return executor.execute(command, die=die, checkok=False, async=async, showout=True, timeout=timeout)
-
-        # TODO: *1 need to be brought back without async & without anything
-        # advanced, this is an isntaller should not have async, ...
-
-        executable = '/bin/bash' if useShell else None
-
-        if async:
-            os.environ["PYTHONUNBUFFERED"] = "1"
-            ON_POSIX = 'posix' in sys.builtin_module_names
-
-            proc = Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX,
-                         shell=useShell, env=os.environ, universal_newlines=True, cwd=cwd, bufsize=0, executable=executable)
-            return proc
-
-        @asyncio.coroutine
-        def _read_stream(_showout, stream):
-            """coroutine to read prints output based on stream"""
-            out = ''
-            while True:
-                line = yield from stream.readline()
-                if not line:
-                    break
-                if _showout:
-                    sys.stdout.buffer.write(line)
-                if captureout:
-                    out += line.decode('UTF-8', errors='replace').strip() + '\n'
-            return out
-
-        @asyncio.coroutine
-        def _execute(cmd):
-            # Create subprocess to execute command, and wait until it's created
-            proc = yield from asyncio.create_subprocess_shell(cmd,
-                                                              stdout=asyncio.subprocess.PIPE,
-                                                              stderr=asyncio.subprocess.PIPE,
-                                                              close_fds=True,
-                                                              executable=executable)
-
-            out = yield from _read_stream(showout, proc.stdout)
-            err = yield from _read_stream(outputStderr, proc.stderr)
-
-            try:
-                yield from asyncio.wait_for(proc.wait(), timeout)
-            except asyncio.TimeoutError:
-                if not out and err:
-                    return 124, out, err
-                return 0, out, err
-            else:
-                return proc.returncode, out, err
-
-        if sys.platform != 'cygwin':
-            # Get get and run coroutines using asyncio
-            try:
-                asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-                loop = asyncio.get_event_loop()
-            except Exception:
-                loop = uvloop.new_event_loop()
-                asyncio.set_event_loop(loop)
-            rc, out, err = loop.run_until_complete(_execute(command))
-            loop.close()
-        else:
-            loop = asyncio.get_event_loop()
-            rc, out, err = loop.run_until_complete(_execute(command))
-            loop.stop()
-            loop.run_forever()
-
-        if rc > 0 and die:
-            if err:
-                raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s" % (command, err))
-            else:
-                raise RuntimeError("Could not execute cmd:\n'%s'\nout:\n%s" % (command, out))
-
-        return rc, out, err
-
-    def executeInteractive(self, command, die=True):
-        exitcode = os.system(command)
-        if exitcode != 0 and die:
-            raise RuntimeError("Could not execute %s" % command)
-        return exitcode
-
-    def downloadExpandTarGz(self, url, destdir, deleteDestFirst=True, deleteSourceAfter=True):
-        print((self.getBaseName(url)))
-        tmppath = self.getTmpPath(self.getBaseName(url))
-        self.download(url, tmppath)
-        self.expandTarGz(tmppath, destdir)
-
-    def expandTarGz(self, path, destdir, deleteDestFirst=True, deleteSourceAfter=False):
-        import gzip
-
-        self.lastdir = os.getcwd()
-        os.chdir(self.TMPDIR)
-        basename = os.path.basename(path)
-        if basename.find(".tar.gz") == -1:
-            raise RuntimeError("Can only expand a tar gz file now %s" % path)
-        tarfilename = ".".join(basename.split(".gz")[:-1])
-        self.delete(tarfilename)
-
-        if deleteDestFirst:
-            self.delete(destdir)
-
-        if self.TYPE == "WIN":
-            cmd = "gzip -d %s" % path
-            os.system(cmd)
-        else:
-            handle = gzip.open(path)
-            with open(tarfilename, 'wb') as out:
-                for line in handle:
-                    out.write(line)
-            out.close()
-            handle.close()
-
-        t = tarfile.open(tarfilename, 'r')
-        t.extractall(destdir)
-        t.close()
-
-        self.delete(tarfilename)
-
-        if deleteSourceAfter:
-            self.delete(path)
-
-        os.chdir(self.lastdir)
-        self.lastdir = ""
-
-    def getTmpPath(self, filename):
-        return "%s/jumpscaleinstall/%s" % (self.TMPDIR, filename)
-
-    def downloadJumpScaleCore(self, dest):
-        # csid=getLastChangeSetBitbucket()
-        self.download("https://bitbucket.org/jumpscale/jumpscale-core/get/default.tar.gz",
-                      "%s/pl6core.tgz" % self.TMPDIR)
-        self.expand("%s/pl6core.tgz" % self.TMPDIR, dest)
-
-    def getPythonSiteConfigPath(self):
-        minl = 1000000
-        result = ""
-        for item in sys.path:
-            if len(item) < minl and item.find("python") != -1:
-                result = item
-                minl = len(item)
-        return result
-
     def getTimeEpoch(self):
         '''
         Get epoch timestamp (number of seconds passed since January 1, 1970)
         '''
         return int(time.time())
-
-    def rewriteGitRepoUrl(self, url="", login=None, passwd=None, ssh="auto"):
-        """
-        Rewrite the url of a git repo with login and passwd if specified
-
-        Args:
-            url (str): the HTTP URL of the Git repository. ex: 'https://github.com/odoo/odoo'
-            login (str): authentication login name
-            passwd (str): authentication login password
-            ssh = if True will build ssh url, if "auto" will check if there is ssh-agent available & keys are loaded, if yes will use ssh
-
-        Returns:
-            (repository_host, repository_type, repository_account, repository_name, repository_url)
-        """
-
-        if ssh == "auto":
-            ssh = self.checkSSHAgentAvailable()
-
-        url_pattern_ssh = re.compile('^(git@)(.*?):(.*?)/(.*?)/?$')
-        sshmatch = url_pattern_ssh.match(url)
-        url_pattern_http = re.compile('^(https?://)(.*?)/(.*?)/(.*?)/?$')
-        httpmatch = url_pattern_http.match(url)
-        if not sshmatch:
-            match = httpmatch
-        else:
-            match = sshmatch
-
-        if not match:
-            raise RuntimeError(
-                "Url is invalid. Must be in the form of 'http(s)://hostname/account/repo' or 'git@hostname:account/repo'")
-
-        protocol, repository_host, repository_account, repository_name = match.groups()
-        if protocol.startswith("git") and ssh is False:
-            protocol = "https://"
-
-        if not repository_name.endswith('.git'):
-            repository_name += '.git'
-
-        if login == 'ssh' or ssh == True:
-            repository_url = 'git@%(host)s:%(account)s/%(name)s' % {
-                'host': repository_host,
-                'account': repository_account,
-                'name': repository_name,
-            }
-            protocol = "ssh"
-
-        elif login and login != 'guest':
-            repository_url = '%(protocol)s%(login)s:%(password)s@%(host)s/%(account)s/%(repo)s' % {
-                'protocol': protocol,
-                'login': login,
-                'password': passwd,
-                'host': repository_host,
-                'account': repository_account,
-                'repo': repository_name,
-            }
-
-        else:
-            repository_url = '%(protocol)s%(host)s/%(account)s/%(repo)s' % {
-                'protocol': protocol,
-                'host': repository_host,
-                'account': repository_account,
-                'repo': repository_name,
-            }
-        if repository_name.endswith(".git"):
-            repository_name = repository_name[:-4]
-
-        return protocol, repository_host, repository_account, repository_name, repository_url
-
-    def parseGitConfig(self, repopath):
-        """
-        @param repopath is root path of git repo
-        @return (giturl,account,reponame,branch,login,passwd)
-        login will be ssh if ssh is used
-        login & passwd is only for https
-        """
-        path = self.joinPaths(dest, ".git", "config")
-        if not self.exists(path=path):
-            raise RuntimeError("cannot find %s" % path)
-        config = self.fileGetContents(path)
-        state = "start"
-        for line in config.split("\n"):
-            line2 = line.lower().strip()
-            if state == "remote":
-                if line.startswith("url"):
-                    url = line.split("=", 1)[1]
-                    url = url.strip().strip("\"").strip()
-            if line2.find("[remote") != -1:
-                state = "remote"
-            if line2.find("[branch"):
-                branch = line.split(" \"")[1].strip("]\" ").strip("]\" ").strip("]\" ")
 
     def whoami(self):
         if self._whoami is not None:
@@ -1944,589 +2598,20 @@ class InstallTools(GitMethods, FSMethods):
             self._whoami = result.strip()
         return self._whoami
 
-    def _addSSHAgentToBashProfile(self, path=None):
-
-        bashprofile_path = os.path.expanduser("~/.bash_profile")
-        if not self.exists(bashprofile_path):
-            self.execute('touch %s' % bashprofile_path)
-
-        content = self.readFile(bashprofile_path)
-        out = ""
-        for line in content.split("\n"):
-            if line.find("#JSSSHAGENT") != -1:
-                continue
-            if line.find("SSH_AUTH_SOCK") != -1:
-                continue
-
-            out += "%s\n" % line
-
-        if "SSH_AUTH_SOCK" in os.environ:
-            print("NO NEED TO ADD SSH_AUTH_SOCK to env")
-            self.writeFile(bashprofile_path, out)
-            return
-
-        # out += "\njs 'j.do._.loadSSHAgent()' #JSSSHAGENT\n"
-        out += "export SSH_AUTH_SOCK=%s" % self._getSSHSocketpath()
-        out = out.replace("\n\n\n", "\n\n")
-        out = out.replace("\n\n\n", "\n\n")
-        self.writeFile(bashprofile_path, out)
-
-    def _initSSH_ENV(self, force=False):
-        if force or "SSH_AUTH_SOCK" not in os.environ:
-            os.putenv("SSH_AUTH_SOCK", self._getSSHSocketpath())
-            os.environ["SSH_AUTH_SOCK"] = self._getSSHSocketpath()
-
-    def _getSSHSocketpath(self):
-
-        if "SSH_AUTH_SOCK" in os.environ:
-            return(os.environ["SSH_AUTH_SOCK"])
-
-        socketpath = "%s/sshagent_socket" % os.environ.get("HOME", '/root')
-        os.environ['SSH_AUTH_SOCK'] = socketpath
-        return socketpath
-
-    def askItemsFromList(self, items, msg=""):
-        if len(items) == 0:
-            return []
-        if msg != "":
-            print(msg)
-        nr = 0
-        for item in items:
-            nr += 1
-            print(" - %s: %s" % (nr, item))
-        print("select item(s) from list (nr or comma separated list of nr, * is all)")
-        item = input()
-        if item.strip() == "*":
-            return items
-        elif item.find(",") != -1:
-            res = []
-            itemsselected = [item.strip() for item in item.split(",") if item.strip() != ""]
-            for item in itemsselected:
-                item = int(item) - 1
-                res.append(items[item])
-            return res
-        else:
-            item = int(item) - 1
-            return [items[item]]
-
-    def loadSSHKeys(self, path=None, duration=3600 * 24, die=False):
-        """
-        will see if ssh-agent has been started
-        will check keys in home dir
-        will ask which keys to load
-        will adjust .profile file to make sure that env param is set to allow ssh-agent to find the keys
-        """
-        # print "loadsshkeys"
-        # TODO *1 move ssh functionality all of it to right sal or tool in
-        # jumpscale, make sure wherever we use it we adjust
-
-        self._addSSHAgentToBashProfile()
-
-        if path is None:
-            path = os.path.expanduser("~/.ssh")
-        self.createDir(path)
-
-        if "SSH_AUTH_SOCK" not in os.environ:
-            self._initSSH_ENV(True)
-
-        self._loadSSHAgent()
-
-        keysloaded = [self.getBaseName(item) for item in self.listSSHKeyFromAgent()]
-
-        if self.isDir(path):
-            keysinfs = [self.getBaseName(item).replace(".pub", "") for item in self.listFilesInDir(
-                path, filter="*.pub") if self.exists(item.replace(".pub", ""))]
-            keysinfs = [item for item in keysinfs if item not in keysloaded]
-
-            res = self.askItemsFromList(
-                keysinfs, "select ssh keys to load, use comma separated list e.g. 1,4,3 and press enter.")
-        else:
-            res = [self.getBaseName(path).replace(".pub", "")]
-            path = self.getParent(path)
-
-        for item in res:
-            pathkey = "%s/%s" % (path, item)
-            # timeout after 24 h
-            print("load sshkey: %s" % pathkey)
-            cmd = "ssh-add -t %s %s " % (duration, pathkey)
-            self.executeInteractive(cmd)
-
-    def getSSHKeyPathFromAgent(self, keyname, die=True):
-        try:
-            # TODO: why do we use subprocess here and not self.execute?
-            out = subprocess.check_output(["ssh-add", "-L"])
-        except:
-            return None
-
-        for line in out.splitlines():
-            delim = ("/%s" % keyname).encode()
-
-            if line.endswith(delim):
-                line = line.strip()
-                keypath = line.split(" ".encode())[-1]
-                content = line.split(" ".encode())[-2]
-                if not self.exists(path=keypath):
-                    if self.exists("keys/%s" % keyname):
-                        keypath = "keys/%s" % keyname
-                    else:
-                        raise RuntimeError("could not find keypath:%s" % keypath)
-                return keypath.decode()
-        if die:
-            raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l" % keyname)
-        return None
-
-    def getSSHKeyFromAgentPub(self, keyname, die=True):
-        try:
-            # TODO: why do we use subprocess here and not self.execute?
-            out = subprocess.check_output(["ssh-add", "-L"])
-        except:
-            return None
-
-        for line in out.splitlines():
-            delim = (".ssh/%s" % keyname).encode()
-            if line.endswith(delim):
-                content = line.strip()
-                content = content.decode()
-                return content
-        if die:
-            raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l" % keyname)
-        return None
-
-    def listSSHKeyFromAgent(self, keyIncluded=False):
-        """
-        returns list of paths
-        """
-        if "SSH_AUTH_SOCK" not in os.environ:
-            self._initSSH_ENV(True)
-        self._loadSSHAgent()
-        cmd = "ssh-add -L"
-        rc, out, err = self.execute(cmd, False, False, die=False)
-        if rc:
-            if rc == 1 and out.find("The agent has no identities") != -1:
-                return []
-            raise RuntimeError("error during listing of keys :%s" % err)
-        keys = [line.split() for line in out.splitlines() if len(line.split()) == 3]
-        if keyIncluded:
-            return list(map(lambda key: key[2:0:-1], keys))
-        else:
-            return list(map(lambda key: key[2], keys))
-
-    def ensure_keyname(self, keyname="", username="root"):
-        if not self.exists(keyname):
-            rootpath = "/root/.ssh/" if username == "root" else "/home/%s/.ssh/"
-            fullpath = self.joinPaths(rootpath, keyname)
-            if self.exists(fullpath):
-                return fullpath
-        return keyname
-
-    def authorize_user(self, sftp_client, ip_address, keyname, username):
-        basename = self.getBaseName(keyname)
-        tmpfile = "/home/%s/.ssh/%s" % (username, basename)
-        print("push key to /home/%s/.ssh/%s" % (username, basename))
-        sftp_client.put(keyname, tmpfile)
-
-        # cannot upload directly to root dir
-        auth_key_path = "/home/%s/.ssh/authorized_keys" % username
-        cmd = "ssh %s@%s 'cat %s | sudo tee -a %s '" % username, ip_address, tmpfile, auth_key_path
-        print("do the following on the console\nsudo -s\ncat %s >> %s" % (tmpfile, auth_key_path))
-        print(cmd)
-        self.executeInteractive(cmd)
-
-    def authorize_root(self, sftp_client, ip_address, keyname):
-        tmppath = "%s/authorized_keys" % self.TMPDIR
-        auth_key_path = "/root/.ssh/authorized_keys"
-        self.delete(tmppath)
-        try:
-            sftp_client.get(auth_key_path, tmppath)
-        except Exception as e:
-            if str(e).find("No such file") != -1:
-                try:
-                    auth_key_path += "2"
-                    sftp_client.get(auth_key_path, tmppath)
-                except Exception as e:
-                    if str(e).find("No such file") != -1:
-                        self.writeFile(tmppath, "")
-                    else:
-                        raise RuntimeError("Could not get authorized key,%s" % e)
-
-            C = self.readFile(tmppath)
-            Cnew = self.readFile(keyname)
-            key = Cnew.split(" ")[1]
-            if C.find(key) == -1:
-                C2 = "%s\n%s\n" % (C.strip(), Cnew)
-                C2 = C2.strip() + "\n"
-                self.writeFile(tmppath, C2)
-                print("sshauthorized adjusted")
-                sftp_client.put(tmppath, auth_key_path)
-            else:
-                print("ssh key was already authorized")
-
-    def authorizeSSHKey(self, remoteipaddr, keyname, login="root", passwd=None, sshport=22, removeothers=False):
-        """
-        this required ssh-agent to be loaded !!!
-        the keyname is the name of the key as loaded in ssh-agent
-
-        if remoteothers==True: then other keys will be removed
-        """
-        keyname = self.ensure_keyname(keyname=keyname, username=login)
-        import paramiko
-        paramiko.util.log_to_file("/tmp/paramiko.log")
-        ssh = paramiko.SSHClient()
-
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        print("ssh connect:%s %s" % (remoteipaddr, login))
-
-        if not self.listSSHKeyFromAgent(self.getBaseName(keyname)):
-            self.loadSSHKeys(self.getParent(keyname))
-        ssh.connect(remoteipaddr, username=login, password=passwd, allow_agent=True, look_for_keys=False)
-        print("ok")
-
-        ftp = ssh.open_sftp()
-
-        if login != "root":
-            self.authorize_user(sftp_client=ftp, ip_address=remoteipaddr, keyname=keyname, username=login)
-        else:
-            self.authorize_root(sftp_client=ftp, ip_address=remoteipaddr, keyname=keyname)
-
-    def _loadSSHAgent(self, path=None, createkeys=False, killfirst=False):
-        """
-        check if ssh-agent is available & there is key loaded
-
-        @param path: is path to private ssh key
-
-        the primary key is 'id_rsa' and will be used as default e.g. if authorizing another node then this key will be used
-
-        """
-        # check if more than 1 agent
-        socketpath = self._getSSHSocketpath()
-        res = [item for item in self.execute("ps aux|grep ssh-agent", False, False)
-               [1].split("\n") if item.find("grep ssh-agent") == -1]
-        res = [item for item in res if item.strip() != ""]
-        res = [item for item in res if item[-2:] != "-l"]
-
-        if len(res) > 1:
-            print("more than 1 ssh-agent, will kill all")
-            killfirst = True
-        if len(res) == 0 and self.exists(socketpath):
-            self.delete(socketpath)
-
-        if killfirst:
-            cmd = "killall ssh-agent"
-            # print(cmd)
-            self.execute(cmd, showout=False, outputStderr=False, die=False)
-            # remove previous socketpath
-            self.delete(socketpath)
-            self.delete(self.joinPaths(self.TMPDIR, "ssh-agent-pid"))
-
-        if not self.exists(socketpath):
-            self.createDir(self.getParent(socketpath))
-            # ssh-agent not loaded
-            print("load ssh agent")
-            rc, result, err = self.execute("ssh-agent -a %s" % socketpath, die=False, showout=False, outputStderr=False)
-
-            if rc > 0:
-                # could not start ssh-agent
-                raise RuntimeError(
-                    "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
-            else:
-                # get pid from result of ssh-agent being started
-                if not self.exists(socketpath):
-                    raise RuntimeError(
-                        "Serious bug, ssh-agent not started while there was no error, should never get here")
-                piditems = [item for item in result.split("\n") if item.find("pid") != -1]
-                # print(piditems)
-                if len(piditems) < 1:
-                    print("results was:")
-                    print(result)
-                    print("END")
-                    raise RuntimeError("Cannot find items in ssh-add -l")
-                self._initSSH_ENV(True)
-                pid = int(piditems[-1].split(" ")[-1].strip("; "))
-                self.writeFile(self.joinPaths(self.TMPDIR, "ssh-agent-pid"), str(pid))
-                self._addSSHAgentToBashProfile()
-
-        # ssh agent should be loaded because ssh-agent socket has been found
-        if os.environ.get("SSH_AUTH_SOCK") != socketpath:
-            self._initSSH_ENV(True)
-        rc, result, err = self.execute("ssh-add -l", die=False, showout=False, outputStderr=False)
-        if rc == 2:
-            # no ssh-agent found
-            print(result)
-            raise RuntimeError("Could not connect to ssh-agent, this is bug, ssh-agent should be loaded by now")
-        elif rc == 1:
-            # no keys but agent loaded
-            result = ""
-        elif rc > 0:
-            raise RuntimeError(
-                "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
-
-    def checkSSHAgentAvailable(self):
-        if not self.exists(self._getSSHSocketpath()):
-            return False
-        if "SSH_AUTH_SOCK" not in os.environ:
-            self._initSSH_ENV(True)
-        rc, out, err = self.execute("ssh-add -l", showout=False, outputStderr=False, die=False)
-        if 'The agent has no identities.' in out:
-            return True
-        if rc != 0:
-            return False
-        else:
-            return True
-
-    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False,
-                       branch=None, ssh="auto", codeDir=None, executor=None):
-        """
-        Extracts and returns data useful in cloning a Git repository.
-
-        Args:
-            url (str): the HTTP/GIT URL of the Git repository to clone from. eg: 'https://github.com/odoo/odoo.git'
-            dest (str): the local filesystem path to clone to
-            login (str): authentication login name (only for http)
-            passwd (str): authentication login password (only for http)
-            reset (boolean): if True, any cached clone of the Git repository will be removed
-            branch (str): branch to be used
-            ssh if auto will check if ssh-agent loaded, if True will be forced to use ssh for git
-
-        # Process for finding authentication credentials (NOT IMPLEMENTED YET)
-
-        - first check there is an ssh-agent and there is a key attached to it, if yes then no login & passwd will be used & method will always be git
-        - if not ssh-agent found
-            - then we will check if url is github & ENV argument GITHUBUSER & GITHUBPASSWD is set
-                - if env arguments set, we will use those & ignore login/passwd arguments
-            - we will check if login/passwd specified in URL, if yes willl use those (so they get priority on login/passwd arguments)
-            - we will see if login/passwd specified as arguments, if yes will use those
-        - if we don't know login or passwd yet then
-            - login/passwd will be fetched from local git repo directory (if it exists and reset==False)
-        - if at this point still no login/passwd then we will try to build url with anonymous
-
-
-        # Process for defining branch
-
-        - if branch arg: None
-            - check if git directory exists if yes take that branch
-            - default to 'master'
-        - if it exists, use the branch arg
-
-        Returns:
-            (repository_host, repository_type, repository_account, repository_name,branch, login, passwd)
-
-            - repository_type http or git
-
-        Remark:
-            url can be empty, then the git params will be fetched out of the git configuration at that path
-        """
-
-        if url == "":
-            if dest is None:
-                raise RuntimeError("dest cannot be None (url is also '')")
-            if not self.exists(dest):
-                raise RuntimeError(
-                    "Could not find git repo path:%s, url was not specified so git destination needs to be specified." % (dest))
-
-        if login is None and url.find("github.com/") != -1:
-            # can see if there if login & passwd in OS env
-            # if yes fill it in
-            if "GITHUBUSER" in os.environ:
-                login = os.environ["GITHUBUSER"]
-            if "GITHUBPASSWD" in os.environ:
-                passwd = os.environ["GITHUBPASSWD"]
-
-        protocol, repository_host, repository_account, repository_name, repository_url = self.rewriteGitRepoUrl(
-            url=url, login=login, passwd=passwd, ssh=ssh)
-
-        repository_type = repository_host.split('.')[0] if '.' in repository_host else repository_host
-
-        if not dest:
-            if codeDir is None:
-                if not executor:
-                    codeDir = self.CODEDIR
-                else:
-                    codeDir = executor.cuisine.core.dir_paths['codeDir']
-            dest = '%(codedir)s/%(type)s/%(account)s/%(repo_name)s' % {
-                'codedir': codeDir,
-                'type': repository_type.lower(),
-                'account': repository_account.lower(),
-                'repo_name': repository_name,
-            }
-
-        if reset:
-            self.delete(dest)
-
-        # self.createDir(dest)
-
-        return repository_host, repository_type, repository_account, repository_name, dest, repository_url
-
-    def pullGitRepo(self, url="", dest=None, login=None, passwd=None, depth=None, ignorelocalchanges=False,
-                    reset=False, branch=None, revision=None, ssh="auto", executor=None, codeDir=None):
-        """
-        will clone or update repo
-        if dest is None then clone underneath: /opt/code/$type/$account/$repo
-        will ignore changes !!!!!!!!!!!
-
-        @param ssh ==True means will checkout ssh
-        @param ssh =="first" means will checkout sss first if that does not work will go to http
-        """
-
-        if ssh == "first":
-            try:
-                return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
-                                        reset, branch, revision, True, executor)
-            except Exception as e:
-                return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
-                                        reset, branch, revision, False, executor)
-            raise RuntimeError("Could not checkout, needs to be with ssh or without.")
-
-        base, provider, account, repo, dest, url = self.getGitRepoArgs(
-            url, dest, login, passwd, reset=reset, ssh=ssh, codeDir=codeDir, executor=executor)
-
-        print("pull:%s ->%s" % (url, dest))
-
-        existsDir = self.exists(dest) if not executor else executor.exists(dest)
-
-        checkdir = "%s/.git" % (dest)
-        existsGit = self.exists(checkdir) if not executor else executor.exists(checkdir)
-
-        if existsGit:
-            # if we don't specify the branch, try to find the currently checkedout branch
-            cmd = 'cd %s; git rev-parse --abbrev-ref HEAD' % dest
-            rc, out, err = self.execute(cmd, die=False, showout=False, executor=executor)
-            if rc == 0:
-                branchFound = out.strip()
-            else:  # if we can't retreive current branch, use master as default
-                branchFound = 'master'
-                # raise RuntimeError("Cannot retrieve branch:\n%s\n" % cmd)
-
-            if branch != None and branch != branchFound and ignorelocalchanges == False:
-                raise RuntimeError(
-                    "Cannot pull repo, branch on filesystem is not same as branch asked for.\nBranch asked for:%s\nBranch found:%s\nTo choose other branch do e.g:\nexport JSBRANCH='%s'\n" % (branch, branchFound, branchFound))
-
-            if branch == None:
-                branch = branchFound
-
-            if ignorelocalchanges:
-                print(("git pull, ignore changes %s -> %s" % (url, dest)))
-                cmd = "cd %s;git fetch" % dest
-                if depth is not None:
-                    cmd += " --depth %s" % depth
-                    self.execute(cmd, executor=executor)
-                if branch is not None:
-                    print("reset branch to:%s" % branch)
-                    self.execute("cd %s;git fetch; git reset --hard origin/%s" %
-                                 (dest, branch), timeout=600, executor=executor)
-            else:
-                # pull
-                print(("git pull %s -> %s" % (url, dest)))
-                if url.find("http") != -1:
-                    cmd = "cd %s;git -c http.sslVerify=false pull origin %s" % (dest, branch)
-                else:
-                    cmd = "cd %s;git pull origin %s" % (dest, branch)
-                print(cmd)
-                self.execute(cmd, timeout=600, executor=executor)
-        else:
-            print(("git clone %s -> %s" % (url, dest)))
-            extra = ""
-            if depth is not None:
-                extra = "--depth=%s" % depth
-            if url.find("http") != -1:
-                if branch is not None:
-                    cmd = "cd %s;git -c http.sslVerify=false clone %s --single-branch -b %s %s %s" % (
-                        self.getParent(dest), extra, branch, url, dest)
-                else:
-                    cmd = "cd %s;git -c http.sslVerify=false clone %s  %s %s" % (self.getParent(dest), extra, url, dest)
-            else:
-                if branch is not None:
-                    cmd = "cd %s;git clone %s --single-branch -b %s %s %s" % (
-                        self.getParent(dest), extra, branch, url, dest)
-                else:
-                    cmd = "cd %s;git clone %s  %s %s" % (self.getParent(dest), extra, url, dest)
-
-            print(cmd)
-
-            self.execute(cmd, timeout=600, executor=executor)
-
-        if revision is not None:
-            cmd = "cd %s;git checkout %s" % (dest, revision)
-            print(cmd)
-            self.execute(cmd, timeout=600, executor=executor)
-
-        return dest
-
-    def checkInstalled(self, cmdname):
-        """
-        @param cmdname is cmd to check e.g. curl
-        """
-        _, res, _ = self.execute("which %s" % cmdname, False)
-        if res[0] == 0:
-            return True
-        else:
-            return False
-
-    def getGitBranch(self, path):
-
-        # if we don't specify the branch, try to find the currently checkedout branch
-        cmd = 'cd %s;git rev-parse --abbrev-ref HEAD' % path
-        try:
-            rc, out, err = self.execute(cmd, showout=False, outputStderr=False)
-            if rc == 0:
-                branch = out.strip()
-            else:  # if we can't retreive current branch, use master as default
-                branch = 'master'
-        except:
-            branch = 'master'
-
-        return branch
-
-    def _initExtra(self):
+    @property
+    def extra(self):
         """
         will get extra install tools lib
         """
         if not self._extratools:
             if not self.exists("ExtraTools.py"):
                 url = "https://raw.githubusercontent.com/Jumpscale/jumpscale_core/master/install/ExtraTools.py"
-                self.download(url, "/tmp/ExtraTools.py")
-                if "/tmp" not in sys.path:
-                    sys.path.append("/tmp")
+                self.download(url, "%s/ExtraTools.py" % self.TMPDIR)
+                if self.TMPDIR not in sys.path:
+                    sys.path.append(self.TMPDIR)
             from ExtraTools import extra
-            self.extra = extra
-        self._extratools = True
-
-    def getWalker(self):
-        self._initExtra()
-        return self.extra.getWalker(self)
-
-    def loadScript(self, path):
-        print(("load jumpscript: %s" % path))
-        source = self.readFile(path)
-        out, tags = self._preprocess(source)
-
-        def md5_string(s):
-            import hashlib
-            s = s.encode('utf-8')
-            impl = hashlib.new('md5', s)
-            return impl.hexdigest()
-        md5sum = md5_string(out)
-        modulename = 'JumpScale.jumpscript_%s' % md5sum
-
-        codepath = self.joinPaths(self.getTmpPath(), "jumpscripts", "%s.py" % md5sum)
-        self.writeFile(filename=codepath, contents=out)
-
-        linecache.checkcache(codepath)
-        self.module = imp.load_source(modulename, codepath)
-
-        self.author = getattr(self.module, 'author', "unknown")
-        self.organization = getattr(self.module, 'organization', "unknown")
-        self.version = getattr(self.module, 'version', 0)
-        self.modtime = getattr(self.module, 'modtime', 0)
-        self.descr = getattr(self.module, 'descr', "")
-
-        # identifies the actions & tags linked to it
-        self.tags = tags
-
-        for name, val in list(tags.items()):
-            self.actions[name] = eval("self.module.%s" % name)
-
-    def installPackage(self, path):
-        pass
+            self._extratools = extra
+        return self._extratools
 
 
 do = InstallTools()

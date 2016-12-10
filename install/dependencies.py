@@ -29,6 +29,8 @@ class dependencies():
         pyblake2
         brotli
         pysodium
+        ipfsapi
+        curio
         """
         self.do.pip(C, executor=executor)
 

@@ -1193,7 +1193,7 @@ class SystemProcess:
         @param command: command to execute
         @param die: boolean to die if got non zero exitcode
         @param printCommandToStdout: boolean to show/hide output to stdout
-        @param outputToStdout: Deprecated. Use 'printCommandToStdout' instead.
+        @param showout: Deprecated. Use 'printCommandToStdout' instead.
         @rtype: integer represents the exitcode
         if exitcode is not zero then the executed command returned with errors
         """
@@ -1210,241 +1210,149 @@ class SystemProcess:
 
         return exitcode
 
-    def executeAsync(self, command, args=[], printCommandToStdout=False, redirectStreams=True,
-                     argsInCommand=False, useShell=None, outputToStdout=True):
-        """ Execute command asynchronous. By default, the input, output and error streams of the command will be piped to the returned Popen object. Be sure to call commands that don't expect user input, or send input to the stdin parameter of the returning Popen object.
-        @param command: Command to execute. (string)
-        @param args: [Optional, [] by default] Arguments to be passed to the command. (Array of string)
-        @param printCommandToStdOut: [Optional, False by default] Indicates if the command to be executed needs to be printed to screen. (boolean)
-        @param redirectStreams: [Optional, True by default] Indicates if the input, output and error streams should be captured by the returned Popen object. If not, the output and input will be mixed with the streams of the calling process. (boolean)
-        @param argsInCommand: [Optional, False by default] Indicates if the command-parameter contains command-line arguments.  If argsInCommand is False and args is not empty, the contents of args will be added to the command when executing.
-        @param useShell: [Optional, False by default on Windows, True by default on Linux] Indicates if the command should be executed throug the shell.
-        @return: If redirectStreams is true, this function returns a subprocess.Popen object representing the started process. Otherwise, it will return the pid-number of the started process.
-        """
-        if useShell is None:  # The default value depends on which platform we're using.
-            if j.core.platformtype.myplatform.isUnix():
-                useShell = True
-            elif j.core.platformtype.myplatform.isWindows():
-                useShell = False
-            else:
-                raise j.exceptions.RuntimeError("Platform not supported")
+    # DO NOT REENABLE, if you need it, call the j.do.executeASyncIO
 
-        self.logger.info("system.process.executeAsync [%s]" % command)
-        if printCommandToStdout:
-            print(("system.process.executeAsync [%s]" % command))
+    # def executeAsync(self, command, args=[], printCommandToStdout=False, redirectStreams=True,
+    #                  argsInCommand=False, useShell=None, showout=True):
+    #     """ Execute command asynchronous. By default, the input, output and error streams of the command will be piped to the returned Popen object. Be sure to call commands that don't expect user input, or send input to the stdin parameter of the returning Popen object.
+    #     @param command: Command to execute. (string)
+    #     @param args: [Optional, [] by default] Arguments to be passed to the command. (Array of string)
+    #     @param printCommandToStdOut: [Optional, False by default] Indicates if the command to be executed needs to be printed to screen. (boolean)
+    #     @param redirectStreams: [Optional, True by default] Indicates if the input, output and error streams should be captured by the returned Popen object. If not, the output and input will be mixed with the streams of the calling process. (boolean)
+    #     @param argsInCommand: [Optional, False by default] Indicates if the command-parameter contains command-line arguments.  If argsInCommand is False and args is not empty, the contents of args will be added to the command when executing.
+    #     @param useShell: [Optional, False by default on Windows, True by default on Linux] Indicates if the command should be executed throug the shell.
+    #     @return: If redirectStreams is true, this function returns a subprocess.Popen object representing the started process. Otherwise, it will return the pid-number of the started process.
+    #     """
+    #     if useShell is None:  # The default value depends on which platform we're using.
+    #         if j.core.platformtype.myplatform.isUnix():
+    #             useShell = True
+    #         elif j.core.platformtype.myplatform.isWindows():
+    #             useShell = False
+    #         else:
+    #             raise j.exceptions.RuntimeError("Platform not supported")
+    #
+    #     self.logger.info("system.process.executeAsync [%s]" % command)
+    #     if printCommandToStdout:
+    #         print(("system.process.executeAsync [%s]" % command))
+    #
+    #     if j.core.platformtype.myplatform.isWindows():
+    #         if argsInCommand:
+    #             cmd = subprocess.list2cmdline([command] + args)
+    #         else:
+    #             cmd = command
+    #
+    #         if redirectStreams:  # Process will be started and the Popen object will be returned. The calling function can use this object to read or write to its pipes or to wait for completion.
+    #             retVal = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+    #                                       stderr=subprocess.PIPE, env=os.environ, shell=useShell)
+    #         else:
+    #             # Process will be started without inheriting handles. Subprocess doesn't offer functionality to accomplish this, so we implement it ourselves using the lowlevel win32.CreateProcess method.
+    #             # Example use-case: Image a vapp that contains a deamon that can be started using a control script, and we want to start this deamon after installation.
+    #             #                   In this case, we want to call the control script from the install script using system.process.execute to be able to capture the output of the control script.
+    #             #                   The control script in turn will start the daemon in an asynchronous way and is not interested in the output of the daemon.
+    #             #                   If we would use the subprocess.Popen object to start the daemon in the control script, the stdout pipe of the control script will be inherited by the daemon,
+    #             # it will not be closed before the control script AND the daemon have
+    #             # ended both, so the install script will stay listening on the stdout pipe
+    #             # as long as it exists and the system.process.execute() method will not
+    #             # return until the daemon ends.
+    #             from win32process import CreateProcess, STARTUPINFO, STARTF_USESHOWWINDOW
+    #             from win32con import SW_HIDE
+    #             sui = STARTUPINFO()
+    #             if useShell:  # 4 lines below are copied from subprocess.Popen._execute_child().  (Code for Win9x is omitted as we only support WinXP and higher.)
+    #                 sui.dwFlags |= STARTF_USESHOWWINDOW
+    #                 sui.wShowWindow = SW_HIDE
+    #                 comspec = os.environ.get("COMSPEC", "cmd.exe")
+    #                 cmd = comspec + " /c " + cmd
+    #             # Returns a handle for the created process, a handle for the main thread,
+    #             # the identifier of the process (PID) and the identifier of the main
+    #             # thread.
+    #             hp, ht, pid, tid = CreateProcess(None,        # Executable
+    #                                              cmd,         # Command Line
+    #                                              None,        # Security Attributes for Process
+    #                                              None,        # Securtiy Attributes for Thread
+    #                                              0,           # Inherithandles = False(0)
+    #                                              0,           # Creation Flags
+    #                                              os.environ,  # Environment Settings (use the same as calling process)
+    #                                              None,        # CurrentDir (Don't change)
+    #                                              sui)         # Startup Information
+    #             retVal = pid
+    #
+    #     elif j.core.platformtype.myplatform.isUnix():
+    #         if useShell:
+    #             if argsInCommand:
+    #                 cmd = command
+    #             else:
+    #                 cmd = subprocess.list2cmdline([command] + args)
+    #
+    #             if redirectStreams:
+    #                 retVal = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
+    #                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ)
+    #             else:
+    #                 if showout:
+    #                     proc = subprocess.Popen(cmd, shell=True, env=os.environ)
+    #                 else:
+    #                     devnull = open('/dev/null', 'w')
+    #                     proc = subprocess.Popen(cmd, shell=True, env=os.environ, stdout=devnull, stderr=devnull)
+    #                     devnull.close()
+    #                 # Returning the pid, analogous to the windows implementation where we
+    #                 # don't have a Popen object to return.
+    #                 retVal = proc.pid
+    #         else:
+    #             # Not possible, only the shell is able to parse command line arguments form a space-separated string.
+    #             if argsInCommand:
+    #                 raise j.exceptions.RuntimeError(
+    #                     "On Unix, either use the shell to execute a command, or split your command in an argument list")
+    #             if redirectStreams:
+    #                 retVal = subprocess.Popen([command] + args, shell=False, stdin=subprocess.PIPE,
+    #                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ)
+    #             else:
+    #                 if showout:
+    #                     proc = subprocess.Popen([command] + args, shell=False, env=os.environ)
+    #                 else:
+    #                     devnull = open('/dev/null', 'w')
+    #                     proc = subprocess.Popen([command] + args, shell=False, env=os.environ,
+    #                                             stdout=devnull, stderr=devnull)
+    #                     devnull.close()
+    #                 # Returning the pid, analogous to the windows implementation where we
+    #                 # don't have a Popen object to return.
+    #                 retVal = proc.pid
+    #     else:
+    #         raise j.exceptions.RuntimeError("Platform not supported")
+    #
+    #     return retVal
 
-        if j.core.platformtype.myplatform.isWindows():
-            if argsInCommand:
-                cmd = subprocess.list2cmdline([command] + args)
-            else:
-                cmd = command
-
-            if redirectStreams:  # Process will be started and the Popen object will be returned. The calling function can use this object to read or write to its pipes or to wait for completion.
-                retVal = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                          stderr=subprocess.PIPE, env=os.environ, shell=useShell)
-            else:
-                # Process will be started without inheriting handles. Subprocess doesn't offer functionality to accomplish this, so we implement it ourselves using the lowlevel win32.CreateProcess method.
-                # Example use-case: Image a vapp that contains a deamon that can be started using a control script, and we want to start this deamon after installation.
-                #                   In this case, we want to call the control script from the install script using system.process.execute to be able to capture the output of the control script.
-                #                   The control script in turn will start the daemon in an asynchronous way and is not interested in the output of the daemon.
-                #                   If we would use the subprocess.Popen object to start the daemon in the control script, the stdout pipe of the control script will be inherited by the daemon,
-                # it will not be closed before the control script AND the daemon have
-                # ended both, so the install script will stay listening on the stdout pipe
-                # as long as it exists and the system.process.execute() method will not
-                # return until the daemon ends.
-                from win32process import CreateProcess, STARTUPINFO, STARTF_USESHOWWINDOW
-                from win32con import SW_HIDE
-                sui = STARTUPINFO()
-                if useShell:  # 4 lines below are copied from subprocess.Popen._execute_child().  (Code for Win9x is omitted as we only support WinXP and higher.)
-                    sui.dwFlags |= STARTF_USESHOWWINDOW
-                    sui.wShowWindow = SW_HIDE
-                    comspec = os.environ.get("COMSPEC", "cmd.exe")
-                    cmd = comspec + " /c " + cmd
-                # Returns a handle for the created process, a handle for the main thread,
-                # the identifier of the process (PID) and the identifier of the main
-                # thread.
-                hp, ht, pid, tid = CreateProcess(None,        # Executable
-                                                 cmd,         # Command Line
-                                                 None,        # Security Attributes for Process
-                                                 None,        # Securtiy Attributes for Thread
-                                                 0,           # Inherithandles = False(0)
-                                                 0,           # Creation Flags
-                                                 os.environ,  # Environment Settings (use the same as calling process)
-                                                 None,        # CurrentDir (Don't change)
-                                                 sui)         # Startup Information
-                retVal = pid
-
-        elif j.core.platformtype.myplatform.isUnix():
-            if useShell:
-                if argsInCommand:
-                    cmd = command
-                else:
-                    cmd = subprocess.list2cmdline([command] + args)
-
-                if redirectStreams:
-                    retVal = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
-                                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ)
-                else:
-                    if outputToStdout:
-                        proc = subprocess.Popen(cmd, shell=True, env=os.environ)
-                    else:
-                        devnull = open('/dev/null', 'w')
-                        proc = subprocess.Popen(cmd, shell=True, env=os.environ, stdout=devnull, stderr=devnull)
-                        devnull.close()
-                    # Returning the pid, analogous to the windows implementation where we
-                    # don't have a Popen object to return.
-                    retVal = proc.pid
-            else:
-                # Not possible, only the shell is able to parse command line arguments form a space-separated string.
-                if argsInCommand:
-                    raise j.exceptions.RuntimeError(
-                        "On Unix, either use the shell to execute a command, or split your command in an argument list")
-                if redirectStreams:
-                    retVal = subprocess.Popen([command] + args, shell=False, stdin=subprocess.PIPE,
-                                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ)
-                else:
-                    if outputToStdout:
-                        proc = subprocess.Popen([command] + args, shell=False, env=os.environ)
-                    else:
-                        devnull = open('/dev/null', 'w')
-                        proc = subprocess.Popen([command] + args, shell=False, env=os.environ,
-                                                stdout=devnull, stderr=devnull)
-                        devnull.close()
-                    # Returning the pid, analogous to the windows implementation where we
-                    # don't have a Popen object to return.
-                    retVal = proc.pid
-        else:
-            raise j.exceptions.RuntimeError("Platform not supported")
-
-        return retVal
-
-    def execute(self, command, die=True, outputToStdout=False, useShell=False, ignoreErrorOutput=False):
+    def execute(self, command, die=True, showout=True, useShell=False, ignoreErrorOutput=False, cwd=None, timeout=300):
         """Executes a command, returns the exitcode and the output
         @param command: command to execute
         @param die: boolean to die if got non zero exitcode
-        @param outputToStdout: boolean to show/hide output to stdout
+        @param showout: boolean to show/hide output to stdout
         @param ignoreErrorOutput standard stderror is added to stdout in out result, if you want to make sure this does not happen put on True
         @rtype: integer represents the exitcode plus the output of the executed command
         if exitcode is not zero then the executed command returned with errors
         """
-        # Since python has no non-blocking readline() call, we implement it ourselves
-        # using the following private methods.
-        #
-        # We choose for line buffering, i.e. whenever we receive a full line of output (terminated by \n)
-        # on stdout or stdin of the child process, we log it
-        #
-        # When the process terminates, we log the final lines (and add a \n to them)
         self.logger.info("exec:%s" % command)
 
-        def _logentry(entry, loglevel=5):
-            self.tools.console.info(entry)
+        if showout == False:
+            outMethod = None
+            errMethod = None
+        else:
+            outMethod = "print"
+            errMethod = "print"
 
-        def _splitdata(data):
-            """ Split data in pieces separated by \n """
-            lines = data.split("\n")
-            return lines[:-1], lines[-1]
+        # DO NOT IMPLEMENT ANYTHING DIFFERENT, if you feel the need ask despiegk
+        rc, resout, reserr = j.do.executeAsyncIO(command, outMethod=outMethod, errMethod=errMethod, timeout=timeout,
+                                                 buffersize=5000000, useShell=useShell, cwd=cwd, die=die,
+                                                 captureOutput=not ignoreErrorOutput)
 
-        def _logoutput(data, OUT_LINE, ERR_LINE):
-            [lines, partialline] = _splitdata(data)
-            if lines:
-                lines[0] = OUT_LINE + lines[0]
-            else:
-                partialline = OUT_LINE + partialline
-            OUT_LINE = ""
-            if partialline:
-                OUT_LINE = partialline
-            for x in lines:
-                _logentry(x, 3)
-            return OUT_LINE, ERR_LINE
+        out = "\n".join([item.rstrip().decode("UTF-8") for item in resout])
+        err = "\n".join([item.rstrip().decode("UTF-8") for item in reserr])
 
-        def _logerror(data, OUT_LINE, ERR_LINE):
-            [lines, partialline] = _splitdata(data)
-            if lines:
-                lines[0] = ERR_LINE + lines[0]
-            else:
-                partialline = ERR_LINE + partialline
-            ERR_LINE = ""
-            if partialline:
-                ERR_LINE = partialline
-            for x in lines:
-                _logentry(x, 4)
-            return OUT_LINE, ERR_LINE
-
-        def _flushlogs(OUT_LINE, ERR_LINE):
-            """ Called when the child process closes. We need to get the last
-                non-\n terminated pieces of the stdout and stderr streams
-            """
-            if OUT_LINE:
-                _logentry(OUT_LINE, 3)
-            if ERR_LINE:
-                _logentry(ERR_LINE, 4)
-
-        if command is None:
-            raise ValueError('Error, cannot execute command not specified')
-        self.logger.info("system.process.execute [%s]" % command)
-        try:
-            import errno
-            if j.core.platformtype.myplatform.isUnix():
-                childprocess = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                                stderr=subprocess.PIPE, close_fds=True, shell=True, env=os.environ)
-                (output, error) = childprocess.communicate()
-                exitcode = childprocess.returncode
-
-            elif j.core.platformtype.myplatform.isWindows():
-                import win32pipe
-                import msvcrt
-                import pywintypes
-
-                # For some awkward reason you need to include the stdin pipe, or you get an error deep inside
-                # the subprocess module if you use QRedirectStdOut in the calling script
-                # We do not use the stdin.
-                childprocess = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                                stderr=subprocess.STDOUT, close_fds=False, shell=useShell, env=os.environ)
-                output = ""
-                OUT_LINE = ""
-                ERR_LINE = ""
-                childRunning = True
-
-                while childRunning:
-                    # The readline method will block until data is received on stdout, or the
-                    # stdout pipe has been destroyed. (Will return empty string)
-                    stdoutData = childprocess.stdout.readline()
-                    # Only call processes that release their stdout pipe when exiting, otherwise the method will not return when the process completed.
-                    # When the called process starts another process and marks its handle of
-                    # the stdout pipe as inheritable, the pipe will not be destroyed before
-                    # both processes end.
-                    if stdoutData != '':
-                        output = output + stdoutData
-                        (OUT_LINE, ERR_LINE) = _logoutput(stdoutData, OUT_LINE, ERR_LINE)
-                    else:  # Did not read any data on channel
-                        if childprocess.poll() is not None:  # Will return a number if the process has ended, or None if it's running.
-                            childRunning = False
-
-                exitcode = childprocess.returncode
-                error = "Error output redirected to stdout."
-
-            else:
-                raise j.exceptions.RuntimeError("Non supported OS for system.process.execute()")
-
-        except Exception as e:
-            raise
-
-        output = output.decode("utf8")  # 'ascii')
-        error = error.decode("utf8")  # 'ascii')
-
-        if exitcode != 0 or error != "":
-            self.logger.error(" Exitcode:%s\nOutput:%s\nError:%s\n" % (exitcode, output, error))
-            if ignoreErrorOutput != True:
-                output = "%s\n***ERROR***\n%s\n" % (output, error)
-
-        if exitcode != 0 and die:
-            self.logger.error("command: [%s]\nexitcode:%s\noutput:%s\nerror:%s" % (command, exitcode, output, error))
-            raise j.exceptions.RuntimeError(
-                "Error during execution! (system.process.execute())\n\nCommand: [%s]\n\nExitcode: %s\n\nProgram output:\n%s\n\nErrormessage:\n%s\n" % (command, exitcode, output, error))
-
-        return exitcode, output
+        #??? err ignored, but is not in spec
+        return rc, out
 
     def executeIndependant(self, cmd):
+        """
+        RUN IN BACKGROUND, won't see anything
+        """
         # devnull = open(os.devnull, 'wb') # use this in python < 3.3
         # Popen(['nohup', cmd+" &"], stdout=devnull, stderr=devnull)
         cmd2 = "nohup %s > /dev/null 2>&1 &" % cmd
@@ -1556,7 +1464,6 @@ class SystemProcess:
 
     kill = staticmethod(kill)
 
-
     def getPidsByFilterSortable(self, filterstr, sortkey=None):
         """
         Get pids of process by a filter string and optionally sort by sortkey
@@ -1564,7 +1471,7 @@ class SystemProcess:
         @param filterstr string: filter string.
         @param sortkey   string: sort key for ps command
         sortkey can be one of the following:
-            %cpu           cpu utilization of the process in 
+            %cpu           cpu utilization of the process in
             %mem           ratio of the process's resident set size  to the physical memory on the machine, expressed as a percentage.
             cputime        cumulative CPU time, "[DD-]hh:mm:ss" format.  (alias time).
             egid           effective group ID number of the process as a decimal integer.  (alias gid).
@@ -1662,7 +1569,7 @@ class SystemProcess:
             # Need to set $COLUMNS such that we can grep full commandline
             # Note: apparently this does not work on solaris
             command = "env COLUMNS=300 ps -ef"
-            (exitcode, output) = j.sal.process.execute(command, die=False, outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, die=False, showout=False)
             pids = list()
             co = re.compile(
                 "\s*(?P<uid>[a-z]+)\s+(?P<pid>[0-9]+)\s+(?P<ppid>[0-9]+)\s+(?P<cpu>[0-9]+)\s+(?P<stime>\S+)\s+(?P<tty>\S+)\s+(?P<time>\S+)\s+(?P<cmd>.+)")
@@ -1748,7 +1655,7 @@ class SystemProcess:
         self.logger.info('Checking whether process with PID %d is actually %s' % (pid, process))
         if j.core.platformtype.myplatform.isUnix():
             command = "ps -p %i" % pid
-            (exitcode, output) = j.sal.process.execute(command, die=False, outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, die=False, showout=False)
             i = 0
             for line in output.splitlines():
                 if j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
@@ -1813,7 +1720,7 @@ class SystemProcess:
             return None
         if j.core.platformtype.myplatform.isLinux():
             command = "netstat -ntulp | grep ':%s '" % port
-            (exitcode, output) = j.sal.process.execute(command, die=False, outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, die=False, showout=False)
 
             # Not found if grep's exitcode  > 0
             if not exitcode == 0:
@@ -1843,7 +1750,7 @@ class SystemProcess:
             # Need to set $COLUMNS such that we can grep full commandline
             # Note: apparently this does not work on solaris
             command = "env COLUMNS=300 ps -ef"
-            (exitcode, output) = j.sal.process.execute(command, die=False, outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, die=False, showout=False)
             co = re.compile(
                 "\s*(?P<uid>[a-z]+)\s+(?P<pid>[0-9]+)\s+(?P<ppid>[0-9]+)\s+(?P<cpu>[0-9]+)\s+(?P<stime>\S+)\s+(?P<tty>\S+)\s+(?P<time>\S+)\s+(?P<cmd>.+)")
             for line in output.splitlines():

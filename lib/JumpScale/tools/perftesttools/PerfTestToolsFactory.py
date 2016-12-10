@@ -46,7 +46,7 @@ class PerfTestToolsFactory:
             j.sal.fs.writeFile(path, self.sshkey)
             j.sal.fs.chmod(path, 0o600)
 
-        j.do.loadSSHKeys()
+        j.sal.ssh.loadSSHKeys()
 
     def getNodeNAS(self, ipaddr, sshport=22, nrdisks=0, fstype="xfs", role='', debugdisk="", name=""):
         """

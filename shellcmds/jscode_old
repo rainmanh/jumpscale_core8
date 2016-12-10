@@ -106,7 +106,7 @@ for bitbucket,account,reponame,branch,client,path in repos:
             if branch!=opts.branch:
                 print("set branch:%s"%opts.branch)
                 cmd="cd %s;hg branch %s"%(path,opts.branch)
-                j.sal.process.execute(cmd,die=False, outputToStdout=True, useShell=True, ignoreErrorOutput=False)                
+                j.sal.process.execute(cmd,die=False, showout=True, useShell=True, ignoreErrorOutput=False)                
                 cmd="cd %s;hg update %s"%(path,opts.branch)
                 j.sal.process.execute(cmd)
                 print("updated to branch:%s"%opts.branch)

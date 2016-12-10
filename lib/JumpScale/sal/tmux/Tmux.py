@@ -290,7 +290,7 @@ class Tmux:
 
     def execute(self, cmd):
         cmd = "tmux %s" % cmd
-        j.do.execute(cmd, showout=False)
+        j.sal.process.execute(cmd, showout=False)
 
     def createPanes4x4(self, sessionName="main", windowName="actions", reset=True):
         session = self.getSession(sessionName, firstWindow=windowName)

@@ -77,7 +77,7 @@ class CifsFS:
             command = '%s //%s/%s %s -o username=%s,password=%s' % (
                 self._command, self.server, self.sharename, self.mntpoint, self.username, self.password)
         self.logger.info("CifsFS: executing command [%s]" % command)
-        exitCode, output = j.sal.process.execute(
+        exitCode, output, err = j.sal.process.execute(
             command, die=True, showout=False)
 
         # create remote dir
@@ -185,7 +185,7 @@ class CifsFS:
         self.logger.info("CifsFS: Cleaning up and umounting the share")
         command = "umount %s" % self.orgmntpoint
 
-        exitCode, output = j.sal.process.execute(
+        exitCode, output, err = j.sal.process.execute(
             command, die=False, showout=False)
         if not exitCode == 0:
             raise j.exceptions.RuntimeError(

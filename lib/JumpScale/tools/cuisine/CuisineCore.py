@@ -374,8 +374,8 @@ class CuisineCore(base):
         x = self.args_replace(x)
         return x
 
-    def file_download(self, url, to, overwrite=True, retry=3, timeout=0, login="",
-                      passwd="", minspeed=0, multithread=False, expand=False):
+    def file_download(self, url, to="", overwrite=True, retry=3, timeout=0, login="",
+                      passwd="", minspeed=0, multithread=False, expand=False, minsizekb=30):
         """
         download from url
         @return path of downloaded file
@@ -384,9 +384,19 @@ class CuisineCore(base):
         @param when multithread True then will use aria2 download tool to get multiple threads
         """
 
-        if expand:
-            destdir = to
-            to = self.file_get_tmp_path(j.sal.fs.getBaseName(url))
+        if to == "":
+            if expand:
+                destdir = ""
+            to = self.joinpaths("$tmpDir", j.sal.fs.getBaseName(url))
+        else:
+            if expand:
+                destdir = to
+            to = self.joinpaths("$tmpDir", j.sal.fs.getBaseName(url))
+
+        # if expand:
+        #     destdir = to
+        #     self.dir_ensure(destdir)
+        #     to = self.joinpaths("$tmpDir", "_%s" % j.sal.fs.getBaseName(url))
 
         if overwrite:
             if self.file_exists(to):
@@ -419,24 +429,51 @@ class CuisineCore(base):
                     cmd = "curl -L '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (
                         url, to, user, minsp, retry, timeout)
                     rc, out, err = self.run(cmd, die=False)
+                fsize = self.file_size(to)
+                if minsizekb != 0 and fsize < minsizekb:
+                    raise j.exceptions.RuntimeError(
+                        "Could not download:{}.\nFile size too small after download {}kb.\n".format(url, fsize))
                 if rc > 0:
                     raise j.exceptions.RuntimeError("Could not download:{}.\nErrorcode: {}.\n".format(url, rc))
                 else:
                     self.touch("%s.downloadok" % to)
             else:
                 raise j.exceptions.RuntimeError("not implemented yet")
-
         if expand:
-            self.file_expand(to, destdir)
+            return self.file_expand(to, destdir)
 
-    def file_expand(self, path, to):
+        return to
+
+    def file_expand(self, path, to=""):
+        base = j.sal.fs.getBaseName(path)
+        if base.endswith(".tgz"):
+            base = base[:-4]
+        if base.endswith(".gz"):
+            base = base[:-3]
+        if base.endswith(".xz"):
+            base = base[:-3]
+        if base.endswith(".tar"):
+            base = base[:-4]
+        if to == "":
+            to = self.joinpaths("$tmpDir", base)
         path = self.args_replace(path)
         to = self.args_replace(to)
+        self.dir_ensure(to)
         if path.endswith(".tar.gz") or path.endswith(".tgz"):
             cmd = "tar -C %s -xzf %s" % (to, path)
             self.run(cmd)
+        elif path.endswith(".xz"):
+            if self.isMac:
+                self._cuisine.package.install('xz')
+            else:
+                self._cuisine.package.install('xz-utils')
+            cmd = "tar -C %s -xzf %s" % (to, path)
+            self.run(cmd)
         else:
-            raise j.exceptions.RuntimeError("not supported yet")
+            raise j.exceptions.RuntimeError("file_expand format not supported yet for %s" % path)
+        if self.dir_exists(self.joinpaths(to, base)):
+            return self.joinpaths(to, base)
+        return to
 
     def touch(self, path):
         path = self.args_replace(path)
@@ -485,12 +522,25 @@ class CuisineCore(base):
         otherwise.
         """
         location = self.args_replace(location)
+        location = location.replace("//", "/")
         if self.file_exists(location):
-            fs_check = self.run('stat %s %s' % (location, '--format="%a %U %G"'), showout=False)[1]
+            if self.isMac:
+                fs_check = self.run('stat -f %s %s' % ('"%a %u %g"', location), showout=False)[1]
+            else:
+                fs_check = self.run('stat %s %s' % (location, '--format="%a %U %G"'), showout=False)[1]
             (mode, owner, group) = fs_check.split(' ')
             return {'mode': mode, 'owner': owner, 'group': group}
         else:
             return None
+
+    def file_size(self, path):
+        """
+        return in kb
+        """
+
+        out = self.run("du -Lck %s" % path, showout=False)[1]
+        res = out.split("\n")[-1].split("\t")[0].split(" ")[0]
+        return int(res)
 
     @property
     def hostname(self):
@@ -865,6 +915,7 @@ class CuisineCore(base):
             seperator = "/"
         for arg in args:
             path += "%s%s" % (seperator, arg)
+        path = self.args_replace(path)
         return path
 
     def dir_attribs(self, location, mode=None, owner=None, group=None, recursive=False, showout=False):

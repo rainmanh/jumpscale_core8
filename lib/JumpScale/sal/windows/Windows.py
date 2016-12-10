@@ -1007,7 +1007,7 @@ class WindowsSystem:
         @return when 0 then ok, when 1 not found, when 2 an error but don't know what
         """
         try:
-            returncode, output = j.sal.process.execute(programName)
+            returncode, output, _ = j.sal.process.execute(programName)
         except Exception as inst:
             if inst.args[1].lower().find("cannot find the file specified") != -1:
                 return 1

@@ -82,7 +82,7 @@ class Freezer:
 
     def install(self):
         cmd = "pip3 install --upgrade pyinstaller"
-        rc, out = j.sal.process.execute(cmd, die=True, outputToStdout=True, ignoreErrorOutput=False)
+        rc, out = j.sal.process.execute(cmd, die=True, showout=True, ignoreErrorOutput=False)
 
     def cleanSystem(self, backup=True):
         if not str(j.core.platformtype.myplatform).startswith("darwin"):
@@ -148,7 +148,7 @@ class Freezer:
             cmd = 'rsync -raL %s/ %s/' % (path, dest)
             j.sal.fs.createDir(dest)
             print(cmd)
-            rc, out = j.sal.process.execute(cmd, die=True, outputToStdout=False, ignoreErrorOutput=False)
+            rc, out = j.sal.process.execute(cmd, die=True, showout=False, ignoreErrorOutput=False)
         copy(jsbase, "/JS8/opt/jumpscale8/lib/JumpScale")
         copy(jsbase, "/JS8/opt/jumpscale8/templates")
 

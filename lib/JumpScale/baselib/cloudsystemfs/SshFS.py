@@ -61,7 +61,7 @@ class SshFS:
 
         self.logger.info("SshFS: executing command [%s]" % command)
 
-        exitCode, output = j.sal.process.execute(
+        exitCode, output, err = j.sal.process.execute(
             command, die=False, showout=False)
         if not exitCode == 0:
             raise j.exceptions.RuntimeError(
@@ -141,7 +141,7 @@ class SshFS:
         self.logger.info("SshFS: cleaning up and umounting share")
         command = "umount %s" % self.mntpoint
 
-        exitCode, output = j.sal.process.execute(
+        exitCode, output, err = j.sal.process.execute(
             command, die=False, showout=False)
         if not exitCode == 0:
             raise j.exceptions.RuntimeError(

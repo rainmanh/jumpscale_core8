@@ -207,7 +207,7 @@ class ActionsBaseNode:
                     j.sal.fs.writeFile(path2, C)
                     j.sal.fs.chmod(path2, 0o770)
                     j.sal.process.execute(
-                        "sv start %s" % name, die=False, outputToStdout=False, outputStderr=False, captureout=False)
+                        "sv start %s" % name, die=False, showout=False, outputStderr=False, captureout=False)
                 else:
                     j.sal.ubuntu.service_install(name, tcmd, pwd=cwd, env=env)
                     j.sal.ubuntu.service_start(name)
@@ -299,7 +299,7 @@ class ActionsBaseNode:
             if j.sal.fs.exists(path="/etc/my_init.d/%s" % name):
                 print("stop through myinitd:%s" % name)
                 j.sal.process.execute("sv stop %s" % name, die=False,
-                                      outputToStdout=False, outputStderr=False, captureout=False)
+                                      showout=False, outputStderr=False, captureout=False)
             elif startupmethod == "upstart":
                 print("stop through upstart:%s" % name)
                 j.sal.ubuntu.service_stop(name)
@@ -368,7 +368,7 @@ class ActionsBaseNode:
                 # of upstart
                 if j.sal.fs.exists(path="/etc/my_init.d/"):
                     _, res, _ = j.sal.process.execute("sv status %s" % name, die=False,
-                                                      outputToStdout=False, outputStderr=False, captureout=True)
+                                                      showout=False, outputStderr=False, captureout=True)
                     if res.startswith('ok'):
                         return True
                     else:

@@ -72,7 +72,7 @@ class OpenWRTManager:
         uci = UCI(name)
         try:
             with settings(shell=self.WRT_SHELL, abort_exception=UCIError):
-                ucistr = j.sal.process.execute('uci export %s' % name)
+                rc, ucistr, err = j.sal.process.execute("uci export %s" % name)
             uci.loads(ucistr)
         except UCIError:
             pass

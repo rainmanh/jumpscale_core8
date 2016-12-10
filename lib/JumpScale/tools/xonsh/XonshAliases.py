@@ -28,7 +28,7 @@ def xonsh_go(args, stdin=None):
 def xonsh_edit(args, stdin=None):
     if len(args) == 0:
         cmd = "/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl -a ."
-        j.do.executeInteractive(cmd)
+        j.sal.process.executeInteractive(cmd)
         return
     else:
         items = [item for item in j.sal.fs.listFilesInDir(
@@ -47,15 +47,15 @@ def xonsh_edit(args, stdin=None):
     else:
         raise j.exceptions.RuntimeError("Did not find editor")
 
-    j.do.executeInteractive(cmd)
+    j.sal.process.executeInteractive(cmd)
 
 
 def xonsh_update(args, stdin=None):
     print("update git repo's")
     j.tools.xonsh.configAll()
-    # j.do.execute("jscode update -a jumpscale -n play8")
-    # j.do.execute("jscode update -a jumpscale -n play8")
-    # j.do.execute("jscode update -a jumpscale -n play8")
+    # j.sal.process.execute("jscode update -a jumpscale -n play8")
+    # j.sal.process.execute("jscode update -a jumpscale -n play8")
+    # j.sal.process.execute("jscode update -a jumpscale -n play8")
 
 
 # def xonsh_git(args, stdin=None):
@@ -80,12 +80,12 @@ def xonsh_update(args, stdin=None):
 #         if cmd=="reset":
 #             cmd = 'cd %s; git checkout .' % path
 #             j.sal.process.execute(cmd)
-#             j.do.pullGitRepo(url=client.remoteUrl)
+#             j.clients.git.pullGitRepo(url=client.remoteUrl)
 #     elif len(args)==2:
 #         cmd=args[0]
 #         data=args[1]
 #         if cmd=="pull":
-#             j.do.pullGitRepo(data, dest=None, depth=None,
+#             j.clients.git.pullGitRepo(data, dest=None, depth=None,
 #                          ignorelocalchanges=opts.deletechanges, reset=False, branch=opts.branch)
 #         elif cmd=="push":
 
@@ -93,4 +93,4 @@ def xonsh_update(args, stdin=None):
 #     else:
 #         raise j.exceptions.RuntimeError("need to specify 1 or 2 args.\n%s"%H)
 
-#     j.do.executeInteractive(cmd)
+#     j.sal.process.executeInteractive(cmd)

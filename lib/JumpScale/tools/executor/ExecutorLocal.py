@@ -17,12 +17,12 @@ class ExecutorLocal(ExecutorBase):
     def executeRaw(self, cmd, die=True, showout=False):
         return self.execute(cmd, die=die, showout=showout)
 
-    def execute(self, cmds, die=True, checkok=None, async=False, showout=True, outputStderr=False, timeout=2, env={}):
+    def execute(self, cmds, die=True, checkok=None, showout=True, outputStderr=False, timeout=300, env={}):
         if env:
             self.env.update(env)
         if self.debug:
             print("EXECUTOR:%s" % cmds)
-        return j.do.execute(cmds, die=die, async=async, showout=showout, outputStderr=outputStderr, timeout=timeout)
+        return j.do.execute(cmds, die=die,  showout=showout, outputStderr=outputStderr, timeout=timeout)
 
         # if isinstance(cmds, list):
         #     raise RuntimeError("cmds can only be 1 cmd")

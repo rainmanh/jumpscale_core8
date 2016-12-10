@@ -885,7 +885,7 @@
 			"j\\.do\\.execute.+",
 			"j\\.do\\.executeinteractive",
 			"j\\.do\\.execute\\w+",
-			"outputToStdout=False,",
+			"showout=False,",
 			"j.do",
 			"eraseDestination",
 			"j\\.sal\\.fs\\.copyDirTree\\(.+eraseDestination",
@@ -962,7 +962,7 @@
 		[
 			"",
 			"j.sal.process.execute(",
-			"outputToStdout",
+			"showout",
 			"j.sal.fs.symlink",
 			"j.sal.fs.remove",
 			"j.sal.process.executeWithoutPipe",

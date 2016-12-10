@@ -10,7 +10,7 @@ import tarantool
 try:
     import tarantool
 except:
-    rc, out = j.sal.process.execute("pip3 install tarantool", die=True, outputToStdout=False, ignoreErrorOutput=False)
+    rc, out = j.sal.process.execute("pip3 install tarantool", die=True, showout=False, ignoreErrorOutput=False)
     import tarantool
 
 

@@ -29,7 +29,7 @@ class Docker:
 
     def init(self):
 
-        j.do.execute("systemctl stop docker")
+        j.sal.process.execute("systemctl stop docker")
 
         d = j.sal.disklayout.findDisk(mountpoint="/storage")
         if d is not None:
@@ -45,7 +45,7 @@ class Docker:
         j.sal.fs.symlink("/storage/docker", "/var/lib/docker",
                          overwriteTarget=True)
 
-        j.do.execute("systemctl start docker")
+        j.sal.process.execute("systemctl start docker")
 
     @property
     def weaveIsActive(self):
@@ -58,7 +58,7 @@ class Docker:
                 self.logger.warning("weave not found, do not forget to start if installed.")
                 self._weaveSocket = ""
             else:
-                rc, self._weaveSocket = j.sal.process.execute("eval $(weave env) && echo $DOCKER_HOST", die=False)
+                rc, self._weaveSocket, _ = j.sal.process.execute("eval $(weave env)                 rc, self._weaveSocket = j.sal.process.__execute("eval $(weave env) && echo $DOCKER_HOST", die=False)                rc, self._weaveSocket = j.sal.process.__execute("eval $(weave env) && echo $DOCKER_HOST", die=False) echo $DOCKER_HOST", die=False)
                 if rc > 0:
                     self.logger.warning("weave not found, do not forget to start if installed.")
                     self._weaveSocket = ""
@@ -574,7 +574,7 @@ class Docker:
 
             self.removeImages()
 
-        j.do.execute("systemctl stop docker")
+        j.sal.process.execute("systemctl stop docker")
 
         if j.sal.fs.exists(path="/var/lib/docker/btrfs/subvolumes"):
             j.sal.btrfs.subvolumesDelete('/var/lib/docker/btrfs/subvolumes')
@@ -586,7 +586,7 @@ class Docker:
     def removeDocker(self):
         self._destroyAllKill()
 
-        rc, out = j.sal.process.execute("mount")
+        rc, out, _ = j.sal.process.execute("mount")
         mountpoints = []
         for line in out.split("\n"):
             if line.find("type btrfs") != -1:

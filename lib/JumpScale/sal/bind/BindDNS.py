@@ -115,8 +115,8 @@ class BindDNS(DNS):
         Start bind9 server.
         """
         self.logger.info('STARTING BIND SERVICE')
-        _, out = j.sal.process.execute(
-            'service bind9 start', outputToStdout=True)
+        _, out, _ = j.sal.process.execute(
+            'service bind9 start', showout=True)
         self.logger.info(out)
 
     def stop(self):
@@ -124,8 +124,8 @@ class BindDNS(DNS):
         Stop bind9 server.
         """
         self.logger.info('STOPPING BIND SERVICE')
-        _, out = j.sal.process.execute(
-            'service bind9 stop', outputToStdout=True)
+        _, out, _ = j.sal.process.execute(
+            'service bind9 stop', showout=True)
         self.logger.info(out)
 
     def restart(self):
@@ -133,8 +133,8 @@ class BindDNS(DNS):
         Restart bind9 server.
         """
         self.logger.info('RESTSRTING BIND SERVICE')
-        _, out = j.sal.process.execute(
-            'service bind9 restart', outputToStdout=True)
+        _, out, _ = j.sal.process.execute(
+            'service bind9 restart', showout=True)
         self.logger.info(out)
 
     def updateHostIp(self, host, ip):

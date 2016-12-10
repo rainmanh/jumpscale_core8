@@ -82,7 +82,7 @@ def jscode(action, name, url, message, branch, accounts, update, force, deletech
                 "git configuration not found, please install github_client service (ays install -n github_client)")
         else:
             # from ipdb import set_trace;set_trace()
-            _, url = j.sal.process.execute("cd %s;git config --get remote.origin.url" % path)
+            _, url,_ = j.sal.process.execute("cd %s;git config --get remote.origin.url" % path)
             if str(url).find("@") == -1:
                 login = j.application.config.get("whoami.git.login")
                 passwd = j.application.config.get("whoami.git.passwd")

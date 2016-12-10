@@ -6,7 +6,7 @@ import sys
 try:
     import pyximport
 except:
-    rc, out = j.sal.process.execute("pip3 install cython", die=True, outputToStdout=False, ignoreErrorOutput=False)
+    rc, out, err = j.sal.process.execute("pip3 install cython", die=True, showout=False, ignoreErrorOutput=False)
     import pyximport
 
 

@@ -46,7 +46,7 @@ def llist():
 
 def getip(nr,fail=True):
     cmd="lxc-list"
-    resultcode,out=j.sal.process.execute(cmd)
+    resultcode,out,err=j.sal.process.execute(cmd)
     name="desktop%s"%nr
     stopped = []
     running = []
@@ -55,7 +55,7 @@ def getip(nr,fail=True):
         line = line.strip()
         if line.find(name)==0:
             print("machine found")
-            if line.find("RUNNING")==-1:                
+            if line.find("RUNNING")==-1:
                 if fail:
                     print("machine not running,so ip could not be found")
                     j.application.stop(1)
@@ -119,7 +119,7 @@ if opts.action =='ps':
     print("TOTAL: mem:%-8s cpu:%-8s" % (mem, cpu))
 
 
-    
+
 
 
 ##########NEW
@@ -148,7 +148,7 @@ if opts.action =='new':
     resultcode,out=j.sal.process.execute(cmd)
     start=time.time()
     now=start
-    while now<start+10:    
+    while now<start+10:
         ip=getip(m,fail=False)
         if ip != "":
             break
@@ -170,7 +170,7 @@ if opts.action =='configure':
 
     if opts.passwd==None:
         opts.passwd="rooter"
-    
+
 
     if j.sal.nettools.waitConnectionTest(ip,22,5)==False:
         print("could not connect to port:%s on ip:%s"%(22,ip))
@@ -183,11 +183,11 @@ if opts.action =='configure':
     #cl.wait()
 
     nr=0
-    
+
     if j.sal.nettools.waitConnectionTest(ip,3389,0.1)==False:
         if nr==10:
             print("could not connect to rdp port:%s on ip:%s"%(3389,ip))
-            j.application.stop(1)            
+            j.application.stop(1)
         nr+=1
 
     print("desktop:%s:%s:started"%(nr,ip))
@@ -195,7 +195,7 @@ if opts.action =='configure':
 if opts.desktop==True or opts.action =='rdp':
     if ip=="":
         ip=getip(opts.nr)
-    time.sleep(2)    
+    time.sleep(2)
     j.sal.nettools.waitConnectionTest(ip,3389,2)
     j.sal.process.execute("rdesktop %s -g 1600x900 -e & 2>&1 > /dev/null"%ip)
 
@@ -215,7 +215,7 @@ if opts.action =='userconfig':
     if opts.name==None:
         raise j.exceptions.RuntimeError("please specify name")
     if opts.passwd==None:
-        raise j.exceptions.RuntimeError("please specify passwd")        
+        raise j.exceptions.RuntimeError("please specify passwd")
     client=j.clients.agentcontroller
     client.execute("jumpscale", "desktopcreate", "master", timeout=60, wait=True, lock='desktopcreate', username=opts.name,passwd=opts.passwd)
 

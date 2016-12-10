@@ -61,13 +61,13 @@ you can specify minimal running processes needed.
 
 ```
 
-#### execute(*command, die=True, outputToStdout, useShell, ignoreErrorOutput*) 
+#### execute(*command, die=True, showout, useShell, ignoreErrorOutput*) 
 
 ```
 Executes a command, returns the exitcode and the output
 @param command: command to execute
 @param die: boolean to die if got non zero exitcode
-@param outputToStdout: boolean to show/hide output to stdout
+@param showout: boolean to show/hide output to stdout
 @param ignoreErrorOutput standard stderror is added to stdout in out result, if you want
     to make sure this does not happen put on True
 @rtype: integer represents the exitcode plus the output of the executed command
@@ -75,7 +75,7 @@ if exitcode is not zero then the executed command returned with errors
 
 ```
 
-#### executeAsync(*command, args, printCommandToStdout, redirectStreams=True, argsInCommand, useShell, outputToStdout=True*) 
+#### executeAsync(*command, args, printCommandToStdout, redirectStreams=True, argsInCommand, useShell, showout=True*) 
 
 ```
 Execute command asynchronous. By default, the input, output and error streams of the
@@ -135,7 +135,7 @@ This is platform independent
 @param command: command to execute
 @param die: boolean to die if got non zero exitcode
 @param printCommandToStdout: boolean to show/hide output to stdout
-@param outputToStdout: Deprecated. Use 'printCommandToStdout' instead.
+@param showout: Deprecated. Use 'printCommandToStdout' instead.
 @rtype: integer represents the exitcode
 if exitcode is not zero then the executed command returned with errors
 

@@ -38,7 +38,7 @@ class GOLang:
         return _binpath
 
     def check(self):
-        rc, out = j.sal.process.execute("which go", outputToStdout=False, outputStderr=False, die=False)
+        rc, out = j.sal.process.execute("which go", showout=False, outputStderr=False, die=False)
         if rc > 0:
             raise j.exceptions.RuntimeError("Could not find golang, please install")
         self.gopath

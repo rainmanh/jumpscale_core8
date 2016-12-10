@@ -64,7 +64,7 @@ class Sandboxer:
             print(("check:%s" % path))
 
             cmd = "ldd %s" % path
-            rc, out = j.sal.process.execute(cmd, die=False)
+            rc, out, err = j.sal.process.execute(cmd, die=False)
             if rc > 0:
                 if out.find("not a dynamic executable") != -1:
                     return result

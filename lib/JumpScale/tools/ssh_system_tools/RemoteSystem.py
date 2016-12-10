@@ -214,14 +214,14 @@ class RemoteSystemProcess(_remoteSystemObject):
     # Todo tomorow refactor other methods to use this one
     # For now don't break code
 
-    def execute(self, command, die=False, outputToStdout=True, loglevel=5, timeout=None):
+    def execute(self, command, die=False, showout=True, loglevel=5, timeout=None):
         """Executes a command, returns the exitcode and the output
 
         @param command: command to execute
         @type command: string
         @param die: die if got non zero exitcode
         @type die: bool
-        @param outputToStdout
+        @param showout
         @param timeout: seconds to wait for a pending read/write operation.  Infinity if omitted
         @type timeout: float
         @param withError: If true the error is also returned
@@ -231,14 +231,14 @@ class RemoteSystemProcess(_remoteSystemObject):
         @return: represents the exitcode plus the output and error output (if enabled by withError) of the executed command. If exitcode is not zero then the executed command returned with errors
         """
 
-        # TODO: Timeout, outputToStdout, loglevel not used
+        # TODO: Timeout, showout, loglevel not used
         # are they usefull are simply there for backwards compatibility?
 
         if j.core.platformtype.has_parent("unix"):
             exitcode, output, error = self._executeUnix(command, die)
         else:
 
-            exitcode, output, error = self._execute_common(command, die, tostdout=outputToStdout)
+            exitcode, output, error = self._execute_common(command, die, tostdout=showout)
 
         return exitcode, output, error
 
@@ -285,7 +285,7 @@ class RemoteSystemProcess(_remoteSystemObject):
         @type pid: int
         """
         command = 'kill -%(signum)s %(pid)s' % {'pid': pid, 'signum': signal.SIGTERM}
-        exitCode, output = self.execute(command, die=False, outputToStdout=False)
+        exitCode, output = self.execute(command, die=False, showout=False)
         if exitCode:
             j.tools.console.echo('Failed to execute remote command %s. Reason %s' % (command, output))
         return exitCode, output

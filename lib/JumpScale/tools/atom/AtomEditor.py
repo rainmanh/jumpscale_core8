@@ -3,7 +3,7 @@ import os
 try:
     import cson
 except:
-    rc, out = j.sal.process.execute("pip3 install cson", die=True, outputToStdout=False, ignoreErrorOutput=False)
+    rc, out, err = j.sal.process.execute("pip3 install cson", die=True, showout=False)
     import cson
 
 import inspect
@@ -22,7 +22,7 @@ class AtomEditor:
         """
         if self._packages == []:
             cmd = "apm list -b"
-            rc, out = j.sal.process.execute(cmd, die=True, outputToStdout=False, ignoreErrorOutput=False)
+            rc, out, err = j.sal.process.execute(cmd, die=True, showout=False)
             items = [item.split("@")[0] for item in out.split("\n") if item.strip() != ""]
             self._packages = items
 
@@ -37,7 +37,7 @@ class AtomEditor:
         if upgrade is False and name in self.packages:
             return
         cmd = "apm install %s" % name
-        rc, out = j.sal.process.execute(cmd, die=True, outputToStdout=False, ignoreErrorOutput=False)
+        j.sal.process.execute(cmd, die=True, showout=False)
 
     def installAll(self):
         self.installPythonExtensions()
@@ -161,4 +161,4 @@ class AtomEditor:
         pip3 install flake8
         pip3 install flake8-docstrings
         """
-        rc, out = j.sal.process.execute(C, die=True, outputToStdout=False, ignoreErrorOutput=False)
+        rc, out = j.sal.process.execute(C, die=True, showout=False, ignoreErrorOutput=False)

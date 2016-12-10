@@ -449,8 +449,8 @@ class ErrorConditionHandler:
                     if editor == "less":
                         j.sal.process.executeWithoutPipe(cmd, die=False)
                     else:
-                        result, out = j.sal.process.execute(
-                            cmd, die=False, outputToStdout=False)
+                        result, out, err = j.sal.process.execute(
+                            cmd, die=False, showout=False)
 
                 j.logger.clear()
                 if res == "c":

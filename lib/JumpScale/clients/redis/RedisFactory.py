@@ -89,6 +89,11 @@ class RedisFactory:
         print("could not start redis server, check manually, best to kill all of them and restart.")
         sys.exit(1)
 
+    def kill(self):
+        j.do.execute("redis-cli -s %s/redis.sock shutdown" % j.do.TMPDIR, die=False, showout=False)
+        j.do.execute("redis-cli shutdown" % j.do.TMPDIR, die=False, showout=False)
+        j.do.killall("redis")
+
     def _start4JScore(self, j, tmpdir):
         """
         starts a redis instance in separate ProcessLookupError
@@ -96,10 +101,13 @@ class RedisFactory:
         """
         if j.tools.cuisine.local.core.isMac:
             #--port 0
-            if 'redis-server' not in os.listdir(path='%s/bin/' % j.dirs.base):
-                    j.tools.cuisine.local.core.run("brew install redis")
-                    j.tools.cuisine.local.core.file_copy("/usr/local/bin/redis-server", '%s/bin/' % j.dirs.base)
-            cmd = "redis-server --port 0 --unixsocket %s/redis.sock --maxmemory 100000000 --daemonize yes" % tmpdir
+
+            if not j.do.checkInstalled("redis-server"):
+                self.kill()
+                j.do.execute("brew unlink redis;brew install redis;brew link redis")
+            if not j.do.checkInstalled("redis-server"):
+                raise RuntimeError("Cannot find redis-server even after install")
+            cmd = "redis-server --port 0 --unixsocket %s/redis.sock --maxmemory 100000000 --daemonize yes" % tmpdir  # 100MB
             print("start redis in background (osx)")
             os.system(cmd)
             print("started")

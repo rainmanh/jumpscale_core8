@@ -7,7 +7,7 @@ class NetworkScanner:
     COMMAND = 'nmap -n --disable-arp-ping -send-ip -Pn -sS -p{ports} -oX - {cidr}'
 
     def __init__(self, cidr, ports=[80]):
-        code, _ = j.sal.process.execute('which nmap', outputToStdout=False, die=False)
+        code, _, _ = j.sal.process.execute('which nmap', showout=False, die=False)
         if code != 0:
             raise j.exceptions.RuntimeError('nmap is not installed')
 
@@ -18,7 +18,7 @@ class NetworkScanner:
         """nmap -n --disable-arp-ping -send-ip -Pn -sS -p22 -oX - 172.17.0.1/24"""
 
         cmd = self.COMMAND.format(ports=self._ports, cidr=self._cidr)
-        code, output = j.sal.process.execute(cmd, outputToStdout=False, die=False)
+        code, output, err = j.sal.process.execute(cmd, showout=False, die=False)
         if code != 0:
             raise j.exceptions.RuntimeError('nmap scan failed')
 

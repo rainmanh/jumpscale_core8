@@ -140,7 +140,7 @@ class Netconfig:
             iface $int inet static
 
             """
-        C = j.do.textstrip(C)
+        C = j.data.text.strip(C)
 
         if bridgedev is not None:
             C += "    bridge_fd 0\n"
@@ -441,7 +441,7 @@ class Netconfig:
                 cmd = "ip addr flush dev %s" % interface
                 j.sal.process.execute(cmd)
 
-            j.sal.process.execute("sudo stop network-manager", outputToStdout=False, outputStderr=False, die=False)
+            j.sal.process.execute("sudo stop network-manager", showout=False, outputStderr=False, die=False)
             j.sal.fs.writeFile("/etc/init/network-manager.override", "manual")
 
             j.sal.netconfig.interfaces_reset()

@@ -144,7 +144,7 @@ class ExecutorSSH(ExecutorBase):
     def executeRaw(self, cmd, die=True, showout=False):
         return self.sshclient.execute(cmd, die=die, showout=showout)
 
-    def execute(self, cmds, die=True, checkok=None, async=False, showout=True, timeout=0, env={}):
+    def execute(self, cmds, die=True, checkok=None, showout=True, timeout=0, env={}):
         """
         @param naked means will not manipulate cmd's to show output in different way
         @param async is not used method, but is only used for interface comaptibility

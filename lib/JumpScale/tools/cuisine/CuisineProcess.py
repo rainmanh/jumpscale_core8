@@ -118,6 +118,8 @@ class CuisineProcess(base):
         for line in processes.split("\n"):
             if not line.strip():
                 continue
+            if ' grep ' in line:
+                continue
             line = RE_SPACES.split(line, 3)
             # 3010 pts/1    00:00:07 gunicorn
             # PID  TTY      TIME     CMD

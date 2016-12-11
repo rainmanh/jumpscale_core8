@@ -2,9 +2,9 @@ import sys
 
 import asyncio
 import selectors
-
-if sys.platform != 'cygwin':
-    import uvloop
+#
+# if sys.platform != 'cygwin':
+#     import uvloop
 
 from urllib.request import urlopen
 
@@ -1659,7 +1659,7 @@ class ExecutorMethods():
         for name, val in list(tags.items()):
             self.actions[name] = eval("self.module.%s" % name)
 
-    def executeAsyncIO(self, command, outMethod="print", errMethod="print", timeout=300,
+    def executeAsyncIO(self, command, outMethod="print", errMethod="print", timeout=600,
                        buffersize=5000000, useShell=True, cwd=None, die=True,
                        captureOutput=True):
         """
@@ -1781,7 +1781,7 @@ class ExecutorMethods():
 
         return rc, resout, reserr
 
-    def execute(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=100,
+    def execute(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=600,
                 captureout=True, die=True, executor=None):
         """
         Execute command

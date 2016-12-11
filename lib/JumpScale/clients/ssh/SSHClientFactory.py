@@ -17,6 +17,8 @@ class SSHClientFactory():
         self.__jslocation__ = "j.clients.ssh"
         self.logger = j.logger.get("j.clients.ssh")
         self.cache = {}
+
+        # to not have to duplicate information
         self.loadSSHKeys = j.do.loadSSHKeys
         self._addSSHAgentToBashProfile = j.do._addSSHAgentToBashProfile
         self._initSSH_ENV = j.do._initSSH_ENV

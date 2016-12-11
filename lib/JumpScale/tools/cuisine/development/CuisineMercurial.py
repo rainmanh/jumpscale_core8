@@ -18,7 +18,7 @@ class CuisineMercurial(base):
         self._cuisine.package.multiInstall(C)
 
     def pullRepo(self, url, dest=None,
-                 ignorelocalchanges=True, reset=False, branch=None):
+                 ignorelocalchanges=True, reset=False, branch=None, timeout=1200):
 
         if not self._cuisine.core.command_check("hg"):
             self.install()

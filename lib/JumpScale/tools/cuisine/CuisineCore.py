@@ -1071,7 +1071,7 @@ class CuisineCore(base):
             self.sudomode = sudomode
 
     def run(self, cmd, die=True, debug=None, checkok=False, showout=True, profile=False, replaceArgs=True,
-            shell=False, env=None):
+            shell=False, env=None, timeout=600):
         """
         @param profile, execute the bash profile first
         """
@@ -1113,7 +1113,7 @@ class CuisineCore(base):
         #     path += env.get("PATH", [])
         #     env = {"PATH": ":".join(path)}
 
-        rc, out, err = self._executor.execute(cmd, checkok=checkok, die=False, showout=showout, env=env)
+        rc, out, err = self._executor.execute(cmd, checkok=checkok, die=False, showout=showout, env=env, timeout=600)
 
         out = self._clean(out)
 

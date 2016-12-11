@@ -51,8 +51,6 @@ class CuisinePython(base):
         self._cuisine.core.run("set -ex;cd %s;hg update 3.6" % cpath)
 
         if self._cuisine.core.isMac:
-            _, opensslpath, _ = self._cuisine.core.run("brew --prefix openssl")
-
             openssldir = self.checkOpenSSL()
             openSSlIncludeLine = ":%s:%s/include" % (openssldir, openssldir)
             C = 'cd %s;CPPFLAGS="-I%s/include";LDFLAGS="-L%s";./configure' % (cpath, openssldir, openssldir)
@@ -79,7 +77,7 @@ class CuisinePython(base):
 
         self._cuisine.core.copyTree(source=lpath, dest=destpath, keepsymlinks=False, deletefirst=False,
                                     overwriteFiles=True,
-                                    recursive=True, rsyncdelete=True, createdir=True)
+                                    recursive=True, rsyncdelete=False, createdir=True)
 
         ignoredir = ["test", "tkinter", "turtledemo",
                      "msilib", "pydoc*", "lib2to3", "idlelib"]
@@ -93,33 +91,28 @@ class CuisinePython(base):
 
         # copy includes
         lpath = j.sal.fs.joinPaths(cpath, "Include",)
-        ldest = j.sal.fs.joinPaths(destpath, "include")
+        ldest = j.sal.fs.joinPaths(destpath, "include/python")
         self._cuisine.core.copyTree(source=lpath, dest=ldest, keepsymlinks=False, deletefirst=False,
                                     overwriteFiles=True, ignoredir=ignoredir,
-                                    recursive=True, rsyncdelete=True, createdir=True)
+                                    recursive=True, rsyncdelete=False, createdir=True)
 
         # now copy openssl parts in
         sslpath = self.checkOpenSSL()
-        # self._cuisine.core.copyTree(source=sslpath, dest=destpath, keepsymlinks=False, deletefirst=False,
-        #                             overwriteFiles=True, ignoredir=ignoredir,
-        #                             recursive=True, rsyncdelete=True, createdir=True)
-        from IPython import embed
-        print("DEBUG NOW copy openssl")
-        embed()
-        raise RuntimeError("stop debug here")
+        self._cuisine.core.copyTree(source=sslpath, dest=destpath, keepsymlinks=False, deletefirst=False,
+                                    overwriteFiles=True, ignoredir=ignoredir,
+                                    recursive=True, rsyncdelete=False, createdir=True)
 
         C = """
 
         export JSBASE=`pwd`
 
-
-        export PATH=$JSBASE/bin:$JSBASE/lib/$JSPATH:/usr/local/bin:/usr/bin:/bin
+        export PATH=$JSBASE:$JSBASE/bin:$JSBASE/lib/$JSPATH:/usr/local/bin:/usr/bin:/bin
 
         #export LUA_PATH="/opt/jumpscale8/lib/lua/?.lua;./?.lua;/opt/jumpscale8/lib/lua/?/?.lua;/opt/jumpscale8/lib/lua/tarantool/?.lua;/opt/jumpscale8/lib/lua/?/init.lua"
 
-        export PYTHONPATH=$JSBASE:$JSBASE/plib:$JSBASE/lib:$JSBASE/lib/site-packages
+        export PYTHONPATH=$JSBASE/plib:$JSBASE/plib.zip:$JSBASE:$JSBASE/lib:$JSBASE/plib/site-packages:$JSBASE/lib/python3.6/site-packages
         export PYTHONHOME=$JSBASE
-        export CPATH=$JSBASE/include:$JSBASE/include/openssl:$JSBASE/lib
+        export CPATH=$JSBASE/include:$JSBASE/include/openssl:$JSBASE/lib:$JSBASE/include/python
 
         export LC_ALL=en_US.UTF-8
         export LANG=en_US.UTF-8
@@ -146,23 +139,6 @@ class CuisinePython(base):
         python3 get-pip.py
         """ % destpath
         self._cuisine.core.run(C)
-
-        msg = "to test do:\ncd %s;source env.sh;python3" % destpath
-        msg = self._cuisine.core.args_replace(msg)
-        print(msg)
-        return destpath
-
-    def sandbox(self, build=True, reset=False, destpath=""):
-        if destpath == "":
-            destpath = "$tmpDir/build/python/"
-        destpath = self._cuisine.core.args_replace(destpath)
-        if build:
-            self.build(destpath, reset)
-
-        from IPython import embed
-        print("DEBUG NOW 97i8")
-        embed()
-        raise RuntimeError("stop debug here")
 
         # needs at least /JS8/code/github/jumpscale/jumpscale_core8/install/dependencies.py
         C = """
@@ -191,26 +167,64 @@ class CuisinePython(base):
         pysodium
         ipfsapi
         curio
+        uvloop
         """
-        # self.pip(C, destpath)
+        self.pip(C, destpath)
+
+        msg = "to test do:\ncd %s;source env.sh;python3" % destpath
+        msg = self._cuisine.core.args_replace(msg)
+        print(msg)
+        return destpath
+
+    def sandbox(self, build=False, reset=False, destpath=""):
+        if destpath == "":
+            destpath = "$tmpDir/build/python/"
+        destpath = self._cuisine.core.args_replace(destpath)
+
+        if build or not self._cuisine.core.dir_exists(destpath):
+            self.build(destpath, reset)
 
         C = """
         set -ex
         cd %s
         rm -rf share
-        rsync -rav lib/python3.6/site-packages/ lib/site-packages/
+        rsync -rav lib/python3.6/site-packages/ plib/site-packages/
         rm -rf lib/python3.6
         find . -name '*.pyc' -delete
-        find . -name '__pycache__' -delete
+
         find . -name 'get-pip.py' -delete
         set +ex  #TODO: *1 should not give error. but works
+        find -L .  -name '__pycache__' -exec rm -rf {} \;
         find . -name "*.dist-info" -exec rm -rf {} \;
-        find . -name "*.so" -exec mv {} . \;
-        #copy all so to bin dir
-        find lib -name "*.so" -exec mv {} bin/ \;
+        find . -name "*.so" -exec mv {} lib/ \;
 
         """ % destpath
         self._cuisine.core.run(C)
+
+        # now copy jumpscale in
+        linkpath = "%s/lib/JumpScale" % self._cuisine.core.dir_paths["base"]
+        C = "ln -s %s %s/lib/JumpScale" % (linkpath, destpath)
+        if not self._cuisine.core.file_exists("%s/lib/JumpScale" % destpath):
+            self._cuisine.core.run(C)
+
+        # now create packaged dir
+        destpath2 = destpath.rstrip("/").rstrip() + "2"
+        self._cuisine.core.copyTree(source=destpath, dest=destpath2, keepsymlinks=False, deletefirst=True,
+                                    overwriteFiles=True,
+                                    recursive=True, rsyncdelete=True, createdir=True)
+
+        # zip trick does not work yet lets leave for now
+        # C = """
+        # set -ex
+        # cd %s/plib
+        # zip -r ../plib.zip *
+        # cd ..
+        # rm -rf plib
+        # """ % destpath2
+        # self._cuisine.core.run(C)
+
+        # make sure we have ipfs available
+        self._cuisine.apps.ipfs.start()
 
     def pip(self, pips, destpath=""):
         if destpath == "":

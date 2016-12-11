@@ -58,7 +58,13 @@ class Docker:
                 self.logger.warning("weave not found, do not forget to start if installed.")
                 self._weaveSocket = ""
             else:
-                rc, self._weaveSocket, _ = j.sal.process.execute("eval $(weave env)                 rc, self._weaveSocket = j.sal.process.__execute("eval $(weave env) && echo $DOCKER_HOST", die=False)                rc, self._weaveSocket = j.sal.process.__execute("eval $(weave env) && echo $DOCKER_HOST", die=False) echo $DOCKER_HOST", die=False)
+
+                # rc, self._weaveSocket = j.sal.process.__execute("eval $(weave env) &&
+                # echo $DOCKER_HOST", die=False)                rc, self._weaveSocket =
+                # j.sal.process.__execute("eval $(weave env) && echo $DOCKER_HOST",
+                # die=False) echo $DOCKER_HOST", die=False)
+
+                rc, self._weaveSocket, _ = j.sal.process.execute("eval $(weave env)")
                 if rc > 0:
                     self.logger.warning("weave not found, do not forget to start if installed.")
                     self._weaveSocket = ""

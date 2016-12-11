@@ -31,15 +31,15 @@ class CuisineDocker(app):
                 wget -qO- https://get.docker.com/ | sh
                 """
                 self._cuisine.core.execute_bash(C)
-            if not self._cuisine.core.command_check('docker-compose'):
-                C = """
-                curl -L https://github.com/docker/compose/releases/download/1.8.0-rc1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
-                chmod +x /usr/local/bin/docker-compose
-                """
-                self._cuisine.core.execute_bash(C)
+            # if not self._cuisine.core.command_check('docker-compose'):
+            #     C = """
+            #     curl -L https://github.com/docker/compose/releases/download/1.8.0-rc1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+            #     chmod +x /usr/local/bin/docker-compose
+            #     """
+            #     self._cuisine.core.execute_bash(C)
         if self._cuisine.core.isArch:
             self._cuisine.package.install("docker")
-            self._cuisine.package.install("docker-compose")
+            # self._cuisine.package.install("docker-compose")
         self._init()
 
     def ubuntuBuild(self, push=False):
@@ -131,7 +131,7 @@ class Cuisinedockerobj:
 
     def execute(self, cmds, die=True, checkok=None, async=False, showout=True, timeout=0, env={}):
         return self._cuisineDockerHost.core.run("docker exec %s bash -c '%s'" % (self.name, cmds.replace("'", "'\"'\"'")),
-            die=die, checkok=checkok, showout=showout, env=env)
+                                                die=die, checkok=checkok, showout=showout, env=env)
 
     executeRaw = execute
 
@@ -140,7 +140,7 @@ class Cuisinedockerobj:
         if not self._cuisine:
             return j.tools.cuisine.get(self)
         return self._cuisine
-    
+
 
 # def archBuild(self):
 #     C = """

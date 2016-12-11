@@ -168,7 +168,7 @@ class CuisineGeoDns(app):
     def domains(self):
         domains = []
         if self._cuisine.core.file_exists('$cfgDir/geodns/dns'):
-            for path in self._cuisine.core.fs_find('$cfgDir/geodns/dns/', type='f', pattern='*.json', recursive=False):
+            for path in self._cuisine.core.find('$cfgDir/geodns/dns/', type='f', pattern='*.json', recursive=False):
                 basename = j.sal.fs.getBaseName(path)
                 domains.append(basename.rstrip('.json'))
         return domains

@@ -132,7 +132,9 @@ class ModelBase():
                 self._subobjects[name] = nritems
 
     def __repr__(self):
-        return self.dictJson
+        out = "key:%s\n" % self.key
+        out += self.dictJson
+        return out
 
     __str__ = __repr__
 

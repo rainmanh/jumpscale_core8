@@ -1194,7 +1194,7 @@ j.core.platformtype.myplatform.executor.cuisine.core.file_write?4([- location
 , - showout = True
 , - append = False
 ])
-j.core.platformtype.myplatform.executor.cuisine.core.fs_find?4([- path
+j.core.platformtype.myplatform.executor.cuisine.core.find?4([- path
 , - recursive = True
 , - pattern = ''
 , - findstatement = ''
@@ -5762,7 +5762,7 @@ j.tools.cuisine.local.core.file_write?4([- location
 , - showout = True
 , - append = False
 ])
-j.tools.cuisine.local.core.fs_find?4([- path
+j.tools.cuisine.local.core.find?4([- path
 , - recursive = True
 , - pattern = ''
 , - findstatement = ''
@@ -8166,7 +8166,7 @@ j.core.platformtype.myplatform.executor.cuisine.core.file_write?4([- location
 , - showout = True
 , - append = False
 ])
-j.core.platformtype.myplatform.executor.cuisine.core.fs_find?4([- path
+j.core.platformtype.myplatform.executor.cuisine.core.find?4([- path
 , - recursive = True
 , - pattern = ''
 , - findstatement = ''
@@ -12732,7 +12732,7 @@ j.tools.cuisine.local.core.file_write?4([- location
 , - showout = True
 , - append = False
 ])
-j.tools.cuisine.local.core.fs_find?4([- path
+j.tools.cuisine.local.core.find?4([- path
 , - recursive = True
 , - pattern = ''
 , - findstatement = ''
@@ -15064,7 +15064,7 @@ j.core.platformtype.myplatform.executor.cuisine.core.file_write?4([- location
 , - showout = True
 , - append = False
 ])
-j.core.platformtype.myplatform.executor.cuisine.core.fs_find?4([- path
+j.core.platformtype.myplatform.executor.cuisine.core.find?4([- path
 , - recursive = True
 , - pattern = ''
 , - findstatement = ''
@@ -20488,7 +20488,7 @@ j.tools.cuisine.local.core.file_write?4([- location
 , - showout = True
 , - append = False
 ])
-j.tools.cuisine.local.core.fs_find?4([- path
+j.tools.cuisine.local.core.find?4([- path
 , - recursive = True
 , - pattern = ''
 , - findstatement = ''

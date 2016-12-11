@@ -18,15 +18,17 @@ class CuisinePIP(base):
         if self._cuisine.core.isMac:
             return
 
-        self._cuisine.package.install('python3.5')
-        self._cuisine.package.install('python3-pip')
+        # python should already be requirement, do not install !! (despiegk)
+        # self._cuisine.package.install('python3.5')
+        # self._cuisine.package.install('python3-pip')
 
         C = """
             #important remove olf pkg_resources, will conflict with new pip
             rm -rf /usr/lib/python3/dist-packages/pkg_resources
             cd $tmpDir/
             rm -rf get-pip.py
-            wget --remote-encoding=utf-8 https://bootstrap.pypa.io/get-pip.py
+            #wget --remote-encoding=utf-8 https://bootstrap.pypa.io/get-pip.py
+            curl https://bootstrap.pypa.io/get-pip.py >  get-pip.py
             """
         C = self._cuisine.core.args_replace(C)
         self._cuisine.core.execute_bash(C)
@@ -63,8 +65,7 @@ class CuisinePIP(base):
         self._cuisine.core.run(cmd)
 
         if doneMethod != None:
-            doneMethod(package,set=True)
-
+            doneMethod(package, set=True)
 
     def packageRemove(self, package):
         '''

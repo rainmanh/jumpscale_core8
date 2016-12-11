@@ -276,7 +276,7 @@ Or restart service on config change:
 
 ```
 
-#### fs_find(*path, recursive=True, pattern='', findstatement='', type='', contentsearch='', extendinfo*) 
+#### find(*path, recursive=True, pattern='', findstatement='', type='', contentsearch='', extendinfo*) 
 
 ```
 @param findstatement can be used if you want to use your own find arguments

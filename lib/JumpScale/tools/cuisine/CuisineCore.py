@@ -213,6 +213,7 @@ class CuisineCore(base):
     def getenv(self, refresh=False):
         res = {}
         _, out, _ = self._cuisine.core.run("printenv", profile=False, showout=False, replaceArgs=False)
+
         for line in out.splitlines():
             if '=' in line:
                 name, val = line.split("=", 1)
@@ -353,6 +354,19 @@ class CuisineCore(base):
     #
     # =============================================================================
 
+    def copyTree(self, source, dest, keepsymlinks=False, deletefirst=False,
+                 overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"],
+                 recursive=True, rsyncdelete=False, createdir=False):
+        """
+        std excludes are done like "__pycache__" no matter what you specify
+        """
+
+        source = self.args_replace(source)
+        dest = self.args_replace(dest)
+        return j.do.copyTree(source=source, dest=dest, keepsymlinks=keepsymlinks, deletefirst=deletefirst,
+                             overwriteFiles=overwriteFiles, ignoredir=ignoredir, ignorefiles=ignorefiles,
+                             recursive=recursive, rsyncdelete=rsyncdelete, createdir=createdir, executor=self._executor)
+
     def file_backup(self, location, suffix=".orig", once=False):
         """Backups the file at the given location in the same directory, appending
         the given suffix. If `once` is True, then the backup will be skipped if
@@ -392,6 +406,8 @@ class CuisineCore(base):
             if expand:
                 destdir = to
             to = self.joinpaths("$tmpDir", j.sal.fs.getBaseName(url))
+
+        to = self.args_replace(to)
 
         # if expand:
         #     destdir = to
@@ -445,6 +461,7 @@ class CuisineCore(base):
         return to
 
     def file_expand(self, path, to=""):
+        path = self.args_replace(path)
         base = j.sal.fs.getBaseName(path)
         if base.endswith(".tgz"):
             base = base[:-4]
@@ -965,7 +982,7 @@ class CuisineCore(base):
 
     createDir = dir_ensure
 
-    def fs_find(self, path, recursive=True, pattern="", findstatement="", type="", contentsearch="", extendinfo=False):
+    def find(self, path, recursive=True, pattern="", findstatement="", type="", contentsearch="", extendinfo=False):
         """
 
         @param findstatement can be used if you want to use your own find arguments
@@ -1102,13 +1119,13 @@ class CuisineCore(base):
 
         if rc > 0 and "brew unlink" in out and "To install this version" in out:
             from IPython import embed
-            print("DEBUG NOW brew unlink")
+            print("DEBUG NOW brew unlink (run)")
             embed()
             raise RuntimeError("stop debug here")
             self._executor.execute("brew unlink ", checkok=checkok, die=False, showout=showout, env=env)
 
         # If command fails and die is true, raise error
-        if rc and die:
+        if rc > 0 and die:
             raise j.exceptions.RuntimeError('%s, %s' % (cmd, err))
 
         if debug:

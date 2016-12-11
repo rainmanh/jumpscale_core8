@@ -17,11 +17,15 @@ class ExecutorLocal(ExecutorBase):
     def executeRaw(self, cmd, die=True, showout=False):
         return self.execute(cmd, die=die, showout=showout)
 
-    def execute(self, cmds, die=True, checkok=None, showout=True, outputStderr=False, timeout=300, env={}):
+    def execute(self, cmds, die=True, checkok=None, showout=True, outputStderr=None, timeout=300, env={}):
         if env:
             self.env.update(env)
         if self.debug:
             print("EXECUTOR:%s" % cmds)
+
+        if outputStderr == None:
+            outputStderr = showout
+
         return j.do.execute(cmds, die=die,  showout=showout, outputStderr=outputStderr, timeout=timeout)
 
         # if isinstance(cmds, list):

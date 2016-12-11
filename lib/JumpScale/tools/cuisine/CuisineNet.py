@@ -13,17 +13,17 @@ class CuisineNet(base):
         self._cuisine = cuisine
 
     def netconfig(self, interface, ipaddr, cidr=24, gateway=None, dns="8.8.8.8", masquerading=False,
-                 dhcp=False):
+                  dhcp=False):
         conf = """
-[Match]
-Name={interface}
+        [Match]
+        Name={interface}
 
-[Network]
-DNS={dns}
-Address={ipaddr}/{cidr}
-Gateway={gateway}
-IPForward={ipmasquerade}
-IPMasquerade={ipmasquerade}
+        [Network]
+        DNS={dns}
+        Address={ipaddr}/{cidr}
+        Gateway={gateway}
+        IPForward={ipmasquerade}
+        IPMasquerade={ipmasquerade}
         """.format(interface=interface, ipaddr=ipaddr, dns=dns, cidr=cidr, gateway=gateway,
                    ipmasquerade=("yes" if masquerading else "no"), dhcp=("yes" if dhcp else "no"))
 
@@ -36,7 +36,6 @@ IPMasquerade={ipmasquerade}
             self._cuisine.package.install('iptables-persistent')
             self._cuisine.core.run('iptables-save > /etc/iptables/rules.v4')
             self._cuisine.core.run('ip6tables-save > /etc/iptables/rules.v6')
-
 
     @property
     def nics(self):

@@ -73,11 +73,11 @@ class CuisineSystemd(ProcessManagerBase):
         for name in self.list(prefix):
             self.stop(name)
 
-            for item in self._cuisine.core.fs_find("/etc/systemd", True, "*%s.service" % name):
+            for item in self._cuisine.core.find("/etc/systemd", True, "*%s.service" % name):
                 print("remove:%s" % item)
                 self._cuisine.core.file_unlink(item)
 
-            for item in self._cuisine.core.fs_find("/etc/init.d", True, "*%s" % name):
+            for item in self._cuisine.core.find("/etc/init.d", True, "*%s" % name):
                 print("remove:%s" % item)
                 self._cuisine.core.file_unlink(item)
 
@@ -153,7 +153,7 @@ class CuisineRunit(ProcessManagerBase):
     def list(self, prefix=""):
         result = list()
 
-        for service in self._cuisine.core.fs_find("/etc/service/", recursive=False)[1:]:
+        for service in self._cuisine.core.find("/etc/service/", recursive=False)[1:]:
             service = service.split("/etc/service/")[1]
             status = self._cuisine.core.run("sv  status /etc/service/%s" % service)[1].split(":")[0]
             result.append(service)

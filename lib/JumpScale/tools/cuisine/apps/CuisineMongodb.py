@@ -37,10 +37,10 @@ class CuisineMongodb(app):
             if url:
                 print('Downloading mongodb.')
                 self._cuisine.core.file_download(url, to="$tmpDir", overwrite=False, expand=True)
-                tarpath = self._cuisine.core.fs_find("$tmpDir", recursive=True, pattern="*mongodb*.tgz", type='f')[0]
+                tarpath = self._cuisine.core.find("$tmpDir", recursive=True, pattern="*mongodb*.tgz", type='f')[0]
                 self._cuisine.core.file_expand(tarpath, "$tmpDir")
-                extracted = self._cuisine.core.fs_find("$tmpDir", recursive=True, pattern="*mongodb*", type='d')[0]
-                for file in self._cuisine.core.fs_find('%s/bin/' % extracted, type='f'):
+                extracted = self._cuisine.core.find("$tmpDir", recursive=True, pattern="*mongodb*", type='d')[0]
+                for file in self._cuisine.core.find('%s/bin/' % extracted, type='f'):
                     self._cuisine.core.file_copy(file, appbase)
 
     def install(self, start=True, name='mongod'):

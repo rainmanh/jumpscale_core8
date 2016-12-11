@@ -728,7 +728,7 @@ class FSMethods():
 
     def copyTree(self, source, dest, keepsymlinks=False, deletefirst=False,
                  overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
-                 ssh=False, sshport=22, recursive=True, rsyncdelete=False, createdir=False):
+                 ssh=False, sshport=22, recursive=True, rsyncdelete=False, createdir=False, executor=None):
         """
         if ssh format of source or dest is: remoteuser@remotehost:/remote/dir
         """
@@ -736,6 +736,9 @@ class FSMethods():
             print(("copy %s %s" % (source, dest)))
         if not ssh and not self.exists(source):
             raise RuntimeError("copytree:Cannot find source:%s" % source)
+
+        if executor != None and rsync == False:
+            raise RuntimeError("when executor used only rsync supported")
         if rsync:
             excl = ""
             for item in ignoredir:
@@ -746,30 +749,45 @@ class FSMethods():
             excl += "--exclude '*.bak' "
             excl += "--exclude '*__pycache__*' "
 
-            if self.isDir(source):
-                if dest[-1] != "/":
-                    dest += "/"
-                if source[-1] != "/":
-                    source += "/"
-                if ssh:
-                    pass
-                    # if dest.find(":")!=-1:
-                    #     if dest.find("@")!=-1:
-                    #         desthost=dest.split(":")[0].split("@", 1)[1].strip()
-                    #     else:
-                    #         desthost=dest.split(":")[0].strip()
-                    #     dir_dest=dest.split(":",1)[1]
-                    #     cmd="ssh -o StrictHostKeyChecking=no -p %s  %s 'mkdir -p %s'" % (sshport,sshport,dir_dest)
-                    #     print cmd
-                    #     self.executeInteractive(cmd)
-                else:
-                    self.createDir(dest)
-            if dest.find(':') == -1:  # download
-                self.createDir(self.getParent(dest))
+            pre = ""
+            if executor == None:
+                if self.isDir(source):
+                    if dest[-1] != "/":
+                        dest += "/"
+                    if source[-1] != "/":
+                        source += "/"
+                    # if ssh:
+                    #     pass
+                    #     # if dest.find(":")!=-1:
+                    #     #     if dest.find("@")!=-1:
+                    #     #         desthost=dest.split(":")[0].split("@", 1)[1].strip()
+                    #     #     else:
+                    #     #         desthost=dest.split(":")[0].strip()
+                    #     #     dir_dest=dest.split(":",1)[1]
+                    #     #     cmd="ssh -o StrictHostKeyChecking=no -p %s  %s 'mkdir -p %s'" % (sshport,sshport,dir_dest)
+                    #     #     print cmd
+                    #     #     self.executeInteractive(cmd)
+                    # else:
+                    #     self.createDir(dest)
+                if dest.find(':') == -1:  # download
+                    # self.createDir(self.getParent(dest))
+                    dest = dest.split(':')[1] if ':' in dest else dest
+            else:
+                if executor.cuisine.core.dir_exists(source):
+                    if dest[-1] != "/":
+                        dest += "/"
+                    if source[-1] != "/":
+                        source += "/"
 
-            destpath = dest.split(':')[1] if ':' in dest else dest
+            dest = dest.replace("//", "/")
+            source = source.replace("//", "/")
 
-            cmd = "rsync "
+            if deletefirst:
+                pre = "set -ex;rm -rf %s;mkdir -p %s;" % (dest, dest)
+            elif createdir:
+                pre = "set -ex;mkdir -p %s;" % dest
+
+            cmd = "%srsync " % pre
             if keepsymlinks:
                 #-l is keep symlinks, -L follow
                 cmd += " -rlptgo --partial %s" % excl
@@ -783,11 +801,12 @@ class FSMethods():
                 cmd += " --delete"
             if ssh:
                 cmd += " -e 'ssh -o StrictHostKeyChecking=no -p %s' " % sshport
-            if createdir:
-                cmd += "--rsync-path='mkdir -p %s && rsync' " % self.getParent(destpath)
             cmd += " '%s' '%s'" % (source, dest)
             print(cmd)
-            rc, out, err = self.execute(cmd)
+            if executor != None:
+                rc, out, err = executor.execute(cmd, outputStderr=False)
+            else:
+                rc, out, err = self.execute(cmd, outputStderr=False)
             print(rc)
             print(out)
             return
@@ -1663,22 +1682,25 @@ class ExecutorMethods():
                 command = "cd %s;%s" % (cwd, command)
 
         if useShell:
-            if "set -e;" not in command:
+            if "set -e" not in command:
                 command = "set -e;%s" % command
 
         # if not specified then print to stdout/err
         if outMethod == "print":
-            outMethod = lambda x: print("STDOUT: %s" % x)
+            outMethod = lambda x: print("STDOUT: %s" % x.decode("UTF-8").rstrip())
+            # outMethod = lambda x: sys.stdout.buffer.write(x)  #DOESN't work, don't know why
         if errMethod == "print":
-            errMethod = lambda x: print("STDERR: %s" % x)
+            # errMethod = lambda x: sys.stdout.buffer.write(x)
+            errMethod = lambda x: print("STDERR: %s" % x.decode("UTF-8").rstrip())
 
         async def _read_stream(stream, cb, res):
             while True:
                 line = await stream.readline()
                 if res != None:
                     res.append(line)
-                if line and cb != None:
-                    cb(line)
+                if line:
+                    if cb != None:
+                        cb(line)
                 else:
                     break
 
@@ -1711,6 +1733,7 @@ class ExecutorMethods():
                 return 124, resout, reserr
 
             await process.wait()
+            rc = process.returncode
             return rc, resout, reserr
 
         loop = asyncio.get_event_loop()
@@ -1777,7 +1800,7 @@ class ExecutorMethods():
         """
 
         if executor:
-            return executor.execute(command, die=die, checkok=False, async=async, showout=True, timeout=timeout)
+            return executor.execute(command, die=die, checkok=False, showout=True, timeout=timeout)
 
         if showout == False:
             outMethod = None

@@ -30,23 +30,23 @@ sys.path.append("%s/JS8/opt/jumpscale8/lib/baselibs.zip" % home)
 
 print (sys.path)
 
-import tarfile
-import shutil
-import tempfile
-import platform
-import subprocess
-import time
-import fnmatch
-from subprocess import Popen
-import re
-import inspect
-import yaml
-import importlib
-import asyncio
-if sys.platform != 'cygwin':
-    import uvloop
+# import tarfile
+# import shutil
+# import tempfile
+# import platform
+# import subprocess
+# import time
+# import fnmatch
+# from subprocess import Popen
+# import re
+# import inspect
+# import yaml
+# import importlib
+# import asyncio
+# if sys.platform != 'cygwin':
+#     import uvloop
 
-from urllib.request import urlopen
+# from urllib.request import urlopen
 
 
 from JumpScale import j
@@ -79,6 +79,7 @@ class Freezer:
 
     def __init__(self):
         self.__jslocation__ = "j.tools.freezer"
+        self.jsbase = j.sal.fs.joinPaths(j.dirs.homeDir, "JS8")
 
     def install(self):
         cmd = "pip3 install --upgrade pyinstaller"
@@ -128,8 +129,71 @@ class Freezer:
         # move("/usr/bin", "pyth*", backupdir=backupdir)
         # move("/usr/bin", "pydoc*", backupdir=backupdir)
 
+    def addPythonLib(path):
+        """
+        path isn the location where libs can be found
+        """
+        exclude = ["cython", ".dist-info", ".egg-info"]
+        include = ["flask", "fxrays", "ipython", "jinja", "mako", "markupsafe", "openssl", "pil",
+                   "pillow", "git", "jwt", "yaml",
+                   "pygments", "forms", "werkzeug", "redis", "tarantool", "gogs",
+                   "nope", "argcompl", "argh", "ascii", "pep", "backport", "async",
+                   "bcrypt", "beaker", "blinker", "blosc", "bson",
+                   "capnp", "colorama", "log", "cerberus", "capturer", "cffi",
+                   "click", "traceback", "cson", "date", "dns", "decorator",
+                   "doc", "utils", "dulwich", "ecdsa", "dominate", "eve", "falkon", "flake", "buffers", "flex",
+                   "future", "gevent", "readline", "html", "infi", "marisa",
+                   "xml", "markup", "markdown", "mime", "mongo", "msgpack", "mustache",
+                   "network", "pass", "past", "path", "peewee", "pip", "plink",
+                   "ply", "posix", "protobuf", "prompt", "pkg", "pexpect", "paramiko",
+                   "psycop", "process", "pudb", "pyasn", "blake", "parser", "docstyle",
+                   "pyfiglet", "pygments", "lzma", "lru", "mustache", "mux", "stache",
+                   "png", "dateutil", "snappy", "telegram", "mmap", "request",
+                   "pytz", "pyte", "toml", "import", "json", "snakeviz", "pool",
+                   "tornado", "traitlets", "url", "uvloop", "visitor", "watchdog",
+                   "wheel"]
+
+        def match(txt, listInclude=[], listExclude=[]):
+            txt = txt.lower()
+            for item in listInclude:
+                if txt.find(item) != -1:
+                    excl = False
+                    for itemExcl in listExclude:
+                        if txt.find(itemExcl) != -1:
+                            excl = True
+                    if not excl:
+                        return True
+            return False
+
+        for item in j.sal.fs.listDirsInDir(path, dirNameOnly=True, recursive=False):
+            if match(item, include, exclude):
+                src = j.sal.fs.joinPaths(path, item)
+                dest = j.sal.fs.joinPaths(self.jsbase, "lib", "baselib", item)
+                print(dest)
+                j.sal.fs.copyDirTree(src, dest, keepsymlinks=False, deletefirst=True, overwriteFiles=True, ignoredir=['.egg-info', '.dist-info'], ignorefiles=[
+                                     '.egg-info'], rsync=True, recursive=True, rsyncdelete=True, createdir=True)
+
+        for item in j.sal.fs.listFilesInDir(path, filter="*.so", recursive=False):
+            dest = j.sal.fs.joinPaths(jsbase, "lib", "baselib", j.sal.fs.getBaseName(item))
+            j.sal.fs.copyFile(item, dest)
+
+        for item in j.sal.fs.listFilesInDir(path, filter="*.py", recursive=False):
+            dest = j.sal.fs.joinPaths(jsbase, "opt", "jumpscale8", "lib", "baselib", j.sal.fs.getBaseName(item))
+            j.sal.fs.copyFile(item, dest)
+
+        dest = j.sal.fs.joinPaths(jsbase, "opt", "jumpscale8", "lib", "baselib")
+
+        cmd = "chown -R $USER %s" % (jsbase)
+        j.sal.process.executeWithoutPipe(cmd)
+
+        for item in j.sal.fs.listFilesInDir(dest, filter="*.pyc", recursive=True):
+            j.sal.fs.remove(item)
+
+        for item in j.sal.fs.listDirsInDir(dest, recursive=True, dirNameOnly=False, findDirectorySymlinks=True):
+            if item.find("__pycache__") != -1:
+                j.sal.fs.remove(item)
+
     def do(self, reset=False):
-        jsbase = j.sal.fs.joinPaths(j.dirs.homeDir, "JS8")
 
         if reset:
             j.sal.fs.removeDirTree(jsbase)
@@ -166,70 +230,5 @@ class Freezer:
         # j.sal.process.executeWithoutPipe(cmd)
         # cmd = "rsync -raL dist/js/ %s/opt/jumpscale8/bin/" % jsbase
         # j.sal.process.executeWithoutPipe(cmd)
-
-        def pythonlib(jsbase, path):
-            exclude = ["cython", ".dist-info", ".egg-info"]
-            include = ["flask", "fxrays", "ipython", "jinja", "mako", "markupsafe", "openssl", "pil",
-                       "pillow", "git", "jwt", "yaml",
-                       "pygments", "forms", "werkzeug", "redis", "tarantool", "gogs",
-                       "nope", "argcompl", "argh", "ascii", "pep", "backport", "async",
-                       "bcrypt", "beaker", "blinker", "blosc", "bson",
-                       "capnp", "colorama", "log", "cerberus", "capturer", "cffi",
-                       "click", "traceback", "cson", "date", "dns", "decorator",
-                       "doc", "utils", "dulwich", "ecdsa", "dominate", "eve", "falkon", "flake", "buffers", "flex",
-                       "future", "gevent", "readline", "html", "infi", "marisa",
-                       "xml", "markup", "markdown", "mime", "mongo", "msgpack", "mustache",
-                       "network", "pass", "past", "path", "peewee", "pip", "plink",
-                       "ply", "posix", "protobuf", "prompt", "pkg", "pexpect", "paramiko",
-                       "psycop", "process", "pudb", "pyasn", "blake", "parser", "docstyle",
-                       "pyfiglet", "pygments", "lzma", "lru", "mustache", "mux", "stache",
-                       "png", "dateutil", "snappy", "telegram", "mmap", "request",
-                       "pytz", "pyte", "toml", "import", "json", "snakeviz", "pool",
-                       "tornado", "traitlets", "url", "uvloop", "visitor", "watchdog",
-                       "wheel"]
-
-            def match(txt, listInclude=[], listExclude=[]):
-                txt = txt.lower()
-                for item in listInclude:
-                    if txt.find(item) != -1:
-                        excl = False
-                        for itemExcl in listExclude:
-                            if txt.find(itemExcl) != -1:
-                                excl = True
-                        if not excl:
-                            return True
-                return False
-
-            for item in j.sal.fs.listDirsInDir(path, dirNameOnly=True):
-                if match(item, include, exclude):
-                    src = j.sal.fs.joinPaths(path, item)
-                    dest = j.sal.fs.joinPaths(jsbase, "opt", "jumpscale8", "lib", "baselib", item)
-                    print(dest)
-                    j.sal.fs.copyDirTree(src, dest, keepsymlinks=False, deletefirst=True, overwriteFiles=True, ignoredir=['.egg-info', '.dist-info'], ignorefiles=[
-                                         '.egg-info'], rsync=True, recursive=True, rsyncdelete=True, createdir=True)
-
-            for item in j.sal.fs.listFilesInDir(path, filter="*.so"):
-                dest = j.sal.fs.joinPaths(jsbase, "opt", "jumpscale8", "bin", j.sal.fs.getBaseName(item))
-                j.sal.fs.copyFile(item, dest)
-
-            for item in j.sal.fs.listFilesInDir(path, filter="*.so", recursive=False):
-                dest = j.sal.fs.joinPaths(jsbase, "opt", "jumpscale8", "bin", j.sal.fs.getBaseName(item))
-                j.sal.fs.copyFile(item, dest)
-
-            for item in j.sal.fs.listFilesInDir(path, filter="*.py", recursive=False):
-                dest = j.sal.fs.joinPaths(jsbase, "opt", "jumpscale8", "lib", "baselib", j.sal.fs.getBaseName(item))
-                j.sal.fs.copyFile(item, dest)
-
-            dest = j.sal.fs.joinPaths(jsbase, "opt", "jumpscale8", "lib", "baselib")
-
-            cmd = "chown -R $USER %s" % (jsbase)
-            j.sal.process.executeWithoutPipe(cmd)
-
-            for item in j.sal.fs.listFilesInDir(dest, filter="*.pyc", recursive=True):
-                j.sal.fs.remove(item)
-
-            for item in j.sal.fs.listDirsInDir(dest, recursive=True, dirNameOnly=False, findDirectorySymlinks=True):
-                if item.find("__pycache__") != -1:
-                    j.sal.fs.remove(item)
 
         pythonlib(jsbase, "/usr/local/lib/python3.5/site-packages")

@@ -338,7 +338,7 @@ class TestCuisineCore(unittest.TestCase):
     # def file_copy(self, source, dest, recursive=False, overwrite=False):
     # def file_move(self, source, dest, recursive=False):
     # def joinpaths(self, *args):
-    # def fs_find(self,path,recursive=True,pattern="",findstatement="",type="",contentsearch="",extendinfo=False):
+    # def find(self,path,recursive=True,pattern="",findstatement="",type="",contentsearch="",extendinfo=False):
     # def sudo(self, cmd, die=True,showout=True):
     # def run(self,cmd,die=True,debug=None,checkok=False,showout=True,profile=False,replaceArgs=True,check_is_ok=False):
     # def run_script(self,content,die=True,profile=False):

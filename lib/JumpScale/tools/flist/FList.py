@@ -102,10 +102,13 @@ class FList(object):
         binhash = bl.digest()
         return relPath, binascii.hexlify(binhash).decode()
 
-    def add(self, path, excludes=[".*\.pyc", ".*__pycache__", ".*\.bak"]):
+    def getDir(self, key):
+        return self.dirCollection.get(key)
+
+    def add(self, path, excludes=[".*\.pyc", ".*__pycache__", ".*\.bak", ".*\.git"]):
         """
         walk over path and put in plist
-        @param excludes are regex expressions
+        @param excludes are regex expressions and they start inside the rootpath !
         """
 
         if not j.sal.fs.exists(self.rootpath, followlinks=True):
@@ -125,47 +128,52 @@ class FList(object):
             raise j.exceptions.Input(message="Could not find path:%s" % path, level=1, source="", tags="", msgpub="")
 
         # topdown=False means we do the lowest level dirs first
-        for dirpath, dirs, files in os.walk(path, followlinks=True, topdown=False):
+        for dirpathAbsolute, dirs, files in os.walk(path, followlinks=True, topdown=False):
 
-            if self._valid(dirpath, _excludes):
+            # dirpath is full path need to bring it to the relative part
+            dirRelPath, dirKey = self.path2key(dirpathAbsolute)
+            print("%s||%s" % (dirpathAbsolute, dirKey))
 
-                relPath, dirkey = self.path2key(dirpath)
-                ddir = self.dirCollection.get(dirkey, autoCreate=True)
+            if self._valid(dirRelPath, _excludes):
+
+                ddir = self.dirCollection.get(dirKey, autoCreate=True)
 
                 if ddir.dbobj.location == "":
-                    ddir.dbobj.location = relPath
+                    ddir.dbobj.location = dirRelPath
                 else:
-                    if ddir.location != relPath:
+                    if ddir.location != dirRelPath:
                         raise RuntimeError("serious bug, location should always be same")
 
                 # sec base properties of current dirobj
-                statCurDir = os.stat(dirpath, follow_symlinks=True)
-                self._setMetadata(ddir.dbobj, statCurDir, dirpath)
+                statCurDir = os.stat(dirpathAbsolute, follow_symlinks=True)
+                dirname = j.sal.fs.getBaseName(dirpathAbsolute)
+                self._setMetadata(ddir.dbobj, statCurDir, dirname)
 
                 # now we have our core object, from db or is new
                 ffiles = []
                 llinks = []
                 sspecials = []
                 for fname in files:
-                    fullpath = os.path.join(dirpath, fname)
+                    relPathWithName = os.path.join(dirRelPath, fname)
+                    pathAbsolute = os.path.join(self.rootpath, relPathWithName)
 
                     # exclusion checking
-                    if self._valid(fullpath, _excludes):
+                    if self._valid(relPathWithName, _excludes):
 
-                        stat = os.stat(fullpath, follow_symlinks=False)
+                        stat = os.stat(pathAbsolute, follow_symlinks=False)
                         st_mode = stat.st_mode
 
                         if S_ISLNK(st_mode):
-                            destlink = os.readlink(fullpath)
+                            destlink = os.readlink(pathAbsolute)
                             if not destlink.startswith(self.rootpath):  # check if is link & if outside of FS
-                                ffiles.append((fullpath, stat))  # are links which point to outside of fs
+                                ffiles.append((fname, stat))  # are links which point to outside of fs
                             else:
-                                llinks.append((fullpath, stat, destlink))
+                                llinks.append((fname, stat, destlink))
                         else:
                             if S_ISREG(st_mode):
-                                ffiles.append((fullpath, stat))
+                                ffiles.append((fname, stat))
                             else:
-                                sspecials.append((fullpath, stat))
+                                sspecials.append((fname, stat))
 
                 # initialize right amount of objects in capnp
                 ddir.initNewSubObj("files", len(ffiles))
@@ -174,19 +182,19 @@ class FList(object):
 
                 # process files
                 counter = 0
-                for fullpathSub, stat in ffiles:
+                for fname, stat in ffiles:
                     dbobj = ddir.dbobj.files[counter]
-                    self._setMetadata(dbobj, stat, fullpathSub)
+                    self._setMetadata(dbobj, stat, fname)
                     counter += 1
 
                 # process links
                 counter = 0
-                for fullpathSub, stat, destlink in llinks:
+                for fname, stat, destlink in llinks:
                     obj = ddir.dbobj.files[counter]
                     relPath, dirkey = self.path2key(destlink)
                     obj.destDirKey = dirkey  # link to other directory
                     obj.destname = j.sal.fs.getBaseName(destlink)
-                    self._setMetadata(obj, stat, fullpathSub)
+                    self._setMetadata(obj, stat, fname)
                     counter += 1
 
                 # process special files
@@ -207,36 +215,38 @@ class FList(object):
                     if S_ISBLK(stat.st_mode) or S_ISCHR(stat.st_mode):
                         id = '%d,%d' % (os.major(stat.st_rdev), os.minor(stat.st_rdev))
                         obj.data = id
-                    self._setMetadata(obj, stat, fullpathSub)
+                    self._setMetadata(obj, stat, fname)
                     counter += 1
 
-                # filter the dirs based on the exclusions
-                dirs = [os.path.join(dirpath, item)
-                        for item in dirs if self._valid(os.path.join(dirpath, item), _excludes)]
+                # filter the dirs based on the exclusions (starting from the relative paths)
+                dirs2 = [os.path.join(dirRelPath, item)
+                         for item in dirs if self._valid(os.path.join(dirRelPath, item), _excludes)]
 
-                ddir.initNewSubObj("dirs", len(dirs))
+                ddir.initNewSubObj("dirs", len(dirs2))
 
                 counter = 0
-                for dir_sub_name in dirs:
-                    dir_sub_path = os.path.join(dirpath, dir_sub_name)
+                for dirRelPathFull in dirs2:
+                    absDirPathFull = os.path.join(self.rootpath, dirRelPathFull)
                     dir_sub_obj = ddir.dbobj.dirs[counter]
                     counter += 1
 
-                    dir_sub_relpath, dir_sub_key = self.path2key(dir_sub_path)
+                    dir_sub_relpath, dir_sub_key = self.path2key(absDirPathFull)
+                    print("%s|%s" % (absDirPathFull, dir_sub_key))
                     dir_sub_obj.key = dir_sub_key  # link to directory
-                    dir_sub_obj.name = dir_sub_name
+                    dir_sub_obj.name = j.sal.fs.getBaseName(dirRelPathFull)
 
                     # needs to exist because of way how we walk (lowest to upper)
                     dir_obj = self.dirCollection.get(dir_sub_key, autoCreate=False)
                     dir_obj.setParent(ddir)
                     dir_obj.save()
 
-                print("#################################")
-                print(ddir)
+                # print("#################################")
+                # print(ddir)
                 ddir.save()
 
-    def _setMetadata(self, dbobj, stat, fpath):
-        dbobj.name = j.sal.fs.getBaseName(fpath)
+    def _setMetadata(self, dbobj, stat, fname):
+        dbobj.name = fname
+        # j.sal.fs.getBaseName(fpath)
 
         dbobj.modificationTime = stat.st_mtime
         dbobj.creationTime = stat.st_ctime
@@ -264,18 +274,20 @@ class FList(object):
 
         dbobj.aclkey = id
 
-    def walk(self, dirFunction=None, fileFunction=None, specialFunction=None, linkFunction=None, currentDirKey=""):
+    def walk(self, dirFunction=None, fileFunction=None, specialFunction=None, linkFunction=None, args={}, currentDirKey="", dirRegex=[], fileRegex=[], types="DFLS"):
         """
+
+        @param types: D=Dir, F=File, L=Links, S=Special
+
         the function are taking following arguments:
 
-        def dirFunction(dirobj, ttype, name ,key):
+        def dirFunction(dirobj, ttype, name, args ,key):
             # if you want to save do, this will make sure it gets changed
             dirObj.changed=True
 
-            if you return True, then  will recurse, otherwise not
+            if you return False, then it will not recurse, std behavior is to recurse
 
-
-        def fileFunction(dirobj, ttype, name,structAsBelow):
+        def fileFunction(dirobj, ttype, name, args,subobj=structAsBelow):
 
             struct Link{
                 name @0 : Text;
@@ -289,8 +301,7 @@ class FList(object):
             # if you want to save do, this will make sure it gets changed
             dirObj.changed=True
 
-
-        def linkFunction(dirobj, ttype, name,structAsBelow):
+        def linkFunction(dirobj, ttype, name, args,subobj=structAsBelow):
 
               struct Link{
                   name @0 : Text;
@@ -304,8 +315,7 @@ class FList(object):
             # if you want to save do, this will make sure it gets changed
             dirObj.changed=True
 
-
-        def specialFunction(dirobj, ttype, name,structAsBelow):
+        def specialFunction(dirobj, ttype, name, args,subobj=structAsBelow):
 
               struct Special{
                   name @0 : Text;
@@ -330,35 +340,138 @@ class FList(object):
             # if you want to save do, this will make sure it gets changed
             dirObj.changed=True
 
-
-
         """
+
+        def valid(fpath, includes):
+            """
+            check if full path is in includes
+            """
+            if includes == []:
+                return True
+            fpath = fpath.lower()
+            for ex in includes:
+                if ex.match(fpath):
+                    return True
+            return False
+
+        if j.data.types.string.check(dirRegex):
+            if dirRegex.strip() == "":
+                dirRegex = []
+            else:
+                dirRegex = [dirRegex]
+
+        if j.data.types.string.check(fileRegex):
+            if fileRegex.strip() == "":
+                fileRegex = []
+            else:
+                fileRegex = [fileRegex]
+
+        # precompile the regexes (faster)
+        dirRegex = [re.compile(ex) for ex in dirRegex]
+        fileRegex = [re.compile(ex) for ex in fileRegex]
+
         if currentDirKey == "":
             relkey, currentDirKey = self.path2key(self.rootpath)
+
         ddir = self.dirCollection.get(currentDirKey)
 
         for item in ddir.dbobj.dirs:
-            recurse = dirFunction(ddir.dbobj, item.name, "D", item.key)
-            if recurse:
+            if valid(j.sal.fs.joinPaths(ddir.dbobj.location, item.name), dirRegex) and "D" in types:
+                recurse = dirFunction(dirobj=ddir, type="D", name=item.name, args=args,
+                                      key=item.key)
+            else:
+                recurse = True
+            if not recurse == False:
+                if item.key == "":
+                    raise RuntimeError("key cannot be empty in a subdir of: ddir\n%s" % ddir)
                 self.walk(dirFunction=dirFunction, fileFunction=fileFunction, specialFunction=specialFunction,
-                          linkFunction=linkFunction, currentDirKey=ddir.key)
+                          linkFunction=linkFunction,  args=args, currentDirKey=item.key, dirRegex=dirRegex, fileRegex=fileRegex, types=types)
+
+        if not valid(ddir.dbobj.location, dirRegex):
+            return
 
         for item in ddir.dbobj.files:
-            dirFunction(ddir.dbobj, item.name, "F", item)
+            if valid(j.sal.fs.joinPaths(ddir.dbobj.location, item.name), fileRegex) and "F" in types:
+                fileFunction(dirobj=ddir, type="F", name=item.name, subobj=item, args=args)
 
         for item in ddir.dbobj.links:
-            dirFunction(ddir.dbobj, item.name, "L", item)
+            if validd(j.sal.fs.joinPaths(ddir.dbobj.location, item.name), fileRegex) and "L" in types:
+                linkFunction(dirobj=ddir, type="L", name=item.name, subobj=item, args=args)
 
         for item in ddir.dbobj.specials:
-            dirFunction(ddir.dbobj, item.name, "S", item)
+            if valid(j.sal.fs.joinPaths(ddir.dbobj.location, item.name), fileRegex and "S" in types):
+                specialFunction(dirobj=ddir, type="S", name=item.name, subobj=item, args=args)
 
-    def dumps(self, trim=''):
-        data = []
+    def count(self, dirRegex=[], fileRegex=[], types="DFLS"):
+        """
+        @regex can be str or list of regex:[]
+        @return size,nrfiles,nrdirs,nrlinks,nrspecial
+        """
 
-        def pprint(dirobj, ttype, name, *args):
-            print("%s/%s (%s)" % (dirobj.location, name, ttype))
+        def procDir(dirobj, type, name, args, key):
+            args["nrdirs"] += 1
 
-        self.walk(pprint, pprint, pprint, pprint)
+        def procFile(dirobj, type, name, subobj, args):
+            args["size"] += subobj.size
+            args["nrfiles"] += 1
+
+        def procLink(dirobj, type, name, subobj, args):
+            args["nrlinks"] += 1
+
+        def procSpecial(dirobj, type, name, subobj, args):
+            args["nrspecial"] += 1
+
+        result = {}
+        result["size"] = 0
+        result["nrfiles"] = 0
+        result["nrlinks"] = 0
+        result["nrdirs"] = 0
+        result["nrspecial"] = 0
+        self.walk(dirFunction=procDir, fileFunction=procFile,
+                  specialFunction=procSpecial, linkFunction=procLink, args=result, dirRegex=dirRegex, fileRegex=fileRegex, types=types)
+
+        return (result["size"], result["nrfiles"], result["nrdirs"], result["nrlinks"], result["nrspecial"])
+
+    def pprint(self, dirRegex=[], fileRegex=[], types="DFLS"):
+
+        def procDir(dirobj, type, name, args, key):
+            print("%s/%s (%s)" % (dirobj.dbobj.location, name, type))
+
+        def procFile(dirobj, type, name, subobj, args):
+            print("%s/%s (%s)" % (dirobj.dbobj.location, name, type))
+
+        def procLink(dirobj, type, name, subobj, args):
+            print("%s/%s (%s)" % (dirobj.dbobj.location, name, type))
+
+        def procSpecial(dirobj, type, name, subobj, args):
+            print("%s/%s (%s)" % (dirobj.dbobj.location, name, type))
+
+        result = []
+        self.walk(dirFunction=procDir, fileFunction=procFile,
+                  specialFunction=procSpecial, linkFunction=procLink, args=result, dirRegex=dirRegex, fileRegex=fileRegex, types=types)
+
+    def dumps(self, dirRegex=[], fileRegex=[], types="DFLS"):
+        """
+        dump to text based flist format
+        """
+
+        # TODO: *1
+
+        def procDir(dirobj, type, name, args, key):
+            print("%s/%s (%s)" % (dirobj.dbobj.location, name, type))
+
+        def procFile(dirobj, type, name, subobj, args):
+            print("%s/%s (%s)" % (dirobj.dbobj.location, name, type))
+
+        def procLink(dirobj, type, name, subobj, args):
+            print("%s/%s (%s)" % (dirobj.dbobj.location, name, type))
+
+        def procSpecial(dirobj, type, name, subobj, args):
+            print("%s/%s (%s)" % (dirobj.dbobj.location, name, type))
+
+        result = []
+        self.walk(dirFunction=procDir, fileFunction=procFile,
+                  specialFunction=procSpecial, linkFunction=procLink, args=result)
 
         from IPython import embed
         print("DEBUG NOW in dumps")

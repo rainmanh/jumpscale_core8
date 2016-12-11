@@ -84,7 +84,7 @@ class CuisinePython(base):
         ignoredir = ["test", "tkinter", "turtledemo",
                      "msilib", "pydoc*", "lib2to3", "idlelib"]
         lpath = j.sal.fs.joinPaths(cpath, "lib",)
-        ldest = "%s/lib" % destpath
+        ldest = "%s/plib" % destpath
         self._cuisine.core.copyTree(source=lpath, dest=ldest, keepsymlinks=False, deletefirst=False,
                                     overwriteFiles=True, ignoredir=ignoredir,
                                     recursive=True, rsyncdelete=True, createdir=True)
@@ -98,24 +98,33 @@ class CuisinePython(base):
                                     overwriteFiles=True, ignoredir=ignoredir,
                                     recursive=True, rsyncdelete=True, createdir=True)
 
+        # now copy openssl parts in
+        sslpath = self.checkOpenSSL()
+        # self._cuisine.core.copyTree(source=sslpath, dest=destpath, keepsymlinks=False, deletefirst=False,
+        #                             overwriteFiles=True, ignoredir=ignoredir,
+        #                             recursive=True, rsyncdelete=True, createdir=True)
+        from IPython import embed
+        print("DEBUG NOW copy openssl")
+        embed()
+        raise RuntimeError("stop debug here")
+
         C = """
 
         export JSBASE=`pwd`
 
 
-        export PATH=$JSBASE/bin:$JSPATH:/usr/local/bin:/usr/bin:/bin
+        export PATH=$JSBASE/bin:$JSBASE/lib/$JSPATH:/usr/local/bin:/usr/bin:/bin
 
         #export LUA_PATH="/opt/jumpscale8/lib/lua/?.lua;./?.lua;/opt/jumpscale8/lib/lua/?/?.lua;/opt/jumpscale8/lib/lua/tarantool/?.lua;/opt/jumpscale8/lib/lua/?/init.lua"
 
-
-        export PYTHONPATH=$JSBASE:$JSBASE/lib:$JSBASE/lib/site-packages
+        export PYTHONPATH=$JSBASE:$JSBASE/plib:$JSBASE/lib:$JSBASE/lib/site-packages
         export PYTHONHOME=$JSBASE
-        export CPATH=$cpath/Include:$cpath$openssl
+        export CPATH=$JSBASE/include:$JSBASE/include/openssl:$JSBASE/lib
 
         export LC_ALL=en_US.UTF-8
         export LANG=en_US.UTF-8
 
-        export LD_LIBRARY_PATH=$JSBASE/bin
+        export LD_LIBRARY_PATH=$JSBASE/bin:$JSBASE/lib
         export PS1="JS8: "
         if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
                 hash -r 2>/dev/null
@@ -149,6 +158,12 @@ class CuisinePython(base):
         destpath = self._cuisine.core.args_replace(destpath)
         if build:
             self.build(destpath, reset)
+
+        from IPython import embed
+        print("DEBUG NOW 97i8")
+        embed()
+        raise RuntimeError("stop debug here")
+
         # needs at least /JS8/code/github/jumpscale/jumpscale_core8/install/dependencies.py
         C = """
         uvloop

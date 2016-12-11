@@ -54,7 +54,9 @@ class CuisineOpenSSL(base):
         ./Configure darwin64-x86_64-cc shared enable-ec_nistp_64_gcc_128 no-ssl2 no-ssl3 no-comp --openssldir=%s --prefix=%s
         make depend
         make install
-        """ % (cpath, destpath, destpath)
+        rm -rf %s/share
+        rm -rf %s/private
+        """ % (cpath, destpath, destpath, destpath, destpath)
 
         self._cuisine.core.run(C)
         # print("COMPILE DONE")

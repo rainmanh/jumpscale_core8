@@ -10,17 +10,27 @@ import queue
 
 from SSHClient import SSHClient
 
-from Jumpscale import InstallTools.SSHMethods
-# TODO: *1 fix
 
-
-class SSHClientFactory:
+class SSHClientFactory():
 
     def __init__(self):
         self.__jslocation__ = "j.clients.ssh"
         self.logger = j.logger.get("j.clients.ssh")
         self.cache = {}
         self.loadSSHKeys = j.do.loadSSHKeys
+        self._addSSHAgentToBashProfile = j.do._addSSHAgentToBashProfile
+        self._initSSH_ENV = j.do._initSSH_ENV
+        self._getSSHSocketpath = j.do._getSSHSocketpath
+        self.loadSSHKeys = j.do.loadSSHKeys
+        self.getSSHKeyPathFromAgent = j.do.getSSHKeyPathFromAgent
+        self.getSSHKeyFromAgentPub = j.do.getSSHKeyFromAgentPub
+        self.listSSHKeyFromAgent = j.do.listSSHKeyFromAgent
+        self.ensure_keyname = j.do.ensure_keyname
+        self.authorize_user = j.do.authorize_user
+        self.authorize_root = j.do.authorize_root
+        self.authorizeSSHKey = j.do.authorizeSSHKey
+        self._loadSSHAgent = j.do._loadSSHAgent
+        self.checkSSHAgentAvailable = j.do.checkSSHAgentAvailable
 
     def reset(self):
         for key, client in self.cache.items():

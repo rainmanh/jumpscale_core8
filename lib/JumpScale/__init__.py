@@ -15,29 +15,22 @@ from .InstallTools import InstallTools, do, Installer
 
 # INITIALIZATION OF PATHS IS IN THE INSTALLTOOLS FILE, LETS ONLY DO THERE !!!
 
-base = do.BASE
+base = do.BASEDIR
+jsbase = do.JSBASEDIR
 libMetadataPath = "%s/libMetadata.db" % do.CFGDIR
 
-if not do.embed:
-    from JumpScale.clients.redis.RedisFactory import RedisFactory
+from JumpScale.clients.redis.RedisFactory import RedisFactory
 
-    if not os.path.isfile("%s/lib/lsb_release.py" % base):
-        sys.path.insert(0, "%s/lib" % base)
-        sys.path.insert(0, "%s/bin" % base)
-        sys.path.insert(0, "%s/lib/JumpScale" % base)
-        sys.path.insert(0, "%s/lib/lib-dynload" % base)
-
-else:
-    sys.path = []
+if not os.path.isfile("%s/lib/lsb_release.py" % base):
     sys.path.insert(0, "%s/lib" % base)
-    sys.path.insert(1, base)
-    sys.path.insert(0, "%s/lib/base_library.zip" % base)
-    sys.path.insert(0, "%s/lib/base.zip" % base)
-    # sys.path.insert(0, "%s/binlib/")
+    sys.path.insert(0, "%s/lib" % jsbase)
+    sys.path.insert(0, "%s/bin" % base)
+    sys.path.insert(0, "%s/lib/JumpScale" % jsbase)
+    sys.path.insert(0, "%s/lib/lib-dynload" % base)
 
 
-libDir = "%s/lib" % base
-libExtDir = "%s/libext" % base
+libDir = "%s/lib" % jsbase
+libExtDir = "%s/libext" % jsbase
 
 pythonzip = '%s/python.zip' % libDir
 if pythonzip in sys.path:
@@ -50,7 +43,7 @@ if libExtDir in sys.path:
 if os.path.exists(libExtDir):
     sys.path.insert(2, libExtDir)
 
-jsLibDir = os.path.join(libDir, "JumpScale")
+jsLibDir = os.environ["JSLIBDIR"]
 if jsLibDir in sys.path:
     sys.path.pop(sys.path.index(jsLibDir))
 sys.path.insert(0, jsLibDir)
@@ -116,7 +109,7 @@ j.legacy = Loader("j.legacy")
 
 j.do = do
 j.do.installer = Installer()
-j.do.installer.do=do
+j.do.installer.do = do
 
 # sets up the exception handlers for init
 from . import core

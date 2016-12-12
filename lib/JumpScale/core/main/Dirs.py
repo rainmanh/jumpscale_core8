@@ -35,10 +35,10 @@ class Dirs:
         self.__initialized = False  # bool
 
         import sys
-
-        self.base = j.do.BASE
+        self.BASEDIR = j.do.BASEDIR
+        self.JSBASEDIR = j.do.JSBASEDIR
         self.HOMEDIR = os.environ["HOME"]
-        self.JSCFGDIR = os.environ["CFGDIR"]
+        self.CFGDIR = os.environ["CFGDIR"]
         self.TMPDIR = os.environ["TMPDIR"]
 
     def normalize(self, path):

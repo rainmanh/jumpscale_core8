@@ -2028,7 +2028,6 @@ class Installer():
         config = {}
         for category, items in {"identity": ["EMAIL", "FULLNAME", "GITHUBUSER"],
                                 "system": ["AYSBRANCH", "JSBRANCH", "DEBUG", "SANDBOX"],
-                                "dirs": ["JSBASE", "TMPDIR", "VARDIR", "DATADIR", "CODEDIR", "CFGDIR"]}.items():
             config[category] = {}
             for item in items:
 
@@ -2041,11 +2040,21 @@ class Installer():
                     if item in ["DEBUG", "SANDBOX"]:
                         config[category][item] = str(os.environ[item]) == 1
                     else:
+                        config[category][item] = os.environ[item]
+
+
+
                         if category == "dirs":
                             while os.environ[item][-1] == "/":
                                 os.environ[item] = os.environ[item][:-1]
                             os.environ[item] += "/"
-                        config[category][item] = os.environ[item]
+
+        config["dirs"] = {}
+        from IPython import embed
+        print("DEBUG NOW writeenv")
+        embed()
+        raise RuntimeError("stop debug here")
+
 
         with open("%s/jumpscale/system.yaml" % os.environ["CFGDIR"], 'w') as outfile:
             yaml.dump(config, outfile, default_flow_style=False)
@@ -2304,6 +2313,7 @@ class Installer():
         self.do.execute("git config --global user.name \"%s\"" % name)
 
     def replacesitecustomize(self):
+        raise RuntimeError("not implemented")
         if not self.TYPE == "WIN":
             ppath = "/usr/lib/python%s/sitecustomize.py" % os.environ.get('PYTHONVERSION', '')
             if ppath.find(ppath):
@@ -2386,11 +2396,18 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             return os.environ["CODEDIR"]
 
     @property
-    def BASE(self):
+    def JSBASEDIR(self):
         if self.config != {}:
-            return self.config["dirs"]["JSBASE"]
+            return self.config["dirs"]["JSBASEDIR"]
         else:
-            return os.environ["JSBASE"]
+            return os.environ["JSBASEDIR"]
+
+    @property
+    def BASEDIR(self):
+        if self.config != {}:
+            return self.config["dirs"]["BASEDIR"]
+        else:
+            return os.environ["BASEDIR"]
 
     @property
     def CFGDIR(self):
@@ -2546,9 +2563,6 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
 
         if not "CFGDIR" in env:
             env["CFGDIR"] = "%s/cfg" % env["VARDIR"]
-
-        if not "JSCFGDIR" in env:
-            env["JSCFGDIR"] = "%s/cfg" % env["JSBASE"]
 
         if not "TMPDIR" in env:
             if exists("/tmp"):

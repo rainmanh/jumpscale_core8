@@ -26,7 +26,7 @@ class RedisInstaller:
         raise j.exceptions.RuntimeError(
             "Could not find redis port in config file %s" % cpath)
 
-    def isRunning(self, name='', ip_address='localhost', port=6379, path='$binDir', password=None, unixsocket=None):
+    def isRunning(self, name='', ip_address='localhost', port=6379, path='$BINDIR', password=None, unixsocket=None):
         if not name:
             if ip_address != '' and port != 0:
                 ping_cmd = '%s/redis-cli -h %s -p %s ' % (path, ip_address, port)

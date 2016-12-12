@@ -18,7 +18,7 @@ class CuisineWeave(app):
             return
         if jumpscalePath:
             binPath = self._cuisine.core.joinpaths(
-                self._cuisine.core.dir_paths['binDir'], 'weave')
+                self._cuisine.core.dir_paths['BINDIR'], 'weave')
         else:
             binPath = '/usr/local/bin/weave'
         self._cuisine.core.dir_ensure(j.sal.fs.getParent(binPath))

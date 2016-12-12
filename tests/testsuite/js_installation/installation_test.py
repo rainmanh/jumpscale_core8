@@ -70,10 +70,10 @@ class InstallationTests(BaseTest):
         #slash diff
         self.assertEqual(dict1['JSAPPDIR'].replace('/',''), dict2['JSAPPDIR'].replace('/',''))
         self.assertEqual(dict1['LIBDIR'].replace('/',''), dict2['LIBDIR'].replace('/',''))
-        self.assertEqual(dict1['binDir'].replace('/',''), dict2['binDir'].replace('/',''))
+        self.assertEqual(dict1['BINDIR'].replace('/',''), dict2['BINDIR'].replace('/',''))
         self.assertEqual(dict1['JSCFGDIR'].replace('/',''), dict2['JSCFGDIR'].replace('/',''))
         self.assertEqual(dict1['CODEDIR'].replace('/', ''), dict2['CODEDIR'].replace('/', ''))
-        self.assertEqual(dict1['jsLibDir'].replace('/', ''), dict2['jsLibDir'].replace('/', ''))
+        self.assertEqual(dict1['JSLIBDIR'].replace('/', ''), dict2['JSLIBDIR'].replace('/', ''))
         self.assertEqual(dict1['PIDDIR'].replace('/', ''), dict2['PIDDIR'].replace('/', ''))
         self.assertEqual(dict1['LOGDIR'].replace('/', ''), dict2['LOGDIR'].replace('/', ''))
         self.assertEqual(dict1['VARDIR'].replace('/', ''), dict2['VARDIR'].replace('/', ''))

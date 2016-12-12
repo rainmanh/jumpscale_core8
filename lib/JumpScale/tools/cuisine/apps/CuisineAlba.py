@@ -48,7 +48,7 @@ class CuisineAlba(base):
         self._cuisine.core.file_download(
             'https://raw.github.com/ocaml/opam/master/shell/opam_installer.sh', to='$TMPDIR/opam_installer.sh')
         self._cuisine.core.run('sed -i "/read -p/d" $TMPDIR/opam_installer.sh')  # remove any confirmation
-        self._cuisine.core.run('bash $TMPDIR/opam_installer.sh $binDir %s' %
+        self._cuisine.core.run('bash $TMPDIR/opam_installer.sh $BINDIR %s' %
                                self.ocaml_version, profile=True, shell=True)
 
         cmd = 'opam init --root=%s --comp %s -a --dot-profile %s' % (
@@ -122,7 +122,7 @@ class CuisineAlba(base):
         cmd = '%s && export PREFIX=%s && export OCAML_LIBDIR=$(%s) && make install' % (pfx, prefix, libdir)
 
         self._cuisine.core.execute_bash(cmd, profile=True)
-        self._cuisine.core.file_copy(j.sal.fs.joinPaths(aradest, 'arakoon.native'), "$binDir/arakoon")
+        self._cuisine.core.file_copy(j.sal.fs.joinPaths(aradest, 'arakoon.native'), "$BINDIR/arakoon")
 
         """
         RUN git clone https://github.com/openvstorage/arakoon.git
@@ -270,7 +270,7 @@ class CuisineAlba(base):
         self._cuisine.core.run('cd %s && git checkout %s' % (repo, self.alba_version))
 
         self._cuisine.core.execute_bash('source $TMPDIR/opam.env && cd %s; make' % repo, profile=True)
-        self._cuisine.core.file_copy('%s/ocaml/alba.native' % repo, '$binDir/alba')
-        self._cuisine.core.file_copy('%s/ocaml/albamgr_plugin.cmxs' % repo, '$binDir/albamgr_plugin.cmxs')
-        self._cuisine.core.file_copy('%s/ocaml/nsm_host_plugin.cmxs' % repo, '$binDir/nsm_host_plugin.cmxs')
-        self._cuisine.core.file_copy('%s/ocaml/disk_failure_tests.native' % repo, '$binDir/disk_failure_tests.native')
+        self._cuisine.core.file_copy('%s/ocaml/alba.native' % repo, '$BINDIR/alba')
+        self._cuisine.core.file_copy('%s/ocaml/albamgr_plugin.cmxs' % repo, '$BINDIR/albamgr_plugin.cmxs')
+        self._cuisine.core.file_copy('%s/ocaml/nsm_host_plugin.cmxs' % repo, '$BINDIR/nsm_host_plugin.cmxs')
+        self._cuisine.core.file_copy('%s/ocaml/disk_failure_tests.native' % repo, '$BINDIR/disk_failure_tests.native')

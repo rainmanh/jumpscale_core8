@@ -18,16 +18,16 @@ dirs:
 - $BASEDIR
 - $JSAPPDIR
 - $TEMPLATEDIR
-- $VARDIR/
-- $binDir
+- $VARDIR
+- $BINDIR
 - $CODEDIR
 - $JSCFGDIR
 - $HOMEDIR
-- $jsLibDir
+- $JSLIBDIR
 - $LIBDIR
 - $LOGDIR
 - $PIDDIR
-- $TMPDIR/
+- $TMPDIR
 system
 - $hostname
 

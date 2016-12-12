@@ -222,7 +222,7 @@ class Bash:
                 content = self._cuisine.core.file_read(self.profilePath)
             elif self._profilePath and self._cuisine.core.file_exists(self._profilePath):
                 content = self._cuisine.core.file_read(self._profilePath)
-            self._profile = Profile(content, self._cuisine.core.dir_paths["binDir"])
+            self._profile = Profile(content, self._cuisine.core.dir_paths["BINDIR"])
 
         return self._profile
 

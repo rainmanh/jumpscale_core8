@@ -16,7 +16,7 @@ class CuisineIPFS(app):
         Checks if a package is installed or not
         You can ovveride it to use another way for checking
         """
-        return self._cuisine.core.file_exists('$binDir/ipfs')
+        return self._cuisine.core.file_exists('$BINDIR/ipfs')
 
     def install(self, name='main', reset=False):
         if reset is False and self.isInstalled():
@@ -36,14 +36,14 @@ class CuisineIPFS(app):
             self._cuisine.core.dir_remove(uncompress_path)
 
         self._cuisine.core.run("cd $TMPDIR; tar xvf {}".format(name))
-        self._cuisine.core.file_copy('{}/ipfs'.format(uncompress_path), '$binDir/ipfs')
+        self._cuisine.core.file_copy('{}/ipfs'.format(uncompress_path), '$BINDIR/ipfs')
 
     def uninstall(self):
         """
-        remove ipfs binary from $binDir
+        remove ipfs binary from $BINDIR
         """
-        if self._cuisine.core.file_exists('$binDir/ipfs'):
-            self._cuisine.core.file_unlink('$binDir/ipfs')
+        if self._cuisine.core.file_exists('$BINDIR/ipfs'):
+            self._cuisine.core.file_unlink('$BINDIR/ipfs')
 
     def start(self, name='main', readonly=False):
         cfg_dir = '$JSCFGDIR/ipfs/{}'.format(name)
@@ -52,10 +52,10 @@ class CuisineIPFS(app):
 
         # check if the ipfs repo has not been created yet.
         if not self._cuisine.core.file_exists(cfg_dir + '/config'):
-            cmd = 'IPFS_PATH={} $binDir/ipfs init'.format(cfg_dir)
+            cmd = 'IPFS_PATH={} $BINDIR/ipfs init'.format(cfg_dir)
             self._cuisine.core.run(cmd)
 
-        cmd = '$binDir/ipfs daemon'
+        cmd = '$BINDIR/ipfs daemon'
         if not readonly:
             cmd += '  --writable'
 

@@ -26,8 +26,8 @@ class CuisineCaddy(app):
         dest = '$TMPDIR/caddy_linux_amd64.tar.gz'
         self._cuisine.core.file_download(caddy_url, dest)
         self._cuisine.core.run('cd $TMPDIR; tar xvf $TMPDIR/caddy_linux_amd64.tar.gz')
-        self._cuisine.core.file_copy('$TMPDIR/caddy', '$binDir')
-        self._cuisine.bash.addPath(self._cuisine.core.args_replace("$binDir"))
+        self._cuisine.core.file_copy('$TMPDIR/caddy', '$BINDIR')
+        self._cuisine.bash.addPath(self._cuisine.core.args_replace("$BINDIR"))
 
         addr = dns if ssl and dns else ':80'
 

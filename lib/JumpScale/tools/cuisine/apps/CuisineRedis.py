@@ -81,17 +81,17 @@ class CuisineRedis(app):
                                     passwd=passwd,
                                     unixsocket=unixsocket)
         # return if redis is already running
-        if redis_cli.isRunning(ip_address=ip, port=port, path='$binDir', password=passwd, unixsocket=unixsocket):
+        if redis_cli.isRunning(ip_address=ip, port=port, path='$BINDIR', password=passwd, unixsocket=unixsocket):
             print('Redis is already running!')
             return
 
         _, cpath = j.sal.redis._getPaths(name)
 
-        cmd = "$binDir/redis-server %s" % cpath
-        self._cuisine.processmanager.ensure(name="redis_%s" % name, cmd=cmd, env={}, path='$binDir')
+        cmd = "$BINDIR/redis-server %s" % cpath
+        self._cuisine.processmanager.ensure(name="redis_%s" % name, cmd=cmd, env={}, path='$BINDIR')
 
         # Checking if redis is started correctly with port specified
-        if not redis_cli.isRunning(ip_address=ip, port=port, path='$binDir', unixsocket=unixsocket):
+        if not redis_cli.isRunning(ip_address=ip, port=port, path='$BINDIR', unixsocket=unixsocket):
             raise j.exceptions.RuntimeError('Redis is failed to start correctly')
 
     def stop(self, name='main'):

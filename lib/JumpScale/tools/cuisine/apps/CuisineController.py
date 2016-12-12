@@ -49,8 +49,8 @@ class CuisineController(app):
         """
         sourcepath = "$GODIR/src/github.com/g8os/controller"
         # move binary
-        if not self._cuisine.core.file_exists('$binDir/controller'):
-            self._cuisine.core.file_move("%s/controller" % sourcepath, "$binDir/controller")
+        if not self._cuisine.core.file_exists('$BINDIR/controller'):
+            self._cuisine.core.file_move("%s/controller" % sourcepath, "$BINDIR/controller")
 
         # file copy
         self._cuisine.core.dir_remove("$TEMPLATEDIR/cfg/controller/extensions")
@@ -149,6 +149,6 @@ class CuisineController(app):
 
         env = {}
         env["TMPDIR"] = self._cuisine.core.dir_paths["TMPDIR"]
-        cmd = "$binDir/controller -c $JSCFGDIR/controller/agentcontroller.toml"
+        cmd = "$BINDIR/controller -c $JSCFGDIR/controller/agentcontroller.toml"
         pm = self._cuisine.processmanager.get("tmux")
         pm.ensure("controller", cmd=cmd, path="$JSCFGDIR/controller/", env=env)

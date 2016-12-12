@@ -66,13 +66,13 @@ class CuisineLedis(app):
         #rc, out, err = self._cuisine.core.run("cd {ledisdir} && source dev.sh && make install".format(ledisdir=ledisdir), profile=True)
         self._cuisine.core.dir_ensure("$TEMPLATEDIR/cfg")
         self._cuisine.core.file_copy("/tmp/ledisconfig.toml", dest="$TEMPLATEDIR/cfg/ledisconfig.toml")
-        self._cuisine.core.file_copy("{ledisdir}/bin/*".format(ledisdir=ledisdir), dest="$binDir")
+        self._cuisine.core.file_copy("{ledisdir}/bin/*".format(ledisdir=ledisdir), dest="$BINDIR")
         self._cuisine.core.file_copy("{ledisdir}/dev.sh".format(ledisdir=ledisdir), dest="$TEMPLATEDIR/ledisdev.sh")
 
         if start:
             self.start()
 
     def start(self):
-        cmd = "source $TEMPLATEDIR/ledisdev.sh && $binDir/ledis-server -config $TEMPLATEDIR/cfg/ledisconfig.toml"
+        cmd = "source $TEMPLATEDIR/ledisdev.sh && $BINDIR/ledis-server -config $TEMPLATEDIR/cfg/ledisconfig.toml"
         pm = self._cuisine.processmanager.get("tmux")
         pm.ensure(name='ledis', cmd=cmd)

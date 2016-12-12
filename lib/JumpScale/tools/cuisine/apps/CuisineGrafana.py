@@ -25,8 +25,8 @@ class CuisineGrafana(app):
             raise RuntimeError("platform not supported")
 
     def install(self, start=False, influx_addr='127.0.0.1', influx_port=8086, port=3000):
-        self._cuisine.core.dir_ensure('$binDir')
-        self._cuisine.core.file_copy("/usr/sbin/grafana*", dest="$binDir")
+        self._cuisine.core.dir_ensure('$BINDIR')
+        self._cuisine.core.file_copy("/usr/sbin/grafana*", dest="$BINDIR")
 
         self._cuisine.core.dir_ensure("$JSAPPDIR/grafana")
         self._cuisine.core.file_copy("/usr/share/grafana/", "$JSAPPDIR/", recursive=True)
@@ -42,7 +42,7 @@ class CuisineGrafana(app):
 
     def start(self, influx_addr='127.0.0.1', influx_port=8086, port=3000):
 
-        cmd = "$binDir/grafana-server --config=$JSCFGDIR/grafana/grafana.ini\n"
+        cmd = "$BINDIR/grafana-server --config=$JSCFGDIR/grafana/grafana.ini\n"
         cmd = self._cuisine.core.args_replace(cmd)
         self._cuisine.core.file_write("/opt/jumpscale8/bin/start_grafana.sh", cmd, 777, replaceArgs=True)
         self._cuisine.process.kill("grafana-server")

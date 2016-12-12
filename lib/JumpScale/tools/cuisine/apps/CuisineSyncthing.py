@@ -99,9 +99,9 @@ class CuisineSyncthing(app):
         self._cuisine.core.file_write("$TEMPLATEDIR/cfg/syncthing/config.xml", content)
 
         # If syncthing isn't found, it means that syncthing must be built first
-        if not self._cuisine.core.file_exists('$binDir/syncthing'):
+        if not self._cuisine.core.file_exists('$BINDIR/syncthing'):
             self._cuisine.core.file_copy(source="$GODIR/src/github.com/syncthing/syncthing/bin/syncthing",
-                                         dest="$binDir",
+                                         dest="$BINDIR",
                                          recursive=True,
                                          overwrite=False)
         if start:
@@ -111,7 +111,7 @@ class CuisineSyncthing(app):
         self._cuisine.core.dir_ensure("$JSCFGDIR")
         self._cuisine.core.file_copy("$TEMPLATEDIR/cfg/syncthing/", "$JSCFGDIR", recursive=True)
         pm = self._cuisine.processmanager.get("tmux")
-        pm.ensure(name="syncthing", cmd="./syncthing -home  $JSCFGDIR/syncthing", path="$binDir")
+        pm.ensure(name="syncthing", cmd="./syncthing -home  $JSCFGDIR/syncthing", path="$BINDIR")
 
     def stop(self):
         pm = self._cuisine.processmanager.get("tmux")

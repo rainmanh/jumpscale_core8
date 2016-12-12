@@ -21,13 +21,13 @@ class TestCuisineCore(unittest.TestCase):
         self.core = j.tools.cuisine.local.core
         self.dir_paths = {'JSAPPDIR': '/js/path/apps',
                           'base': '/js/path',
-                          'binDir': '/js/path/bin',
+                          'BINDIR': '/js/path/bin',
                           'JSCFGDIR': '/optvar//cfg',
                           'CODEDIR': '/opt/code/',
                           'GODIR': '/optvar/go/',
                           'HOMEDIR': '/root',
                           'HRDDIR': '/optvar//hrd',
-                          'jsLibDir': '/js/path/lib/JumpScale/',
+                          'JSLIBDIR': '/js/path/lib/JumpScale/',
                           'LIBDIR': '/js/path/lib/',
                           'LOGDIR': '/optvar//log',
                           'optDir': '/opt/',
@@ -72,13 +72,13 @@ class TestCuisineCore(unittest.TestCase):
         expected_result = {
             'JSAPPDIR': '/opt/jumpscale8//apps',
             'base': '/opt/jumpscale8/',
-            'binDir': '/opt/jumpscale8//bin',
+            'BINDIR': '/opt/jumpscale8//bin',
             'JSCFGDIR': '/optvar//cfg',
             'CODEDIR': '/opt/code/',
             'GODIR': '/optvar/go/',
             'HOMEDIR': '/root',
             'HRDDIR': '/optvar//hrd',
-            'jsLibDir': '/opt/jumpscale8//lib/JumpScale/',
+            'JSLIBDIR': '/opt/jumpscale8//lib/JumpScale/',
             'LIBDIR': '/opt/jumpscale8//lib/',
             'LOGDIR': '/optvar//log',
             'optDir': '/opt/',
@@ -107,13 +107,13 @@ class TestCuisineCore(unittest.TestCase):
         expected_result = {
             'JSAPPDIR': '/root/opt/jumpscale8//apps',
             'base': '/root/opt/jumpscale8/',
-            'binDir': '/root/opt/jumpscale8//bin',
+            'BINDIR': '/root/opt/jumpscale8//bin',
             'JSCFGDIR': '/root/optvar//cfg',
             'CODEDIR': '/root/opt/code/',
             'GODIR': '/root/optvar/go/',
             'HOMEDIR': '/root',
             'HRDDIR': '/root/optvar//hrd',
-            'jsLibDir': '/root/opt/jumpscale8//lib/JumpScale/',
+            'JSLIBDIR': '/root/opt/jumpscale8//lib/JumpScale/',
             'LIBDIR': '/root/opt/jumpscale8//lib/',
             'LOGDIR': '/root/optvar//log',
             'optDir': '/root/opt/',
@@ -139,13 +139,13 @@ class TestCuisineCore(unittest.TestCase):
         expected_result = {
             'JSAPPDIR': '/js/path/apps',
             'base': '/js/path',
-            'binDir': '/js/path/bin',
+            'BINDIR': '/js/path/bin',
             'JSCFGDIR': '/root/optvar//cfg',
             'CODEDIR': '/root/opt/code/',
             'GODIR': '/root/optvar/go/',
             'HOMEDIR': '/root',
             'HRDDIR': '/root/optvar//hrd',
-            'jsLibDir': '/js/path/lib/JumpScale/',
+            'JSLIBDIR': '/js/path/lib/JumpScale/',
             'LIBDIR': '/js/path/lib/',
             'LOGDIR': '/root/optvar//log',
             'optDir': '/root/opt/',
@@ -177,7 +177,7 @@ class TestCuisineCore(unittest.TestCase):
             cuisine_core.getenv.return_value = self.dump_env
             cuisine_core.run = MagicMock()
             cuisine_core.run.return_value = (0, 'hostname', '')
-            input_text = "$BASEDIR:$JSAPPDIR:$TEMPLATEDIR:$VARDIR:$binDir:$CODEDIR:$JSCFGDIR:$HOMEDIR:$jsLibDir:$LIBDIR:$LOGDIR:$PIDDIR:$TMPDIR:$hostname"
+            input_text = "$BASEDIR:$JSAPPDIR:$TEMPLATEDIR:$VARDIR:$BINDIR:$CODEDIR:$JSCFGDIR:$HOMEDIR:$JSLIBDIR:$LIBDIR:$LOGDIR:$PIDDIR:$TMPDIR:$hostname"
             expected_output = "/opt/jumpscale8/:/opt/jumpscale8//apps:/opt/jumpscale8//templates:/optvar/:/opt/jumpscale8//bin:/opt/code/:/optvar//cfg:/root:/opt/jumpscale8//lib/JumpScale/:/opt/jumpscale8//lib/:/optvar//log:/optvar//pid:/optvar//tmp:hostname"
             actual_output = cuisine_core.args_replace(input_text)
             self.assertEqual(expected_output, actual_output)

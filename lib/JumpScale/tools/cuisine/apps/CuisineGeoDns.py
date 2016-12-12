@@ -136,9 +136,9 @@ class CuisineGeoDns(app):
         self._cuisine.development.golang.get("github.com/abh/geodns")
 
         # moving files and creating config
-        self._cuisine.core.file_copy("$GODIR/bin/geodns", "$binDir")
+        self._cuisine.core.file_copy("$GODIR/bin/geodns", "$BINDIR")
         self._cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/geodns/dns", recursive=True)
-        self._cuisine.bash.addPath('$binDir')
+        self._cuisine.bash.addPath('$BINDIR')
 
         self._cuisine.core.file_copy(
             "$TEMPLATEDIR/cfg/geodns", "$JSCFGDIR/", recursive=True)
@@ -150,13 +150,13 @@ class CuisineGeoDns(app):
         """
         if self._cuisine.core.dir_exists(config_dir):
             self._cuisine.core.dir_ensure(config_dir)
-        cmd = "$binDir/geodns -interface %s -port %s -config=%s -identifier=%s -cpus=%s" % (
+        cmd = "$BINDIR/geodns -interface %s -port %s -config=%s -identifier=%s -cpus=%s" % (
             ip, str(port), config_dir, identifier, str(cpus))
         if tmux:
             pm = self._cuisine.processmanager.get("tmux")
-            pm.ensure(name=identifier, cmd=cmd, env={}, path="$binDir")
+            pm.ensure(name=identifier, cmd=cmd, env={}, path="$BINDIR")
         else:
-            self._cuisine.processmanager.ensure(name=identifier, cmd=cmd, env={}, path="$binDir")
+            self._cuisine.processmanager.ensure(name=identifier, cmd=cmd, env={}, path="$BINDIR")
 
     def stop(self, name="geodns_main"):
         """

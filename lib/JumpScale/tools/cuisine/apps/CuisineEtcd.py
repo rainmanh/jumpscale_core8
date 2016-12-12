@@ -34,8 +34,8 @@ class CuisineEtcd(app):
 
         go get -d .
 
-        CGO_ENABLED=0 go build $GO_BUILD_FLAGS -installsuffix cgo -ldflags "-s -X ${REPO_PATH}/cmd/vendor/${REPO_PATH}/version.GitSHA=${GIT_SHA}" -o $binDir/etcd ${REPO_PATH}/cmd/etcd
-        CGO_ENABLED=0 go build $GO_BUILD_FLAGS -installsuffix cgo -ldflags "-s" -o $binDir/etcdctl ${REPO_PATH}/cmd/etcdctl
+        CGO_ENABLED=0 go build $GO_BUILD_FLAGS -installsuffix cgo -ldflags "-s -X ${REPO_PATH}/cmd/vendor/${REPO_PATH}/version.GitSHA=${GIT_SHA}" -o $BINDIR/etcd ${REPO_PATH}/cmd/etcd
+        CGO_ENABLED=0 go build $GO_BUILD_FLAGS -installsuffix cgo -ldflags "-s" -o $BINDIR/etcdctl ${REPO_PATH}/cmd/etcdctl
         """
 
         script = self._cuisine.bash.replaceEnvironInText(_script)
@@ -50,7 +50,7 @@ class CuisineEtcd(app):
         if host and peers:
             cmd = self._etcd_cluster_cmd(host, peers)
         else:
-            cmd = '$binDir/etcd'
+            cmd = '$BINDIR/etcd'
         self._cuisine.processmanager.ensure("etcd", cmd)
 
     def _etcd_cluster_cmd(self, host, peers=[]):
@@ -71,7 +71,7 @@ class CuisineEtcd(app):
         cluster = cluster.rstrip(",")
 
         host = host.lstrip("http://").lstrip('https://')
-        cmd = """$binDir/etcd -name infra{i} -initial-advertise-peer-urls http://{host}:2380 \
+        cmd = """$BINDIR/etcd -name infra{i} -initial-advertise-peer-urls http://{host}:2380 \
       -listen-peer-urls http://{host}:2380 \
       -listen-client-urls http://{host}:2379,http://127.0.0.1:2379,http://{host}:4001,http://127.0.0.1:4001 \
       -advertise-client-urls http://{host}:2379,http://{host}:4001 \

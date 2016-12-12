@@ -19,7 +19,7 @@ class CuisineSandbox(base):
         self._cuisine.development.js8.install()
         self._cuisine.package.mdupdate()
 
-        self._cuisine.core.file_copy('/usr/local/bin/jspython', '$binDir')
+        self._cuisine.core.file_copy('/usr/local/bin/jspython', '$BINDIR')
 
         sandbox_script = """
         cuisine = j.tools.cuisine.local

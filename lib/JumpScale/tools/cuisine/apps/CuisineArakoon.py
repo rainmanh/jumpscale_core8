@@ -15,7 +15,7 @@ class CuisineArakoon(base):
 
         if exists:
             cmd = self._cuisine.core.command_location("arakoon")
-            dest = "%s/arakoon" % self._cuisine.core.dir_paths["binDir"]
+            dest = "%s/arakoon" % self._cuisine.core.dir_paths["BINDIR"]
             if j.sal.fs.pathClean(cmd) != j.sal.fs.pathClean(dest):
                 self._cuisine.core.file_copy(cmd, dest)
         else:
@@ -26,7 +26,7 @@ class CuisineArakoon(base):
             cmd = 'cd %s && make' % (dest)
             self._cuisine.core.run(cmd, profile=True)
 
-            self._cuisine.core.file_copy('%s/arakoon.native' % dest, "$binDir/arakoon", overwrite=True)
+            self._cuisine.core.file_copy('%s/arakoon.native' % dest, "$BINDIR/arakoon", overwrite=True)
 
         self._cuisine.core.dir_ensure('$VARDIR/data/arakoon')
 
@@ -37,7 +37,7 @@ class CuisineArakoon(base):
         self.logger.info("install opam")
         self._cuisine.core.run('chmod +x $TMPDIR/opam_installer.sh')
         ocaml_version = '4.02.3'
-        cmd = 'yes | $TMPDIR/opam_installer.sh $binDir %s' % ocaml_version
+        cmd = 'yes | $TMPDIR/opam_installer.sh $BINDIR %s' % ocaml_version
         self._cuisine.core.run(cmd, profile=True)
 
         self.logger.info("initialize opam")

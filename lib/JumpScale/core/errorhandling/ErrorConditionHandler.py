@@ -59,7 +59,7 @@ class ErrorConditionHandler:
         if embed():
             return
         if self.escalateToRedis is None:
-            luapath = "%s/core/errorhandling/eco.lua" % j.dirs.jsLibDir
+            luapath = "%s/core/errorhandling/eco.lua" % j.dirs.JSLIBDIR
             if j.sal.fs.exists(path=luapath):
                 lua = j.sal.fs.fileGetContents(luapath)
                 self.escalateToRedis = j.core.db.register_script(lua)

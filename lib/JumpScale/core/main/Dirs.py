@@ -59,8 +59,8 @@ class Dirs:
         self.PIDDIR = self.normalize(j.sal.fs.joinPaths(self.VARDIR, "pid"))
         self.CODEDIR = self.normalize(j.do.CODEDIR)
         self.libExtDir = j.sal.fs.joinPaths(self.base, 'libext')
-        self.binDir = self.normalize(os.path.join(self.base, 'bin'))
-        self.jsLibDir = os.path.join(self.LIBDIR, "JumpScale")
+        self.BINDIR = self.normalize(os.path.join(self.base, 'bin'))
+        self.JSLIBDIR = os.path.join(self.LIBDIR, "JumpScale")
 
     def replaceTxtDirVars(self, txt, additionalArgs={}):
         """
@@ -78,8 +78,8 @@ class Dirs:
         txt = txt.replace("$VARDIR", self.VARDIR)
         txt = txt.replace("$cfgdir", self.JSCFGDIR)
         txt = txt.replace("$JSCFGDIR", self.JSCFGDIR)
-        txt = txt.replace("$bindir", self.binDir)
-        txt = txt.replace("$binDir", self.binDir)
+        txt = txt.replace("$bindir", self.BINDIR)
+        txt = txt.replace("$BINDIR", self.BINDIR)
         txt = txt.replace("$logdir", self.LOGDIR)
         txt = txt.replace("$LOGDIR", self.LOGDIR)
         txt = txt.replace("$tmpdir", self.TMPDIR)
@@ -87,7 +87,7 @@ class Dirs:
         txt = txt.replace("$libdir", self.LIBDIR)
         txt = txt.replace("$LIBDIR", self.LIBDIR)
         txt = txt.replace("$jslibextdir", self.libExtDir)
-        txt = txt.replace("$jsbindir", self.binDir)
+        txt = txt.replace("$jsbindir", self.BINDIR)
         txt = txt.replace("$nodeid", str(j.application.whoAmI.nid))
         # txt=txt.replace("$jumpscriptsdir", j.core.jumpscripts.basedir)
         for key, value in list(additionalArgs.items()):

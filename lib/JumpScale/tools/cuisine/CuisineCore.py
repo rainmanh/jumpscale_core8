@@ -258,7 +258,7 @@ class CuisineCore(base):
 
         res["JSAPPDIR"] = "%s/apps" % res["base"]
 
-        res["binDir"] = "%s/bin" % res["base"]
+        res["BINDIR"] = "%s/bin" % res["base"]
         res["JSCFGDIR"] = "%s/cfg" % res["VARDIR"]
         res["HOMEDIR"] = env["HOME"]
 
@@ -292,11 +292,11 @@ class CuisineCore(base):
         - $JSAPPDIR
         - $TEMPLATEDIR
         - $VARDIR/
-        - $binDir
+        - $BINDIR
         - $CODEDIR
         - $JSCFGDIR
         - $HOMEDIR
-        - $jsLibDir
+        - $JSLIBDIR
         - $LIBDIR
         - $LOGDIR
         - $PIDDIR

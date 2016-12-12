@@ -43,7 +43,7 @@ class CuisineTIDB(app):
 
         """
         script = '''
-        mv /tmp/tidb/bin/* $binDir/
+        mv /tmp/tidb/bin/* $BINDIR/
         '''
         self._cuisine.core.execute_bash(script)
 

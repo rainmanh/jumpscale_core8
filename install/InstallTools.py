@@ -2581,15 +2581,16 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
 
         return env
 
-    def codeChangeDirVars(self, branch="8.1.0_cleanup"):
+    def fixCodeChangeDirVars(self, branch="8.1.0_cleanup"):
         """
         walk over code dir & find all known old dir arguments & change them to new naming convention
         """
 
         repos = ["github/jumpscale/dockers", "github/jumpscale/ays_jumpscale8", "github/jumpscale/jscockpit",
                  "github/jumpscale/jumpscale_portal8"]
-        # repos = ["github/jumpscale/jumpscale_core8"]
-        tochange = ["logDir", "pidDir", "hrdDir", "goDir", "nimDir", "codeDir", "binDir"
+        # repos = ["github/jumpscale/jumpscale_core8"] #BE VERY CAREFUL IF YOU DO
+        # THIS ONE, THIS FUNCTION WILL BE CHANGED TOO, NEED TO COPY FIRST
+        tochange = ["logDir", "pidDir", "hrdDir", "goDir", "nimDir", "codeDir", "binDir",
                     "jsLibDir", "libDir", "tmplsDir", "homeDir", "baseDir", "tmpDir", "varDir"]
         changeName = {"tmplsDir": "TEMPLATEDIR", "cfgDir": "JSCFGDIR", "appDir": "JSAPPDIR", "jsBase": "JSBASEDIR"}
 

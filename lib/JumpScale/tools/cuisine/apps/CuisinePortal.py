@@ -183,7 +183,7 @@ class CuisinePortal(base):
     def linkCode(self):
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
 
-        destjslib = self._cuisine.core.dir_paths['jsLibDir']
+        destjslib = self._cuisine.core.dir_paths['JSLIBDIR']
 
         # _, destjslib, _ = self._cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'",
         #                                          showout=False)

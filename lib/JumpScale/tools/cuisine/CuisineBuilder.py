@@ -58,7 +58,7 @@
 #             self._cuisine.core.file_link('/usr/local/lib/python3.5/dist-packages/JumpScale',
 #                                          '%s/JumpScale' % self._cuisine.core.dir_paths['LIBDIR'])
 #         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" %
-#                                      self._cuisine.core.dir_paths["CODEDIR"], "%s/portal" % self._cuisine.core.dir_paths['jsLibDir'])
+#                                      self._cuisine.core.dir_paths["CODEDIR"], "%s/portal" % self._cuisine.core.dir_paths['JSLIBDIR'])
 #
 #         # start sandboxing
 #         cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], '%s' + 'js8_opt', '%s', sandbox_python=%s)" % (

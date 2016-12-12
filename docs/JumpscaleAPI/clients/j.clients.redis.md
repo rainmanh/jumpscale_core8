@@ -29,5 +29,5 @@ slave example: (192.168.10.10,8888,asecret)   (ip,port,secret)
 
 #### getQueue(*ipaddr, port, name, namespace='queues', fromcache=True*) 
 
-#### isRunning(*name='', ip_address='localhost', port=6379, path='$binDir'*) 
+#### isRunning(*name='', ip_address='localhost', port=6379, path='$BINDIR'*) 
 

@@ -13,7 +13,7 @@ class CuisineNodeJS(app):
 
     @property
     def npm(self):
-        return self._cuisine.core.args_replace('$binDir/npm')
+        return self._cuisine.core.args_replace('$BINDIR/npm')
 
     def bowerInstall(self, name):
         if self._bowerDir == "":
@@ -32,7 +32,7 @@ class CuisineNodeJS(app):
         """
         # version = "6.9.2"
         version = "7.2.1"
-        if reset == False and self._cuisine.core.file_exists('$binDir/npm'):
+        if reset == False and self._cuisine.core.file_exists('$BINDIR/npm'):
             return
 
         if self._cuisine.core.isMac:
@@ -46,14 +46,14 @@ class CuisineNodeJS(app):
         cdest = self._cuisine.core.file_download(url, expand=True, overwrite=False, to="$TMPDIR")
 
         # copy file to correct locations.
-        self._cuisine.core.dir_ensure('$binDir')
+        self._cuisine.core.dir_ensure('$BINDIR')
         self._cuisine.core.dir_ensure('$JSAPPDIR/npm')
         src = '%s/bin/node' % cdest
-        self._cuisine.core.file_copy(src, '$binDir', recursive=True, overwrite=True)
+        self._cuisine.core.file_copy(src, '$BINDIR', recursive=True, overwrite=True)
         src = '%s/lib/node_modules/npm/*' % cdest
         self._cuisine.core.file_copy(src, '$JSAPPDIR/npm', recursive=True, overwrite=True)
-        if self._cuisine.core.file_exists('$binDir/npm'):
-            self._cuisine.core.file_unlink('$binDir/npm')
-        self._cuisine.core.file_link('$JSAPPDIR/npm/cli.js', '$binDir/npm')
+        if self._cuisine.core.file_exists('$BINDIR/npm'):
+            self._cuisine.core.file_unlink('$BINDIR/npm')
+        self._cuisine.core.file_link('$JSAPPDIR/npm/cli.js', '$BINDIR/npm')
 
         self._cuisine.core.run("%s install -g bower" % self.npm)

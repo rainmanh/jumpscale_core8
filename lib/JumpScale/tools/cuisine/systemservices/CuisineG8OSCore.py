@@ -45,8 +45,8 @@ class CuisineG8OSCore(app):
         download, install, move files to appropriate places, and create relavent configs
         """
         sourcepath = "$GODIR/src/github.com/g8os/agent"
-        if not self._cuisine.core.file_exists('$binDir/agent'):
-            self._cuisine.core.file_move("%s/superagent" % sourcepath, "$binDir/agent")
+        if not self._cuisine.core.file_exists('$BINDIR/agent'):
+            self._cuisine.core.file_move("%s/superagent" % sourcepath, "$BINDIR/agent")
 
         # copy extensions
         self._cuisine.core.dir_remove("$TEMPLATEDIR/cfg/agent/extensions")
@@ -65,7 +65,7 @@ class CuisineG8OSCore(app):
             ubuntu_config_dest = '$TEMPLATEDIR/cfg/agent/conf/'
             self._cuisine.core.file_copy(ubuntu_config_src, ubuntu_config_dest, recursive=True)
         self._cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/agent/extensions/syncthing")
-        self._cuisine.core.file_copy("$binDir/syncthing", "$TEMPLATEDIR/cfg/agent/extensions/syncthing/", recursive=True)
+        self._cuisine.core.file_copy("$BINDIR/syncthing", "$TEMPLATEDIR/cfg/agent/extensions/syncthing/", recursive=True)
 
         if start:
             self.start(nid, gid)
@@ -119,7 +119,7 @@ class CuisineG8OSCore(app):
         #@todo (*1*) need to implement to work on node
         env = {}
         env["TMPDIR"] = self._cuisine.core.dir_paths["TMPDIR"]
-        cmd = "$binDir/agent -nid %s -gid %s -c $JSCFGDIR/core/g8os.toml" % (
+        cmd = "$BINDIR/agent -nid %s -gid %s -c $JSCFGDIR/core/g8os.toml" % (
             nid, gid)
         pm = self._cuisine.processmanager.get('tmux')
         pm.ensure("agent", cmd=cmd, path="$JSCFGDIR/agent", env=env)

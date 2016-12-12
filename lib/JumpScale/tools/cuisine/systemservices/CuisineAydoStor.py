@@ -37,9 +37,9 @@ class CuisineAydoStor(app):
         """
         download, install, move files to appropriate places, and create relavent configs
         """
-        self._cuisine.core.dir_ensure('$binDir')
+        self._cuisine.core.dir_ensure('$BINDIR')
         self._cuisine.core.file_copy(self._cuisine.core.joinpaths(
-            self._cuisine.core.dir_paths['GODIR'], 'bin', 'stor'), '$binDir', overwrite=True)
+            self._cuisine.core.dir_paths['GODIR'], 'bin', 'stor'), '$BINDIR', overwrite=True)
         self._cuisine.bash.addPath("$BASEDIR/bin")
 
         self._cuisine.processmanager.stop("stor")  # will also kill

@@ -19,11 +19,11 @@ dirs:
 - $JSAPPDIR
 - $TEMPLATEDIR
 - $VARDIR/
-- $binDir
+- $BINDIR
 - $CODEDIR
 - $JSCFGDIR
 - $HOMEDIR
-- $jsLibDir
+- $JSLIBDIR
 - $LIBDIR
 - $LOGDIR
 - $PIDDIR

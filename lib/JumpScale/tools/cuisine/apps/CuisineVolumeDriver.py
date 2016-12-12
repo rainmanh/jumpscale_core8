@@ -81,4 +81,4 @@ class CuisineVolumeDriver(app):
         """ % str_repl
 
         self._cuisine.core.execute_bash(build_script)
-        self._cuisine.core.file_copy('$TMPDIR/volumedriver-workspace/volumedriver/build/bin/*', '$binDir')
+        self._cuisine.core.file_copy('$TMPDIR/volumedriver-workspace/volumedriver/build/bin/*', '$BINDIR')

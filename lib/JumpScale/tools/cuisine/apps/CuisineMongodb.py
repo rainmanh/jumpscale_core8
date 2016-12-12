@@ -19,7 +19,7 @@ class CuisineMongodb(app):
             print('MongoDB is already installed.')
             return
         else:
-            appbase = "%s/" % self._cuisine.core.dir_paths["binDir"]
+            appbase = "%s/" % self._cuisine.core.dir_paths["BINDIR"]
             self._cuisine.core.dir_ensure(appbase)
 
             url = None

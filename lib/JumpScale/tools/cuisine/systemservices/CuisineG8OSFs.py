@@ -58,4 +58,4 @@ class CuisineG8OSFs(app):
 
     def start(self):
         self._cuisine.core.file_copy("$TEMPLATEDIR/cfg/fs", "$JSCFGDIR", recursive=True)
-        self._cuisine.processmanager.ensure('fs', cmd="$binDir/fs -c $JSCFGDIR/fs/config.toml")
+        self._cuisine.processmanager.ensure('fs', cmd="$BINDIR/fs -c $JSCFGDIR/fs/config.toml")

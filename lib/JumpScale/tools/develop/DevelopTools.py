@@ -32,7 +32,7 @@ class MyFSEventHandler(FileSystemEventHandler):
                             dest = j.sal.fs.joinPaths(node.cuisine.core.dir_paths['LIBDIR'], 'JumpScale', dest0)
                         elif changedfile.find(sep_cmds) != -1:
                             dest0 = changedfile.split(sep_cmds)[1]
-                            dest = j.sal.fs.joinPaths(node.cuisine.core.dir_paths['binDir'], dest0)
+                            dest = j.sal.fs.joinPaths(node.cuisine.core.dir_paths['BINDIR'], dest0)
                         elif changedfile.find("/.git/") != -1:
                             return
                         elif changedfile.find("/__pycache__/") != -1:

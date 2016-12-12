@@ -1547,7 +1547,16 @@ class FSMethods():
 
 class ExecutorMethods():
 
-    def isUnix(self):
+    def isUbuntu(self):
+        from IPython import embed
+        print("DEBUG NOW test if is ubuntu")
+        embed()
+        raise RuntimeError("stop debug here")
+        if sys.platform.lower().find("linux") != -1:
+            return True
+        return False
+
+    def isLinux(self):
         if sys.platform.lower().find("linux") != -1:
             return True
         return False
@@ -2497,107 +2506,101 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             with open(path, 'w') as outfile:
                 yaml.dump(d, outfile, default_flow_style=False)
 
-    def init(self):
+    def initEnv(self, env, executor=None):
 
-        if "DEBUG" in os.environ and str(os.environ["DEBUG"]).lower() in ["true", "1", "yes"]:
-            os.environ["DEBUG"] = "1"
+        if curdir == None:
+            if executor:
+                return executor.curpath
+            else:
+                curdir = os.getcwd()
+
+        def exists(path):
+            if executor == None:
+                return exists(path)
+            else:
+                return executor.exists(path)
+
+        if "DEBUG" in env and str(env["DEBUG"]).lower() in ["true", "1", "yes"]:
+            env["DEBUG"] = "1"
         else:
-            os.environ["DEBUG"] = "0"
+            env["DEBUG"] = "0"
 
-        if "READONLY" in os.environ and str(os.environ["READONLY"]).lower() in ["true", "1", "yes"]:
-            os.environ["READONLY"] = "1"
+        if "READONLY" in env and str(env["READONLY"]).lower() in ["true", "1", "yes"]:
+            env["READONLY"] = "1"
             self.readonly = True
         else:
-            os.environ["READONLY"] = "0"
+            env["READONLY"] = "0"
             self.readonly = False
 
-        if "AYSBRANCH" not in os.environ and "JSBRANCH" in os.environ:
-            os.environ["AYSBRANCH"] = os.environ["JSBRANCH"]
+        if "AYSBRANCH" not in env and "JSBRANCH" in env:
+            env["AYSBRANCH"] = env["JSBRANCH"]
 
-        if "JSRUN" in os.environ and str(os.environ["JSRUN"]).lower() in ["true", "1", "yes"]:
-            os.environ["JSRUN"] = "1"
-            self.embed = True
-        else:
-            os.environ["JSRUN"] = "0"
-            self.embed = False
+        # if we start from a directory where there is a env.sh then we use that as base
+        if not "JSBASE" in env:
+            if exists("%s/env.sh" % curdir) and exists("%s/js.sh" % (curdir)):
+                env["JSBASE"] = os.getcwd()
+            else:
+                env["JSBASE"] = "/opt/jumpscale8"
 
-        if self.embed:
-            if not "JSBASE" in os.environ:
-                os.environ["JSBASE"] = os.getcwd()
-            os.environ["TMPDIR"] = "%s/js/tmp" % os.environ["JSBASE"]
-            os.environ["VARDIR"] = "%s/js/optvar/" % os.environ["JSBASE"]
-            os.environ["DATADIR"] = "%s/js/data" % os.environ["JSBASE"]
-            os.environ["CODEDIR"] = "%s/js/code" % os.environ["JSBASE"]
-            os.environ["CFGDIR"] = "%s/js/cfg" % os.environ["JSBASE"]
+        if not "VARDIR" in env:
+            env["VARDIR"] = os.path.abspath("%s/../jumpscale8var" % env["JSBASE"])
 
-            self.initCreateDirs4System()
+        if not "TMPDIR" in env:
+            if exists("/tmp"):
+                env["TMPDIR"] = "/tmp"
+            elif exists("/opt/jumpscale8var"):
+                env["TMPDIR"] = "/opt/jumpscale8var/tmp"
+            else:
+                raise RuntimeError("Cannot define a tmp dir, set env variable")
 
-        elif self.exists("/JS8"):
-            os.environ["JSBASE"] = "/JS8/opt/jumpscale8/"
-            os.environ["TMPDIR"] = "/JS8/tmp"
-            os.environ["VARDIR"] = "/JS8/optvar/"
-            os.environ["DATADIR"] = "/JS8/optvar/data/"
-            os.environ["CODEDIR"] = "/JS8/code"
-            os.environ["CFGDIR"] = "/JS8/optvar/cfg/"
+        change["DATADIR"] = lambda x: "%s/data" % x["VARDIR"]
+        change["CODEDIR"] = lambda x: "%s/code" % x["JSBASE"]
+        change["CFGDIR"] = lambda x: "%s/cfg" % x["VARDIR"]
+        change["BUILDDIR"] = lambda x: "%s/build" % x["VARDIR"]
+        change["logDir"] = lambda x: "%s/log" % x["VARDIR"]
+        change["pidDir"] = lambda x: "%s/pid" % x["CFGDIR"]
+        change["hrdDir"] = lambda x: "%s/hrd" % x["CFGDIR"]
+        change["goDir"] = lambda x: "%s/go/" % x["VARDIR"]
+        change["nimDir"] = lambda x: "%s/nim/" % x["VARDIR"]
+        change["jsLibDir"] = lambda x: "%s/lib/JumpScale/" % x["JSBASE"]
+        change["libDir"] = lambda x: "%s/lib/" % x["JSBASE"]
+        change['tmplsDir'] = lambda x: "%s/templates" % x["JSBASE"]
+
+        for key, method in change.items():
+            if key not in env:
+                env[key] = method(env)
+
+        return env
+
+    def codeChangeDirVars(self):
+        """
+        walk over code dir & find all known old dir arguments & change them to new
+        """
+        tochange = ["logDir", "pidDir", "hrdDir", "goDir", "nimDir", "jsLibDir", "libDir", "tmplsDir"]
+        from IPython import embed
+        print("DEBUG NOW codeChangeDirVars")
+        embed()
+        raise RuntimeError("stop debug here")
+
+    def init(self):
+
+        self.initEnv(env=os.environ)
+
+        self.initCreateDirs4System()
 
         if platform.system().lower() == "windows" or platform.system().lower() == "cygwin_nt-10.0":
-            if not "JSBASE" in os.environ:
-                raise RuntimeError()
-            self.TYPE = "WIN"
-            os.environ["JSBASE"] = "%s/" % os.environ["JSBASE"].replace("\\", "/")
+            # self.TYPE = "WIN"
+            # os.environ["JSBASE"] = "%s/" % os.environ["JSBASE"].replace("\\", "/")
             raise RuntimeError("TODO: *3")
-
         elif sys.platform.startswith("darwin"):
             if sys.platform.startswith("darwin"):
                 self.TYPE = "OSX"
-
-            if not "HOME" in os.environ:
-                raise RuntimeError()
-
-            if "JSBASE" not in os.environ:
-                os.environ["JSBASE"] = "%s/opt/jumpscale8" % os.environ["HOME"]
-            if "VARDIR" not in os.environ:
-                os.environ["VARDIR"] = "%s/optvar" % os.environ["HOME"]
-            if "DATADIR" not in os.environ:
-                os.environ["DATADIR"] = "%s/optvar/data" % os.environ["HOME"]
-            if "CODEDIR" not in os.environ:
-                os.environ["CODEDIR"] = "%s/code" % os.environ["HOME"]
-            if "TMPDIR" not in os.environ:
-                os.environ["TMPDIR"] = "%s/tmp" % os.environ["HOME"]
-
         elif sys.platform.startswith("linux"):
             self.TYPE = "LINUX"
-            if "JSBASE" not in os.environ:
-                os.environ["JSBASE"] = "/opt/jumpscale8"
-            if "VARDIR" not in os.environ:
-                os.environ["VARDIR"] = "/optvar/"
-            if "DATADIR" not in os.environ:
-                os.environ["DATADIR"] = "/optvar/data"
-            if "CFGDIR" not in os.environ:
-                os.environ["CFGDIR"] = "/optvar/cfg"
-            if "CODEDIR" not in os.environ:
-                os.environ["CODEDIR"] = "/opt/code"
-            if "TMPDIR" not in os.environ:
-                os.environ["TMPDIR"] = "/tmp"
-
         else:
             raise RuntimeError("Jumpscale only supports windows 7+, macosx, ubuntu 12+")
 
         self.TYPE += platform.architecture()[0][:2]
-
-        if not "TMPDIR" in os.environ:
-            os.environ["TMPDIR"] = tempfile.gettempdir().replace("\\", "/")
-
-        # DO NOT DO THIS, this should only be written when doing install
-        # if not self.exists("%s/jumpscale/system.yaml" % os.environ["CFGDIR"]):
-        #     self.installer.writeEnv()
-
-        # if str(sys.excepthook).find("apport_excepthook")!=-1:
-        # if we get here it means is std python excepthook (I hope)
-        # print ("OUR OWN EXCEPTHOOK")
-        # sys.excepthook = self.excepthook
-
-        # self._initSSH_ENV()
 
     def initCreateDirs4System(self):
         for item in ["JSBASE", "HOME", "TMPDIR", "VARDIR", "DATADIR", "CODEDIR", "CFGDIR"]:

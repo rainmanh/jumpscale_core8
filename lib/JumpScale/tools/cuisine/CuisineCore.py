@@ -518,6 +518,12 @@ class CuisineCore(base):
         """Tests if there is a *remote* file at the given location."""
         return self._check_is_ok('test -e', location)
 
+    def exists(self, location):
+        """
+        check if dir or file or exists
+        """
+        return self._check_is_ok('test -e', location)
+
     def file_is_file(self, location):
         return self._check_is_ok('test -f', location)
 

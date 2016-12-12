@@ -5,14 +5,14 @@ import os
 
 class ExecutorSSH(ExecutorBase):
 
-    def __init__(self, addr='', port=22, dest_prefixes={}, login="root",
-                 passwd=None, debug=False, allow_agent=True,
+    def __init__(self, addr='', port=22, login="root",
+                 passwd=None,  allow_agent=True, debug=False,
                  look_for_keys=True, checkok=True, timeout=5, key_filename=None, passphrase=None):
-        # DO NOT USE THIS TO PUSH A KEY!!!
-        ExecutorBase.__init__(self, dest_prefixes=dest_prefixes, debug=debug, checkok=checkok)
-        self.logger = j.logger.get("j.tools.executor.ssh")
-        self.id = '%s:%s' % (addr, port)  # do not put login name in key,
-        self.addr = addr
+
+        ExecutorBase.__init__(self,  debug=debug, checkok=checkok)
+        self.id = '%s:%s' % (addr, port)  # TODO:*1 should put macaddr in here
+        self.type = "ssh"
+
         self._port = int(port)
         self._login = login
         self._passwd = passwd
@@ -22,7 +22,6 @@ class ExecutorSSH(ExecutorBase):
         self.allow_agent = allow_agent
         self.look_for_keys = look_for_keys
         self._sshclient = None
-        self.type = "ssh"
         self.timeout = timeout
         self.proxycommand = None
         self.key_filename = key_filename

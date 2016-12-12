@@ -3229,7 +3229,7 @@ j.do.isFile?4([- path
 j.do.isLink?4([- path
 , - checkJunction = False
 ])
-j.do.isUnix?4([])
+j.do.isLinux?4([])
 j.do.isWindows?4([])
 j.do.joinPaths?4([- *args
 ])
@@ -10201,7 +10201,7 @@ j.do.isFile?4([- path
 j.do.isLink?4([- path
 , - checkJunction = False
 ])
-j.do.isUnix?4([])
+j.do.isLinux?4([])
 j.do.isWindows?4([])
 j.do.joinPaths?4([- *args
 ])
@@ -17114,7 +17114,7 @@ j.do.isFile?4([- path
 j.do.isLink?4([- path
 , - checkJunction = False
 ])
-j.do.isUnix?4([])
+j.do.isLinux?4([])
 j.do.isWindows?4([])
 j.do.joinPaths?4([- *args
 ])

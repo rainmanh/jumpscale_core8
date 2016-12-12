@@ -6,13 +6,11 @@ import os
 
 class ExecutorLocal(ExecutorBase):
 
-    def __init__(self, dest_prefixes={}, debug=False, checkok=False):
-        ExecutorBase.__init__(
-            self, dest_prefixes=dest_prefixes, debug=debug, checkok=debug)
-        self.logger = j.logger.get("j.tools.executor.local")
+    def __init__(self, debug=False, checkok=False):
+        ExecutorBase.__init__(self,  debug=debug, checkok=debug)
+
         self.type = "local"
         self.id = 'localhost'
-        self.addr = 'localhost'
 
     def executeRaw(self, cmd, die=True, showout=False):
         return self.execute(cmd, die=die, showout=showout)

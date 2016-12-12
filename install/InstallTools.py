@@ -2485,7 +2485,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
     @property
     def done(self):
         if self.readonly == False:
-            path = '%s/jumpscale/done.yaml' % os.environ["CFGDIR"]
+            path = '%s/jumpscale/done.yaml' % os.environ["TMPDIR"]
             if not self.exists(path):
                 return {}
             with open(path, 'r') as conf:
@@ -2499,7 +2499,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         if self.readonly == False:
             d = self.done
             d[key] = True
-            path = '%s/jumpscale/done.yaml' % os.environ["CFGDIR"]
+            path = '%s/jumpscale/done.yaml' % os.environ["TMPDIR"]
             parent = os.path.abspath(os.path.join(path, os.pardir))
             if not os.path.exists(parent):
                 os.mkdir(parent)

@@ -5,6 +5,7 @@ export STARTDIR=$PWD
 
 if [ -d "/tmp" ]; then
     export TMPDIR="/tmp"
+fi
 
 #TO RESET, to develop faster uncomment
 rm -f $TMPDIR/jsinstall_systemcomponents_done

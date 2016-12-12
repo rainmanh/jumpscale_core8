@@ -10,7 +10,7 @@
 
 ### Methods
 
-#### args_replace(*text*) 
+#### args_replace(*text*)
 
 ```
 replace following args (when jumpscale installed it will take the args from there)
@@ -33,14 +33,14 @@ system
 
 ```
 
-#### command_check(*command*) 
+#### command_check(*command*)
 
 ```
 Tests if the given command is available on the system.
 
 ```
 
-#### command_ensure(*command, package*) 
+#### command_ensure(*command, package*)
 
 ```
 Ensures that the given command is present, if not installs the
@@ -49,14 +49,14 @@ default.
 
 ```
 
-#### command_location(*command*) 
+#### command_location(*command*)
 
 ```
 return location of cmd
 
 ```
 
-#### createDir(*location, recursive=True, mode, owner, group*) 
+#### createDir(*location, recursive=True, mode, owner, group*)
 
 ```
 Ensures that there is a remote directory at the given location,
@@ -67,14 +67,14 @@ ssh call, so use that method, otherwise set owner / group after creation.
 
 ```
 
-#### dir_attribs(*location, mode, owner, group, recursive, showout*) 
+#### dir_attribs(*location, mode, owner, group, recursive, showout*)
 
 ```
 Updates the mode / owner / group for the given remote directory.
 
 ```
 
-#### dir_ensure(*location, recursive=True, mode, owner, group*) 
+#### dir_ensure(*location, recursive=True, mode, owner, group*)
 
 ```
 Ensures that there is a remote directory at the given location,
@@ -85,21 +85,21 @@ ssh call, so use that method, otherwise set owner / group after creation.
 
 ```
 
-#### dir_exists(*location*) 
+#### dir_exists(*location*)
 
 ```
 Tells if there is a remote directory at the given location.
 
 ```
 
-#### dir_remove(*location, recursive=True*) 
+#### dir_remove(*location, recursive=True*)
 
 ```
 Removes a directory
 
 ```
 
-#### download(*source, dest=''*) 
+#### download(*source, dest=''*)
 
 ```
 @param source is on remote host (on the ssh node)
@@ -112,9 +112,9 @@ will replace $varDir, $codeDir, ...
 
 ```
 
-#### execute_bash(*script, die=True, profile, tmux, args_replace=True, showout=True*) 
+#### execute_bash(*script, die=True, profile, tmux, args_replace=True, showout=True*)
 
-#### execute_jumpscript(*script, die=True, profile, tmux, args_replace=True, showout=True*) 
+#### execute_jumpscript(*script, die=True, profile, tmux, args_replace=True, showout=True*)
 
 ```
 execute a jumpscript(script as content) in a remote tmux command, the stdout will be
@@ -122,16 +122,16 @@ execute a jumpscript(script as content) in a remote tmux command, the stdout wil
 
 ```
 
-#### execute_python(*script, die=True, profile, tmux, args_replace=True, showout=True*) 
+#### execute_python(*script, die=True, profile, tmux, args_replace=True, showout=True*)
 
-#### execute_script(*content, die=True, profile, interpreter='bash', tmux=True, args_replace=True, showout=True*) 
+#### execute_script(*content, die=True, profile, interpreter='bash', tmux=True, args_replace=True, showout=True*)
 
 ```
 generic exection of script, default interpreter is bash
 
 ```
 
-#### file_append(*location, content, mode, owner, group*) 
+#### file_append(*location, content, mode, owner, group*)
 
 ```
 Appends the given content to the remote file at the given
@@ -139,7 +139,7 @@ location, optionally updating its mode / owner / group.
 
 ```
 
-#### file_attribs(*location, mode, owner, group*) 
+#### file_attribs(*location, mode, owner, group*)
 
 ```
 Updates the mode/owner/group for the remote file at the given
@@ -147,7 +147,7 @@ location.
 
 ```
 
-#### file_attribs_get(*location*) 
+#### file_attribs_get(*location*)
 
 ```
 Return mode, owner, and group for remote path.
@@ -156,7 +156,7 @@ otherwise.
 
 ```
 
-#### file_backup(*location, suffix='.orig', once*) 
+#### file_backup(*location, suffix='.orig', once*)
 
 ```
 Backups the file at the given location in the same directory, appending
@@ -165,16 +165,16 @@ there is already a backup file.
 
 ```
 
-#### file_base64(*location*) 
+#### file_base64(*location*)
 
 ```
 Returns the base64 - encoded content of the file at the given location.
 
 ```
 
-#### file_copy(*source, dest, recursive, overwrite=True*) 
+#### file_copy(*source, dest, recursive, overwrite=True*)
 
-#### file_download(*url, to, overwrite=True, retry=3, timeout, login='', passwd='', minspeed, multithread, expand*) 
+#### file_download(*url, to, overwrite=True, retry=3, timeout, login='', passwd='', minspeed, multithread, expand*)
 
 ```
 download from url
@@ -186,11 +186,11 @@ download from url
 
 ```
 
-#### file_download_binary(*local, remote*) 
+#### file_download_binary(*local, remote*)
 
-#### file_download_local(*remote, local*) 
+#### file_download_local(*remote, local*)
 
-#### file_ensure(*location, mode, owner, group*) 
+#### file_ensure(*location, mode, owner, group*)
 
 ```
 Updates the mode/owner/group for the remote file at the given
@@ -198,24 +198,24 @@ location.
 
 ```
 
-#### file_exists(*location*) 
+#### file_exists(*location*)
 
 ```
 Tests if there is a *remote* file at the given location.
 
 ```
 
-#### file_expand(*path, to*) 
+#### file_expand(*path, to*)
 
-#### file_get_tmp_path(*basepath=''*) 
+#### file_get_tmp_path(*basepath=''*)
 
-#### file_is_dir(*location*) 
+#### file_is_dir(*location*)
 
-#### file_is_file(*location*) 
+#### file_is_file(*location*)
 
-#### file_is_link(*location*) 
+#### file_is_link(*location*)
 
-#### file_link(*source, destination, symbolic=True, mode, owner, group*) 
+#### file_link(*source, destination, symbolic=True, mode, owner, group*)
 
 ```
 Creates a (symbolic) link between source and destination on the remote host,
@@ -223,29 +223,29 @@ optionally setting its mode / owner / group.
 
 ```
 
-#### file_md5(*location*) 
+#### file_md5(*location*)
 
 ```
 Returns the MD5 sum (as a hex string) for the remote file at the given location.
 
 ```
 
-#### file_move(*source, dest, recursive*) 
+#### file_move(*source, dest, recursive*)
 
-#### file_read(*location, default*) 
+#### file_read(*location, default*)
 
-#### file_remove_prefix(*location, prefix, strip=True*) 
+#### file_remove_prefix(*location, prefix, strip=True*)
 
-#### file_sha256(*location*) 
+#### file_sha256(*location*)
 
 ```
 Returns the SHA - 256 sum (as a hex string) for the remote file at the given location.
 
 ```
 
-#### file_unlink(*path*) 
+#### file_unlink(*path*)
 
-#### file_update(*location, updater=<function CuisineCore.<lambda> at 0x7f448d508730>*) 
+#### file_update(*location, updater=<function CuisineCore.<lambda> at 0x7f448d508730>*)
 
 ```
 Updates the content of the given by passing the existing
@@ -264,11 +264,11 @@ Or restart service on config change:
 
 ```
 
-#### file_upload_binary(*local, remote*) 
+#### file_upload_binary(*local, remote*)
 
-#### file_upload_local(*local, remote*) 
+#### file_upload_local(*local, remote*)
 
-#### file_write(*location, content, mode, owner, group, check, sudo, replaceArgs, strip=True, showout=True, append*) 
+#### file_write(*location, content, mode, owner, group, check, sudo, replaceArgs, strip=True, showout=True, append*)
 
 ```
 @param append if append then will add to file and check if each line exists, if not will
@@ -276,7 +276,7 @@ Or restart service on config change:
 
 ```
 
-#### find(*path, recursive=True, pattern='', findstatement='', type='', contentsearch='', extendinfo*) 
+#### find(*path, recursive=True, pattern='', findstatement='', type='', contentsearch='', extendinfo*)
 
 ```
 @param findstatement can be used if you want to use your own find arguments
@@ -303,48 +303,48 @@ for help on find see http: // www.gnu.org / software / findutils / manual / html
 
 ```
 
-#### getenv(*refresh*) 
+#### getenv(*refresh*)
 
-#### joinpaths(**args*) 
+#### joinpaths(**args*)
 
-#### locale_check(*locale*) 
+#### locale_check(*locale*)
 
-#### locale_ensure(*locale*) 
+#### locale_ensure(*locale*)
 
-#### pprint(*text, lexer='bash'*) 
+#### pprint(*text, lexer='bash'*)
 
 ```
 @format py3, bash
 
 ```
 
-#### pwd() 
+#### pwd()
 
-#### run(*cmd, die=True, debug, checkok, showout=True, profile, replaceArgs=True, shell*) 
+#### run(*cmd, die=True, debug, checkok, showout=True, profile, replaceArgs=True, shell*)
 
 ```
 @param profile, execute the bash profile first
 
 ```
 
-#### setIDs(*name, grid, domain='aydo.com'*) 
+#### setIDs(*name, grid, domain='aydo.com'*)
 
-#### set_sudomode() 
+#### set_sudomode()
 
-#### shell_safe(*path*) 
+#### shell_safe(*path*)
 
-#### sudo(*cmd, die=True, showout=True*) 
+#### sudo(*cmd, die=True, showout=True*)
 
-#### sudo_cmd(*command*) 
+#### sudo_cmd(*command*)
 
-#### system_uuid() 
+#### system_uuid()
 
 ```
 Gets a machines UUID (Universally Unique Identifier).
 
 ```
 
-#### system_uuid_alias_add() 
+#### system_uuid_alias_add()
 
 ```
 Adds system UUID alias to /etc/hosts.
@@ -353,9 +353,9 @@ Some tools/processes rely/want the hostname as an alias in
 
 ```
 
-#### touch(*path*) 
+#### touch(*path*)
 
-#### upload(*source, dest=''*) 
+#### upload(*source, dest=''*)
 
 ```
 @param source is on local (where we run the cuisine)
@@ -372,5 +372,4 @@ upload happens using rsync
 
 ```
 
-#### upload_from_local(*local, remote*) 
-
+#### upload_from_local(*local, remote*)

@@ -2508,15 +2508,14 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
 
     def initEnv(self, env, executor=None):
 
-        if curdir == None:
-            if executor:
-                return executor.curpath
-            else:
-                curdir = os.getcwd()
+        if executor:
+            curdir = executor.curpath
+        else:
+            curdir = os.getcwd()
 
         def exists(path):
             if executor == None:
-                return exists(path)
+                return self.exists(path)
             else:
                 return executor.exists(path)
 
@@ -2536,35 +2535,45 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             env["AYSBRANCH"] = env["JSBRANCH"]
 
         # if we start from a directory where there is a env.sh then we use that as base
-        if not "JSBASE" in env:
+        if not "BASEDIR" in env:
             if exists("%s/env.sh" % curdir) and exists("%s/js.sh" % (curdir)):
-                env["JSBASE"] = os.getcwd()
+                env["BASEDIR"] = os.getcwd()
             else:
-                env["JSBASE"] = "/opt/jumpscale8"
+                env["BASEDIR"] = "/opt"
+
+        if not "JSBASE" in env:
+            env["JSBASE"] = "%s/jumpscale8" % env["BASEDIR"]
 
         if not "VARDIR" in env:
-            env["VARDIR"] = os.path.abspath("%s/../jumpscale8var" % env["JSBASE"])
+            env["VARDIR"] = os.path.abspath("%s/var" % env["BASE"])
+
+        if not "CFGDIR" in env:
+            env["CFGDIR"] = "%s/cfg" % env["VARDIR"]
+
+        if not "JSCFGDIR" in env:
+            env["JSCFGDIR"] = "%s/cfg" % env["JSBASE"]
 
         if not "TMPDIR" in env:
             if exists("/tmp"):
                 env["TMPDIR"] = "/tmp"
-            elif exists("/opt/jumpscale8var"):
-                env["TMPDIR"] = "/opt/jumpscale8var/tmp"
             else:
                 raise RuntimeError("Cannot define a tmp dir, set env variable")
 
+        change = {}
+        change["APPDIR"] = lambda x: "%s/app" % x["JSBASE"]
+        change["JSBASEDIR"] = lambda x: x["JSBASE"]
+        change["BINDIR"] = lambda x: "%s/bin" % x["BASE"]
         change["DATADIR"] = lambda x: "%s/data" % x["VARDIR"]
         change["CODEDIR"] = lambda x: "%s/code" % x["JSBASE"]
-        change["CFGDIR"] = lambda x: "%s/cfg" % x["VARDIR"]
         change["BUILDDIR"] = lambda x: "%s/build" % x["VARDIR"]
-        change["logDir"] = lambda x: "%s/log" % x["VARDIR"]
-        change["pidDir"] = lambda x: "%s/pid" % x["CFGDIR"]
-        change["hrdDir"] = lambda x: "%s/hrd" % x["CFGDIR"]
-        change["goDir"] = lambda x: "%s/go/" % x["VARDIR"]
-        change["nimDir"] = lambda x: "%s/nim/" % x["VARDIR"]
-        change["jsLibDir"] = lambda x: "%s/lib/JumpScale/" % x["JSBASE"]
-        change["libDir"] = lambda x: "%s/lib/" % x["JSBASE"]
-        change['tmplsDir'] = lambda x: "%s/templates" % x["JSBASE"]
+        change["LOGDIR"] = lambda x: "%s/log" % x["VARDIR"]
+        change["PIDDIR"] = lambda x: "%s/pid" % x["CFGDIR"]
+        change["HRDDIR"] = lambda x: "%s/hrd" % x["CFGDIR"]
+        change["GODIR"] = lambda x: "%s/go/" % x["BASE"]
+        change["NIMDIR"] = lambda x: "%s/nim/" % x["BASE"]
+        change["JSLIBDIR"] = lambda x: "%s/lib/JumpScale/" % x["JSBASE"]
+        change["LIBDIR"] = lambda x: "%s/lib/" % x["BASE"]
+        change['TEMPLATEDIR'] = lambda x: "%s/templates" % x["BASE"]
 
         for key, method in change.items():
             if key not in env:
@@ -2576,13 +2585,20 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         """
         walk over code dir & find all known old dir arguments & change them to new
         """
+
         repos = ["github/jumpscale/dockers", "github/jumpscale/ays_jumpscale8", "github/jumpscale/jscockpit",
                  "github/jumpscale/jumpscale_core8", "github/jumpscale/portal8"]
-        tochange = ["logDir", "pidDir", "hrdDir", "goDir", "nimDir", "jsLibDir", "libDir", "tmplsDir"]
-        from IPython import embed
-        print("DEBUG NOW codeChangeDirVars")
-        embed()
-        raise RuntimeError("stop debug here")
+        tochange = ["logDir", "pidDir", "hrdDir", "goDir", "nimDir", "codeDir", "binDir"
+                    "jsLibDir", "libDir", "tmplsDir", "homeDir", "base", "tmpDir", "varDir"]
+        changeName = {"tmplsDir": "TEMPLATEDIR", "cfgDir": "JSCFGDIR", "appDir": "JSAPPDIR", "base": "BASEDIR"}
+
+        for repo in repos:
+            rpath = "%s/%s" % (self.CODEDIR, repo)
+            for fpath in self.listFilesInDir(rpath, recursive=True, filter=".py", followSymlinks=False, listSymlinks=False):
+                from IPython import embed
+                print("DEBUG NOW codeChangeDirVars")
+                embed()
+                raise RuntimeError("stop debug here")
 
     def init(self):
 

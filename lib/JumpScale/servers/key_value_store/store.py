@@ -58,7 +58,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
     @schema.setter
     def schema(self, val):
         """
-        is 32 or 16 byte key to schema as used for this namespace
+        is any free text to define the schema used for this store category
         """
         if len(val) == 32:
             val = j.data.hash.hex2bin(val)
@@ -368,11 +368,6 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
                         res.add((item, key2))
         return list(res)
 
-    def lookupSet(self, name, key, fkey):
-        raise NotImplemented()
-
-    def lookupGet(self, name, key):
-        raise NotImplemented()
 
 # DO NOT LOOK AT BELOW RIGHT NOW IS FOR FUTURE
 

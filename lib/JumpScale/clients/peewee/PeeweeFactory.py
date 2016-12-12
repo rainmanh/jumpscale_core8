@@ -1,15 +1,15 @@
 from JumpScale import j
-import os
+
 try:
     import psycopg2
 except:
-    os.system("pip3 install psycopg2")
+    os.execute("pip3 install psycopg2")
     import psycopg2
 
 try:
     import peewee
 except:
-    os.system("pip3 install peewee")
+    os.execute("pip3 install peewee")
     import peewee
 
 from Pwiz import Pwiz

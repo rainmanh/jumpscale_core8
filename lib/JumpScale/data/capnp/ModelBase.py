@@ -14,11 +14,10 @@ class ModelBase():
         self._key = ""
         self.dbobj = None
         self.changed = False
-        self._subobjects = {}
 
-        # if key != "":
-        #     if len(key) != 16 and len(key) != 32 and len(key) != 64:
-        #         raise j.exceptions.Input("Key needs to be length 16,32,64")
+        if key != "":
+            if len(key) != 16 and len(key) != 32:
+                raise j.exceptions.Input("Key needs to be length 32")
 
         if new:
             self.dbobj = self._capnp_schema.new_message()
@@ -67,9 +66,7 @@ class ModelBase():
 
     def save(self):
         self._pre_save()
-        if self._db.inMem:
-            self._db.db[self.key] = self
-        else:
+        if not self._db.inMem:
             # no need to store when in mem because we are the object which does not have to be serialized
             # so this one stores when not mem
             buff = self.dbobj.to_bytes()
@@ -85,51 +82,10 @@ class ModelBase():
         """
         return self.dbobj.to_dict()
 
-    @dictFiltered.setter
-    def dictFiltered(self, ddict):
-        """
-        remove items from obj which cannot be serialized to json or not relevant in dict
-        """
-        self.dbobj = self._capnp_schema.new_message(**ddict)
-
     @property
     def dictJson(self):
         ddict2 = OrderedDict(self.dictFiltered)
         return j.data.serializer.json.dumps(ddict2, sort_keys=True, indent=True)
-
-    def raiseError(self, msg):
-        msg = "Error in dbobj:%s (%s)\n%s" % (self._category, self.key, msg)
-        raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
-
-    def initNewSubObj(self, name, nritems):
-        """
-        create new subobj of certain type (=name), if size changes then this is a slow operation
-        """
-        if name in self._subobjects and self._subobjects[name] != nritems:
-            # self.raiseError("Cannot add new subobj, has already been done for %s" %name)
-            print("warning: capnp unefficient add of subobj:%s" % name)
-            # will copy data out of obj
-            ddict = self.dictFiltered
-            ee = ddict[name]
-            # make sure the obj we changed is not copied back
-            ddict.pop(name)
-            # will reinsert the data appart from the obj we are changing
-            self.dictFiltered = ddict
-            self.dbobj.init(name, nritems)  # create a new empty one
-            # remember how many objects we have now
-            self._subobjects[name] = nritems
-            counter = 0
-            # TODO:*3 is slow, there needs to be a better way
-            for subobj in eval("self.dbobj.%s" % name):
-                subobj0 = ee[counter]
-                for key, val in subobj0.items():
-                    subobj.from_dict(subobj0)
-                    counter += 1
-        else:
-            if not name in self._subobjects:
-                # need to create new one
-                self.dbobj.init(name, nritems)
-                self._subobjects[name] = nritems
 
     def __repr__(self):
         return self.dictJson
@@ -196,37 +152,28 @@ class ModelBaseCollection:
 
         self.modelBaseClass = modelBaseClass if modelBaseClass else ModelBase
 
-    def new(self, key=""):
+    def new(self):
         model = self.modelBaseClass(
             capnp_schema=self.capnp_schema,
             category=self.category,
             db=self._db,
             index=self._index,
-            key=key,
+            key='',
             new=True)
+
+        if self._db.inMem:
+            self._db.db[model.key] = model
 
         return model
 
-    def exists(self, key):
-        return self._db.exists(key)
-
-    def get(self, key, autoCreate=False):
-
+    def get(self, key):
         if self._db.inMem:
             if key in self._db.db:
                 model = self._db.db[key]
             else:
-                if autoCreate:
-                    return self.new(key=key)
-                else:
-                    raise j.exceptions.Input(message="Could not find key:%s for model:%s" %
-                                             (key, self.category), level=1, source="", tags="", msgpub="")
+                raise j.exceptions.Input(message="Could not find key:%s for model:%s" %
+                                         (key, self.category), level=1, source="", tags="", msgpub="")
         else:
-            if autoCreate:
-                from IPython import embed
-                print("DEBUG NOW get autocreate modelbase capnp")
-                embed()
-                raise RuntimeError("stop debug here")
             model = self.modelBaseClass(
                 capnp_schema=self.capnp_schema,
                 category=self.category,
@@ -277,15 +224,3 @@ class ModelBaseCollection:
     def destroy(self):
         self._db.destroy()
         self._index.destroy()
-
-    def lookupGet(self, name, key):
-        return self._index.lookupGet(name, key)
-
-    def lookupSet(self, name, key, fkey):
-        """
-        @param fkey is foreign key
-        """
-        return self._index.lookupSet(name, key, fkey)
-
-    def lookupDestroy(self, name):
-        return self._index.lookupDestroy(name)

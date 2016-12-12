@@ -14,7 +14,7 @@ class Capnp:
     def __init__(self):
         self.__jslocation__ = "j.data.capnp"
         self._cache = {}
-        self._capnpVarDir = j.sal.fs.joinPaths(j.dirs.varDir, "capnp")
+        self._capnpVarDir = j.sal.fs.joinPaths(j.dirs.VARDIR, "capnp")
         j.sal.fs.createDir(self._capnpVarDir)
         if self._capnpVarDir not in sys.path:
             sys.path.append(self._capnpVarDir)
@@ -211,7 +211,7 @@ class Capnp:
         }
         '''
         # mydb = j.servers.kvs.getRedisStore("test")
-        mydb = j.servers.kvs.getRedisStore(name="test", unixsocket="%s/redis.sock" % j.dirs.tmpDir)
+        mydb = j.servers.kvs.getRedisStore(name="test", unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
         schema = self.getSchemaFromText(capnpschema, name="Issue")
         collection = self.getModelCollection(schema, category="test", modelBaseClass=None, db=mydb, indexDb=mydb)
         for i in range(100):

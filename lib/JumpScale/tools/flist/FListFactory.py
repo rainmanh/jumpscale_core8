@@ -38,7 +38,7 @@ class FListFactory(object):
 
         # now default is mem, if we want redis as default store uncomment next, but leave for now, think mem here ok
         if kvs == None:
-            kvs = j.servers.kvs.getRedisStore(name="flist", namespace=name, unixsocket="%s/redis.sock" % j.dirs.tmpDir)
+            kvs = j.servers.kvs.getRedisStore(name="flist", namespace=name, unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
 
         collection = j.data.capnp.getModelCollection(
             schema.Dir, category="flist_%s" % name, modelBaseClass=DirModel.DirModel,
@@ -53,7 +53,7 @@ class FListFactory(object):
         schema = self.getCapnpSchema()
 
         if kvs == None:
-            kvs = j.servers.kvs.getRedisStore(name="flist", namespace=name, unixsocket="%s/redis.sock" % j.dirs.tmpDir)
+            kvs = j.servers.kvs.getRedisStore(name="flist", namespace=name, unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
 
         collection = j.data.capnp.getModelCollection(
             schema.ACI, category="ACI_%s" % name, modelBaseClass=ACIModel.ACIModel,
@@ -67,7 +67,7 @@ class FListFactory(object):
         schema = self.getCapnpSchema()
 
         if kvs == None:
-            kvs = j.servers.kvs.getRedisStore(name="flist", namespace=name, unixsocket="%s/redis.sock" % j.dirs.tmpDir)
+            kvs = j.servers.kvs.getRedisStore(name="flist", namespace=name, unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
 
         collection = j.data.capnp.getModelCollection(
             schema.UserGroup, category="ug_%s" % name, modelBaseClass=ACIModel.ACIModel,
@@ -116,7 +116,7 @@ class FListArchiver:
         cl = j.tools.cuisine.local
         self._ipfs = cl.core.command_location('ipfs')
         if not ipfs_cfgdir:
-            self._env = 'IPFS_PATH=%s' % cl.core.args_replace('$cfgDir/ipfs/main')
+            self._env = 'IPFS_PATH=%s' % cl.core.args_replace('$JSCFGDIR/ipfs/main')
         else:
             self._env = 'IPFS_PATH=%s' % ipfs_cfgdir
 

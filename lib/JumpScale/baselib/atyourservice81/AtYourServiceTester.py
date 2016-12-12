@@ -13,7 +13,7 @@ class AtYourServiceTester:
 
         self.subname = subname
         self.path = j.sal.fs.joinPaths(
-            j.dirs.codeDir, "github", "jumpscale", "jumpscale_ays8_testenv", subname)
+            j.dirs.CODEDIR, "github", "jumpscale", "jumpscale_ays8_testenv", subname)
 
         # checkout a prepared ays test repo with some special ays templates to
         # test behaviour & easy to check outcome

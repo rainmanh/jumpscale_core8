@@ -10,7 +10,7 @@ from JumpScale import j
 class GitClientStub:
 
     def __init__(self, baseDir):
-        self.baseDir = baseDir
+        self.BASEDIR = baseDir
 
 
 @patch('JumpScale.j.tools.cuisine.local.development.pip')

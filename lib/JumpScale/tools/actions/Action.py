@@ -357,7 +357,7 @@ class Action:
 
     @property
     def sourceToExecutePath(self):
-        path = j.sal.fs.joinPaths(j.dirs.tmpDir, "actions", self.runid, self.name + ".py")
+        path = j.sal.fs.joinPaths(j.dirs.TMPDIR, "actions", self.runid, self.name + ".py")
         j.sal.fs.writeFile(path, self.sourceToExecute)
         return path
 

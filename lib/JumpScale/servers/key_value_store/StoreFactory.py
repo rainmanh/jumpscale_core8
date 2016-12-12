@@ -105,7 +105,7 @@ class StoreFactory:
                 cache.set("test", "test")
             except Exception as e:
                 cache = self.getRedisStore('kvs-cache', namespace='cache', host='localhost',
-                                           unixsocket='%s/redis.sock' % j.dirs.tmpDir,
+                                           unixsocket='%s/redis.sock' % j.dirs.TMPDIR,
                                            db=0, password='',
                                            serializers=[])
                 cache.set("test", "test")

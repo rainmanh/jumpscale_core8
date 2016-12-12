@@ -19,7 +19,7 @@ class FtpFS:
     recursive = False
 
     def __init__(self, end_type, server, path, username, password, is_dir=False,
-                 recursive=False, tempdir=j.dirs.tmpDir, Atype='copy'):
+                 recursive=False, tempdir=j.dirs.TMPDIR, Atype='copy'):
         """
         Initialize connection
         """

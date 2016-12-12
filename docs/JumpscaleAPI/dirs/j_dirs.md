@@ -32,7 +32,7 @@ Utility class to configure and store all relevant directory paths
 #### replaceTxtDirVars(*txt, additionalArgs*) 
 
 ```
-replace $base,$vardir,$cfgDir,$bindir,$codedir,$tmpdir,$logdir,$appdir with props of this
+replace $BASEDIR,$vardir,$JSCFGDIR,$bindir,$codedir,$tmpdir,$logdir,$appdir with props of this
     class
 also the Dir... get replaces e.g. varDir
 

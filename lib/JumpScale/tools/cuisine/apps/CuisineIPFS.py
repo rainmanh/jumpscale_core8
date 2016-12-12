@@ -28,14 +28,14 @@ class CuisineIPFS(app):
             url = "https://dist.ipfs.io/go-ipfs/v0.4.4/go-ipfs_v0.4.4_darwin-amd64.tar.gz"
 
         name = url.split('/')[-1]
-        compress_path = self._cuisine.core.args_replace('$tmpDir/{}'.format(name))
+        compress_path = self._cuisine.core.args_replace('$TMPDIR/{}'.format(name))
         self._cuisine.core.file_download(url, compress_path)
 
-        uncompress_path = self._cuisine.core.args_replace('$tmpDir/go-ipfs')
+        uncompress_path = self._cuisine.core.args_replace('$TMPDIR/go-ipfs')
         if self._cuisine.core.file_exists(uncompress_path):
             self._cuisine.core.dir_remove(uncompress_path)
 
-        self._cuisine.core.run("cd $tmpDir; tar xvf {}".format(name))
+        self._cuisine.core.run("cd $TMPDIR; tar xvf {}".format(name))
         self._cuisine.core.file_copy('{}/ipfs'.format(uncompress_path), '$binDir/ipfs')
 
     def uninstall(self):
@@ -46,7 +46,7 @@ class CuisineIPFS(app):
             self._cuisine.core.file_unlink('$binDir/ipfs')
 
     def start(self, name='main', readonly=False):
-        cfg_dir = '$cfgDir/ipfs/{}'.format(name)
+        cfg_dir = '$JSCFGDIR/ipfs/{}'.format(name)
         if not self._cuisine.core.file_exists(cfg_dir):
             self._cuisine.core.dir_ensure(cfg_dir)
 

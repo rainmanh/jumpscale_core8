@@ -52,7 +52,7 @@ class Worker(object):
         return client
 
     def init(self):
-        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.tmpDir, "jumpscripts"))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.TMPDIR, "jumpscripts"))
         self.redisw.redis.delete("workers:action:%s" % self.queuename)
 
     def processAction(self, action):

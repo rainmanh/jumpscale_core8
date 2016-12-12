@@ -61,7 +61,7 @@ class CuisineTIDB(app):
     def start_pd_server(self, clusterId=1):
         config = {
             'clusterId': clusterId,
-            'dataDir': j.sal.fs.joinPaths(j.dirs.varDir, 'tidb'),
+            'dataDir': j.sal.fs.joinPaths(j.dirs.VARDIR, 'tidb'),
         }
         self._cuisine.processmanager.ensure(
             'tipd',
@@ -72,7 +72,7 @@ class CuisineTIDB(app):
     def start_tikv(self, clusterId=1):
         config = {
             'clusterId': clusterId,
-            'dataDir': j.sal.fs.joinPaths(j.dirs.varDir, 'tidb'),
+            'dataDir': j.sal.fs.joinPaths(j.dirs.VARDIR, 'tidb'),
         }
         self._cuisine.processmanager.ensure(
             'tikv',
@@ -83,7 +83,7 @@ class CuisineTIDB(app):
     def start_tidb(self, clusterId=1):
         config = {
             'clusterId': clusterId,
-            'dataDir': j.sal.fs.joinPaths(j.dirs.varDir, 'tidb'),
+            'dataDir': j.sal.fs.joinPaths(j.dirs.VARDIR, 'tidb'),
         }
         self._cuisine.processmanager.ensure(
             'tidb',

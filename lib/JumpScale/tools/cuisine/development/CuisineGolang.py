@@ -32,7 +32,7 @@ class CuisineGolang(app):
         else:
             raise j.exceptions.RuntimeError("platform not supported")
 
-        goDir = self._cuisine.core.dir_paths['goDir']
+        goDir = self._cuisine.core.dir_paths['GODIR']
         self._cuisine.bash.environSet("GOPATH", goDir)
 
         if self._cuisine.core.isMac:
@@ -65,7 +65,7 @@ class CuisineGolang(app):
 
     @property
     def GOPATH(self):
-        return self._cuisine.core.dir_paths["goDir"]
+        return self._cuisine.core.dir_paths["GODIR"]
         # if self._gopath==None:
         #     # if not "GOPATH" in self.bash.environ:
         #     #     self._cuisine.installerdevelop.golang()

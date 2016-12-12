@@ -23,10 +23,10 @@ class CuisineCaddy(app):
         if reset is False and self.isInstalled():
             return
         caddy_url = 'https://github.com/mholt/caddy/releases/download/v0.8.2/caddy_linux_amd64.tar.gz'
-        dest = '$tmpDir/caddy_linux_amd64.tar.gz'
+        dest = '$TMPDIR/caddy_linux_amd64.tar.gz'
         self._cuisine.core.file_download(caddy_url, dest)
-        self._cuisine.core.run('cd $tmpDir; tar xvf $tmpDir/caddy_linux_amd64.tar.gz')
-        self._cuisine.core.file_copy('$tmpDir/caddy', '$binDir')
+        self._cuisine.core.run('cd $TMPDIR; tar xvf $TMPDIR/caddy_linux_amd64.tar.gz')
+        self._cuisine.core.file_copy('$TMPDIR/caddy', '$binDir')
         self._cuisine.bash.addPath(self._cuisine.core.args_replace("$binDir"))
 
         addr = dns if ssl and dns else ':80'
@@ -34,32 +34,32 @@ class CuisineCaddy(app):
         C = """
         $addr
         gzip
-        log $tmplsDir/cfg/caddy/log/access.log
+        log $TEMPLATEDIR/cfg/caddy/log/access.log
         errors {
-            log $tmplsDir/cfg/caddy/log/errors.log
+            log $TEMPLATEDIR/cfg/caddy/log/errors.log
         }
-        root $tmplsDir/cfg/caddy/www
+        root $TEMPLATEDIR/cfg/caddy/www
         """
         C = C.replace("$addr", addr)
         C = self._cuisine.core.args_replace(C)
-        cpath = self._cuisine.core.args_replace("$tmplsDir/cfg/caddy/caddyfile.conf")
-        self._cuisine.core.dir_ensure("$tmplsDir/cfg/caddy")
-        self._cuisine.core.dir_ensure("$tmplsDir/cfg/caddy/log/")
-        self._cuisine.core.dir_ensure("$tmplsDir/cfg/caddy/www/")
+        cpath = self._cuisine.core.args_replace("$TEMPLATEDIR/cfg/caddy/caddyfile.conf")
+        self._cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/caddy")
+        self._cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/caddy/log/")
+        self._cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/caddy/www/")
         self._cuisine.core.file_write(cpath, C)
 
         if start:
             self.start(ssl)
 
     def start(self, ssl):
-        cpath = self._cuisine.core.args_replace("$cfgDir/caddy/caddyfile.conf")
-        self._cuisine.core.file_copy("$tmplsDir/cfg/caddy", "$cfgDir/caddy", recursive=True)
+        cpath = self._cuisine.core.args_replace("$JSCFGDIR/caddy/caddyfile.conf")
+        self._cuisine.core.file_copy("$TEMPLATEDIR/cfg/caddy", "$JSCFGDIR/caddy", recursive=True)
 
         # adjust confguration file
         conf = self._cuisine.core.file_read(cpath)
-        conf.replace("$tmplsDir/cfg", "$cfgDir")
+        conf.replace("$TEMPLATEDIR/cfg", "$JSCFGDIR")
         conf = self._cuisine.core.args_replace(conf)
-        self._cuisine.core.file_write("$cfgDir/caddy/caddyfile.conf", conf, replaceArgs=True)
+        self._cuisine.core.file_write("$JSCFGDIR/caddy/caddyfile.conf", conf, replaceArgs=True)
 
         self._cuisine.processmanager.stop("caddy")  # will also kill
 

@@ -6,8 +6,8 @@ def xonsh_go(args, stdin=None):
     lookfor = args[0]
     # walk over github dirs, try to find lookfor
     res = []
-    for subdir in j.sal.fs.listDirsInDir(j.dirs.codeDir + "/github/", False, True):
-        curpath = "%s/github/%s/" % (j.dirs.codeDir, subdir)
+    for subdir in j.sal.fs.listDirsInDir(j.dirs.CODEDIR + "/github/", False, True):
+        curpath = "%s/github/%s/" % (j.dirs.CODEDIR, subdir)
         for subdir2 in j.sal.fs.listDirsInDir(curpath, False, True):
             curpath2 = j.sal.fs.joinPaths(curpath, subdir2)
             print(curpath2)

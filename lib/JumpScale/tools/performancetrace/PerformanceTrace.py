@@ -23,8 +23,8 @@ class PerformanceTraceFactory:
         """
         import cProfile
         import pstats
-        path = j.sal.fs.joinPaths(j.dirs.tmpDir, "perftest", "%s.log" % j.data.idgenerator.generateRandomInt(1, 10000))
-        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.tmpDir, "perftest"))
+        path = j.sal.fs.joinPaths(j.dirs.TMPDIR, "perftest", "%s.log" % j.data.idgenerator.generateRandomInt(1, 10000))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.TMPDIR, "perftest"))
         globs = {
             '__file__': "afile",
             '__name__': '__main__',

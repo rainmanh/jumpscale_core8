@@ -40,7 +40,7 @@ class GitClient:
         else:
             self.type, self.account, self.name = '', '', j.sal.fs.getBaseName(baseDir)
 
-        self.baseDir = baseDir
+        self.BASEDIR = baseDir
 
         # if len(self.repo.remotes) != 1:
         #     raise j.exceptions.Input("git repo on %s is corrupt could not find remote url" % baseDir)
@@ -67,12 +67,12 @@ class GitClient:
         # mode
         import git
         if not self._repo:
-            if not j.sal.fs.exists(self.baseDir):
+            if not j.sal.fs.exists(self.BASEDIR):
                 j.tools.cuisine.local.core.run(
                     "git config --global http.sslVerify false")
                 self._clone()
             else:
-                self._repo = git.Repo(self.baseDir)
+                self._repo = git.Repo(self.BASEDIR)
         return self._repo
 
     def init(self):
@@ -106,7 +106,7 @@ class GitClient:
             return True
 
     def hasModifiedFiles(self):
-        cmd = "cd %s;git status --porcelain" % self.baseDir
+        cmd = "cd %s;git status --porcelain" % self.BASEDIR
         rc, out, err = j.tools.cuisine.local.core.run(cmd, die=False)
         for item in out.split("\n"):
             item = item.strip()
@@ -128,7 +128,7 @@ class GitClient:
                     return True
             return False
 
-        cmd = "cd %s;git status --porcelain" % self.baseDir
+        cmd = "cd %s;git status --porcelain" % self.BASEDIR
         rc, out, err = j.tools.cuisine.local.core.run(cmd)
         for item in out.split("\n"):
             item = item.strip()
@@ -171,11 +171,11 @@ class GitClient:
         return self.repo.untracked_files
 
     def checkout(self, path):
-        cmd = 'cd %s;git checkout %s' % (self.baseDir, path)
+        cmd = 'cd %s;git checkout %s' % (self.BASEDIR, path)
         j.tools.cuisine.local.core.run(cmd)
 
     def addRemoveFiles(self):
-        cmd = 'cd %s;git add -A :/' % self.baseDir
+        cmd = 'cd %s;git add -A :/' % self.BASEDIR
         j.tools.cuisine.local.core.run(cmd)
 
     def addFiles(self, files=[]):
@@ -314,7 +314,7 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 '''
-        ignorefilepath = j.sal.fs.joinPaths(self.baseDir, '.gitignore')
+        ignorefilepath = j.sal.fs.joinPaths(self.BASEDIR, '.gitignore')
         if not j.sal.fs.exists(ignorefilepath):
             j.sal.fs.writeFile(ignorefilepath, gitignore)
         else:

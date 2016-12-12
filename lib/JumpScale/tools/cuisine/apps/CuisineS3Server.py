@@ -18,26 +18,26 @@ class CuisineS3Server(app):
         """
         path = self._cuisine.development.git.pullRepo('https://github.com/scality/S3.git')
         self._cuisine.core.run('cd {} && npm install'.format(path), profile=True)
-        self._cuisine.core.dir_remove('$appDir/S3', recursive=True)
-        self._cuisine.core.run('mv {} $appDir/'.format(path))
+        self._cuisine.core.dir_remove('$JSAPPDIR/S3', recursive=True)
+        self._cuisine.core.run('mv {} $JSAPPDIR/'.format(path))
 
         cmd = 'S3DATAPATH={data} S3METADATAPATH={meta} npm start'.format(
             data=storageLocation,
             meta=metaLocation,
         )
 
-        content = self._cuisine.core.file_read('$appDir/S3/package.json')
+        content = self._cuisine.core.file_read('$JSAPPDIR/S3/package.json')
         pkg = j.data.serializer.json.loads(content)
         pkg['scripts']['start_location'] = cmd
 
         content = j.data.serializer.json.dumps(pkg, indent=True)
-        self._cuisine.core.file_write('$appDir/S3/package.json', content)
+        self._cuisine.core.file_write('$JSAPPDIR/S3/package.json', content)
 
         if start:
             self.start()
 
     def start(self, name=NAME):
-        path = j.sal.fs.joinPaths(j.dirs.appDir, 'S3')
+        path = j.sal.fs.joinPaths(j.dirs.JSAPPDIR, 'S3')
         self._cuisine.core.run('cd {} && npm run start_location'.format(path), profile=True)
 
     def test(self):

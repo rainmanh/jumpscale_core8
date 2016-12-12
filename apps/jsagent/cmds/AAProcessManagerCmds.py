@@ -38,7 +38,7 @@ class AAProcessManagerCmds():
             except IOError:
                 continue
             fcntl.fcntl(fd, fcntl.F_SETFD, flags | fcntl.FD_CLOEXEC)
-        os.chdir("%s/apps/processmanager/" % j.dirs.baseDir)
+        os.chdir("%s/apps/processmanager/" % j.dirs.BASEDIR)
         os.execv(sys.executable, args)
 
     def reloadjumpscripts(self, session=None):

@@ -23,7 +23,7 @@
 #         KeyValueStoreBase.__init__(self, serializers)
 #
 #         if not baseDir:
-#             baseDir = j.sal.fs.joinPaths(j.dirs.varDir, 'db')
+#             baseDir = j.sal.fs.joinPaths(j.dirs.VARDIR, 'db')
 #
 #         #self.id = j.application.getUniqueMachineId()
 #         self.dbpath = j.sal.fs.joinPaths(baseDir, namespace)

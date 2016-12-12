@@ -5,7 +5,7 @@
 
 ### Methods
 
-#### build(*addr='0.0.0.0:8090', backend='$varDir/aydostor', start=True, install=True, reset*) 
+#### build(*addr='0.0.0.0:8090', backend='$VARDIR/aydostor', start=True, install=True, reset*) 
 
 ```
 Build and Install aydostore
@@ -14,7 +14,7 @@ Build and Install aydostore
 
 ```
 
-#### install(*addr='0.0.0.0:8090', backend='$varDir/aydostor', start=True*) 
+#### install(*addr='0.0.0.0:8090', backend='$VARDIR/aydostor', start=True*) 
 
 ```
 download, install, move files to appropriate places, and create relavent configs

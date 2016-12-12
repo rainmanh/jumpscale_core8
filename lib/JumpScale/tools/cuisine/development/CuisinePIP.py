@@ -25,14 +25,14 @@ class CuisinePIP(base):
         C = """
             #important remove olf pkg_resources, will conflict with new pip
             rm -rf /usr/lib/python3/dist-packages/pkg_resources
-            cd $tmpDir/
+            cd $TMPDIR/
             rm -rf get-pip.py
             #wget --remote-encoding=utf-8 https://bootstrap.pypa.io/get-pip.py
             curl https://bootstrap.pypa.io/get-pip.py >  get-pip.py
             """
         C = self._cuisine.core.args_replace(C)
         self._cuisine.core.execute_bash(C)
-        C = "python3 $tmpDir/get-pip.py"
+        C = "python3 $TMPDIR/get-pip.py"
         C = self._cuisine.core.args_replace(C)
         self._cuisine.core.run(C)
 

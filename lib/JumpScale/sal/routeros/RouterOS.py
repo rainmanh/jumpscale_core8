@@ -176,7 +176,7 @@ class RouterOS:
         if res != True:
             raise j.exceptions.RuntimeError("Could not login into RouterOS: %s" % host)
         self.configpath = "%s/apps/routeros/configs/default/" % j.dirs.base
-        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.varDir, "routeros"))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.VARDIR, "routeros"))
         inputsentence = []
 
     def do(self, cmd, args={}):
@@ -419,7 +419,7 @@ class RouterOS:
         content = j.sal.fs.fileGetContents(src)
         for key, val in list(vars.items()):
             content = content.replace(key, val)
-        src = j.sal.fs.joinPaths(j.dirs.tmpDir, j.sal.fs.getTempFileName())
+        src = j.sal.fs.joinPaths(j.dirs.TMPDIR, j.sal.fs.getTempFileName())
         j.sal.fs.writeFile(src, content)
 
         print("EXECUTE:")
@@ -450,7 +450,7 @@ class RouterOS:
         if content[0] != "/":
             content = "/%s" % content
         name = "_tmp_%s" % j.data.idgenerator.generateRandomInt(1, 10000)
-        src = j.sal.fs.joinPaths(j.dirs.varDir, "routeros", "%s.rsc" % name)
+        src = j.sal.fs.joinPaths(j.dirs.VARDIR, "routeros", "%s.rsc" % name)
         j.sal.fs.writeFile(filename=src, contents=content)
         self.uploadExecuteScript(name=name, srcpath=src)
         j.sal.fs.remove(src)

@@ -49,16 +49,16 @@
 #         self._cuisine.core.file_copy('/usr/local/bin/jspython', '/opt/jumpscale8/bin')
 #
 #         # clean lib dir to avoid segfault during sandboxing
-#         self._cuisine.core.dir_remove('%s/*' % self._cuisine.core.dir_paths['libDir'])
-#         self._cuisine.core.dir_ensure('%s' % self._cuisine.core.dir_paths['libDir'])
+#         self._cuisine.core.dir_remove('%s/*' % self._cuisine.core.dir_paths['LIBDIR'])
+#         self._cuisine.core.dir_ensure('%s' % self._cuisine.core.dir_paths['LIBDIR'])
 #         if self._cuisine.core.isMac:
 #             self._cuisine.core.file_link('/usr/local/lib/python3.5/site-packages/JumpScale/',
-#                                          '%s/JumpScale' % self._cuisine.core.dir_paths['libDir'])
+#                                          '%s/JumpScale' % self._cuisine.core.dir_paths['LIBDIR'])
 #         else:
 #             self._cuisine.core.file_link('/usr/local/lib/python3.5/dist-packages/JumpScale',
-#                                          '%s/JumpScale' % self._cuisine.core.dir_paths['libDir'])
+#                                          '%s/JumpScale' % self._cuisine.core.dir_paths['LIBDIR'])
 #         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" %
-#                                      self._cuisine.core.dir_paths["codeDir"], "%s/portal" % self._cuisine.core.dir_paths['jsLibDir'])
+#                                      self._cuisine.core.dir_paths["CODEDIR"], "%s/portal" % self._cuisine.core.dir_paths['jsLibDir'])
 #
 #         # start sandboxing
 #         cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], '%s' + 'js8_opt', '%s', sandbox_python=%s)" % (

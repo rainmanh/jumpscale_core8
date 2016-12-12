@@ -54,7 +54,7 @@ class CuisineJS8_G8OS(base):
             wget https://stor.jumpscale.org/storx/static/js8 -O /usr/local/bin/js8
             chmod +x /usr/local/bin/js8
             cd /
-            mkdir -p $base
+            mkdir -p $BASEDIR
             """
         self._cuisine.core.execute_bash(C)
 

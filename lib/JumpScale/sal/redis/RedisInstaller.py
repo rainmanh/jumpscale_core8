@@ -50,7 +50,7 @@ class RedisInstaller:
     def _getPaths(self, name):
 
         dpath = j.sal.fs.joinPaths(self._cuisine.core.dir_paths[
-                                   "varDir"], 'redis', name)
+                                   "VARDIR"], 'redis', name)
         cpath = j.sal.fs.joinPaths(dpath, "redis.conf")
         return (dpath, cpath)
 
@@ -1139,9 +1139,9 @@ class RedisInstaller:
         C = C.replace("$name", name)
         C = C.replace("$maxram", str(maxram))
         C = C.replace("$port", str(port))
-        C = C.replace("$vardir", self._cuisine.core.dir_paths["varDir"])
+        C = C.replace("$vardir", self._cuisine.core.dir_paths["VARDIR"])
 
-        base_dir = self._cuisine.core.args_replace('$varDir/data/redis/redis_%s' % name)
+        base_dir = self._cuisine.core.args_replace('$VARDIR/data/redis/redis_%s' % name)
         self._cuisine.core.dir_ensure(base_dir)
         C = C.replace("$dir", base_dir)
 
@@ -1154,7 +1154,7 @@ class RedisInstaller:
             slave = False
 
         #        if unixsocket:
-        #            C = C.replace("# unixsocket %s/redis/$name/redis.sock" % j.dirs.varDir, "unixsocket %s/redis/$name/redis.sock" % j.dirs.varDir)
+        #            C = C.replace("# unixsocket %s/redis/$name/redis.sock" % j.dirs.VARDIR, "unixsocket %s/redis/$name/redis.sock" % j.dirs.VARDIR)
         #            C = C.replace("# unixsocketperm 755", "unixsocketperm 770")
 
         if appendonly or ismaster:

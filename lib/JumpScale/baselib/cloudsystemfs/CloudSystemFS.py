@@ -45,7 +45,7 @@ class CloudSystemFS:
     extension which is linked onto j.sal.cloudfs.
     """
 
-    def copyFile(self, sourcepath, destinationpath, tempdir=j.dirs.tmpDir):
+    def copyFile(self, sourcepath, destinationpath, tempdir=j.dirs.TMPDIR):
         """
         export specified file to destination
         TODO: needs to be copied onto cloudapi aswell
@@ -75,7 +75,7 @@ class CloudSystemFS:
         dst_fs.cleanup()
         src_fs.cleanup()
 
-    def moveFile(self, sourcepath, destinationpath, tempdir=j.dirs.tmpDir):
+    def moveFile(self, sourcepath, destinationpath, tempdir=j.dirs.TMPDIR):
         """
         Move a file
         """
@@ -89,7 +89,7 @@ class CloudSystemFS:
         dst_fs.cleanup()
         src_fs.cleanup()
 
-    def copyDir(self, sourcepath, destinationpath, tempdir=j.dirs.tmpDir, recursive=True):
+    def copyDir(self, sourcepath, destinationpath, tempdir=j.dirs.TMPDIR, recursive=True):
         """
         Copy Directory
         """
@@ -104,7 +104,7 @@ class CloudSystemFS:
         dst_fs.cleanup()
         src_fs.cleanup()
 
-    def moveDir(self, sourcepath, destinationpath, tempdir=j.dirs.tmpDir, recursive=True):
+    def moveDir(self, sourcepath, destinationpath, tempdir=j.dirs.TMPDIR, recursive=True):
         """
         Move directory
         """
@@ -119,7 +119,7 @@ class CloudSystemFS:
         dst_fs.cleanup()
         src_fs.cleanup()
 
-    def _getSourceHandler(self, sourcepath, is_dir=False, recursive=True, tempdir=j.dirs.tmpDir, Atype='copy'):
+    def _getSourceHandler(self, sourcepath, is_dir=False, recursive=True, tempdir=j.dirs.TMPDIR, Atype='copy'):
         """
         Handle all protocol related stuff
         Returns a dict with the src and dst
@@ -160,7 +160,7 @@ class CloudSystemFS:
         return src_fs
 
     def _getDestinationHandler(self, destinationpath, is_dir=False, recursive=True,
-                               tempdir=j.dirs.tmpDir, Atype='copy'):
+                               tempdir=j.dirs.TMPDIR, Atype='copy'):
         """
         Handle all protocol related stuff
         Returns a dict with the src and dst
@@ -220,7 +220,7 @@ class CloudSystemFS:
         self.logger.info('_parseCifsURL returned %s' % elements.hostname)
         return elements
 
-    def importFile(self, sourcepath, destinationpath, tempdir=j.dirs.tmpDir):
+    def importFile(self, sourcepath, destinationpath, tempdir=j.dirs.TMPDIR):
         """
         import specified file to machine path
         TODO: needs to be copied onto cloudapi aswell
@@ -233,7 +233,7 @@ class CloudSystemFS:
         """
         self.copyFile(sourcepath, destinationpath, tempdir=tempdir)
 
-    def exportDir(self, sourcepath, destinationpath, recursive=True, tempdir=j.dirs.tmpDir):
+    def exportDir(self, sourcepath, destinationpath, recursive=True, tempdir=j.dirs.TMPDIR):
         """
         export specified folder to destination
         TODO: needs to be copied onto cloudapi aswell
@@ -262,7 +262,7 @@ class CloudSystemFS:
         dst_fs.cleanup()
         src_fs.cleanup()
 
-    def importDir(self, sourcepath, destinationpath, tempdir=j.dirs.tmpDir):
+    def importDir(self, sourcepath, destinationpath, tempdir=j.dirs.TMPDIR):
         """
         import specified dir to machine path
         TODO: needs to be copied onto cloudapi aswell
@@ -275,7 +275,7 @@ class CloudSystemFS:
         """
         self.exportDir(sourcepath, destinationpath)
 
-    def exportVolume(self, sourcepath, destinationpath, format="vdi", tempdir=j.dirs.tmpDir):
+    def exportVolume(self, sourcepath, destinationpath, format="vdi", tempdir=j.dirs.TMPDIR):
         """
         export volume to a e.g. VDI
 
@@ -321,7 +321,7 @@ class CloudSystemFS:
         else:
             destination.cleanup()
 
-    def importVolume(self, sourcepath, destinationpath, format='vdi', tempdir=j.dirs.tmpDir):
+    def importVolume(self, sourcepath, destinationpath, format='vdi', tempdir=j.dirs.TMPDIR):
         """
         Import volume from specified source
 

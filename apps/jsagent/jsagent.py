@@ -65,9 +65,9 @@ class Process():
 
     def _spawnProcess(self):
         if self.logpath is None:
-            self.logpath = j.sal.fs.joinPaths(j.dirs.logDir, "processmanager", "logs",
+            self.logpath = j.sal.fs.joinPaths(j.dirs.LOGDIR, "processmanager", "logs",
                                               "%s_%s.log" % (self.domain, self.name))
-            j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.logDir, "processmanager", "logs"))
+            j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.LOGDIR, "processmanager", "logs"))
             stdout = open(self.logpath, 'w')
         else:
             stdout = None

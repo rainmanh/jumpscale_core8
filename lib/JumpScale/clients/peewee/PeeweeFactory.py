@@ -60,8 +60,8 @@ class PeeweeFactory:
             j.core.db.set("peewee.code.%s" % key, out)
         code = j.core.db.get("peewee.code.%s" % key).decode()
 
-        path = j.sal.fs.joinPaths(j.dirs.tmpDir, "peewee", key + ".py")
-        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.tmpDir, "peewee"))
+        path = j.sal.fs.joinPaths(j.dirs.TMPDIR, "peewee", key + ".py")
+        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.TMPDIR, "peewee"))
         j.sal.fs.writeFile(path, code)
 
         loader = importlib.machinery.SourceFileLoader(key, path)

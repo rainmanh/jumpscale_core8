@@ -11,7 +11,7 @@ class CuisinePortal(base):
         self._executor = executor
         self._cuisine = cuisine
         self._config = None
-        self.portal_dir = j.sal.fs.joinPaths(self._cuisine.core.dir_paths["appDir"], "portals/")
+        self.portal_dir = j.sal.fs.joinPaths(self._cuisine.core.dir_paths["JSAPPDIR"], "portals/")
         self.main_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'main')
         self._cuisine.core.dir_ensure(self.main_portal_dir)
         self.cfg_path = j.sal.fs.joinPaths(self.main_portal_dir, 'config.hrd')
@@ -20,7 +20,7 @@ class CuisinePortal(base):
                   influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, production=True):
 
         # go from template dir which go the file above
-        content = self._cuisine.core.file_read('$tmplsDir/cfg/portal/config.hrd')
+        content = self._cuisine.core.file_read('$TEMPLATEDIR/cfg/portal/config.hrd')
 
         hrd = j.data.hrd.get(content=content, prefixWithName=False)
 
@@ -193,7 +193,7 @@ class CuisinePortal(base):
         #     destjslib = destjslib.split("\n")[1]
 
         if self._cuisine.core.file_exists(destjslib):
-            self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths["codeDir"],
+            self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths["CODEDIR"],
                                          "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
 
         self._cuisine.core.run("js --quiet 'j.application.reload()'", showout=False, die=False)
@@ -202,7 +202,7 @@ class CuisinePortal(base):
             self.portal_dir += '/'
         self._cuisine.core.dir_ensure(self.portal_dir)
 
-        CODE_DIR = self._cuisine.core.dir_paths["codeDir"]
+        CODE_DIR = self._cuisine.core.dir_paths["CODEDIR"]
         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/jslib" % CODE_DIR,
                                      '%s/jslib' % self.portal_dir)
         self._cuisine.core.dir_ensure(j.sal.fs.joinPaths(self.portal_dir, 'portalbase'))
@@ -220,9 +220,9 @@ class CuisinePortal(base):
         self._cuisine.core.dir_ensure('%s/base/home/.space' % self.main_portal_dir)
         self._cuisine.core.file_ensure('%s/base/home/home.md' % self.main_portal_dir)
 
-        self._cuisine.core.dir_ensure('$tmplsDir/cfg/portal')
+        self._cuisine.core.dir_ensure('$TEMPLATEDIR/cfg/portal')
         self._cuisine.core.file_copy(j.sal.fs.joinPaths(CODE_DIR, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'),
-                                     '$tmplsDir/cfg/portal/config.hrd')
+                                     '$TEMPLATEDIR/cfg/portal/config.hrd')
 
         # copy portal_start.py
         self._cuisine.core.file_copy(j.sal.fs.joinPaths(CODE_DIR, 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'),
@@ -230,23 +230,23 @@ class CuisinePortal(base):
         self._cuisine.core.file_copy("%s/jslib/old/images" % self.portal_dir,
                                      "%s/jslib/old/elfinder" % self.portal_dir, recursive=True)
         # link for ays
-        self._cuisine.core.file_link(source='$codeDir/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81',
-                                     destination='$appDir/portals/main/base/AYS81')
+        self._cuisine.core.file_link(source='$CODEDIR/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81',
+                                     destination='$JSAPPDIR/portals/main/base/AYS81')
 
     def addSpace(self, spacepath):
         spacename = j.sal.fs.getBaseName(spacepath)
         dest_dir = j.sal.fs.joinPaths(self._cuisine.core.dir_paths[
-            'appDir'], 'portals', 'main', 'base', spacename)
+            'JSAPPDIR'], 'portals', 'main', 'base', spacename)
         self._cuisine.core.file_link(spacepath, dest_dir)
 
     def addactor(self, actorpath):
         actorname = j.sal.fs.getBaseName(actorpath)
         dest_dir = j.sal.fs.joinPaths(self._cuisine.core.dir_paths[
-            'appDir'], 'portals', 'main', 'base', actorname)
+            'JSAPPDIR'], 'portals', 'main', 'base', actorname)
         self._cuisine.core.file_link(actorpath, dest_dir)
 
     def serviceconnect(self, hrd):
-        dest_cfg = j.sal.fs.joinPaths(self._cuisine.core.dir_paths['varDir'],
+        dest_cfg = j.sal.fs.joinPaths(self._cuisine.core.dir_paths['VARDIR'],
                                       'cfg', "portals", "main", "config.hrd")
         self._cuisine.core.file_write(dest_cfg, str(hrd))
 
@@ -255,7 +255,7 @@ class CuisinePortal(base):
         Start the portal
         passwd : if not None, change the admin password to passwd after start
         """
-        dest_dir = j.sal.fs.joinPaths(self._cuisine.core.dir_paths['varDir'], 'cfg', 'portals', 'main')
+        dest_dir = j.sal.fs.joinPaths(self._cuisine.core.dir_paths['VARDIR'], 'cfg', 'portals', 'main')
         self._cuisine.core.dir_ensure(dest_dir)
 
         if not self._config:

@@ -39,7 +39,7 @@ class Jumpscript(object):
 
     def write(self):
         if not self.path:
-            jscriptdir = j.sal.fs.joinPaths(j.dirs.tmpDir, "jumpscripts")
+            jscriptdir = j.sal.fs.joinPaths(j.dirs.TMPDIR, "jumpscripts")
             j.sal.fs.createDir(jscriptdir)
             self.path = j.sal.fs.joinPaths(jscriptdir, "%s_%s.py" % (self.organization, self.name))
         content = """
@@ -213,7 +213,7 @@ class JumpscriptFactory:
         fp = BytesIO.BytesIO()
         with tarfile.open(fileobj=fp, mode='w:bz2' if bz2_compressed else 'w') as tar:
             for jumpscript_type in types:
-                parent_path = '%s/apps/agentcontroller/%s' % (j.dirs.baseDir, jumpscript_type)
+                parent_path = '%s/apps/agentcontroller/%s' % (j.dirs.BASEDIR, jumpscript_type)
                 for allowed_filename_extension in ('py', 'lua'):
                     for file_path in j.sal.fs.walkExtended(parent_path, recurse=1, dirs=False,
                                                            filePattern='*.' + allowed_filename_extension):

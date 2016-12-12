@@ -15,14 +15,14 @@ class CuisineBootMediaInstaller(base):
 
     def _downloadImage(self, url, redownload=False):
         base = url.split("/")[-1]
-        downloadpath = "$tmpDir/%s" % base
-        self._cuisine.core.dir_ensure("$tmpDir")
+        downloadpath = "$TMPDIR/%s" % base
+        self._cuisine.core.dir_ensure("$TMPDIR")
 
         if redownload:
             self._cuisine.core.file_unlink(downloadpath)
 
         if not self._cuisine.core.file_exists(downloadpath):
-            self._cuisine.core.run("cd $tmpDir;curl -L %s -O" % url)
+            self._cuisine.core.run("cd $TMPDIR;curl -L %s -O" % url)
 
         return base
 
@@ -45,7 +45,7 @@ class CuisineBootMediaInstaller(base):
 
     def _install(self, base):
         # We use bsdtar to support pi2 arm images.
-        self._cuisine.core.run("cd $tmpDir && bsdtar -vxpf %s -C /mnt/root" % base)
+        self._cuisine.core.run("cd $TMPDIR && bsdtar -vxpf %s -C /mnt/root" % base)
         self._cuisine.core.run("sync")
         self._cuisine.core.run("echo 'PermitRootLogin=yes'>>'/mnt/root/etc/ssh/sshd_config'")
 
@@ -122,7 +122,7 @@ class CuisineBootMediaInstaller(base):
         else:
             raise j.exceptions.Input("platform not supported yet")
 
-        path = "$tmpDir/%s" % name
+        path = "$TMPDIR/%s" % name
         cmd = 'dd if=%s of=/dev/%s bs=4000' % (path, deviceid)
         self._cuisine.core.sudo(cmd)
 

@@ -88,7 +88,7 @@ class AtYourServiceFactory:
 
             # see if all specified ays templateRepo's are downloaded
             # if we don't have write permissin on /opt don't try do download service templates
-            codeDir = j.tools.path.get(j.dirs.codeDir)
+            codeDir = j.tools.path.get(j.dirs.CODEDIR)
             if codeDir.access(os.W_OK):
                 # can access the opt dir, lets update the atyourservice
                 # metadata
@@ -222,7 +222,7 @@ class AtYourServiceFactory:
         Walk over FS. Register AYS repos to DB
         """
         if not path:
-            path = j.dirs.codeDir
+            path = j.dirs.CODEDIR
         path = j.sal.fs.pathNormalize(path)
         repos_path = (root for root, dirs, files in os.walk(path) if '.ays' in files)
 

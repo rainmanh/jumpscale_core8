@@ -487,10 +487,10 @@ lxc.network.type = veth
 lxc.network.flags = up
 #lxc.network.veth.pair = %s_%s
 lxc.network.name = %s
-lxc.network.script.up = $basedir/%s/ovsbr_%s
-lxc.network.script.down = $basedir/%s/ovsbr_%s
+lxc.network.script.up = $BASEDIRdir/%s/ovsbr_%s
+lxc.network.script.down = $BASEDIRdir/%s/ovsbr_%s
 '''  % (machinename, netname, netname, machinename, bridge, machinename, bridge)
-        config = config.replace("$basedir", self.basepath)
+        config = config.replace("$BASEDIRdir", self.basepath)
 
         Covs = """
 #!/bin/bash
@@ -543,17 +543,17 @@ lxc.cap.drop = mac_admin
 lxc.cap.drop = mac_override
 lxc.cap.drop = sys_time
 lxc.hook.clone = /usr/share/lxc/hooks/ubuntu-cloud-prep
-#lxc.rootfs = overlayfs:$baseparent/rootfs:$base/delta0
-lxc.rootfs = $base/rootfs
+#lxc.rootfs = overlayfs:$BASEDIRparent/rootfs:$BASEDIR/delta0
+lxc.rootfs = $BASEDIR/rootfs
 lxc.pivotdir = lxc_putold
 
-#lxc.mount.entry=/var/lib/lxc/jumpscale $base/rootfs/jumpscale none defaults,bind 0 0
-#lxc.mount.entry=/var/lib/lxc/shared $base/rootfs/shared none defaults,bind 0 0
-lxc.mount = $base/fstab
+#lxc.mount.entry=/var/lib/lxc/jumpscale $BASEDIR/rootfs/jumpscale none defaults,bind 0 0
+#lxc.mount.entry=/var/lib/lxc/shared $BASEDIR/rootfs/shared none defaults,bind 0 0
+lxc.mount = $BASEDIR/fstab
 """
         C = C.replace("$name", name)
-        C = C.replace("$baseparent", baseparent)
-        C = C.replace("$base", base)
+        C = C.replace("$BASEDIRparent", baseparent)
+        C = C.replace("$BASEDIR", base)
         j.sal.fs.writeFile(machine_cfg_file, C)
         # j.sal.fs.createDir("%s/delta0/jumpscale"%base)
         # j.sal.fs.createDir("%s/delta0/shared"%base)

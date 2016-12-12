@@ -244,25 +244,25 @@ class CuisineCore(base):
                 res["base"] = "/opt/jumpscale8"
 
         if self.dir_exists('/JS8'):
-            res["codeDir"] = "/JS8/code/"
+            res["CODEDIR"] = "/JS8/code/"
             res["optDir"] = "/JS8/opt/"
-            res["varDir"] = "/JS8/optvar/"
+            res["VARDIR"] = "/JS8/optvar/"
         elif self.isMac or self.isCygwin:
-            res["codeDir"] = "%s/opt/code/" % env["HOME"]
+            res["CODEDIR"] = "%s/opt/code/" % env["HOME"]
             res["optDir"] = "%s/opt/" % env["HOME"]
-            res["varDir"] = "%s/optvar/" % env["HOME"]
+            res["VARDIR"] = "%s/optvar/" % env["HOME"]
         else:
-            res["codeDir"] = "/opt/code"
+            res["CODEDIR"] = "/opt/code"
             res["optDir"] = "/opt"
-            res["varDir"] = "/optvar"
+            res["VARDIR"] = "/optvar"
 
-        res["appDir"] = "%s/apps" % res["base"]
+        res["JSAPPDIR"] = "%s/apps" % res["base"]
 
         res["binDir"] = "%s/bin" % res["base"]
-        res["cfgDir"] = "%s/cfg" % res["varDir"]
-        res["homeDir"] = env["HOME"]
+        res["JSCFGDIR"] = "%s/cfg" % res["VARDIR"]
+        res["HOMEDIR"] = env["HOME"]
 
-        res["tmpDir"] = "%s/tmp" % res["varDir"]
+        res["TMPDIR"] = "%s/tmp" % res["VARDIR"]
 
         return res
 
@@ -288,19 +288,19 @@ class CuisineCore(base):
         """
         replace following args (when jumpscale installed it will take the args from there)
         dirs:
-        - $base
-        - $appDir
-        - $tmplsDir
-        - $varDir/
+        - $BASEDIR
+        - $JSAPPDIR
+        - $TEMPLATEDIR
+        - $VARDIR/
         - $binDir
-        - $codeDir
-        - $cfgDir
-        - $homeDir
+        - $CODEDIR
+        - $JSCFGDIR
+        - $HOMEDIR
         - $jsLibDir
-        - $libDir
-        - $logDir
-        - $pidDir
-        - $tmpDir/
+        - $LIBDIR
+        - $LOGDIR
+        - $PIDDIR
+        - $TMPDIR/
         system
         - $hostname
 
@@ -376,9 +376,9 @@ class CuisineCore(base):
 
     def file_get_tmp_path(self, basepath=""):
         if basepath == "":
-            x = "$tmpDir/%s" % j.data.idgenerator.generateXCharID(10)
+            x = "$TMPDIR/%s" % j.data.idgenerator.generateXCharID(10)
         else:
-            x = "$tmpDir/%s" % basepath
+            x = "$TMPDIR/%s" % basepath
         x = self.args_replace(x)
         return x
 
@@ -395,18 +395,18 @@ class CuisineCore(base):
         if to == "":
             if expand:
                 destdir = ""
-            to = self.joinpaths("$tmpDir", j.sal.fs.getBaseName(url))
+            to = self.joinpaths("$TMPDIR", j.sal.fs.getBaseName(url))
         else:
             if expand:
                 destdir = to
-            to = self.joinpaths("$tmpDir", j.sal.fs.getBaseName(url))
+            to = self.joinpaths("$TMPDIR", j.sal.fs.getBaseName(url))
 
         to = self.args_replace(to)
 
         # if expand:
         #     destdir = to
         #     self.dir_ensure(destdir)
-        #     to = self.joinpaths("$tmpDir", "_%s" % j.sal.fs.getBaseName(url))
+        #     to = self.joinpaths("$TMPDIR", "_%s" % j.sal.fs.getBaseName(url))
 
         if overwrite:
             if self.file_exists(to):
@@ -466,7 +466,7 @@ class CuisineCore(base):
         if base.endswith(".tar"):
             base = base[:-4]
         if to == "":
-            to = self.joinpaths("$tmpDir", base)
+            to = self.joinpaths("$TMPDIR", base)
         path = self.args_replace(path)
         to = self.args_replace(to)
         self.dir_ensure(to)
@@ -659,10 +659,10 @@ class CuisineCore(base):
         @param source is on local (where we run the cuisine)
         @param dest is on remote host (on the ssh node)
 
-        will replace $varDir, $codeDir, ... in source using j.dirs.replaceTxtDirVars (is for local cuisine)
+        will replace $VARDIR, $CODEDIR, ... in source using j.dirs.replaceTxtDirVars (is for local cuisine)
         will also replace in dest but then using cuisine.core.args_replace(dest) (so for cuisine host)
 
-        @param dest, if empty then will be same as source very usefull when using e.g. $codeDir
+        @param dest, if empty then will be same as source very usefull when using e.g. $CODEDIR
 
         upload happens using rsync
 
@@ -681,11 +681,11 @@ class CuisineCore(base):
         """
         @param source is on remote host (on the ssh node)
         @param dest is on local (where we run the cuisine)
-        will replace $varDir, $codeDir, ...
+        will replace $VARDIR, $CODEDIR, ...
         - in source but then using cuisine.core.args_replace(dest) (so for cuisine host)
         - in dest using j.dirs.replaceTxtDirVars (is for local cuisine)
 
-        @param dest, if empty then will be same as source very usefull when using e.g. $codeDir
+        @param dest, if empty then will be same as source very usefull when using e.g. $CODEDIR
 
         """
         if dest == "":
@@ -1196,7 +1196,7 @@ class CuisineCore(base):
             ext = "lua"
 
         rnr = j.data.idgenerator.generateRandomInt(0, 10000)
-        path = "$tmpDir/%s.%s" % (rnr, ext)
+        path = "$TMPDIR/%s.%s" % (rnr, ext)
         path = self.args_replace(path)
 
         if self.isMac:
@@ -1211,14 +1211,14 @@ class CuisineCore(base):
         if self.sudomode:
             cmd = self.sudo_cmd(cmd)
 
-        cmd = "cd $tmpDir; %s" % (cmd, )
+        cmd = "cd $TMPDIR; %s" % (cmd, )
         cmd = self.args_replace(cmd)
         if tmux:
             rc, out = self._cuisine.tmux.executeInScreen("cmd", "cmd", cmd, wait=True, die=False)
             if showout:
                 print(out)
         else:
-            # outfile = "$tmpDir/%s.out" % (rnr)
+            # outfile = "$TMPDIR/%s.out" % (rnr)
             # outfile = self.cuisine.core.args_replace(outfile)
             # cmd = cmd + " 2>&1 || echo **ERROR** | tee %s" % outfile
             cmd = cmd + " 2>&1 || echo **ERROR**"

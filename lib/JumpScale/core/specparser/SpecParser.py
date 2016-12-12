@@ -582,7 +582,7 @@ class SpecParserFactory:
         self.app_actornames = {}
         self.modelnames = {}  # key = appname_actorname
         self.roles = {}  # key is appname_rolename
-        #self.codepath=j.sal.fs.joinPaths( j.dirs.varDir,"actorscode")
+        #self.codepath=j.sal.fs.joinPaths( j.dirs.VARDIR,"actorscode")
 
     def getEnumerationSpec(self, app, actorname, name, die=True):
         key = "enumeration_%s_%s_%s" % (app, actorname, name)

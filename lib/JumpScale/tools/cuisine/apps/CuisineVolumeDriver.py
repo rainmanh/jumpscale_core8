@@ -51,7 +51,7 @@ class CuisineVolumeDriver(app):
         self._cuisine.package.multiInstall(apt_deps, allow_unauthenticated=True)
 
     def _build(self, version='6.0.0'):
-        workspace = self._cuisine.core.args_replace("$tmpDir/volumedriver-workspace")
+        workspace = self._cuisine.core.args_replace("$TMPDIR/volumedriver-workspace")
         self._cuisine.core.dir_ensure(workspace)
 
         str_repl = {
@@ -81,4 +81,4 @@ class CuisineVolumeDriver(app):
         """ % str_repl
 
         self._cuisine.core.execute_bash(build_script)
-        self._cuisine.core.file_copy('$tmpDir/volumedriver-workspace/volumedriver/build/bin/*', '$binDir')
+        self._cuisine.core.file_copy('$TMPDIR/volumedriver-workspace/volumedriver/build/bin/*', '$binDir')

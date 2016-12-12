@@ -36,11 +36,11 @@ class CuisineOpenSSL(base):
 
     def build(self, destpath="", reset=False):
         """
-        @param destpath, if '' then will be $tmpDir/build/openssl
+        @param destpath, if '' then will be $TMPDIR/build/openssl
         """
 
         if destpath == "":
-            destpath = "$tmpDir/build/openssl/"
+            destpath = "$TMPDIR/build/openssl/"
         destpath = self._cuisine.core.args_replace(destpath)
 
         if reset:

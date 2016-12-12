@@ -51,13 +51,13 @@ class CuisineVRouter(base):
         # will make sure jumpscale has been installed (&base)
         self.cuisine.development.js8.install()
 
-        dest = self._cuisine.core.args_replace('$codeDir/github/jumpscale/smartproxy')
+        dest = self._cuisine.core.args_replace('$CODEDIR/github/jumpscale/smartproxy')
         j.do.pullGitRepo("git@github.com:despiegk/smartproxy.git", dest=dest)
 
-        self._cuisine.core.upload("$codeDir/github/jumpscale/smartproxy")
+        self._cuisine.core.upload("$CODEDIR/github/jumpscale/smartproxy")
         C = """
         rm -rf /opt/dnsmasq-alt
-        ln -s $codeDir/github/jumpscale/smartproxy /opt/dnsmasq-alt
+        ln -s $CODEDIR/github/jumpscale/smartproxy /opt/dnsmasq-alt
         """
         self.cuisine.core.execute_bash(C)
 
@@ -253,7 +253,7 @@ class CuisineVRouter(base):
         self._cuisine.tmux.executeInScreen('ovsrouter', 'ap', cmd)
 
     def firewall(self):
-        path = "$codeDir/github/jumpscale/smartproxy/nftables.conf"
+        path = "$CODEDIR/github/jumpscale/smartproxy/nftables.conf"
         # needs to be from local file
         C = j.sal.fs.readFile(j.dirs.replaceTxtDirVars(path))
         C = C.replace("$waniface", self.defgwInterface)

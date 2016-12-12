@@ -36,10 +36,10 @@ class CuisineMongodb(app):
 
             if url:
                 print('Downloading mongodb.')
-                self._cuisine.core.file_download(url, to="$tmpDir", overwrite=False, expand=True)
-                tarpath = self._cuisine.core.find("$tmpDir", recursive=True, pattern="*mongodb*.tgz", type='f')[0]
-                self._cuisine.core.file_expand(tarpath, "$tmpDir")
-                extracted = self._cuisine.core.find("$tmpDir", recursive=True, pattern="*mongodb*", type='d')[0]
+                self._cuisine.core.file_download(url, to="$TMPDIR", overwrite=False, expand=True)
+                tarpath = self._cuisine.core.find("$TMPDIR", recursive=True, pattern="*mongodb*.tgz", type='f')[0]
+                self._cuisine.core.file_expand(tarpath, "$TMPDIR")
+                extracted = self._cuisine.core.find("$TMPDIR", recursive=True, pattern="*mongodb*", type='d')[0]
                 for file in self._cuisine.core.find('%s/bin/' % extracted, type='f'):
                     self._cuisine.core.file_copy(file, appbase)
 
@@ -47,7 +47,7 @@ class CuisineMongodb(app):
         """
         download, install, move files to appropriate places, and create relavent configs
         """
-        self._cuisine.core.dir_ensure('$varDir/data/%s' % name)
+        self._cuisine.core.dir_ensure('$VARDIR/data/%s' % name)
         if start:
             self.start(name)
 
@@ -58,8 +58,8 @@ class CuisineMongodb(app):
 
     def start(self, name="mongod"):
         which = self._cuisine.core.command_location("mongod")
-        self._cuisine.core.dir_ensure('$varDir/data/%s' % name)
-        cmd = "%s --dbpath $varDir/data/%s" % (which, name)
+        self._cuisine.core.dir_ensure('$VARDIR/data/%s' % name)
+        cmd = "%s --dbpath $VARDIR/data/%s" % (which, name)
         # self._cuisine.process.kill("mongod")
         self._cuisine.processmanager.ensure(name, cmd=cmd, env={}, path="")
 

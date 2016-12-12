@@ -14,7 +14,7 @@ class CuisinePython(base):
         this makes sure we also compile openssl
         """
 
-        ldir = "$tmpDir/build/openssl"
+        ldir = "$TMPDIR/build/openssl"
         ldir = self._cuisine.core.args_replace(ldir)
 
         if not self._cuisine.core.dir_exists(ldir) or reset:
@@ -24,13 +24,13 @@ class CuisinePython(base):
 
     def build(self, destpath="", reset=False):
         """
-        @param destpath, if '' then will be $tmpDir/build/python
+        @param destpath, if '' then will be $TMPDIR/build/python
         """
 
         self.checkOpenSSL(reset=reset)
 
         if destpath == "":
-            destpath = "$tmpDir/build/python/"
+            destpath = "$TMPDIR/build/python/"
         destpath = self._cuisine.core.args_replace(destpath)
 
         if reset:
@@ -178,7 +178,7 @@ class CuisinePython(base):
 
     def sandbox(self, build=False, reset=False, destpath=""):
         if destpath == "":
-            destpath = "$tmpDir/build/python/"
+            destpath = "$TMPDIR/build/python/"
         destpath = self._cuisine.core.args_replace(destpath)
 
         if build or not self._cuisine.core.dir_exists(destpath):
@@ -228,7 +228,7 @@ class CuisinePython(base):
 
     def pip(self, pips, destpath=""):
         if destpath == "":
-            destpath = "$tmpDir/build/python/"
+            destpath = "$TMPDIR/build/python/"
         destpath = self._cuisine.core.args_replace(destpath)
         for item in pips.split("\n"):
             item = item.strip()

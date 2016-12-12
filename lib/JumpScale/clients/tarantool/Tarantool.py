@@ -178,7 +178,7 @@ class TarantoolFactory:
         LUA = LUA.replace("$passwd", passwd)
         LUA = LUA.replace("$port", str(port))
 
-        luapath = cuisine.core.args_replace("$tmpDir/tarantool.lua")
+        luapath = cuisine.core.args_replace("$TMPDIR/tarantool.lua")
 
         print("write lua startup to:%s" % luapath)
 
@@ -187,7 +187,7 @@ class TarantoolFactory:
         cuisine.tmux.createWindow("zconfig", "tarantool")
 
         cuisine.tmux.executeInScreen("zconfig", "tarantool",
-                                     "cd $tmpDir;rm -rf tarantool;mkdir tarantool;cd tarantool;tarantool %s" % luapath, replaceArgs=True)
+                                     "cd $TMPDIR;rm -rf tarantool;mkdir tarantool;cd tarantool;tarantool %s" % luapath, replaceArgs=True)
 
     def get(self, ipaddr="localhost", port=3301, login="guest", password=None, fromcache=True):
         key = "%s_%s" % (ipaddr, port)

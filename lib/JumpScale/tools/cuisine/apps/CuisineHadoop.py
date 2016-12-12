@@ -12,7 +12,7 @@ class CuisineHadoop(base):
         if self._cuisine.core.isUbuntu:
             C = """\
             apt-get install -y apt-get install openjdk-7-jre
-            cd $tmpDir
+            cd $TMPDIR
             wget -c http://www-us.apache.org/dist/hadoop/common/hadoop-2.7.2/hadoop-2.7.2.tar.gz
             tar -xf hadoop-2.7.2.tar.gz -C /opt/
             """

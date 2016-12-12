@@ -626,7 +626,7 @@ class DNSMasq:
         # The DHCP server needs somewhere on disk to keep its lease database.
         # This defaults to a sane location, but if you want to change it, use
         # the line below.
-        dhcp-leasefile=$varDir/dnsmasq/dnsmasq.leases
+        dhcp-leasefile=$VARDIR/dnsmasq/dnsmasq.leases
 
         # Set the DHCP server to authoritative mode. In this mode it will barge in
         # and take over the lease for any client which broadcasts on the network,
@@ -761,5 +761,5 @@ class DNSMasq:
             C = C.replace("#interface=", "interface=%s" % device)
         C = C.replace("$dhcprange", "%s,%s" % (rangefrom, rangeto))
         self._cuisine.core.dir_ensure("/etc/dnsmasq.d/")
-        self._cuisine.core.dir_ensure("$varDir/dnsmasq")
+        self._cuisine.core.dir_ensure("$VARDIR/dnsmasq")
         self._cuisine.core.file_write("/etc/dnsmasq.conf", C, replaceArgs=True)

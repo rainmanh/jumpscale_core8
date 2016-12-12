@@ -16,7 +16,7 @@ class CuisinePEP8(base):
 
         # Get git repos paths
         if repo_path is None:
-            repos = (repo.baseDir for repo in j.clients.git.find(returnGitClient=True))
+            repos = (repo.BASEDIR for repo in j.clients.git.find(returnGitClient=True))
         else:
             repos = [repo_path]
         paths = (path.join(repo, '.git/hooks/pre-commit') for repo in repos)
@@ -42,7 +42,7 @@ class CuisinePEP8(base):
 
         # Get git repos paths
         if repo_path is None:
-            repos = (repo.baseDir for repo in j.clients.git.find(returnGitClient=True))
+            repos = (repo.BASEDIR for repo in j.clients.git.find(returnGitClient=True))
         else:
             repos = [repo_path]
         paths = (repo for repo in repos)

@@ -37,7 +37,7 @@ Examples for methods in `core`:
   cuisine.sudo('apt-get  install httpie')
   ```
 
-- **args_replace**: replace arguments inside commands and paths such as `$binDir`, `$hostname`, `$codeDir`, `$tmpDir`
+- **args_replace**: replace arguments inside commands and paths such as `$binDir`, `$hostname`, `$CODEDIR`, `$TMPDIR`
 
   ```python
   cuisine.arg_replace('$binDir/python -c "print(1)"')

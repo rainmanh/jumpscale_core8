@@ -19,22 +19,22 @@ class TestCuisineCore(unittest.TestCase):
             'JSBASE': '/js/path',
         }
         self.core = j.tools.cuisine.local.core
-        self.dir_paths = {'appDir': '/js/path/apps',
+        self.dir_paths = {'JSAPPDIR': '/js/path/apps',
                           'base': '/js/path',
                           'binDir': '/js/path/bin',
-                          'cfgDir': '/optvar//cfg',
-                          'codeDir': '/opt/code/',
-                          'goDir': '/optvar/go/',
-                          'homeDir': '/root',
-                          'hrdDir': '/optvar//hrd',
+                          'JSCFGDIR': '/optvar//cfg',
+                          'CODEDIR': '/opt/code/',
+                          'GODIR': '/optvar/go/',
+                          'HOMEDIR': '/root',
+                          'HRDDIR': '/optvar//hrd',
                           'jsLibDir': '/js/path/lib/JumpScale/',
-                          'libDir': '/js/path/lib/',
-                          'logDir': '/optvar//log',
+                          'LIBDIR': '/js/path/lib/',
+                          'LOGDIR': '/optvar//log',
                           'optDir': '/opt/',
-                          'pidDir': '/optvar//pid',
-                          'tmpDir': '/optvar//tmp',
-                          'tmplsDir': '/js/path/templates',
-                          'varDir': '/optvar/'
+                          'PIDDIR': '/optvar//pid',
+                          'TMPDIR': '/optvar//tmp',
+                          'TEMPLATEDIR': '/js/path/templates',
+                          'VARDIR': '/optvar/'
                           }
 
     def tearDown(self):
@@ -70,22 +70,22 @@ class TestCuisineCore(unittest.TestCase):
         getenv_mock.return_value = dump_env
 
         expected_result = {
-            'appDir': '/opt/jumpscale8//apps',
+            'JSAPPDIR': '/opt/jumpscale8//apps',
             'base': '/opt/jumpscale8/',
             'binDir': '/opt/jumpscale8//bin',
-            'cfgDir': '/optvar//cfg',
-            'codeDir': '/opt/code/',
-            'goDir': '/optvar/go/',
-            'homeDir': '/root',
-            'hrdDir': '/optvar//hrd',
+            'JSCFGDIR': '/optvar//cfg',
+            'CODEDIR': '/opt/code/',
+            'GODIR': '/optvar/go/',
+            'HOMEDIR': '/root',
+            'HRDDIR': '/optvar//hrd',
             'jsLibDir': '/opt/jumpscale8//lib/JumpScale/',
-            'libDir': '/opt/jumpscale8//lib/',
-            'logDir': '/optvar//log',
+            'LIBDIR': '/opt/jumpscale8//lib/',
+            'LOGDIR': '/optvar//log',
             'optDir': '/opt/',
-            'pidDir': '/optvar//pid',
-            'tmpDir': '/optvar//tmp',
-            'tmplsDir': '/opt/jumpscale8//templates',
-            'varDir': '/optvar/'
+            'PIDDIR': '/optvar//pid',
+            'TMPDIR': '/optvar//tmp',
+            'TEMPLATEDIR': '/opt/jumpscale8//templates',
+            'VARDIR': '/optvar/'
         }
         result = self.core.dir_paths
         self.assertEqual(result, expected_result)
@@ -105,22 +105,22 @@ class TestCuisineCore(unittest.TestCase):
         getenv_mock.return_value = dump_env
 
         expected_result = {
-            'appDir': '/root/opt/jumpscale8//apps',
+            'JSAPPDIR': '/root/opt/jumpscale8//apps',
             'base': '/root/opt/jumpscale8/',
             'binDir': '/root/opt/jumpscale8//bin',
-            'cfgDir': '/root/optvar//cfg',
-            'codeDir': '/root/opt/code/',
-            'goDir': '/root/optvar/go/',
-            'homeDir': '/root',
-            'hrdDir': '/root/optvar//hrd',
+            'JSCFGDIR': '/root/optvar//cfg',
+            'CODEDIR': '/root/opt/code/',
+            'GODIR': '/root/optvar/go/',
+            'HOMEDIR': '/root',
+            'HRDDIR': '/root/optvar//hrd',
             'jsLibDir': '/root/opt/jumpscale8//lib/JumpScale/',
-            'libDir': '/root/opt/jumpscale8//lib/',
-            'logDir': '/root/optvar//log',
+            'LIBDIR': '/root/opt/jumpscale8//lib/',
+            'LOGDIR': '/root/optvar//log',
             'optDir': '/root/opt/',
-            'pidDir': '/root/optvar//pid',
-            'tmpDir': '/root/optvar//tmp',
-            'tmplsDir': '/root/opt/jumpscale8//templates',
-            'varDir': '/root/optvar/'
+            'PIDDIR': '/root/optvar//pid',
+            'TMPDIR': '/root/optvar//tmp',
+            'TEMPLATEDIR': '/root/opt/jumpscale8//templates',
+            'VARDIR': '/root/optvar/'
         }
         result = self.core.dir_paths
         self.assertEqual(result, expected_result)
@@ -137,22 +137,22 @@ class TestCuisineCore(unittest.TestCase):
         getenv_mock.return_value = self.dump_env
 
         expected_result = {
-            'appDir': '/js/path/apps',
+            'JSAPPDIR': '/js/path/apps',
             'base': '/js/path',
             'binDir': '/js/path/bin',
-            'cfgDir': '/root/optvar//cfg',
-            'codeDir': '/root/opt/code/',
-            'goDir': '/root/optvar/go/',
-            'homeDir': '/root',
-            'hrdDir': '/root/optvar//hrd',
+            'JSCFGDIR': '/root/optvar//cfg',
+            'CODEDIR': '/root/opt/code/',
+            'GODIR': '/root/optvar/go/',
+            'HOMEDIR': '/root',
+            'HRDDIR': '/root/optvar//hrd',
             'jsLibDir': '/js/path/lib/JumpScale/',
-            'libDir': '/js/path/lib/',
-            'logDir': '/root/optvar//log',
+            'LIBDIR': '/js/path/lib/',
+            'LOGDIR': '/root/optvar//log',
             'optDir': '/root/opt/',
-            'pidDir': '/root/optvar//pid',
-            'tmpDir': '/root/optvar//tmp',
-            'tmplsDir': '/js/path/templates',
-            'varDir': '/root/optvar/'
+            'PIDDIR': '/root/optvar//pid',
+            'TMPDIR': '/root/optvar//tmp',
+            'TEMPLATEDIR': '/js/path/templates',
+            'VARDIR': '/root/optvar/'
         }
         result = self.core.dir_paths
         self.assertEqual(result, expected_result)
@@ -177,7 +177,7 @@ class TestCuisineCore(unittest.TestCase):
             cuisine_core.getenv.return_value = self.dump_env
             cuisine_core.run = MagicMock()
             cuisine_core.run.return_value = (0, 'hostname', '')
-            input_text = "$base:$appDir:$tmplsDir:$varDir:$binDir:$codeDir:$cfgDir:$homeDir:$jsLibDir:$libDir:$logDir:$pidDir:$tmpDir:$hostname"
+            input_text = "$BASEDIR:$JSAPPDIR:$TEMPLATEDIR:$VARDIR:$binDir:$CODEDIR:$JSCFGDIR:$HOMEDIR:$jsLibDir:$LIBDIR:$LOGDIR:$PIDDIR:$TMPDIR:$hostname"
             expected_output = "/opt/jumpscale8/:/opt/jumpscale8//apps:/opt/jumpscale8//templates:/optvar/:/opt/jumpscale8//bin:/opt/code/:/optvar//cfg:/root:/opt/jumpscale8//lib/JumpScale/:/opt/jumpscale8//lib/:/optvar//log:/optvar//pid:/optvar//tmp:hostname"
             actual_output = cuisine_core.args_replace(input_text)
             self.assertEqual(expected_output, actual_output)

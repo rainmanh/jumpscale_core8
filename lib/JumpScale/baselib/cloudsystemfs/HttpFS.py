@@ -23,7 +23,7 @@ class HttpFS:
     local_file = None
     http_socket = None
 
-    def __init__(self, end_type, server, path, tempdir=j.dirs.tmpDir, Atype=None):
+    def __init__(self, end_type, server, path, tempdir=j.dirs.TMPDIR, Atype=None):
         """
         Initialize connection
         """

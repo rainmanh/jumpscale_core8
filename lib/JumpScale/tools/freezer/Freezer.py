@@ -79,7 +79,7 @@ class Freezer:
 
     def __init__(self):
         self.__jslocation__ = "j.tools.freezer"
-        self.jsbase = j.sal.fs.joinPaths(j.dirs.homeDir, "JS8")
+        self.jsbase = j.sal.fs.joinPaths(j.dirs.HOMEDIR, "JS8")
 
     def install(self):
         cmd = "pip3 install --upgrade pyinstaller"
@@ -89,7 +89,7 @@ class Freezer:
         if not str(j.core.platformtype.myplatform).startswith("darwin"):
             raise j.exceptions.Input(message="only support osx for now", level=1, source="", tags="", msgpub="")
         if backup:
-            backupdir = j.sal.fs.joinPaths(j.dirs.homeDir, "_backup")
+            backupdir = j.sal.fs.joinPaths(j.dirs.HOMEDIR, "_backup")
             j.sal.fs.createDir(backupdir)
         else:
             backupdir = ""
@@ -216,7 +216,7 @@ class Freezer:
         copy(jsbase, "/JS8/opt/jumpscale8/lib/JumpScale")
         copy(jsbase, "/JS8/opt/jumpscale8/templates")
 
-        tmpdir = j.sal.fs.joinPaths(j.dirs.tmpDir, "freezer")
+        tmpdir = j.sal.fs.joinPaths(j.dirs.TMPDIR, "freezer")
         j.sal.fs.createDir(tmpdir)
         j.sal.fs.writeFile(filename=j.sal.fs.joinPaths(tmpdir, "js.py"), contents=JS, append=False)
 

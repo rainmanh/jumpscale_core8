@@ -22,6 +22,6 @@ class CuisineRust(app):
         self._cuisine.core.run('tar --overwrite -xf {} -C /tmp/'.format(dest))
 
         # copy file to correct locations.
-        self._cuisine.core.run('cd /tmp/{version} && ./install.sh --prefix=$appDir/rust --destdir==$appDir/rust'.format(version=version))
+        self._cuisine.core.run('cd /tmp/{version} && ./install.sh --prefix=$JSAPPDIR/rust --destdir==$JSAPPDIR/rust'.format(version=version))
 
-        self._cuisine.bash.addPath(self._cuisine.core.args_replace('$appDir/rust/bin'))
+        self._cuisine.bash.addPath(self._cuisine.core.args_replace('$JSAPPDIR/rust/bin'))

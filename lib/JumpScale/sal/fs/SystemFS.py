@@ -92,7 +92,7 @@ def lock_(lockname, locktimeout=60, reentry=False):
     to unit-test.
     '''
     # TODO This no longer uses fnctl on Unix, why?
-    LOCKPATH = os.path.join(j.dirs.tmpDir, 'locks')
+    LOCKPATH = os.path.join(j.dirs.TMPDIR, 'locks')
     lockfile = os.path.join(LOCKPATH, cleanupString(lockname))
     if reentry:
         _LOCKDICTIONARY[lockname] = _LOCKDICTIONARY.setdefault(lockname, 0) + 1
@@ -121,7 +121,7 @@ def lock_(lockname, locktimeout=60, reentry=False):
 def islocked(lockname, reentry=False):
     '''Check if a system-wide interprocess exclusive lock is set'''
     isLocked = True
-    LOCKPATH = os.path.join(j.dirs.tmpDir, 'locks')
+    LOCKPATH = os.path.join(j.dirs.TMPDIR, 'locks')
     lockfile = os.path.join(LOCKPATH, cleanupString(lockname))
 
     try:
@@ -168,7 +168,7 @@ def unlock_(lockname):
     This refactoring was mainly done to make the lock implementation easier
     to unit-test.
     '''
-    LOCKPATH = os.path.join(j.dirs.tmpDir, 'locks')
+    LOCKPATH = os.path.join(j.dirs.TMPDIR, 'locks')
     lockfile = os.path.join(LOCKPATH, cleanupString(lockname))
     if lockname in _LOCKDICTIONARY:
         _LOCKDICTIONARY[lockname] -= 1
@@ -1726,7 +1726,7 @@ class SystemFS:
         """
         create a tmp dir name and makes sure the dir exists
         """
-        tmpdir = j.sal.fs.joinPaths(j.dirs.tmpDir, j.data.idgenerator.generateXCharID(10))
+        tmpdir = j.sal.fs.joinPaths(j.dirs.TMPDIR, j.data.idgenerator.generateXCharID(10))
         if create is True:
             j.sal.fs.createDir(tmpdir)
         return tmpdir
@@ -1737,7 +1737,7 @@ class SystemFS:
         @rtype: string representing the path of the temp file generated
         """
         # return tempfile.mktemp())
-        tmpdir = j.dirs.tmpDir
+        tmpdir = j.dirs.TMPDIR
         fd, path = tempfile.mkstemp(dir=tmpdir)
         try:
             real_fd = os.fdopen(fd)
@@ -1756,10 +1756,10 @@ class SystemFS:
         @rtype: string representing the generated temp file path
         """
         if dir is None:
-            return j.sal.fs.joinPaths(j.dirs.tmpDir, prefix +
+            return j.sal.fs.joinPaths(j.dirs.TMPDIR, prefix +
                                       str(j.data.idgenerator.generateRandomInt(0, 1000000000000)) + ".tmp")
         else:
-            dir = dir or j.dirs.tmpDir
+            dir = dir or j.dirs.TMPDIR
             return tempfile.mktemp('', prefix, dir)
 
     def isAsciiFile(self, filename, checksize=4096):

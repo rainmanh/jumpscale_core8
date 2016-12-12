@@ -74,7 +74,7 @@ You can ovveride it to use another way for checking
 
 ```
 
-#### start(*ip='0.0.0.0', port='5053', config_dir='$cfgDir/geodns/dns/', identifier='geodns_main', cpus='1', tmux*) 
+#### start(*ip='0.0.0.0', port='5053', config_dir='$JSCFGDIR/geodns/dns/', identifier='geodns_main', cpus='1', tmux*) 
 
 ```
 starts geodns server with given params

@@ -131,14 +131,14 @@ class GCC_Mgmt():
         peers = ["http://%s" % node.addr for node in self.docker_nodes]
         node.cuisine.apps.etcd.build(start=True, host="http://%s" % node.addr, peers=peers, force=force)
         node.cuisine.apps.skydns.build(start=True, force=force)
-        node.cuisine.apps.aydostore(start=True, addr='127.0.0.1:8090', backend="$varDir/aydostor", force=force)
+        node.cuisine.apps.aydostore(start=True, addr='127.0.0.1:8090', backend="$VARDIR/aydostor", force=force)
         # node.cuisine.apps.agentcontroller(start=True, force=force)
         node.cuisine.apps.caddy.install(ssl=True, start=True, dns=node.addr, force=force)
         self._configCaddy(node)
         self._configSkydns(node)
 
     def _configCaddy(self, node):
-        cfg = node.cuisine.core.file_read("$cfgDir/caddy/caddyfile.conf")
+        cfg = node.cuisine.core.file_read("$JSCFGDIR/caddy/caddyfile.conf")
         cfg += """
         proxy /etcd localhost:2379 localhost:4001 {
         without /etcd
@@ -151,7 +151,7 @@ class GCC_Mgmt():
 
         if self._basicAuth:
             cfg += "\nbasicauth /etcd %s %s\n" % (self._basicAuth['login'], self._basicAuth['passwd'])
-        cfg = node.cuisine.core.file_write("$cfgDir/caddy/caddyfile.conf", cfg)
+        cfg = node.cuisine.core.file_write("$JSCFGDIR/caddy/caddyfile.conf", cfg)
         node.cuisine.processmanager.ensure('caddy')
 
     def _configSkydns(self, node):

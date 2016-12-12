@@ -9,7 +9,7 @@ class CuisineDeployerBot(app):
 
     def isInstalled(self):
         return self._cuisine.core.file_exists(
-            "$appDir/deployer_bot/telegram-bot") and self._cuisine.core.file_exists('$cfgDir/deployerbot/config.toml')
+            "$JSAPPDIR/deployer_bot/telegram-bot") and self._cuisine.core.file_exists('$JSCFGDIR/deployerbot/config.toml')
 
     def install(self, start=True, token=None, g8_addresses=None, dns=None, oauth=None, ays_conf=None):
         """
@@ -51,8 +51,8 @@ class CuisineDeployerBot(app):
         self.ays_config(ays_conf)
         self.create_config(token=token, g8_addresses=g8_addresses, dns=dns, oauth=oauth)
         cmd = self._cuisine.core.args_replace(
-            'jspython $appDir/deployer_bot/telegram-bot --config $cfgDir/deployerbot/config.yaml')
-        cwd = self._cuisine.core.args_replace('$appDir/deployer_bot')
+            'jspython $JSAPPDIR/deployer_bot/telegram-bot --config $JSCFGDIR/deployerbot/config.yaml')
+        cwd = self._cuisine.core.args_replace('$JSAPPDIR/deployer_bot')
         self._cuisine.processmanager.ensure('deployerbot', cmd=cmd, path=cwd)
 
     def install_deps(self):
@@ -63,12 +63,12 @@ class CuisineDeployerBot(app):
         self._cuisine.development.pip.multiInstall(deps, upgrade=True)
 
     def link_code(self):
-        self._cuisine.core.dir_ensure("$appDir")
-        self._cuisine.core.file_link('$codeDir/github/jumpscale/jscockpit/deployer_bot/', '$appDir/deployer_bot')
+        self._cuisine.core.dir_ensure("$JSAPPDIR")
+        self._cuisine.core.file_link('$CODEDIR/github/jumpscale/jscockpit/deployer_bot/', '$JSAPPDIR/deployer_bot')
 
     def ays_config(self, ays_conf=None):
         ays_conf = ays_conf or {}
-        AYS_CONFIG_PATH = "$cfgDir/ays/ays.conf"
+        AYS_CONFIG_PATH = "$JSCFGDIR/ays/ays.conf"
         REDIS_SOCKET_PATH = "/tmp/redis.sock"
 
         conf = {
@@ -120,6 +120,6 @@ class CuisineDeployerBot(app):
             # make sure port is an int
             cfg['oauth']['port'] = int(cfg['oauth']['port'])
 
-        self._cuisine.core.createDir('$cfgDir/deployerbot')
+        self._cuisine.core.createDir('$JSCFGDIR/deployerbot')
         content = j.data.serializer.yaml.dumps(cfg)
-        self._cuisine.core.file_write('$cfgDir/deployerbot/config.yaml', content)
+        self._cuisine.core.file_write('$JSCFGDIR/deployerbot/config.yaml', content)

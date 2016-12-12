@@ -56,7 +56,7 @@ def echo(bot):
 
             if update.message.document != None:
                 ff = bot.getFile(update.message.document.file_id)
-                path = "%s/%s" % (j.dirs.tmpDir, update.message.document.file_name)
+                path = "%s/%s" % (j.dirs.TMPDIR, update.message.document.file_name)
                 ff.download(path)
 
             from IPython import embed

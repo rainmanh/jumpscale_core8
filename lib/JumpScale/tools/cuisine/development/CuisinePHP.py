@@ -11,8 +11,8 @@ compileconfig['with_curl'] = True  # apt-get install libcurl4-openssl-dev libzip
 compileconfig['with_libzip'] = True
 compileconfig['with_zlib'] = True
 compileconfig['enable_fpm'] = True
-compileconfig['prefix'] = "$appDir/php"
-compileconfig['exec_prefix'] = "$appDir/php"
+compileconfig['prefix'] = "$JSAPPDIR/php"
+compileconfig['exec_prefix'] = "$JSAPPDIR/php"
 compileconfig['with_mysqli'] = True
 compileconfig['with_pdo_mysql'] = True
 compileconfig['with_mysql_sock'] = "/var/run/mysqld/mysqld.sock"
@@ -38,16 +38,16 @@ class CuisinePHP(app):
             else:
                 args_string += " --{k}={v}".format(k=k, v=v)
         C = """
-        rm -rf $tmpDir/php
-        rm -rf $appDir/php
+        rm -rf $TMPDIR/php
+        rm -rf $JSAPPDIR/php
         set -xe
-        rm -rf $tmpDir/php-7.0.11
-        cd $tmpDir && [ ! -f $tmpDir/php-7.0.11.tar.bz2 ] && cd $tmpDir && wget http://be2.php.net/distributions/php-7.0.11.tar.bz2 && tar xvjf $tmpDir/php-7.0.11.tar.bz2
-        cd $tmpDir && tar xvjf $tmpDir/php-7.0.11.tar.bz2
-        mv $tmpDir/php-7.0.11/ $tmpDir/php
+        rm -rf $TMPDIR/php-7.0.11
+        cd $TMPDIR && [ ! -f $TMPDIR/php-7.0.11.tar.bz2 ] && cd $TMPDIR && wget http://be2.php.net/distributions/php-7.0.11.tar.bz2 && tar xvjf $TMPDIR/php-7.0.11.tar.bz2
+        cd $TMPDIR && tar xvjf $TMPDIR/php-7.0.11.tar.bz2
+        mv $TMPDIR/php-7.0.11/ $TMPDIR/php
 
         #build
-        cd $tmpDir/php && ./configure {args_string} && make
+        cd $TMPDIR/php && ./configure {args_string} && make
 
         """.format(args_string=args_string)
 
@@ -58,7 +58,7 @@ class CuisinePHP(app):
 
     def install(self, start=False):
         fpmdefaultconf = """\
-        include=$appDir/php/etc/php-fpm.d/*.conf
+        include=$JSAPPDIR/php/etc/php-fpm.d/*.conf
         """
         fpmwwwconf = """\
         ;nobody Start a new pool named 'www'.
@@ -83,24 +83,24 @@ class CuisinePHP(app):
         fpmwwwconf = textwrap.dedent(fpmwwwconf)
         # make sure to save that configuration file ending with .conf under php/etc/php-fpm.d/www.conf
         C = """
-        cd $tmpDir/php && make install
+        cd $TMPDIR/php && make install
         """
 
         C = self._cuisine.core.args_replace(C)
         self._cuisine.core.execute_bash(C)
         fpmdefaultconf = self._cuisine.core.args_replace(fpmdefaultconf)
         fpmwwwconf = self._cuisine.core.args_replace(fpmwwwconf)
-        self._cuisine.core.file_write("$appDir/php/etc/php-fpm.conf.default", content=fpmdefaultconf)
-        self._cuisine.core.file_write("$appDir/php/etc/php-fpm.d/www.conf", content=fpmwwwconf)
-        self._cuisine.bash.addPath(self._cuisine.core.args_replace('$appDir/php/bin'))
+        self._cuisine.core.file_write("$JSAPPDIR/php/etc/php-fpm.conf.default", content=fpmdefaultconf)
+        self._cuisine.core.file_write("$JSAPPDIR/php/etc/php-fpm.d/www.conf", content=fpmwwwconf)
+        self._cuisine.bash.addPath(self._cuisine.core.args_replace('$JSAPPDIR/php/bin'))
 
         if start:
             self.start()
 
     def start(self):
-        phpfpmbinpath = '$appDir/php/sbin'
+        phpfpmbinpath = '$JSAPPDIR/php/sbin'
 
-        phpfpmcmd = "$appDir/php/sbin/php-fpm -F -y $appDir/php/etc/php-fpm.conf.default"  # foreground
+        phpfpmcmd = "$JSAPPDIR/php/sbin/php-fpm -F -y $JSAPPDIR/php/etc/php-fpm.conf.default"  # foreground
         phpfpmcmd = self._cuisine.core.args_replace(phpfpmcmd)
         self._cuisine.processmanager.ensure(name="php-fpm", cmd=phpfpmcmd, path=phpfpmbinpath)
 

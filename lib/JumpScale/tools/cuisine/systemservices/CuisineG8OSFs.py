@@ -17,7 +17,7 @@ class CuisineG8OSFs(app):
         self._cuisine.package.install('build-essential')
 
         self._cuisine.development.golang.get("github.com/g8os/fs")
-        self._cuisine.core.file_copy("$goDir/bin/fs", "$base/bin")
+        self._cuisine.core.file_copy("$GODIR/bin/fs", "$BASEDIR/bin")
 
         if install:
             self.install(start)
@@ -47,15 +47,15 @@ class CuisineG8OSFs(app):
             login=""
             passwd=""
         """
-        self._cuisine.core.dir_ensure("$tmplsDir/cfg/fs")
-        self._cuisine.core.file_copy("$goDir/bin/fs", "$base/bin")
-        self._cuisine.core.file_write("$goDir/src/github.com/g8os/fs/config/config.toml", content)
-        self._cuisine.core.file_copy("$goDir/src/github.com/g8os/fs/config/config.toml", "$tmplsDir/cfg/fs")
+        self._cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/fs")
+        self._cuisine.core.file_copy("$GODIR/bin/fs", "$BASEDIR/bin")
+        self._cuisine.core.file_write("$GODIR/src/github.com/g8os/fs/config/config.toml", content)
+        self._cuisine.core.file_copy("$GODIR/src/github.com/g8os/fs/config/config.toml", "$TEMPLATEDIR/cfg/fs")
         self._cuisine.core.file_download(
-            "https://stor.jumpscale.org/storx/static/js8_opt.flist", "$tmplsDir/cfg/fs/js8_opt.flist")
+            "https://stor.jumpscale.org/storx/static/js8_opt.flist", "$TEMPLATEDIR/cfg/fs/js8_opt.flist")
         if start:
             self.start()
 
     def start(self):
-        self._cuisine.core.file_copy("$tmplsDir/cfg/fs", "$cfgDir", recursive=True)
-        self._cuisine.processmanager.ensure('fs', cmd="$binDir/fs -c $cfgDir/fs/config.toml")
+        self._cuisine.core.file_copy("$TEMPLATEDIR/cfg/fs", "$JSCFGDIR", recursive=True)
+        self._cuisine.processmanager.ensure('fs', cmd="$binDir/fs -c $JSCFGDIR/fs/config.toml")

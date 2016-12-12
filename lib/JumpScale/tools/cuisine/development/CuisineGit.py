@@ -30,17 +30,17 @@ class CuisineGit(base):
 
         if dest is None:
             base, provider, account, repo, dest, url = j.do.getGitRepoArgs(
-                url, dest, login, passwd, reset=reset, ssh=ssh, codeDir=self._cuisine.core.dir_paths["codeDir"])
+                url, dest, login, passwd, reset=reset, ssh=ssh, codeDir=self._cuisine.core.dir_paths["CODEDIR"])
             # we need to work in remote linux so we only support /opt/code
         else:
             dest = self._cuisine.core.args_replace(dest)
 
         self._cuisine.core.dir_ensure(j.sal.fs.getParent(dest))
-        self._cuisine.core.dir_ensure('$homeDir/.ssh')
+        self._cuisine.core.dir_ensure('$HOMEDIR/.ssh')
         keys = self._cuisine.core.run("ssh-keyscan -H github.com")[1]
-        self._cuisine.core.dir_ensure('$homeDir/.ssh')
-        self._cuisine.core.file_append("$homeDir/.ssh/known_hosts", keys)
-        self._cuisine.core.file_attribs("$homeDir/.ssh/known_hosts", mode=600)
+        self._cuisine.core.dir_ensure('$HOMEDIR/.ssh')
+        self._cuisine.core.file_append("$HOMEDIR/.ssh/known_hosts", keys)
+        self._cuisine.core.file_attribs("$HOMEDIR/.ssh/known_hosts", mode=600)
 
         print("pull %s with depth:%s" % (url, depth))
 

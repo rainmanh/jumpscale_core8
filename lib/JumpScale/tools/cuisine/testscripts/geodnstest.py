@@ -11,9 +11,9 @@ def test(geodns_install=False, dnsresolver_install=True, port=3333, tmux=True):
 
     if dnsresolver_install:
         cuisine.core.file_download("http://www.dnspython.org/kits3/1.12.0/dnspython3-1.12.0.tar.gz",
-                                   to="$tmpDir", overwrite=False, expand=True)
-        tarpath = cuisine.core.find("$tmpDir", recursive=True, pattern="*dns*.tgz", type='f')[0]
-        extracted = cuisine.core.file_expand(tarpath, "$tmpDir")
+                                   to="$TMPDIR", overwrite=False, expand=True)
+        tarpath = cuisine.core.find("$TMPDIR", recursive=True, pattern="*dns*.tgz", type='f')[0]
+        extracted = cuisine.core.file_expand(tarpath, "$TMPDIR")
         cuisine.core.run("cd %s && python setup.py" % extracted)
 
     if geodns_install:

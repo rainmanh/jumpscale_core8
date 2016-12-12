@@ -37,55 +37,55 @@ class Dirs:
         import sys
 
         self.base = j.do.BASE
-        self.homeDir = os.environ["HOME"]
-        self.cfgDir = os.environ["CFGDIR"]
-        self.tmpDir = os.environ["TMPDIR"]
+        self.HOMEDIR = os.environ["HOME"]
+        self.JSCFGDIR = os.environ["CFGDIR"]
+        self.TMPDIR = os.environ["TMPDIR"]
 
     def normalize(self, path):
         """
         """
         if path:
             if "~" in path:
-                path = path.replace("~", j.dirs.homeDir)
+                path = path.replace("~", j.dirs.HOMEDIR)
             path = j.sal.fs.pathDirClean(path)
         return path
 
     def init(self):
-        self.appDir = self.normalize(j.sal.fs.joinPaths(self.base, "apps"))
-        self.varDir = self.normalize(j.do.VARDIR)
-        self.tmplsDir = self.normalize(j.sal.fs.joinPaths(self.base, "templates"))
-        self.libDir = j.sal.fs.joinPaths(self.base, 'lib')
-        self.logDir = self.normalize(j.sal.fs.joinPaths(self.varDir, "log"))
-        self.pidDir = self.normalize(j.sal.fs.joinPaths(self.varDir, "pid"))
-        self.codeDir = self.normalize(j.do.CODEDIR)
+        self.JSAPPDIR = self.normalize(j.sal.fs.joinPaths(self.base, "apps"))
+        self.VARDIR = self.normalize(j.do.VARDIR)
+        self.TEMPLATEDIR = self.normalize(j.sal.fs.joinPaths(self.base, "templates"))
+        self.LIBDIR = j.sal.fs.joinPaths(self.base, 'lib')
+        self.LOGDIR = self.normalize(j.sal.fs.joinPaths(self.VARDIR, "log"))
+        self.PIDDIR = self.normalize(j.sal.fs.joinPaths(self.VARDIR, "pid"))
+        self.CODEDIR = self.normalize(j.do.CODEDIR)
         self.libExtDir = j.sal.fs.joinPaths(self.base, 'libext')
         self.binDir = self.normalize(os.path.join(self.base, 'bin'))
-        self.jsLibDir = os.path.join(self.libDir, "JumpScale")
+        self.jsLibDir = os.path.join(self.LIBDIR, "JumpScale")
 
     def replaceTxtDirVars(self, txt, additionalArgs={}):
         """
-        replace $base,$vardir,$cfgDir,$bindir,$codedir,$tmpdir,$logdir,$appdir with props of this class
+        replace $BASEDIR,$vardir,$JSCFGDIR,$bindir,$codedir,$tmpdir,$logdir,$appdir with props of this class
         also the Dir... get replaces e.g. varDir
         """
-        txt = txt.replace("$base", self.base)
-        txt = txt.replace("$appdir", self.appDir)
-        txt = txt.replace("$appDir", self.appDir)
-        txt = txt.replace("$tmplsDir", self.tmplsDir)
-        txt = txt.replace("$tmplsdir", self.tmplsDir)
-        txt = txt.replace("$codedir", self.codeDir)
-        txt = txt.replace("$codeDir", self.codeDir)
-        txt = txt.replace("$vardir", self.varDir)
-        txt = txt.replace("$varDir", self.varDir)
-        txt = txt.replace("$cfgdir", self.cfgDir)
-        txt = txt.replace("$cfgDir", self.cfgDir)
+        txt = txt.replace("$BASEDIR", self.base)
+        txt = txt.replace("$appdir", self.JSAPPDIR)
+        txt = txt.replace("$JSAPPDIR", self.JSAPPDIR)
+        txt = txt.replace("$TEMPLATEDIR", self.TEMPLATEDIR)
+        txt = txt.replace("$tmplsdir", self.TEMPLATEDIR)
+        txt = txt.replace("$codedir", self.CODEDIR)
+        txt = txt.replace("$CODEDIR", self.CODEDIR)
+        txt = txt.replace("$vardir", self.VARDIR)
+        txt = txt.replace("$VARDIR", self.VARDIR)
+        txt = txt.replace("$cfgdir", self.JSCFGDIR)
+        txt = txt.replace("$JSCFGDIR", self.JSCFGDIR)
         txt = txt.replace("$bindir", self.binDir)
         txt = txt.replace("$binDir", self.binDir)
-        txt = txt.replace("$logdir", self.logDir)
-        txt = txt.replace("$logDir", self.logDir)
-        txt = txt.replace("$tmpdir", self.tmpDir)
-        txt = txt.replace("$tmpDir", self.tmpDir)
-        txt = txt.replace("$libdir", self.libDir)
-        txt = txt.replace("$libDir", self.libDir)
+        txt = txt.replace("$logdir", self.LOGDIR)
+        txt = txt.replace("$LOGDIR", self.LOGDIR)
+        txt = txt.replace("$tmpdir", self.TMPDIR)
+        txt = txt.replace("$TMPDIR", self.TMPDIR)
+        txt = txt.replace("$libdir", self.LIBDIR)
+        txt = txt.replace("$LIBDIR", self.LIBDIR)
         txt = txt.replace("$jslibextdir", self.libExtDir)
         txt = txt.replace("$jsbindir", self.binDir)
         txt = txt.replace("$nodeid", str(j.application.whoAmI.nid))

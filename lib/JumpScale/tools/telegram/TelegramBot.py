@@ -41,7 +41,7 @@ class TelegramBot:
         """
         self.api.add_handler(handler)
 
-    def start(self, path="%s/telegrambot/actions" % j.dirs.varDir):
+    def start(self, path="%s/telegrambot/actions" % j.dirs.VARDIR):
         """
         will always look for actions in subdir 'actions'
         each name of script corresponds to name of action

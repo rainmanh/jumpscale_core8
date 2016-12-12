@@ -28,20 +28,20 @@ class CuisineArakoon(base):
 
             self._cuisine.core.file_copy('%s/arakoon.native' % dest, "$binDir/arakoon", overwrite=True)
 
-        self._cuisine.core.dir_ensure('$varDir/data/arakoon')
+        self._cuisine.core.dir_ensure('$VARDIR/data/arakoon')
 
     def _install_ocaml(self):
         self.logger.info("download opam installer")
         ocaml_url = 'https://raw.github.com/ocaml/opam/master/shell/opam_installer.sh'
-        self._cuisine.core.file_download(ocaml_url, to='$tmpDir/opam_installer.sh')
+        self._cuisine.core.file_download(ocaml_url, to='$TMPDIR/opam_installer.sh')
         self.logger.info("install opam")
-        self._cuisine.core.run('chmod +x $tmpDir/opam_installer.sh')
+        self._cuisine.core.run('chmod +x $TMPDIR/opam_installer.sh')
         ocaml_version = '4.02.3'
-        cmd = 'yes | $tmpDir/opam_installer.sh $binDir %s' % ocaml_version
+        cmd = 'yes | $TMPDIR/opam_installer.sh $binDir %s' % ocaml_version
         self._cuisine.core.run(cmd, profile=True)
 
         self.logger.info("initialize opam")
-        opam_root = self._cuisine.core.args_replace('$tmpDir/OPAM')
+        opam_root = self._cuisine.core.args_replace('$TMPDIR/OPAM')
         self._cuisine.core.dir_ensure(opam_root)
         cmd = 'opam init --root=%s --comp %s -a --dot-profile %s' % (
             opam_root, ocaml_version, self._cuisine.bash.profilePath)
@@ -119,8 +119,8 @@ class CuisineArakoon(base):
 
     def start(self):
         which = self._cuisine.core.command_location("arakoon")
-        self._cuisine.core.dir_ensure('$varDir/data/arakoon')
-        cmd = "%s --config $cfgDir/arakoon/arakoon.ini" % which
+        self._cuisine.core.dir_ensure('$VARDIR/data/arakoon')
+        cmd = "%s --config $JSCFGDIR/arakoon/arakoon.ini" % which
         self._cuisine.process.kill("arakoon")
         self._cuisine.processmanager.ensure("arakoon", cmd=cmd, env={}, path="")
 
@@ -149,7 +149,7 @@ class ArakoonCluster(object):
         self.plugins = []
         self.nodes = []
 
-    def add_node(self, ip, home='$varDir/data/arakoon', client_port=7080, messaging_port=10000, log_level='info'):
+    def add_node(self, ip, home='$VARDIR/data/arakoon', client_port=7080, messaging_port=10000, log_level='info'):
         home = self._cuisine.core.args_replace(home)
         node = ArakoonNode(ip=ip, home=home, client_port=client_port,
                            messaging_port=messaging_port, log_level=log_level)

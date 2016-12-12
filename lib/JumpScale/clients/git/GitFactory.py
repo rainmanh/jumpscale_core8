@@ -72,20 +72,20 @@ class GitFactory:
             repos = []
             for top in j.sal.fs.listDirsInDir(codeDir, recursive=False,
                                               dirNameOnly=True, findDirectorySymlinks=True):
-                for account in j.sal.fs.listDirsInDir("%s/%s" % (j.dirs.codeDir, top), recursive=False,
+                for account in j.sal.fs.listDirsInDir("%s/%s" % (j.dirs.CODEDIR, top), recursive=False,
                                                       dirNameOnly=True, findDirectorySymlinks=True):
                     if checkaccount(account):
-                        accountdir = "%s/%s/%s" % (j.dirs.codeDir,
+                        accountdir = "%s/%s/%s" % (j.dirs.CODEDIR,
                                                    top, account)
                         if j.sal.fs.exists(path="%s/.git" % accountdir):
                             raise j.exceptions.RuntimeError(
                                 "there should be no .git at %s level" % accountdir)
                         else:
-                            for reponame in j.sal.fs.listDirsInDir("%s/%s/%s" % (j.dirs.codeDir, top, account),
+                            for reponame in j.sal.fs.listDirsInDir("%s/%s/%s" % (j.dirs.CODEDIR, top, account),
                                                                    recursive=False, dirNameOnly=True,
                                                                    findDirectorySymlinks=True):
                                 repodir = "%s/%s/%s/%s" % (
-                                    j.dirs.codeDir, top, account, reponame)
+                                    j.dirs.CODEDIR, top, account, reponame)
                                 if j.sal.fs.exists(path="%s/.git" % repodir):
                                     if name.find("*") != -1:
                                         if name == "*" or reponame.startswith(name.replace("*", "")):
@@ -101,7 +101,7 @@ class GitFactory:
             return repos
 
         j.sal.fs.createDir(j.sal.fs.joinPaths(os.getenv("HOME"), "code"))
-        repos = _getRepos(j.dirs.codeDir, account, name)
+        repos = _getRepos(j.dirs.CODEDIR, account, name)
         repos += _getRepos(j.sal.fs.joinPaths(os.getenv("HOME"),
                                               "code"), account, name)
 
@@ -161,19 +161,19 @@ class GitFactory:
 
     def getGitReposListLocal(self, provider="", account="", name="", errorIfNone=True):
         repos = {}
-        for top in j.sal.fs.listDirsInDir(j.dirs.codeDir, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+        for top in j.sal.fs.listDirsInDir(j.dirs.CODEDIR, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
             if provider != "" and provider != top:
                 continue
-            for accountfound in j.sal.fs.listDirsInDir("%s/%s" % (j.dirs.codeDir, top),
+            for accountfound in j.sal.fs.listDirsInDir("%s/%s" % (j.dirs.CODEDIR, top),
                                                        recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
                 if account != "" and account != accountfound:
                     continue
-                accountfounddir = "/%s/%s/%s" % (j.dirs.codeDir, top, accountfound)
+                accountfounddir = "/%s/%s/%s" % (j.dirs.CODEDIR, top, accountfound)
                 for reponame in j.sal.fs.listDirsInDir(
-                        "%s/%s/%s" % (j.dirs.codeDir, top, accountfound), recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+                        "%s/%s/%s" % (j.dirs.CODEDIR, top, accountfound), recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
                     if name != "" and name != reponame:
                         continue
-                    repodir = "%s/%s/%s/%s" % (j.dirs.codeDir, top, accountfound, reponame)
+                    repodir = "%s/%s/%s/%s" % (j.dirs.CODEDIR, top, accountfound, reponame)
                     if j.sal.fs.exists(path="%s/.git" % repodir):
                         repos[reponame] = repodir
         if len(list(repos.keys())) == 0:

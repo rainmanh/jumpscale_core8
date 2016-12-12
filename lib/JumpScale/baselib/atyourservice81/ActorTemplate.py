@@ -18,11 +18,11 @@ class ActorTemplate():
         if j.sal.fs.exists(path=path):
             # we know its absolute
             relpath = j.sal.fs.pathRemoveDirPart(
-                path, gitrepo.baseDir, removeTrailingSlash=True)
+                path, gitrepo.BASEDIR, removeTrailingSlash=True)
             # path is now relative path
         else:
             relpath = path
-            path = j.sal.fs.joinPaths(gitrepo.baseDir, path)
+            path = j.sal.fs.joinPaths(gitrepo.BASEDIR, path)
             if not j.sal.fs.exists(path=path):
                 raise j.exceptions.Input(
                     "Cannot find path for template:%s" % path)
@@ -35,10 +35,10 @@ class ActorTemplate():
 
         if aysrepo is None:
             # means the template comes from an ays repo
-            self.domain = j.sal.fs.getBaseName(gitrepo.baseDir)
+            self.domain = j.sal.fs.getBaseName(gitrepo.BASEDIR)
             if not self.domain.startswith("ays_"):
                 raise j.exceptions.Input(
-                    "name of ays template git repo should start with ays_, now:%s" % gitrepo.baseDir)
+                    "name of ays template git repo should start with ays_, now:%s" % gitrepo.BASEDIR)
             self.domain = self.domain[4:]
         else:
             self.domain = j.sal.fs.getDirName(aysrepo.path, True)

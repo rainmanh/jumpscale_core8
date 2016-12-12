@@ -29,7 +29,7 @@ class MyFSEventHandler(FileSystemEventHandler):
                         sep_cmds = "jumpscale_core8/shellcmds/"
                         if changedfile.find(sep) != -1:
                             dest0 = changedfile.split(sep)[1]
-                            dest = j.sal.fs.joinPaths(node.cuisine.core.dir_paths['libDir'], 'JumpScale', dest0)
+                            dest = j.sal.fs.joinPaths(node.cuisine.core.dir_paths['LIBDIR'], 'JumpScale', dest0)
                         elif changedfile.find(sep_cmds) != -1:
                             dest0 = changedfile.split(sep_cmds)[1]
                             dest = j.sal.fs.joinPaths(node.cuisine.core.dir_paths['binDir'], dest0)
@@ -39,10 +39,10 @@ class MyFSEventHandler(FileSystemEventHandler):
                             return
                         elif j.sal.fs.getBaseName(changedfile) in ["InstallTools.py", "ExtraTools.py"]:
                             base = j.sal.fs.getBaseName(changedfile)
-                            dest = j.sal.fs.joinPaths(node.cuisine.core.dir_paths['libDir'], 'JumpScale', base)
+                            dest = j.sal.fs.joinPaths(node.cuisine.core.dir_paths['LIBDIR'], 'JumpScale', base)
                         else:
                             destpart = changedfile.split("jumpscale/", 1)[-1]
-                            dest = j.sal.fs.joinPaths(node.cuisine.core.dir_paths['codeDir'], destpart)
+                            dest = j.sal.fs.joinPaths(node.cuisine.core.dir_paths['CODEDIR'], destpart)
                     else:
                         if changedfile.find("/.git/") != -1:
                             return
@@ -50,7 +50,7 @@ class MyFSEventHandler(FileSystemEventHandler):
                             return
                         else:
                             destpart = changedfile.split("code/", 1)[-1]
-                            dest = j.sal.fs.joinPaths(node.cuisine.core.dir_paths['codeDir'], destpart)
+                            dest = j.sal.fs.joinPaths(node.cuisine.core.dir_paths['CODEDIR'], destpart)
                     e = ""
                     if action == "copy":
                         print("copy: %s %s:%s" % (changedfile, node, dest))
@@ -280,7 +280,7 @@ class DevelopToolsFactory:
 
         """
         if ask or j.core.db.get("debug.codepaths") is None:
-            path = j.dirs.codeDir + "/github/jumpscale"
+            path = j.dirs.CODEDIR + "/github/jumpscale"
             if j.sal.fs.exists(path):
                 items = j.sal.fs.listDirsInDir(path)
             chosen = j.tools.console.askChoiceMultiple(items)
@@ -304,29 +304,29 @@ class DevelopToolsFactory:
 
                     if not node.cuisine.core.isJS8Sandbox:
                         # non sandboxed mode, need to sync to \
-                        dest = "root@%s:%s/%s" % (node.addr, node.cuisine.core.dir_paths['codeDir'], source.split("code/", 1)[1])
+                        dest = "root@%s:%s/%s" % (node.addr, node.cuisine.core.dir_paths['CODEDIR'], source.split("code/", 1)[1])
                     else:
-                        dest = "root@%s:%s/%s" % (node.addr, node.cuisine.core.dir_paths['codeDir'], destpart)
+                        dest = "root@%s:%s/%s" % (node.addr, node.cuisine.core.dir_paths['CODEDIR'], destpart)
 
                     if destpart == "jumpscale_core8" and node.cuisine.core.isJS8Sandbox:
-                        dest = "root@%s:%s/JumpScale/" % (node.addr, node.cuisine.core.dir_paths['libDir'])
+                        dest = "root@%s:%s/JumpScale/" % (node.addr, node.cuisine.core.dir_paths['LIBDIR'])
                         source2 = source + "/lib/JumpScale/"
 
                         j.sal.fs.copyDirTree(source2, dest, ignoredir=[
                                              '.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True, rsyncdelete=rsyncdelete)
 
                         source2 = source + "/install/InstallTools.py"
-                        dest = "root@%s:%s/JumpScale/InstallTools.py" % (node.addr, node.cuisine.core.dir_paths['libDir'])
+                        dest = "root@%s:%s/JumpScale/InstallTools.py" % (node.addr, node.cuisine.core.dir_paths['LIBDIR'])
                         j.sal.fs.copyDirTree(source2, dest, ignoredir=[
                                              '.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
 
                         source2 = source + "/install/ExtraTools.py"
-                        dest = "root@%s:%s/JumpScale/ExtraTools.py" % (node.addr, node.cuisine.core.dir_paths['libDir'])
+                        dest = "root@%s:%s/JumpScale/ExtraTools.py" % (node.addr, node.cuisine.core.dir_paths['LIBDIR'])
                         j.sal.fs.copyDirTree(source2, dest, ignoredir=[
                                              '.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
 
                     else:
-                        node.cuisine.core.run("mkdir -p %s/%s" % (node.cuisine.core.dir_paths['codeDir'], source.split("code/", 1)[1]))
+                        node.cuisine.core.run("mkdir -p %s/%s" % (node.cuisine.core.dir_paths['CODEDIR'], source.split("code/", 1)[1]))
                         if node.cuisine.core.isJS8Sandbox:
                             rsyncdelete2 = True
                         else:

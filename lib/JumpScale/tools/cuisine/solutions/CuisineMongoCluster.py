@@ -65,7 +65,7 @@ class MongoInstance(Startable):
         self.replica = replica
         self.configdb = configdb
         if dbdir is None:
-            dbdir = "$varDir/data/db"
+            dbdir = "$VARDIR/data/db"
         if public_port is None:
             public_port = private_port
         self.dbdir = dbdir

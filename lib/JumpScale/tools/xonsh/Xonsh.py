@@ -46,7 +46,7 @@ class Xonsh:
 
 
         """
-        self._cuisine.core.file_write("$homeDir/.xonshrc", C)
+        self._cuisine.core.file_write("$HOMEDIR/.xonshrc", C)
 
     def configTmux(self, restart=True):
         self._cuisine.tmux.configure(restart, True)

@@ -495,7 +495,7 @@ class GitMethods():
                 if not executor:
                     codeDir = self.CODEDIR
                 else:
-                    codeDir = executor.cuisine.core.dir_paths['codeDir']
+                    codeDir = executor.cuisine.core.dir_paths['CODEDIR']
             dest = '%(codedir)s/%(type)s/%(account)s/%(repo_name)s' % {
                 'codedir': codeDir,
                 'type': repository_type.lower(),
@@ -2105,11 +2105,11 @@ class Installer():
             fi
         }
 
-        if [[ "$JSBASE" == "$base" ]]; then
+        if [[ "$JSBASE" == "$BASEDIR" ]]; then
            return 0
         fi
 
-        export JSBASE=$base
+        export JSBASE=$BASEDIR
 
         export _OLD_PATH=$PATH
         export _OLD_LDLIBRARY_PATH=$LD_LIBRARY_PATH
@@ -2129,7 +2129,7 @@ class Installer():
                 hash -r 2>/dev/null
         fi
         """
-        C = C.replace("$base", os.environ["JSBASE"])
+        C = C.replace("$BASEDIR", os.environ["JSBASE"])
 
         if self.do.sandbox:
             C = C.replace('$pythonhome', 'export PYTHONHOME=$JSBASE/bin')
@@ -2154,14 +2154,14 @@ class Installer():
         C2 = """
         #!/bin/bash
         # set -x
-        source $base/env.sh
+        source $BASEDIR/env.sh
         exec $JSBASE/bin/python3 -q "$@"
         """
 
         C2_insystem = """
         #!/bin/bash
         # set -x
-        source $base/env.sh
+        source $BASEDIR/env.sh
         exec python3.5 -q "$@"
         """
 
@@ -2175,13 +2175,13 @@ class Installer():
             if self.do.sandbox:
                 print("jspython in sandbox")
                 dest = "%s/bin/jspython" % os.environ["JSBASE"]
-                C2 = C2.replace('$base', os.environ["JSBASE"])
+                C2 = C2.replace('$BASEDIR', os.environ["JSBASE"])
                 self.do.writeFile(dest, C2)
             else:
                 # in system
                 print("jspython in system")
                 dest = "/usr/local/bin/jspython"
-                C2_insystem = C2_insystem.replace('$base', os.environ["JSBASE"])
+                C2_insystem = C2_insystem.replace('$BASEDIR', os.environ["JSBASE"])
                 self.do.writeFile(dest, C2_insystem)
 
             self.do.chmod(dest, 0o770)
@@ -2218,7 +2218,7 @@ class Installer():
             killall redis-server
             rm /usr/local/bin/js*
             rm /usr/local/bin/ays*
-            rm -rf $base/lib/JumpScale
+            rm -rf $BASEDIR/lib/JumpScale
             rm -rf /opt/sentry/
             sudo stop redisac
             sudo stop redisp
@@ -2227,7 +2227,7 @@ class Installer():
             killall redis-server
             rm -rf /opt/redis/
             """
-            CMDS = CMDS.replace("$base", self.BASE)
+            CMDS = CMDS.replace("$BASEDIR", self.BASE)
             self.do.executeCmds(CMDS, showout=False, outputStderr=False, useShell=True, log=False,
                                 cwd=None, timeout=60, errors=[], ok=[], captureout=False, die=False)
 
@@ -2545,7 +2545,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             env["JSBASE"] = "%s/jumpscale8" % env["BASEDIR"]
 
         if not "VARDIR" in env:
-            env["VARDIR"] = os.path.abspath("%s/var" % env["BASE"])
+            env["VARDIR"] = os.path.abspath("%s/var" % env["BASEDIR"])
 
         if not "CFGDIR" in env:
             env["CFGDIR"] = "%s/cfg" % env["VARDIR"]
@@ -2560,20 +2560,20 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
                 raise RuntimeError("Cannot define a tmp dir, set env variable")
 
         change = {}
-        change["APPDIR"] = lambda x: "%s/app" % x["JSBASE"]
+        change["JSAPPDIR"] = lambda x: "%s/app" % x["JSBASE"]
         change["JSBASEDIR"] = lambda x: x["JSBASE"]
-        change["BINDIR"] = lambda x: "%s/bin" % x["BASE"]
+        change["BINDIR"] = lambda x: "%s/bin" % x["BASEDIR"]
         change["DATADIR"] = lambda x: "%s/data" % x["VARDIR"]
-        change["CODEDIR"] = lambda x: "%s/code" % x["JSBASE"]
+        change["CODEDIR"] = lambda x: "%s/code" % x["BASEDIR"]
         change["BUILDDIR"] = lambda x: "%s/build" % x["VARDIR"]
         change["LOGDIR"] = lambda x: "%s/log" % x["VARDIR"]
         change["PIDDIR"] = lambda x: "%s/pid" % x["CFGDIR"]
         change["HRDDIR"] = lambda x: "%s/hrd" % x["CFGDIR"]
-        change["GODIR"] = lambda x: "%s/go/" % x["BASE"]
-        change["NIMDIR"] = lambda x: "%s/nim/" % x["BASE"]
+        change["GODIR"] = lambda x: "%s/go/" % x["BASEDIR"]
+        change["NIMDIR"] = lambda x: "%s/nim/" % x["BASEDIR"]
         change["JSLIBDIR"] = lambda x: "%s/lib/JumpScale/" % x["JSBASE"]
-        change["LIBDIR"] = lambda x: "%s/lib/" % x["BASE"]
-        change['TEMPLATEDIR'] = lambda x: "%s/templates" % x["BASE"]
+        change["LIBDIR"] = lambda x: "%s/lib/" % x["BASEDIR"]
+        change['TEMPLATEDIR'] = lambda x: "%s/templates" % x["BASEDIR"]
 
         for key, method in change.items():
             if key not in env:
@@ -2583,22 +2583,40 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
 
     def codeChangeDirVars(self, branch="8.1.0_cleanup"):
         """
-        walk over code dir & find all known old dir arguments & change them to new
+        walk over code dir & find all known old dir arguments & change them to new naming convention
         """
 
         repos = ["github/jumpscale/dockers", "github/jumpscale/ays_jumpscale8", "github/jumpscale/jscockpit",
-                 "github/jumpscale/jumpscale_core8", "github/jumpscale/portal8"]
+                 "github/jumpscale/jumpscale_portal8"]
+        # repos = ["github/jumpscale/jumpscale_core8"]
         tochange = ["logDir", "pidDir", "hrdDir", "goDir", "nimDir", "codeDir", "binDir"
-                    "jsLibDir", "libDir", "tmplsDir", "homeDir", "base", "tmpDir", "varDir"]
-        changeName = {"tmplsDir": "TEMPLATEDIR", "cfgDir": "JSCFGDIR", "appDir": "JSAPPDIR", "base": "BASEDIR"}
+                    "jsLibDir", "libDir", "tmplsDir", "homeDir", "baseDir", "tmpDir", "varDir"]
+        changeName = {"tmplsDir": "TEMPLATEDIR", "cfgDir": "JSCFGDIR", "appDir": "JSAPPDIR", "jsBase": "JSBASEDIR"}
 
-        for repo in repos:
-            rpath = "%s/%s" % (self.CODEDIR, repo)
-            for fpath in self.listFilesInDir(rpath, recursive=True, filter=".py", followSymlinks=False, listSymlinks=False):
-                from IPython import embed
-                print("DEBUG NOW codeChangeDirVars")
-                embed()
-                raise RuntimeError("stop debug here")
+        def do(ffilter):
+            for repo in repos:
+                rpath = "%s/%s" % (self.CODEDIR, repo)
+                for fpath in self.listFilesInDir(rpath, recursive=True, filter=ffilter, followSymlinks=False, listSymlinks=False):
+                    content = self.readFile(fpath)
+                    content1 = content + ""  # make sure we have copy
+                    for key, val in changeName.items():
+                        content1 = content1.replace("$%s" % key, "$%s" % val)
+                        content1 = content1.replace(".%s" % key, ".%s" % val)
+                        content1 = content1.replace("\"%s" % key, "\"%s" % val)
+                        content1 = content1.replace("'%s" % key, "'%s" % val)
+                    for key in tochange:
+                        content1 = content1.replace("$%s" % key, "$%s" % key.upper())
+                        content1 = content1.replace(".%s" % key, ".%s" % key.upper())
+                        content1 = content1.replace("\"%s" % key, "\"%s" % key.upper())
+                        content1 = content1.replace("'%s" % key, "'%s" % key.upper())
+                    content1 = content1.replace("$base", "$BASEDIR")
+                    content1 = content1.replace("$jsBase", "$JSBASEDIR")
+                    content1 = content1.replace("$jsBASE", "$JSBASEDIR")
+                    if content1 != content:
+                        self.writeFile(fpath, content1, strip=False)
+        do("*.py")
+        do("*.md")
+        do("*.txt")
 
     def init(self):
 

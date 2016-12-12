@@ -14,7 +14,7 @@ class CuisineAydoStor(app):
         self._executor = executor
         self._cuisine = cuisine
 
-    def build(self, addr='0.0.0.0:8090', backend="$varDir/aydostor", start=True, install=True, reset=False):
+    def build(self, addr='0.0.0.0:8090', backend="$VARDIR/aydostor", start=True, install=True, reset=False):
         """
         Build and Install aydostore
         @input addr, address and port on which the service need to listen. e.g. : 0.0.0.0:8090
@@ -33,18 +33,18 @@ class CuisineAydoStor(app):
         if install:
             self.install(addr, backend, start)
 
-    def install(self, addr='0.0.0.0:8090', backend="$varDir/aydostor", start=True):
+    def install(self, addr='0.0.0.0:8090', backend="$VARDIR/aydostor", start=True):
         """
         download, install, move files to appropriate places, and create relavent configs
         """
         self._cuisine.core.dir_ensure('$binDir')
         self._cuisine.core.file_copy(self._cuisine.core.joinpaths(
-            self._cuisine.core.dir_paths['goDir'], 'bin', 'stor'), '$binDir', overwrite=True)
-        self._cuisine.bash.addPath("$base/bin")
+            self._cuisine.core.dir_paths['GODIR'], 'bin', 'stor'), '$binDir', overwrite=True)
+        self._cuisine.bash.addPath("$BASEDIR/bin")
 
         self._cuisine.processmanager.stop("stor")  # will also kill
 
-        self._cuisine.core.dir_ensure("$cfgDir/stor")
+        self._cuisine.core.dir_ensure("$JSCFGDIR/stor")
         backend = self._cuisine.core.args_replace(backend)
         self._cuisine.core.dir_ensure(backend)
         config = {
@@ -52,8 +52,8 @@ class CuisineAydoStor(app):
             'store_root': backend,
         }
         content = j.data.serializer.toml.dumps(config)
-        self._cuisine.core.dir_ensure('$tmplsDir/cfg/stor', recursive=True)
-        self._cuisine.core.file_write("$tmplsDir/cfg/stor/config.toml", content)
+        self._cuisine.core.dir_ensure('$TEMPLATEDIR/cfg/stor', recursive=True)
+        self._cuisine.core.file_write("$TEMPLATEDIR/cfg/stor/config.toml", content)
 
         if start:
             self.start(addr)
@@ -70,7 +70,7 @@ class CuisineAydoStor(app):
                 raise RuntimeError(
                     "port %d is occupied, cannot start stor" % port)
 
-        self._cuisine.core.dir_ensure("$cfgDir/stor/", recursive=True)
-        self._cuisine.core.file_copy("$tmplsDir/cfg/stor/config.toml", "$cfgDir/stor/")
+        self._cuisine.core.dir_ensure("$JSCFGDIR/stor/", recursive=True)
+        self._cuisine.core.file_copy("$TEMPLATEDIR/cfg/stor/config.toml", "$JSCFGDIR/stor/")
         cmd = self._cuisine.bash.cmdGetPath("stor")
-        self._cuisine.processmanager.ensure("stor", '%s --config $cfgDir/stor/config.toml' % cmd)
+        self._cuisine.processmanager.ensure("stor", '%s --config $JSCFGDIR/stor/config.toml' % cmd)

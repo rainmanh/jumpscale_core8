@@ -21,7 +21,7 @@ class CuisineRedis(app):
             self._cuisine.package.update()
             self._cuisine.package.install("build-essential")
 
-            self._cuisine.core.dir_remove("$tmpDir/build/redis")
+            self._cuisine.core.dir_remove("$TMPDIR/build/redis")
 
             C = """
             #!/bin/bash
@@ -29,8 +29,8 @@ class CuisineRedis(app):
 
             # groupadd -r redis && useradd -r -g redis redis
 
-            mkdir -p $tmpDir/build/redis
-            cd $tmpDir/build/redis
+            mkdir -p $TMPDIR/build/redis
+            cd $TMPDIR/build/redis
             wget http://download.redis.io/redis-stable.tar.gz
             tar xzf redis-stable.tar.gz
             cd redis-stable
@@ -46,10 +46,10 @@ class CuisineRedis(app):
             # move action
             C = """
             set -ex
-            mkdir -p $base/bin/
-            cp -f $tmpDir/build/redis/redis-stable/src/redis-server $base/bin/
-            cp -f $tmpDir/build/redis/redis-stable/src/redis-cli $base/bin/
-            rm -rf $base/apps/redis
+            mkdir -p $BASEDIR/bin/
+            cp -f $TMPDIR/build/redis/redis-stable/src/redis-server $BASEDIR/bin/
+            cp -f $TMPDIR/build/redis/redis-stable/src/redis-cli $BASEDIR/bin/
+            rm -rf $BASEDIR/apps/redis
             """
             C = self._cuisine.bash.replaceEnvironInText(C)
             C = self._cuisine.core.args_replace(C)

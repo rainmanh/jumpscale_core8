@@ -80,7 +80,7 @@ class DocGeneratorItem:
             self.config = {}
 
         self._contentPaths = {}
-        self._macroCodepath = j.sal.fs.joinPaths(j.dirs.tmpDir, "jumpscale8_docgenerator_macros.py")
+        self._macroCodepath = j.sal.fs.joinPaths(j.dirs.TMPDIR, "jumpscale8_docgenerator_macros.py")
         j.sal.fs.remove(self._macroCodepath)
         self.loadMacros("self")
 

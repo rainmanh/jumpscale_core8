@@ -26,7 +26,7 @@ class CuisineMercurial(base):
         name = j.sal.fs.getBaseName(url)
 
         if dest == None:
-            dest = "$codeDir/mercurial/%s" % name
+            dest = "$CODEDIR/mercurial/%s" % name
 
         dest = self._cuisine.core.args_replace(dest)
 

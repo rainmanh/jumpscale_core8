@@ -11,9 +11,9 @@ class DemoHandler:
 
     def __init__(self):
         url = "http://www.greenitglobe.com/en/images/logo.png"
-        self.image = "%s/giglogo.png" % j.dirs.tmpDir
-        self.sound = "%s/test.mp3" % j.dirs.tmpDir
-        self.sticker = "%s/sticker.png" % j.dirs.tmpDir
+        self.image = "%s/giglogo.png" % j.dirs.TMPDIR
+        self.sound = "%s/test.mp3" % j.dirs.TMPDIR
+        self.sticker = "%s/sticker.png" % j.dirs.TMPDIR
         j.sal.nettools.download(url, self.image, overwrite=False)
         j.sal.nettools.download(AUDIOFILE, self.sound, overwrite=False)
         j.sal.nettools.download(STICKERFILE, self.sticker, overwrite=False)

@@ -33,7 +33,7 @@ def action():
     clientEco = j.data.models.system.Errorcondition
 
     log = None
-    path = "%s/apps/processmanager/loghandling/" % j.dirs.baseDir
+    path = "%s/apps/processmanager/loghandling/" % j.dirs.BASEDIR
     if j.sal.fs.exists(path=path):
         loghandlingTE = j.core.taskletengine.get(path)
         log = logqueue.get_nowait()
@@ -42,7 +42,7 @@ def action():
         loghandlingTE = None
 
     ecoguid = None
-    path = "%s/apps/processmanager/eventhandling" % j.dirs.baseDir
+    path = "%s/apps/processmanager/eventhandling" % j.dirs.BASEDIR
     if j.sal.fs.exists(path=path):
         eventhandlingTE = j.core.taskletengine.get(path)
         ecoguid = ecoqueue.get_nowait()

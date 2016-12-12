@@ -34,7 +34,7 @@ class CuisineAlba(base):
         self._cuisine.package.multiInstall(apt_deps, allow_unauthenticated=True)
 
         # OPAM
-        self.opam_root = self._cuisine.core.args_replace('$tmpDir/OPAM')
+        self.opam_root = self._cuisine.core.args_replace('$TMPDIR/OPAM')
         
         # profile fix
         if not self._cuisine.core.file_exists('/root/.profile_js'):
@@ -46,9 +46,9 @@ class CuisineAlba(base):
 
         # self._cuisine.core.run('wget https://raw.github.com/ocaml/opam/master/shell/opam_installer.sh')
         self._cuisine.core.file_download(
-            'https://raw.github.com/ocaml/opam/master/shell/opam_installer.sh', to='$tmpDir/opam_installer.sh')
-        self._cuisine.core.run('sed -i "/read -p/d" $tmpDir/opam_installer.sh')  # remove any confirmation
-        self._cuisine.core.run('bash $tmpDir/opam_installer.sh $binDir %s' %
+            'https://raw.github.com/ocaml/opam/master/shell/opam_installer.sh', to='$TMPDIR/opam_installer.sh')
+        self._cuisine.core.run('sed -i "/read -p/d" $TMPDIR/opam_installer.sh')  # remove any confirmation
+        self._cuisine.core.run('bash $TMPDIR/opam_installer.sh $binDir %s' %
                                self.ocaml_version, profile=True, shell=True)
 
         cmd = 'opam init --root=%s --comp %s -a --dot-profile %s' % (
@@ -62,7 +62,7 @@ class CuisineAlba(base):
         self._cuisine.core.run("opam repo --root=%s -k local add janestreet %s || exit 0" %
                                (self.opam_root, janestreet), profile=True)
 
-        cmd = "opam config env --root=%s --dot-profile %s > $tmpDir/opam.env" % (
+        cmd = "opam config env --root=%s --dot-profile %s > $TMPDIR/opam.env" % (
             self.opam_root, self._cuisine.bash.profilePath)
         self._cuisine.core.run(cmd, die=False, profile=True, shell=True)
 
@@ -73,15 +73,15 @@ class CuisineAlba(base):
         """
 
         self._cuisine.core.execute_bash(
-            'source $tmpDir/opam.env && opam update && opam install -y %s' % opam_deps, profile=True)
+            'source $TMPDIR/opam.env && opam update && opam install -y %s' % opam_deps, profile=True)
 
     def _install_deps_intel_storage(self):
         url = 'https://01.org/sites/default/files/downloads/intelr-storage-acceleration-library-open-source-version/isa-l-2.14.0.tar.gz'
-        self._cuisine.core.file_download(url, to='$tmpDir/isa-l-2.14.0.tar.gz')
+        self._cuisine.core.file_download(url, to='$TMPDIR/isa-l-2.14.0.tar.gz')
 
-        self._cuisine.core.run('cd $tmpDir && tar xfzv isa-l-2.14.0.tar.gz')
-        self._cuisine.core.run('cd $tmpDir/isa-l-2.14.0 && ./autogen.sh && ./configure')
-        self._cuisine.core.run('cd $tmpDir/isa-l-2.14.0 && make && make install')
+        self._cuisine.core.run('cd $TMPDIR && tar xfzv isa-l-2.14.0.tar.gz')
+        self._cuisine.core.run('cd $TMPDIR/isa-l-2.14.0 && ./autogen.sh && ./configure')
+        self._cuisine.core.run('cd $TMPDIR/isa-l-2.14.0 && make && make install')
 
         """
         RUN wget https://01.org/sites/default/files/downloads/intelr-storage-acceleration-library-open-source-version/isa-l-2.14.0.tar.gz
@@ -109,13 +109,13 @@ class CuisineAlba(base):
     def _install_deps_arakoon(self):
         aradest = self._cuisine.development.git.pullRepo(
             'https://github.com/openvstorage/arakoon.git', branch="1.9", depth=None, ssh=False)
-        pfx = 'cd %s && source $tmpDir/opam.env' % aradest
+        pfx = 'cd %s && source $TMPDIR/opam.env' % aradest
 
         self._cuisine.core.run('%s && git pull && git checkout %s' % (pfx, self.arakoon_version), shell=True)
         self._cuisine.core.run('%s && make' % pfx, shell=True)
 
-        if self._cuisine.core.file_exists('$tmpDir/OPAM/4.03.0/lib/arakoon_client/META'):
-            self._cuisine.core.file_unlink('$tmpDir/OPAM/4.03.0/lib/arakoon_client/META')
+        if self._cuisine.core.file_exists('$TMPDIR/OPAM/4.03.0/lib/arakoon_client/META'):
+            self._cuisine.core.file_unlink('$TMPDIR/OPAM/4.03.0/lib/arakoon_client/META')
 
         prefix = '%s/%s' % (self.opam_root, self.ocaml_version)
         libdir = 'ocamlfind printconf destdir'
@@ -139,7 +139,7 @@ class CuisineAlba(base):
         #
         # cleaning
         #
-        if self._cuisine.core.file_exists('$tmpDir/OPAM/%s/lib/rocks/META' % self.ocaml_version):
+        if self._cuisine.core.file_exists('$TMPDIR/OPAM/%s/lib/rocks/META' % self.ocaml_version):
             print('rocksdb already found')
             return
 
@@ -155,7 +155,7 @@ class CuisineAlba(base):
         commit = '26c45963f1f305825785592efb41b50192a07491'
         orodest = self._cuisine.development.git.pullRepo('https://github.com/domsj/orocksdb.git', depth=None, ssh=False)
 
-        pfx = 'cd %s && source $tmpDir/opam.env' % orodest
+        pfx = 'cd %s && source $TMPDIR/opam.env' % orodest
         self._cuisine.core.run('%s && git pull && git checkout %s' % (pfx, commit))
 
         self._cuisine.core.run('%s && ./install_rocksdb.sh && make build install' % pfx)
@@ -189,7 +189,7 @@ class CuisineAlba(base):
         #
         # cleaning
         #
-        if self._cuisine.core.file_exists('$tmpDir/OPAM/%s/lib/ordma/META' % self.ocaml_version):
+        if self._cuisine.core.file_exists('$TMPDIR/OPAM/%s/lib/ordma/META' % self.ocaml_version):
             print('ordma already found')
             return
 
@@ -202,7 +202,7 @@ class CuisineAlba(base):
 
         self._cuisine.core.run('cd %s && git pull && git fetch --tags && git checkout %s' % (ordmadest, commit))
 
-        pfx = 'cd %s && source $tmpDir/opam.env' % ordmadest
+        pfx = 'cd %s && source $TMPDIR/opam.env' % ordmadest
         self._cuisine.core.run('%s && eval `${opam_env}` && make install' % pfx)
 
         """
@@ -238,11 +238,11 @@ class CuisineAlba(base):
 
     def _install_deps_etcd(self):
         url = 'https://github.com/coreos/etcd/releases/download/v2.2.4/etcd-v2.2.4-linux-amd64.tar.gz'
-        self._cuisine.core.file_download(url, to='$tmpDir/etcd-v2.2.4-linux-amd64.tar.gz')
+        self._cuisine.core.file_download(url, to='$TMPDIR/etcd-v2.2.4-linux-amd64.tar.gz')
 
-        self._cuisine.core.run('cd $tmpDir && tar xfzv etcd-v2.2.4-linux-amd64.tar.gz')
-        self._cuisine.core.run('cp $tmpDir/etcd-v2.2.4-linux-amd64/etcd /usr/bin')
-        self._cuisine.core.run('cp $tmpDir/etcd-v2.2.4-linux-amd64/etcdctl /usr/bin')
+        self._cuisine.core.run('cd $TMPDIR && tar xfzv etcd-v2.2.4-linux-amd64.tar.gz')
+        self._cuisine.core.run('cp $TMPDIR/etcd-v2.2.4-linux-amd64/etcd /usr/bin')
+        self._cuisine.core.run('cp $TMPDIR/etcd-v2.2.4-linux-amd64/etcdctl /usr/bin')
 
         """
         RUN curl -L  https://github.com/coreos/etcd/releases/download/v2.2.4/etcd-v2.2.4-linux-amd64.tar.gz -o etcd-v2.2.4-linux-amd64.tar.gz
@@ -269,7 +269,7 @@ class CuisineAlba(base):
 
         self._cuisine.core.run('cd %s && git checkout %s' % (repo, self.alba_version))
 
-        self._cuisine.core.execute_bash('source $tmpDir/opam.env && cd %s; make' % repo, profile=True)
+        self._cuisine.core.execute_bash('source $TMPDIR/opam.env && cd %s; make' % repo, profile=True)
         self._cuisine.core.file_copy('%s/ocaml/alba.native' % repo, '$binDir/alba')
         self._cuisine.core.file_copy('%s/ocaml/albamgr_plugin.cmxs' % repo, '$binDir/albamgr_plugin.cmxs')
         self._cuisine.core.file_copy('%s/ocaml/nsm_host_plugin.cmxs' % repo, '$binDir/nsm_host_plugin.cmxs')

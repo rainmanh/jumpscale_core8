@@ -27,7 +27,7 @@ class CuisineEtcd(app):
 
         go get -x -d -u github.com/coreos/etcd
 
-        cd $goDir/src/$REPO_PATH
+        cd $GODIR/src/$REPO_PATH
 
         # first checkout master to prevent error if already in detached mode
         git checkout master
@@ -40,7 +40,7 @@ class CuisineEtcd(app):
 
         script = self._cuisine.bash.replaceEnvironInText(_script)
         self._cuisine.core.execute_bash(script, profile=True)
-        self._cuisine.bash.addPath("$base/bin")
+        self._cuisine.bash.addPath("$BASEDIR/bin")
 
         if start:
             self.start(host, peers)

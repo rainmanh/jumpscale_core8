@@ -16,9 +16,9 @@ def prepare():
     AUDIOFILE = "https://ia802508.us.archive.org/5/items/testmp3testfile/mpthreetest.mp3"
     STICKERFILE = "https://telegram-stickers.github.io/public/stickers/flags/8.png"
     url = "http://www.greenitglobe.com/en/images/logo.png"
-    image = "%s/giglogo.png" % j.dirs.tmpDir
-    sound = "%s/test.mp3" % j.dirs.tmpDir
-    sticker = "%s/sticker.png" % j.dirs.tmpDir
+    image = "%s/giglogo.png" % j.dirs.TMPDIR
+    sound = "%s/test.mp3" % j.dirs.TMPDIR
+    sticker = "%s/sticker.png" % j.dirs.TMPDIR
     j.sal.nettools.download(url, image, overwrite=False)
     j.sal.nettools.download(AUDIOFILE, sound, overwrite=False)
     j.sal.nettools.download(STICKERFILE, sticker, overwrite=False)

@@ -30,7 +30,7 @@ class CuisineController(app):
         pm = self._cuisine.processmanager.get("tmux")
         pm.stop("syncthing")
 
-        self._cuisine.core.dir_ensure("$tmplsDir/cfg/controller", recursive=True)
+        self._cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/controller", recursive=True)
 
         # get repo
         url = "github.com/g8os/controller"
@@ -38,7 +38,7 @@ class CuisineController(app):
         self._cuisine.development.golang.godep(url)
 
         # Do the actual building
-        self._cuisine.core.run("cd $goDir/src/github.com/g8os/controller && go build .", profile=True)
+        self._cuisine.core.run("cd $GODIR/src/github.com/g8os/controller && go build .", profile=True)
 
         if install:
             self.install(start, listen_addr)
@@ -47,25 +47,25 @@ class CuisineController(app):
         """
         download, install, move files to appropriate places, and create relavent configs
         """
-        sourcepath = "$goDir/src/github.com/g8os/controller"
+        sourcepath = "$GODIR/src/github.com/g8os/controller"
         # move binary
         if not self._cuisine.core.file_exists('$binDir/controller'):
             self._cuisine.core.file_move("%s/controller" % sourcepath, "$binDir/controller")
 
         # file copy
-        self._cuisine.core.dir_remove("$tmplsDir/cfg/controller/extensions")
+        self._cuisine.core.dir_remove("$TEMPLATEDIR/cfg/controller/extensions")
 
         jumpscript_folfer = "%s/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts" % self._cuisine.core.dir_paths[
-            "codeDir"]
+            "CODEDIR"]
         if self._cuisine.core.dir_exists(jumpscript_folfer):
             self._cuisine.core.file_copy(jumpscript_folfer + "/jumpscale",
-                                         "$tmplsDir/cfg/controller/jumpscripts/", recursive=True)
+                                         "$TEMPLATEDIR/cfg/controller/jumpscripts/", recursive=True)
 
         self._cuisine.core.file_copy("%s/extensions" % sourcepath,
-                                     "$tmplsDir/cfg/controller/extensions", recursive=True)
+                                     "$TEMPLATEDIR/cfg/controller/extensions", recursive=True)
 
         self._cuisine.core.file_copy("%s/agentcontroller.toml" % sourcepath,
-                                     '$tmplsDir/cfg/controller/agentcontroller.toml')
+                                     '$TEMPLATEDIR/cfg/controller/agentcontroller.toml')
 
         if start:
             self.start(listen_addr=listen_addr)
@@ -78,18 +78,18 @@ class CuisineController(app):
         import hashlib
         from xml.etree import ElementTree
 
-        self._cuisine.core.dir_ensure("$cfgDir/controller/")
-        self._cuisine.core.file_copy("$tmplsDir/cfg/controller", "$cfgDir/", recursive=True, overwrite=True)
+        self._cuisine.core.dir_ensure("$JSCFGDIR/controller/")
+        self._cuisine.core.file_copy("$TEMPLATEDIR/cfg/controller", "$JSCFGDIR/", recursive=True, overwrite=True)
 
         # edit config
-        C = self._cuisine.core.file_read('$cfgDir/controller/agentcontroller.toml')
+        C = self._cuisine.core.file_read('$JSCFGDIR/controller/agentcontroller.toml')
         cfg = j.data.serializer.toml.loads(C)
 
         listen = cfg['listen']
         for addr in listen_addr:
             listen.append({'address': addr})
 
-        cfgDir = self._cuisine.core.dir_paths['cfgDir']
+        cfgDir = self._cuisine.core.dir_paths['JSCFGDIR']
         cfg["events"]["python_path"] = self._cuisine.core.joinpaths(
             cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
         cfg['events']['enabled'] = True
@@ -101,17 +101,17 @@ class CuisineController(app):
             cfgDir, "/controller/jumpscripts")
         C = j.data.serializer.toml.dumps(cfg)
 
-        self._cuisine.core.file_write('$cfgDir/controller/agentcontroller.toml', C, replaceArgs=True)
+        self._cuisine.core.file_write('$JSCFGDIR/controller/agentcontroller.toml', C, replaceArgs=True)
 
         # expose syncthing and get api key
-        sync_cfg = ElementTree.fromstring(self._cuisine.core.file_read("$tmplsDir/cfg/syncthing/config.xml"))
+        sync_cfg = ElementTree.fromstring(self._cuisine.core.file_read("$TEMPLATEDIR/cfg/syncthing/config.xml"))
         sync_id = sync_cfg.find('device').get('id')
 
         # set address
         sync_cfg.find("./gui/address").text = '127.0.0.1:18384'
 
         jumpscripts_id = "jumpscripts-%s" % hashlib.md5(sync_id.encode()).hexdigest()
-        jumpscripts_path = self._cuisine.core.args_replace("$cfgDir/controller/jumpscripts")
+        jumpscripts_path = self._cuisine.core.args_replace("$JSCFGDIR/controller/jumpscripts")
 
         # find folder element
         configured = False
@@ -142,13 +142,13 @@ class CuisineController(app):
         dump = ElementTree.tostring(sync_cfg, 'unicode')
         j.logger.log("SYNCTHING CONFIG", level=10)
         j.logger.log(dump, level=10)
-        self._cuisine.core.file_write("$cfgDir/syncthing/config.xml", dump)
+        self._cuisine.core.file_write("$JSCFGDIR/syncthing/config.xml", dump)
 
         # start
         pm = self._cuisine.apps.syncthing.restart()
 
         env = {}
-        env["TMPDIR"] = self._cuisine.core.dir_paths["tmpDir"]
-        cmd = "$binDir/controller -c $cfgDir/controller/agentcontroller.toml"
+        env["TMPDIR"] = self._cuisine.core.dir_paths["TMPDIR"]
+        cmd = "$binDir/controller -c $JSCFGDIR/controller/agentcontroller.toml"
         pm = self._cuisine.processmanager.get("tmux")
-        pm.ensure("controller", cmd=cmd, path="$cfgDir/controller/", env=env)
+        pm.ensure("controller", cmd=cmd, path="$JSCFGDIR/controller/", env=env)

@@ -22,10 +22,10 @@ class CuisineSyncthing(app):
 
         # build
         url = "https://github.com/syncthing/syncthing.git"
-        if self._cuisine.core.file_exists('$goDir/src/github.com/syncthing/syncthing'):
-            self._cuisine.core.dir_remove('$goDir/src/github.com/syncthing/syncthing')
+        if self._cuisine.core.file_exists('$GODIR/src/github.com/syncthing/syncthing'):
+            self._cuisine.core.dir_remove('$GODIR/src/github.com/syncthing/syncthing')
         dest = self._cuisine.development.git.pullRepo(url,
-                                                      dest='$goDir/src/github.com/syncthing/syncthing',
+                                                      dest='$GODIR/src/github.com/syncthing/syncthing',
                                                       ssh=False,
                                                       depth=1)
         self._cuisine.core.run("cd %s && go run build.go -version v0.14.5 -no-upgrade" % dest, profile=True)
@@ -40,7 +40,7 @@ class CuisineSyncthing(app):
         # create config file
         config = """
         <configuration version="14">
-            <folder id="default" path="$homeDir/Sync" ro="false" rescanIntervalS="60" ignorePerms="false" autoNormalize="false">
+            <folder id="default" path="$HOMEDIR/Sync" ro="false" rescanIntervalS="60" ignorePerms="false" autoNormalize="false">
                 <device id="H7MBKSF-XNFETHA-2ERDXTB-JQCAXTA-BBTTLJN-23TN5BZ-4CL7KLS-FYCISAR"></device>
                 <minDiskFreePct>1</minDiskFreePct>
                 <versioning></versioning>
@@ -95,12 +95,12 @@ class CuisineSyncthing(app):
         content = content.replace('$lclAddrs', '0.0.0.0', 1)
         content = content.replace('$port', '18384', 1)
 
-        self._cuisine.core.dir_ensure("$tmplsDir/cfg/syncthing/")
-        self._cuisine.core.file_write("$tmplsDir/cfg/syncthing/config.xml", content)
+        self._cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/syncthing/")
+        self._cuisine.core.file_write("$TEMPLATEDIR/cfg/syncthing/config.xml", content)
 
         # If syncthing isn't found, it means that syncthing must be built first
         if not self._cuisine.core.file_exists('$binDir/syncthing'):
-            self._cuisine.core.file_copy(source="$goDir/src/github.com/syncthing/syncthing/bin/syncthing",
+            self._cuisine.core.file_copy(source="$GODIR/src/github.com/syncthing/syncthing/bin/syncthing",
                                          dest="$binDir",
                                          recursive=True,
                                          overwrite=False)
@@ -108,10 +108,10 @@ class CuisineSyncthing(app):
             self.start()
 
     def start(self):
-        self._cuisine.core.dir_ensure("$cfgDir")
-        self._cuisine.core.file_copy("$tmplsDir/cfg/syncthing/", "$cfgDir", recursive=True)
+        self._cuisine.core.dir_ensure("$JSCFGDIR")
+        self._cuisine.core.file_copy("$TEMPLATEDIR/cfg/syncthing/", "$JSCFGDIR", recursive=True)
         pm = self._cuisine.processmanager.get("tmux")
-        pm.ensure(name="syncthing", cmd="./syncthing -home  $cfgDir/syncthing", path="$binDir")
+        pm.ensure(name="syncthing", cmd="./syncthing -home  $JSCFGDIR/syncthing", path="$binDir")
 
     def stop(self):
         pm = self._cuisine.processmanager.get("tmux")

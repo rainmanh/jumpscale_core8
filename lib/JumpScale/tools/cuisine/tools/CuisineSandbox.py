@@ -79,12 +79,12 @@ class CuisineSandbox(base):
         self._cuisine.core.run("apt-get clean")
         self._cuisine.core.dir_remove("/var/tmp/*")
         self._cuisine.core.dir_remove("/etc/dpkg/dpkg.cfg.d/02apt-speedup")
-        self._cuisine.core.dir_remove("$tmpDir")
-        self._cuisine.core.dir_ensure("$tmpDir")
+        self._cuisine.core.dir_remove("$TMPDIR")
+        self._cuisine.core.dir_ensure("$TMPDIR")
 
-        self._cuisine.core.dir_remove("$goDir/src/*")
-        self._cuisine.core.dir_remove("$tmpDir/*")
-        self._cuisine.core.dir_remove("$varDir/data/*")
+        self._cuisine.core.dir_remove("$GODIR/src/*")
+        self._cuisine.core.dir_remove("$TMPDIR/*")
+        self._cuisine.core.dir_remove("$VARDIR/data/*")
         self._cuisine.core.dir_remove('/opt/code/github/domsj', True)
         self._cuisine.core.dir_remove('/opt/code/github/openvstorage', True)
 
@@ -129,7 +129,7 @@ class CuisineSandbox(base):
             """
             self._cuisine.core.execute_bash(C)
 
-        self._cuisine.core.dir_ensure(self._cuisine.core.dir_paths["tmpDir"])
+        self._cuisine.core.dir_ensure(self._cuisine.core.dir_paths["TMPDIR"])
         if not self._cuisine.core.isMac and not self._cuisine.core.isCygwin:
             C = """
                 set +ex

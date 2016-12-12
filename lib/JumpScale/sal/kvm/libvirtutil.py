@@ -276,7 +276,7 @@ class LibvirtUtil:
         return False
 
     def _getLockFile(self, domainid):
-        LOCKPATH = '%s/domain_locks' % j.dirs.varDir
+        LOCKPATH = '%s/domain_locks' % j.dirs.VARDIR
         if not j.sal.fs.exists(LOCKPATH):
             j.sal.fs.createDir(LOCKPATH)
         lockfile = '%s/%s.lock' % (LOCKPATH, domainid)
@@ -543,7 +543,7 @@ class LibvirtUtil:
         #dnsmasq = DNSMasq()
         #nsid = '%04d' % networkid
         #namespace = 'ns-%s' % nsid
-        #config_path = j.sal.fs.joinPaths(j.dirs.varDir, 'vxlan',nsid)
+        #config_path = j.sal.fs.joinPaths(j.dirs.VARDIR, 'vxlan',nsid)
         #dnsmasq.setConfigPath(nsid, config_path)
         #dnsmasq.addHost(macaddress, ipaddress,name)
 

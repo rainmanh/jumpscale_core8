@@ -144,7 +144,7 @@ class FileSystemKeyValueStoreTestCase(unittest.TestCase,
                                       KeyValueStoreTestCaseBase):
 
     def setUp(self):
-        self._storeBaseDir = j.sal.fs.joinPaths(j.dirs.tmpDir)
+        self._storeBaseDir = j.sal.fs.joinPaths(j.dirs.TMPDIR)
 
         self.cleanUp()
 
@@ -155,7 +155,7 @@ class FileSystemKeyValueStoreTestCase(unittest.TestCase,
         self.cleanUp()
 
     def cleanUp(self):
-        self._storeDir = j.sal.fs.joinPaths(j.dirs.tmpDir, self.STORE_NAME,
+        self._storeDir = j.sal.fs.joinPaths(j.dirs.TMPDIR, self.STORE_NAME,
                                             self.STORE_NAMESPACE)
         j.sal.fs.removeDirTree(self._storeDir)
 

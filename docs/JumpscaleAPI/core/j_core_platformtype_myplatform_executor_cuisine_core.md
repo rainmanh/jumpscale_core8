@@ -15,19 +15,19 @@
 ```
 replace following args (when jumpscale installed it will take the args from there)
 dirs:
-- $base
-- $appDir
-- $tmplsDir
-- $varDir/
+- $BASEDIR
+- $JSAPPDIR
+- $TEMPLATEDIR
+- $VARDIR/
 - $binDir
-- $codeDir
-- $cfgDir
-- $homeDir
+- $CODEDIR
+- $JSCFGDIR
+- $HOMEDIR
 - $jsLibDir
-- $libDir
-- $logDir
-- $pidDir
-- $tmpDir/
+- $LIBDIR
+- $LOGDIR
+- $PIDDIR
+- $TMPDIR/
 system
 - $hostname
 
@@ -104,11 +104,11 @@ Removes a directory
 ```
 @param source is on remote host (on the ssh node)
 @param dest is on local (where we run the cuisine)
-will replace $varDir, $codeDir, ...
+will replace $VARDIR, $CODEDIR, ...
 - in source but then using cuisine.core.args_replace(dest) (so for cuisine host)
 - in dest using j.dirs.replaceTxtDirVars (is for local cuisine)
 
-@param dest, if empty then will be same as source very usefull when using e.g. $codeDir
+@param dest, if empty then will be same as source very usefull when using e.g. $CODEDIR
 
 ```
 
@@ -356,12 +356,12 @@ Some tools/processes rely/want the hostname as an alias in
 @param source is on local (where we run the cuisine)
 @param dest is on remote host (on the ssh node)
 
-will replace $varDir, $codeDir, ... in source using j.dirs.replaceTxtDirVars (is for local
+will replace $VARDIR, $CODEDIR, ... in source using j.dirs.replaceTxtDirVars (is for local
     cuisine)
 will also replace in dest but then using cuisine.core.args_replace(dest) (so for cuisine
     host)
 
-@param dest, if empty then will be same as source very usefull when using e.g. $codeDir
+@param dest, if empty then will be same as source very usefull when using e.g. $CODEDIR
 
 upload happens using rsync
 

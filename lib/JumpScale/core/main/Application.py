@@ -16,7 +16,7 @@ def embed():
 class Config:
 
     def __getattribute__(self, attr):
-        config_path = os.path.join(j.dirs.cfgDir, attr)
+        config_path = os.path.join(j.dirs.JSCFGDIR, attr)
         if not os.path.isdir(config_path):
             return None
         config = {}
@@ -127,7 +127,7 @@ class Application:
             logging_cfg = self.config.jumpscale.get('logging')
             if not logging_cfg:
                 # auto recover logging settings
-                j.do.installer._writeLoggingEnv(j.dirs.cfgDir)
+                j.do.installer._writeLoggingEnv(j.dirs.JSCFGDIR)
                 logging_cfg = self.config.jumpscale.get('logging')
             level = logging_cfg.get('level', 'DEBUG')
             mode = logging_cfg.get('mode', 'DEV')
@@ -281,7 +281,7 @@ class Application:
 
         # # Write exitcode
         # if self.writeExitcodeOnExit:
-        #     exitcodefilename = j.sal.fs.joinPaths(j.dirs.tmpDir, 'qapplication.%d.exitcode'%os.getpid())
+        #     exitcodefilename = j.sal.fs.joinPaths(j.dirs.TMPDIR, 'qapplication.%d.exitcode'%os.getpid())
         #     j.logger.log("Writing exitcode to %s" % exitcodefilename, 5)
         #     j.sal.fs.writeFile(exitcodefilename, str(exitcode))
 
@@ -353,7 +353,7 @@ class Application:
         returns hrd instance names for specific appname (default domain=jumpscale)
         """
         repos = []
-        for path in j.atyourservice.findAYSRepos(j.dirs.codeDir):
+        for path in j.atyourservice.findAYSRepos(j.dirs.CODEDIR):
             repos.append(j.atyourservice.get(path=path))
         names = sorted([service.instance for aysrepo in repos for service in list(
             aysrepo.services.values()) if service.templatename == name])

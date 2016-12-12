@@ -188,12 +188,12 @@ class Cuisinedockerobj:
 #     CMD ["/usr/sbin/init"]
 #
 #     """
-#     self._cuisine.core.run("rm -rf $tmpDir/docker;mkdir $tmpDir/docker")
-#     self._cuisine.core.file_write("$tmpDir/docker/Dockerfile", C)
+#     self._cuisine.core.run("rm -rf $TMPDIR/docker;mkdir $TMPDIR/docker")
+#     self._cuisine.core.file_write("$TMPDIR/docker/Dockerfile", C)
 #
 #     C = """
 #     set -ex
-#     cd $tmpDir/docker
+#     cd $TMPDIR/docker
 #     docker build -t arch .
 #     """
 #     self._cuisine.core.execute_bash(C)

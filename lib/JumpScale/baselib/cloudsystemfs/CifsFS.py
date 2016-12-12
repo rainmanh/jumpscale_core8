@@ -22,7 +22,7 @@ class CifsFS:
     _command = "mount.cifs"
 
     def __init__(self, end_type, server, share, username, password,
-                 is_dir, recursive, tempdir=j.dirs.tmpDir, Atype='copy'):
+                 is_dir, recursive, tempdir=j.dirs.TMPDIR, Atype='copy'):
         """
         Initialize connection
         """

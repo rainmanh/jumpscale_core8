@@ -52,8 +52,8 @@ class Job():
 
     @property
     def sourceToExecutePath(self):
-        path = j.sal.fs.joinPaths(j.dirs.tmpDir, "actions", self.action.dbobj.actorName, self.action.dbobj.name + ".py")
-        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.tmpDir, "actions", self.action.dbobj.actorName))
+        path = j.sal.fs.joinPaths(j.dirs.TMPDIR, "actions", self.action.dbobj.actorName, self.action.dbobj.name + ".py")
+        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.TMPDIR, "actions", self.action.dbobj.actorName))
         j.sal.fs.writeFile(path, self.sourceToExecute)
         return path
 

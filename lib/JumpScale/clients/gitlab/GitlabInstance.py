@@ -153,7 +153,7 @@ class GitlabInstance:
         ttype = self.addr.split("/", 1)[1].strip("/ ")
         if ttype.find(".") != -1:
             ttype = ttype.split(".", 1)[0]
-        path = "%s/%s/%s/%s" % (j.dirs.codeDir, ttype, group, name)
+        path = "%s/%s/%s/%s" % (j.dirs.CODEDIR, ttype, group, name)
         if not self.getProject(name, renew=True):
             self.gitlab.createproject(
                 name, public=public, namespace_id=group2['id'])

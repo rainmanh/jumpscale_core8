@@ -2493,7 +2493,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             return cfg
         else:
             # this to make sure works in readonly mode
-            return {)
+            return {}
 
     def doneSet(self, key, , val=True):
         if self.readonly == False:

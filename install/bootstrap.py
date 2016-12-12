@@ -15,16 +15,21 @@ if not "TMPDIR" in os.environ:
 
 tmpdir = os.environ["TMPDIR"]
 
-os.chdir(tmpdir)
 
 print("bootstrap installtools in dir %s and use branch:'%s'" % (tmpdir, branch))
 
 # GET THE MAIN INSTALL TOOLS SCRIPT
 
-path = "%s/InstallTools.py" % tmpdir
+pathcheck = "%s/InstallTools.py" % os.path.abspath(os.curdir)
+if os.path.exists(pathcheck):
+    path = pathcheck
+else:
+    path = "%s/InstallTools.py" % tmpdir
 
 if not os.path.exists(path):
     raise RuntimeError("Cannot find:%s" % path)
+
+os.chdir(tmpdir)
 
 from importlib import util
 spec = util.spec_from_file_location("InstallTools", path)

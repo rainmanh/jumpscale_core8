@@ -114,8 +114,7 @@ j.do.installer.do = do
 # sets up the exception handlers for init
 from . import core
 
-if not do.embed:
-    sys.path.append('%s/lib/JumpScale' % do.BASE)
+sys.path.append('%s/lib/JumpScale' % do.JSBASE)
 
 # import importlib
 

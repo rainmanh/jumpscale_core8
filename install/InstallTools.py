@@ -2378,6 +2378,8 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         self.installer = Installer()
         self.installer.do = self
 
+        self.embed = False
+
         self.init()
 
     @property
@@ -2563,11 +2565,10 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         if not "CFGDIR" in env:
             env["CFGDIR"] = "%s/cfg" % env["VARDIR"]
 
+        if exists("/tmp"):
+            env["TMPDIR"] = "/tmp"
         if not "TMPDIR" in env:
-            if exists("/tmp"):
-                env["TMPDIR"] = "/tmp"
-            else:
-                raise RuntimeError("Cannot define a tmp dir, set env variable")
+            raise RuntimeError("Cannot define a tmp dir, set env variable")
 
         change = {}
         change["JSAPPDIR"] = lambda x: "%s/app" % x["JSBASE"]

@@ -51,45 +51,34 @@ class Dirs:
         return path
 
     def init(self):
-        self.JSAPPDIR = self.normalize(j.sal.fs.joinPaths(self.base, "apps"))
-        self.VARDIR = self.normalize(j.do.VARDIR)
-        self.TEMPLATEDIR = self.normalize(j.sal.fs.joinPaths(self.base, "templates"))
-        self.LIBDIR = j.sal.fs.joinPaths(self.base, 'lib')
-        self.LOGDIR = self.normalize(j.sal.fs.joinPaths(self.VARDIR, "log"))
-        self.PIDDIR = self.normalize(j.sal.fs.joinPaths(self.VARDIR, "pid"))
-        self.CODEDIR = self.normalize(j.do.CODEDIR)
-        self.libExtDir = j.sal.fs.joinPaths(self.base, 'libext')
-        self.BINDIR = self.normalize(os.path.join(self.base, 'bin'))
-        self.JSLIBDIR = os.path.join(self.LIBDIR, "JumpScale")
+        from IPython import embed
+        print("DEBUG NOW init dirs")
+        embed()
+        raise RuntimeError("stop debug here")
 
     def replaceTxtDirVars(self, txt, additionalArgs={}):
         """
         replace $BASEDIR,$vardir,$JSCFGDIR,$bindir,$codedir,$tmpdir,$logdir,$appdir with props of this class
         also the Dir... get replaces e.g. varDir
         """
-        txt = txt.replace("$BASEDIR", self.base)
+
+        from IPython import embed
+        print("DEBUG NOW replaceTxtDirVars")
+        embed()
+        raise RuntimeError("stop debug here")
+
         txt = txt.replace("$appdir", self.JSAPPDIR)
-        txt = txt.replace("$JSAPPDIR", self.JSAPPDIR)
-        txt = txt.replace("$TEMPLATEDIR", self.TEMPLATEDIR)
         txt = txt.replace("$tmplsdir", self.TEMPLATEDIR)
         txt = txt.replace("$codedir", self.CODEDIR)
-        txt = txt.replace("$CODEDIR", self.CODEDIR)
         txt = txt.replace("$vardir", self.VARDIR)
-        txt = txt.replace("$VARDIR", self.VARDIR)
         txt = txt.replace("$cfgdir", self.JSCFGDIR)
-        txt = txt.replace("$JSCFGDIR", self.JSCFGDIR)
         txt = txt.replace("$bindir", self.BINDIR)
-        txt = txt.replace("$BINDIR", self.BINDIR)
         txt = txt.replace("$logdir", self.LOGDIR)
-        txt = txt.replace("$LOGDIR", self.LOGDIR)
         txt = txt.replace("$tmpdir", self.TMPDIR)
-        txt = txt.replace("$TMPDIR", self.TMPDIR)
         txt = txt.replace("$libdir", self.LIBDIR)
-        txt = txt.replace("$LIBDIR", self.LIBDIR)
         txt = txt.replace("$jslibextdir", self.libExtDir)
         txt = txt.replace("$jsbindir", self.BINDIR)
         txt = txt.replace("$nodeid", str(j.application.whoAmI.nid))
-        # txt=txt.replace("$jumpscriptsdir", j.core.jumpscripts.basedir)
         for key, value in list(additionalArgs.items()):
             txt = txt.replace("$%s" % key, str(value))
         return txt

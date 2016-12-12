@@ -2051,10 +2051,9 @@ class Installer():
                             os.environ[item] += "/"
 
         config["dirs"] = {}
-        from IPython import embed
-        print("DEBUG NOW writeenv")
-        embed()
-        raise RuntimeError("stop debug here")
+        for key, val in os.environ.items():
+            if "DIR" in key:
+                config["dirs"][key] = val
 
         with open("%s/jumpscale/system.yaml" % os.environ["CFGDIR"], 'w') as outfile:
             yaml.dump(config, outfile, default_flow_style=False)

@@ -12,6 +12,13 @@ class ExecutorLocal(ExecutorBase):
         self.type = "local"
         self.id = 'localhost'
 
+    @property
+    def done(self):
+        return j.do.done
+
+    def doneSet(self, key):
+        return j.do.doneSet(key)
+
     def executeRaw(self, cmd, die=True, showout=False):
         return self.execute(cmd, die=die, showout=showout)
 

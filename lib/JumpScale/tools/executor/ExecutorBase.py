@@ -16,6 +16,30 @@ class ExecutorBase:
         self._cuisine = None
 
     @property
+    def done(self):
+        if self.readonly == False:
+            path = '%s/jumpscale_done.yaml' % self.env["TMPDIR"]
+            if not self.cuisine.core.exists(path):
+                return {}
+            else:
+                from IPython import embed
+                print("DEBUG NOW ExecutorBase doneGet")
+                embed()
+                raise RuntimeError("stop debug here")
+        else:
+            # this to make sure works in readonly mode
+            return {}
+
+    def doneSet(self, key, val=True):
+        if self.readonly == False:
+            d = self.done
+            d[key] = val
+            path = '%s/jumpscale_done.yaml' % self.env["TMPDIR"]
+
+            with open(path, 'w') as outfile:
+                yaml.dump(d, outfile, default_flow_style=False)
+
+    @property
     def env(self):
         """
         environment are kept in redis, to allow multiple instances to work together

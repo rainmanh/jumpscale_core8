@@ -2485,7 +2485,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
     @property
     def done(self):
         if self.readonly == False:
-            path = '%s/jumpscale/done.yaml' % os.environ["TMPDIR"]
+            path = '%s/jumpscale_done.yaml' % os.environ["TMPDIR"]
             if not self.exists(path):
                 return {}
             with open(path, 'r') as conf:
@@ -2493,16 +2493,13 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             return cfg
         else:
             # this to make sure works in readonly mode
-            return {}
+            return {)
 
-    def doneSet(self, key):
+    def doneSet(self, key, , val=True):
         if self.readonly == False:
             d = self.done
-            d[key] = True
-            path = '%s/jumpscale/done.yaml' % os.environ["TMPDIR"]
-            parent = os.path.abspath(os.path.join(path, os.pardir))
-            if not os.path.exists(parent):
-                os.mkdir(parent)
+            d[key] = val
+            path = '%s/jumpscale_done.yaml' % os.environ["TMPDIR"]
             with open(path, 'w') as outfile:
                 yaml.dump(d, outfile, default_flow_style=False)
 

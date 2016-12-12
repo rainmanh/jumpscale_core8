@@ -2495,7 +2495,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             # this to make sure works in readonly mode
             return {}
 
-    def doneSet(self, key, , val=True):
+    def doneSet(self, key, val=True):
         if self.readonly == False:
             d = self.done
             d[key] = val

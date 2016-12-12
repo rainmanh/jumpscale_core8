@@ -2026,8 +2026,11 @@ class Installer():
         print("WRITENV")
         self.do.createDir("%s/jumpscale" % os.environ["CFGDIR"])
         config = {}
-        for category, items in {"identity": ["EMAIL", "FULLNAME", "GITHUBUSER"],
-                                "system": ["AYSBRANCH", "JSBRANCH", "DEBUG", "SANDBOX"],
+        cats = {
+            "identity": ["EMAIL", "FULLNAME", "GITHUBUSER"],
+            "system": ["AYSBRANCH", "JSBRANCH", "DEBUG", "SANDBOX"]
+        }
+        for category, items in cats.items():
             config[category] = {}
             for item in items:
 
@@ -2042,8 +2045,6 @@ class Installer():
                     else:
                         config[category][item] = os.environ[item]
 
-
-
                         if category == "dirs":
                             while os.environ[item][-1] == "/":
                                 os.environ[item] = os.environ[item][:-1]
@@ -2054,7 +2055,6 @@ class Installer():
         print("DEBUG NOW writeenv")
         embed()
         raise RuntimeError("stop debug here")
-
 
         with open("%s/jumpscale/system.yaml" % os.environ["CFGDIR"], 'w') as outfile:
             yaml.dump(config, outfile, default_flow_style=False)

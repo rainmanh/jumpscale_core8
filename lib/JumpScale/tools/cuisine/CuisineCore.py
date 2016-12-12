@@ -214,6 +214,11 @@ class CuisineCore(base):
         res = {}
         _, out, _ = self._cuisine.core.run("printenv", profile=False, showout=False, replaceArgs=False)
 
+        from IPython import embed
+        print("DEBUG NOW sdsd")
+        embed()
+        raise RuntimeError("stop debug here")
+
         for line in out.splitlines():
             if '=' in line:
                 name, val = line.split("=", 1)
@@ -231,39 +236,12 @@ class CuisineCore(base):
 
     @property
     def dir_paths(self):
-        res = {}
         env = self.getenv()
-        if 'JSBASE' in env:
-            res["base"] = env["JSBASE"]
-        else:
-            if self.dir_exists("/JS8"):
-                res["base"] = "/JS8/opt/jumpscale8/"
-            elif self.isMac or self.isCygwin:
-                res["base"] = "%s/opt/jumpscale8/" % env["HOME"]
-            else:
-                res["base"] = "/opt/jumpscale8"
-
-        if self.dir_exists('/JS8'):
-            res["CODEDIR"] = "/JS8/code/"
-            res["optDir"] = "/JS8/opt/"
-            res["VARDIR"] = "/JS8/optvar/"
-        elif self.isMac or self.isCygwin:
-            res["CODEDIR"] = "%s/opt/code/" % env["HOME"]
-            res["optDir"] = "%s/opt/" % env["HOME"]
-            res["VARDIR"] = "%s/optvar/" % env["HOME"]
-        else:
-            res["CODEDIR"] = "/opt/code"
-            res["optDir"] = "/opt"
-            res["VARDIR"] = "/optvar"
-
-        res["JSAPPDIR"] = "%s/apps" % res["base"]
-
-        res["BINDIR"] = "%s/bin" % res["base"]
-        res["JSCFGDIR"] = "%s/cfg" % res["VARDIR"]
-        res["HOMEDIR"] = env["HOME"]
-
-        res["TMPDIR"] = "%s/tmp" % res["VARDIR"]
-
+        env = j.do.initEnv(env)
+        res = {}
+        for key, val in env.items()
+            if "DIR" in key:
+                res[key] = val
         return res
 
     # =============================================================================

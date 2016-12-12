@@ -3,29 +3,13 @@ set -ex
 
 export STARTDIR=$PWD
 
-if [ -d "/JS8" ]; then
-    export JSBASE="/JS8/opt/jumpscale8"
-    export TMPDIR="/JS8/tmp"
-    export CFGDIR="/JS8/optvar/cfg/"
-    mkdir -p $JSBASE
-else
-    if [ "$(uname)" == "Darwin" ]; then
-        export TMPDIR="$HOME/tmp"
-        export JSBASE="$HOME/opt/jumpscale8"
-        export CFGDIR="$HOME/optvar/cfg/"
-    else
-        export TMPDIR="/tmp"
-        export JSBASE="/opt/jumpscale8"
-        export CFGDIR="/optvar/cfg/"
-    fi
-fi
+if [ -d "/tmp" ]; then
+    export TMPDIR="/tmp"
 
 #TO RESET, to develop faster uncomment
 rm -f $TMPDIR/jsinstall_systemcomponents_done
-rm -f $CFGDIR/done.yaml
+rm -f $TMPDIR/done.yaml
 
-
-mkdir -p $TMPDIR
 cd $TMPDIR
 
 function clean_system {
@@ -60,7 +44,7 @@ function pip_install {
         curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python3 get-pip.py
         pip3 install --upgrade pip setuptools
         pip3 install --upgrade pyyaml
-        pip3 install --upgrade uvloop
+        # pip3 install --upgrade uvloop
         pip3 install --upgrade ipython
         pip3 install --upgrade python-snappy
     fi
@@ -150,3 +134,5 @@ fi
 
 cd $TMPDIR
 python3 bootstrap.py
+
+cd $STARTDIR

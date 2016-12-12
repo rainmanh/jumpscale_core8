@@ -2572,10 +2572,12 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
 
         return env
 
-    def codeChangeDirVars(self):
+    def codeChangeDirVars(self, branch="8.1.0_cleanup"):
         """
         walk over code dir & find all known old dir arguments & change them to new
         """
+        repos = ["github/jumpscale/dockers", "github/jumpscale/ays_jumpscale8", "github/jumpscale/jscockpit",
+                 "github/jumpscale/jumpscale_core8", "github/jumpscale/portal8"]
         tochange = ["logDir", "pidDir", "hrdDir", "goDir", "nimDir", "jsLibDir", "libDir", "tmplsDir"]
         from IPython import embed
         print("DEBUG NOW codeChangeDirVars")

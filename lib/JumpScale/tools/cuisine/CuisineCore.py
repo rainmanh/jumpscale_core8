@@ -257,18 +257,12 @@ class CuisineCore(base):
             res["varDir"] = "/optvar"
 
         res["appDir"] = "%s/apps" % res["base"]
-        res['tmplsDir'] = "%s/templates" % res["base"]
+
         res["binDir"] = "%s/bin" % res["base"]
         res["cfgDir"] = "%s/cfg" % res["varDir"]
-        res["jsLibDir"] = "%s/lib/JumpScale/" % res["base"]
-        res["libDir"] = "%s/lib/" % res["base"]
         res["homeDir"] = env["HOME"]
-        res["logDir"] = "%s/log" % res["varDir"]
-        res["pidDir"] = "%s/pid" % res["varDir"]
-        res["tmpDir"] = "%s/tmp" % res["varDir"]
-        res["hrdDir"] = "%s/hrd" % res["varDir"]
 
-        res["goDir"] = "%s/go/" % res["varDir"]
+        res["tmpDir"] = "%s/tmp" % res["varDir"]
 
         return res
 

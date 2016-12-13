@@ -573,7 +573,7 @@ class GitMethods():
                 # pull
                 print(("git pull %s -> %s" % (url, dest)))
                 if url.find("http") != -1:
-                    cmd = "cd %s;git -c http.sslVerify=false pull origin %s" % (dest, branch)
+                    cmd = "mkdir -p %s;cd %s;git -c http.sslVerify=false pull origin %s" % (dest, dest, branch)
                 else:
                     cmd = "cd %s;git pull origin %s" % (dest, branch)
                 print(cmd)

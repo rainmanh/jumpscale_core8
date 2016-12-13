@@ -57,6 +57,8 @@ class CuisineJS8(base):
 
         self._cuisine.development.pip.install('pytoml')
         self._cuisine.development.pip.install('pygo')
+        self._cuisine.package.ensure('libxml2-dev')
+        self._cuisine.package.ensure('libxslt1-dev')
 
         # python etcd
         C = """

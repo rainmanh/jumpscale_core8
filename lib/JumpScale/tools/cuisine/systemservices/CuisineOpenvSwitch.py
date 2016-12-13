@@ -25,9 +25,7 @@ class CuisineOpenvSwitch(app):
 
     """
 
-    def __init__(self, executor, cuisine):
-        self._cuisine = cuisine
-        self._executor = executor
+    def _init(self):
         self.__controller = None
         self._apt_packages = ['openssl', 'openvswitch-switch', 'openvswitch-common']
 
@@ -35,7 +33,7 @@ class CuisineOpenvSwitch(app):
     def _controller(self):
         if not self.__controller:
             self.__controller = j.sal.kvm.KVMController(
-                executor=self._cuisine._executor)
+                executor=self.cuisine.executor)
         return self.__controller
 
     # def prepare(self):
@@ -46,7 +44,7 @@ class CuisineOpenvSwitch(app):
 
     def isInstalled(self):
         try:
-            self._cuisine.core.run("ovs-vsctl show")
+            self.cuisine.core.run("ovs-vsctl show")
             return True
         except Exception as e:
             return False
@@ -54,8 +52,8 @@ class CuisineOpenvSwitch(app):
     def install(self):
         if self.isInstalled():
             return
-        if self._cuisine.core.isUbuntu:
-            self._cuisine.package.multiInstall(self._apt_packages)
+        if self.cuisine.core.isUbuntu:
+            self.cuisine.package.multiInstall(self._apt_packages)
         else:
             raise RuntimeError("only support ubuntu")
         # do checks if openvswitch installed & configured properly if not
@@ -65,7 +63,7 @@ class CuisineOpenvSwitch(app):
         if not self.isInstalled():
             return
         for package in self._apt_packages:
-            self._cuisine.core.package.remove(package)
+            self.cuisine.core.package.remove(package)
 
     def networkCreate(self, network_name, bridge_name=None, interfaces=None, ovs=True, start=True):
         """
@@ -94,14 +92,14 @@ class CuisineOpenvSwitch(app):
         """
         List bridges available on machaine created by openvswitch.
         """
-        _, out, _ = self._cuisine.core.run("ovs-vsctl list-br")
+        _, out, _ = self.cuisine.core.run("ovs-vsctl list-br")
         return out.splitlines()
 
     def networkListInterfaces(self, name):
         """
         List ports available on bridge specified.
         """
-        _, out, _ = self._cuisine.core.run("ovs-vsctl list-ports %s" % name)
+        _, out, _ = self.cuisine.core.run("ovs-vsctl list-ports %s" % name)
         return out.splitlines()
 
     def vnicCreate(self, name, bridge):

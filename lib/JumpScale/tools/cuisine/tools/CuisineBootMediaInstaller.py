@@ -9,49 +9,45 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisineBootMediaInstaller(base):
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def _downloadImage(self, url, redownload=False):
         base = url.split("/")[-1]
         downloadpath = "$TMPDIR/%s" % base
-        self._cuisine.core.dir_ensure("$TMPDIR")
+        self.cuisine.core.dir_ensure("$TMPDIR")
 
         if redownload:
-            self._cuisine.core.file_unlink(downloadpath)
+            self.cuisine.core.file_unlink(downloadpath)
 
-        if not self._cuisine.core.file_exists(downloadpath):
-            self._cuisine.core.run("cd $TMPDIR;curl -L %s -O" % url)
+        if not self.cuisine.core.file_exists(downloadpath):
+            self.cuisine.core.run("cd $TMPDIR;curl -L %s -O" % url)
 
         return base
 
     def _partition(self, deviceid, type):
         cmd = "parted -s /dev/%s mklabel %s mkpart primary fat32 2 200M set 1 boot on mkpart primary ext4 200M 100%%" % (
             deviceid, type)
-        self._cuisine.core.run(cmd)
+        self.cuisine.core.run(cmd)
 
     def _umount(self, deviceid):
-        self._cuisine.core.run("umount /mnt/root/boot", die=False)
-        self._cuisine.core.run("umount /mnt/root", die=False)
-        self._cuisine.core.run("umount /dev/%s1" % deviceid, die=False)
-        self._cuisine.core.run("umount /dev/%s2" % deviceid, die=False)
+        self.cuisine.core.run("umount /mnt/root/boot", die=False)
+        self.cuisine.core.run("umount /mnt/root", die=False)
+        self.cuisine.core.run("umount /dev/%s1" % deviceid, die=False)
+        self.cuisine.core.run("umount /dev/%s2" % deviceid, die=False)
 
     def _mount(self, deviceid):
-        self._cuisine.core.run("mkfs.ext4 -F /dev/%s2" % deviceid)
-        self._cuisine.core.run("mkdir -p /mnt/root && mount /dev/%s2 /mnt/root" % deviceid)
-        self._cuisine.core.run("mkfs.vfat -F32 /dev/%s1" % deviceid)
-        self._cuisine.core.run("mkdir -p /mnt/root/boot && mount /dev/%s1 /mnt/root/boot" % deviceid)
+        self.cuisine.core.run("mkfs.ext4 -F /dev/%s2" % deviceid)
+        self.cuisine.core.run("mkdir -p /mnt/root && mount /dev/%s2 /mnt/root" % deviceid)
+        self.cuisine.core.run("mkfs.vfat -F32 /dev/%s1" % deviceid)
+        self.cuisine.core.run("mkdir -p /mnt/root/boot && mount /dev/%s1 /mnt/root/boot" % deviceid)
 
     def _install(self, base):
         # We use bsdtar to support pi2 arm images.
-        self._cuisine.core.run("cd $TMPDIR && bsdtar -vxpf %s -C /mnt/root" % base)
-        self._cuisine.core.run("sync")
-        self._cuisine.core.run("echo 'PermitRootLogin=yes'>>'/mnt/root/etc/ssh/sshd_config'")
+        self.cuisine.core.run("cd $TMPDIR && bsdtar -vxpf %s -C /mnt/root" % base)
+        self.cuisine.core.run("sync")
+        self.cuisine.core.run("echo 'PermitRootLogin=yes'>>'/mnt/root/etc/ssh/sshd_config'")
 
     def _findDevices(self):
         devs = []
-        for line in self._cuisine.core.run("lsblk -b -o TYPE,NAME,SIZE")[1].split("\n"):
+        for line in self.cuisine.core.run("lsblk -b -o TYPE,NAME,SIZE")[1].split("\n"):
             if line.startswith("disk"):
                 while line.find("  ") > 0:
                     line = line.replace("  ", " ")
@@ -112,7 +108,7 @@ class CuisineBootMediaInstaller(base):
 
     def ubuntu(self, platform="amd64", deviceid=None):
         """
-        if platform none then it will use self._cuisine.node.hwplatform
+        if platform none then it will use self.cuisine.node.hwplatform
 
         example: hwplatform = rpi_2b, orangepi_plus,amd64
 
@@ -124,11 +120,11 @@ class CuisineBootMediaInstaller(base):
 
         path = "$TMPDIR/%s" % name
         cmd = 'dd if=%s of=/dev/%s bs=4000' % (path, deviceid)
-        self._cuisine.core.sudo(cmd)
+        self.cuisine.core.sudo(cmd)
 
     def debian(self, platform="orangepi_plus", deviceid=None):
         """
-        if platform none then it will use self._cuisine.node.hwplatform
+        if platform none then it will use self.cuisine.node.hwplatform
 
         example: hwplatform = rpi_2b, orangepi_plus,amd64
 
@@ -141,7 +137,7 @@ class CuisineBootMediaInstaller(base):
 
     def arch(self, platform="rpi_2b", deviceid=None):
         """
-        if platform none then it will use self._cuisine.node.hwplatform
+        if platform none then it will use self.cuisine.node.hwplatform
 
         example: hwplatform = rpi_2b, orangepi_plus,amd64
 
@@ -167,13 +163,13 @@ class CuisineBootMediaInstaller(base):
         def configure(deviceid):
             import textwrap
             init = textwrap.dedent(init_tmpl).format(gid=gid, nid=nid)
-            self._cuisine.core.file_write("/mnt/sbin/init", init, mode=755)
+            self.cuisine.core.file_write("/mnt/sbin/init", init, mode=755)
 
         self.formatCardDeployImage(url, deviceid=deviceid, part_type='msdos', post_install=configure)
 
     def g8os(self, gid, nid, platform="amd64", deviceid=None, url=None):
         """
-        if platform none then it will use self._cuisine.node.hwplatform
+        if platform none then it will use self.cuisine.node.hwplatform
 
         example: hwplatform = rpi_2b, orangepi_plus,amd64
 
@@ -203,38 +199,38 @@ class CuisineBootMediaInstaller(base):
         def configure(deviceid):
             # get UUID of device
             import textwrap
-            _1, bootuuid, _1 = self._cuisine.core.run('blkid /dev/%s1 -o value -s PARTUUID' % deviceid)
-            _2, rootuuid, _2 = self._cuisine.core.run('blkid /dev/%s2 -o value -s PARTUUID' % deviceid)
+            _1, bootuuid, _1 = self.cuisine.core.run('blkid /dev/%s1 -o value -s PARTUUID' % deviceid)
+            _2, rootuuid, _2 = self.cuisine.core.run('blkid /dev/%s2 -o value -s PARTUUID' % deviceid)
 
-            self._cuisine.core.run('mount -t sysfs none /mnt/root/sys')
-            self._cuisine.core.run('mount -t devtmpfs none /mnt/root/dev')
-            self._cuisine.core.run('mount -t tmpfs none /mnt/root/tmp')
-            self._cuisine.core.run('mount -t proc none /mnt/root/proc')
+            self.cuisine.core.run('mount -t sysfs none /mnt/root/sys')
+            self.cuisine.core.run('mount -t devtmpfs none /mnt/root/dev')
+            self.cuisine.core.run('mount -t tmpfs none /mnt/root/tmp')
+            self.cuisine.core.run('mount -t proc none /mnt/root/proc')
 
             # add g8os section.
-            self._cuisine.core.run(
+            self.cuisine.core.run(
                 'chroot /mnt/root grub-install --target=x86_64-efi --efi-directory=/boot --modules="part_gpt ext2 fat"  --removable')
-            self._cuisine.core.run('chroot /mnt/root grub-mkconfig -o /boot/grub/grub.cfg')
+            self.cuisine.core.run('chroot /mnt/root grub-mkconfig -o /boot/grub/grub.cfg')
 
-            self._cuisine.core.run('umount /mnt/root/sys')
-            self._cuisine.core.run('umount /mnt/root/dev')
-            self._cuisine.core.run('umount /mnt/root/tmp')
-            self._cuisine.core.run('umount /mnt/root/proc')
+            self.cuisine.core.run('umount /mnt/root/sys')
+            self.cuisine.core.run('umount /mnt/root/dev')
+            self.cuisine.core.run('umount /mnt/root/tmp')
+            self.cuisine.core.run('umount /mnt/root/proc')
 
             fstab = textwrap.dedent(fstab_tmpl).format(rootuuid=rootuuid, bootuuid=bootuuid)
-            self._cuisine.core.file_write("/mnt/root/etc/fstab", fstab)
+            self.cuisine.core.file_write("/mnt/root/etc/fstab", fstab)
 
             bash = '/usr/bin/bash'
             if not j.sal.fs.exists('/mnt/root/usr/bin/bash'):
                 bash = '/bin/bash'
 
             init = textwrap.dedent(init_tmpl).format(gid=gid, nid=nid, bash=bash)
-            self._cuisine.core.file_write("/mnt/root/sbin/init", init, mode=755)
+            self.cuisine.core.file_write("/mnt/root/sbin/init", init, mode=755)
 
         self.formatCardDeployImage(url, deviceid=deviceid, part_type='gpt', post_install=configure)
 
     def __str__(self):
         return "cuisine.bootmediaInstaller:%s:%s" % (
-            getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
+            getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
 
     __repr__ = __str__

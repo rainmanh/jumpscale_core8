@@ -1,81 +1,107 @@
 
 from JumpScale import j
-# import ExtraTools
 
 
 class Cache:
 
     def __init__(self):
         self.__jslocation__ = "j.data.cache"
-        self.db = j.core.db
         self._cache = {}
 
-    def get(self, runid, cat, keepInMem=False, reset=False):
-        if self.db == None:
-            keepInMem = True
-        key = "%s_%s" % (runid, cat)
-        if key not in self._cache:
-            self._cache[key] = CacheCategory(runid, cat, keepInMem=keepInMem)
+    def get(self, id="main", db=None, reset=False):
+        """
+        @param id is a unique id for the cache
+        db = e.g. j.core.db or None, when none then will be in memory
+        """
+        if id not in self._cache:
+            self._cache[id] = CacheCategory(id=id, db=db)
         if reset:
-            self.reset(runid)
-        return self._cache[key]
+            self.reset(id)
+        return self._cache[id]
 
-    def reset(self, runid=""):
-        self._cache = {}
-        if self.db != None:
-            if runid == "":
-                for key in j.core.db.keys():
-                    key = key.decode()
-                    if key.startswith("cuisine:cache"):
-                        print("cache delete:%s" % key)
-                        j.core.db.delete(key)
-            else:
-                key = "cuisine.cache.%s" % runid
-                j.core.db.delete(key)
+    def resetAll(self):
+        for key, cache in self._cache.items():
+            cache.reset()
+
+    def reset(self, id):
+        if id in self._cache:
+            self._cache[id].reset()
+
+    def test(self):
+
+        def testAll(c):
+            c.set("something", "OK")
+
+            assert "OK" == c.get("something")
+
+            def return1():
+                return 1
+
+            assert c.get("somethingElse", return1) == 1
+            assert c.get("somethingElse") == 1
+
+            c.reset()
+
+            try:
+                c.get("somethingElse")
+            except Exception as e:
+                if not "Cannot get 'somethingElse' from cache" in str(e):
+                    raise RuntimeError("error in test. non expected output")
+
+        c = self.get("test")
+        testAll(c)
+        c = self.get("test", j.core.db)
+        testAll(c)
+        print("TESTOK")
 
 
 class CacheCategory():
 
-    def __init__(self, runid, cat, keepInMem=False):
-        self.cat = cat
-        self.runid = runid
-        self.keepInMem = keepInMem
-        if keepInMem:
-            self._cache = {}
+    def __init__(self, id, db=None):
+        self.id = id
+        self.hkey = "cache:%s" % self.id
+        self.db = db
+        self._cache = {}
 
-    def get(self, id, method=None, refresh=False, **kwargs):
-        key = "cuisine:cache:%s" % self.runid
-        hkey = "%s:%s" % (self.cat, id)
-        if self.keepInMem and id in self._cache and refresh is False:
-            if self._cache[id] not in ["", None]:
-                return self._cache[id]
-        if refresh is False and j.core.db != None:
-            val = j.core.db.hget(key, hkey)
-            if val is not None:
-                val = j.data.serializer.json.loads(val)
-                if val is not None and val != "":
-                    return val
-        if method is not None:
+    def _get(self, key):
+        if self.db == None:
+            if key in self._cache:
+                return self._cache[key]
+            else:
+                return None
+        else:
+            val = self.db.hget(self.hkey, key)
+            val = j.data.serializer.json.loads(val)
+            return val
+
+    def set(self, key, val):
+        if self.db == None:
+            self._cache[key] = val
+        else:
+            val = j.data.serializer.json.dumps(val)
+            self.db.hset(self.hkey, key, val)
+
+    def get(self, key, method=None, refresh=False, **kwargs):
+        if method == None and refresh == True:
+            raise j.exceptions.Input(message="method cannot be None", level=1, source="", tags="", msgpub="")
+
+        # check if key exists then return (only when no refresh)
+        if refresh or self._get(key) == None:
+            if method == None:
+                raise j.exceptions.RuntimeError("Cannot get '%s' from cache,not found & method None" % key)
             val = method(**kwargs)
             if val is None or val == "":
-                raise j.exceptions.RuntimeError("method cannot return None or empty string.")
-            if j.core.db != None:
-                self.set(id, val)
-            if self.keepInMem:
-                self._cache[id] = val
+                raise j.exceptions.RuntimeError("cache method cannot return None or empty string.")
+            self.set(key, val)
             return val
-        raise j.exceptions.RuntimeError("Cannot get '%s' from cache" % id)
-
-    def set(self, id, val):
-        if self.keepInMem :
-            self._cache[id] = val
-        if j.core.db != None:
-            key = "cuisine:cache:%s" % self.runid
-            hkey = "%s:%s" % (self.cat, id)
-            val = j.data.serializer.json.dumps(val)
-            j.core.db.hset(key, hkey, val)
+        else:
+            res = self._get(key)
+            if res == None:
+                raise j.exceptions.RuntimeError("Cannot get '%s' from cache" % key)
+            return res
 
     def reset(self):
-        j.data.cache.reset(self.runid)
-        if self.keepInMem:
+        if self.db == None:
             self._cache = {}
+        else:
+            self.db.delete(self.hkey)

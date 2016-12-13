@@ -4,6 +4,7 @@ from time import sleep
 
 app = j.tools.cuisine._getBaseAppClass()
 
+
 class CuisineTIDB(app):
     """
     Installs TIDB.
@@ -19,22 +20,17 @@ class CuisineTIDB(app):
     """
     NAME = 'tidb'
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
-
     def _build(self):
         # TODO: *1
         # SEE: https://github.com/pingcap/tidb
         # deploy on top of tikv (which is distributed database backend on top of paxos)
         # WILL BE BACKEND FOR e.g. OWNCLOUD / GOGS
-        self._cuisine.package.mdupdate()
-        self._cuisine.package.install('build-essential')
+        self.cuisine.package.mdupdate()
+        self.cuisine.package.install('build-essential')
         url = 'https://raw.githubusercontent.com/pingcap/docs/master/scripts/build.sh'
-        self._cuisine.core.dir_ensure('/tmp/tidb')
+        self.cuisine.core.dir_ensure('/tmp/tidb')
 
-        self._cuisine.core.run('cd /tmp/tidb/ && curl {} | bash'.format(url), profile=True)
+        self.cuisine.core.run('cd /tmp/tidb/ && curl {} | bash'.format(url), profile=True)
 
     # TODO:  Currently install with start=False and then run start_tipd, start_tikv, start_tidb separately
     def install(self, start=False):
@@ -45,7 +41,7 @@ class CuisineTIDB(app):
         script = '''
         mv /tmp/tidb/bin/* $BINDIR/
         '''
-        self._cuisine.core.execute_bash(script)
+        self.cuisine.core.execute_bash(script)
 
         if start:
             self.start()
@@ -63,7 +59,7 @@ class CuisineTIDB(app):
             'clusterId': clusterId,
             'dataDir': j.sal.fs.joinPaths(j.dirs.VARDIR, 'tidb'),
         }
-        self._cuisine.processmanager.ensure(
+        self.cuisine.processmanager.ensure(
             'tipd',
             'pd-server --cluster-id {clusterId} \
             --data-dir={dataDir}'.format(**config),
@@ -74,7 +70,7 @@ class CuisineTIDB(app):
             'clusterId': clusterId,
             'dataDir': j.sal.fs.joinPaths(j.dirs.VARDIR, 'tidb'),
         }
-        self._cuisine.processmanager.ensure(
+        self.cuisine.processmanager.ensure(
             'tikv',
             'tikv-server -I {clusterId} -S raftkv \
             --pd 127.0.0.1:2379 -s tikv1'.format(**config)
@@ -85,7 +81,7 @@ class CuisineTIDB(app):
             'clusterId': clusterId,
             'dataDir': j.sal.fs.joinPaths(j.dirs.VARDIR, 'tidb'),
         }
-        self._cuisine.processmanager.ensure(
+        self.cuisine.processmanager.ensure(
             'tidb',
             'tidb-server -P 3306 --store=tikv \
             --path="127.0.0.1:2379?cluster={clusterId}"'.format(**config)
@@ -101,18 +97,17 @@ class CuisineTIDB(app):
         self.start_pd_server()
         self.start_tikv()
         cmd = "ps aux | grep tikv-server"
-        rc, out, err = self._cuisine.core.run(cmd, die=False)
+        rc, out, err = self.cuisine.core.run(cmd, die=False)
         tries = 0  # Give it sometime to start.
         while rc != 0 and tries < 3:
-            rc, out, err = self._cuisine.core.run(cmd, die=False)
+            rc, out, err = self.cuisine.core.run(cmd, die=False)
             sleep(2)
             tries += 1
         self.start_tidb()
         # tries = 0  # Give it sometime to start.
-        # while "tikv" not in self._cuisine.processmanager.list( and tries < 3:
+        # while "tikv" not in self.cuisine.processmanager.list( and tries < 3:
         #     sleep(2)
         #     tries += 1
-
 
     def start(self, clusterId=1):
         return self.simple_start()

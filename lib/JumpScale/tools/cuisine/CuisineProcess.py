@@ -7,10 +7,6 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisineProcess(base):
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def tcpport_check(self, port, prefix=""):
         res = []
         for item in self.info_get(prefix):
@@ -40,28 +36,28 @@ class CuisineProcess(base):
 
         """
         result = []
-        if "linux" in self._cuisine.platformtype.platformtypes:
+        if "linux" in self.cuisine.platformtype.platformtypes:
             cmdlinux = 'netstat -lntp'
-            _, out, _ = self._cuisine.core.run(cmdlinux, showout=False)
+            _, out, _ = self.cuisine.core.run(cmdlinux, showout=False)
             # to troubleshoot https://regex101.com/#python
             p = re.compile(
                 u"tcp *(?P<receive>[0-9]*) *(?P<send>[0-9]*) *(?P<local>[0-9*.]*):(?P<localport>[0-9*]*) *(?P<remote>[0-9.*]*):(?P<remoteport>[0-9*]*) *(?P<state>[A-Z]*) *(?P<pid>[0-9]*)/(?P<process>\w*)")
             for line in out.split("\n"):
                 res = re.search(p, line)
                 if res is not None:
-                    # print (line)
+                    # self.log(line)
                     d = res.groupdict()
                     d["process"] = d["process"].lower()
                     if d["state"] == "LISTEN":
                         d.pop("state")
                         result.append(d)
 
-        elif "darwin" in self._cuisine.platformtype.platformtypes:
+        elif "darwin" in self.cuisine.platformtype.platformtypes:
             # cmd='sudo netstat -anp tcp'
-            # # out=self._cuisine.core.run(cmd)
+            # # out=self.cuisine.core.run(cmd)
             # p = re.compile(u"tcp4 *(?P<rec>[0-9]*) *(?P<send>[0-9]*) *(?P<local>[0-9.*]*) *(?P<remote>[0-9.*]*) *LISTEN")
             cmd = "lsof -i 4tcp -sTCP:LISTEN -FpcRn"
-            _, out, _ = self._cuisine.core.run(cmd, showout=False)
+            _, out, _ = self.cuisine.core.run(cmd, showout=False)
             d = {}
             for line in out.split("\n"):
                 if line.startswith("p"):
@@ -112,7 +108,7 @@ class CuisineProcess(base):
         RE_SPACES = re.compile("[\s\t]+")
 
         cmd = "ps -A | grep {0} ; true".format(name) if is_string else "ps -A"
-        processes = self._cuisine.core.run(cmd, replaceArgs=False)[1]
+        processes = self.cuisine.core.run(cmd, replaceArgs=False)[1]
 
         res = []
         for line in processes.split("\n"):
@@ -141,4 +137,4 @@ class CuisineProcess(base):
         it will return the list of all processes that start with the given
         `name`."""
         for pid in self.find(name, exact):
-            self._cuisine.core.run("kill -s {0} {1} ; true".format(signal, pid), showout=False, replaceArgs=False)
+            self.cuisine.core.run("kill -s {0} {1} ; true".format(signal, pid), showout=False, replaceArgs=False)

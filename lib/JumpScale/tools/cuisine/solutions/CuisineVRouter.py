@@ -14,9 +14,7 @@ class CuisineVRouter(base):
     """
 
     def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-        self.cuisine = self._cuisine
+        base.__init__(self, executor, cuisine)
         self._defgwInterface = None
         self._check = False
 
@@ -51,10 +49,10 @@ class CuisineVRouter(base):
         # will make sure jumpscale has been installed (&base)
         self.cuisine.development.js8.install()
 
-        dest = self._cuisine.core.args_replace('$CODEDIR/github/jumpscale/smartproxy')
+        dest = self.replace('$CODEDIR/github/jumpscale/smartproxy')
         j.do.pullGitRepo("git@github.com:despiegk/smartproxy.git", dest=dest)
 
-        self._cuisine.core.upload("$CODEDIR/github/jumpscale/smartproxy")
+        self.cuisine.core.upload("$CODEDIR/github/jumpscale/smartproxy")
         C = """
         rm -rf /opt/dnsmasq-alt
         ln -s $CODEDIR/github/jumpscale/smartproxy /opt/dnsmasq-alt
@@ -117,8 +115,8 @@ class CuisineVRouter(base):
 
     def dnsServer(self):
         self.check()
-        self._cuisine.tmux.createSession("ovsrouter", ["dns"], returnifexists=True, killifexists=False)
-        self._cuisine.process.kill("dns-server")
+        self.cuisine.tmux.createSession("ovsrouter", ["dns"], returnifexists=True, killifexists=False)
+        self.cuisine.process.kill("dns-server")
         cmd = "jspython /opt/dnsmasq-alt/dns-server.py"
         self.cuisine.tmux.executeInScreen('ovsrouter', 'dns', cmd)
 
@@ -181,7 +179,7 @@ class CuisineVRouter(base):
         self.cuisine.core.execute_bash(C)
 
         cmd = "dhcpd -f"
-        self._cuisine.tmux.executeInScreen('ovsrouter', 'dhcpd', cmd)
+        self.cuisine.tmux.executeInScreen('ovsrouter', 'dhcpd', cmd)
 
     def hostap(self):
         self.check()
@@ -250,7 +248,7 @@ class CuisineVRouter(base):
         self.cuisine.core.file_write(configdest, C)
 
         cmd = "/opt/netpoc/hostapd-2.5/hostapd/hostapd %s" % configdest
-        self._cuisine.tmux.executeInScreen('ovsrouter', 'ap', cmd)
+        self.cuisine.tmux.executeInScreen('ovsrouter', 'ap', cmd)
 
     def firewall(self):
         path = "$CODEDIR/github/jumpscale/smartproxy/nftables.conf"
@@ -267,7 +265,7 @@ class CuisineVRouter(base):
         """
 
         cmd = "python3 mitmproxy_start.py -T -d -d -p 8443 -s /opt/dnsmasq-alt/http-filter.py"
-        self._cuisine.tmux.executeInScreen('ovsrouter', 'proxy', cmd)
+        self.cuisine.tmux.executeInScreen('ovsrouter', 'proxy', cmd)
 
     #
     # def accesspointAllInOne(self, passphrase, name="", dns="8.8.8.8", interface="wlan0"):
@@ -283,16 +281,16 @@ class CuisineVRouter(base):
     #     if name != "":
     #         hostname = name
     #     else:
-    #         _, hostname, _ = self._cuisine.core.run("hostname")
+    #         _, hostname, _ = self.cuisine.core.run("hostname")
     #     #--dhcp-dns 192.168.0.149
-    #     _, cpath, _ = self._cuisine.core.run("which create_ap")
+    #     _, cpath, _ = self.cuisine.core.run("which create_ap")
     #     cmd2 = '%s %s eth0 gig_%s %s -d' % (cpath, interface, hostname, passphrase)
     #
     #     giturl = "https://github.com/oblique/create_ap"
-    #     self._cuisine.pullGitRepo(url=giturl, dest=None, login=None, passwd=None, depth=1,
+    #     self.cuisine.pullGitRepo(url=giturl, dest=None, login=None, passwd=None, depth=1,
     #                               ignorelocalchanges=True, reset=True, branch=None, revision=None, ssh=False)
     #
-    #     self._cuisine.core.run("cp /opt/code/create_ap/create_ap /usr/local/bin/")
+    #     self.cuisine.core.run("cp /opt/code/create_ap/create_ap /usr/local/bin/")
     #
     #     START1 = """
     #     [Unit]
@@ -310,10 +308,10 @@ class CuisineVRouter(base):
     #     [Install]
     #     WantedBy = multi - user.target
     #     """
-    #     pm = self._cuisine.processmanager.get("systemd")
+    #     pm = self.cuisine.processmanager.get("systemd")
     #     pm.ensure("ap", cmd2, descr="accesspoint for local admin", systemdunit=START1)
 
     def __str__(self):
-        return "cuisine.vrouter:%s:%s" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
+        return "cuisine.vrouter:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
 
     __repr__ = __str__

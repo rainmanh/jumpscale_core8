@@ -30,59 +30,37 @@ sudo mv -f /usr/bin/openssl_ /usr/bin/openssl
 
 class CuisineOpenSSL(base):
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
+    def _init(self):
+        self.BUILDDIR = self.replace("$BUILDDIR/openssl/")
+        self.CODEDIR = self.replace("$CODEDIR/github/openssl/openssl/")
 
     def build(self, destpath="", reset=False):
         """
         @param destpath, if '' then will be $TMPDIR/build/openssl
         """
-
-        if destpath == "":
-            destpath = "$TMPDIR/build/openssl/"
-        destpath = self._cuisine.core.args_replace(destpath)
-
         if reset:
-            self._cuisine.core.run("rm -rf %s" % destpath)
+            self.cuisine.core.run("rm -rf %s" % self.BUILDDIR)
 
         url = "https://github.com/openssl/openssl.git"
-        cpath = self._cuisine.development.git.pullRepo(url, branch="OpenSSL_1_1_0-stable", reset=reset)
+        cpath = self.cuisine.development.git.pullRepo(url, branch="OpenSSL_1_1_0-stable", reset=reset)
 
-        C = """
-        cd %s
-        # ./config
-        ./Configure darwin64-x86_64-cc shared enable-ec_nistp_64_gcc_128 no-ssl2 no-ssl3 no-comp --openssldir=%s --prefix=%s
-        make depend
-        make install
-        rm -rf %s/share
-        rm -rf %s/private
-        """ % (cpath, destpath, destpath, destpath, destpath)
+        assert cpath.rstrip("/") == self.CODEDIR.rstrip("/")
 
-        self._cuisine.core.run(C)
-        # print("COMPILE DONE")
+        if not self.doneGet("compile"):
+            C = """
+            set -ex
+            cd $CODEDIR
+            # ./config
+            ./Configure darwin64-x86_64-cc shared enable-ec_nistp_64_gcc_128 no-ssl2 no-ssl3 no-comp --openssldir=$BUILDDIR --prefix=$BUILDDIR
+            make depend
+            make install
+            rm -rf $BUILDDIR/share
+            rm -rf $BUILDDIR/private
+            """
+            self.cuisine.core.run(self.replace(C))
+            self.doneSet("compile")
+            self.log("BUILD DONE")
+        else:
+            self.log("NO NEED TO BUILD")
 
-        # from IPython import embed
-        # print("DEBUG NOW ooo")
-        # embed()
-        # raise RuntimeError("stop debug here")
-        #
-        # C = """
-        # set -ex
-        # cd %s
-        # mkdir -p $dest
-        # # set +ex  #TODO: *1 should not give error. but works
-        # find . -name "*.dylib" -exec cp {} $dest/ \;
-        # find . -name "*.a" -exec cp {} $dest/ \;
-        # find . -name "*.so" -exec cp {} . $dest/ \;
-        # """ % cpath
-        # C = C.replace("$dest", destpath)
-        # self._cuisine.core.run(C)
-        #
-        # lpath = j.sal.fs.joinPaths(cpath, "include",)
-        # ldest = j.sal.fs.joinPaths(destpath, "include")
-        # self._cuisine.core.copyTree(source=lpath, dest=ldest, keepsymlinks=False, deletefirst=False,
-        #                             overwriteFiles=True,
-        #                             recursive=True, rsyncdelete=True, createdir=True)
-
-        print("BUILD COMPLETED OK")
+        self.log("BUILD COMPLETED OK")

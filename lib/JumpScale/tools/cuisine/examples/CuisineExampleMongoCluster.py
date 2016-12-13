@@ -8,12 +8,8 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisineExampleMongoCluster(base):
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def install(self, pubkey=None):
-        c = self._cuisine
+        c = self.cuisine
 
         if not c.core.isUbuntu or c.platformtype.osversion != '16.04':
             raise RuntimeError("only support ubuntu 16.04")
@@ -39,7 +35,8 @@ class CuisineExampleMongoCluster(base):
         c.systemservices.kvm.storage_pools.create("vms")
 
         # get xenial server cloud image
-        c.systemservices.kvm.disks.download_image("https://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-uefi1.img")
+        c.systemservices.kvm.disks.download_image(
+            "https://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-uefi1.img")
 
         # create a virutal machine kvm1 with the default settings
         kvm1 = c.systemservices.kvm.machines.create("kvm1")
@@ -62,10 +59,10 @@ class CuisineExampleMongoCluster(base):
         nodes = []
         for i in range(5):
             nodes.append(kvm1.cuisine.systemservices.docker.dockerStart(
-                "n%s" % i, ports='', pubkey=pubkey, weave=True, ssh=False)._executor)
+                "n%s" % i, ports='', pubkey=pubkey, weave=True, ssh=False).executor)
         for i in range(5, 10):
             nodes.append(kvm2.cuisine.systemservices.docker.dockerStart(
-                "n%s" % i, ports='', pubkey=pubkey, weave=True, ssh=False, weavePeer=kvm1.ip)._executor)
+                "n%s" % i, ports='', pubkey=pubkey, weave=True, ssh=False, weavePeer=kvm1.ip).executor)
 
         # create mongo cluster on the docker containers
         j.tools.cuisine.local.solutions.mongocluster.createCluster(nodes)

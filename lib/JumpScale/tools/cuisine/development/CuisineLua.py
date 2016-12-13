@@ -7,14 +7,10 @@ class CuisineLua(app):
 
     NAME = "tarantool"
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def installLua51(self):
 
-        self._cuisine.package.install("lua5.1")
-        self._cuisine.package.install("luarocks")
+        self.cuisine.package.install("lua5.1")
+        self.cuisine.package.install("luarocks")
 
         url = "https://raw.githubusercontent.com/zserge/luash/master/sh.lua"
 
@@ -23,7 +19,7 @@ class CuisineLua(app):
         curl -L https://github.com/luvit/lit/raw/master/get-lit.sh | sh
 
         """
-        self._cuisine.core.execute_bash(C, profile=True)
+        self.cuisine.core.execute_bash(C, profile=True)
         self.package("luash")
         self.package("luasocket")
         self.package("luasec")
@@ -108,10 +104,10 @@ class CuisineLua(app):
 
         sudo luarocks install lightningmdb
         """
-        self._cuisine.core.execute_bash(C)
+        self.cuisine.core.execute_bash(C)
 
         # REQUIRED IN BASH
         # export LUA_PATH=$JSBASE/lib/lua/?.lua;./?.lua;$JSBASE/lib/lua/?/?.lua;$JSBASE/lib/lua/?/init.lua
 
     def package(self, name):
-        self._cuisine.core.run("luarocks install %s" % name)
+        self.cuisine.core.run("luarocks install %s" % name)

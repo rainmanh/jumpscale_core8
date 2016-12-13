@@ -8,10 +8,6 @@ app = j.tools.cuisine._getBaseAppClass()
 class CuisineOwncloud(app):
     NAME = 'owncloud'
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def install(self, start=True):
         """
         install owncloud 9.1 on top of nginx/php/tidb

@@ -8,13 +8,9 @@ app = j.tools.cuisine._getBaseAppClass()
 class CuisineDocker(app):
     NAME = "docker"
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
-    def _init(self):
+    def _init_docker(self):
         try:
-            self._cuisine.core.run("service docker start")
+            self.cuisine.core.run("service docker start")
         except Exception as e:
             if 'cgroup is already mounted' in e.__str__():
                 return
@@ -23,36 +19,36 @@ class CuisineDocker(app):
     def install(self, reset=False):
         if reset is False and self.isInstalled():
             return
-        if self._cuisine.core.isUbuntu:
-            self._cuisine.bash.environSet('LC_ALL', 'C.UTF-8')
-            self._cuisine.bash.environSet('LANG', 'C.UTF-8')
-            if not self._cuisine.core.command_check('docker'):
+        if self.cuisine.core.isUbuntu:
+            self.cuisine.bash.environSet('LC_ALL', 'C.UTF-8')
+            self.cuisine.bash.environSet('LANG', 'C.UTF-8')
+            if not self.cuisine.core.command_check('docker'):
                 C = """
                 wget -qO- https://get.docker.com/ | sh
                 """
-                self._cuisine.core.execute_bash(C)
-            # if not self._cuisine.core.command_check('docker-compose'):
+                self.cuisine.core.execute_bash(C)
+            # if not self.cuisine.core.command_check('docker-compose'):
             #     C = """
             #     curl -L https://github.com/docker/compose/releases/download/1.8.0-rc1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
             #     chmod +x /usr/local/bin/docker-compose
             #     """
-            #     self._cuisine.core.execute_bash(C)
-        if self._cuisine.core.isArch:
-            self._cuisine.package.install("docker")
-            # self._cuisine.package.install("docker-compose")
-        self._init()
+            #     self.cuisine.core.execute_bash(C)
+        if self.cuisine.core.isArch:
+            self.cuisine.package.install("docker")
+            # self.cuisine.package.install("docker-compose")
+        self._init_docker()
 
     def ubuntuBuild(self, push=False):
-        self._init()
-        dest = self._cuisine.development.git.pullRepo('https://github.com/Jumpscale/dockers.git', ssh=False)
-        path = self._cuisine.core.joinpaths(dest, 'js8/x86_64/01_ubuntu1604')
+        self._init_docker()
+        dest = self.cuisine.development.git.pullRepo('https://github.com/Jumpscale/dockers.git', ssh=False)
+        path = self.cuisine.core.joinpaths(dest, 'js8/x86_64/01_ubuntu1604')
 
         C = """
         set -ex
         cd %s
         docker build -t jumpscale/ubuntu1604 --no-cache .
         """ % path
-        self._cuisine.core.execute_bash(C)
+        self.cuisine.core.execute_bash(C)
 
         if push:
             C = """
@@ -60,7 +56,7 @@ class CuisineDocker(app):
             cd %s
             docker push jumpscale/ubuntu1604
             """ % path
-            self._cuisine.core.execute_bash(C)
+            self.cuisine.core.execute_bash(C)
 
     def resetPasswd(self, dockerCuisineObject):
         # change passwd
@@ -78,9 +74,9 @@ class CuisineDocker(app):
 
         """
         if weave:
-            self._cuisine.systemservices.weave.install(start=True, peer=weavePeer)
+            self.cuisine.systemservices.weave.install(start=True, peer=weavePeer)
 
-        self._init()
+        self._init_docker()
 
         if ssh and not '22:' in ports:
             port = "2202"
@@ -97,16 +93,16 @@ class CuisineDocker(app):
             cmd += " --volumes '%s'" % volumes
         # if aydofs:
         #     cmd += " --aysfs"
-        self._cuisine.core.run(cmd, profile=True)
+        self.cuisine.core.run(cmd, profile=True)
         cmd = "jsdocker list --name {name} --parsable".format(name=name)
-        _, out, _ = self._cuisine.core.run(cmd, profile=True)
+        _, out, _ = self.cuisine.core.run(cmd, profile=True)
         info = j.data.serializer.json.loads(out)
 
         port = info[0]["port"]
-        _, out, _ = self._cuisine.core.run("docker inspect ahah | grep \"IPAddress\"|  cut -d '\"' -f 4 ")
+        _, out, _ = self.cuisine.core.run("docker inspect ahah | grep \"IPAddress\"|  cut -d '\"' -f 4 ")
         host = out.splitlines()[0]
 
-        dockerexecutor = Cuisinedockerobj(name, host, "22", self._cuisine)
+        dockerexecutor = Cuisinedockerobj(name, host, "22", self.cuisine)
         cuisinedockerobj = j.tools.cuisine.get(dockerexecutor)
 
         # NEED TO MAKE SURE WE CAN GET ACCESS TO THIS DOCKER WITHOUT OPENING PORTS; we know can using docker exec
@@ -126,20 +122,20 @@ class Cuisinedockerobj:
         self.port = port
         self.name = name
         self.login = "root"
-        self._cuisineDockerHost = cuisineDockerHost
-        self._cuisine = None
+        self.cuisineDockerHost = cuisineDockerHost
+        self.cuisine = None
 
     def execute(self, cmds, die=True, checkok=None, async=False, showout=True, timeout=0, env={}):
-        return self._cuisineDockerHost.core.run("docker exec %s bash -c '%s'" % (self.name, cmds.replace("'", "'\"'\"'")),
-                                                die=die, checkok=checkok, showout=showout, env=env)
+        return self.cuisineDockerHost.core.run("docker exec %s bash -c '%s'" % (self.name, cmds.replace("'", "'\"'\"'")),
+                                               die=die, checkok=checkok, showout=showout, env=env)
 
     executeRaw = execute
 
     @property
     def cuisine(self):
-        if not self._cuisine:
+        if not self.cuisine:
             return j.tools.cuisine.get(self)
-        return self._cuisine
+        return self.cuisine
 
 
 # def archBuild(self):
@@ -188,12 +184,12 @@ class Cuisinedockerobj:
 #     CMD ["/usr/sbin/init"]
 #
 #     """
-#     self._cuisine.core.run("rm -rf $TMPDIR/docker;mkdir $TMPDIR/docker")
-#     self._cuisine.core.file_write("$TMPDIR/docker/Dockerfile", C)
+#     self.cuisine.core.run("rm -rf $TMPDIR/docker;mkdir $TMPDIR/docker")
+#     self.cuisine.core.file_write("$TMPDIR/docker/Dockerfile", C)
 #
 #     C = """
 #     set -ex
 #     cd $TMPDIR/docker
 #     docker build -t arch .
 #     """
-#     self._cuisine.core.execute_bash(C)
+#     self.cuisine.core.execute_bash(C)

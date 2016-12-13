@@ -8,10 +8,6 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisineNet(base):
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def netconfig(self, interface, ipaddr, cidr=24, gateway=None, dns="8.8.8.8", masquerading=False,
                   dhcp=False):
         conf = """
@@ -28,14 +24,14 @@ class CuisineNet(base):
                    ipmasquerade=("yes" if masquerading else "no"), dhcp=("yes" if dhcp else "no"))
 
         targetfile = '/etc/systemd/network/{interface}.network'.format(interface=interface)
-        self._cuisine.core.file_write(targetfile, content=conf)
+        self.cuisine.core.file_write(targetfile, content=conf)
         if masquerading:
             # TODO: check if the rule exists
-            self._cuisine.core.run('iptables -t nat -A POSTROUTING -s {ipaddr}/{cidr} ! -d \
+            self.cuisine.core.run('iptables -t nat -A POSTROUTING -s {ipaddr}/{cidr} ! -d \
                               {ipaddr}/{cidr} -j MASQUERADE'.format(ipaddr=ipaddr, cidr=cidr))
-            self._cuisine.package.install('iptables-persistent')
-            self._cuisine.core.run('iptables-save > /etc/iptables/rules.v4')
-            self._cuisine.core.run('ip6tables-save > /etc/iptables/rules.v6')
+            self.cuisine.package.install('iptables-persistent')
+            self.cuisine.core.run('iptables-save > /etc/iptables/rules.v4')
+            self.cuisine.core.run('ip6tables-save > /etc/iptables/rules.v6')
 
     @property
     def nics(self):
@@ -57,7 +53,7 @@ class CuisineNet(base):
 
     @property
     def defaultgw(self):
-        out = self._cuisine.core.run("ip r | grep 'default'")[1]
+        out = self.cuisine.core.run("ip r | grep 'default'")[1]
         return out.split(" ")[2]
 
     @property
@@ -65,7 +61,7 @@ class CuisineNet(base):
         """
         returns device over which default gateway goes
         """
-        out = self._cuisine.core.run("ip r | grep 'default'", showout=False)[1]
+        out = self.cuisine.core.run("ip r | grep 'default'", showout=False)[1]
         return out.split(" ")[4]
 
     @defaultgw.setter
@@ -78,7 +74,7 @@ class CuisineNet(base):
         find which wireless interfaces exist
         """
         cmd = "for i in /sys/class/net/*; do ls $i/wireless 2> /dev/null && basename $i; done"
-        out = self._cuisine.core.run(cmd, showout=False)[1]
+        out = self.cuisine.core.run(cmd, showout=False)[1]
         return out.split("\n")
 
     def findNodesSSH(self, range=None, ips=[]):
@@ -90,7 +86,7 @@ class CuisineNet(base):
 
         """
         if range is None:
-            res = self._cuisine.net.getInfo()
+            res = self.cuisine.net.getInfo()
             for item in res:
                 cidr = item['cidr']
 
@@ -104,12 +100,12 @@ class CuisineNet(base):
             return ips
         else:
             try:
-                _, out, _ = self._cuisine.core.run(
+                _, out, _ = self.cuisine.core.run(
                     "nmap %s -n -sP | grep report | awk '{print $5}'" % range, showout=False)
             except Exception as e:
                 if str(e).find("command not found") != -1:
-                    self._cuisine.package.install("nmap")
-                    _, out, _ = self._cuisine.core.run(
+                    self.cuisine.package.install("nmap")
+                    _, out, _ = self.cuisine.core.run(
                         "nmap %s -n -sP | grep report | awk '{print $5}'" % range, showout=False)
             for line in out.splitlines():
                 ip = line.strip()
@@ -157,14 +153,14 @@ class CuisineNet(base):
             return result
 
         def getNetworkInfo():
-            _, output, _ = self._cuisine.core.run("ip a", showout=False)
+            _, output, _ = self.cuisine.core.run("ip a", showout=False)
             for m in IPBLOCKS.finditer(output):
                 block = m.group('block')
                 yield parseBlock(block)
 
         res = []
         for nic in getNetworkInfo():
-            # print (nic["name"])
+            # self.log(nic["name"])
             if nic["name"] == device:
                 return nic
             res.append(nic)
@@ -186,7 +182,7 @@ class CuisineNet(base):
         return(str(netaddr.IPAddress(n.first + skipBegin)), str(netaddr.IPAddress(n.last - skipEnd)))
 
     def ping(self, host):
-        rc, out, err = self._cuisine.core.run("ping -c 1 %s" % host, die=False, showout=False)
+        rc, out, err = self.cuisine.core.run("ping -c 1 %s" % host, die=False, showout=False)
         if rc != 0:
             return False
         return True
@@ -214,10 +210,10 @@ class CuisineNet(base):
         f.write(C)
 
         # now applying
-        print ("restart network")
+        self.log("restart network")
         rc=os.system("/etc/init.d/networking restart")
         rc=os.system("/etc/init.d/networking restart")
-        print ("restart network done")
+        self.log("restart network done")
 
         rc=os.system("ping -c 1 $pinghost")
         rc2=0
@@ -226,10 +222,10 @@ class CuisineNet(base):
             # could not ping need to restore
             os.system("cp /etc/network/interfaces_old /etc/network/interfaces")
 
-            print ("restart network to recover")
+            self.log("restart network to recover")
             rc2=os.system("/etc/init.d/networking restart")
             rc2=os.system("/etc/init.d/networking restart")
-            print("restart done to recover")
+            self.log("restart done to recover")
 
         if rc>0 or rc2>0:
             raise RuntimeError("Could not set interface file, something went wrong, previous situation restored.")
@@ -238,6 +234,6 @@ class CuisineNet(base):
         pscript = pscript.replace("$ifacefile", ifacefile)
         pscript = pscript.replace("$pinghost", pinghost)
 
-        print(pscript)
+        self.log(pscript)
 
-        self._cuisine.core.execute_bash(content=pscript, die=True, interpreter="python3", tmux=True)
+        self.cuisine.core.execute_bash(content=pscript, die=True, interpreter="python3", tmux=True)

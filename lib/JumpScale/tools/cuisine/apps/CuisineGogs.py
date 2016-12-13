@@ -8,13 +8,10 @@ app = j.tools.cuisine._getBaseAppClass()
 class CuisineGogs(app):
     NAME = "gogs"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     @property
     def gopath(self):
         if not self._gopath:
-            self._gopath = self._cuisine.bash.environ.get('GOPATH')
+            self._gopath = self.cuisine.bash.environ.get('GOPATH')
             return self._gopath
         else:
             return self._gopath
@@ -41,7 +38,7 @@ class CuisineGogs(app):
         #     return
         # GOPATH: /optvar/go
         if installDeps:
-            self._cuisine.development.golang.install()
+            self.cuisine.development.golang.install()
 
         script = """
         #set -xe
@@ -62,7 +59,7 @@ class CuisineGogs(app):
 
         """
         # BUILD GOGS WITH SQLITE3 tags
-        rc, out = self._cuisine.core.execute_bash(script)
+        rc, out = self.cuisine.core.execute_bash(script)
         if rc != 0:
             raise RuntimeError("Couldn't build gogs.")
 
@@ -80,16 +77,16 @@ class CuisineGogs(app):
         """
 
         itsyouonlinesection = textwrap.dedent(itsyouonlinesection)
-        if self._cuisine.core.file_exists(self.appini):
-            self._cuisine.core.file_write(location=self.appini,
-                                          content=itsyouonlinesection,
-                                          append=True)
+        if self.cuisine.core.file_exists(self.appini):
+            self.cuisine.core.file_write(location=self.appini,
+                                         content=itsyouonlinesection,
+                                         append=True)
 
     def start(self):
-        pm = self._cuisine.processmanager.get("tmux")
+        pm = self.cuisine.processmanager.get("tmux")
         cmd = "{gogspath}/gogs web".format(gogspath=self.gogspath)
         pm.ensure(name='gogs', cmd=cmd)
 
     def restart(self):
-        self._cuisine.processmanager.stop("gogs")
+        self.cuisine.processmanager.stop("gogs")
         self.start()

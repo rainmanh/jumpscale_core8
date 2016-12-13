@@ -6,10 +6,6 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisinePEP8(base):
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def prepare(self, repo_path=None):
         """ Install pre-commit hook to run autopep8 """
         j.tools.cuisine.local.development.pip.install('autopep8')
@@ -30,7 +26,7 @@ class CuisinePEP8(base):
         fi
         """
         for repo_path in paths:
-            self._cuisine.core.file_write(repo_path, hook_cmd)
+            self.cuisine.core.file_write(repo_path, hook_cmd)
 
     def autopep8(self, repo_path=None, commit=True, rebase=False):
         """
@@ -75,4 +71,4 @@ class CuisinePEP8(base):
 
         # Execute cmd on paths
         for repo_path in paths:
-            self._cuisine.core.execute_script(cmd.format(repo_path), tmux=False, die=False)
+            self.cuisine.core.execute_script(cmd.format(repo_path), tmux=False, die=False)

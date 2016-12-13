@@ -7,19 +7,15 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisineSandbox(base):
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def do(self, destination="/out", reset=False):
         """
         TODO: specify what comes in /out
 
         """
-        self._cuisine.development.js8.install()
-        self._cuisine.package.mdupdate()
+        self.cuisine.development.js8.install()
+        self.cuisine.package.mdupdate()
 
-        self._cuisine.core.file_copy('/usr/local/bin/jspython', '$BINDIR')
+        self.cuisine.core.file_copy('/usr/local/bin/jspython', '$BINDIR')
 
         sandbox_script = """
         cuisine = j.tools.cuisine.local
@@ -46,13 +42,13 @@ class CuisineSandbox(base):
         j.tools.sandboxer.sandboxLibs("%s/lib" % base, recursive=True)
         j.tools.sandboxer.sandboxLibs("%s/bin" % base, recursive=True)
         """
-        print("start sandboxing")
-        self._cuisine.core.execute_jumpscript(sandbox_script)
+        self.log("start sandboxing")
+        self.cuisine.core.execute_jumpscript(sandbox_script)
 
         name = "js8"
 
         if reset:
-            print("remove previous build info")
+            self.log("remove previous build info")
             j.tools.cuisine.local.core.dir_remove("%s/%s" % (destination, name))
 
         j.tools.cuisine.local.core.dir_remove("%s/%s/" % (destination, name))
@@ -62,8 +58,8 @@ class CuisineSandbox(base):
         """
         dedupe_script = dedupe_script.replace("$name", name)
         dedupe_script = dedupe_script.replace("$out", destination)
-        print("start dedupe")
-        self._cuisine.core.execute_jumpscript(dedupe_script)
+        self.log("start dedupe")
+        self.cuisine.core.execute_jumpscript(dedupe_script)
 
         copy_script = """
         j.sal.fs.removeDirTree("$out/$name/jumpscale8/")
@@ -72,28 +68,28 @@ class CuisineSandbox(base):
         """
         copy_script = copy_script.replace("$name", name)
         copy_script = copy_script.replace("$out", destination)
-        print("start copy sandbox")
-        self._cuisine.core.execute_jumpscript(copy_script)
+        self.log("start copy sandbox")
+        self.cuisine.core.execute_jumpscript(copy_script)
 
     def cleanup(self, aggressive=False):
-        self._cuisine.core.run("apt-get clean")
-        self._cuisine.core.dir_remove("/var/tmp/*")
-        self._cuisine.core.dir_remove("/etc/dpkg/dpkg.cfg.d/02apt-speedup")
-        self._cuisine.core.dir_remove("$TMPDIR")
-        self._cuisine.core.dir_ensure("$TMPDIR")
+        self.cuisine.core.run("apt-get clean")
+        self.cuisine.core.dir_remove("/var/tmp/*")
+        self.cuisine.core.dir_remove("/etc/dpkg/dpkg.cfg.d/02apt-speedup")
+        self.cuisine.core.dir_remove("$TMPDIR")
+        self.cuisine.core.dir_ensure("$TMPDIR")
 
-        self._cuisine.core.dir_remove("$GODIR/src/*")
-        self._cuisine.core.dir_remove("$TMPDIR/*")
-        self._cuisine.core.dir_remove("$VARDIR/data/*")
-        self._cuisine.core.dir_remove('/opt/code/github/domsj', True)
-        self._cuisine.core.dir_remove('/opt/code/github/openvstorage', True)
+        self.cuisine.core.dir_remove("$GODIR/src/*")
+        self.cuisine.core.dir_remove("$TMPDIR/*")
+        self.cuisine.core.dir_remove("$VARDIR/data/*")
+        self.cuisine.core.dir_remove('/opt/code/github/domsj', True)
+        self.cuisine.core.dir_remove('/opt/code/github/openvstorage', True)
 
         C = """
         cd /opt;find . -name '*.pyc' -delete
         cd /opt;find . -name '*.log' -delete
         cd /opt;find . -name '__pycache__' -delete
         """
-        self._cuisine.core.execute_bash(C)
+        self.cuisine.core.execute_bash(C)
 
         if aggressive:
             C = """
@@ -127,10 +123,10 @@ class CuisineSandbox(base):
 
             rm -rf /usr/bin/python*
             """
-            self._cuisine.core.execute_bash(C)
+            self.cuisine.core.execute_bash(C)
 
-        self._cuisine.core.dir_ensure(self._cuisine.core.dir_paths["TMPDIR"])
-        if not self._cuisine.core.isMac and not self._cuisine.core.isCygwin:
+        self.cuisine.core.dir_ensure(self.cuisine.core.dir_paths["TMPDIR"])
+        if not self.cuisine.core.isMac and not self.cuisine.core.isCygwin:
             C = """
                 set +ex
                 # pkill redis-server #will now kill too many redis'es, should only kill the one not in docker
@@ -145,14 +141,14 @@ class CuisineSandbox(base):
                 umount -f /opt
                 echo "OK"
                 """
-        if self._cuisine.core.isMac:
+        if self.cuisine.core.isMac:
             C = """
                 set +ex
                 js8 stop
                 pkill js8
                 echo "OK"
                 """
-        if self._cuisine.core.isCygwin:
+        if self.cuisine.core.isCygwin:
             C = """
                 set +ex
                 js8 stop
@@ -160,4 +156,4 @@ class CuisineSandbox(base):
                 echo "OK"
                 """
 
-        self._cuisine.core.execute_bash(C)
+        self.cuisine.core.execute_bash(C)

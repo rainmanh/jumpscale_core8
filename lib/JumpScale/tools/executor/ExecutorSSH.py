@@ -10,7 +10,9 @@ class ExecutorSSH(ExecutorBase):
                  look_for_keys=True, checkok=True, timeout=5, key_filename=None, passphrase=None):
 
         ExecutorBase.__init__(self,  debug=debug, checkok=checkok)
-        self.id = '%s:%s' % (addr, port)  # TODO:*1 should put macaddr in here
+
+        self.addr = addr
+        self.port = port
         self.type = "ssh"
 
         self._port = int(port)
@@ -26,6 +28,49 @@ class ExecutorSSH(ExecutorBase):
         self.proxycommand = None
         self.key_filename = key_filename
         self.passphrase = passphrase
+        self._id = None
+
+    @property
+    def logger(self):
+        if self._logger == None:
+            self._logger = j.logger.get("executor.%s" % self.addr)
+        return self._logger
+
+    def getMacAddr(self):
+        print("Get maccaddr")
+        rc, out, err = self.execute("ifconfig | grep HWaddr", showout=False)
+        res = {}
+        for line in out.split("\n"):
+            line = line.strip()
+            excl = ["dummy", "docker", "lxc", "mie", "veth", "vir", "vnet", "zt", "vms", "weave", "ovs"]
+            if line == "":
+                continue
+            check = True
+            for item in excl:
+                if line.startswith(item):
+                    check = False
+            addr = line.split("HWaddr")[-1].strip()
+            name = line.split(" ")[0]
+
+            if check:
+                res[name] = addr
+
+        if "eth0" in res:
+            self.macaddr = res["eth0"]
+        else:
+            keys = res.keys()
+            keys.sort()
+            self.macaddr = res[keys[0]]
+
+        return self.macaddr
+
+    @property
+    def id(self):
+        if self._id == None:
+            self._id = '%s_%s' % (self.addr, self.getMacAddr())
+        return self._id
+
+        # TODO: *1 could be this does not work in docker, lets check
 
     @property
     def login(self):
@@ -153,7 +198,11 @@ class ExecutorSSH(ExecutorBase):
             self.env.update(env)
         if showout:
             self.logger.debug("cmd: %s" % cmds)
-        cmds2 = self._transformCmds(cmds, die, checkok=checkok)
+
+        if checkok == None:
+            checkok = self.checkok
+
+        cmds2 = self._transformCmds(cmds, die, checkok=checkok, env=env)
 
         if cmds.find("\n") != -1:
             if showout:
@@ -172,7 +221,7 @@ class ExecutorSSH(ExecutorBase):
             rc, out, err = self.sshclient.execute(cmds2, die=die, showout=showout)
 
         if checkok and die:
-            self.docheckok(cmds, out)
+            out = self.docheckok(cmds, out)
 
         return rc, out, err
 

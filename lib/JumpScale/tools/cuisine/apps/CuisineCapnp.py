@@ -7,10 +7,6 @@ class CuisineCapnp(app):
 
     NAME = "capnp"
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def install(self, reset=False):
         """
         install capnp
@@ -19,8 +15,8 @@ class CuisineCapnp(app):
         if reset is False and self.isInstalled():
             return
 
-        self._cuisine.package.mdupdate()
-        self._cuisine.package.multiInstall(['curl', 'make', 'g++', 'python-dev'])
+        self.cuisine.package.mdupdate()
+        self.cuisine.package.multiInstall(['curl', 'make', 'g++', 'python-dev'])
 
         # c++ deps libs
         script = """
@@ -32,6 +28,6 @@ class CuisineCapnp(app):
         make -j6 check
         sudo make install
         """
-        self._cuisine.core.execute_bash(script)
+        self.cuisine.core.execute_bash(script)
         # install python pacakge
-        self._cuisine.development.pip.multiInstall(['cython', 'setuptools', 'pycapnp'], upgrade=True)
+        self.cuisine.development.pip.multiInstall(['cython', 'setuptools', 'pycapnp'], upgrade=True)

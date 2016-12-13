@@ -8,11 +8,6 @@ base = j.tools.cuisine._getBaseClass()
 
 class ProcessManagerBase(base):
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-        self.logger = j.logger.get('j.tools.cuisine.processmanager')
-
     def exists(self, name):
         return name in self.list()
 
@@ -25,7 +20,7 @@ class ProcessManagerBase(base):
 
     def get(self, pm=None):
         from .ProcessManagerFactory import ProcessManagerFactory
-        return ProcessManagerFactory(self._cuisine).get(pm)
+        return ProcessManagerFactory(self.cuisine).get(pm)
 
 
 class CuisineSystemd(ProcessManagerBase):
@@ -38,75 +33,75 @@ class CuisineSystemd(ProcessManagerBase):
         @return [$name]
         """
         cmd = 'systemctl  --no-pager -l -t service list-unit-files'
-        out = self._cuisine.core.run(cmd, showout=False)[1]
+        out = self.cuisine.core.run(cmd, showout=False)[1]
         p = re.compile(u"(?P<name>[\S]*).service *(?P<state>[\S]*)")
         result = []
         for line in out.split("\n"):
             res = re.search(p, line)
             if res is not None:
-                # print (line)
+                # self.log(line)
                 d = res.groupdict()
                 if d["name"].startswith(prefix):
                     result.append(d["name"])
         return result
 
     def reload(self):
-        self._cuisine.core.run("systemctl daemon-reload")
+        self.cuisine.core.run("systemctl daemon-reload")
 
     def start(self, name):
         self.reload()
-        # self._cuisine.core.run("systemctl enable %s"%name,showout=False)
-        self._cuisine.core.run("systemctl enable %s" % name, die=False, showout=False)
+        # self.cuisine.core.run("systemctl enable %s"%name,showout=False)
+        self.cuisine.core.run("systemctl enable %s" % name, die=False, showout=False)
         cmd = "systemctl restart %s" % name
-        self._cuisine.core.run(cmd, showout=False)
+        self.cuisine.core.run(cmd, showout=False)
 
     def stop(self, name):
         cmd = "systemctl disable %s" % name
-        self._cuisine.core.run(cmd, showout=False, die=False)
+        self.cuisine.core.run(cmd, showout=False, die=False)
 
         cmd = "systemctl stop %s" % name
-        self._cuisine.core.run(cmd, showout=False, die=False)
-        self._cuisine.process.kill(name, signal=9, exact=False)
+        self.cuisine.core.run(cmd, showout=False, die=False)
+        self.cuisine.process.kill(name, signal=9, exact=False)
 
     def remove(self, prefix):
         self.stop(prefix)
         for name in self.list(prefix):
             self.stop(name)
 
-            for item in self._cuisine.core.find("/etc/systemd", True, "*%s.service" % name):
-                print("remove:%s" % item)
-                self._cuisine.core.file_unlink(item)
+            for item in self.cuisine.core.find("/etc/systemd", True, "*%s.service" % name):
+                self.log("remove:%s" % item)
+                self.cuisine.core.file_unlink(item)
 
-            for item in self._cuisine.core.find("/etc/init.d", True, "*%s" % name):
-                print("remove:%s" % item)
-                self._cuisine.core.file_unlink(item)
+            for item in self.cuisine.core.find("/etc/init.d", True, "*%s" % name):
+                self.log("remove:%s" % item)
+                self.cuisine.core.file_unlink(item)
 
-            self._cuisine.core.run("systemctl daemon-reload")
+            self.cuisine.core.run("systemctl daemon-reload")
 
     def ensure(self, name, cmd, env={}, path="", descr="", systemdunit="", **kwargs):
         """
-        Ensures that the given systemd service is self._cuisine.core.running, starting
+        Ensures that the given systemd service is self.cuisine.core.running, starting
         it if necessary and also create it
         @param systemdunit is the content of the file, will still try to replace the cmd
         """
 
         if not path:
             path = '/root'
-        cmd = self._cuisine.core.args_replace(cmd)
-        path = self._cuisine.core.args_replace(path)
+        cmd = self.replace(cmd)
+        path = self.replace(path)
 
         if not cmd.startswith("/"):
             cmd0 = cmd.split(" ", 1)[0]
-            cmd1 = self._cuisine.bash.cmdGetPath(cmd0)
+            cmd1 = self.cuisine.bash.cmdGetPath(cmd0)
             cmd = cmd.replace(cmd0, cmd1)
 
         envstr = ""
-        env.update(self._cuisine.bash.environ)
+        env.update(self.cuisine.bash.environ)
         for name0, value in list(env.items()):
             if value:
-                envstr += "Environment=%s=%s\n" % (name0, self._cuisine.core.args_replace(value))
+                envstr += "Environment=%s=%s\n" % (name0, self.replace(value))
 
-        cmd = self._cuisine.core._clean(cmd)
+        cmd = self.cuisine.core._clean(cmd)
 
         if systemdunit != "":
             C = systemdunit
@@ -133,16 +128,17 @@ WantedBy=multi-user.target
             descr = name
         C = C.replace("$descr", descr)
 
-        self._cuisine.core.file_write("/etc/systemd/system/%s.service" % name, C)
+        self.cuisine.core.file_write("/etc/systemd/system/%s.service" % name, C)
 
-        self._cuisine.core.run("systemctl daemon-reload;systemctl restart %s" % name)
-        self._cuisine.core.run("systemctl enable %s" % name, die=False, showout=False)
+        self.cuisine.core.run("systemctl daemon-reload;systemctl restart %s" % name)
+        self.cuisine.core.run("systemctl enable %s" % name, die=False, showout=False)
         self.start(name)
 
     def __str__(self):
-        return "cuisine:%s:%s:processmanager_systemd" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
+        return "cuisine:%s:%s:processmanager_systemd" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
 
-    __repr__=__str__
+    __repr__ = __str__
+
 
 class CuisineRunit(ProcessManagerBase):
 
@@ -153,9 +149,9 @@ class CuisineRunit(ProcessManagerBase):
     def list(self, prefix=""):
         result = list()
 
-        for service in self._cuisine.core.find("/etc/service/", recursive=False)[1:]:
+        for service in self.cuisine.core.find("/etc/service/", recursive=False)[1:]:
             service = service.split("/etc/service/")[1]
-            status = self._cuisine.core.run("sv  status /etc/service/%s" % service)[1].split(":")[0]
+            status = self.cuisine.core.run("sv  status /etc/service/%s" % service)[1].split(":")[0]
             result.append(service)
         return result
 
@@ -163,13 +159,13 @@ class CuisineRunit(ProcessManagerBase):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""
 
-        cmd = self._cuisine.core.args_replace(cmd)
-        path = self._cuisine.core.args_replace(path)
+        cmd = self.replace(cmd)
+        path = self.replace(path)
 
         envstr = ""
-        env.update(self._cuisine.bash.environ)
+        env.update(self.cuisine.bash.environ)
         for name0, value in list(env.items()):
-            envstr += "export %s=\"%s\"\n" % (name0, self._cuisine.core.args_replace(value))
+            envstr += "export %s=\"%s\"\n" % (name0, self.replace(value))
 
         sv_text = """#!/bin/sh
         set -e
@@ -188,14 +184,14 @@ class CuisineRunit(ProcessManagerBase):
         sv_text = sv_text.replace("$descr", descr)
         sv_text = sv_text.replace("$path", path)
 
-        # if self._cuisine.core.file_is_link("/etc/service/"):
-        #     self._cuisine.core.file_link( "/etc/getty-5", "/etc/service")
-        self._cuisine.core.file_ensure("/etc/service/%s/run" % name, mode="+x")
-        self._cuisine.core.file_write("/etc/service/%s/run" % name, sv_text)
+        # if self.cuisine.core.file_is_link("/etc/service/"):
+        #     self.cuisine.core.file_link( "/etc/getty-5", "/etc/service")
+        self.cuisine.core.file_ensure("/etc/service/%s/run" % name, mode="+x")
+        self.cuisine.core.file_write("/etc/service/%s/run" % name, sv_text)
 
         # waiting for runsvdir to populate service directory monitor
         remain = 300
-        while not self._cuisine.core.dir_exists("/etc/service/%s/supervise" % name):
+        while not self.cuisine.core.dir_exists("/etc/service/%s/supervise" % name):
             remain = remain - 1
             if remain == 0:
                 self.logger.warn(
@@ -208,43 +204,44 @@ class CuisineRunit(ProcessManagerBase):
 
     def remove(self, prefix):
         """removes process from init"""
-        if self._cuisine.core.file_exists("/etc/service/%s/run" % prefix):
+        if self.cuisine.core.file_exists("/etc/service/%s/run" % prefix):
             self.stop(prefix)
-            self._cuisine.core.dir_remove("/etc/service/%s/run" % prefix)
+            self.cuisine.core.dir_remove("/etc/service/%s/run" % prefix)
 
     def reload(self, name):
         """Reloads the given service, or starts it if it is not self.running."""
-        if self._cuisine.core.file_exists("/etc/service/%s/run" % name):
-            self._cuisine.core.run("sv reload %s" % name, profile=True)
+        if self.cuisine.core.file_exists("/etc/service/%s/run" % name):
+            self.cuisine.core.run("sv reload %s" % name, profile=True)
 
     def start(self, name):
         """Tries a `restart` command to the given service, if not successful
         will stop it and start it. If the service is not started, will start it."""
-        if self._cuisine.core.file_exists("/etc/service/%s/run" % name):
+        if self.cuisine.core.file_exists("/etc/service/%s/run" % name):
             if name == 'redis_main':
                 self.timeout = 60
-            self._cuisine.core.run("sv -w %d start /etc/service/%s/" % (self.timeout, name), profile=True)
+            self.cuisine.core.run("sv -w %d start /etc/service/%s/" % (self.timeout, name), profile=True)
 
     def stop(self, name, **kwargs):
         """Ensures that the given upstart service is stopped."""
-        if self._cuisine.core.file_exists("/etc/service/%s/run" % name):
-            self._cuisine.core.run("sv -w %d stop /etc/service/%s/" % (self.timeout, name), profile=True)
-        self._cuisine.process.kill(name, signal=9, exact=False)
+        if self.cuisine.core.file_exists("/etc/service/%s/run" % name):
+            self.cuisine.core.run("sv -w %d stop /etc/service/%s/" % (self.timeout, name), profile=True)
+        self.cuisine.process.kill(name, signal=9, exact=False)
 
     def __str__(self):
-        return "cuisine:%s:%s:processmanager_runinit" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
+        return "cuisine:%s:%s:processmanager_runinit" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
 
-    __repr__=__str__
+    __repr__ = __str__
+
 
 class CuisineTmuxec(ProcessManagerBase):
 
     def __init__(self, executor, cuisine):
         super().__init__(executor, cuisine)
-        if not self._cuisine.core.command_check("tmux"):
-            self._cuisine.package.install('tmux')
+        if not self.cuisine.core.command_check("tmux"):
+            self.cuisine.package.install('tmux')
 
     def list(self, prefix=""):
-        rc, result, err = self._cuisine.core.run("tmux lsw 2> /dev/null || true", profile=True, die=False)
+        rc, result, err = self.cuisine.core.run("tmux lsw 2> /dev/null || true", profile=True, die=False)
         if err:
             return []
         res = result.splitlines()
@@ -261,36 +258,36 @@ class CuisineTmuxec(ProcessManagerBase):
         it if necessary."""
         self.stop(name=name)
 
-        cmd = self._cuisine.core.args_replace(cmd)
-        path = self._cuisine.core.args_replace(path)
+        cmd = self.replace(cmd)
+        path = self.replace(path)
 
         envstr = ""
         for name0, value in list(env.items()):
-            envstr += 'export %s="%s" && ' % (name0, self._cuisine.core.args_replace(value))
+            envstr += 'export %s="%s" && ' % (name0, self.replace(value))
         if path:
             cwd = "cd %s &&" % path
             cmd = "%s %s" % (cwd, cmd)
         if envstr != "":
             cmd = "%s%s" % (envstr, cmd)
 
-        self._cuisine.tmux.executeInScreen("main", name, cmd)
+        self.cuisine.tmux.executeInScreen("main", name, cmd)
 
     def stop(self, name):
         """Ensures that the given upstart service is stopped."""
         if name in self.list():
-            pid = self._cuisine.tmux.getPid('main', name)
-            self._cuisine.core.run("kill -9 %s" % pid)
-            self._cuisine.tmux.killWindow("main", name)
-        self._cuisine.process.kill(name, signal=9, exact=False)
+            pid = self.cuisine.tmux.getPid('main', name)
+            self.cuisine.core.run("kill -9 %s" % pid)
+            self.cuisine.tmux.killWindow("main", name)
+        self.cuisine.process.kill(name, signal=9, exact=False)
 
     def remove(self, name):
         """removes service """
         if name in self.list():
-            pid = self._cuisine.tmux.getPid('main', name)
-            self._cuisine.core.run("kill -9 %s" % pid)
-            self._cuisine.tmux.killWindow("main", name)
+            pid = self.cuisine.tmux.getPid('main', name)
+            self.cuisine.core.run("kill -9 %s" % pid)
+            self.cuisine.tmux.killWindow("main", name)
 
     def __str__(self):
-        return "cuisine:%s:%s:processmanager_tmux" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
+        return "cuisine:%s:%s:processmanager_tmux" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
 
-    __repr__=__str__
+    __repr__ = __str__

@@ -7,15 +7,11 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisineNS(base):
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def hostfile_get(self):
         """
         """
         result = {}
-        for line in self._cuisine.core.hostfile.splitlines():
+        for line in self.cuisine.core.hostfile.splitlines():
             ipaddr_found = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b', line)
             if ipaddr_found is not None:
                 ipaddr_found = ipaddr_found.group()
@@ -58,7 +54,7 @@ class CuisineNS(base):
             C += "%-19s %s\n" % (addr, names2)
 
         # TODO: need to do ipv6
-        self._cuisine.core.hostfile = C
+        self.cuisine.core.hostfile = C
 
     def hostfile_set_fromlocal(self):
         """
@@ -91,7 +87,7 @@ class CuisineNS(base):
         can set & get
         @param nameservers [$nserver1,$nserver2]
         """
-        file = self._cuisine.core.file_read('/etc/resolv.conf')
+        file = self.cuisine.core.file_read('/etc/resolv.conf')
         results = []
         for line in file.splitlines():
             nameserver = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b', line)
@@ -112,4 +108,4 @@ class CuisineNS(base):
 
         for ns in nameservers:
             content += 'nameserver %s\n' % ns
-        self._cuisine.core.file_write('/etc/resolv.conf', content)
+        self.cuisine.core.file_write('/etc/resolv.conf', content)

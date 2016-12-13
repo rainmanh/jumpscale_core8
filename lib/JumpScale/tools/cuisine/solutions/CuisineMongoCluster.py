@@ -7,10 +7,6 @@ class Startable:
     This class to ensure that things get installed and started only once
     """
 
-    def __init__(self):
-        self.installed = False
-        self.started = False
-
     def _install(self):
         self.installed = True
 
@@ -54,9 +50,9 @@ class MongoInstance(Startable):
     def __init__(self, cuisine, addr=None, private_port=27021, public_port=None,
                  type_="shard", replica='', configdb='', dbdir=None):
         super().__init__()
-        self._cuisine = cuisine
+        self.cuisine = cuisine
         if not addr:
-            self.addr = cuisine._executor.addr
+            self.addr = cuisine.executor.addr
         else:
             self.addr = addr
         self.private_port = private_port
@@ -69,12 +65,12 @@ class MongoInstance(Startable):
         if public_port is None:
             public_port = private_port
         self.dbdir = dbdir
-        print(cuisine, private_port, public_port, type_, replica, configdb, dbdir)
+        self.log(cuisine, private_port, public_port, type_, replica, configdb, dbdir)
 
     def _install(self):
         super()._install()
-        self._cuisine.core.dir_ensure(self.dbdir)
-        return self._cuisine.apps.mongodb.build(start=False)
+        self.cuisine.core.dir_ensure(self.dbdir)
+        return self.cuisine.apps.mongodb.build(start=False)
 
     def _gen_service_name(self):
         name = "ourmongos" if self.type_ == "mongos" else "ourmongod"
@@ -100,21 +96,21 @@ class MongoInstance(Startable):
     @Startable.ensure_installed
     def _start(self):
         super()._start()
-        print("starting: ", self._gen_service_name(), self._gen_service_cmd())
-        a = self._cuisine.processmanager.ensure(self._gen_service_name(), self._gen_service_cmd())
+        self.log("starting: ", self._gen_service_name(), self._gen_service_cmd())
+        a = self.cuisine.processmanager.ensure(self._gen_service_name(), self._gen_service_cmd())
         return a
 
     @Startable.ensure_started
     def execute(self, cmd):
         for i in range(5):
-            rc, out, err = self._cuisine.core.run("LC_ALL=C $BINDIR/mongo --port %s --eval '%s'" %
-                                                  (self.private_port, cmd.replace("\\", "\\\\").replace("'", "\\'")), die=False)
+            rc, out, err = self.cuisine.core.run("LC_ALL=C $BINDIR/mongo --port %s --eval '%s'" %
+                                                 (self.private_port, cmd.replace("\\", "\\\\").replace("'", "\\'")), die=False)
             if not rc and out.find('errmsg') == -1:
-                print('command executed %s' % (cmd))
+                self.log('command executed %s' % (cmd))
                 break
             sleep(5)
         else:
-            print('cannot execute command %s' % (cmd))
+            self.log('cannot execute command %s' % (cmd))
         return rc, out
 
     def __repr__(self):

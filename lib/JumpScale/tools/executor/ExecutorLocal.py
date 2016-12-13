@@ -10,14 +10,13 @@ class ExecutorLocal(ExecutorBase):
         ExecutorBase.__init__(self,  debug=debug, checkok=debug)
 
         self.type = "local"
-        self.id = 'localhost'
+        self._id = 'localhost'
 
     @property
-    def done(self):
-        return j.do.done
-
-    def doneSet(self, key):
-        return j.do.doneSet(key)
+    def logger(self):
+        if self._logger == None:
+            self._logger = j.logger.get("executor.localhost")
+        return self._logger
 
     def executeRaw(self, cmd, die=True, showout=False):
         return self.execute(cmd, die=die, showout=showout)
@@ -31,24 +30,17 @@ class ExecutorLocal(ExecutorBase):
         if outputStderr == None:
             outputStderr = showout
 
-        return j.do.execute(cmds, die=die,  showout=showout, outputStderr=outputStderr, timeout=timeout)
+        if checkok == None:
+            checkok = self.checkok
 
-        # if isinstance(cmds, list):
-        #     raise RuntimeError("cmds can only be 1 cmd")
-        #
-        # cmd = cmds
-        #
-        # childprocess = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-        #                                 stderr=subprocess.PIPE, close_fds=True, shell=True, env=os.environ)
-        # (output, error) = childprocess.communicate()
-        # exitcode = childprocess.returncode
-        #
-        #
-        # if showout:
-        #     print(output)
-        #     print(error)
-        #
-        # return exitcode, output.decode(), error.decode()
+        cmds2 = self._transformCmds(cmds, die=die, checkok=checkok, env=env)
+
+        rc, out, err = j.do.execute(cmds2, die=die,  showout=showout, outputStderr=outputStderr, timeout=timeout)
+
+        if checkok:
+            out = self.docheckok(cmds, out)
+
+        return rc, out, err
 
     def executeInteractive(self, cmds, die=True, checkok=None):
         cmds = self._transformCmds(cmds, die, checkok=checkok)

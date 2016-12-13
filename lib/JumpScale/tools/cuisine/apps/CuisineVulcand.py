@@ -7,10 +7,6 @@ app = j.tools.cuisine._getBaseAppClass()
 class CuisineVulcand(app):
     NAME = "vulcand"
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def build(self, reset=False):
         if reset is False and self.isInstalled():
             return
@@ -42,6 +38,6 @@ class CuisineVulcand(app):
         rm -rf $GODIR
 
         '''
-        C = self._cuisine.bash.replaceEnvironInText(C)
-        self._cuisine.core.execute_bash(C, profile=True)
-        self._cuisine.bash.addPath("$BASEDIR/bin")
+        C = self.cuisine.bash.replaceEnvironInText(C)
+        self.cuisine.core.execute_bash(C, profile=True)
+        self.cuisine.bash.addPath("$BASEDIR/bin")

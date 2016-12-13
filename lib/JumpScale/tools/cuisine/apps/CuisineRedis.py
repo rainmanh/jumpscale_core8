@@ -14,14 +14,14 @@ class CuisineRedis(app):
 
         """Building and installing redis"""
         if reset is False and self.isInstalled():
-            print('Redis is already installed, pass reset=True to reinstall.')
+            self.log('Redis is already installed, pass reset=True to reinstall.')
             return
 
-        if self._cuisine.core.isUbuntu:
-            self._cuisine.package.update()
-            self._cuisine.package.install("build-essential")
+        if self.cuisine.core.isUbuntu:
+            self.cuisine.package.update()
+            self.cuisine.package.install("build-essential")
 
-            self._cuisine.core.dir_remove("$TMPDIR/build/redis")
+            self.cuisine.core.dir_remove("$TMPDIR/build/redis")
 
             C = """
             #!/bin/bash
@@ -39,9 +39,9 @@ class CuisineRedis(app):
             rm -f /usr/local/bin/redis-server
             rm -f /usr/local/bin/redis-cli
             """
-            C = self._cuisine.bash.replaceEnvironInText(C)
-            C = self._cuisine.core.args_replace(C)
-            self._cuisine.core.execute_bash(C)
+            C = self.cuisine.bash.replaceEnvironInText(C)
+            C = self.replace(C)
+            self.cuisine.core.execute_bash(C)
 
             # move action
             C = """
@@ -51,9 +51,9 @@ class CuisineRedis(app):
             cp -f $TMPDIR/build/redis/redis-stable/src/redis-cli $BASEDIR/bin/
             rm -rf $BASEDIR/apps/redis
             """
-            C = self._cuisine.bash.replaceEnvironInText(C)
-            C = self._cuisine.core.args_replace(C)
-            self._cuisine.core.execute_bash(C)
+            C = self.cuisine.bash.replaceEnvironInText(C)
+            C = self.replace(C)
+            self.cuisine.core.execute_bash(C)
         else:
             raise j.exceptions.NotImplemented(
                 message="only ubuntu supported for building redis", level=1, source="", tags="", msgpub="")
@@ -62,14 +62,14 @@ class CuisineRedis(app):
             self.start()
 
     def isInstalled(self):
-        return self._cuisine.core.command_check('redis-server') and self._cuisine.core.command_check('redis-cli')
+        return self.cuisine.core.command_check('redis-server') and self.cuisine.core.command_check('redis-cli')
 
     def install(self, reset=False):
         return True
 
     def start(self, name="main", ip="localhost", port=6379, maxram="5mb", appendonly=True,
               snapshot=False, slave=(), ismaster=False, passwd=None, unixsocket=None):
-        redis_cli = j.sal.redis.getInstance(self._cuisine)
+        redis_cli = j.sal.redis.getInstance(self.cuisine)
         redis_cli.configureInstance(name,
                                     ip,
                                     port,
@@ -82,17 +82,17 @@ class CuisineRedis(app):
                                     unixsocket=unixsocket)
         # return if redis is already running
         if redis_cli.isRunning(ip_address=ip, port=port, path='$BINDIR', password=passwd, unixsocket=unixsocket):
-            print('Redis is already running!')
+            self.log('Redis is already running!')
             return
 
         _, cpath = j.sal.redis._getPaths(name)
 
         cmd = "$BINDIR/redis-server %s" % cpath
-        self._cuisine.processmanager.ensure(name="redis_%s" % name, cmd=cmd, env={}, path='$BINDIR')
+        self.cuisine.processmanager.ensure(name="redis_%s" % name, cmd=cmd, env={}, path='$BINDIR')
 
         # Checking if redis is started correctly with port specified
         if not redis_cli.isRunning(ip_address=ip, port=port, path='$BINDIR', unixsocket=unixsocket):
             raise j.exceptions.RuntimeError('Redis is failed to start correctly')
 
     def stop(self, name='main'):
-        self._cuisine.processmanager.stop(name="redis_%s" % name)
+        self.cuisine.processmanager.stop(name="redis_%s" % name)

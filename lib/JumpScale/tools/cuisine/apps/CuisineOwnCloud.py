@@ -23,8 +23,8 @@ class CuisineOwnCloud(app):
 
         REQUIREMENT: nginx/php/tidb installed before
         """
-        self._cuisine.package.mdupdate()
-        self._cuisine.package.install('bzip2')
+        self.cuisine.package.mdupdate()
+        self.cuisine.package.install('bzip2')
         C = """
         set -xe
         #TODO: *1 need to use primitives in cuisine
@@ -33,7 +33,7 @@ class CuisineOwnCloud(app):
         [ ! -d {storagepath} ] && mkdir -p {storagepath}
         """.format(storagepath=storagepath)
 
-        self._cuisine.core.execute_bash(C)
+        self.cuisine.core.execute_bash(C)
 
         # deploy in $JSAPPDIR/owncloud
         # use nginx/php other cuisine packages
@@ -51,10 +51,10 @@ class CuisineOwnCloud(app):
 
         """
 
-        self._cuisine.core.execute_bash(C)
+        self.cuisine.core.execute_bash(C)
         gigconf = self._get_default_conf_owncloud()
         gigconf = gigconf % {'storagepath': storagepath}
-        self._cuisine.core.file_write("$JSAPPDIR/owncloud/config/config.php", content=gigconf)
+        self.cuisine.core.file_write("$JSAPPDIR/owncloud/config/config.php", content=gigconf)
 
         if start:
             self.start(sitename)
@@ -209,17 +209,17 @@ class CuisineOwnCloud(app):
         }
         """
         conf = textwrap.dedent(conf)
-        conf = self._cuisine.core.args_replace(conf)
+        conf = self.replace(conf)
         return conf
 
     def start(self, sitename='owncloudy.com', dbhost="127.0.0.1", dbuser="root", dbpass=""):
 
         owncloudsiterules = self._get_default_conf_nginx_site()
         owncloudsiterules = owncloudsiterules % {"sitename": sitename}
-        self._cuisine.core.file_write(
+        self.cuisine.core.file_write(
             "$JSCFGDIR/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
 
-        privateIp = self._cuisine.net.getInfo(self._cuisine.net.nics[0])['ip'][0]
+        privateIp = self.cuisine.net.getInfo(self.cuisine.net.nics[0])['ip'][0]
 
         C = r"""\
         mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --port 3306 --execute "CREATE DATABASE owncloud"
@@ -227,7 +227,7 @@ class CuisineOwnCloud(app):
         mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --port 3306 --execute "grant all on *.* to 'owncloud'@'{ip}'"
         """.format(dbhost=dbhost, dbuser=dbuser, dbpass=dbpass, ip=privateIp)
 
-        self._cuisine.core.execute_bash(C)
+        self.cuisine.core.execute_bash(C)
 
         # TODO: if not installed
         cmd = """
@@ -238,22 +238,22 @@ class CuisineOwnCloud(app):
         $JSAPPDIR/php/bin/php $JSAPPDIR/owncloud/occ config:system:set trusted_domains 1 --value={sitename}
         """.format(dbhost=dbhost, sitename=sitename)
 
-        self._cuisine.core.execute_bash(cmd)
+        self.cuisine.core.execute_bash(cmd)
 
-        basicnginxconf = self._cuisine.apps.nginx.get_basic_nginx_conf()
+        basicnginxconf = self.cuisine.apps.nginx.get_basic_nginx_conf()
         basicnginxconf = basicnginxconf.replace(
             "include $JSAPPDIR/nginx/etc/sites-enabled/*;", "include $JSCFGDIR/nginx/etc/sites-enabled/*;")
-        basicnginxconf = self._cuisine.core.args_replace(basicnginxconf)
+        basicnginxconf = self.replace(basicnginxconf)
         C = """
         chown -R www-data:www-data $JSAPPDIR/owncloud $JSCFGDIR/nginx
         chmod 777 -R $JSAPPDIR/owncloud/config
         chown -R www-data:www-data /data
         """
-        self._cuisine.core.execute_bash(C)
-        self._cuisine.core.file_write("$JSCFGDIR/nginx/etc/nginx.conf", content=basicnginxconf)
-        self._cuisine.processmanager.stop("nginx")
-        self._cuisine.apps.nginx.start()
-        self._cuisine.development.php.start()
+        self.cuisine.core.execute_bash(C)
+        self.cuisine.core.file_write("$JSCFGDIR/nginx/etc/nginx.conf", content=basicnginxconf)
+        self.cuisine.processmanager.stop("nginx")
+        self.cuisine.apps.nginx.start()
+        self.cuisine.development.php.start()
 
     def restart(self):
         pass

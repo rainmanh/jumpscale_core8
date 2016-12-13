@@ -6,13 +6,9 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisineDropbear(base):
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def build(self):
         url = "https://matt.ucc.asn.au/dropbear/releases/dropbear-2016.74.tar.bz2"
         from IPython import embed
-        print("DEBUG NOW uuuy")
+        self.log("DEBUG NOW uuuy")
         embed()
         raise RuntimeError("stop debug here")

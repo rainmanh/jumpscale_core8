@@ -7,12 +7,12 @@ base = j.tools.cuisine._getBaseClass()
 class CuisinePyFTPServer(base):
 
     def install(self, root="/storage/ftpserver", config="", port=2121):
-        self._cuisine.development.js8.install()
-        self._cuisine.systemservices.ufw.ufw_enable()
-        self._cuisine.systemservices.ufw.allowIncoming(port)
+        self.cuisine.development.js8.install()
+        self.cuisine.systemservices.ufw.ufw_enable()
+        self.cuisine.systemservices.ufw.allowIncoming(port)
 
         cmd = "sudo ufw allow 50000:65535/tcp"
-        self._cuisine.core.run(cmd)
+        self.cuisine.core.run(cmd)
 
         """
         example config
@@ -62,10 +62,10 @@ class CuisinePyFTPServer(base):
         #   anonymous: []
         # '''
 
-        self._cuisine.systemservices.base.install()
-        self._cuisine.development.pip.install("pyftpdlib")
+        self.cuisine.systemservices.base.install()
+        self.cuisine.development.pip.install("pyftpdlib")
 
-        self._cuisine.btrfs.subvolumeCreate(root)
+        self.cuisine.btrfs.subvolumeCreate(root)
 
         #
         #
@@ -76,7 +76,7 @@ class CuisinePyFTPServer(base):
             authorizer = ""
             configmodel = j.data.serializer.yaml.loads(config)
             for key, obj in configmodel.items():
-                self._cuisine.btrfs.subvolumeCreate(j.sal.fs.joinPaths(root, key))
+                self.cuisine.btrfs.subvolumeCreate(j.sal.fs.joinPaths(root, key))
                 for user, obj2 in obj.items():
                     if user.lower() == "anonymous":
                         authorizer += "    authorizer.add_anonymous('%s')\n" % j.sal.fs.joinPaths(root, key)
@@ -136,10 +136,10 @@ class CuisinePyFTPServer(base):
         C = C.replace("$port", str(port))
         C = C.replace("$authorizers", authorizer)
 
-        self._cuisine.core.dir_ensure("/etc/ftpserver")
+        self.cuisine.core.dir_ensure("/etc/ftpserver")
 
-        self._cuisine.core.file_write("/etc/ftpserver/start.py", C)
+        self.cuisine.core.file_write("/etc/ftpserver/start.py", C)
 
-        self._cuisine.processmanager.ensure("polipo", cmd)
+        self.cuisine.processmanager.ensure("polipo", cmd)
 
-        self._cuisine.processmanager.ensure("pyftpserver", "python3 /etc/ftpserver/start.py")
+        self.cuisine.processmanager.ensure("pyftpserver", "python3 /etc/ftpserver/start.py")

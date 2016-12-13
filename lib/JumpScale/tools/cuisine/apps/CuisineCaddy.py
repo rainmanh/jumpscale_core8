@@ -7,10 +7,6 @@ app = j.tools.cuisine._getBaseAppClass()
 class CuisineCaddy(app):
     NAME = "caddy"
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def install(self, ssl=False, start=True, dns=None, reset=False):
         """
         Move binaries and required configs to assigned location.
@@ -24,10 +20,10 @@ class CuisineCaddy(app):
             return
         caddy_url = 'https://github.com/mholt/caddy/releases/download/v0.8.2/caddy_linux_amd64.tar.gz'
         dest = '$TMPDIR/caddy_linux_amd64.tar.gz'
-        self._cuisine.core.file_download(caddy_url, dest)
-        self._cuisine.core.run('cd $TMPDIR; tar xvf $TMPDIR/caddy_linux_amd64.tar.gz')
-        self._cuisine.core.file_copy('$TMPDIR/caddy', '$BINDIR')
-        self._cuisine.bash.addPath(self._cuisine.core.args_replace("$BINDIR"))
+        self.cuisine.core.file_download(caddy_url, dest)
+        self.cuisine.core.run('cd $TMPDIR; tar xvf $TMPDIR/caddy_linux_amd64.tar.gz')
+        self.cuisine.core.file_copy('$TMPDIR/caddy', '$BINDIR')
+        self.cuisine.bash.addPath(self.replace("$BINDIR"))
 
         addr = dns if ssl and dns else ':80'
 
@@ -41,51 +37,51 @@ class CuisineCaddy(app):
         root $TEMPLATEDIR/cfg/caddy/www
         """
         C = C.replace("$addr", addr)
-        C = self._cuisine.core.args_replace(C)
-        cpath = self._cuisine.core.args_replace("$TEMPLATEDIR/cfg/caddy/caddyfile.conf")
-        self._cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/caddy")
-        self._cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/caddy/log/")
-        self._cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/caddy/www/")
-        self._cuisine.core.file_write(cpath, C)
+        C = self.replace(C)
+        cpath = self.replace("$TEMPLATEDIR/cfg/caddy/caddyfile.conf")
+        self.cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/caddy")
+        self.cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/caddy/log/")
+        self.cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/caddy/www/")
+        self.cuisine.core.file_write(cpath, C)
 
         if start:
             self.start(ssl)
 
     def start(self, ssl):
-        cpath = self._cuisine.core.args_replace("$JSCFGDIR/caddy/caddyfile.conf")
-        self._cuisine.core.file_copy("$TEMPLATEDIR/cfg/caddy", "$JSCFGDIR/caddy", recursive=True)
+        cpath = self.replace("$JSCFGDIR/caddy/caddyfile.conf")
+        self.cuisine.core.file_copy("$TEMPLATEDIR/cfg/caddy", "$JSCFGDIR/caddy", recursive=True)
 
         # adjust confguration file
-        conf = self._cuisine.core.file_read(cpath)
+        conf = self.cuisine.core.file_read(cpath)
         conf.replace("$TEMPLATEDIR/cfg", "$JSCFGDIR")
-        conf = self._cuisine.core.args_replace(conf)
-        self._cuisine.core.file_write("$JSCFGDIR/caddy/caddyfile.conf", conf, replaceArgs=True)
+        conf = self.replace(conf)
+        self.cuisine.core.file_write("$JSCFGDIR/caddy/caddyfile.conf", conf, replaceArgs=True)
 
-        self._cuisine.processmanager.stop("caddy")  # will also kill
+        self.cuisine.processmanager.stop("caddy")  # will also kill
 
-        fw = not self._cuisine.core.run("ufw status 2> /dev/null", die=False)[0]
+        fw = not self.cuisine.core.run("ufw status 2> /dev/null", die=False)[0]
 
         if ssl:
             # Do if not  "ufw status 2> /dev/null" didn't run properly
             if fw:
-                self._cuisine.ufw.allowIncoming(443)
-                self._cuisine.ufw.allowIncoming(80)
-                self._cuisine.ufw.allowIncoming(22)
+                self.cuisine.ufw.allowIncoming(443)
+                self.cuisine.ufw.allowIncoming(80)
+                self.cuisine.ufw.allowIncoming(22)
 
-            if self._cuisine.process.tcpport_check(80, "") or self._cuisine.process.tcpport_check(443, ""):
+            if self.cuisine.process.tcpport_check(80, "") or self.cuisine.process.tcpport_check(443, ""):
                 raise RuntimeError("port 80 or 443 are occupied, cannot install caddy")
 
         else:
-            if self._cuisine.process.tcpport_check(80, ""):
+            if self.cuisine.process.tcpport_check(80, ""):
                 raise RuntimeError("port 80 is occupied, cannot install caddy")
 
             PORTS = ":80"
             if fw:
-                self._cuisine.ufw.allowIncoming(80)
-                self._cuisine.ufw.allowIncoming(22)
+                self.cuisine.ufw.allowIncoming(80)
+                self.cuisine.ufw.allowIncoming(22)
 
-        cmd = self._cuisine.bash.cmdGetPath("caddy")
-        self._cuisine.processmanager.ensure("caddy", '%s -conf=%s -email=info@greenitglobe.com' % (cmd, cpath))
+        cmd = self.cuisine.bash.cmdGetPath("caddy")
+        self.cuisine.processmanager.ensure("caddy", '%s -conf=%s -email=info@greenitglobe.com' % (cmd, cpath))
 
     def caddyConfig(self, sectionname, config):
         """

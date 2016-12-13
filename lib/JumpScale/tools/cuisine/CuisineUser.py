@@ -18,26 +18,22 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisineUser(base):
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def passwd(self, name, passwd, encrypted_passwd=False):
         """Sets the given user password."""
-        print("set user:%s passwd for %s" % (name, self))
+        self.log("set user:%s passwd for %s" % (name, self))
         name = name.strip()
         passwd = passwd.strip()
 
         encoded_password = j.sal.unix.crypt(passwd)
         if encrypted_passwd:
-            self._cuisine.core.sudo("usermod -p '%s' %s" % (encoded_password, name))
+            self.cuisine.core.sudo("usermod -p '%s' %s" % (encoded_password, name))
         else:
             # NOTE: We use base64 here in case the password contains special chars
             # TODO: Make sure this openssl command works everywhere, maybe we should use a text_base64_decode?
-            # self._cuisine.core.sudo("echo %s | openssl base64 -A -d | chpasswd" % (shell_safe(encoded_password)))
-            # self._cuisine.core.sudo("echo %s | openssl base64 -A -d | chpasswd" % (encoded_password))
-            self._cuisine.core.run("echo \"%s:%s\" | chpasswd" % (name, passwd))
-        #executor = j.tools.executor.getSSHBased(self._executor.addr, self._executor.port, name, passwd, checkok=True)
+            # self.cuisine.core.sudo("echo %s | openssl base64 -A -d | chpasswd" % (shell_safe(encoded_password)))
+            # self.cuisine.core.sudo("echo %s | openssl base64 -A -d | chpasswd" % (encoded_password))
+            self.cuisine.core.run("echo \"%s:%s\" | chpasswd" % (name, passwd))
+        #executor = j.tools.executor.getSSHBased(self.executor.addr, self.executor.port, name, passwd, checkok=True)
 
     def create(self, name, passwd=None, home=None, uid=None, gid=None, shell=None,
                uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None, createhome=True):
@@ -53,7 +49,7 @@ class CuisineUser(base):
         if uid:
             options.append("-u '%s'" % (uid))
         # if group exists already but is not specified, useradd fails
-        if not gid and self._cuisine.group.check(name):
+        if not gid and self.cuisine.group.check(name):
             gid = name
         if gid:
             options.append("-g '%s'" % (gid))
@@ -67,7 +63,7 @@ class CuisineUser(base):
             options.append("-c '%s'" % (fullname))
         if createhome:
             options.append("-m")
-        self._cuisine.core.sudo("useradd %s '%s'" % (" ".join(options), name))
+        self.cuisine.core.sudo("useradd %s '%s'" % (" ".join(options), name))
         if passwd:
             self.passwd(name=name, passwd=passwd, encrypted_passwd=encrypted_passwd)
 
@@ -77,14 +73,14 @@ class CuisineUser(base):
         '{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}'
         or 'None' if the user does not exists.
         need_passwd (Boolean) indicates if password to be included in result or not.
-            If set to True it parses 'getent shadow' and needs self._cuisine.core.sudo access
+            If set to True it parses 'getent shadow' and needs self.cuisine.core.sudo access
         """
         assert name is not None or uid is not None, "check: either `uid` or `name` should be given"
         assert name is None or uid is None, "check: `uid` and `name` both given, only one should be provided"
         if name is not None:
-            _, d, _ = self._cuisine.core.run("getent passwd | egrep '^%s:' ; true" % (name))
+            _, d, _ = self.cuisine.core.run("getent passwd | egrep '^%s:' ; true" % (name))
         elif uid is not None:
-            _, d, _ = self._cuisine.core.run("getent passwd | egrep '^.*:.*:%s:' ; true" % (uid))
+            _, d, _ = self.cuisine.core.run("getent passwd | egrep '^.*:.*:%s:' ; true" % (uid))
         results = {}
         s = None
         if d:
@@ -93,7 +89,7 @@ class CuisineUser(base):
                 len(d), ":".join(d))
             results = dict(name=d[0], uid=d[2], gid=d[3], fullname=d[4], home=d[5], shell=d[6])
             if need_passwd:
-                s = self._cuisine.core.sudo("getent shadow | egrep '^%s:' | awk -F':' '{print $2}'" % (results['name']))
+                s = self.cuisine.core.sudo("getent shadow | egrep '^%s:' | awk -F':' '{print $2}'" % (results['name']))
                 if s:
                     results['passwd'] = s
         if results:
@@ -121,11 +117,11 @@ class CuisineUser(base):
             if fullname is not None and d.get("fullname") != fullname:
                 options.append("-c '%s'" % fullname)
             if options:
-                self._cuisine.core.sudo("usermod %s '%s'" % (" ".join(options), name))
+                self.cuisine.core.sudo("usermod %s '%s'" % (" ".join(options), name))
             if passwd:
                 self.passwd(name=name, passwd=passwd, encrypted_passwd=encrypted_passwd)
         if group is not None:
-            self._cuisine.group.user_add(group=group, user=name)
+            self.cuisine.group.user_add(group=group, user=name)
 
     def remove(self, name, rmhome=None):
         """Removes the user with the given name, optionally
@@ -133,10 +129,10 @@ class CuisineUser(base):
         options = ["-f"]
         if rmhome:
             options.append("-r")
-        self._cuisine.core.sudo("userdel %s '%s'" % (" ".join(options), name))
+        self.cuisine.core.sudo("userdel %s '%s'" % (" ".join(options), name))
 
     def list(self):
-        users = self._cuisine.core.find("/home", recursive=False)
+        users = self.cuisine.core.find("/home", recursive=False)
         users = [j.sal.fs.getBaseName(item) for item in users if (item.strip() != "" and item.strip("/") != "home")]
         users = [x for x in users if self.check(x)]
         return users

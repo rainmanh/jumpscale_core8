@@ -17,7 +17,7 @@ class CuisineEtcd(app):
         """
         if reset is False and self.isInstalled():
             return
-        self._cuisine.development.golang.install()
+        self.cuisine.development.golang.install()
 
         # FYI, REPO_PATH: github.com/coreos/etcd
         _script = """
@@ -38,20 +38,20 @@ class CuisineEtcd(app):
         CGO_ENABLED=0 go build $GO_BUILD_FLAGS -installsuffix cgo -ldflags "-s" -o $BINDIR/etcdctl ${REPO_PATH}/cmd/etcdctl
         """
 
-        script = self._cuisine.bash.replaceEnvironInText(_script)
-        self._cuisine.core.execute_bash(script, profile=True)
-        self._cuisine.bash.addPath("$BASEDIR/bin")
+        script = self.cuisine.bash.replaceEnvironInText(_script)
+        self.cuisine.core.execute_bash(script, profile=True)
+        self.cuisine.bash.addPath("$BASEDIR/bin")
 
         if start:
             self.start(host, peers)
 
     def start(self, host=None, peers=None):
-        self._cuisine.process.kill("etcd")
+        self.cuisine.process.kill("etcd")
         if host and peers:
             cmd = self._etcd_cluster_cmd(host, peers)
         else:
             cmd = '$BINDIR/etcd'
-        self._cuisine.processmanager.ensure("etcd", cmd)
+        self.cuisine.processmanager.ensure("etcd", cmd)
 
     def _etcd_cluster_cmd(self, host, peers=[]):
         """
@@ -79,4 +79,4 @@ class CuisineEtcd(app):
       -initial-cluster {cluster} \
       -initial-cluster-state new \
     """.format(host=host, cluster=cluster, i=number)
-        return self._cuisine.core.args_replace(cmd)
+        return self.replace(cmd)

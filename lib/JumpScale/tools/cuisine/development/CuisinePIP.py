@@ -6,21 +6,17 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisinePIP(base):
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     # -----------------------------------------------------------------------------
     # PIP PYTHON PACKAGE MANAGER
     # -----------------------------------------------------------------------------
 
     def ensure(self):
-        if self._cuisine.core.isMac:
+        if self.cuisine.core.isMac:
             return
 
         # python should already be requirement, do not install !! (despiegk)
-        # self._cuisine.package.install('python3.5')
-        # self._cuisine.package.install('python3-pip')
+        # self.cuisine.package.install('python3.5')
+        # self.cuisine.package.install('python3-pip')
 
         C = """
             #important remove olf pkg_resources, will conflict with new pip
@@ -30,39 +26,39 @@ class CuisinePIP(base):
             #wget --remote-encoding=utf-8 https://bootstrap.pypa.io/get-pip.py
             curl https://bootstrap.pypa.io/get-pip.py >  get-pip.py
             """
-        C = self._cuisine.core.args_replace(C)
-        self._cuisine.core.execute_bash(C)
+        C = self.replace(C)
+        self.cuisine.core.execute_bash(C)
         C = "python3 $TMPDIR/get-pip.py"
-        C = self._cuisine.core.args_replace(C)
-        self._cuisine.core.run(C)
+        C = self.replace(C)
+        self.cuisine.core.run(C)
 
     def packageUpgrade(self, package):
         '''
         The "package" argument, defines the name of the package that will be upgraded.
         '''
-        # self._cuisine.core.set_sudomode()
-        self._cuisine.core.run('pip3 install --upgrade %s' % (package))
+        # self.cuisine.core.set_sudomode()
+        self.cuisine.core.run('pip3 install --upgrade %s' % (package))
 
     def install(self, package=None, upgrade=False, doneMethod=None):
         '''
         The "package" argument, defines the name of the package that will be installed.
         '''
-        # self._cuisine.core.set_sudomode()
-        if self._cuisine.core.isArch:
+        # self.cuisine.core.set_sudomode()
+        if self.cuisine.core.isArch:
             if package in ["credis", "blosc", "psycopg2"]:
                 return
 
-        if self._cuisine.core.isCygwin and package in ["psycopg2", "psutil", "zmq"]:
+        if self.cuisine.core.isCygwin and package in ["psycopg2", "psutil", "zmq"]:
             return
 
         if doneMethod != None and doneMethod(package) == True:
-            print("No need to pip install:%s (already done)" % package)
+            self.log("No need to pip install:%s (already done)" % package)
             return
 
         cmd = "pip3 install %s" % package
         if upgrade:
             cmd += " --upgrade"
-        self._cuisine.core.run(cmd)
+        self.cuisine.core.run(cmd)
 
         if doneMethod != None:
             doneMethod(package, set=True)
@@ -74,7 +70,7 @@ class CuisinePIP(base):
         is equivalent to the "-r" parameter of pip.
         Either "package" or "r" needs to be provided
         '''
-        return self._cuisine.core.run('pip3 uninstall %s' % (package))
+        return self.cuisine.core.run('pip3 uninstall %s' % (package))
 
     def multiInstall(self, packagelist, upgrade=False, doneMethod=None):
         """

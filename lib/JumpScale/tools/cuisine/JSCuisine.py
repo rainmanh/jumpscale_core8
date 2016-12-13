@@ -28,7 +28,7 @@ class JSCuisine:
 
     def __init__(self, executor):
 
-        self._executor = executor
+        self.executor = executor
 
         self._platformtype = None
         self._id = None
@@ -42,7 +42,7 @@ class JSCuisine:
         self._user = None
         self._bash = None
         self._tmux = None
-        self._cuisine = self
+        self.cuisine = self
         self._fqn = ""
         # self._builder = None
 
@@ -54,8 +54,8 @@ class JSCuisine:
         self._testscripts = None
         self._tools = None
 
-        self.core = CuisineCore(self._executor, self)
-        self.pnode = CuisinePNode(self._executor, self)
+        self.core = CuisineCore(self.executor, self)
+        self.pnode = CuisinePNode(self.executor, self)
 
         # self.reset = self.core.reset
 
@@ -67,118 +67,118 @@ class JSCuisine:
     @property
     def apps(self):
         if self._apps is None:
-            self._apps = apps(self._executor, self)
+            self._apps = apps(self.executor, self)
         return self._apps
 
     @property
     def development(self):
         if self._development is None:
-            self._development = development(self._executor, self)
+            self._development = development(self.executor, self)
         return self._development
 
     @property
     def examples(self):
         if self._examples is None:
-            self._examples = examples(self._executor, self)
+            self._examples = examples(self.executor, self)
         return self._examples
 
     @property
     def solutions(self):
         if self._solutions is None:
-            self._solutions = solutions(self._executor, self)
+            self._solutions = solutions(self.executor, self)
         return self._solutions
 
     @property
     def systemservices(self):
         if self._systemservices is None:
-            self._systemservices = systemservices(self._executor, self)
+            self._systemservices = systemservices(self.executor, self)
         return self._systemservices
 
     @property
     def testscripts(self):
         if self._testscripts is None:
-            self._testscripts = testscripts(self._executor, self)
+            self._testscripts = testscripts(self.executor, self)
         return self._testscripts
 
     @property
     def tools(self):
         if self._tools is None:
-            self._tools = tools(self._executor, self)
+            self._tools = tools(self.executor, self)
         return self._tools
 
     @property
     def btrfs(self):
-        j.sal.btrfs._executor = self._executor
+        j.sal.btrfs.executor = self.executor
         return j.sal.btrfs
 
     @property
     def package(self):
         if self._package is None:
-            self._package = CuisinePackage(self._executor, self)
+            self._package = CuisinePackage(self.executor, self)
         return self._package
 
     @property
     def process(self):
         if self._process is None:
-            self._process = CuisineProcess(self._executor, self)
+            self._process = CuisineProcess(self.executor, self)
         return self._process
 
     @property
     def tmux(self):
         if self._tmux is None:
-            self._tmux = CuisineTmux(self._executor, self)
+            self._tmux = CuisineTmux(self.executor, self)
         return self._tmux
 
     # @property
     # def builder(self):
     #     if self._builder is None:
-    #         self._builder = CuisineBuilder(self._executor, self)
+    #         self._builder = CuisineBuilder(self.executor, self)
     #     return self._builder
 
     @property
     def id(self):
-        return self._executor.id
+        return self.executor.id
 
     @property
     def platformtype(self):
         if self._platformtype is None:
-            self._platformtype = j.core.platformtype.get(self._executor)
+            self._platformtype = j.core.platformtype.get(self.executor)
         return self._platformtype
 
     @property
     def ns(self):
         if self._ns is None:
-            self._ns = CuisineNS(self._executor, self)
+            self._ns = CuisineNS(self.executor, self)
         return self._ns
 
     @property
     def ssh(self):
         if self._ssh is None:
-            self._ssh = CuisineSSH(self._executor, self)
+            self._ssh = CuisineSSH(self.executor, self)
         return self._ssh
 
     @property
     def bash(self):
         if self._bash is None:
-            self._bash = j.tools.bash.get(self, self._executor)
+            self._bash = j.tools.bash.get(self, self.executor)
         return self._bash
 
     @property
     def net(self):
         if self._net is None:
-            self._net = CuisineNet(self._executor, self)
+            self._net = CuisineNet(self.executor, self)
         return self._net
 
     @property
     def user(self):
         if self._user is None:
-            self._user = CuisineUser(self._executor, self)
+            self._user = CuisineUser(self.executor, self)
         return self._user
 
     @property
     def group(self):
         if self._group is None:
-            self._group = CuisineGroup(self._executor, self)
+            self._group = CuisineGroup(self.executor, self)
         return self._group
 
     @property
@@ -188,6 +188,6 @@ class JSCuisine:
         return self._processmanager
 
     def __str__(self):
-        return "cuisine:%s:%s" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
+        return "cuisine:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
 
     __repr__ = __str__

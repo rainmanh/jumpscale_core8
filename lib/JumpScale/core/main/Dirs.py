@@ -51,10 +51,9 @@ class Dirs:
         return path
 
     def init(self):
-        from IPython import embed
-        print("DEBUG NOW init dirs")
-        embed()
-        raise RuntimeError("stop debug here")
+        for key, val in os.environ.items():
+            if "DIR" in key:
+                self.__dict__[key] = val
 
     def replaceTxtDirVars(self, txt, additionalArgs={}):
         """
@@ -62,10 +61,9 @@ class Dirs:
         also the Dir... get replaces e.g. varDir
         """
 
-        from IPython import embed
-        print("DEBUG NOW replaceTxtDirVars")
-        embed()
-        raise RuntimeError("stop debug here")
+        for key, val in os.environ.items():
+            if "DIR" in key:
+                txt = txt.replace("$%s" % key, val)
 
         txt = txt.replace("$appdir", self.JSAPPDIR)
         txt = txt.replace("$tmplsdir", self.TEMPLATEDIR)
@@ -76,7 +74,7 @@ class Dirs:
         txt = txt.replace("$logdir", self.LOGDIR)
         txt = txt.replace("$tmpdir", self.TMPDIR)
         txt = txt.replace("$libdir", self.LIBDIR)
-        txt = txt.replace("$jslibextdir", self.libExtDir)
+        txt = txt.replace("$jslibextdir", self.LIBEXTDIR)
         txt = txt.replace("$jsbindir", self.BINDIR)
         txt = txt.replace("$nodeid", str(j.application.whoAmI.nid))
         for key, value in list(additionalArgs.items()):

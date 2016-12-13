@@ -114,7 +114,7 @@ j.do.installer.do = do
 # sets up the exception handlers for init
 from . import core
 
-sys.path.append('%s/lib/JumpScale' % do.JSBASE)
+sys.path.append('%s/lib/JumpScale' % do.JSBASEDIR)
 
 # import importlib
 
@@ -144,7 +144,7 @@ def findjumpscalelocations(path):
 def findModules(embed=False):
 
     result = {}
-    superroot = "%s/lib/JumpScale" % j.do.BASE
+    superroot = "%s/lib/JumpScale" % j.do.JSBASEDIR
 
     print("FINDMODULES in %s" % superroot)
     for rootfolder in j.do.listDirsInDir(superroot, False, True):

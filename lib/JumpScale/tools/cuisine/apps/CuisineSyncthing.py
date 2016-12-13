@@ -7,10 +7,6 @@ class CuisineSyncthing(app):
 
     NAME = 'syncthing'
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def build(self, start=True, install=True, reset=False):
         """
         build and setup syncthing to run on :8384 , this can be changed from the config file in /optvar/cfg/syncthing
@@ -18,17 +14,17 @@ class CuisineSyncthing(app):
         # install golang
         if reset is False and self.isInstalled():
             return
-        # self._cuisine.development.golang.install()
+        # self.cuisine.development.golang.install()
 
         # build
         url = "https://github.com/syncthing/syncthing.git"
-        if self._cuisine.core.file_exists('$GODIR/src/github.com/syncthing/syncthing'):
-            self._cuisine.core.dir_remove('$GODIR/src/github.com/syncthing/syncthing')
-        dest = self._cuisine.development.git.pullRepo(url,
-                                                      dest='$GODIR/src/github.com/syncthing/syncthing',
-                                                      ssh=False,
-                                                      depth=1)
-        self._cuisine.core.run("cd %s && go run build.go -version v0.14.5 -no-upgrade" % dest, profile=True)
+        if self.cuisine.core.file_exists('$GODIR/src/github.com/syncthing/syncthing'):
+            self.cuisine.core.dir_remove('$GODIR/src/github.com/syncthing/syncthing')
+        dest = self.cuisine.development.git.pullRepo(url,
+                                                     dest='$GODIR/src/github.com/syncthing/syncthing',
+                                                     ssh=False,
+                                                     depth=1)
+        self.cuisine.core.run("cd %s && go run build.go -version v0.14.5 -no-upgrade" % dest, profile=True)
 
         if install:
             self.install(start)
@@ -88,33 +84,33 @@ class CuisineSyncthing(app):
         </configuration>
         """
         # install deps
-        self._cuisine.development.golang.install()
+        self.cuisine.development.golang.install()
 
         # create config file
-        content = self._cuisine.core.args_replace(config)
+        content = self.replace(config)
         content = content.replace('$lclAddrs', '0.0.0.0', 1)
         content = content.replace('$port', '18384', 1)
 
-        self._cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/syncthing/")
-        self._cuisine.core.file_write("$TEMPLATEDIR/cfg/syncthing/config.xml", content)
+        self.cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/syncthing/")
+        self.cuisine.core.file_write("$TEMPLATEDIR/cfg/syncthing/config.xml", content)
 
         # If syncthing isn't found, it means that syncthing must be built first
-        if not self._cuisine.core.file_exists('$BINDIR/syncthing'):
-            self._cuisine.core.file_copy(source="$GODIR/src/github.com/syncthing/syncthing/bin/syncthing",
-                                         dest="$BINDIR",
-                                         recursive=True,
-                                         overwrite=False)
+        if not self.cuisine.core.file_exists('$BINDIR/syncthing'):
+            self.cuisine.core.file_copy(source="$GODIR/src/github.com/syncthing/syncthing/bin/syncthing",
+                                        dest="$BINDIR",
+                                        recursive=True,
+                                        overwrite=False)
         if start:
             self.start()
 
     def start(self):
-        self._cuisine.core.dir_ensure("$JSCFGDIR")
-        self._cuisine.core.file_copy("$TEMPLATEDIR/cfg/syncthing/", "$JSCFGDIR", recursive=True)
-        pm = self._cuisine.processmanager.get("tmux")
+        self.cuisine.core.dir_ensure("$JSCFGDIR")
+        self.cuisine.core.file_copy("$TEMPLATEDIR/cfg/syncthing/", "$JSCFGDIR", recursive=True)
+        pm = self.cuisine.processmanager.get("tmux")
         pm.ensure(name="syncthing", cmd="./syncthing -home  $JSCFGDIR/syncthing", path="$BINDIR")
 
     def stop(self):
-        pm = self._cuisine.processmanager.get("tmux")
+        pm = self.cuisine.processmanager.get("tmux")
         pm.stop("syncthing")
 
     def restart(self):

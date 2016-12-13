@@ -7,21 +7,17 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisineTmux(base):
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def createSession(self, sessionname, screens, user=None, killifexists=True, returnifexists=True):
         """
         @param name is name of session
         @screens is list with nr of screens required in session and their names (is [$screenname,...])
         """
         # if 'ubuntu' in j.core.platformtype.myplatform.platformtypes:
-        if not self._cuisine.core.command_check("tmux"):
-            self._cuisine.package.install("tmux")
+        if not self.cuisine.core.command_check("tmux"):
+            self.cuisine.package.install("tmux")
         # else:
         #     from IPython import embed
-        #     print("DEBUG NOW sdsd")
+        #     self.log("DEBUG NOW sdsd")
         #     embed()
         #     raise RuntimeError("stop debug here")
         #     raise j.exceptions.RuntimeError(message="only support ubuntu", level=1, source="", tags="", msgpub="")
@@ -40,14 +36,14 @@ class CuisineTmux(base):
         if user is not None:
             cmd = "sudo -u %s -i %s" % (user, cmd)
         # j.sal.process.run(cmd, env=env)  #TODO: does not work in python3
-        self._executor.execute(cmd, showout=False)
+        self.executor.execute(cmd, showout=False)
         # now add the other screens to it
         if len(screens) > 1:
             for screen in screens[1:]:
                 cmd = "tmux new-window -t '%s' -n '%s'" % (sessionname, screen)
                 if user is not None:
                     cmd = "sudo -u %s -i %s" % (user, cmd)
-                self._executor.execute(cmd, showout=False)
+                self.executor.execute(cmd, showout=False)
 
     def executeInScreen(self, sessionname, screenname, cmd, wait=10, cwd=None, env=None, user="root",
                         tmuxuser=None, reset=False, replaceArgs=True, resetAfter=False, die=True, async=False):
@@ -76,7 +72,7 @@ class CuisineTmux(base):
             envstr += "export %s=%s\n" % (name, value)
 
         if replaceArgs:
-            cmd = self._cuisine.core.args_replace(cmd)
+            cmd = self.replace(cmd)
 
         # Escape the double quote character in cmd
         cmd = cmd.replace('"', r'\"')
@@ -97,7 +93,7 @@ class CuisineTmux(base):
             cmd2 = "tmux send-keys -t '%s' '%s\n'" % (pane, envstr)
             if tmuxuser is not None:
                 cmd2 = "sudo -u %s -i %s" % (tmuxuser, cmd2)
-            self._executor.executeRaw(cmd2, die=True)
+            self.executor.executeRaw(cmd2, die=True)
 
         # if path to go on, set it
         if cwd:
@@ -120,20 +116,20 @@ class CuisineTmux(base):
         if tmuxuser is not None:
             cmd2 = "sudo -u %s -i %s" % (tmuxuser, cmd2)
 
-        rc, out, err = self._executor.executeRaw(cmd2, showout=False, die=False)
+        rc, out, err = self.executor.executeRaw(cmd2, showout=False, die=False)
 
         def checkOutput(die, async=False):
             out = ""
             counter = 0
             ffound = False
             while not ffound:
-                rc, out, err = self._executor.executeRaw("tmux capture-pane -pS -5000", showout=False)
+                rc, out, err = self.executor.executeRaw("tmux capture-pane -pS -5000", showout=False)
                 # initial command needs to go
                 out = out.split('%s\n' % cmd)[-1]
                 ffound = '**START**' in out
                 if not ffound:
                     time.sleep(0.1)
-                    print("reread from tmux, cmd did not start yet")
+                    self.log("reread from tmux, cmd did not start yet")
                 counter += 1
                 if out.find("**ERROR**") != -1:
                     break
@@ -194,7 +190,7 @@ class CuisineTmux(base):
         cmd = 'tmux list-sessions -F "#{session_name}"'
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        rc, out, err = self._executor.execute(cmd, die=False, showout=False)
+        rc, out, err = self.executor.execute(cmd, die=False, showout=False)
         if err:
             out = ""
         return [name.strip() for name in out.split()]
@@ -203,7 +199,7 @@ class CuisineTmux(base):
         cmd = 'tmux list-panes -t "%s" -F "#{pane_pid};#{window_name}" -a' % session
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        rc, out, err = self._executor.execute(cmd, die=False, showout=False)
+        rc, out, err = self.executor.execute(cmd, die=False, showout=False)
         if err:
             return None
         for line in out.split():
@@ -218,7 +214,7 @@ class CuisineTmux(base):
         cmd = 'tmux list-windows -F "#{window_index}:#{window_name}" -t "%s"' % session
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        rc, out, err = self._executor.execute(cmd, die=False, showout=False, checkok=False)
+        rc, out, err = self.executor.execute(cmd, die=False, showout=False, checkok=False)
         if err:
             return result
         for line in out.split():
@@ -235,7 +231,7 @@ class CuisineTmux(base):
             if user:
                 cmd = "sudo -u %s -i %s" % (user, cmd)
             time.sleep(0.2)
-            self._executor.execute(cmd, showout=False)
+            self.executor.execute(cmd, showout=False)
 
     def logWindow(self, session, name, filename, user=None):
         pane = self._getPane(session, name, user=user)
@@ -243,7 +239,7 @@ class CuisineTmux(base):
             cmd = "tmux pipe-pane -t '%s' 'cat >> \"%s\"'" % (pane, filename)
             if user:
                 cmd = "sudo -u %s -i %s" % (user, cmd)
-            self._executor.execute(cmd, showout=False)
+            self.executor.execute(cmd, showout=False)
 
     def windowExists(self, session, name, user=None):
         if session in self.getSessions(user=user):
@@ -267,19 +263,19 @@ class CuisineTmux(base):
         cmd = "tmux kill-window -t '%s'" % pane
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        self._executor.execute(cmd, die=False, showout=False)
+        self.executor.execute(cmd, die=False, showout=False)
 
     def killSessions(self, user=None):
         cmd = "tmux kill-server"
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        self._executor.execute(cmd, die=False, showout=False)  # todo checking
+        self.executor.execute(cmd, die=False, showout=False)  # todo checking
 
     def killSession(self, sessionname, user=None):
         cmd = "tmux kill-session -t '%s'" % sessionname
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        self._executor.execute(cmd, die=False, showout=False)  # todo checking
+        self.executor.execute(cmd, die=False, showout=False)  # todo checking
 
     def attachSession(self, sessionname, windowname=None, user=None):
         if windowname:
@@ -287,11 +283,11 @@ class CuisineTmux(base):
             cmd = "tmux select-window -t '%s'" % pane
             if user:
                 cmd = "sudo -u %s -i %s" % (user, cmd)
-            self._executor.execute(cmd, die=False)
+            self.executor.execute(cmd, die=False)
         cmd = "tmux attach -t %s" % (sessionname)
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        self._executor.execute(cmd, showout=False)
+        self.executor.execute(cmd, showout=False)
 
     def configure(self, restartTmux=False, xonsh=False):
         C = """
@@ -413,12 +409,12 @@ class CuisineTmux(base):
         if xonsh:
             C += "set -g default-command \"xonsh\"\n\n"
 
-        self._cuisine.core.file_write("$HOMEDIR/.tmux.conf", C)
+        self.cuisine.core.file_write("$HOMEDIR/.tmux.conf", C)
 
         if restartTmux:
-            self._cuisine.core.run("killall tmux", die=False)
+            self.cuisine.core.run("killall tmux", die=False)
 
     def __str__(self):
-        return "cuisine.tmux:%s:%s" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
+        return "cuisine.tmux:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
 
     __repr__ = __str__

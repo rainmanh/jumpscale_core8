@@ -14,6 +14,6 @@ class apps(base):
         # TODO: fix thread safe
         if self._dnsmasq is None:
             self._dnsmasq = j.sal.dnsmasq
-            self._dnsmasq._cuisine = self._cuisine
-            self._dnsmasq.executor = self._executor
+            self._dnsmasq.cuisine = self.cuisine
+            self._dnsmasq.executor = self.executor
         return self._dnsmasq

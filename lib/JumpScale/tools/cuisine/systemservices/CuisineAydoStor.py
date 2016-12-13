@@ -10,10 +10,6 @@ class CuisineAydoStor(app):
 
     NAME = 'stor'
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def build(self, addr='0.0.0.0:8090', backend="$VARDIR/aydostor", start=True, install=True, reset=False):
         """
         Build and Install aydostore
@@ -21,14 +17,14 @@ class CuisineAydoStor(app):
         @input backend, directory where to save the data push to the store
         """
         if self.isInstalled() and not reset:
-            print('Aydostor is already installed, pass reinstall=True parameter to reinstall')
+            self.log('Aydostor is already installed, pass reinstall=True parameter to reinstall')
             return
 
-        self._cuisine.package.mdupdate()
-        self._cuisine.package.install('build-essential')
+        self.cuisine.package.mdupdate()
+        self.cuisine.package.install('build-essential')
 
-        self._cuisine.core.dir_remove("%s/src" % self._cuisine.bash.environGet('GOPATH'))
-        self._cuisine.development.golang.get("github.com/g8os/stor")
+        self.cuisine.core.dir_remove("%s/src" % self.cuisine.bash.environGet('GOPATH'))
+        self.cuisine.development.golang.get("github.com/g8os/stor")
 
         if install:
             self.install(addr, backend, start)
@@ -37,23 +33,23 @@ class CuisineAydoStor(app):
         """
         download, install, move files to appropriate places, and create relavent configs
         """
-        self._cuisine.core.dir_ensure('$BINDIR')
-        self._cuisine.core.file_copy(self._cuisine.core.joinpaths(
-            self._cuisine.core.dir_paths['GODIR'], 'bin', 'stor'), '$BINDIR', overwrite=True)
-        self._cuisine.bash.addPath("$BASEDIR/bin")
+        self.cuisine.core.dir_ensure('$BINDIR')
+        self.cuisine.core.file_copy(self.cuisine.core.joinpaths(
+            self.cuisine.core.dir_paths['GODIR'], 'bin', 'stor'), '$BINDIR', overwrite=True)
+        self.cuisine.bash.addPath("$BASEDIR/bin")
 
-        self._cuisine.processmanager.stop("stor")  # will also kill
+        self.cuisine.processmanager.stop("stor")  # will also kill
 
-        self._cuisine.core.dir_ensure("$JSCFGDIR/stor")
-        backend = self._cuisine.core.args_replace(backend)
-        self._cuisine.core.dir_ensure(backend)
+        self.cuisine.core.dir_ensure("$JSCFGDIR/stor")
+        backend = self.replace(backend)
+        self.cuisine.core.dir_ensure(backend)
         config = {
             'listen_addr': addr,
             'store_root': backend,
         }
         content = j.data.serializer.toml.dumps(config)
-        self._cuisine.core.dir_ensure('$TEMPLATEDIR/cfg/stor', recursive=True)
-        self._cuisine.core.file_write("$TEMPLATEDIR/cfg/stor/config.toml", content)
+        self.cuisine.core.dir_ensure('$TEMPLATEDIR/cfg/stor', recursive=True)
+        self.cuisine.core.file_write("$TEMPLATEDIR/cfg/stor/config.toml", content)
 
         if start:
             self.start(addr)
@@ -65,12 +61,12 @@ class CuisineAydoStor(app):
         else:
             addr, port = res[0], '8090'
 
-            self._cuisine.ufw.allowIncoming(port)
-            if self._cuisine.process.tcpport_check(port, ""):
+            self.cuisine.ufw.allowIncoming(port)
+            if self.cuisine.process.tcpport_check(port, ""):
                 raise RuntimeError(
                     "port %d is occupied, cannot start stor" % port)
 
-        self._cuisine.core.dir_ensure("$JSCFGDIR/stor/", recursive=True)
-        self._cuisine.core.file_copy("$TEMPLATEDIR/cfg/stor/config.toml", "$JSCFGDIR/stor/")
-        cmd = self._cuisine.bash.cmdGetPath("stor")
-        self._cuisine.processmanager.ensure("stor", '%s --config $JSCFGDIR/stor/config.toml' % cmd)
+        self.cuisine.core.dir_ensure("$JSCFGDIR/stor/", recursive=True)
+        self.cuisine.core.file_copy("$TEMPLATEDIR/cfg/stor/config.toml", "$JSCFGDIR/stor/")
+        cmd = self.cuisine.bash.cmdGetPath("stor")
+        self.cuisine.processmanager.ensure("stor", '%s --config $JSCFGDIR/stor/config.toml' % cmd)

@@ -8,11 +8,6 @@ app = j.tools.cuisine._getBaseAppClass()
 class CuisineVolumeDriver(app):
     NAME = "volumedriver"
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-        self.logger = j.logger.get("j.tools.cuisine.volumedriver")
-
     def build(self, reset=False):
         if reset is False and self.isInstalled():
             return
@@ -20,12 +15,12 @@ class CuisineVolumeDriver(app):
         self._build()
 
     def _install_deps(self):
-        self._cuisine.core.file_write('/etc/apt/sources.list.d/ovsaptrepo.list',
-                                      'deb http://apt.openvstorage.org unstable main')
-        self._cuisine.core.run(
+        self.cuisine.core.file_write('/etc/apt/sources.list.d/ovsaptrepo.list',
+                                     'deb http://apt.openvstorage.org unstable main')
+        self.cuisine.core.run(
             'echo "deb http://us.archive.ubuntu.com/ubuntu xenial main universe" >> /etc/apt/sources.list')
-        self._cuisine.package.update()
-        self._cuisine.package.upgrade(distupgrade=True)
+        self.cuisine.package.update()
+        self.cuisine.package.upgrade(distupgrade=True)
 
         apt_deps = """
         gcc g++ clang-3.8 valgrind \
@@ -48,25 +43,25 @@ class CuisineVolumeDriver(app):
         supervisor rpcbind \
         libxio0 libxio-dev libev4
         """
-        self._cuisine.package.multiInstall(apt_deps, allow_unauthenticated=True)
+        self.cuisine.package.multiInstall(apt_deps, allow_unauthenticated=True)
 
     def _build(self, version='6.0.0'):
-        workspace = self._cuisine.core.args_replace("$TMPDIR/volumedriver-workspace")
-        self._cuisine.core.dir_ensure(workspace)
+        workspace = self.replace("$TMPDIR/volumedriver-workspace")
+        self.cuisine.core.dir_ensure(workspace)
 
         str_repl = {
             'workspace': workspace,
             'version': version,
         }
 
-        str_repl['volumedriver'] = self._cuisine.development.git.pullRepo(
+        str_repl['volumedriver'] = self.cuisine.development.git.pullRepo(
             'https://github.com/openvstorage/volumedriver', depth=None)
-        str_repl['buildtools'] = self._cuisine.development.git.pullRepo(
+        str_repl['buildtools'] = self.cuisine.development.git.pullRepo(
             'https://github.com/openvstorage/volumedriver-buildtools', depth=None)
-        self._cuisine.core.run('cd %(volumedriver)s;git checkout tags/%(version)s' % str_repl)
+        self.cuisine.core.run('cd %(volumedriver)s;git checkout tags/%(version)s' % str_repl)
 
-        self._cuisine.core.file_link(str_repl['buildtools'], j.sal.fs.joinPaths(workspace, 'volumedriver-buildtools'))
-        self._cuisine.core.file_link(str_repl['volumedriver'], j.sal.fs.joinPaths(workspace, 'volumedriver'))
+        self.cuisine.core.file_link(str_repl['buildtools'], j.sal.fs.joinPaths(workspace, 'volumedriver-buildtools'))
+        self.cuisine.core.file_link(str_repl['volumedriver'], j.sal.fs.joinPaths(workspace, 'volumedriver'))
 
         build_script = """
         export WORKSPACE=%(workspace)s
@@ -80,5 +75,5 @@ class CuisineVolumeDriver(app):
         ./volumedriver/src/buildscripts/jenkins-release-dev.sh ${WORKSPACE}/volumedriver
         """ % str_repl
 
-        self._cuisine.core.execute_bash(build_script)
-        self._cuisine.core.file_copy('$TMPDIR/volumedriver-workspace/volumedriver/build/bin/*', '$BINDIR')
+        self.cuisine.core.execute_bash(build_script)
+        self.cuisine.core.file_copy('$TMPDIR/volumedriver-workspace/volumedriver/build/bin/*', '$BINDIR')

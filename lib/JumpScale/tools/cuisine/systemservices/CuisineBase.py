@@ -10,9 +10,9 @@ class CuisineBase(base):
     """
 
     def install(self):
-        self._cuisine.bash.fixlocale()
+        self.cuisine.bash.fixlocale()
 
-        if self._cuisine.core.isMac:
+        if self.cuisine.core.isMac:
             C = ""
         else:
             C = """
@@ -31,22 +31,22 @@ class CuisineBase(base):
         """
         out = ""
         # make sure all dirs exist
-        for key, item in self._cuisine.core.dir_paths.items():
+        for key, item in self.cuisine.core.dir_paths.items():
             out += "mkdir -p %s\n" % item
-        self._cuisine.core.execute_bash(out)
+        self.cuisine.core.execute_bash(out)
 
-        self._cuisine.package.mdupdate()
+        self.cuisine.package.mdupdate()
 
-        if not self._cuisine.core.isMac and not self._cuisine.core.isCygwin:
-            self._cuisine.package.install("fuse")
+        if not self.cuisine.core.isMac and not self.cuisine.core.isCygwin:
+            self.cuisine.package.install("fuse")
 
-        if self._cuisine.core.isArch:
-            self._cuisine.package.install("wpa_actiond")  # is for wireless auto start capability
-            self._cuisine.package.install("redis-server")
+        if self.cuisine.core.isArch:
+            self.cuisine.package.install("wpa_actiond")  # is for wireless auto start capability
+            self.cuisine.package.install("redis-server")
 
-        self._cuisine.package.multiInstall(C)
-        self._cuisine.package.upgrade()
+        self.cuisine.package.multiInstall(C)
+        self.cuisine.package.upgrade()
 
-        self._cuisine.package.clean()
+        self.cuisine.package.clean()
 
-        self._cuisine.bash.addPath(j.sal.fs.joinPaths(self._cuisine.core.dir_paths["base"], "bin"))
+        self.cuisine.bash.addPath(j.sal.fs.joinPaths(self.cuisine.core.dir_paths["base"], "bin"))

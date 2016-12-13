@@ -25,7 +25,7 @@ class CuisinePHP(app):
 
     def build(self, **config):
         pkgs = "libxml2-dev libpng-dev libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev"
-        list(map(self._cuisine.package.ensure, pkgs.split(sep=" ")))
+        list(map(self.cuisine.package.ensure, pkgs.split(sep=" ")))
 
         buildconfig = deepcopy(compileconfig)
         buildconfig.update(config)  # should be defaultconfig.update(config) instead of overriding the explicit ones.
@@ -51,8 +51,8 @@ class CuisinePHP(app):
 
         """.format(args_string=args_string)
 
-        C = self._cuisine.core.args_replace(C)
-        self._cuisine.core.execute_bash(C)
+        C = self.replace(C)
+        self.cuisine.core.execute_bash(C)
 
         # check if we need an php accelerator: https://en.wikipedia.org/wiki/List_of_PHP_accelerators
 
@@ -86,13 +86,13 @@ class CuisinePHP(app):
         cd $TMPDIR/php && make install
         """
 
-        C = self._cuisine.core.args_replace(C)
-        self._cuisine.core.execute_bash(C)
-        fpmdefaultconf = self._cuisine.core.args_replace(fpmdefaultconf)
-        fpmwwwconf = self._cuisine.core.args_replace(fpmwwwconf)
-        self._cuisine.core.file_write("$JSAPPDIR/php/etc/php-fpm.conf.default", content=fpmdefaultconf)
-        self._cuisine.core.file_write("$JSAPPDIR/php/etc/php-fpm.d/www.conf", content=fpmwwwconf)
-        self._cuisine.bash.addPath(self._cuisine.core.args_replace('$JSAPPDIR/php/bin'))
+        C = self.replace(C)
+        self.cuisine.core.execute_bash(C)
+        fpmdefaultconf = self.replace(fpmdefaultconf)
+        fpmwwwconf = self.replace(fpmwwwconf)
+        self.cuisine.core.file_write("$JSAPPDIR/php/etc/php-fpm.conf.default", content=fpmdefaultconf)
+        self.cuisine.core.file_write("$JSAPPDIR/php/etc/php-fpm.d/www.conf", content=fpmwwwconf)
+        self.cuisine.bash.addPath(self.replace('$JSAPPDIR/php/bin'))
 
         if start:
             self.start()
@@ -101,11 +101,11 @@ class CuisinePHP(app):
         phpfpmbinpath = '$JSAPPDIR/php/sbin'
 
         phpfpmcmd = "$JSAPPDIR/php/sbin/php-fpm -F -y $JSAPPDIR/php/etc/php-fpm.conf.default"  # foreground
-        phpfpmcmd = self._cuisine.core.args_replace(phpfpmcmd)
-        self._cuisine.processmanager.ensure(name="php-fpm", cmd=phpfpmcmd, path=phpfpmbinpath)
+        phpfpmcmd = self.replace(phpfpmcmd)
+        self.cuisine.processmanager.ensure(name="php-fpm", cmd=phpfpmcmd, path=phpfpmbinpath)
 
     def stop(self):
-        self._cuisine.processmanager.stop("php-fpm")
+        self.cuisine.processmanager.stop("php-fpm")
 
     def test(self):
         # TODO: *1

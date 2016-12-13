@@ -40,7 +40,7 @@ def hashPath(root, hash):
 for key in keys:
     data[key] = os.path.isfile(hashPath(root, key))
 
-print(json.dumps(data))
+self.log(json.dumps(data))
 
         """ % (root, j.data.serializer.json.dumps(keys))
 
@@ -122,7 +122,7 @@ print(json.dumps(data))
                 path = os.path.join(key[:2], key[2:4], key)
                 data[key] = checkFile(root, path)
 
-        print(json.dumps(data))
+        self.log(json.dumps(data))
 
         """ % (root, j.data.serializer.json.dumps(keys))
 
@@ -162,7 +162,7 @@ print(json.dumps(data))
         with open(tmpfile, 'w+b') as f:
             f.write(content)
 
-        print(tmpfile)
+        self.log(tmpfile)
 
         """ % (root, j.data.serializer.json.dumps(keys))
 
@@ -191,7 +191,7 @@ print(json.dumps(data))
             path = os.path.join(key[:2], key[2:4], key)
             setMetadata(root, path, key, meta)
 
-        print(json.dumps(data))
+        self.log(json.dumps(data))
 
         """ % (root, j.data.serializer.json.dumps(keys), j.data.serializer.json.dumps(metadata))
 
@@ -218,7 +218,7 @@ with open(item, 'w') as f:
 subprocess.call(['tar', '-cT', item, '-f', targ])
 os.unlink(item)
 
-print(targ)
+self.log(targ)
 
         """ % (root, j.data.serializer.json.dumps(keys), target)
 
@@ -228,8 +228,8 @@ base = j.tools.cuisine._getBaseClass()
 class CuisineStor(base):
 
     def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
+        self.executor = executor
+        self.cuisine = cuisine
         self.root = "/storage/jstor/"
 
         self._config = None
@@ -247,14 +247,14 @@ class CuisineStor(base):
         #upload the list
         sp.upload(fl)
         """
-        print(C)
+        self.log(C)
 
     @property
     def config(self):
         if self._config is None:
             path = j.sal.fs.joinPaths(self.root, "config.yaml")
-            if self._cuisine.core.file_exists(path):
-                self._config = j.data.serializer.yaml.load(self._cuisine.file_read(self.root, "config.yaml"))
+            if self.cuisine.core.file_exists(path):
+                self._config = j.data.serializer.yaml.load(self.cuisine.file_read(self.root, "config.yaml"))
 
         return self._config
 
@@ -264,7 +264,7 @@ class CuisineStor(base):
         self._config[key] = value
         serialized = j.data.serializer.dumps(self._config)
         path = j.sal.fs.joinPaths(self.root, "config.yaml")
-        self._cuisine.core.file_write(path, serialized)
+        self.cuisine.core.file_write(path, serialized)
 
     def enableServerHTTP(self):
         self.config["httpserver"] = {"running": False}
@@ -276,7 +276,7 @@ class CuisineStor(base):
         """
         Check if specific storagespace exists
         """
-        return self._cuisine.core.dir_exists(j.sal.fs.joinPaths(self.root, name))
+        return self.cuisine.core.dir_exists(j.sal.fs.joinPaths(self.root, name))
 
     def getStorageSpace(self, name):
         """
@@ -296,7 +296,7 @@ class CuisineStor(base):
             return None
 
         path = j.sal.fs.joinPaths(self.root, name)
-        self._cuisine.core.dir_remove(path, recursive=True)
+        self.cuisine.core.dir_remove(path, recursive=True)
 
         if name in self.storagespaces:
             del self.storagespaces[name]
@@ -313,7 +313,7 @@ class CuisineStor(base):
         if "httpserver" in self.config:
             if self.config["httpserver"]["running"] is False:
                 # start caddy in tmux, there should be cuisine extension for this
-                self._cuisine.apps.caddy.start(self.config['httpserver']['ssl'])
+                self.cuisine.apps.caddy.start(self.config['httpserver']['ssl'])
 
         if "rsyncserver" in self.config:
             if self.config["rsyncserver"]["running"] is False:
@@ -333,8 +333,8 @@ class StorSpace(object):
     """
 
     def __init__(self, stor, name, public=True):
-        self._cuisine = stor._cuisine
-        self._executor = stor._executor
+        self.cuisine = stor.cuisine
+        self.executor = stor.executor
         self.stor = stor
 
         self.spacepath = j.sal.fs.joinPaths(stor.root, "namespaces", name)
@@ -345,9 +345,9 @@ class StorSpace(object):
         self.init()
 
     def init(self):
-        self._cuisine.core.dir_ensure(self.spacepath)
-        self._cuisine.core.dir_ensure(self.archivepath)
-        self._cuisine.core.dir_ensure(self.flistpath)
+        self.cuisine.core.dir_ensure(self.spacepath)
+        self.cuisine.core.dir_ensure(self.archivepath)
+        self.cuisine.core.dir_ensure(self.flistpath)
 
     """
     def enableServerHTTP(self, name, browse=True, secrets=[]):
@@ -375,8 +375,8 @@ class StorSpace(object):
         if self._config == {}:
             path = j.sal.fs.joinPaths(self.path, "config.yaml")
 
-            if self._cuisine.core.file_exists(path):
-                yaml = self._cuisine.core.file_read(path)
+            if self.cuisine.core.file_exists(path):
+                yaml = self.cuisine.core.file_read(path)
                 self._config = j.data.serializer.yaml.loads(yaml)
 
         return self._config
@@ -393,7 +393,7 @@ class StorSpace(object):
     def configCommit(self):
         yaml = j.data.serializer.yaml.dumps(self.config)
         path = j.sal.fs.joinPaths(self.path, "config.yaml")
-        self._cuisine.core.file_write(path, yaml)
+        self.cuisine.core.file_write(path, yaml)
     '''
 
     def hashPath(self, hash):
@@ -429,8 +429,8 @@ class StorSpace(object):
         path = j.sal.fs.getDirName(filepath)
 
         # be sur that remote directory exists
-        self._cuisine.core.dir_ensure(path)
-        self._cuisine.core.upload(source, filepath)
+        self.cuisine.core.dir_ensure(path)
+        self.cuisine.core.upload(source, filepath)
 
         '''
         metadata = self.metadata(expiration, tags)
@@ -440,7 +440,7 @@ class StorSpace(object):
             # on remote side does probably not have yaml parser installed
             # json parser in python should be able out-of-box
             md = j.data.serializer.json.dumps(metadata)
-            self._cuisine.core.file_write(self.metadataFile(filepath), md)
+            self.cuisine.core.file_write(self.metadataFile(filepath), md)
         '''
 
         return True
@@ -457,8 +457,8 @@ class StorSpace(object):
         path = j.sal.fs.getDirName(filepath)
 
         # be sur that remote directory exists
-        self._cuisine.core.dir_ensure(path)
-        self._cuisine.core.upload(source, filepath)
+        self.cuisine.core.dir_ensure(path)
+        self.cuisine.core.upload(source, filepath)
 
         return True
 
@@ -470,7 +470,7 @@ class StorSpace(object):
         storpath = storpath.replace('../', '')
 
         filepath = j.sal.fs.joinPaths(self.spacepath, storpath)
-        self._cuisine.core.download(filepath, dest)
+        self.cuisine.core.download(filepath, dest)
 
         if chmod:
             j.sal.fs.chmod(dest, chmod)
@@ -482,8 +482,8 @@ class StorSpace(object):
         '''
         # checking if there is metadata
         metafile = self.metadataFile(storpath)
-        if self._cuisine.core.file_exists(metafile):
-            return self._cuisine.core.file_read(metafile)
+        if self.cuisine.core.file_exists(metafile):
+            return self.cuisine.core.file_read(metafile)
         '''
 
         return True
@@ -496,7 +496,7 @@ class StorSpace(object):
         storpath = flistfile.replace('../', '')
 
         filepath = j.sal.fs.joinPaths(self.flistpath, storpath)
-        self._cuisine.core.download(filepath, dest)
+        self.cuisine.core.download(filepath, dest)
 
         return True
 
@@ -509,16 +509,16 @@ class StorSpace(object):
 
         path = j.sal.fs.joinPaths(self.spacepath, storpath)
 
-        if not self._cuisine.core.file_exists(path):
+        if not self.cuisine.core.file_exists(path):
             return False
 
         # remove file
-        self._cuisine.core.file_unlink(path)
+        self.cuisine.core.file_unlink(path)
 
         # remove metadata if exists
         metadata = self.metadataFile(path)
-        if self._cuisine.core.file_exists(metadata):
-            self._cuisine.core.file_unlink(metadata)
+        if self.cuisine.core.file_exists(metadata):
+            self.cuisine.core.file_unlink(metadata)
 
         return True
 
@@ -527,7 +527,7 @@ class StorSpace(object):
         Check if a set of keys exists. Returns a list which contains hash and bool
         """
         script = self.stor.scripts.exists(self.spacepath, keys)
-        data = self._cuisine.core.execute_python(script, showout=False)[1]
+        data = self.cuisine.core.execute_python(script, showout=False)[1]
         return j.data.serializer.json.loads(data)
 
     def get(self, key, dest, chmod=None, chown=None):
@@ -549,7 +549,7 @@ class StorSpace(object):
             return True
 
         hashpath = self.hashPath(checksum)
-        print(hashpath)
+        self.log(hashpath)
 
         # uploading file, if success, return the hash
         if self.file_upload(source, hashpath, expiration, tags):
@@ -568,7 +568,7 @@ class StorSpace(object):
         Check consistancy and validity of a set of keys in the storagespace
         """
         script = self.stor.scripts.check(self.spacepath, keys)
-        data = self._cuisine.core.execute_python(script)[1]
+        data = self.cuisine.core.execute_python(script)[1]
 
         return j.data.serializer.json.loads(data)
 
@@ -578,7 +578,7 @@ class StorSpace(object):
         Get metadata content for a set of keys from the storagespace
         """
         script = self.stor.scripts.getMetadata(self.path, keys)
-        data = self._cuisine.core.execute_python(script)[1]
+        data = self.cuisine.core.execute_python(script)[1]
 
         return j.data.serializer.json.loads(self.getResponse(data))
 
@@ -588,7 +588,7 @@ class StorSpace(object):
         @param metadata: a metadata type created with self.metadata
         """
         script = self.stor.scripts.setMetadata(self.path, keys, metadata)
-        data = self._cuisine.core.execute_python(script)
+        data = self.cuisine.core.execute_python(script)
         return True
     '''
 
@@ -598,8 +598,8 @@ class StorSpace(object):
             return False
 
         localfile = '/tmp/jstor-response-%s.gz' % j.sal.fs.getBaseName(remote)
-        self._cuisine.core.download(localfile, remote)
-        self._cuisine.core.file_unlink(remote)
+        self.cuisine.core.download(localfile, remote)
+        self.cuisine.core.file_unlink(remote)
 
         with open(localfile, 'rb') as f:
             content = f.read()
@@ -779,11 +779,11 @@ class StorSpace(object):
                 j.sal.fs.chmod(final, int(flist.getMode(key), 8))
 
             else:
-                print("FIXME, NOT REGULAR")
+                self.log("FIXME, NOT REGULAR")
 
     def tarball(self, keys, target):
         script = self.stor.scripts.tarball(self.spacepath, keys, target)
-        data = self._cuisine.core.execute_python(script)
+        data = self.cuisine.core.execute_python(script)
         return data
 
     def flist(self, path):
@@ -844,8 +844,8 @@ class StorSpace(object):
         tarsource = j.sal.fs.joinPaths(self.spacepath, tarfile)
         tartarget = self.spacepath
 
-        self._cuisine.core.run('tar -xvf %s -C %s' % (tarsource, tartarget))
-        self._cuisine.core.file_unlink(tarsource)
+        self.cuisine.core.run('tar -xvf %s -C %s' % (tarsource, tartarget))
+        self.cuisine.core.file_unlink(tarsource)
 
 """
 some remarks

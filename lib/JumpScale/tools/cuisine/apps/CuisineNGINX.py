@@ -10,10 +10,6 @@ app = j.tools.cuisine._getBaseAppClass()
 class CuisineNGINX(app):
     NAME = 'nginx'
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def _build(self):
         # TODO: *3 optional
         # build nginx
@@ -85,25 +81,25 @@ class CuisineNGINX(app):
 
         """
         # Install through ubuntu
-        self._cuisine.package.mdupdate()
-        self._cuisine.package.ensure('nginx')
+        self.cuisine.package.mdupdate()
+        self.cuisine.package.ensure('nginx')
         # link nginx to binDir and use it from there
 
-        # self._cuisine.core.dir_ensure("$JSAPPDIR/nginx/")
-        # self._cuisine.core.dir_ensure("$JSAPPDIR/nginx/bin")
-        # self._cuisine.core.dir_ensure("$JSAPPDIR/nginx/etc")
-        self._cuisine.core.dir_ensure("$JSCFGDIR")
-        self._cuisine.core.dir_ensure("$TMPDIR")
-        self._cuisine.core.dir_ensure("/optvar/tmp")
-        self._cuisine.core.dir_ensure("$JSAPPDIR/nginx/")
-        self._cuisine.core.dir_ensure("$JSAPPDIR/nginx/bin")
-        self._cuisine.core.dir_ensure("$JSAPPDIR/nginx/etc")
-        self._cuisine.core.dir_ensure("$JSCFGDIR/nginx/etc")
+        # self.cuisine.core.dir_ensure("$JSAPPDIR/nginx/")
+        # self.cuisine.core.dir_ensure("$JSAPPDIR/nginx/bin")
+        # self.cuisine.core.dir_ensure("$JSAPPDIR/nginx/etc")
+        self.cuisine.core.dir_ensure("$JSCFGDIR")
+        self.cuisine.core.dir_ensure("$TMPDIR")
+        self.cuisine.core.dir_ensure("/optvar/tmp")
+        self.cuisine.core.dir_ensure("$JSAPPDIR/nginx/")
+        self.cuisine.core.dir_ensure("$JSAPPDIR/nginx/bin")
+        self.cuisine.core.dir_ensure("$JSAPPDIR/nginx/etc")
+        self.cuisine.core.dir_ensure("$JSCFGDIR/nginx/etc")
 
-        self._cuisine.core.file_copy('/usr/sbin/nginx', '$JSAPPDIR/nginx/bin/nginx', overwrite=True)
-        self._cuisine.core.dir_ensure('/var/log/nginx')
-        self._cuisine.core.file_copy('/etc/nginx/*', '$JSAPPDIR/nginx/etc/', recursive=True)  # default conf
-        self._cuisine.core.file_copy('/etc/nginx/*', '$JSCFGDIR/nginx/etc/', recursive=True)  # variable conf
+        self.cuisine.core.file_copy('/usr/sbin/nginx', '$JSAPPDIR/nginx/bin/nginx', overwrite=True)
+        self.cuisine.core.dir_ensure('/var/log/nginx')
+        self.cuisine.core.file_copy('/etc/nginx/*', '$JSAPPDIR/nginx/etc/', recursive=True)  # default conf
+        self.cuisine.core.file_copy('/etc/nginx/*', '$JSCFGDIR/nginx/etc/', recursive=True)  # variable conf
         basicnginxconf = self.get_basic_nginx_conf()
         defaultenabledsitesconf = """\
 
@@ -148,20 +144,21 @@ class CuisineNGINX(app):
         """
         basicnginxconf = textwrap.dedent(basicnginxconf)
         basicoptvarnginxconf = basicnginxconf.replace("$JSAPPDIR", "$JSCFGDIR")
-        basicnginxconf = self._cuisine.core.args_replace(basicnginxconf)
-        basicoptvarnginxconf = self._cuisine.core.args_replace(basicoptvarnginxconf)
+        basicnginxconf = self.replace(basicnginxconf)
+        basicoptvarnginxconf = self.replace(basicoptvarnginxconf)
 
         defaultenabledsitesconf = textwrap.dedent(defaultenabledsitesconf)
-        defaultenabledsitesconf = self._cuisine.core.args_replace(defaultenabledsitesconf)
+        defaultenabledsitesconf = self.replace(defaultenabledsitesconf)
 
-        self._cuisine.core.file_write("$JSAPPDIR/nginx/etc/nginx.conf", content=basicnginxconf)
-        self._cuisine.core.file_write("$JSCFGDIR/nginx/etc/nginx.conf", content=basicoptvarnginxconf)
-        self._cuisine.core.file_write("$JSAPPDIR/nginx/etc/sites-enabled/default", content=defaultenabledsitesconf)
-        fst_cgi_conf = self._cuisine.core.file_read("$JSAPPDIR/nginx/etc/fastcgi.conf")
-        fst_cgi_conf = fst_cgi_conf.replace("include fastcgi.conf;", "include /opt/jumpscale8/apps/nginx/etc/fastcgi.conf;")
-        self._cuisine.core.file_write("$JSAPPDIR/nginx/etc/fastcgi.conf", content=fst_cgi_conf)
+        self.cuisine.core.file_write("$JSAPPDIR/nginx/etc/nginx.conf", content=basicnginxconf)
+        self.cuisine.core.file_write("$JSCFGDIR/nginx/etc/nginx.conf", content=basicoptvarnginxconf)
+        self.cuisine.core.file_write("$JSAPPDIR/nginx/etc/sites-enabled/default", content=defaultenabledsitesconf)
+        fst_cgi_conf = self.cuisine.core.file_read("$JSAPPDIR/nginx/etc/fastcgi.conf")
+        fst_cgi_conf = fst_cgi_conf.replace(
+            "include fastcgi.conf;", "include /opt/jumpscale8/apps/nginx/etc/fastcgi.conf;")
+        self.cuisine.core.file_write("$JSAPPDIR/nginx/etc/fastcgi.conf", content=fst_cgi_conf)
 
-        #self._cuisine.core.file_link(source="$JSCFGDIR/nginx", destination="$JSAPPDIR/nginx")
+        #self.cuisine.core.file_link(source="$JSCFGDIR/nginx", destination="$JSAPPDIR/nginx")
         if start:
             self.start()
 
@@ -174,18 +171,20 @@ class CuisineNGINX(app):
         nginxbinpath = '$JSAPPDIR/nginx/bin'
         if nginxconfpath is None:
             nginxconfpath = '$JSCFGDIR/nginx/etc/nginx.conf'
-        nginxconfpath = self._cuisine.core.args_replace(nginxconfpath)
+        nginxconfpath = self.replace(nginxconfpath)
         nginxconfpath = os.path.normpath(nginxconfpath)
-        if self._cuisine.core.file_exists(nginxconfpath):
-            nginxcmd = "$JSAPPDIR/nginx/bin/nginx -c {nginxconfpath} -g 'daemon off;'".format(nginxconfpath=nginxconfpath)  # foreground
-            nginxcmd = self._cuisine.core.args_replace(nginxcmd)
-            print("cmd: ", nginxcmd)
-            self._cuisine.processmanager.ensure(name=name, cmd=nginxcmd, path=nginxbinpath)
+        if self.cuisine.core.file_exists(nginxconfpath):
+            # foreground
+            nginxcmd = "$JSAPPDIR/nginx/bin/nginx -c {nginxconfpath} -g 'daemon off;'".format(
+                nginxconfpath=nginxconfpath)
+            nginxcmd = self.replace(nginxcmd)
+            self.log("cmd: ", nginxcmd)
+            self.cuisine.processmanager.ensure(name=name, cmd=nginxcmd, path=nginxbinpath)
         else:
             raise RuntimeError('failed to start nginx')
 
     def stop(self):
-        self._cuisine.processmanager.stop("nginx")
+        self.cuisine.processmanager.stop("nginx")
 
     def test(self):
         # host a file test can be reached

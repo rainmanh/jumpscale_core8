@@ -2383,6 +2383,10 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         self.init()
 
     @property
+    def env(self):
+        return os.environ
+
+    @property
     def debug(self):
         if self.config != {}:
             return self.config["system"]["DEBUG"]
@@ -2516,10 +2520,28 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
     def doneSet(self, key, val=True):
         if self.readonly == False:
             d = self.done
-            d[key] = val
+            if val == "_DELETE":
+                d.pop(key)
+            else:
+                d[key] = val
             path = '%s/jumpscale_done.yaml' % os.environ["TMPDIR"]
             with open(path, 'w') as outfile:
                 yaml.dump(d, outfile, default_flow_style=False)
+
+    def doneGet(self, key, defval=None):
+        if key in self.done:
+            return self.done[key]
+        else:
+            if defval != None:
+                self.doneSet(key, defval)
+                return defval
+            else:
+                return False
+
+    def doneReset(self, prefix=""):
+        for key, val in self.done.items():
+            if prefix == "" or key.startswith(prefix):
+                self.doneSet(key, "_DELETE")
 
     def initEnv(self, env, executor=None):
 
@@ -2562,6 +2584,8 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         if not "VARDIR" in env:
             env["VARDIR"] = os.path.abspath("%s/var" % env["BASEDIR"])
 
+        env["HOMEDIR"] = env["HOME"]
+
         if not "CFGDIR" in env:
             env["CFGDIR"] = "%s/cfg" % env["VARDIR"]
 
@@ -2583,6 +2607,8 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         change["GODIR"] = lambda x: "%s/go/" % x["BASEDIR"]
         change["NIMDIR"] = lambda x: "%s/nim/" % x["BASEDIR"]
         change["JSLIBDIR"] = lambda x: "%s/lib/JumpScale/" % x["JSBASE"]
+        change["JSLIBDIREXT"] = lambda x: "%s/lib/JumpScaleExtra/" % x["JSBASE"]
+        change["JSCFGDIR"] = lambda x: "%s/jumpscale/" % x["CFGDIR"]
         change["LIBDIR"] = lambda x: "%s/lib/" % x["BASEDIR"]
         change['TEMPLATEDIR'] = lambda x: "%s/templates" % x["BASEDIR"]
 

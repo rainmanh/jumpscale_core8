@@ -18,9 +18,7 @@ class CuisineKVM(base):
 
     """
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
+    def _init(self):
         self.__controller = None
         self._apt_packages = ['libvirt-bin', 'libvirt-dev', 'qemu-system-x86', 'qemu-system-common', 'genisoimage']
         self._pip_packages = ['libvirt-python==1.3.2']
@@ -33,7 +31,7 @@ class CuisineKVM(base):
     @property
     def _controller(self):
         if not self.__controller:
-            self.__controller = j.sal.kvm.KVMController(executor=self._cuisine._executor)
+            self.__controller = j.sal.kvm.KVMController(executor=self.cuisine.executor)
         return self.__controller
 
     @property
@@ -44,24 +42,24 @@ class CuisineKVM(base):
         """
         Install the dependencies required to run kvm (kvm, qemy, libvirt)
         """
-        if not self._cuisine.core.isUbuntu or self._cuisine.platformtype.osversion != '16.04':
+        if not self.cuisine.core.isUbuntu or self.cuisine.platformtype.osversion != '16.04':
             raise RuntimeError("only support ubuntu 16.04")
-        self._cuisine.package.mdupdate()
-        self._cuisine.development.pip.ensure()
+        self.cuisine.package.mdupdate()
+        self.cuisine.development.pip.ensure()
         self._libvirt()
 
     def _libvirt(self):
         """
         Install required packages for kvm
         """
-        self._cuisine.package.multiInstall(self._apt_packages)
-        self._cuisine.development.pip.multiInstall(self._pip_packages, upgrade=False)
+        self.cuisine.package.multiInstall(self._apt_packages)
+        self.cuisine.development.pip.multiInstall(self._pip_packages, upgrade=False)
 
     def uninstall(self):
         for package in self._apt_packages:
-            self._cuisine.package.remove(package)
+            self.cuisine.package.remove(package)
         for package in self._pip_packages:
-            self._cuisine.development.pip.packageRemove(package)
+            self.cuisine.development.pip.packageRemove(package)
 
     """
     Sub modules of the cuisine KVM

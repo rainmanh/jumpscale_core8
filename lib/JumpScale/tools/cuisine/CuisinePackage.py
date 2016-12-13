@@ -6,29 +6,24 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisinePackage(base):
 
-    def __init__(self, executor, cuisine):
-        self.logger = j.logger.get('j.tools.cuisine.package')
-        self._executor = executor
-        self._cuisine = cuisine
-
     def _repository_ensure_apt(self, repository):
         self.ensure('python-software-properties')
-        self._cuisine.core.sudo("add-apt-repository --yes " + repository)
+        self.cuisine.core.sudo("add-apt-repository --yes " + repository)
 
     def _apt_get(self, cmd):
         CMD_APT_GET = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" '
         cmd = CMD_APT_GET + cmd
-        result = self._cuisine.core.sudo(cmd)
+        result = self.cuisine.core.sudo(cmd)
         # If the installation process was interrupted, we might get the following message
-        # E: dpkg was interrupted, you must manually self._cuisine.core.run 'sudo
+        # E: dpkg was interrupted, you must manually self.cuisine.core.run 'sudo
         # dpkg --configure -a' to correct the problem.
         if "sudo dpkg --configure -a" in result:
-            self._cuisine.core.sudo("DEBIAN_FRONTEND=noninteractive dpkg --configure -a")
-            result = self._cuisine.core.sudo(cmd)
+            self.cuisine.core.sudo("DEBIAN_FRONTEND=noninteractive dpkg --configure -a")
+            result = self.cuisine.core.sudo(cmd)
         return result
 
     def update(self, package=None):
-        if self._cuisine.core.isUbuntu:
+        if self.cuisine.core.isUbuntu:
             if package is None:
                 return self._apt_get("-q --yes update")
             else:
@@ -43,14 +38,14 @@ class CuisinePackage(base):
         update metadata of system
         """
         self.logger.info("packages mdupdate")
-        if self._cuisine.core.isUbuntu:
-            self._cuisine.core.run("apt-get update")
-        elif self._cuisine.core.isMac:
-            location = self._cuisine.core.command_location("brew")
-            # self._cuisine.core.run("sudo chown root %s" % location)
-            self._cuisine.core.run("brew update")
-        elif self._cuisine.core.isArch:
-            self._cuisine.core.run("pacman -Syy")
+        if self.cuisine.core.isUbuntu:
+            self.cuisine.core.run("apt-get update")
+        elif self.cuisine.core.isMac:
+            location = self.cuisine.core.command_location("brew")
+            # self.cuisine.core.run("sudo chown root %s" % location)
+            self.cuisine.core.run("brew update")
+        elif self.cuisine.core.isArch:
+            self.cuisine.core.run("pacman -Syy")
 
     def upgrade(self, distupgrade=False):
         """
@@ -58,30 +53,30 @@ class CuisinePackage(base):
         """
         self.mdupdate()
         self.logger.info("packages upgrade")
-        if self._cuisine.core.isUbuntu:
+        if self.cuisine.core.isUbuntu:
             if distupgrade:
                 return self._apt_get("dist-upgrade")
             else:
                 return self._apt_get("upgrade")
-        elif self._cuisine.core.isArch:
-            self._cuisine.core.run("pacman -Syu --noconfirm;pacman -Sc --noconfirm")
-        elif self._cuisine.core.isMac:
-            self._cuisine.core.run("brew upgrade")
-        elif self._cuisine.core.isCygwin:
+        elif self.cuisine.core.isArch:
+            self.cuisine.core.run("pacman -Syu --noconfirm;pacman -Sc --noconfirm")
+        elif self.cuisine.core.isMac:
+            self.cuisine.core.run("brew upgrade")
+        elif self.cuisine.core.isCygwin:
             return  # no such functionality in apt-cyg
         else:
             raise j.exceptions.RuntimeError("could not upgrade, platform not supported")
 
     def install(self, package, allow_unauthenticated=False):
 
-        if self._cuisine.core.isUbuntu:
+        if self.cuisine.core.isUbuntu:
             cmd = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes install '
             if allow_unauthenticated:
                 cmd += ' --allow-unauthenticated '
 
             cmd += package
 
-        elif self._cuisine.core.isArch:
+        elif self.cuisine.core.isArch:
             if package.startswith("python3"):
                 package = "extra/python"
 
@@ -92,7 +87,7 @@ class CuisinePackage(base):
 
             cmd = "pacman -S %s  --noconfirm" % package
 
-        elif self._cuisine.core.isMac:
+        elif self.cuisine.core.isMac:
             for unsupported in ["libpython3.4-dev", "python3.4-dev", "libpython3.5-dev", "python3.5-dev",
                                 "libffi-dev", "libssl-dev", "make", "build-essential", "libpq-dev", "libsqlite3-dev"]:
                 if 'libsnappy-dev' in package or 'libsnappy1v5' in package:
@@ -101,11 +96,11 @@ class CuisinePackage(base):
                 if unsupported in package:
                     return
 
-            _, installed, _ = self._cuisine.core.run("brew list", showout=False)
+            _, installed, _ = self.cuisine.core.run("brew list", showout=False)
             if package in installed:
                 return  # means was installed
 
-            # rc,out=self._cuisine.core.run("brew info --json=v1 %s"%package,showout=False,die=False)
+            # rc,out=self.cuisine.core.run("brew info --json=v1 %s"%package,showout=False,die=False)
             # if rc==0:
             #     info=j.data.serializer.json.loads(out)
             #     return #means was installed
@@ -115,11 +110,11 @@ class CuisinePackage(base):
 
             cmd = "brew install %s " % package
 
-        elif self._cuisine.core.isCygwin:
+        elif self.cuisine.core.isCygwin:
             if package in ["sudo", "net-tools"]:
                 return
 
-            installed = self._cuisine.core.run("apt-cyg list&")[1].splitlines()
+            installed = self.cuisine.core.run("apt-cyg list&")[1].splitlines()
             if package in installed:
                 return  # means was installed
 
@@ -129,7 +124,7 @@ class CuisinePackage(base):
 
         mdupdate = False
         while True:
-            rc, out, err = self._cuisine.core.run(cmd, die=False)
+            rc, out, err = self.cuisine.core.run(cmd, die=False)
 
             if rc > 0:
                 if mdupdate is True:
@@ -155,9 +150,9 @@ class CuisinePackage(base):
 
         @param runid, if specified actions will be used to execute
         """
-        previous_sudo = self._cuisine.core.sudomode
+        previous_sudo = self.cuisine.core.sudomode
         try:
-            self._cuisine.core.sudomode = True
+            self.cuisine.core.sudomode = True
 
             if j.data.types.string.check(packagelist):
                 packages = packagelist.strip().splitlines()
@@ -175,17 +170,17 @@ class CuisinePackage(base):
 
             self.install(' '.join(to_install), allow_unauthenticated=allow_unauthenticated)
         finally:
-            self._cuisine.core.sudomode = previous_sudo
+            self.cuisine.core.sudomode = previous_sudo
 
     def start(self, package):
-        if self._cuisine.core.isArch or self._cuisine.core.isUbuntu or self._cuisine.core.isMac:
-            self._cuisine.processmanager.ensure(package)
+        if self.cuisine.core.isArch or self.cuisine.core.isUbuntu or self.cuisine.core.isMac:
+            self.cuisine.processmanager.ensure(package)
         else:
             raise j.exceptions.RuntimeError("could not install/ensure:%s, platform not supported" % package)
 
     def ensure(self, package, update=False):
         """Ensure apt packages are installed"""
-        if self._cuisine.core.isUbuntu:
+        if self.cuisine.core.isUbuntu:
             if isinstance(package, str):
                 package = package.split()
             res = {}
@@ -195,7 +190,7 @@ class CuisinePackage(base):
                     continue
                 # The most reliable way to detect success is to use the command status
                 # and suffix it with OK. This won't break with other locales.
-                _, status, _ = self._cuisine.core.run("dpkg-query -W -f='${Status} ' %s && echo **OK**;true" % p)
+                _, status, _ = self.cuisine.core.run("dpkg-query -W -f='${Status} ' %s && echo **OK**;true" % p)
                 if not status.endswith("OK") or "not-installed" in status:
                     self.install(p)
                     res[p] = False
@@ -208,10 +203,10 @@ class CuisinePackage(base):
                     return value
             else:
                 return res
-        elif self._cuisine.core.isArch:
-            self._cuisine.core.run("pacman -S %s" % package)
+        elif self.cuisine.core.isArch:
+            self.cuisine.core.run("pacman -S %s" % package)
             return
-        elif self._cuisine.core.isMac:
+        elif self.cuisine.core.isMac:
             self.install(package)
             return
         else:
@@ -225,11 +220,11 @@ class CuisinePackage(base):
         @param agressive if True will delete full cache
 
         """
-        if self._cuisine.core.isUbuntu:
+        if self.cuisine.core.isUbuntu:
             if package is not None:
                 return self._apt_get("-y --purge remove %s" % package)
             else:
-                self._cuisine.core.run("apt-get autoremove -y")
+                self.cuisine.core.run("apt-get autoremove -y")
 
             self._apt_get("autoclean")
             C = """
@@ -245,26 +240,26 @@ class CuisinePackage(base):
             mkdir -p /var/tmp
 
             """
-            self._cuisine.core.execute_bash(C)
+            self.cuisine.core.execute_bash(C)
 
-        elif self._cuisine.core.isArch:
+        elif self.cuisine.core.isArch:
             cmd = "pacman -Sc"
             if agressive:
                 cmd += "c"
-            self._cuisine.core.run(cmd)
+            self.cuisine.core.run(cmd)
             if agressive:
-                self._cuisine.core.run("pacman -Qdttq", showout=False)
+                self.cuisine.core.run("pacman -Qdttq", showout=False)
 
-        elif self._cuisine.core.isMac:
+        elif self.cuisine.core.isMac:
             if package:
-                self._cuisine.core.run("brew cleanup %s" % package)
-                self._cuisine.core.run("brew remove %s" % package)
+                self.cuisine.core.run("brew cleanup %s" % package)
+                self.cuisine.core.run("brew remove %s" % package)
             else:
-                self._cuisine.core.run("brew cleanup")
+                self.cuisine.core.run("brew cleanup")
 
-        elif self._cuisine.core.isCygwin:
+        elif self.cuisine.core.isCygwin:
             if package:
-                self._cuisine.core.run("apt-cyg remove %s" % package)
+                self.cuisine.core.run("apt-cyg remove %s" % package)
             else:
                 pass
 
@@ -272,14 +267,14 @@ class CuisinePackage(base):
             raise j.exceptions.RuntimeError("could not package clean:%s, platform not supported" % package)
 
     def remove(self, package, autoclean=False):
-        if self._cuisine.core.isUbuntu:
+        if self.cuisine.core.isUbuntu:
             self._apt_get('remove ' + package)
             if autoclean:
                 self._apt_get("autoclean")
         elif self.isMac:
-            self._cuisine.core.run("brew remove %s" % package)
+            self.cuisine.core.run("brew remove %s" % package)
 
     def __repr__(self):
-        return "cuisine.package:%s:%s" % (self._executor.addr, self._executor.port)
+        return "cuisine.package:%s:%s" % (self.executor.addr, self.executor.port)
 
     __str__ = __repr__

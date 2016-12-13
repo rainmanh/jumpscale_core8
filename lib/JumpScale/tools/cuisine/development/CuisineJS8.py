@@ -5,13 +5,9 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisineJS8(base):
 
-    def __init__(self, executor, cuisine):
-        self._executor = executor
-        self._cuisine = cuisine
-
     def jumpscale_installed(self, die=False):
-        rc1, out1, err = self._cuisine.core.run('which js8', die=False)
-        rc2, out2, err = self._cuisine.core.run('which js', die=False)
+        rc1, out1, err = self.cuisine.core.run('which js8', die=False)
+        rc2, out2, err = self.cuisine.core.run('which js', die=False)
         if (rc1 == 0 and out1) or (rc2 == 0 and out2):
             return True
         return False
@@ -24,39 +20,39 @@ class CuisineJS8(base):
         if deps:
             self.installDeps()
 
-        if self._cuisine.core.isUbuntu or self._cuisine.core.isArch:
+        if self.cuisine.core.isUbuntu or self.cuisine.core.isArch:
 
-            if self._cuisine.core.dir_exists("/usr/local/lib/python3.4/dist-packages"):
+            if self.cuisine.core.dir_exists("/usr/local/lib/python3.4/dist-packages"):
                 linkcmd = "mkdir -p /usr/local/lib/python3.5/dist-packages/JumpScale;ln -s /usr/local/lib/python3.5/dist-packages/JumpScale /usr/local/lib/python3.4/dist-packages/JumpScale"
-                self._cuisine.core.run(linkcmd)
+                self.cuisine.core.run(linkcmd)
 
             C = 'cd $TMPDIR/;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/{branch}/install/install.sh > install.sh;JSBRANCH={branch} bash install.sh'.format(
                 branch=branch)
             if keep:
                 C += ' -k'
 
-            C = self._cuisine.core.args_replace(C)
-            self._cuisine.core.run(C)
-        elif self._cuisine.core.isMac:
+            C = self.replace(C)
+            self.cuisine.core.run(C)
+        elif self.cuisine.core.isMac:
             cmd = "export TMPDIR=~/tmp;mkdir -p $TMPDIR;cd $TMPDIR;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/{branch}/install/install.sh > install.sh;JSBRANCH={branch} bash install.sh".format(
                 branch=branch)
             if cmd:
                 cmd += ' -k'
-            self._cuisine.core.run(cmd)
+            self.cuisine.core.run(cmd)
         else:
             raise j.exceptions.RuntimeError("platform not supported yet")
 
     def installDeps(self):
 
-        self._cuisine.systemservices.base.install()
-        self._cuisine.development.python.install()
-        self._cuisine.development.pip.ensure()
-        self._cuisine.apps.redis.install()
-        self._cuisine.apps.brotli.build()
-        self._cuisine.apps.brotli.install()
+        self.cuisine.systemservices.base.install()
+        self.cuisine.development.python.install()
+        self.cuisine.development.pip.ensure()
+        self.cuisine.apps.redis.install()
+        self.cuisine.apps.brotli.build()
+        self.cuisine.apps.brotli.install()
 
-        self._cuisine.development.pip.install('pytoml')
-        self._cuisine.development.pip.install('pygo')
+        self.cuisine.development.pip.install('pytoml')
+        self.cuisine.development.pip.install('pygo')
 
         # python etcd
         C = """
@@ -65,14 +61,14 @@ class CuisineJS8(base):
         cd python-etcd
         python3 setup.py install
         """
-        C = self._cuisine.core.args_replace(C)
-        self._cuisine.core.execute_bash(C)
+        C = self.replace(C)
+        self.cuisine.core.execute_bash(C)
 
         # gevent
         C = """
         pip3 install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
         """
-        self._cuisine.core.execute_bash(C)
+        self.cuisine.core.execute_bash(C)
 
         C = """
         # cffi==1.5.2
@@ -149,16 +145,16 @@ class CuisineJS8(base):
         lxml
         pycapnp
         """
-        self._cuisine.development.pip.multiInstall(C, upgrade=True)
+        self.cuisine.development.pip.multiInstall(C, upgrade=True)
 
         # snappy install
-        self._cuisine.package.ensure('libsnappy-dev')
-        self._cuisine.package.ensure('libsnappy1v5')
-        self._cuisine.development.pip.install('python-snappy')
+        self.cuisine.package.ensure('libsnappy-dev')
+        self.cuisine.package.ensure('libsnappy1v5')
+        self.cuisine.development.pip.install('python-snappy')
 
-        if self._cuisine.platformtype.osname != "debian":
+        if self.cuisine.platformtype.osname != "debian":
             C = """
             blosc
             bcrypt
             """
-            self._cuisine.development.pip.multiInstall(C, upgrade=True)
+            self.cuisine.development.pip.multiInstall(C, upgrade=True)

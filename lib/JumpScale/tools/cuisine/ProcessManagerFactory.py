@@ -7,16 +7,16 @@ class ProcessManagerFactory:
 
     def __init__(self, cuisine):
         self.pms = {}
-        self._cuisine = cuisine
+        self.cuisine = cuisine
 
     def systemdOK(self):
-        res= not self._cuisine.core.isDocker and self._cuisine.core.command_check("systemctl")
-        print ("systemd:%s"%res)
+        res= not self.cuisine.core.isDocker and self.cuisine.core.command_check("systemctl")
+        self.log("systemd:%s"%res)
         return res
 
     def svOK(self):
-        res= self._cuisine.core.command_check("sv")
-        print ("systemd:%s"%res)
+        res= self.cuisine.core.command_check("sv")
+        self.log("systemd:%s"%res)
         return res
 
     def get_prefered(self):
@@ -47,11 +47,11 @@ class ProcessManagerFactory:
 
         if pm not in self.pms:
             if pm == "systemd":
-                inst = CuisineSystemd(self._cuisine.core._executor, self._cuisine)
+                inst = CuisineSystemd(self.cuisine.core.executor, self.cuisine)
             elif pm == "sv":
-                inst = CuisineRunit(self._cuisine.core._executor, self._cuisine)
+                inst = CuisineRunit(self.cuisine.core.executor, self.cuisine)
             elif pm == "tmux":
-                inst = CuisineTmuxec(self._cuisine.core._executor, self._cuisine)
+                inst = CuisineTmuxec(self.cuisine.core.executor, self.cuisine)
             self.pms[pm] = inst
 
         return self.pms[pm]

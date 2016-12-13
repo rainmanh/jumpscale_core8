@@ -12,7 +12,7 @@ class CuisineGrafana(app):
         if reset is False and self.isInstalled():
             return
 
-        if self._cuisine.core.isUbuntu:
+        if self.cuisine.core.isUbuntu:
             C = """
             cd $TMPDIR
             wget https://grafanarel.s3.amazonaws.com/builds/grafana_3.1.1-1470047149_amd64.deb
@@ -20,22 +20,22 @@ class CuisineGrafana(app):
             sudo dpkg -i grafana_3.1.1-1470047149_amd64.deb
 
             """
-            self._cuisine.core.execute_bash(C, profile=True)
+            self.cuisine.core.execute_bash(C, profile=True)
         else:
             raise RuntimeError("platform not supported")
 
     def install(self, start=False, influx_addr='127.0.0.1', influx_port=8086, port=3000):
-        self._cuisine.core.dir_ensure('$BINDIR')
-        self._cuisine.core.file_copy("/usr/sbin/grafana*", dest="$BINDIR")
+        self.cuisine.core.dir_ensure('$BINDIR')
+        self.cuisine.core.file_copy("/usr/sbin/grafana*", dest="$BINDIR")
 
-        self._cuisine.core.dir_ensure("$JSAPPDIR/grafana")
-        self._cuisine.core.file_copy("/usr/share/grafana/", "$JSAPPDIR/", recursive=True)
+        self.cuisine.core.dir_ensure("$JSAPPDIR/grafana")
+        self.cuisine.core.file_copy("/usr/share/grafana/", "$JSAPPDIR/", recursive=True)
 
-        if self._cuisine.core.file_exists("/usr/share/grafana/conf/defaults.ini"):
-            cfg = self._cuisine.core.file_read("/usr/share/grafana/conf/defaults.ini")
+        if self.cuisine.core.file_exists("/usr/share/grafana/conf/defaults.ini"):
+            cfg = self.cuisine.core.file_read("/usr/share/grafana/conf/defaults.ini")
         else:
-            cfg = self._cuisine.core.file_read('$TMPDIR/cfg/grafana/conf/defaults.ini')
-        self._cuisine.core.file_write('$JSCFGDIR/grafana/grafana.ini', cfg)
+            cfg = self.cuisine.core.file_read('$TMPDIR/cfg/grafana/conf/defaults.ini')
+        self.cuisine.core.file_write('$JSCFGDIR/grafana/grafana.ini', cfg)
 
         if start:
             self.start(influx_addr, influx_port, port)
@@ -43,12 +43,12 @@ class CuisineGrafana(app):
     def start(self, influx_addr='127.0.0.1', influx_port=8086, port=3000):
 
         cmd = "$BINDIR/grafana-server --config=$JSCFGDIR/grafana/grafana.ini\n"
-        cmd = self._cuisine.core.args_replace(cmd)
-        self._cuisine.core.file_write("/opt/jumpscale8/bin/start_grafana.sh", cmd, 777, replaceArgs=True)
-        self._cuisine.process.kill("grafana-server")
-        self._cuisine.processmanager.ensure("grafana-server", cmd=cmd, env={}, path='$JSAPPDIR/grafana')
+        cmd = self.replace(cmd)
+        self.cuisine.core.file_write("/opt/jumpscale8/bin/start_grafana.sh", cmd, 777, replaceArgs=True)
+        self.cuisine.process.kill("grafana-server")
+        self.cuisine.processmanager.ensure("grafana-server", cmd=cmd, env={}, path='$JSAPPDIR/grafana')
         grafanaclient = j.clients.grafana.get(
-            url='http://%s:%d' % (self._cuisine.core._executor.addr, port), username='admin', password='admin')
+            url='http://%s:%d' % (self.cuisine.core.executor.addr, port), username='admin', password='admin')
         data = {
             'type': 'influxdb',
             'access': 'proxy',

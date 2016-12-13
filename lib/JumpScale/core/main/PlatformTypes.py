@@ -84,45 +84,15 @@ class PlatformTypes:
         return PlatformType(executor=executor)
 
 
-# class Executor:
-#
-#     def __init__(self):
-#         self.id = "localexec"
-#
-#     def execute(self, cmd, die=True, showout=True, **args):
-#
-#         childprocess = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-#                                         stderr=subprocess.PIPE, close_fds=True, shell=True, env=os.environ)
-#         (output, error) = childprocess.communicate()
-#         exitcode = childprocess.returncode
-#
-#         if showout:
-#             print(output)
-#             print(error)
-#
-#         return exitcode, output.decode(), error.decode()
-
-
 class PlatformType:
 
     def __init__(self, name="", executor=None):
         self.myplatform = name
-        # self._platformtypes={}
-        # self._uname=""
-        # self._is64bit=None
-        # self._osversion=""
-        # self._hostname=""
-        # self._osname=""
-        if executor is None:
+        if executor == None:
             self.executor = j.tools.executor.getLocal()
-            # self.executor = Executor()
         else:
-            # if executor.addr == "localhost" or executor.addr == "127.0.0.1":
-            #     self.executor = Executor()
-            # else:
             self.executor = executor
-        self.cache = j.data.cache.get(
-            self.executor.id, "platformtype", keepInMem=True, reset=False)
+        self.cache = j.data.cache.get("platformtype" + str(self.executor.id), reset=True)
 
         if name == "":
             self._getPlatform()

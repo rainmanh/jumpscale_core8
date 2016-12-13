@@ -13,11 +13,11 @@ class CuisineG8OSFs(app):
         if reset is False and self.isInstalled():
             return
 
-        self._cuisine.package.mdupdate()
-        self._cuisine.package.install('build-essential')
+        self.cuisine.package.mdupdate()
+        self.cuisine.package.install('build-essential')
 
-        self._cuisine.development.golang.get("github.com/g8os/fs")
-        self._cuisine.core.file_copy("$GODIR/bin/fs", "$BASEDIR/bin")
+        self.cuisine.development.golang.get("github.com/g8os/fs")
+        self.cuisine.core.file_copy("$GODIR/bin/fs", "$BASEDIR/bin")
 
         if install:
             self.install(start)
@@ -47,15 +47,15 @@ class CuisineG8OSFs(app):
             login=""
             passwd=""
         """
-        self._cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/fs")
-        self._cuisine.core.file_copy("$GODIR/bin/fs", "$BASEDIR/bin")
-        self._cuisine.core.file_write("$GODIR/src/github.com/g8os/fs/config/config.toml", content)
-        self._cuisine.core.file_copy("$GODIR/src/github.com/g8os/fs/config/config.toml", "$TEMPLATEDIR/cfg/fs")
-        self._cuisine.core.file_download(
+        self.cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/fs")
+        self.cuisine.core.file_copy("$GODIR/bin/fs", "$BASEDIR/bin")
+        self.cuisine.core.file_write("$GODIR/src/github.com/g8os/fs/config/config.toml", content)
+        self.cuisine.core.file_copy("$GODIR/src/github.com/g8os/fs/config/config.toml", "$TEMPLATEDIR/cfg/fs")
+        self.cuisine.core.file_download(
             "https://stor.jumpscale.org/storx/static/js8_opt.flist", "$TEMPLATEDIR/cfg/fs/js8_opt.flist")
         if start:
             self.start()
 
     def start(self):
-        self._cuisine.core.file_copy("$TEMPLATEDIR/cfg/fs", "$JSCFGDIR", recursive=True)
-        self._cuisine.processmanager.ensure('fs', cmd="$BINDIR/fs -c $JSCFGDIR/fs/config.toml")
+        self.cuisine.core.file_copy("$TEMPLATEDIR/cfg/fs", "$JSCFGDIR", recursive=True)
+        self.cuisine.processmanager.ensure('fs', cmd="$BINDIR/fs -c $JSCFGDIR/fs/config.toml")

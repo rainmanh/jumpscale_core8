@@ -2609,7 +2609,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         change["GODIR"] = lambda x: "%s/go/" % x["BASEDIR"]
         change["NIMDIR"] = lambda x: "%s/nim/" % x["BASEDIR"]
         change["JSLIBDIR"] = lambda x: "%s/lib/JumpScale/" % x["JSBASE"]
-        change["JSLIBDIREXT"] = lambda x: "%s/lib/JumpScaleExtra/" % x["JSBASE"]
+        change["JSLIBEXTDIR"] = lambda x: "%s/lib/JumpScaleExtra/" % x["JSBASE"]
         change["JSCFGDIR"] = lambda x: "%s/jumpscale/" % x["CFGDIR"]
         change["LIBDIR"] = lambda x: "%s/lib/" % x["BASEDIR"]
         change['TEMPLATEDIR'] = lambda x: "%s/templates" % x["BASEDIR"]

@@ -50,10 +50,6 @@ class CuisineCockpit(base):
 
         Make sure that you don't have uncommitted code in any code repository cause this method will discard them !!!
         """
-
-        print("Kill all remaining tmux sessions")
-        self._cuisine.core.run("killall tmux", die=False)
-
         # install mongodb, required for portal
         self._cuisine.apps.mongodb.build(install=False, start=start, reset=reset)
         self._cuisine.apps.mongodb.install(start=start)

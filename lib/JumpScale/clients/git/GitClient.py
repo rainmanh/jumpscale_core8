@@ -331,3 +331,13 @@ docs/_build/
             out = '\n'.join(linesout)
             if out.strip() != inn.strip():
                 j.sal.fs.writeFile(ignorefilepath, out)
+
+    def describe(self):
+        """
+        this method get latest tag or branch
+        """
+        try:
+            cmd = 'cd {path}; git describe --tags'.format(path=self.baseDir)
+            return 'tag', j.tools.cuisine.local.core.run(cmd)[1]
+        except:
+            return 'branch', self.repo.head.ref.name

@@ -1,6 +1,5 @@
 from JumpScale import j
 
-
 base = j.tools.cuisine._getBaseClass()
 
 
@@ -51,11 +50,6 @@ class CuisineCockpit(base):
 
         Make sure that you don't have uncommitted code in any code repository cause this method will discard them !!!
         """
-
-        print("Kill all remaining tmux sessions")
-
-        self._cuisine.core.run("killall tmux", die=False)
-
         # install mongodb, required for portal
         self._cuisine.apps.mongodb.build(install=False, start=start, reset=reset)
         self._cuisine.apps.mongodb.install(start=start)
@@ -70,14 +64,7 @@ class CuisineCockpit(base):
                                                        'AYS API:http://localhost:5000/apidocs/index.html?raml=api.raml',
                                                        append=True)
 
-        txt = self._cuisine.core.file_read("$cfgDir/portals/main/config.hrd")
-        hrd = j.data.hrd.get(content=txt)
-        hrd.prefixWithName = False  # bug in hrd
-        hrd.set("param.cfg.production", False)
-        self._cuisine.core.file_write("$cfgDir/portals/main/config.hrd", str(hrd))
-
         self._cuisine.apps.portal.configure(production=False)
-
         self._cuisine.apps.portal.start()
 
         # install REST API AND ays daemon
@@ -96,7 +83,7 @@ class CuisineCockpit(base):
         # start AYS REST API
         cmd = 'jspython api_server'
         dir_paths = self._cuisine.core.dir_paths
-        self._cuisine.processmanager.ensure(cmd=cmd, name='cockpit_%s' % name,  path='%s/ays_api' % dir_paths['appDir'])
+        self._cuisine.processmanager.ensure(cmd=cmd, name='cockpit_%s' % name, path='%s/ays_api' % dir_paths['appDir'])
 
         # start daemon
         cmd = 'ays start'

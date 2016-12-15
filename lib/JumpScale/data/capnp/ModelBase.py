@@ -149,7 +149,6 @@ class ModelBaseCollection:
         self._db = db if db else j.servers.kvs.getMemoryStore(name=self.namespace, namespace=self.namespace)
         # for now we do index same as database
         self._index = indexDb if indexDb else self._db
-
         self.modelBaseClass = modelBaseClass if modelBaseClass else ModelBase
 
     def new(self):

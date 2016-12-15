@@ -4,7 +4,7 @@ from JumpScale import j
 base = j.data.capnp.getModelBaseClass()
 
 
-class IssueModel(base):
+class RepoModel(base):
     """
     Model Class for an Issue object
     """
@@ -17,13 +17,8 @@ class IssueModel(base):
 
     def index(self):
         # put indexes in db as specified
-        if self.dbobj.isClosed:
-            closed = 1
-        else:
-            closed = 0
-        ind = "%d:%d:%d:%d:%d:%d:%s:%s" % (self.dbobj.id, self.dbobj.milestone, self.dbobj.creationTime,
-                                           self.dbobj.modTime, closed, self.dbobj.repo,
-                                           self.dbobj.title.lower(), self.dbobj.source)
+        ind = "%s:%s:%s:%s" % (self.dbobj.owner.lower(), self.dbobj.name.lower(), self.dbobj.id,
+                               self.dbobj.source.lower())
         self._index.index({ind: self.key})
 
     def _pre_save(self):

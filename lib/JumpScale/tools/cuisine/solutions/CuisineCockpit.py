@@ -43,7 +43,7 @@ class CuisineCockpit(base):
         if start:
             self.start()
 
-    def install_all_in_one(self, start=True, branch="master", reset=True):
+    def install_all_in_one(self, start=True, branch="master", reset=True, ip="localhost"):
         """
         This will install the all the component of the cockpit in one command.
         (mongodb, portal, ays_api, ays_daemon)
@@ -57,12 +57,12 @@ class CuisineCockpit(base):
         # install portal
         self._cuisine.apps.portal.install(start=False, installdeps=True, branch=branch)
         # add link from portal to API
-        content = self._cuisine.core.file_read(
-            '$codeDir/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81/.space/nav.wiki')
+        # 1- copy the nav to the portalbase and then edit it
+        content = self._cuisine.core.file_read('$codeDir/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81/.space/nav.wiki')
+        # 2- fix the ays api endpoint.
         if 'REST API:/api' not in content:
-            self._cuisine.core.cuisine.core.file_write('$codeDir/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81/.space/nav.wiki',
-                                                       'AYS API:http://localhost:5000/apidocs/index.html?raml=api.raml',
-                                                       append=True)
+            content += 'AYS API:http://{ip}:5000/apidocs/index.html?raml=api.raml'.format(ip=ip)
+            self._cuisine.core.file_write('$appDir/portalbase/AYS81/.space/nav.wiki', content=content)
 
         self._cuisine.apps.portal.configure(production=False)
         self._cuisine.apps.portal.start()
@@ -72,7 +72,7 @@ class CuisineCockpit(base):
 
         # configure base URI for api-console
         raml = self._cuisine.core.file_read('$appDir/ays_api/ays_api/apidocs/api.raml')
-        raml = raml.replace('$(baseuri)', "http://localhost:5000")
+        raml = raml.replace('baseUri: https://localhost:5000', "baseUri: http://{ip}:5000".format(ip=ip))
         self._cuisine.core.file_write('$appDir/ays_api/ays_api/apidocs/api.raml', raml)
 
         if start:

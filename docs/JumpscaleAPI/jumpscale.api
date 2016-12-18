@@ -947,14 +947,14 @@ j.core.platformtype.myplatform.executor.cuisine.bash.addPath?4([- path
 j.core.platformtype.myplatform.executor.cuisine.bash.cmdGetPath?4([- cmd
 , - die = True
 ])
-j.core.platformtype.myplatform.executor.cuisine.bash.environ?8
-j.core.platformtype.myplatform.executor.cuisine.bash.environGet?4([- name
+j.core.platformtype.myplatform.executor.cuisine.bash.env?8
+j.core.platformtype.myplatform.executor.cuisine.bash.envGet?4([- name
 , - default
 ])
-j.core.platformtype.myplatform.executor.cuisine.bash.environRemove?4([- key
+j.core.platformtype.myplatform.executor.cuisine.bash.envRemove?4([- key
 , - val
 ])
-j.core.platformtype.myplatform.executor.cuisine.bash.environSet?4([- key
+j.core.platformtype.myplatform.executor.cuisine.bash.envSet?4([- key
 , - val
 , - temp = False
 ])
@@ -4917,14 +4917,14 @@ j.tools.bash.addPath?4([- path
 j.tools.bash.cmdGetPath?4([- cmd
 , - die = True
 ])
-j.tools.bash.environ?8
-j.tools.bash.environGet?4([- name
+j.tools.bash.env?8
+j.tools.bash.envGet?4([- name
 , - default
 ])
-j.tools.bash.environRemove?4([- key
+j.tools.bash.envRemove?4([- key
 , - val
 ])
-j.tools.bash.environSet?4([- key
+j.tools.bash.envSet?4([- key
 , - val
 , - temp = False
 ])
@@ -5543,14 +5543,14 @@ j.tools.cuisine.local.bash.addPath?4([- path
 j.tools.cuisine.local.bash.cmdGetPath?4([- cmd
 , - die = True
 ])
-j.tools.cuisine.local.bash.environ?8
-j.tools.cuisine.local.bash.environGet?4([- name
+j.tools.cuisine.local.bash.env?8
+j.tools.cuisine.local.bash.envGet?4([- name
 , - default
 ])
-j.tools.cuisine.local.bash.environRemove?4([- key
+j.tools.cuisine.local.bash.envRemove?4([- key
 , - val
 ])
-j.tools.cuisine.local.bash.environSet?4([- key
+j.tools.cuisine.local.bash.envSet?4([- key
 , - val
 , - temp = False
 ])
@@ -7923,14 +7923,14 @@ j.core.platformtype.myplatform.executor.cuisine.bash.addPath?4([- path
 j.core.platformtype.myplatform.executor.cuisine.bash.cmdGetPath?4([- cmd
 , - die = True
 ])
-j.core.platformtype.myplatform.executor.cuisine.bash.environ?8
-j.core.platformtype.myplatform.executor.cuisine.bash.environGet?4([- name
+j.core.platformtype.myplatform.executor.cuisine.bash.env?8
+j.core.platformtype.myplatform.executor.cuisine.bash.envGet?4([- name
 , - default
 ])
-j.core.platformtype.myplatform.executor.cuisine.bash.environRemove?4([- key
+j.core.platformtype.myplatform.executor.cuisine.bash.envRemove?4([- key
 , - val
 ])
-j.core.platformtype.myplatform.executor.cuisine.bash.environSet?4([- key
+j.core.platformtype.myplatform.executor.cuisine.bash.envSet?4([- key
 , - val
 , - temp = False
 ])
@@ -11889,14 +11889,14 @@ j.tools.bash.addPath?4([- path
 j.tools.bash.cmdGetPath?4([- cmd
 , - die = True
 ])
-j.tools.bash.environ?8
-j.tools.bash.environGet?4([- name
+j.tools.bash.env?8
+j.tools.bash.envGet?4([- name
 , - default
 ])
-j.tools.bash.environRemove?4([- key
+j.tools.bash.envRemove?4([- key
 , - val
 ])
-j.tools.bash.environSet?4([- key
+j.tools.bash.envSet?4([- key
 , - val
 , - temp = False
 ])
@@ -12515,14 +12515,14 @@ j.tools.cuisine.local.bash.addPath?4([- path
 j.tools.cuisine.local.bash.cmdGetPath?4([- cmd
 , - die = True
 ])
-j.tools.cuisine.local.bash.environ?8
-j.tools.cuisine.local.bash.environGet?4([- name
+j.tools.cuisine.local.bash.env?8
+j.tools.cuisine.local.bash.envGet?4([- name
 , - default
 ])
-j.tools.cuisine.local.bash.environRemove?4([- key
+j.tools.cuisine.local.bash.envRemove?4([- key
 , - val
 ])
-j.tools.cuisine.local.bash.environSet?4([- key
+j.tools.cuisine.local.bash.envSet?4([- key
 , - val
 , - temp = False
 ])
@@ -14821,14 +14821,14 @@ j.core.platformtype.myplatform.executor.cuisine.bash.addPath?4([- path
 j.core.platformtype.myplatform.executor.cuisine.bash.cmdGetPath?4([- cmd
 , - die = True
 ])
-j.core.platformtype.myplatform.executor.cuisine.bash.environ?8
-j.core.platformtype.myplatform.executor.cuisine.bash.environGet?4([- name
+j.core.platformtype.myplatform.executor.cuisine.bash.env?8
+j.core.platformtype.myplatform.executor.cuisine.bash.envGet?4([- name
 , - default
 ])
-j.core.platformtype.myplatform.executor.cuisine.bash.environRemove?4([- key
+j.core.platformtype.myplatform.executor.cuisine.bash.envRemove?4([- key
 , - val
 ])
-j.core.platformtype.myplatform.executor.cuisine.bash.environSet?4([- key
+j.core.platformtype.myplatform.executor.cuisine.bash.envSet?4([- key
 , - val
 , - temp = False
 ])
@@ -16021,7 +16021,7 @@ j.data.idgenerator.generateIncrID?4([- incrTypeId
 , - reset = False
 ])
 j.data.idgenerator.generatePasswd?4([- x
-, - al = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~ 	
+, - al = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
 '
 ])
 j.data.idgenerator.generateRandomInt?4([- fromInt
@@ -19631,14 +19631,14 @@ j.tools.bash.addPath?4([- path
 j.tools.bash.cmdGetPath?4([- cmd
 , - die = True
 ])
-j.tools.bash.environ?8
-j.tools.bash.environGet?4([- name
+j.tools.bash.env?8
+j.tools.bash.envGet?4([- name
 , - default
 ])
-j.tools.bash.environRemove?4([- key
+j.tools.bash.envRemove?4([- key
 , - val
 ])
-j.tools.bash.environSet?4([- key
+j.tools.bash.envSet?4([- key
 , - val
 , - temp = False
 ])
@@ -20272,14 +20272,14 @@ j.tools.cuisine.local.bash.addPath?4([- path
 j.tools.cuisine.local.bash.cmdGetPath?4([- cmd
 , - die = True
 ])
-j.tools.cuisine.local.bash.environ?8
-j.tools.cuisine.local.bash.environGet?4([- name
+j.tools.cuisine.local.bash.env?8
+j.tools.cuisine.local.bash.envGet?4([- name
 , - default
 ])
-j.tools.cuisine.local.bash.environRemove?4([- key
+j.tools.cuisine.local.bash.envRemove?4([- key
 , - val
 ])
-j.tools.cuisine.local.bash.environSet?4([- key
+j.tools.cuisine.local.bash.envSet?4([- key
 , - val
 , - temp = False
 ])

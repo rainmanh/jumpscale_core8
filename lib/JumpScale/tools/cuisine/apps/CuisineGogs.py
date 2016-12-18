@@ -11,7 +11,7 @@ class CuisineGogs(app):
     @property
     def gopath(self):
         if not self._gopath:
-            self._gopath = self.cuisine.bash.environ.get('GOPATH')
+            self._gopath = self.cuisine.bash.env.get('GOPATH')
             return self._gopath
         else:
             return self._gopath

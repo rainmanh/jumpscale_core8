@@ -10,7 +10,7 @@ Examples for methods in `bash`:
 
 
   ```python
-  cuisine.bash.environ
+  cuisine.bash.env
   ```
 
 - **run_script**: run a script

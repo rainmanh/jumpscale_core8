@@ -20,8 +20,8 @@ class CuisineDocker(app):
         if reset is False and self.isInstalled():
             return
         if self.cuisine.core.isUbuntu:
-            self.cuisine.bash.environSet('LC_ALL', 'C.UTF-8')
-            self.cuisine.bash.environSet('LANG', 'C.UTF-8')
+            self.cuisine.bash.envSet('LC_ALL', 'C.UTF-8')
+            self.cuisine.bash.envSet('LANG', 'C.UTF-8')
             if not self.cuisine.core.command_check('docker'):
                 C = """
                 wget -qO- https://get.docker.com/ | sh

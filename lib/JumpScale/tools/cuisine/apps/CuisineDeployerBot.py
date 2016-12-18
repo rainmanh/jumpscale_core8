@@ -19,7 +19,7 @@ class CuisineDeployerBot(app):
         if self.isInstalled():
             return
 
-        self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
+        self.cuisine.bash.fixlocale()
         if not self.cuisine.core.isMac and not self.cuisine.core.isCygwin:
             self.cuisine.development.js8.install()
             self.cuisine.development.pip.packageUpgrade("pip")

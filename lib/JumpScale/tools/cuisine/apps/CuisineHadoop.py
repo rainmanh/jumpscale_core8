@@ -21,8 +21,8 @@ class CuisineHadoop(base):
             self.cuisine.core.execute_bash(C, profile=True)
             self.cuisine.bash.addPath("/opt/hadoop-2.7.2/bin")
             self.cuisine.bash.addPath("/opt/hadoop-2.7.2/sbin")
-            self.cuisine.bash.environSet("JAVA_HOME", "/usr/lib/jvm/java-7-openjdk-amd64")
-            self.cuisine.bash.environSet("HADOOP_PREFIX", "/opt/hadoop-2.7.2/")
+            self.cuisine.bash.envSet("JAVA_HOME", "/usr/lib/jvm/java-7-openjdk-amd64")
+            self.cuisine.bash.envSet("HADOOP_PREFIX", "/opt/hadoop-2.7.2/")
         else:
             raise NotImplementedError("unsupported platform")
 

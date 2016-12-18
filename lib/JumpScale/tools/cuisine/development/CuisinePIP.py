@@ -39,7 +39,7 @@ class CuisinePIP(base):
         # self.cuisine.core.set_sudomode()
         self.cuisine.core.run('pip3 install --upgrade %s' % (package))
 
-    def install(self, package=None, upgrade=False, doneMethod=None):
+    def install(self, package=None, upgrade=False):
         '''
         The "package" argument, defines the name of the package that will be installed.
         '''
@@ -51,17 +51,12 @@ class CuisinePIP(base):
         if self.cuisine.core.isCygwin and package in ["psycopg2", "psutil", "zmq"]:
             return
 
-        if doneMethod != None and doneMethod(package) == True:
-            self.log("No need to pip install:%s (already done)" % package)
-            return
-
-        cmd = "pip3 install %s" % package
-        if upgrade:
-            cmd += " --upgrade"
-        self.cuisine.core.run(cmd)
-
-        if doneMethod != None:
-            doneMethod(package, set=True)
+        if not self.doneGet("pip_%s" % package):
+            cmd = "pip3 install %s" % package
+            if upgrade:
+                cmd += " --upgrade"
+            self.cuisine.core.run(cmd)
+            self.doneSet("pip_%s" % package)
 
     def packageRemove(self, package):
         '''
@@ -70,9 +65,11 @@ class CuisinePIP(base):
         is equivalent to the "-r" parameter of pip.
         Either "package" or "r" needs to be provided
         '''
-        return self.cuisine.core.run('pip3 uninstall %s' % (package))
+        if not self.doneGet("pip_remove_%s" % package):
+            return self.cuisine.core.run('pip3 uninstall %s' % (package))
+            self.doneSet("pip_remove_%s" % package)
 
-    def multiInstall(self, packagelist, upgrade=False, doneMethod=None):
+    def multiInstall(self, packagelist, upgrade=False):
         """
         @param packagelist is text file and each line is name of package
         can also be list
@@ -108,4 +105,4 @@ class CuisinePIP(base):
             to_install.append(dep)
 
         for item in to_install:
-            self.install(item, doneMethod)
+            self.install(item)

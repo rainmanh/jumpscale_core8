@@ -47,6 +47,6 @@ class CuisineWeave(app):
             splitted = entry.split('=')
             if len(splitted) == 2:
                 # TODO: it will creash if a the machine is restarted cause weave socket doesn't exist
-                self.cuisine.bash.environSet(splitted[0], splitted[1])
+                self.cuisine.bash.envSet(splitted[0], splitted[1])
             elif len(splitted) > 0:
-                self.cuisine.bash.environSet(splitted[0], '')
+                self.cuisine.bash.envSet(splitted[0], '')

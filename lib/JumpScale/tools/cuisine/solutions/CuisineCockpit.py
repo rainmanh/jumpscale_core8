@@ -28,6 +28,8 @@ class CuisineCockpit(base):
         j.tools.cuisine.local.core.file_write("$JSCFGDIR/cockpit_api/config.toml", C)
 
     def install(self, start=True, branch="master"):
+        if self.doneGet("install") and not reset:
+            return
         self.install_deps()
         self.cuisine.development.git.pullRepo('https://github.com/Jumpscale/jscockpit', branch=branch)
         dir_paths = self.cuisine.core.dir_paths
@@ -39,8 +41,9 @@ class CuisineCockpit(base):
         self.configure()
         if start:
             self.start()
+        self.doneSet("install")
 
-    def install_all_in_one(self, start=True, branch="master", reset=True):
+    def install_all_in_one(self, start=True, branch="8.1.0_cleanup", reset=False):
         """
         This will install the all the component of the cockpit in one command.
         (mongodb, portal, ays_api, ays_daemon)
@@ -53,11 +56,10 @@ class CuisineCockpit(base):
         self.cuisine.core.run("killall tmux", die=False)
 
         # install mongodb, required for portal
-        self.cuisine.apps.mongodb.build(install=False, start=start, reset=reset)
-        self.cuisine.apps.mongodb.install(start=start)
+        self.cuisine.apps.mongodb.install(start=start, reset=reset)
 
         # install portal
-        self.cuisine.apps.portal.install(start=False, installdeps=True, branch=branch)
+        self.cuisine.apps.portal.install(start=False, branch=branch)
         # add link from portal to API
         content = self.cuisine.core.file_read(
             '$CODEDIR/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81/.space/nav.wiki')

@@ -34,31 +34,34 @@ class CuisinePortal(base):
             hrd.set('param.cfg.port', '8200')
         self._config = hrd
 
-    def install(self, start=True, installdeps=False, branch='master'):
+    def install(self, start=True, branch='master', reset=False):
         """
         grafanaip and port should be the external ip of the machine
         Portal install will only install the portal and libs. No spaces but the system ones will be add by default.
         To add spaces and actors, please use addSpace and addactor
         """
-        # set encoding to utf-8
-        self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        self.cuisine.bash.environSet("LANG", "C.UTF-8")
+        self.cuisine.bash.fixlocale()
+        if not reset and self.doneGet("install"):
+            return
 
         # install the dependencies if required
-        if installdeps:
-            self.installDeps()
+        self.installDeps(reset=reset)
 
         # pull repo with required branch ; then link dirs and files in required places
         self.getcode(branch=branch)
         self.linkCode()
 
         if start:
-            self.start()
+            self.start(reset=reset)
 
-    def installDeps(self):
+        self.doneSet("install")
+
+    def installDeps(self, reset=False):
         """
         make sure new env arguments are understood on platform
         """
+        if not reset and self.doneGet("installdeps"):
+            return
         self.cuisine.development.pip.ensure()
 
         deps = """
@@ -174,12 +177,13 @@ class CuisinePortal(base):
 
         self.cuisine.development.pip.install('python-snappy')
 
+        self.doneSet("installdeps")
+
     def getcode(self, branch='master'):
         self.cuisine.development.git.pullRepo(
             "https://github.com/Jumpscale/jumpscale_portal8.git", branch=branch)
 
     def linkCode(self):
-        self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
 
         destjslib = self.cuisine.core.dir_paths['JSLIBDIR']
 
@@ -221,7 +225,9 @@ class CuisinePortal(base):
         self.cuisine.core.dir_ensure('$TEMPLATEDIR/cfg/portal')
         self.cuisine.core.file_copy(j.sal.fs.joinPaths(CODE_DIR, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'),
                                     '$TEMPLATEDIR/cfg/portal/config.hrd')
-
+        self.cuisine.core.dir_ensure("$JSCFGDIR/portals/main/")
+        self.cuisine.core.file_copy(j.sal.fs.joinPaths(CODE_DIR, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'),
+                                    "$JSCFGDIR/portals/main/config.hrd")
         # copy portal_start.py
         self.cuisine.core.file_copy(j.sal.fs.joinPaths(CODE_DIR, 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'),
                                     self.main_portal_dir)

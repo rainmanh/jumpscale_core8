@@ -29,7 +29,8 @@ class CuisineAysBot(app):
         if not reset and self.isInstalled():
             return
 
-        self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
+        self.cuisine.bash.fixlocale()
+
         self.cuisine.development.git.pullRepo('https://github.com/Jumpscale/jscockpit.git')
         if link:
             self.link_code()
@@ -102,7 +103,7 @@ class CuisineAysBot(app):
                        'client_secret': client_secret,
                        'redirect_uri': redirect,
                        'itsyouonlinehost': itsyouonlinehost
-                       }
+                   }
                    }
 
         config = j.data.serializer.toml.dumps(cfg)

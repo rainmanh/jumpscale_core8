@@ -35,7 +35,7 @@ class CuisineSSH(base):
         login = "root"
         done = []
         for item in self.test_login(passwd, port, range, onlyplatform=onlyplatform):
-            keypath = j.sal.fs.joinPaths(self.cuisine.bash.environ["HOME"], ".ssh", keyname + ".pub")
+            keypath = j.sal.fs.joinPaths(self.cuisine.bash.env["HOME"], ".ssh", keyname + ".pub")
             if j.sal.fs.exists(keypath):
                 key = j.sal.fs.fileGetContents(keypath)
                 executor = j.tools.executor.getSSHBased(item, port, login, passwd, checkok=True)

@@ -23,7 +23,7 @@ cuisine = j.tools.cuisine.get(executor)
   ```
   executor = j.tools.executor.getSSHBased(addr, port, login, passwd)
   cuisine = j.tools.cuisine.get(executor)
-  print (cuisine.bash.environment)
+  print (cuisine.bash.envment)
   ```
 
 - Install MongoDB:

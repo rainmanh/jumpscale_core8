@@ -9,14 +9,17 @@ class ProcessManagerFactory:
         self.pms = {}
         self.cuisine = cuisine
 
+    def log(self, msg):
+        print(msg)
+
     def systemdOK(self):
-        res= not self.cuisine.core.isDocker and self.cuisine.core.command_check("systemctl")
-        self.log("systemd:%s"%res)
+        res = not self.cuisine.core.isDocker and self.cuisine.core.command_check("systemctl")
+        self.log("systemd:%s" % res)
         return res
 
     def svOK(self):
-        res= self.cuisine.core.command_check("sv")
-        self.log("systemd:%s"%res)
+        res = self.cuisine.core.command_check("sv")
+        self.log("systemd:%s" % res)
         return res
 
     def get_prefered(self):

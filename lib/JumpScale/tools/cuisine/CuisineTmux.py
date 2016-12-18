@@ -144,11 +144,12 @@ class CuisineTmux(base):
                 if not out.endswith("\n"):
                     out += "\n"
                 return 0, out
-            elif j.sal.process.checkProcessRunning(cmd):
-                # Warning: It's either hanging or running until explicitly closed
-                if not out.endswith("\n"):
-                    out += "\n"
-                return 0, out
+            # NEXT LINE CANNOT WORK, IS NOT CUISINE ENABLED !!!
+            # elif j.sal.process.checkProcessRunning(cmd):
+            #     # Warning: It's either hanging or running until explicitly closed
+            #     if not out.endswith("\n"):
+            #         out += "\n"
+            #     return 0, out
             elif out.find("**ERROR**") != -1:
                 out = out.replace("**OK**", "")
                 out = out.split("**ERROR**")[-2]

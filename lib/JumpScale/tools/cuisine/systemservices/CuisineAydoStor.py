@@ -23,7 +23,7 @@ class CuisineAydoStor(app):
         self.cuisine.package.mdupdate()
         self.cuisine.package.install('build-essential')
 
-        self.cuisine.core.dir_remove("%s/src" % self.cuisine.bash.environGet('GOPATH'))
+        self.cuisine.core.dir_remove("%s/src" % self.cuisine.bash.envGet('GOPATH'))
         self.cuisine.development.golang.get("github.com/g8os/stor")
 
         if install:

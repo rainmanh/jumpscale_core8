@@ -61,8 +61,7 @@ class JSCuisine:
 
     def reset(self):
         self.core._cache.set('dir_paths', None)
-        #TODO: *1 remove other cache items
-
+        # TODO: *1 remove other cache items
 
     @property
     def apps(self):
@@ -160,7 +159,7 @@ class JSCuisine:
     @property
     def bash(self):
         if self._bash is None:
-            self._bash = j.tools.bash.get(self, self.executor)
+            self._bash = j.tools.bash.get(executor=self.executor)
         return self._bash
 
     @property

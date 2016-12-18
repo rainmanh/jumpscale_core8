@@ -7,15 +7,10 @@ class CuisinePython(base):
 
     def _init(self):
         self.BUILDDIR = self.replace("$BUILDDIR/python3/")
-        from IPython import embed
-        print("DEBUG NOW dir loc")
-        embed()
-        raise RuntimeError("stop debug here")
-        self.CODEDIR = self.replace("$CODEDIR/github/openssl/openssl/")
+        self.CODEDIR = self.replace("$CODEDIR/mercurial/cpython/")
 
-    def build(self, destpath="", reset=False):
+    def build(self,  reset=False):
         """
-        @param destpath, if '' then will be $TMPDIR/build/python
         """
         if self.doneGet("build") and not reset:
             return
@@ -36,8 +31,8 @@ class CuisinePython(base):
                 self.doneSet("xcode_install")
 
         if not self.doneGet("compile") or reset:
-            cpath = self.cuisine.development.mercurial.pullRepo("https://hg.python.org/cpython", reset=reset)
-            self.cuisine.core.run("set -ex;cd %s;hg update 3.6" % cpath)
+            self.cuisine.development.mercurial.pullRepo("https://hg.python.org/cpython", reset=reset)
+            self.cuisine.core.run("set -ex;cd %s;hg update 3.6" % self.CODEDIR)
 
             if self.cuisine.core.isMac:
                 openssldir = self.cuisine.development.openssl.BUILDDIR
@@ -48,7 +43,7 @@ class CuisinePython(base):
 
             self.log("configure python3")
             self.log(C)
-            self.cuisine.core.file_write("%s/myconfigure.sh" % cpath, C, replaceArgs=True)
+            self.cuisine.core.file_write("%s/myconfigure.sh" % self.CODEDIR, C, replaceArgs=True)
 
             C = "cd %s;sh myconfigure.sh" % self.CODEDIR
             self.cuisine.core.run(C)
@@ -62,7 +57,7 @@ class CuisinePython(base):
         # find buildpath for lib (depending source it can be other destination)
         # is the core python binaries
         libBuildName = [item for item in self.cuisine.core.run(
-            "ls %s/build" % cpath)[1].split("\n") if item.startswith("lib")][0]
+            "ls %s/build" % self.CODEDIR)[1].split("\n") if item.startswith("lib")][0]
         lpath = j.sal.fs.joinPaths(self.CODEDIR, "build", libBuildName)
         self.cuisine.core.copyTree(source=lpath, dest=self.BUILDDIR, keepsymlinks=False, deletefirst=False,
                                    overwriteFiles=True, recursive=True, rsyncdelete=False, createdir=True)
@@ -113,18 +108,18 @@ class CuisinePython(base):
         fi
         """
 
-        self.cuisine.core.file_write("%s/env.sh" % destpath, C, replaceArgs=True)
+        self.cuisine.core.file_write("%s/env.sh" % self.BUILDDIR, C, replaceArgs=True)
 
         if not self.doneGet("pip3install") or reset:
             C = """
             set -ex
-            cd %s
+            cd $BUILDDIR
             source env.sh
             rm -rf get-pip.py
             curl https://bootstrap.pypa.io/get-pip.py > get-pip.py
             python3 get-pip.py
-            """ % destpath
-            self.cuisine.core.run(C)
+            """
+            self.cuisine.core.run(self.replace(C))
         self.doneSet("pip3install")
 
         # needs at least /JS8/code/github/jumpscale/jumpscale_core8/install/dependencies.py
@@ -192,13 +187,13 @@ class CuisinePython(base):
 
         # now copy jumpscale in
         linkpath = "%s/lib/JumpScale" % self.cuisine.core.dir_paths["base"]
-        C = "ln -s %s %s/lib/JumpScale" % (linkpath, destpath)
-        if not self.cuisine.core.file_exists("%s/lib/JumpScale" % destpath):
+        C = "ln -s %s %s/lib/JumpScale" % (linkpath, self.BUILDDIR)
+        if not self.cuisine.core.file_exists("%s/lib/JumpScale" % self.BUILDDIR):
             self.cuisine.core.run(C)
 
         # now create packaged dir
-        destpath2 = destpath.rstrip("/").rstrip() + "2"
-        self.cuisine.core.copyTree(source=destpath, dest=destpath2, keepsymlinks=False, deletefirst=True,
+        destpath2 = self.BUILDDIR.rstrip("/").rstrip() + "2"
+        self.cuisine.core.copyTree(source=self.BUILDDIR, dest=destpath2, keepsymlinks=False, deletefirst=True,
                                    overwriteFiles=True,
                                    recursive=True, rsyncdelete=True, createdir=True)
 

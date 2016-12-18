@@ -29,13 +29,13 @@ class CuisineGolang(app):
             raise j.exceptions.RuntimeError("platform not supported")
 
         goDir = self.cuisine.core.dir_paths['GODIR']
-        self.cuisine.bash.environSet("GOPATH", goDir)
+        self.cuisine.bash.envSet("GOPATH", goDir)
 
         if self.cuisine.core.isMac:
-            self.cuisine.bash.environSet("GOROOT", '/usr/local/opt/go/libexec/')
+            self.cuisine.bash.envSet("GOROOT", '/usr/local/opt/go/libexec/')
             self.cuisine.bash.addPath("/usr/local/opt/go/libexec/bin/")
         else:
-            self.cuisine.bash.environSet("GOROOT", '/usr/local/go')
+            self.cuisine.bash.envSet("GOROOT", '/usr/local/go')
             self.cuisine.bash.addPath("/usr/local/go/bin/")
 
         self.cuisine.bash.addPath(self.cuisine.core.joinpaths(goDir, 'bin'))
@@ -63,9 +63,9 @@ class CuisineGolang(app):
     def GOPATH(self):
         return self.cuisine.core.dir_paths["GODIR"]
         # if self._gopath==None:
-        #     # if not "GOPATH" in self.bash.environ:
+        #     # if not "GOPATH" in self.bash.env:
         #     #     self.cuisine.installerdevelop.golang()
-        #     # self._gopath=   self.bash.environ["GOPATH"]
+        #     # self._gopath=   self.bash.env["GOPATH"]
 
         # return self._gopath
 
@@ -85,7 +85,7 @@ class CuisineGolang(app):
         e.g. url=github.com/tools/godep
         """
         self.clean_src_path()
-        GOPATH = self.cuisine.bash.environ['GOPATH']
+        GOPATH = self.cuisine.bash.env['GOPATH']
 
         pullurl = "git@%s.git" % url.replace('/', ':', 1)
 

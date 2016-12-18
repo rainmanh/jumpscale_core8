@@ -964,7 +964,7 @@ class CuisineCore(base):
         @param extendinfo: this will return [[$path, $sizeinkb, $epochmod]]
         """
         path = self.replace(path)
-        cmd = "find %s" % path
+        cmd = "cd %s;find ." % path
         if recursive is False:
             cmd += " -maxdepth 1"
         # if contentsearch=="" and extendinfo==False:
@@ -984,11 +984,20 @@ class CuisineCore(base):
             cmd += " -print0 | xargs -r -0 grep -l '%s'" % contentsearch
 
         out = self.run(cmd, showout=False)[1]
+
         # self.log(cmd)
         self.logger.debug(cmd)
 
-        paths = [item.strip() for item in out.split("\n") if item.strip() != ""]
-        paths = [item for item in paths if item.startswith("+ find") is False]
+        paths = []
+        for item in out.split("\n"):
+            if item.startswith("./"):
+                item = item[2:]
+            if item.strip() == "":
+                continue
+            item = item.strip()
+            if item.startswith("+ find"):
+                continue
+            paths.append("%s/%s" % (path, item))
 
         # print cmd
 
@@ -1044,7 +1053,7 @@ class CuisineCore(base):
             self.executor.debug = debug
 
         if profile:
-            ppath = self.cuisine.bash.profilePath
+            ppath = self.cuisine.bash.profileDefault.pathProfile
             if ppath:
                 cmd = ". %s && %s" % (ppath, cmd)
             if showout:

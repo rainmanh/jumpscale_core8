@@ -1568,7 +1568,7 @@ class SystemProcess:
         if j.core.platformtype.myplatform.isUnix():
             # Need to set $COLUMNS such that we can grep full commandline
             # Note: apparently this does not work on solaris
-            command = "env COLUMNS=300 ps -ef"
+            command = "bash -c 'env COLUMNS=300 ps -ef'"
             (exitcode, output) = j.sal.process.execute(command, die=False, showout=False)
             pids = list()
             co = re.compile(
@@ -1749,7 +1749,7 @@ class SystemProcess:
 
             # Need to set $COLUMNS such that we can grep full commandline
             # Note: apparently this does not work on solaris
-            command = "env COLUMNS=300 ps -ef"
+            command = "bash -c 'env COLUMNS=300 ps -ef'"
             (exitcode, output) = j.sal.process.execute(command, die=False, showout=False)
             co = re.compile(
                 "\s*(?P<uid>[a-z]+)\s+(?P<pid>[0-9]+)\s+(?P<ppid>[0-9]+)\s+(?P<cpu>[0-9]+)\s+(?P<stime>\S+)\s+(?P<tty>\S+)\s+(?P<time>\S+)\s+(?P<cmd>.+)")

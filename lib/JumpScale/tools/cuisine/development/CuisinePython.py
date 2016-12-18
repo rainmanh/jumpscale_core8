@@ -5,96 +5,89 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisinePython(base):
 
-    def checkOpenSSL(self, reset=False):
-        """
-        this makes sure we also compile openssl
-        """
-
-        ldir = "$TMPDIR/build/openssl"
-        ldir = self.replace(ldir)
-
-        if not self.cuisine.core.dir_exists(ldir) or reset:
-            self.cuisine.development.openssl.build(reset=reset)
-
-        return ldir
+    def _init(self):
+        self.BUILDDIR = self.replace("$BUILDDIR/python3/")
+        from IPython import embed
+        print("DEBUG NOW dir loc")
+        embed()
+        raise RuntimeError("stop debug here")
+        self.CODEDIR = self.replace("$CODEDIR/github/openssl/openssl/")
 
     def build(self, destpath="", reset=False):
         """
         @param destpath, if '' then will be $TMPDIR/build/python
         """
+        if self.doneGet("build") and not reset:
+            return
 
-        self.checkOpenSSL(reset=reset)
-
-        if destpath == "":
-            destpath = "$TMPDIR/build/python/"
-        destpath = self.replace(destpath)
+        self.cuisine.development.openssl.build(reset=reset)
 
         if reset:
-            self.cuisine.core.run("rm -rf %s" % destpath)
+            self.cuisine.core.run("rm -rf %s" % self.BUILDDIR)
 
         if self.cuisine.core.isMac:
-            self.cuisine.core.run("xcode-select --install", die=False, showout=True)
-            C = """
-            openssl
-            xz
-            """
-            # self.cuisine.package.multiInstall(C)
+            if not self.doneGet("xcode_install"):
+                self.cuisine.core.run("xcode-select --install", die=False, showout=True)
+                C = """
+                openssl
+                xz
+                """
+                self.cuisine.package.multiInstall(C)
+                self.doneSet("xcode_install")
 
-        # elif self.cuisine.core.isUbuntu:
-        #     self.cuisine.core.run("apt-get build-dep python3.5 -f", die=False, showout=True)
+        if not self.doneGet("compile") or reset:
+            cpath = self.cuisine.development.mercurial.pullRepo("https://hg.python.org/cpython", reset=reset)
+            self.cuisine.core.run("set -ex;cd %s;hg update 3.6" % cpath)
 
-        cpath = self.cuisine.development.mercurial.pullRepo("https://hg.python.org/cpython", reset=reset)
-        self.cuisine.core.run("set -ex;cd %s;hg update 3.6" % cpath)
+            if self.cuisine.core.isMac:
+                openssldir = self.cuisine.development.openssl.BUILDDIR
+                openSSlIncludeLine = ":%s:%s/include" % (openssldir, openssldir)
+                C = 'cd %s;CPPFLAGS="-I%s/include";LDFLAGS="-L%s";./configure' % (self.CODEDIR, openssldir, openssldir)
+            else:
+                C = "cd %s;./configure" % self.CODEDIR
 
-        if self.cuisine.core.isMac:
-            openssldir = self.checkOpenSSL()
-            openSSlIncludeLine = ":%s:%s/include" % (openssldir, openssldir)
-            C = 'cd %s;CPPFLAGS="-I%s/include";LDFLAGS="-L%s";./configure' % (cpath, openssldir, openssldir)
-        else:
-            openSSl = ""
-            C = "cd %s;./configure" % cpath
+            self.log("configure python3")
+            self.log(C)
+            self.cuisine.core.file_write("%s/myconfigure.sh" % cpath, C, replaceArgs=True)
 
-        self.log("configure python3")
-        self.log(C)
-        self.cuisine.core.file_write("%s/myconfigure.sh" % cpath, C, replaceArgs=True)
+            C = "cd %s;sh myconfigure.sh" % self.CODEDIR
+            self.cuisine.core.run(C)
 
-        C = "cd %s;sh myconfigure.sh" % cpath
-        self.cuisine.core.run(C)
-
-        C = "cd %s;make -s -j4" % cpath
-        self.log("compile python3")
-        self.log(C)
-        self.cuisine.core.run(C)
+            C = "cd %s;make -s -j4" % self.CODEDIR
+            self.log("compile python3")
+            self.log(C)
+            self.cuisine.core.run(C)
+        self.doneSet("compile")
 
         # find buildpath for lib (depending source it can be other destination)
+        # is the core python binaries
         libBuildName = [item for item in self.cuisine.core.run(
             "ls %s/build" % cpath)[1].split("\n") if item.startswith("lib")][0]
-        lpath = j.sal.fs.joinPaths(cpath, "build", libBuildName)
+        lpath = j.sal.fs.joinPaths(self.CODEDIR, "build", libBuildName)
+        self.cuisine.core.copyTree(source=lpath, dest=self.BUILDDIR, keepsymlinks=False, deletefirst=False,
+                                   overwriteFiles=True, recursive=True, rsyncdelete=False, createdir=True)
 
-        self.cuisine.core.copyTree(source=lpath, dest=destpath, keepsymlinks=False, deletefirst=False,
-                                   overwriteFiles=True,
-                                   recursive=True, rsyncdelete=False, createdir=True)
-
+        # copy python libs (non compiled)
         ignoredir = ["test", "tkinter", "turtledemo",
                      "msilib", "pydoc*", "lib2to3", "idlelib"]
-        lpath = j.sal.fs.joinPaths(cpath, "lib",)
-        ldest = "%s/plib" % destpath
+        lpath = self.replace("$CODEDIR/lib")
+        ldest = self.replace("$BUILDDIR/plib")
         self.cuisine.core.copyTree(source=lpath, dest=ldest, keepsymlinks=False, deletefirst=False,
                                    overwriteFiles=True, ignoredir=ignoredir,
                                    recursive=True, rsyncdelete=True, createdir=True)
 
-        self.cuisine.core.file_copy("%s/python.exe" % cpath, "%s/python3" % destpath)
+        self.cuisine.core.file_copy("%s/python.exe" % self.CODEDIR, "%s/python3" % self.BUILDDIR)
 
         # copy includes
-        lpath = j.sal.fs.joinPaths(cpath, "Include",)
-        ldest = j.sal.fs.joinPaths(destpath, "include/python")
+        lpath = j.sal.fs.joinPaths(self.CODEDIR, "Include",)
+        ldest = j.sal.fs.joinPaths(self.BUILDDIR, "include/python")
         self.cuisine.core.copyTree(source=lpath, dest=ldest, keepsymlinks=False, deletefirst=False,
                                    overwriteFiles=True, ignoredir=ignoredir,
                                    recursive=True, rsyncdelete=False, createdir=True)
 
         # now copy openssl parts in
-        sslpath = self.checkOpenSSL()
-        self.cuisine.core.copyTree(source=sslpath, dest=destpath, keepsymlinks=False, deletefirst=False,
+        self.cuisine.core.copyTree(source=self.cuisine.development.openssl.BUILDDIR, dest=self.BUILDDIR,
+                                   keepsymlinks=False, deletefirst=False,
                                    overwriteFiles=True, ignoredir=ignoredir,
                                    recursive=True, rsyncdelete=False, createdir=True)
 
@@ -119,22 +112,20 @@ class CuisinePython(base):
                 hash -r 2>/dev/null
         fi
         """
-        C = C.replace("$cpath", cpath)
-
-        # these are libraries on system specificly for openssl
-        C = C.replace("$openssl", openSSlIncludeLine)
 
         self.cuisine.core.file_write("%s/env.sh" % destpath, C, replaceArgs=True)
 
-        C = """
-        set -ex
-        cd %s
-        source env.sh
-        rm -rf get-pip.py
-        curl https://bootstrap.pypa.io/get-pip.py > get-pip.py
-        python3 get-pip.py
-        """ % destpath
-        self.cuisine.core.run(C)
+        if not self.doneGet("pip3install") or reset:
+            C = """
+            set -ex
+            cd %s
+            source env.sh
+            rm -rf get-pip.py
+            curl https://bootstrap.pypa.io/get-pip.py > get-pip.py
+            python3 get-pip.py
+            """ % destpath
+            self.cuisine.core.run(C)
+        self.doneSet("pip3install")
 
         # needs at least /JS8/code/github/jumpscale/jumpscale_core8/install/dependencies.py
         C = """
@@ -165,24 +156,26 @@ class CuisinePython(base):
         curio
         uvloop
         """
-        self.pip(C, destpath)
+        self.pip(C, reset=reset)
 
-        msg = "to test do:\ncd %s;source env.sh;python3" % destpath
+        msg = "to test do:\ncd $BUILDDIR;source env.sh;python3"
         msg = self.replace(msg)
         self.log(msg)
-        return destpath
+        self.doneSet("build")
 
-    def sandbox(self, build=False, reset=False, destpath=""):
-        if destpath == "":
-            destpath = "$TMPDIR/build/python/"
-        destpath = self.replace(destpath)
+    def sandbox(self, reset=False):
+        self.build(reset=reset)
+        if self.doneGet("sandbox") and not reset:
+            return
 
-        if build or not self.cuisine.core.dir_exists(destpath):
-            self.build(destpath, reset)
+        from IPython import embed
+        print("DEBUG NOW sandbox")
+        embed()
+        raise RuntimeError("stop debug here")
 
         C = """
         set -ex
-        cd %s
+        cd $BUILDDIR
         rm -rf share
         rsync -rav lib/python3.6/site-packages/ plib/site-packages/
         rm -rf lib/python3.6
@@ -194,8 +187,8 @@ class CuisinePython(base):
         find . -name "*.dist-info" -exec rm -rf {} \;
         find . -name "*.so" -exec mv {} lib/ \;
 
-        """ % destpath
-        self.cuisine.core.run(C)
+        """
+        self.cuisine.core.run(self.replace(C))
 
         # now copy jumpscale in
         linkpath = "%s/lib/JumpScale" % self.cuisine.core.dir_paths["base"]
@@ -219,20 +212,18 @@ class CuisinePython(base):
         # """ % destpath2
         # self.cuisine.core.run(C)
 
-        # make sure we have ipfs available
-        self.cuisine.apps.ipfs.start()
+        self.doneSet("sandbox")
 
-    def pip(self, pips, destpath=""):
-        if destpath == "":
-            destpath = "$TMPDIR/build/python/"
-        destpath = self.replace(destpath)
+    def pip(self, pips, reset=False):
         for item in pips.split("\n"):
             item = item.strip()
             if item == "":
                 continue
             # cannot use cuisine functionality because would not be sandboxed
-            C = "set -ex;cd %s;source env.sh;pip3 install --trusted-host pypi.python.org %s" % (destpath, item)
-            self.cuisine.core.run(C)
+            if self.doneGet("pip3_%s" % item) or reset:
+                C = "set -ex;cd $BUILDDIR;source env.sh;pip3 install --trusted-host pypi.python.org %s" % item
+                self.cuisine.core.run(self.replace(C))
+                self.doneSet("pip3_%s" % item)
 
     def install(self):
         if self.cuisine.platformtype.osname == "debian":

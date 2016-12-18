@@ -94,21 +94,34 @@ class Profile:
         return self._env
 
 
-class Bash:
+class BashFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.tools.bash"
-        self._profilePath = ""
-        self._profile = None
-        self._cuisine = j.tools.cuisine.get()
-        self._executor = self._cuisine._executor
-        self.reset()
 
-    def get(self, cuisine, executor):
-        b = Bash()
-        b._cuisine = cuisine
-        b._executor = executor
+    def get(self, executor=None):
+        """
+        if executor==None then will be local
+        """
+        b = Bash(executor=executor)
         return b
+
+
+class Bash:
+
+    def __init__(self, executor=None):
+        if executor != None:
+            self.executor = executor
+        else:
+            self.executor = j.tools.executor.getLocal()
+
+        from IPython import embed
+        print("DEBUG NOW 888")
+        embed()
+        raise RuntimeError("stop debug here")
+
+        self.cuisine = executor.cuisine
+        self.reset()
 
     def reset(self):
         self._environ = {}
@@ -128,7 +141,7 @@ class Bash:
     def environ(self):
         if self._environ == {}:
             res = {}
-            for line in self._cuisine.core.run("printenv", profile=True, showout=False)[1].splitlines():
+            for line in self.cuisine.core.run("printenv", profile=True, showout=False)[1].splitlines():
                 if '=' in line:
                     name, val = line.split("=", 1)
                     name = name.strip()
@@ -141,9 +154,13 @@ class Bash:
 
     @property
     def home(self):
+        from IPython import embed
+        print("DEBUG NOW home")
+        embed()
+        raise RuntimeError("stop debug here")
         if not self._home:
             res = {}
-            for line in self._cuisine.core.run("printenv", profile=False, showout=False)[1].splitlines():
+            for line in self.cuisine.core.run("printenv", profile=False, showout=False)[1].splitlines():
                 if '=' in line:
                     name, val = line.split("=", 1)
                     name = name.strip()
@@ -174,20 +191,20 @@ class Bash:
         attempts = [mpath, j.sal.fs.joinPaths(self.home, ".bash_profile")]
         path = ""
         for attempt in attempts:
-            if self._cuisine.core.file_exists(attempt):
+            if self.cuisine.core.file_exists(attempt):
                 path = attempt
 
         if path == "":
             path = mpath
-            self._cuisine.core.file_write(mpath, ". %s\n" % mpath2)
+            self.cuisine.core.file_write(mpath, ". %s\n" % mpath2)
         else:
-            out = self._cuisine.core.file_read(path)
+            out = self.cuisine.core.file_read(path)
 
             out = "\n".join(line for line in out.splitlines() if line.find("profile_js") == -1)
 
             out += "\n\n. %s\n" % mpath2
 
-            self._cuisine.core.file_write(path, out)
+            self.cuisine.core.file_write(path, out)
         self.reset()
         return None
 
@@ -195,7 +212,7 @@ class Bash:
         """
         checks cmd Exists and returns the path
         """
-        rc, out, err = self._cuisine.core.run("which %s" % cmd, die=False, showout=False, profile=True)
+        rc, out, err = self.cuisine.core.run("which %s" % cmd, die=False, showout=False, profile=True)
         if rc > 0:
             if die:
                 raise j.exceptions.RuntimeError("Did not find command: %s" % cmd)
@@ -207,8 +224,8 @@ class Bash:
     def profilePath(self):
         if self._profilePath == "":
             self._profilePath = j.sal.fs.joinPaths(self.home, ".profile_js")
-        if not self._cuisine.core.file_exists(self._profilePath):
-            self._cuisine.core.file_write(self._profilePath, self.profile.dump())
+        if not self.cuisine.core.file_exists(self._profilePath):
+            self.cuisine.core.file_write(self._profilePath, self.profile.dump())
             self.setOurProfile()
             self._profile = None
             self._profilePath = j.sal.fs.joinPaths(self.home, ".profile_js")
@@ -218,11 +235,11 @@ class Bash:
     def profile(self):
         if not self._profile:
             content = ""
-            if self._profilePath == "" and self._cuisine.core.file_exists(self.profilePath):
-                content = self._cuisine.core.file_read(self.profilePath)
-            elif self._profilePath and self._cuisine.core.file_exists(self._profilePath):
-                content = self._cuisine.core.file_read(self._profilePath)
-            self._profile = Profile(content, self._cuisine.core.dir_paths["BINDIR"])
+            if self._profilePath == "" and self.cuisine.core.file_exists(self.profilePath):
+                content = self.cuisine.core.file_read(self.profilePath)
+            elif self._profilePath and self.cuisine.core.file_exists(self._profilePath):
+                content = self.cuisine.core.file_read(self._profilePath)
+            self._profile = Profile(content, self.cuisine.core.dir_paths["BINDIR"])
 
         return self._profile
 
@@ -231,7 +248,7 @@ class Bash:
         self.write()
 
     def write(self):
-        self._cuisine.core.file_write(self.profilePath, self.profile.dump(), showout=False)
+        self.cuisine.core.file_write(self.profilePath, self.profile.dump(), showout=False)
 
     def environRemove(self, key, val=None):
         self.profile.remove(key)
@@ -242,7 +259,7 @@ class Bash:
         self.write()
 
     def getLocaleItems(self, force=False, showout=False):
-        out = self._cuisine.core.run("locale -a")[1]
+        out = self.cuisine.core.run("locale -a")[1]
         return out.split("\n")
 
     def fixlocale(self):

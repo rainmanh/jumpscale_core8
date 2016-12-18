@@ -42,9 +42,10 @@ class ExecutorBase:
         """
         if self._config == None:
             if self.exists("$TMPDIR/jsexecutor.json") == False:
-                return {}
-            data = self.cuisine.core.file_read("$TMPDIR/jsexecutor.json")
-            self._config = data = j.data.serializer.json.loads(data)
+                self._config = {}
+            else:
+                data = self.cuisine.core.file_read("$TMPDIR/jsexecutor.json")
+                self._config = j.data.serializer.json.loads(data)
 
         return self._config
 

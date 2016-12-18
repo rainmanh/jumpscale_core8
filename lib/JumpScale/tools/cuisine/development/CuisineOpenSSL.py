@@ -38,6 +38,8 @@ class CuisineOpenSSL(base):
         """
         @param destpath, if '' then will be $TMPDIR/build/openssl
         """
+        if self.doneGet("build") and not reset:
+            return
         if reset:
             self.cuisine.core.run("rm -rf %s" % self.BUILDDIR)
 
@@ -46,7 +48,7 @@ class CuisineOpenSSL(base):
 
         assert cpath.rstrip("/") == self.CODEDIR.rstrip("/")
 
-        if not self.doneGet("compile"):
+        if not self.doneGet("compile") or reset:
             C = """
             set -ex
             cd $CODEDIR
@@ -64,3 +66,4 @@ class CuisineOpenSSL(base):
             self.log("NO NEED TO BUILD")
 
         self.log("BUILD COMPLETED OK")
+        self.doneSet("build")

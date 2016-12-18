@@ -200,18 +200,6 @@ class CuisineCore(base):
     def _init(self):
         self.sudomode = False
 
-    # def __init__(self, executor, cuisine):
-    #     self.__classname = None
-    #     self.cache = None
-    #     self.executor = executor
-    #     self.cuisine = cuisine
-    #     # maybe best to still show the cuisine, is easier
-    #     self.cuisine = cuisine
-    #     self.logger = j.logger.get("cuisine_core")
-    #     # self.log("***NEW CORE***")
-    #     self.CURDIR = executor.CURDIR
-    #     self.env = executor.env
-
     def shell_safe(self, path):
         SHELL_ESCAPE = " '\";`|"
         """Makes sure that the given path/string is escaped and safe for shell"""

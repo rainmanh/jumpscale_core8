@@ -6,7 +6,7 @@ import inspect
 class CuisineBase:
 
     def __init__(self, executor, cuisine):
-        self.__classname = None
+        self._classname = ""
         self._cache = None
         self.executor = executor
         self.log = self.executor.log
@@ -16,7 +16,7 @@ class CuisineBase:
         self.logger = executor.logger
         self.CURDIR = executor.CURDIR
         self.env = executor.env
-        if self._classname != 'CuisineCore':
+        if self.classname != 'CuisineCore':
             self.core = cuisine.core
         self._init()
 
@@ -35,8 +35,8 @@ class CuisineBase:
         """
         resets config & done memory on node as well as in memory
         """
-        if self._classname in self.executor.config:
-            self.executor.config.pop(self._classname)
+        if self.classname in self.executor.config:
+            self.executor.config.pop(self.classname)
         self.executor.configSave()
 
     def cacheReset(self):
@@ -53,9 +53,9 @@ class CuisineBase:
         is dict which is stored on node itself in msgpack format in /tmp/jsexecutor.msgpack
         organized per cuisine module
         """
-        if self.__classname not in self.executor.config:
-            self.executor.config[self._classname] = {}
-        return self.executor.config[self._classname]
+        if self.classname not in self.executor.config:
+            self.executor.config[self.classname] = {}
+        return self.executor.config[self.classname]
 
     def configGet(self, key, defval=None):
         """
@@ -68,7 +68,7 @@ class CuisineBase:
                 return defval
             else:
                 raise j.exceptions.Input(message="could not find config key:%s in cuisine:%s" %
-                                         (key, self._classname), level=1, source="", tags="", msgpub="")
+                                         (key, self.classname), level=1, source="", tags="", msgpub="")
 
     def configSet(self, key, val):
         """
@@ -79,7 +79,7 @@ class CuisineBase:
         else:
             val2 = None
         if val != val2:
-            self.executor.config[self._classname][key] = val
+            self.executor.config[self.classname][key] = val
             self.executor.configSave()
             return True
         else:
@@ -121,10 +121,10 @@ class CuisineBase:
         return True
 
     @property
-    def _classname(self):
-        if self.__classname is None:
-            self.__classname = str(self.__class__).split(".")[-1].strip("'>")
-        return self.__classname
+    def classname(self):
+        if self._classname == "":
+            self._classname = str(self.__class__).split(".")[-1].strip("'>")
+        return self._classname
 
     def reset(self):
         self.cacheReset()
@@ -137,11 +137,11 @@ class CuisineBase:
     @property
     def cache(self):
         if self._cache is None:
-            self._cache = j.data.cache.get("cuisine" + self.id + self._classname, reset=True)
+            self._cache = j.data.cache.get("cuisine" + self.id + self.classname, reset=True)
         return self._cache
 
     def __str__(self):
-        return "%s:%s" % (self._classname, self.executor.id)
+        return "%s:%s" % (self.classname, self.executor.id)
 
     __repr__ = __str__
 

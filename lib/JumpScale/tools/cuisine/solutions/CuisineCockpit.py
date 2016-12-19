@@ -62,7 +62,7 @@ class CuisineCockpit(base):
         # 2- fix the ays api endpoint.
         if 'REST API:/api' not in content:
             content += 'AYS API:http://{ip}:5000/apidocs/index.html?raml=api.raml'.format(ip=ip)
-            self._cuisine.core.file_write('$appDir/portalbase/AYS81/.space/nav.wiki', content=content)
+        self._cuisine.core.file_write('$appDir/portals/main/base/AYS81/.space/nav.wiki', content=content)
 
         self._cuisine.apps.portal.configure(production=False)
         self._cuisine.apps.portal.start()

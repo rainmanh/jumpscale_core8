@@ -12,7 +12,8 @@ class RunModel(ModelBase):
     def index(self):
         # put indexes in db as specified
         ind = "%s:%s" % (self.dbobj.state, self.dbobj.lastModDate)
-        self._index.index({ind: self.key})
+        if self.key not in self._index.list():
+            self._index.index({ind: self.key})
 
     def stepNew(self, **kwargs):
         olditems = [item.to_dict() for item in self.dbobj.steps]

@@ -21,7 +21,7 @@ sandbox any linux app
 
 ```
 find binaries on path and look for supporting libs, copy the libs to dest
-default dest = '%s/bin/'%j.dirs.base
+default dest = '%s/bin/'%j.dirs.JSBASEDIR
 
 ```
 

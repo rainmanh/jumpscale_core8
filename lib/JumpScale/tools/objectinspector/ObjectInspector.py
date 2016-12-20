@@ -199,7 +199,7 @@ class ObjectInspector:
 
         self.jstree = OrderedDict()  # jstree['j.sal']={'unix': unixobject, 'fs': fsobject}
 
-    def importAllLibs(self, ignore=[], base="%s/lib/JumpScale/" % j.dirs.base):
+    def importAllLibs(self, ignore=[], base="%s/lib/JumpScale/" % j.dirs.JSBASEDIR):
         self.base = os.path.normpath(base)
         towalk = j.sal.fs.listDirsInDir(base, recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
         errors = "### errors while trying to import libraries\n\n"

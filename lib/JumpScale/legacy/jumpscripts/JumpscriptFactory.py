@@ -196,7 +196,7 @@ class JumpscriptFactory:
     def __init__(self):
         self.__jslocation__ = "j.legacy.jumpscripts"
 
-        self.basedir = j.sal.fs.joinPaths(j.dirs.base, 'apps', 'jsagent')
+        self.basedir = j.sal.fs.joinPaths(j.dirs.JSBASEDIR, 'apps', 'jsagent')
 
     def getJSClass(self):
         return Jumpscript

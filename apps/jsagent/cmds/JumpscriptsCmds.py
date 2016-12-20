@@ -45,7 +45,7 @@ class JumpscriptsCmds():
 
         j.legacy.jumpscripts.loadFromAC(self.agentcontroller_client)
 
-        jspath = j.sal.fs.joinPaths(j.dirs.base, 'apps', 'jsagent', 'jumpscripts')
+        jspath = j.sal.fs.joinPaths(j.dirs.JSBASEDIR, 'apps', 'jsagent', 'jumpscripts')
         if not j.sal.fs.exists(path=jspath):
             raise RuntimeError("could not find jumpscript directory:%s" % jspath)
         self._loadFromPath(jspath)

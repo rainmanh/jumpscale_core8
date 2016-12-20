@@ -123,8 +123,8 @@ class RedisFactory:
             os.system(cmd)
             cmd = "sysctl vm.overcommit_memory=1"
             os.system(cmd)
-            redis_bin = '%s/bin/redis-server' % j.dirs.base
-            if 'redis-server' not in os.listdir(path='%s/bin/' % j.dirs.base):
+            redis_bin = '%s/bin/redis-server' % j.dirs.JSBASEDIR
+            if 'redis-server' not in os.listdir(path='%s/bin/' % j.dirs.JSBASEDIR):
                 url = "https://stor.jumpscale.org/public/redis-server"
                 j.tools.cuisine.local.core.file_download(url, to=redis_bin, overwrite=False, retry=3)
             # import subprocess

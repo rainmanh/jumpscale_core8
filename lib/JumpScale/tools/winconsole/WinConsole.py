@@ -120,7 +120,7 @@ $tabs
 
 
         """
-        self.config = self.config.replace("$BASEDIR", j.dirs.base)
+        self.config = self.config.replace("$BASEDIR", j.dirs.JSBASEDIR)
         self.tabs = []
         self.tabCmd = []
         self.addTab("console", "", "")
@@ -136,7 +136,7 @@ $tabs
 
     def addTab(self, name, startdir, cmd):
         if startdir == "":
-            # startdir=j.dirs.base
+            # startdir=j.dirs.JSBASEDIR
             startdir = j.sal.fs.getcwd()
 
         C = """
@@ -159,7 +159,7 @@ $tabs
     def start(self):
         self.writeConfig()
         cwd = j.sal.fs.getcwd()
-        j.sal.fs.changeDir(j.sal.fs.joinPaths(j.dirs.base, "appsbin", "console"))
+        j.sal.fs.changeDir(j.sal.fs.joinPaths(j.dirs.JSBASEDIR, "appsbin", "console"))
         cmd = "start console.exe -c \"%s\"" % self.configpath.replace("\\\\", "\\")
         for name, startdir, cmd2 in self.tabCmd:
             # startdir=startdir.replace("/","\\")

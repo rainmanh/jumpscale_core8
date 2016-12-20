@@ -30,7 +30,7 @@ class ProcessmanagerFactory:
         self.__jslocation__ = "j.legacy.processmanager"
 
         self.daemon = DummyDaemon()
-        self.basedir = j.sal.fs.joinPaths(j.dirs.base, 'apps', 'jsagent')
+        self.basedir = j.sal.fs.joinPaths(j.dirs.JSBASEDIR, 'apps', 'jsagent')
         self.redis = j.core.db
 
     def start(self, acl):

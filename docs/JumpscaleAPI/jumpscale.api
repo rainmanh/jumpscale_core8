@@ -2983,7 +2983,7 @@ j.data.units.sizes.toSize?4([- value
 ])
 j.dirs?8
 j.dirs.appDir?8
-j.dirs.base?8
+j.dirs.JSBASEDIR?8
 j.dirs.binDir?8
 j.dirs.JSCFGDIR?8
 j.dirs.codeDir?8
@@ -9955,7 +9955,7 @@ j.data.units.sizes.toSize?4([- value
 ])
 j.dirs?8
 j.dirs.appDir?8
-j.dirs.base?8
+j.dirs.JSBASEDIR?8
 j.dirs.binDir?8
 j.dirs.JSCFGDIR?8
 j.dirs.codeDir?8
@@ -16856,7 +16856,7 @@ j.data.units.sizes.toSize?4([- value
 ])
 j.dirs?8
 j.dirs.appDir?8
-j.dirs.base?8
+j.dirs.JSBASEDIR?8
 j.dirs.binDir?8
 j.dirs.JSCFGDIR?8
 j.dirs.codeDir?8

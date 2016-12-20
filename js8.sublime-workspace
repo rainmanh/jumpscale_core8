@@ -978,7 +978,7 @@
 			"j.sal.fs.getParent",
 			"j.sal.fs.getBaseName",
 			"j.sal.fs.writeFile",
-			"j.dirs.base",
+			"j.dirs.JSBASEDIR",
 			"j.sal.fs.joinPaths",
 			"j.sal.fs.exists",
 			"j.sal.fs.listDirsInDir",

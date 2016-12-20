@@ -175,7 +175,7 @@ class RouterOS:
         self.ftp = None
         if res != True:
             raise j.exceptions.RuntimeError("Could not login into RouterOS: %s" % host)
-        self.configpath = "%s/apps/routeros/configs/default/" % j.dirs.base
+        self.configpath = "%s/apps/routeros/configs/default/" % j.dirs.JSBASEDIR
         j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.VARDIR, "routeros"))
         inputsentence = []
 

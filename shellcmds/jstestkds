@@ -19,7 +19,7 @@ opts = parser.parse_args()
 
 
 if opts.path==None:
-    j.tools.testengineKds.paths=["%s/apps"%j.dirs.base]
+    j.tools.testengineKds.paths=["%s/apps"%j.dirs.JSBASEDIR]
 else:
     j.tools.testengineKds.paths=[opts.path]
 

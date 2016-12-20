@@ -420,7 +420,7 @@ class ErrorConditionHandler:
                 editor = findEditorLinux()
             elif j.core.platformtype.myplatform.isWindows():
                 editorPath = j.sal.fs.joinPaths(
-                    j.dirs.base, "apps", "wscite", "scite.exe")
+                    j.dirs.JSBASEDIR, "apps", "wscite", "scite.exe")
                 if j.sal.fs.exists(editorPath):
                     editor = editorPath
             tracefile = errorConditionObject.log2filesystem()

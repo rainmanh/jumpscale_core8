@@ -21,7 +21,7 @@ parser.add_argument('--noOsis',required=False, action='store_true',default=False
 opts = parser.parse_args()
 
 if opts.path==None:
-    j.tools.testengine.paths=["%s/apps"%j.dirs.base]
+    j.tools.testengine.paths=["%s/apps"%j.dirs.JSBASEDIR]
 else:
     j.tools.testengine.paths=[opts.path]
 

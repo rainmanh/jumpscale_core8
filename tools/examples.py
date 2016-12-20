@@ -10,7 +10,7 @@ login = sys.argv[1]
 passwd = sys.argv[2]
 
 
-# do.installJS(base=j.dirs.base,clean=True,insystem=False,pythonversion=3,web=True)
+# do.installJS(base=j.dirs.JSBASEDIR,clean=True,insystem=False,pythonversion=3,web=True)
 
 from JumpScale import j
 

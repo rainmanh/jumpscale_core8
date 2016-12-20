@@ -65,11 +65,10 @@ class CuisinePackage(base):
         self.mdupdate()
         self.logger.info("packages upgrade")
         if self._cuisine.core.isUbuntu:
-            with FileLock(LOCK_NAME, locktimeout=LOCK_TIMEOUT):
-                if distupgrade:
-                    return self._apt_get("dist-upgrade")
-                else:
-                    return self._apt_get("upgrade")
+            if distupgrade:
+                return self._apt_get("dist-upgrade")
+            else:
+                return self._apt_get("upgrade")
         elif self._cuisine.core.isArch:
             self._cuisine.core.run("pacman -Syu --noconfirm;pacman -Sc --noconfirm")
         elif self._cuisine.core.isMac:

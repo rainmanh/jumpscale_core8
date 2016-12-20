@@ -9,7 +9,7 @@ class CuisineAysBot(app):
 
     def isInstalled(self):
         return self.cuisine.core.file_exists(
-            "$JSAPPDIR/ays_bot/telegram-bot") and self.cuisine.core.dir_exists('$JSCFGDIR/ays_bot')
+            "$JSAPPSDIR/ays_bot/telegram-bot") and self.cuisine.core.dir_exists('$JSCFGDIR/ays_bot')
 
     def __init__(self, executor, cuisine):
         self.cuisine = cuisine
@@ -56,7 +56,7 @@ class CuisineAysBot(app):
             self.create_config(token, host, port, itsyouonlinehost, dns, client_id, client_secret, cfg, instance)
         cmd = self.replace(
             'jspython ays-bot.py --config $JSCFGDIR/ays_bot/%s/config.toml' % self._instance)
-        cwd = self.replace('$JSAPPDIR/ays_bot')
+        cwd = self.replace('$JSAPPSDIR/ays_bot')
         self.cuisine.processmanager.ensure('aysbot__%s' % self._instance, cmd=cmd, path=cwd)
 
     def install_deps(self):
@@ -67,12 +67,12 @@ class CuisineAysBot(app):
         self.cuisine.development.pip.multiInstall(deps, upgrade=True)
 
     def link_code(self):
-        self.cuisine.core.dir_ensure("$JSAPPDIR")
-        self.cuisine.core.file_link('$CODEDIR/github/jumpscale/jscockpit/ays_bot/', '$JSAPPDIR/ays_bot')
+        self.cuisine.core.dir_ensure("$JSAPPSDIR")
+        self.cuisine.core.file_link('$CODEDIR/github/jumpscale/jscockpit/ays_bot/', '$JSAPPSDIR/ays_bot')
 
     def copy_code(self):
-        self.cuisine.core.dir_ensure("$JSAPPDIR")
-        self.cuisine.core.file_copy('$CODEDIR/github/jumpscale/jscockpit/ays_bot/', '$JSAPPDIR/', recursive=True)
+        self.cuisine.core.dir_ensure("$JSAPPSDIR")
+        self.cuisine.core.file_copy('$CODEDIR/github/jumpscale/jscockpit/ays_bot/', '$JSAPPSDIR/', recursive=True)
 
     def create_config(self, token=None, host="0.0.0.0", port=6366, itsyouonlinehost="https://itsyou.online",
                       dns=None, client_id=None, client_secret=None, cfg=None, instance='main'):

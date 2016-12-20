@@ -19,6 +19,6 @@ class CuisineRust(app):
 
         # copy file to correct locations.
         self.cuisine.core.run(
-            'cd /tmp/{version} && ./install.sh --prefix=$JSAPPDIR/rust --destdir==$JSAPPDIR/rust'.format(version=version))
+            'cd /tmp/{version} && ./install.sh --prefix=$JSAPPSDIR/rust --destdir==$JSAPPSDIR/rust'.format(version=version))
 
-        self.cuisine.bash.addPath(self.replace('$JSAPPDIR/rust/bin'))
+        self.cuisine.bash.addPath(self.replace('$JSAPPSDIR/rust/bin'))

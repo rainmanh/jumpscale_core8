@@ -2597,7 +2597,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             raise RuntimeError("Cannot define a tmp dir, set env variable")
 
         change = {}
-        change["JSAPPDIR"] = lambda x: "%s/app" % x["JSBASE"]
+        change["JSAPPSDIR"] = lambda x: "%s/apps" % x["JSBASE"]
         change["JSBASEDIR"] = lambda x: x["JSBASE"]
         change["BINDIR"] = lambda x: "%s/bin" % x["BASEDIR"]
         change["DATADIR"] = lambda x: "%s/data" % x["VARDIR"]

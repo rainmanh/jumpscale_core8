@@ -33,11 +33,11 @@ class CuisineCockpit(base):
         self.install_deps()
         self.cuisine.development.git.pullRepo('https://github.com/Jumpscale/jscockpit', branch=branch)
         dir_paths = self.cuisine.core.dir_paths
-        self.cuisine.core.dir_ensure('%s/ays_api/' % dir_paths['JSAPPDIR'])
+        self.cuisine.core.dir_ensure('%s/ays_api/' % dir_paths['JSAPPSDIR'])
         self.cuisine.core.file_link('%s/github/jumpscale/jscockpit/api_server' %
-                                    dir_paths['CODEDIR'], '%s/ays_api/api_server' % dir_paths['JSAPPDIR'])
+                                    dir_paths['CODEDIR'], '%s/ays_api/api_server' % dir_paths['JSAPPSDIR'])
         self.cuisine.core.file_link('%s/github/jumpscale/jscockpit/ays_api' %
-                                    dir_paths['CODEDIR'], '%s/ays_api/ays_api' % dir_paths['JSAPPDIR'])
+                                    dir_paths['CODEDIR'], '%s/ays_api/ays_api' % dir_paths['JSAPPSDIR'])
         self.configure()
         if start:
             self.start()
@@ -59,7 +59,7 @@ class CuisineCockpit(base):
         self.cuisine.apps.mongodb.install(start=start, reset=reset)
 
         # install portal
-        self.cuisine.apps.portal.install(start=False, branch=branch)
+        self.cuisine.apps.portal.install(start=False, branch=branch, reset=reset)
         # add link from portal to API
         content = self.cuisine.core.file_read(
             '$CODEDIR/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81/.space/nav.wiki')
@@ -82,9 +82,9 @@ class CuisineCockpit(base):
         self.install(start=start, branch=branch)
 
         # configure base URI for api-console
-        raml = self.cuisine.core.file_read('$JSAPPDIR/ays_api/ays_api/apidocs/api.raml')
+        raml = self.cuisine.core.file_read('$JSAPPSDIR/ays_api/ays_api/apidocs/api.raml')
         raml = raml.replace('$(baseuri)', "http://localhost:5000")
-        self.cuisine.core.file_write('$JSAPPDIR/ays_api/ays_api/apidocs/api.raml', raml)
+        self.cuisine.core.file_write('$JSAPPSDIR/ays_api/ays_api/apidocs/api.raml', raml)
 
         if start:
             # start API and daemon
@@ -95,7 +95,7 @@ class CuisineCockpit(base):
         cmd = 'jspython api_server'
         dir_paths = self.cuisine.core.dir_paths
         self.cuisine.processmanager.ensure(cmd=cmd, name='cockpit_%s' %
-                                           name,  path='%s/ays_api' % dir_paths['JSAPPDIR'])
+                                           name,  path='%s/ays_api' % dir_paths['JSAPPSDIR'])
 
         # start daemon
         cmd = 'ays start'

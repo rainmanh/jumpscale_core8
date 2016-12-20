@@ -9,7 +9,7 @@ class CuisineDeployerBot(app):
 
     def isInstalled(self):
         return self.cuisine.core.file_exists(
-            "$JSAPPDIR/deployer_bot/telegram-bot") and self.cuisine.core.file_exists('$JSCFGDIR/deployerbot/config.toml')
+            "$JSAPPSDIR/deployer_bot/telegram-bot") and self.cuisine.core.file_exists('$JSCFGDIR/deployerbot/config.toml')
 
     def install(self, start=True, token=None, g8_addresses=None, dns=None, oauth=None, ays_conf=None):
         """
@@ -51,8 +51,8 @@ class CuisineDeployerBot(app):
         self.ays_config(ays_conf)
         self.create_config(token=token, g8_addresses=g8_addresses, dns=dns, oauth=oauth)
         cmd = self.replace(
-            'jspython $JSAPPDIR/deployer_bot/telegram-bot --config $JSCFGDIR/deployerbot/config.yaml')
-        cwd = self.replace('$JSAPPDIR/deployer_bot')
+            'jspython $JSAPPSDIR/deployer_bot/telegram-bot --config $JSCFGDIR/deployerbot/config.yaml')
+        cwd = self.replace('$JSAPPSDIR/deployer_bot')
         self.cuisine.processmanager.ensure('deployerbot', cmd=cmd, path=cwd)
 
     def install_deps(self):
@@ -63,8 +63,8 @@ class CuisineDeployerBot(app):
         self.cuisine.development.pip.multiInstall(deps, upgrade=True)
 
     def link_code(self):
-        self.cuisine.core.dir_ensure("$JSAPPDIR")
-        self.cuisine.core.file_link('$CODEDIR/github/jumpscale/jscockpit/deployer_bot/', '$JSAPPDIR/deployer_bot')
+        self.cuisine.core.dir_ensure("$JSAPPSDIR")
+        self.cuisine.core.file_link('$CODEDIR/github/jumpscale/jscockpit/deployer_bot/', '$JSAPPSDIR/deployer_bot')
 
     def ays_config(self, ays_conf=None):
         ays_conf = ays_conf or {}

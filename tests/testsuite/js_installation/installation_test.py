@@ -68,7 +68,7 @@ class InstallationTests(BaseTest):
         self.assertEqual(dict1['HOMEDIR'], dict2['HOMEDIR'])
         self.assertEqual(dict1['base'], dict2['base'])
         #slash diff
-        self.assertEqual(dict1['JSAPPDIR'].replace('/',''), dict2['JSAPPDIR'].replace('/',''))
+        self.assertEqual(dict1['JSAPPSDIR'].replace('/',''), dict2['JSAPPSDIR'].replace('/',''))
         self.assertEqual(dict1['LIBDIR'].replace('/',''), dict2['LIBDIR'].replace('/',''))
         self.assertEqual(dict1['BINDIR'].replace('/',''), dict2['BINDIR'].replace('/',''))
         self.assertEqual(dict1['JSCFGDIR'].replace('/',''), dict2['JSCFGDIR'].replace('/',''))

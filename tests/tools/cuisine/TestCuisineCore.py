@@ -19,7 +19,7 @@ class TestCuisineCore(unittest.TestCase):
             'JSBASE': '/js/path',
         }
         self.core = j.tools.cuisine.local.core
-        self.dir_paths = {'JSAPPDIR': '/js/path/apps',
+        self.dir_paths = {'JSAPPSDIR': '/js/path/apps',
                           'base': '/js/path',
                           'BINDIR': '/js/path/bin',
                           'JSCFGDIR': '/optvar//cfg',
@@ -70,7 +70,7 @@ class TestCuisineCore(unittest.TestCase):
         getenv_mock.return_value = dump_env
 
         expected_result = {
-            'JSAPPDIR': '/opt/jumpscale8//apps',
+            'JSAPPSDIR': '/opt/jumpscale8//apps',
             'base': '/opt/jumpscale8/',
             'BINDIR': '/opt/jumpscale8//bin',
             'JSCFGDIR': '/optvar//cfg',
@@ -105,7 +105,7 @@ class TestCuisineCore(unittest.TestCase):
         getenv_mock.return_value = dump_env
 
         expected_result = {
-            'JSAPPDIR': '/root/opt/jumpscale8//apps',
+            'JSAPPSDIR': '/root/opt/jumpscale8//apps',
             'base': '/root/opt/jumpscale8/',
             'BINDIR': '/root/opt/jumpscale8//bin',
             'JSCFGDIR': '/root/optvar//cfg',
@@ -137,7 +137,7 @@ class TestCuisineCore(unittest.TestCase):
         getenv_mock.return_value = self.dump_env
 
         expected_result = {
-            'JSAPPDIR': '/js/path/apps',
+            'JSAPPSDIR': '/js/path/apps',
             'base': '/js/path',
             'BINDIR': '/js/path/bin',
             'JSCFGDIR': '/root/optvar//cfg',
@@ -177,7 +177,7 @@ class TestCuisineCore(unittest.TestCase):
             cuisine_core.getenv.return_value = self.dump_env
             cuisine_core.run = MagicMock()
             cuisine_core.run.return_value = (0, 'hostname', '')
-            input_text = "$BASEDIR:$JSAPPDIR:$TEMPLATEDIR:$VARDIR:$BINDIR:$CODEDIR:$JSCFGDIR:$HOMEDIR:$JSLIBDIR:$LIBDIR:$LOGDIR:$PIDDIR:$TMPDIR:$hostname"
+            input_text = "$BASEDIR:$JSAPPSDIR:$TEMPLATEDIR:$VARDIR:$BINDIR:$CODEDIR:$JSCFGDIR:$HOMEDIR:$JSLIBDIR:$LIBDIR:$LOGDIR:$PIDDIR:$TMPDIR:$hostname"
             expected_output = "/opt/jumpscale8/:/opt/jumpscale8//apps:/opt/jumpscale8//templates:/optvar/:/opt/jumpscale8//bin:/opt/code/:/optvar//cfg:/root:/opt/jumpscale8//lib/JumpScale/:/opt/jumpscale8//lib/:/optvar//log:/optvar//pid:/optvar//tmp:hostname"
             actual_output = cuisine_core.args_replace(input_text)
             self.assertEqual(expected_output, actual_output)

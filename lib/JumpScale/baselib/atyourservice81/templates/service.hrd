@@ -1,7 +1,6 @@
 
 
 
-#known var's are: $root,$base,$cfg,$jslib,$pylib,$lib
 git.export.1                   =
     dest:'$(system.paths.base)/apps/osis/',
     link:'True',

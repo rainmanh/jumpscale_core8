@@ -10,7 +10,7 @@ class CuisinePIP(base):
     # PIP PYTHON PACKAGE MANAGER
     # -----------------------------------------------------------------------------
 
-    def ensure(self):
+    def ensure(self, reset=False):
         if self.cuisine.core.isMac:
             return
 
@@ -39,7 +39,7 @@ class CuisinePIP(base):
         # self.cuisine.core.set_sudomode()
         self.cuisine.core.run('pip3 install --upgrade %s' % (package))
 
-    def install(self, package=None, upgrade=False):
+    def install(self, package=None, upgrade=True, reset=False):
         '''
         The "package" argument, defines the name of the package that will be installed.
         '''
@@ -51,7 +51,7 @@ class CuisinePIP(base):
         if self.cuisine.core.isCygwin and package in ["psycopg2", "psutil", "zmq"]:
             return
 
-        if not self.doneGet("pip_%s" % package):
+        if reset or not self.doneGet("pip_%s" % package):
             cmd = "pip3 install %s" % package
             if upgrade:
                 cmd += " --upgrade"
@@ -69,7 +69,7 @@ class CuisinePIP(base):
             return self.cuisine.core.run('pip3 uninstall %s' % (package))
             self.doneSet("pip_remove_%s" % package)
 
-    def multiInstall(self, packagelist, upgrade=False):
+    def multiInstall(self, packagelist, upgrade=True, reset=False):
         """
         @param packagelist is text file and each line is name of package
         can also be list
@@ -105,4 +105,4 @@ class CuisinePIP(base):
             to_install.append(dep)
 
         for item in to_install:
-            self.install(item)
+            self.install(item, reset=reset)

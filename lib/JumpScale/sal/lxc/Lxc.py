@@ -487,10 +487,10 @@ lxc.network.type = veth
 lxc.network.flags = up
 #lxc.network.veth.pair = %s_%s
 lxc.network.name = %s
-lxc.network.script.up = $BASEDIRdir/%s/ovsbr_%s
-lxc.network.script.down = $BASEDIRdir/%s/ovsbr_%s
+lxc.network.script.up = $BASEDIR/%s/ovsbr_%s
+lxc.network.script.down = $BASEDIR/%s/ovsbr_%s
 '''  % (machinename, netname, netname, machinename, bridge, machinename, bridge)
-        config = config.replace("$BASEDIRdir", self.basepath)
+        config = config.replace("$BASEDIR", self.basepath)
 
         Covs = """
 #!/bin/bash

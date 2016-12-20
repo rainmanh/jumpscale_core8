@@ -28,8 +28,8 @@ class CuisineGrafana(app):
         self.cuisine.core.dir_ensure('$BINDIR')
         self.cuisine.core.file_copy("/usr/sbin/grafana*", dest="$BINDIR")
 
-        self.cuisine.core.dir_ensure("$JSAPPDIR/grafana")
-        self.cuisine.core.file_copy("/usr/share/grafana/", "$JSAPPDIR/", recursive=True)
+        self.cuisine.core.dir_ensure("$JSAPPSDIR/grafana")
+        self.cuisine.core.file_copy("/usr/share/grafana/", "$JSAPPSDIR/", recursive=True)
 
         if self.cuisine.core.file_exists("/usr/share/grafana/conf/defaults.ini"):
             cfg = self.cuisine.core.file_read("/usr/share/grafana/conf/defaults.ini")
@@ -46,7 +46,7 @@ class CuisineGrafana(app):
         cmd = self.replace(cmd)
         self.cuisine.core.file_write("/opt/jumpscale8/bin/start_grafana.sh", cmd, 777, replaceArgs=True)
         self.cuisine.process.kill("grafana-server")
-        self.cuisine.processmanager.ensure("grafana-server", cmd=cmd, env={}, path='$JSAPPDIR/grafana')
+        self.cuisine.processmanager.ensure("grafana-server", cmd=cmd, env={}, path='$JSAPPSDIR/grafana')
         grafanaclient = j.clients.grafana.get(
             url='http://%s:%d' % (self.cuisine.core.executor.addr, port), username='admin', password='admin')
         data = {

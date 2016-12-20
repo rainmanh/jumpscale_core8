@@ -11,8 +11,8 @@ compileconfig['with_curl'] = True  # apt-get install libcurl4-openssl-dev libzip
 compileconfig['with_libzip'] = True
 compileconfig['with_zlib'] = True
 compileconfig['enable_fpm'] = True
-compileconfig['prefix'] = "$JSAPPDIR/php"
-compileconfig['exec_prefix'] = "$JSAPPDIR/php"
+compileconfig['prefix'] = "$JSAPPSDIR/php"
+compileconfig['exec_prefix'] = "$JSAPPSDIR/php"
 compileconfig['with_mysqli'] = True
 compileconfig['with_pdo_mysql'] = True
 compileconfig['with_mysql_sock'] = "/var/run/mysqld/mysqld.sock"
@@ -39,7 +39,7 @@ class CuisinePHP(app):
                 args_string += " --{k}={v}".format(k=k, v=v)
         C = """
         rm -rf $TMPDIR/php
-        rm -rf $JSAPPDIR/php
+        rm -rf $JSAPPSDIR/php
         set -xe
         rm -rf $TMPDIR/php-7.0.11
         cd $TMPDIR && [ ! -f $TMPDIR/php-7.0.11.tar.bz2 ] && cd $TMPDIR && wget http://be2.php.net/distributions/php-7.0.11.tar.bz2 && tar xvjf $TMPDIR/php-7.0.11.tar.bz2
@@ -58,7 +58,7 @@ class CuisinePHP(app):
 
     def install(self, start=False):
         fpmdefaultconf = """\
-        include=$JSAPPDIR/php/etc/php-fpm.d/*.conf
+        include=$JSAPPSDIR/php/etc/php-fpm.d/*.conf
         """
         fpmwwwconf = """\
         ;nobody Start a new pool named 'www'.
@@ -90,17 +90,17 @@ class CuisinePHP(app):
         self.cuisine.core.execute_bash(C)
         fpmdefaultconf = self.replace(fpmdefaultconf)
         fpmwwwconf = self.replace(fpmwwwconf)
-        self.cuisine.core.file_write("$JSAPPDIR/php/etc/php-fpm.conf.default", content=fpmdefaultconf)
-        self.cuisine.core.file_write("$JSAPPDIR/php/etc/php-fpm.d/www.conf", content=fpmwwwconf)
-        self.cuisine.bash.addPath(self.replace('$JSAPPDIR/php/bin'))
+        self.cuisine.core.file_write("$JSAPPSDIR/php/etc/php-fpm.conf.default", content=fpmdefaultconf)
+        self.cuisine.core.file_write("$JSAPPSDIR/php/etc/php-fpm.d/www.conf", content=fpmwwwconf)
+        self.cuisine.bash.addPath(self.replace('$JSAPPSDIR/php/bin'))
 
         if start:
             self.start()
 
     def start(self):
-        phpfpmbinpath = '$JSAPPDIR/php/sbin'
+        phpfpmbinpath = '$JSAPPSDIR/php/sbin'
 
-        phpfpmcmd = "$JSAPPDIR/php/sbin/php-fpm -F -y $JSAPPDIR/php/etc/php-fpm.conf.default"  # foreground
+        phpfpmcmd = "$JSAPPSDIR/php/sbin/php-fpm -F -y $JSAPPSDIR/php/etc/php-fpm.conf.default"  # foreground
         phpfpmcmd = self.replace(phpfpmcmd)
         self.cuisine.processmanager.ensure(name="php-fpm", cmd=phpfpmcmd, path=phpfpmbinpath)
 

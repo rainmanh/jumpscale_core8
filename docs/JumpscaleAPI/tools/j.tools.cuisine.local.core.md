@@ -16,7 +16,7 @@
 replace following args (when jumpscale installed it will take the args from there)
 dirs:
 - $BASEDIR
-- $JSAPPDIR
+- $JSAPPSDIR
 - $TEMPLATEDIR
 - $VARDIR
 - $BINDIR

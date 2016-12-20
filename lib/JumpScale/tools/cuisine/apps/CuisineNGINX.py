@@ -42,7 +42,7 @@ class CuisineNGINX(app):
         	# server_names_hash_bucket_size 64;
         	# server_name_in_redirect off;
 
-        	include $JSAPPDIR/nginx/etc/mime.types;
+        	include $JSAPPSDIR/nginx/etc/mime.types;
         	default_type application/octet-stream;
 
         	##
@@ -70,8 +70,8 @@ class CuisineNGINX(app):
         	# Virtual Host Configs
         	##
 
-        	include $JSAPPDIR/nginx/etc/conf.d/*;
-        	include $JSAPPDIR/nginx/etc/sites-enabled/*;
+        	include $JSAPPSDIR/nginx/etc/conf.d/*;
+        	include $JSAPPSDIR/nginx/etc/sites-enabled/*;
         }
         """
 
@@ -85,20 +85,20 @@ class CuisineNGINX(app):
         self.cuisine.package.ensure('nginx')
         # link nginx to binDir and use it from there
 
-        # self.cuisine.core.dir_ensure("$JSAPPDIR/nginx/")
-        # self.cuisine.core.dir_ensure("$JSAPPDIR/nginx/bin")
-        # self.cuisine.core.dir_ensure("$JSAPPDIR/nginx/etc")
+        # self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/")
+        # self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/bin")
+        # self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/etc")
         self.cuisine.core.dir_ensure("$JSCFGDIR")
         self.cuisine.core.dir_ensure("$TMPDIR")
         self.cuisine.core.dir_ensure("/optvar/tmp")
-        self.cuisine.core.dir_ensure("$JSAPPDIR/nginx/")
-        self.cuisine.core.dir_ensure("$JSAPPDIR/nginx/bin")
-        self.cuisine.core.dir_ensure("$JSAPPDIR/nginx/etc")
+        self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/")
+        self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/bin")
+        self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/etc")
         self.cuisine.core.dir_ensure("$JSCFGDIR/nginx/etc")
 
-        self.cuisine.core.file_copy('/usr/sbin/nginx', '$JSAPPDIR/nginx/bin/nginx', overwrite=True)
+        self.cuisine.core.file_copy('/usr/sbin/nginx', '$JSAPPSDIR/nginx/bin/nginx', overwrite=True)
         self.cuisine.core.dir_ensure('/var/log/nginx')
-        self.cuisine.core.file_copy('/etc/nginx/*', '$JSAPPDIR/nginx/etc/', recursive=True)  # default conf
+        self.cuisine.core.file_copy('/etc/nginx/*', '$JSAPPSDIR/nginx/etc/', recursive=True)  # default conf
         self.cuisine.core.file_copy('/etc/nginx/*', '$JSCFGDIR/nginx/etc/', recursive=True)  # variable conf
         basicnginxconf = self.get_basic_nginx_conf()
         defaultenabledsitesconf = """\
@@ -125,7 +125,7 @@ class CuisineNGINX(app):
             # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
 
             location ~ \.php$ {
-                include $JSAPPDIR/nginx/etc/snippets/fastcgi-php.conf;
+                include $JSAPPSDIR/nginx/etc/snippets/fastcgi-php.conf;
 
             #   # With php7.0-cgi alone:
                 fastcgi_pass 127.0.0.1:9000;
@@ -143,22 +143,22 @@ class CuisineNGINX(app):
 
         """
         basicnginxconf = textwrap.dedent(basicnginxconf)
-        basicoptvarnginxconf = basicnginxconf.replace("$JSAPPDIR", "$JSCFGDIR")
+        basicoptvarnginxconf = basicnginxconf.replace("$JSAPPSDIR", "$JSCFGDIR")
         basicnginxconf = self.replace(basicnginxconf)
         basicoptvarnginxconf = self.replace(basicoptvarnginxconf)
 
         defaultenabledsitesconf = textwrap.dedent(defaultenabledsitesconf)
         defaultenabledsitesconf = self.replace(defaultenabledsitesconf)
 
-        self.cuisine.core.file_write("$JSAPPDIR/nginx/etc/nginx.conf", content=basicnginxconf)
+        self.cuisine.core.file_write("$JSAPPSDIR/nginx/etc/nginx.conf", content=basicnginxconf)
         self.cuisine.core.file_write("$JSCFGDIR/nginx/etc/nginx.conf", content=basicoptvarnginxconf)
-        self.cuisine.core.file_write("$JSAPPDIR/nginx/etc/sites-enabled/default", content=defaultenabledsitesconf)
-        fst_cgi_conf = self.cuisine.core.file_read("$JSAPPDIR/nginx/etc/fastcgi.conf")
+        self.cuisine.core.file_write("$JSAPPSDIR/nginx/etc/sites-enabled/default", content=defaultenabledsitesconf)
+        fst_cgi_conf = self.cuisine.core.file_read("$JSAPPSDIR/nginx/etc/fastcgi.conf")
         fst_cgi_conf = fst_cgi_conf.replace(
             "include fastcgi.conf;", "include /opt/jumpscale8/apps/nginx/etc/fastcgi.conf;")
-        self.cuisine.core.file_write("$JSAPPDIR/nginx/etc/fastcgi.conf", content=fst_cgi_conf)
+        self.cuisine.core.file_write("$JSAPPSDIR/nginx/etc/fastcgi.conf", content=fst_cgi_conf)
 
-        #self.cuisine.core.file_link(source="$JSCFGDIR/nginx", destination="$JSAPPDIR/nginx")
+        #self.cuisine.core.file_link(source="$JSCFGDIR/nginx", destination="$JSAPPSDIR/nginx")
         if start:
             self.start()
 
@@ -168,14 +168,14 @@ class CuisineNGINX(app):
             self.install(start)
 
     def start(self, name="nginx", nodaemon=True, nginxconfpath=None):
-        nginxbinpath = '$JSAPPDIR/nginx/bin'
+        nginxbinpath = '$JSAPPSDIR/nginx/bin'
         if nginxconfpath is None:
             nginxconfpath = '$JSCFGDIR/nginx/etc/nginx.conf'
         nginxconfpath = self.replace(nginxconfpath)
         nginxconfpath = os.path.normpath(nginxconfpath)
         if self.cuisine.core.file_exists(nginxconfpath):
             # foreground
-            nginxcmd = "$JSAPPDIR/nginx/bin/nginx -c {nginxconfpath} -g 'daemon off;'".format(
+            nginxcmd = "$JSAPPSDIR/nginx/bin/nginx -c {nginxconfpath} -g 'daemon off;'".format(
                 nginxconfpath=nginxconfpath)
             nginxcmd = self.replace(nginxcmd)
             self.log("cmd: ", nginxcmd)

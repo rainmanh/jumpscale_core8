@@ -2985,7 +2985,7 @@ j.dirs?8
 j.dirs.appDir?8
 j.dirs.base?8
 j.dirs.binDir?8
-j.dirs.cfgDir?8
+j.dirs.JSCFGDIR?8
 j.dirs.codeDir?8
 j.dirs.getPathOfRunningFunction?4([- function
 ])
@@ -9957,7 +9957,7 @@ j.dirs?8
 j.dirs.appDir?8
 j.dirs.base?8
 j.dirs.binDir?8
-j.dirs.cfgDir?8
+j.dirs.JSCFGDIR?8
 j.dirs.codeDir?8
 j.dirs.getPathOfRunningFunction?4([- function
 ])
@@ -16858,7 +16858,7 @@ j.dirs?8
 j.dirs.appDir?8
 j.dirs.base?8
 j.dirs.binDir?8
-j.dirs.cfgDir?8
+j.dirs.JSCFGDIR?8
 j.dirs.codeDir?8
 j.dirs.getPathOfRunningFunction?4([- function
 ])

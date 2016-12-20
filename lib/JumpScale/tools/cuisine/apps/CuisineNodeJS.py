@@ -45,13 +45,13 @@ class CuisineNodeJS(app):
 
         # copy file to correct locations.
         self.cuisine.core.dir_ensure('$BINDIR')
-        self.cuisine.core.dir_ensure('$JSAPPDIR/npm')
+        self.cuisine.core.dir_ensure('$JSAPPSDIR/npm')
         src = '%s/bin/node' % cdest
         self.cuisine.core.file_copy(src, '$BINDIR', recursive=True, overwrite=True)
         src = '%s/lib/node_modules/npm/*' % cdest
-        self.cuisine.core.file_copy(src, '$JSAPPDIR/npm', recursive=True, overwrite=True)
+        self.cuisine.core.file_copy(src, '$JSAPPSDIR/npm', recursive=True, overwrite=True)
         if self.cuisine.core.file_exists('$BINDIR/npm'):
             self.cuisine.core.file_unlink('$BINDIR/npm')
-        self.cuisine.core.file_link('$JSAPPDIR/npm/cli.js', '$BINDIR/npm')
+        self.cuisine.core.file_link('$JSAPPSDIR/npm/cli.js', '$BINDIR/npm')
 
         self.cuisine.core.run("%s install -g bower" % self.npm)

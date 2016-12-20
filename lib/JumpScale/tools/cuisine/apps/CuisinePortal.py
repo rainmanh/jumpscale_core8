@@ -9,7 +9,7 @@ class CuisinePortal(base):
 
     def _init(self):
         self._config = None
-        self.portal_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths["JSAPPDIR"], "portals/")
+        self.portal_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths["JSAPPSDIR"], "portals/")
         self.main_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'main')
         self.cuisine.core.dir_ensure(self.main_portal_dir)
         self.cfg_path = j.sal.fs.joinPaths(self.main_portal_dir, 'config.hrd')
@@ -62,7 +62,7 @@ class CuisinePortal(base):
         """
         if not reset and self.doneGet("installdeps"):
             return
-        self.cuisine.development.pip.ensure()
+        self.cuisine.development.pip.ensure(reset=reset)
 
         deps = """
         cffi==1.5.2
@@ -235,18 +235,18 @@ class CuisinePortal(base):
                                     "%s/jslib/old/elfinder" % self.portal_dir, recursive=True)
         # link for ays
         self.cuisine.core.file_link(source='$CODEDIR/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81',
-                                    destination='$JSAPPDIR/portals/main/base/AYS81')
+                                    destination='$JSAPPSDIR/portals/main/base/AYS81')
 
     def addSpace(self, spacepath):
         spacename = j.sal.fs.getBaseName(spacepath)
         dest_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths[
-            'JSAPPDIR'], 'portals', 'main', 'base', spacename)
+            'JSAPPSDIR'], 'portals', 'main', 'base', spacename)
         self.cuisine.core.file_link(spacepath, dest_dir)
 
     def addactor(self, actorpath):
         actorname = j.sal.fs.getBaseName(actorpath)
         dest_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths[
-            'JSAPPDIR'], 'portals', 'main', 'base', actorname)
+            'JSAPPSDIR'], 'portals', 'main', 'base', actorname)
         self.cuisine.core.file_link(actorpath, dest_dir)
 
     def serviceconnect(self, hrd):
@@ -254,7 +254,7 @@ class CuisinePortal(base):
                                       'cfg', "portals", "main", "config.hrd")
         self.cuisine.core.file_write(dest_cfg, str(hrd))
 
-    def start(self, passwd=None):
+    def start(self, reset=False, passwd=None):
         """
         Start the portal
         passwd : if not None, change the admin password to passwd after start

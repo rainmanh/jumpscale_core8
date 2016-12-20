@@ -35,18 +35,18 @@ class CuisineOwnCloud(app):
 
         self.cuisine.core.execute_bash(C)
 
-        # deploy in $JSAPPDIR/owncloud
+        # deploy in $JSAPPSDIR/owncloud
         # use nginx/php other cuisine packages
 
         C = """
         set -xe
-        rm -rf $JSAPPDIR/owncloud
-        mv $TMPDIR/owncloud $JSAPPDIR/owncloud
+        rm -rf $JSAPPSDIR/owncloud
+        mv $TMPDIR/owncloud $JSAPPSDIR/owncloud
 
         # copy config.php to new owncloud home httpd/docs
-        /bin/cp -Rf $TMPDIR/ays_owncloud/owncloud/config.php $JSAPPDIR/owncloud/config/
+        /bin/cp -Rf $TMPDIR/ays_owncloud/owncloud/config.php $JSAPPSDIR/owncloud/config/
         # copy gig theme
-        /bin/cp -Rf $TMPDIR/ays_owncloud/owncloud/gig $JSAPPDIR/owncloud/themes/
+        /bin/cp -Rf $TMPDIR/ays_owncloud/owncloud/gig $JSAPPSDIR/owncloud/themes/
 
 
         """
@@ -54,7 +54,7 @@ class CuisineOwnCloud(app):
         self.cuisine.core.execute_bash(C)
         gigconf = self._get_default_conf_owncloud()
         gigconf = gigconf % {'storagepath': storagepath}
-        self.cuisine.core.file_write("$JSAPPDIR/owncloud/config/config.php", content=gigconf)
+        self.cuisine.core.file_write("$JSAPPSDIR/owncloud/config/config.php", content=gigconf)
 
         if start:
             self.start(sitename)
@@ -106,7 +106,7 @@ class CuisineOwnCloud(app):
             server_name %(sitename)s;
 
 
-            root $JSAPPDIR/owncloud/;
+            root $JSAPPSDIR/owncloud/;
 
             # Add headers to serve security related headers
             # Before enabling Strict-Transport-Security headers please read into this topic first.
@@ -166,7 +166,7 @@ class CuisineOwnCloud(app):
 
             location ~ ^/(?:index|remote|public|cron|core/ajax/update|status|ocs/v[12]|updater/.+|ocs-provider/.+|core/templates/40[34])\.php(?:$|/) {
                 fastcgi_split_path_info ^(.+\.php)(/.*)$;
-                include $JSAPPDIR/nginx/etc/fastcgi_params;
+                include $JSAPPSDIR/nginx/etc/fastcgi_params;
                 fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
                 fastcgi_param PATH_INFO $fastcgi_path_info;
                 # fastcgi_param HTTPS on;
@@ -231,22 +231,22 @@ class CuisineOwnCloud(app):
 
         # TODO: if not installed
         cmd = """
-        $JSAPPDIR/php/bin/php $JSAPPDIR/owncloud/occ maintenance:install  --database="mysql" --database-name="owncloud"\
+        $JSAPPSDIR/php/bin/php $JSAPPSDIR/owncloud/occ maintenance:install  --database="mysql" --database-name="owncloud"\
         --database-host="{dbhost}" --database-user="owncloud" --database-pass="owncloud" --admin-user="admin" --admin-pass="admin"\
         --data-dir="/data"
 
-        $JSAPPDIR/php/bin/php $JSAPPDIR/owncloud/occ config:system:set trusted_domains 1 --value={sitename}
+        $JSAPPSDIR/php/bin/php $JSAPPSDIR/owncloud/occ config:system:set trusted_domains 1 --value={sitename}
         """.format(dbhost=dbhost, sitename=sitename)
 
         self.cuisine.core.execute_bash(cmd)
 
         basicnginxconf = self.cuisine.apps.nginx.get_basic_nginx_conf()
         basicnginxconf = basicnginxconf.replace(
-            "include $JSAPPDIR/nginx/etc/sites-enabled/*;", "include $JSCFGDIR/nginx/etc/sites-enabled/*;")
+            "include $JSAPPSDIR/nginx/etc/sites-enabled/*;", "include $JSCFGDIR/nginx/etc/sites-enabled/*;")
         basicnginxconf = self.replace(basicnginxconf)
         C = """
-        chown -R www-data:www-data $JSAPPDIR/owncloud $JSCFGDIR/nginx
-        chmod 777 -R $JSAPPDIR/owncloud/config
+        chown -R www-data:www-data $JSAPPSDIR/owncloud $JSCFGDIR/nginx
+        chmod 777 -R $JSAPPSDIR/owncloud/config
         chown -R www-data:www-data /data
         """
         self.cuisine.core.execute_bash(C)

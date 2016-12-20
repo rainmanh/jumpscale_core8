@@ -65,7 +65,7 @@ class Dirs:
             if "DIR" in key:
                 txt = txt.replace("$%s" % key, val)
 
-        txt = txt.replace("$appdir", self.JSAPPDIR)
+        txt = txt.replace("$appdir", self.JSAPPSDIR)
         txt = txt.replace("$tmplsdir", self.TEMPLATEDIR)
         txt = txt.replace("$codedir", self.CODEDIR)
         txt = txt.replace("$vardir", self.VARDIR)

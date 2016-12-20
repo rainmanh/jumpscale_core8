@@ -2631,7 +2631,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         # THIS ONE, THIS FUNCTION WILL BE CHANGED TOO, NEED TO COPY FIRST
         tochange = ["logDir", "pidDir", "hrdDir", "goDir", "nimDir", "codeDir", "binDir",
                     "jsLibDir", "libDir", "tmplsDir", "homeDir", "baseDir", "tmpDir", "varDir"]
-        changeName = {"tmplsDir": "TEMPLATEDIR", "cfgDir": "JSCFGDIR", "appDir": "JSAPPDIR", "jsBase": "JSBASEDIR"}
+        changeName = {"tmplsDir": "TEMPLATEDIR", "cfgDir": "JSCFGDIR", "appDir": "JSAPPSDIR", "jsBase": "JSBASEDIR"}
 
         def do(ffilter):
             for repo in repos:

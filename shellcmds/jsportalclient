@@ -10,7 +10,7 @@ if __name__ == '__main__':
     parser.add_argument("-u", "--username")
     parser.add_argument("-p", "--password")
     parser.add_argument("-i", "--host", default='127.0.0.1')
-    parser.add_argument("--port", type=int, default=82)
+    parser.add_argument("--port", type=int, default=8200)
     parser.add_argument("-n", "--portclientinstance", default='main')
     opts = parser.parse_args()
 
@@ -37,4 +37,3 @@ if __name__ == '__main__':
                 print("\nFailed to load", space, actor)
     print('')
     embed()
-

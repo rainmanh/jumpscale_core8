@@ -65,6 +65,7 @@ class Dirs:
             if "DIR" in key:
                 txt = txt.replace("$%s" % key, val)
 
+        # for backwardscompatibility
         txt = txt.replace("$appdir", self.JSAPPSDIR)
         txt = txt.replace("$tmplsdir", self.TEMPLATEDIR)
         txt = txt.replace("$codedir", self.CODEDIR)
@@ -73,8 +74,8 @@ class Dirs:
         txt = txt.replace("$bindir", self.BINDIR)
         txt = txt.replace("$logdir", self.LOGDIR)
         txt = txt.replace("$tmpdir", self.TMPDIR)
-        txt = txt.replace("$libdir", self.LIBDIR)
-        txt = txt.replace("$jslibextdir", self.LIBEXTDIR)
+        txt = txt.replace("$libdir", self.JSLIBDIR)
+        txt = txt.replace("$jslibextdir", self.JSLIBEXTDIR)
         txt = txt.replace("$jsbindir", self.BINDIR)
         txt = txt.replace("$nodeid", str(j.application.whoAmI.nid))
         for key, value in list(additionalArgs.items()):

@@ -5,7 +5,6 @@
 
 ### Methods
 
-#### get(*ip='localhost', port=82, secret*) 
+#### get(*ip='localhost', port=8200, secret*) 
 
-#### getByInstance(*instance*) 
-
+#### getByInstance(*instance*)

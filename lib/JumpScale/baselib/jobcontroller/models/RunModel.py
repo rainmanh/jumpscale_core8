@@ -12,8 +12,13 @@ class RunModel(ModelBase):
     def index(self):
         # put indexes in db as specified
         ind = "%s:%s" % (self.dbobj.state, self.dbobj.lastModDate)
-        if self.key not in self._index.list():
-            self._index.index({ind: self.key})
+        idx_list = self._index.list(returnIndex=True)
+        matched_idx = [item for item in idx_list if item[1] == self.key]
+        if matched_idx:
+            #  if the key exists first pop it and add the correct one
+            item = matched_idx[0]
+            self._index.redisclient.hdel(self._index._indexkey, item[0])
+        self._index.index({ind: self.key})
 
     def stepNew(self, **kwargs):
         olditems = [item.to_dict() for item in self.dbobj.steps]

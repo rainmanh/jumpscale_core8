@@ -135,6 +135,7 @@ class Bash:
                     val = val.strip().strip("'").strip("\"")
                     res[name] = val
             self._environ = res
+        self.fixlocale()
         merge = self._environ.copy()
         merge.update(self.profile.environ)
         return merge

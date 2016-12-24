@@ -127,7 +127,8 @@ class CuisineProcess(base):
             pid, tty, time, command = line
             if is_string:
                 if pid and ((exact and command == name) or (not exact and command.find(name) >= 0)):
-                    res.append(pid)
+                    if command.find("cuisine") == -1:
+                        res.append(pid)
             elif name(line) and pid:
                 res.append(pid)
         return res

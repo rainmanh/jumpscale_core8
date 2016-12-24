@@ -2649,7 +2649,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
                         content1 = content1.replace(".%s" % key, ".%s" % key.upper())
                         content1 = content1.replace("\"%s" % key, "\"%s" % key.upper())
                         content1 = content1.replace("'%s" % key, "'%s" % key.upper())
-                    content1 = content1.replace("$base", "$BASEDIR")
+                    content1 = content1.replace("$JSBASEDIR", "$BASEDIR")
                     content1 = content1.replace("$jsBase", "$JSBASEDIR")
                     content1 = content1.replace("$jsBASE", "$JSBASEDIR")
                     if content1 != content:

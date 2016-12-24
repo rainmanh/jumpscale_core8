@@ -2995,7 +2995,7 @@ j.dirs.init?4([])
 j.dirs.jsLibDir?8
 j.dirs.libDir?8
 j.dirs.libExtDir?8
-j.dirs.logDir?8
+j.dirs.LOGDIR?8
 j.dirs.pidDir?8
 j.dirs.replaceFilesDirVars?4([- path
 , - recursive = True
@@ -3007,7 +3007,7 @@ j.dirs.replaceTxtDirVars?4([- txt
 ])
 j.dirs.tmpDir?8
 j.dirs.tmplsDir?8
-j.dirs.varDir?8
+j.dirs.VARDIR?8
 j.do?8
 j.do.BASE?7
 j.do.CODEDIR?7
@@ -9967,7 +9967,7 @@ j.dirs.init?4([])
 j.dirs.jsLibDir?8
 j.dirs.libDir?8
 j.dirs.libExtDir?8
-j.dirs.logDir?8
+j.dirs.LOGDIR?8
 j.dirs.pidDir?8
 j.dirs.replaceFilesDirVars?4([- path
 , - recursive = True
@@ -9979,7 +9979,7 @@ j.dirs.replaceTxtDirVars?4([- txt
 ])
 j.dirs.tmpDir?8
 j.dirs.tmplsDir?8
-j.dirs.varDir?8
+j.dirs.VARDIR?8
 j.do?8
 j.do.BASE?7
 j.do.CODEDIR?7
@@ -16868,7 +16868,7 @@ j.dirs.init?4([])
 j.dirs.jsLibDir?8
 j.dirs.libDir?8
 j.dirs.libExtDir?8
-j.dirs.logDir?8
+j.dirs.LOGDIR?8
 j.dirs.pidDir?8
 j.dirs.replaceFilesDirVars?4([- path
 , - recursive = True
@@ -16880,7 +16880,7 @@ j.dirs.replaceTxtDirVars?4([- txt
 ])
 j.dirs.tmpDir?8
 j.dirs.tmplsDir?8
-j.dirs.varDir?8
+j.dirs.VARDIR?8
 j.do?8
 j.do.BASE?7
 j.do.CODEDIR?7

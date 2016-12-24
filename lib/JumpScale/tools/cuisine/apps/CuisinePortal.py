@@ -8,7 +8,6 @@ base = j.tools.cuisine._getBaseClass()
 class CuisinePortal(base):
 
     def _init(self):
-        self._config = None
         self.portal_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths["JSAPPSDIR"], "portals/")
         self.main_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'main')
         self.cuisine.core.dir_ensure(self.main_portal_dir)
@@ -32,9 +31,15 @@ class CuisinePortal(base):
 
         if "darwin" in self.cuisine.platformtype.osname:
             hrd.set('param.cfg.port', '8200')
-        self._config = hrd
 
-    def install(self, start=True, branch='master', reset=False):
+        self.cuisine.core.file_write(self.configPath, str(hrd))
+
+    @property
+    def configPath(self):
+        return j.sal.fs.joinPaths(self.cuisine.core.dir_paths['VARDIR'],
+                                  'cfg', "portals", "main", "config.hrd")
+
+    def install(self, start=True, branch='', reset=False):
         """
         grafanaip and port should be the external ip of the machine
         Portal install will only install the portal and libs. No spaces but the system ones will be add by default.
@@ -42,6 +47,9 @@ class CuisinePortal(base):
         """
         self.cuisine.bash.fixlocale()
         if not reset and self.doneGet("install"):
+            self.linkCode()
+            if start:
+                self.start()
             return
 
         # install the dependencies if required
@@ -52,7 +60,7 @@ class CuisinePortal(base):
         self.linkCode()
 
         if start:
-            self.start(reset=reset)
+            self.start()
 
         self.doneSet("install")
 
@@ -179,7 +187,9 @@ class CuisinePortal(base):
 
         self.doneSet("installdeps")
 
-    def getcode(self, branch='master'):
+    def getcode(self, branch=''):
+        if branch == "":
+            branch = "8.2.0_portal_cleanup"
         self.cuisine.development.git.pullRepo(
             "https://github.com/Jumpscale/jumpscale_portal8.git", branch=branch)
 
@@ -243,34 +253,27 @@ class CuisinePortal(base):
             'JSAPPSDIR'], 'portals', 'main', 'base', spacename)
         self.cuisine.core.file_link(spacepath, dest_dir)
 
-    def addactor(self, actorpath):
+    def addActor(self, actorpath):
         actorname = j.sal.fs.getBaseName(actorpath)
         dest_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths[
             'JSAPPSDIR'], 'portals', 'main', 'base', actorname)
         self.cuisine.core.file_link(actorpath, dest_dir)
-
-    def serviceconnect(self, hrd):
-        dest_cfg = j.sal.fs.joinPaths(self.cuisine.core.dir_paths['VARDIR'],
-                                      'cfg', "portals", "main", "config.hrd")
-        self.cuisine.core.file_write(dest_cfg, str(hrd))
 
     def start(self, reset=False, passwd=None):
         """
         Start the portal
         passwd : if not None, change the admin password to passwd after start
         """
-        dest_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths['VARDIR'], 'cfg', 'portals', 'main')
-        self.cuisine.core.dir_ensure(dest_dir)
-
-        if not self._config:
-            self.configure()
-
-        self.serviceconnect(self._config)
+        self.cuisine.apps.mongodb.start()
+        if not reset and self.doneGet("start"):
+            return
         cmd = "jspython portal_start.py"
         self.cuisine.processmanager.ensure('portal', cmd=cmd, path=j.sal.fs.joinPaths(self.portal_dir, 'main'))
 
         if passwd is not None:
             self.set_admin_password(passwd)
+
+        self.doneSet("start")
 
     def stop(self):
         self.cuisine.processmanager.stop('portal')

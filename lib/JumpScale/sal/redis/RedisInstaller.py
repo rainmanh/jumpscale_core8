@@ -1139,7 +1139,7 @@ class RedisInstaller:
         C = C.replace("$name", name)
         C = C.replace("$maxram", str(maxram))
         C = C.replace("$port", str(port))
-        C = C.replace("$vardir", self._cuisine.core.dir_paths["VARDIR"])
+        C = C.replace("$VARDIR", self._cuisine.core.dir_paths["VARDIR"])
 
         base_dir = self._cuisine.core.args_replace('$VARDIR/data/redis/redis_%s' % name)
         self._cuisine.core.dir_ensure(base_dir)

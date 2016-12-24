@@ -14,6 +14,9 @@ class CuisineNodeJS(app):
         return self.replace('$BINDIR/npm')
 
     def bowerInstall(self, name):
+        """
+        @param name can be a list or string
+        """
         if self._bowerDir == "":
             self.install()
             self.cuisine.core.dir_ensure("$TMPDIR/bower")
@@ -28,6 +31,8 @@ class CuisineNodeJS(app):
     def install(self, reset=False):
         """
         """
+        if not reset and self.doneGet("install"):
+            return
         # version = "6.9.2"
         version = "7.2.1"
         if reset == False and self.cuisine.core.file_exists('$BINDIR/npm'):
@@ -55,3 +60,5 @@ class CuisineNodeJS(app):
         self.cuisine.core.file_link('$JSAPPSDIR/npm/cli.js', '$BINDIR/npm')
 
         self.cuisine.core.run("%s install -g bower" % self.npm)
+
+        self.doneSet("install")

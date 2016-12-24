@@ -57,7 +57,7 @@ class Dirs:
 
     def replaceTxtDirVars(self, txt, additionalArgs={}):
         """
-        replace $BASEDIR,$vardir,$JSCFGDIR,$bindir,$codedir,$tmpdir,$logdir,$appdir with props of this class
+        replace $BASEDIR,$VARDIR,$JSCFGDIR,$bindir,$codedir,$tmpdir,$logdir,$appdir with props of this class
         also the Dir... get replaces e.g. varDir
         """
 
@@ -69,7 +69,7 @@ class Dirs:
         txt = txt.replace("$appdir", self.JSAPPSDIR)
         txt = txt.replace("$tmplsdir", self.TEMPLATEDIR)
         txt = txt.replace("$codedir", self.CODEDIR)
-        txt = txt.replace("$vardir", self.VARDIR)
+        txt = txt.replace("$VARDIR", self.VARDIR)
         txt = txt.replace("$cfgdir", self.JSCFGDIR)
         txt = txt.replace("$bindir", self.BINDIR)
         txt = txt.replace("$logdir", self.LOGDIR)

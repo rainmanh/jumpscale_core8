@@ -21,6 +21,23 @@ import re
 import inspect
 import yaml
 import importlib
+import fcntl
+
+
+class FileLock():
+    def __init__(self, fname):
+        self._fname = fname
+        self._f = None
+
+    def __enter__(self):
+        self._f = open(self._fname, 'w')
+        fcntl.lockf(self._f, fcntl.LOCK_EX)
+
+    def __exit__(self, *exit):
+        try:
+            fcntl.lockf(self._f, fcntl.LOCK_UN)
+        finally:
+            self._f.close()
 
 
 class UI():
@@ -281,68 +298,69 @@ class SSHMethods():
         the primary key is 'id_rsa' and will be used as default e.g. if authorizing another node then this key will be used
 
         """
-        # check if more than 1 agent
-        socketpath = self._getSSHSocketpath()
-        res = [item for item in self.execute("ps aux|grep ssh-agent", False, False)
-               [1].split("\n") if item.find("grep ssh-agent") == -1]
-        res = [item for item in res if item.strip() != ""]
-        res = [item for item in res if item[-2:] != "-l"]
+        with FileLock('/tmp/ssh-agent'):
+            # check if more than 1 agent
+            socketpath = self._getSSHSocketpath()
+            res = [item for item in self.execute("ps aux|grep ssh-agent", False, False)
+                   [1].split("\n") if item.find("grep ssh-agent") == -1]
+            res = [item for item in res if item.strip() != ""]
+            res = [item for item in res if item[-2:] != "-l"]
 
-        if len(res) > 1:
-            print("more than 1 ssh-agent, will kill all")
-            killfirst = True
-        if len(res) == 0 and self.exists(socketpath):
-            self.delete(socketpath)
+            if len(res) > 1:
+                print("more than 1 ssh-agent, will kill all")
+                killfirst = True
+            if len(res) == 0 and self.exists(socketpath):
+                self.delete(socketpath)
 
-        if killfirst:
-            cmd = "killall ssh-agent"
-            # print(cmd)
-            self.execute(cmd, showout=False, outputStderr=False, die=False)
-            # remove previous socketpath
-            self.delete(socketpath)
-            self.delete(self.joinPaths(self.TMPDIR, "ssh-agent-pid"))
+            if killfirst:
+                cmd = "killall ssh-agent"
+                # print(cmd)
+                self.execute(cmd, showout=False, outputStderr=False, die=False)
+                # remove previous socketpath
+                self.delete(socketpath)
+                self.delete(self.joinPaths(self.TMPDIR, "ssh-agent-pid"))
 
-        if not self.exists(socketpath):
-            self.createDir(self.getParent(socketpath))
-            # ssh-agent not loaded
-            print("load ssh agent")
-            rc, result, err = self.execute("ssh-agent -a %s" % socketpath, die=False, showout=False, outputStderr=False)
+            if not self.exists(socketpath):
+                self.createDir(self.getParent(socketpath))
+                # ssh-agent not loaded
+                print("load ssh agent")
+                rc, result, err = self.execute("ssh-agent -a %s" % socketpath, die=False, showout=False, outputStderr=False)
 
-            if rc > 0:
-                # could not start ssh-agent
+                if rc > 0:
+                    # could not start ssh-agent
+                    raise RuntimeError(
+                        "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
+                else:
+                    # get pid from result of ssh-agent being started
+                    if not self.exists(socketpath):
+                        raise RuntimeError(
+                            "Serious bug, ssh-agent not started while there was no error, should never get here")
+                    piditems = [item for item in result.split("\n") if item.find("pid") != -1]
+                    # print(piditems)
+                    if len(piditems) < 1:
+                        print("results was:")
+                        print(result)
+                        print("END")
+                        raise RuntimeError("Cannot find items in ssh-add -l")
+                    self._initSSH_ENV(True)
+                    pid = int(piditems[-1].split(" ")[-1].strip("; "))
+                    self.writeFile(self.joinPaths(self.TMPDIR, "ssh-agent-pid"), str(pid))
+                    self._addSSHAgentToBashProfile()
+
+            # ssh agent should be loaded because ssh-agent socket has been found
+            if os.environ.get("SSH_AUTH_SOCK") != socketpath:
+                self._initSSH_ENV(True)
+            rc, result, err = self.execute("ssh-add -l", die=False, showout=False, outputStderr=False)
+            if rc == 2:
+                # no ssh-agent found
+                print(result)
+                raise RuntimeError("Could not connect to ssh-agent, this is bug, ssh-agent should be loaded by now")
+            elif rc == 1:
+                # no keys but agent loaded
+                result = ""
+            elif rc > 0:
                 raise RuntimeError(
                     "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
-            else:
-                # get pid from result of ssh-agent being started
-                if not self.exists(socketpath):
-                    raise RuntimeError(
-                        "Serious bug, ssh-agent not started while there was no error, should never get here")
-                piditems = [item for item in result.split("\n") if item.find("pid") != -1]
-                # print(piditems)
-                if len(piditems) < 1:
-                    print("results was:")
-                    print(result)
-                    print("END")
-                    raise RuntimeError("Cannot find items in ssh-add -l")
-                self._initSSH_ENV(True)
-                pid = int(piditems[-1].split(" ")[-1].strip("; "))
-                self.writeFile(self.joinPaths(self.TMPDIR, "ssh-agent-pid"), str(pid))
-                self._addSSHAgentToBashProfile()
-
-        # ssh agent should be loaded because ssh-agent socket has been found
-        if os.environ.get("SSH_AUTH_SOCK") != socketpath:
-            self._initSSH_ENV(True)
-        rc, result, err = self.execute("ssh-add -l", die=False, showout=False, outputStderr=False)
-        if rc == 2:
-            # no ssh-agent found
-            print(result)
-            raise RuntimeError("Could not connect to ssh-agent, this is bug, ssh-agent should be loaded by now")
-        elif rc == 1:
-            # no keys but agent loaded
-            result = ""
-        elif rc > 0:
-            raise RuntimeError(
-                "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
 
     def checkSSHAgentAvailable(self):
         if not self.exists(self._getSSHSocketpath()):

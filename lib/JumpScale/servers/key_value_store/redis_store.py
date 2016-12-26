@@ -120,15 +120,6 @@ class RedisKeyValueStore(KeyValueStoreBase):
             item = self.redisclient.lindex(self._getQueueNameKey(name), 0)
         return item
 
-    def lookupSet(self, name, key, fkey):
-        self.redisclient.hset(self._indexkey + "lookup", key, fkey)
-
-    def lookupGet(self, name, key):
-        self.redisclient.hget(self._indexkey + "lookup", key)
-
-    def lookupDestroy(self, name):
-        self.redisclient.delete(self._indexkey + "lookup")
-
         #
         #     def set(self, category, key, value, expire=0, secret=""):
         #         """

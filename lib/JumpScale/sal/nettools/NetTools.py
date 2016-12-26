@@ -2,6 +2,7 @@
 
 import time
 import socket
+import netaddr
 import re
 
 from JumpScale import j
@@ -53,6 +54,12 @@ class NetTools:
             if conn:
                 conn.close()
         return True
+
+    def ip_to_num(self, ip="127.0.0.1"):
+        """
+        Convert an IP string to number
+        """
+        return int(netaddr.IPAddress(ip))
 
     def waitConnectionTest(self, ipaddr, port, timeout):
         """

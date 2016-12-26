@@ -18,7 +18,7 @@ class CuisineCaddy(app):
         """
         if reset is False and self.isInstalled():
             return
-        caddy_url = 'https://github.com/mholt/caddy/releases/download/v0.8.2/caddy_linux_amd64.tar.gz'
+        caddy_url = 'https://github.com/mholt/caddy/releases/download/v0.9.4/caddy_linux_amd64.tar.gz'
         dest = '$TMPDIR/caddy_linux_amd64.tar.gz'
         self.cuisine.core.file_download(caddy_url, dest)
         self.cuisine.core.run('cd $TMPDIR; tar xvf $TMPDIR/caddy_linux_amd64.tar.gz')

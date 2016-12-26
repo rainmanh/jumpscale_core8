@@ -6,7 +6,7 @@ app = j.tools.cuisine._getBaseAppClass()
 
 
 class CuisineDockerCompose(app):
-    NAME = "docker"
+    NAME = "docker-compose"
 
     def __init__(self, executor, cuisine):
         self._executor = executor

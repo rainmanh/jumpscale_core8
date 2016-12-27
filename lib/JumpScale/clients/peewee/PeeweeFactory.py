@@ -56,7 +56,7 @@ class PeeweeFactory:
         key = "%s_%s_%s_%s_%s" % (ipaddr, port, login, dbname, dbtype)
         if j.core.db.get("peewee.code.%s" % key) == None:
             cmd = 'pwiz.py -H %s  -p %s -u "%s" -P -i %s' % (ipaddr, port, login, dbname)
-            rc, out, err = j.sal.process.execute(cmd, die=True, showout=False)
+            rc, out, err = j.sal.process.execute(cmd, useShell=True, die=True, showout=False)
             j.core.db.set("peewee.code.%s" % key, out)
         code = j.core.db.get("peewee.code.%s" % key).decode()
 

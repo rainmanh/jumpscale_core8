@@ -44,6 +44,9 @@ class RepoCollection(base):
         @param returnIndexalse bool,, return the index used.
         """
         res = []
+        milestone = int(milestone)
+        member = int(member)
+        id = int(id)
         for key in self.list(owner=owner, name=name, id=id, source=source):
             res.append(self.get(key))
 

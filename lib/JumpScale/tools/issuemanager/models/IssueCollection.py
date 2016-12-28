@@ -64,6 +64,11 @@ class IssueCollection(base):
         @param source str,, source of remote database.
         """
         res = []
+        modTime = int(modTime)
+        comment = int(comment)
+        assignee = int(assignee)
+        id = int(id)
+        milestone = int(milestone)
         for key in self.list(id=id, milestone=milestone, creationTime=creationTime,
                              modTime=modTime, isClosed=isClosed,
                              repo=repo, title=title, source=source):

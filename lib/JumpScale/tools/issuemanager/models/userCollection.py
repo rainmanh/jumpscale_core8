@@ -45,6 +45,7 @@ class UserCollection(base):
         @param returnIndexalse bool,, return the index used.
         """
         res = []
+        id = int(id)
         for key in self.list(name=name, fullname=fullname, email=email, id=id, source=source):
             res.append(self.get(key))
         return res

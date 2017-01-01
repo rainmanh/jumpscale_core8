@@ -25,7 +25,7 @@ bash install.sh
 ```
 cd $TMPDIR
 rm -f install.sh
-export JSBRANCH="8.1.0"
+export JSBRANCH="8.2.0"
 curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/install.sh?$RANDOM > install.sh
 bash install.sh
 ```

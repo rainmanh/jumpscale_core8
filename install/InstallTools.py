@@ -1029,15 +1029,11 @@ class FSMethods():
             raise RuntimeError("input can only be string or list")
 
         for item in items:
-            if "pip_%s" % item not in self.done or force:
-                cmd = "pip3 install %s --upgrade" % item
-                if executor == None:
-                    self.executeInteractive(cmd)
-                else:
-                    executor.execute(cmd)
-                self.doneSet("pip_%s" % item)
+            cmd = "pip3 install %s --upgrade" % item
+            if executor == None:
+                self.executeInteractive(cmd)
             else:
-                print("no need to pip install:%s" % item)
+                executor.execute(cmd)
 
     def symlink(self, src, dest, delete=False):
         """
@@ -2316,7 +2312,7 @@ class Installer():
                     if item.strip() != "":
                         cmd = "brew unlink %s;brew install %s;brew link %s" % (item, item,item)
                         self.do.execute(cmd)
-                self.do.doneSet("core_apps_installed")
+                # self.do.doneSet("core_apps_installed")
             else:
                 print("no need to prepare system for base, already done.")
 
@@ -2522,45 +2518,6 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             handle = loader.load_module("deps")
             self._deps = handle.dependencies(self)
         return self._deps
-
-    @property
-    def done(self):
-        if self.readonly == False:
-            path = '%s/jumpscale_done.yaml' % os.environ["TMPDIR"]
-            if not self.exists(path):
-                return {}
-            with open(path, 'r') as conf:
-                cfg = yaml.load(conf)
-            return cfg
-        else:
-            # this to make sure works in readonly mode
-            return {}
-
-    def doneSet(self, key, val=True):
-        if self.readonly == False:
-            d = self.done
-            if val == "_DELETE":
-                d.pop(key)
-            else:
-                d[key] = val
-            path = '%s/jumpscale_done.yaml' % os.environ["TMPDIR"]
-            with open(path, 'w') as outfile:
-                yaml.dump(d, outfile, default_flow_style=False)
-
-    def doneGet(self, key, defval=None):
-        if key in self.done:
-            return self.done[key]
-        else:
-            if defval != None:
-                self.doneSet(key, defval)
-                return defval
-            else:
-                return False
-
-    def doneReset(self, prefix=""):
-        for key, val in self.done.items():
-            if prefix == "" or key.startswith(prefix):
-                self.doneSet(key, "_DELETE")
 
     def initEnv(self, env, executor=None):
 

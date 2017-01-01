@@ -2304,7 +2304,7 @@ class Installer():
 
         print("prepare")
 
-        self.checkPython()
+        #self.checkPython()
 
         # self.installpip()
 

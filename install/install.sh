@@ -7,6 +7,8 @@ if [ -d "/tmp" ]; then
     export TMPDIR="/tmp"
 fi
 
+cd $TMPDIR
+
 #TO RESET, to develop faster uncomment
 rm -f $TMPDIR/done.yaml
 rm -rf /opt/var/cfg/jumpscale/
@@ -25,20 +27,17 @@ function clean_system {
 }
 
 function osx_install {
-    if [ -e $TMPDIR/jsinstall_systemcomponents_done ] ; then
-        echo "NO NEED TO INSTALL CURL/PYTHON/GIT"
-    else
-        set +ex
-        brew unlink curl
-        brew unlink python3
-        brew unlink git
-        set -ex
+    set +ex
+    brew unlink curl
+    brew unlink python3
+    brew unlink git
+    set -ex
     brew install python3
-        brew link --overwrite python3
-        brew install git
-        brew link --overwrite git
-        brew install curl
-        brew link --overwrite curl
+    brew link --overwrite python3
+    brew install git
+    brew link --overwrite git
+    brew install curl
+    brew link --overwrite curl
 fi
 }
 

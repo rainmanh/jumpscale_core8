@@ -651,7 +651,7 @@ class FSMethods():
     def getPythonLibSystem(self, jumpscale=False):
         PYTHONVERSION = platform.python_version()
         if self.TYPE.startswith("OSX"):
-            destjs = "/usr/local/lib/python3.5/site-packages"
+            destjs = "/usr/local/lib/python3.6/site-packages"
         elif self.TYPE.startswith("WIN"):
             destjs = "/usr/lib/python3.4/site-packages"
         else:
@@ -2638,7 +2638,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
 
         return env
 
-    def fixCodeChangeDirVars(self, branch="8.1.0_cleanup"):
+    def fixCodeChangeDirVars(self, branch="8.2.0"):
         """
         walk over code dir & find all known old dir arguments & change them to new naming convention
         """

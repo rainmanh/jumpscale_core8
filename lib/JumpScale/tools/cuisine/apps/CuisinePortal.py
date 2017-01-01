@@ -47,6 +47,7 @@ class CuisinePortal(base):
         """
         self.cuisine.bash.fixlocale()
         if not reset and self.doneGet("install"):
+            j.tools.cuisine.local.apps.mongodb.install()
             self.linkCode()
             if start:
                 self.start()

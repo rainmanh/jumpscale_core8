@@ -2306,16 +2306,12 @@ class Installer():
         if sys.platform.startswith('win'):
             raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
         elif sys.platform.startswith('darwin'):
-            if "core_apps_installed" not in self.do.done:
-                cmds = "tmux psutils libtiff libjpeg jpeg webp little-cms2"
-                for item in cmds.split(" "):
-                    if item.strip() != "":
-                        cmd = "brew unlink %s;brew install %s;brew link %s" % (item, item,item)
-                        self.do.execute(cmd)
-                # self.do.doneSet("core_apps_installed")
-            else:
-                print("no need to prepare system for base, already done.")
-
+            cmds = "tmux psutils libtiff libjpeg jpeg webp little-cms2"
+            for item in cmds.split(" "):
+                if item.strip() != "":
+                    cmd = "brew unlink %s;brew install %s;brew link %s" % (item, item,item)
+                    self.do.execute(cmd)
+                    
         self.do.dependencies.all()
 
     def gitConfig(self, name, email):

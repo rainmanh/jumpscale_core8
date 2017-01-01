@@ -43,17 +43,14 @@ fi
 }
 
 function pip_install {
-    if [ -e $TMPDIR/jsinstall_systemcomponents_done ] ; then
-        echo "NO NEED TO INSTALL PIP COMPONENTS"
-    else
-        cd $TMPDIR
-        curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python3 get-pip.py
-        pip3 install --upgrade pip setuptools
-        pip3 install --upgrade pyyaml
-        # pip3 install --upgrade uvloop
-        pip3 install --upgrade ipython
-        pip3 install --upgrade python-snappy
-    fi
+    cd $TMPDIR
+    rm -rf get-pip.py
+    curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python3 get-pip.py
+    pip3 install --upgrade pip setuptools
+    pip3 install --upgrade pyyaml
+    # pip3 install --upgrade uvloop
+    pip3 install --upgrade ipython
+    pip3 install --upgrade python-snappy
 }
 
 if [ "$(uname)" == "Darwin" ]; then

@@ -2312,7 +2312,7 @@ class Installer():
             raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
         elif sys.platform.startswith('darwin'):
             if "core_apps_installed" not in self.do.done:
-                cmds = "tmux psutils libtiff libjpeg webp little-cms2"
+                cmds = "tmux psutils libtiff libjpeg jpeg webp little-cms2"
                 for item in cmds.split(" "):
                     if item.strip() != "":
                         cmd = "brew unlink %s;brew install %s" % (item, item)

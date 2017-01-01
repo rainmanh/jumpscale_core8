@@ -114,7 +114,6 @@ pip_install
 touch $TMPDIR/jsinstall_systemcomponents_done
 
 set -ex
-branch=${JSBRANCH-master}
 
 cd $STARTDIR
 
@@ -127,9 +126,9 @@ if [ -e "bootstrap.py" ]; then
     cp InstallTools.py $TMPDIR/InstallTools.py
     cp dependencies.py $TMPDIR/dependencies.py
 else
-    curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/bootstrap.py?$RANDOM  > $TMPDIR/bootstrap.py
-    curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/InstallTools.py?$RANDOM > $TMPDIR/InstallTools.py
-    curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/dependencies.py?$RANDOM > $TMPDIR/dependencies.py
+    curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/bootstrap.py?$RANDOM  > $TMPDIR/bootstrap.py
+    curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/InstallTools.py?$RANDOM > $TMPDIR/InstallTools.py
+    curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/dependencies.py?$RANDOM > $TMPDIR/dependencies.py
 fi
 
 

@@ -8,8 +8,11 @@ if [ -d "/tmp" ]; then
 fi
 
 #TO RESET, to develop faster uncomment
-rm -f $TMPDIR/jsinstall_systemcomponents_done
 rm -f $TMPDIR/done.yaml
+rm -rf /opt/var/cfg/jumpscale/
+rm -f $TMPDIR/jumpscale_done.yaml
+rm -rf $TMPDIR/jsexecutor.json
+rm -f $TMPDIR/done
 
 cd $TMPDIR
 
@@ -112,8 +115,6 @@ fi
 clean_system
 
 pip_install
-
-touch $TMPDIR/jsinstall_systemcomponents_done
 
 set -ex
 

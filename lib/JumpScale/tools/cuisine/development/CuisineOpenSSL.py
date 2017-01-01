@@ -53,12 +53,16 @@ class CuisineOpenSSL(base):
             set -ex
             cd $CODEDIR
             # ./config
-            ./Configure darwin64-x86_64-cc shared enable-ec_nistp_64_gcc_128 no-ssl2 no-ssl3 no-comp --openssldir=$BUILDDIR --prefix=$BUILDDIR
+            ./Configure $target shared enable-ec_nistp_64_gcc_128 no-ssl2 no-ssl3 no-comp --openssldir=$BUILDDIR --prefix=$BUILDDIR
             make depend
             make install
             rm -rf $BUILDDIR/share
             rm -rf $BUILDDIR/private
             """
+            if self.cuisine.core.isMac:
+                C=C.replace("$target","darwin64-x86_64-cc")
+            else:
+                C=C.replace("$target","linux-generic64")
             self.cuisine.core.run(self.replace(C))
             self.doneSet("compile")
             self.log("BUILD DONE")

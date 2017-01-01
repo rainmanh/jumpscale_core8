@@ -25,16 +25,18 @@ function osx_install {
     if [ -e $TMPDIR/jsinstall_systemcomponents_done ] ; then
         echo "NO NEED TO INSTALL CURL/PYTHON/GIT"
     else
+        set +ex
         brew unlink curl
-        brew install curl
-        brew link --overwrite curl
         brew unlink python3
-        brew install python3
-        brew link --overwrite python3
         brew unlink git
+        set -ex
+    brew install python3
+        brew link --overwrite python3
         brew install git
         brew link --overwrite git
-    fi
+        brew install curl
+        brew link --overwrite curl
+fi
 }
 
 function pip_install {

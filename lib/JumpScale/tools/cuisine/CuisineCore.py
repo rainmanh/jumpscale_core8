@@ -408,7 +408,15 @@ class CuisineCore(base):
             else:
                 raise j.exceptions.RuntimeError("not implemented yet")
         if destination:
-            self.file_copy(to, destination)
+            #make sure we don't copy to ourselves
+            destinationCheck=self.replace(destination).strip().replace("//","/")
+            toCheck=self.replace(to).strip().replace("//","/")
+            if os.path.dirname(toCheck)==os.path.dirname(destinationCheck):
+                pass
+            elif os.path.dirname(toCheck)==destinationCheck:
+                pass
+            else:
+                self.file_copy(to, destination)
         if expand:
             return self.file_expand(to, destdir)
 

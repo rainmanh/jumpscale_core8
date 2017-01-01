@@ -1927,7 +1927,7 @@ class Installer():
         if sys.platform.startswith('win'):
             raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
 
-        PYTHONVERSION = "3.5"
+        PYTHONVERSION = "3.6"
 
         print(("Install Jumpscale in %s" % os.environ["JSBASE"]))
 
@@ -2004,7 +2004,7 @@ class Installer():
         #             ''')
 
         # link python
-        src = "/usr/bin/python3.5"
+        src = "/usr/bin/python3.6"
         if self.do.exists(src):
             # self.do.delete("/usr/bin/python")
             if not self.do.TYPE.startswith("OSX"):
@@ -2074,9 +2074,8 @@ class Installer():
         for key, val in os.environ.items():
             if "DIR" in key:
                 config["dirs"][key] = val
-
-        with open("%s/jumpscale/system.yaml" % os.environ["CFGDIR"], 'w') as outfile:
-            yaml.dump(config, outfile, default_flow_style=False)
+        configJSON=yaml.dump(config, default_flow_style=False)
+        do.writeFile("%s/jumpscale/system.yaml" % os.environ["CFGDIR"],configJSON)
 
         C = """
         # By default, AYS will use the JS redis. This is for quick testing

@@ -12,7 +12,7 @@ import codecs
 import pickle as pickle
 import stat
 from stat import ST_MTIME
-from SystemFSWalker import *
+from JumpScale.sal.fs.SystemFSWalker import *
 
 
 # We import only jumpscale as the j.sal.fs is used before jumpscale is

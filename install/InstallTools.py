@@ -2190,7 +2190,7 @@ class Installer():
         #!/bin/bash
         # set -x
         source $BASEDIR/env.sh
-        exec python3.5 -q "$@"
+        exec python3 -q "$@"
         """
 
         # C2=C2.format(base=basedir, env=envfile)
@@ -2315,7 +2315,7 @@ class Installer():
                 cmds = "tmux psutils libtiff libjpeg jpeg webp little-cms2"
                 for item in cmds.split(" "):
                     if item.strip() != "":
-                        cmd = "brew unlink %s;brew install %s" % (item, item)
+                        cmd = "brew unlink %s;brew install %s;brew link %s" % (item, item,item)
                         self.do.execute(cmd)
                 self.do.doneSet("core_apps_installed")
             else:

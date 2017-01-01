@@ -2310,7 +2310,7 @@ class Installer():
             for item in cmds.split(" "):
                 if item.strip() != "":
                     self.do.execute("brew unlink %s",die=False)
-                    cmd = "brew install %s;brew link --overwrite %s" % (item, item,item)
+                    cmd = "brew install %s;brew link --overwrite %s" % (item,item)
                     self.do.execute(cmd)
 
         self.do.dependencies.all()

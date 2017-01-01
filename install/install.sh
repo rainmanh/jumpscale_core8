@@ -38,7 +38,6 @@ function osx_install {
     brew link --overwrite git
     brew install curl
     brew link --overwrite curl
-fi
 }
 
 function pip_install {

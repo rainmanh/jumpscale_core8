@@ -2309,9 +2309,10 @@ class Installer():
             cmds = "tmux psutils libtiff libjpeg jpeg webp little-cms2"
             for item in cmds.split(" "):
                 if item.strip() != "":
-                    cmd = "brew unlink %s;brew install %s;brew link %s" % (item, item,item)
+                    self.do.execute("brew unlink %s",die=False)
+                    cmd = "brew install %s;brew link --overwrite %s" % (item, item,item)
                     self.do.execute(cmd)
-                    
+
         self.do.dependencies.all()
 
     def gitConfig(self, name, email):

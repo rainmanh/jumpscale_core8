@@ -2436,10 +2436,8 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         if self.config != {}:
             return self.config["dirs"]["TMPDIR"]
         else:
-            from IPython import embed
-            print ("DEBUG NOW tmpdir")
-            embed()
-            raise RuntimeError("stop debug here")
+            if self.exists("/tmp"):
+                os.environ["TMPDIR"]="/tmp"
             return os.environ["TMPDIR"]
 
     @property

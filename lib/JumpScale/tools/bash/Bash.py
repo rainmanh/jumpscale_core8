@@ -167,7 +167,6 @@ class Bash:
         os.environ[key] = val
         self.profile.set(key, val)
         self.write()
-        self.reset()
 
     def setOurProfile(self):
         mpath = j.sal.fs.joinPaths(self.home, ".profile")

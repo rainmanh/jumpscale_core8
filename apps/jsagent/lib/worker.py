@@ -247,7 +247,7 @@ if __name__ == '__main__':
 
     j.application.start("jumpscale:worker:%s" % opts.queuename)
 
-    if j.application.config.exists("grid.id"):
+    if j.application.config.jsagent.get("grid.id", False):
         j.application.initGrid()
 
     logger = j.logger.get(j.logger.root_logger_name)

@@ -243,10 +243,6 @@ class HRD(HRDBase):
         key = key.lower()
         # print "set:%s %s |%s|"%(key,value,data)
         if self.prefixWithName:
-            from IPython import embed
-            print("DEBUG NOW 999")
-            embed()
-            raise RuntimeError("stop debug here")
             if self.name == "":
                 raise j.exceptions.RuntimeError("name cannot be empty when prefixWithName used.")
             key = key.replace('%s.' % self.name, '')

@@ -19,6 +19,23 @@ import re
 import inspect
 import yaml
 import importlib
+import fcntl
+
+
+class FileLock():
+    def __init__(self, fname):
+        self._fname = fname
+        self._f = None
+
+    def __enter__(self):
+        self._f = open(self._fname, 'w')
+        fcntl.lockf(self._f, fcntl.LOCK_EX)
+
+    def __exit__(self, *exit):
+        try:
+            fcntl.lockf(self._f, fcntl.LOCK_UN)
+        finally:
+            self._f.close()
 
 
 class Installer():
@@ -173,9 +190,7 @@ class Installer():
             self.do.delete(ppath)
         return self._readonly
 
-    def writeEnv(self):
-
-        print("WRITENV")
+    def _writeSystemEnv(self, cfgDir=None):
         self.do.createDir("%s/jumpscale" % os.environ["CFGDIR"])
         config = {}
         for category, items in {"identity": ["EMAIL", "FULLNAME", "GITHUBUSER"],
@@ -199,9 +214,11 @@ class Installer():
                             os.environ[item] += "/"
                         config[category][item] = os.environ[item]
 
-        with open("%s/jumpscale/system.yaml" % os.environ["CFGDIR"], 'w') as outfile:
+        cfgDir = cfgDir or os.environ["CFGDIR"]
+        with open("%s/jumpscale/system.yaml" % cfgDir, 'w') as outfile:
             yaml.dump(config, outfile, default_flow_style=False)
 
+    def _writeAYSEnv(self, cfgDir=None):
         C = """
         # By default, AYS will use the JS redis. This is for quick testing
         # and development. To configure a persistent/different redis, uncomment
@@ -222,12 +239,16 @@ class Installer():
             os.environ["AYSGIT"] = "https://github.com/Jumpscale/ays_jumpscale8"
         if "AYSBRANCH" not in os.environ or os.environ["AYSBRANCH"].strip() == "":
             os.environ["AYSBRANCH"] = "master"
+
         C = C.format(**os.environ)
 
-        hpath = "%s/jumpscale/ays.yaml" % os.environ["CFGDIR"]
+        cfgDir = cfgDir or os.environ["CFGDIR"]
+
+        hpath = "%s/jumpscale/ays.yaml" % cfgDir
         if not self.do.exists(path=hpath):
             self.do.writeFile(hpath, C)
 
+    def _writeLoggingEnv(self, cfgDir=None):
         C = """
         mode: 'DEV'
         level: 'DEBUG'
@@ -237,7 +258,15 @@ class Installer():
             - 'j.data.hrd'
             - 'j.application'
         """
-        self.do.writeFile("%s/jumpscale/logging.yaml" % os.environ["CFGDIR"], C)
+        cfgDir = cfgDir or os.environ["CFGDIR"]
+        self.do.writeFile("%s/jumpscale/logging.yaml" % cfgDir, C)
+
+    def writeEnv(self):
+
+        print("WRITENV")
+        self._writeSystemEnv()
+        self._writeAYSEnv()
+        self._writeLoggingEnv()
 
         C = """
 
@@ -275,6 +304,9 @@ class Installer():
         $pythonhome
         export PYTHONPATH=$pythonpath
 
+        $locale1
+        $locale2
+
         export LD_LIBRARY_PATH=$JSBASE/bin
         export PS1="(JS8) $PS1"
         if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
@@ -289,10 +321,14 @@ class Installer():
             C = C.replace('$pythonhome', '')
 
         if self.do.TYPE.startswith("OSX"):
-            pass
             # C = C.replace("$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/plat-x86_64-linux-gnu:/usr/local/lib/python3.5/site-packages:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/plat-darwin:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload")
             C = C.replace("$pythonpath", ".:$JSBASE/lib:$_OLD_PYTHONPATH")
+            C = C.replace("$locale1", "export LC_ALL=en_US.UTF-8")
+            C = C.replace("$locale2", "export LANG=en_US.UTF-8")
+
         else:
+            C = C.replace("$locale1", "")
+            C = C.replace("$locale2", "")
             C = C.replace(
                 "$pythonpath", ".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu:$_OLD_PYTHONPATH")
         envfile = "%s/env.sh" % os.environ["JSBASE"]
@@ -438,9 +474,14 @@ class Installer():
                 cmds = "tmux psutils libtiff libjpeg webp little-cms2"
                 for item in cmds.split(" "):
                     if item.strip() != "":
-                        cmd = "brew unlink %s;brew install %s" % (item, item)
+                        cmd = "brew unlink %s" % (item)
                         self.do.execute(cmd)
-                self.do.doneSet("core_apps_installed")
+                        cmd = "brew install %s" % (item)
+                        self.do.execute(cmd)
+                        cmd = "brew link --overwrite %s" % (item)
+                        self.do.execute(cmd)
+
+                        self.do.doneSet("core_apps_installed")
             else:
                 print("no need to prepare system for base, already done.")
 
@@ -600,7 +641,7 @@ class InstallTools():
 
     @property
     def config(self):
-        if self._config == None:
+        if self._config is None:
             if self.exists(self.configPath):
                 with open(self.configPath, 'r') as conf:
                     self._config = yaml.load(conf)
@@ -1775,6 +1816,7 @@ class InstallTools():
 
         @asyncio.coroutine
         def _read_stream(_showout, stream):
+            # print("showout:%s" % showout)
             """coroutine to read prints output based on stream"""
             out = ''
             while True:
@@ -2259,68 +2301,69 @@ class InstallTools():
         the primary key is 'id_rsa' and will be used as default e.g. if authorizing another node then this key will be used
 
         """
-        # check if more than 1 agent
-        socketpath = self._getSSHSocketpath()
-        res = [item for item in self.execute("ps aux|grep ssh-agent", False, False)
-               [1].split("\n") if item.find("grep ssh-agent") == -1]
-        res = [item for item in res if item.strip() != ""]
-        res = [item for item in res if item[-2:] != "-l"]
+        with FileLock('/tmp/ssh-agent'):
+            # check if more than 1 agent
+            socketpath = self._getSSHSocketpath()
+            res = [item for item in self.execute("ps aux|grep ssh-agent", False, False)
+                   [1].split("\n") if item.find("grep ssh-agent") == -1]
+            res = [item for item in res if item.strip() != ""]
+            res = [item for item in res if item[-2:] != "-l"]
 
-        if len(res) > 1:
-            print("more than 1 ssh-agent, will kill all")
-            killfirst = True
-        if len(res) == 0 and self.exists(socketpath):
-            self.delete(socketpath)
+            if len(res) > 1:
+                print("more than 1 ssh-agent, will kill all")
+                killfirst = True
+            if len(res) == 0 and self.exists(socketpath):
+                self.delete(socketpath)
 
-        if killfirst:
-            cmd = "killall ssh-agent"
-            # print(cmd)
-            self.execute(cmd, showout=False, outputStderr=False, die=False)
-            # remove previous socketpath
-            self.delete(socketpath)
-            self.delete(self.joinPaths(self.TMPDIR, "ssh-agent-pid"))
+            if killfirst:
+                cmd = "killall ssh-agent"
+                # print(cmd)
+                self.execute(cmd, showout=False, outputStderr=False, die=False)
+                # remove previous socketpath
+                self.delete(socketpath)
+                self.delete(self.joinPaths(self.TMPDIR, "ssh-agent-pid"))
 
-        if not self.exists(socketpath):
-            self.createDir(self.getParent(socketpath))
-            # ssh-agent not loaded
-            print("load ssh agent")
-            rc, result, err = self.execute("ssh-agent -a %s" % socketpath, die=False, showout=False, outputStderr=False)
+            if not self.exists(socketpath):
+                self.createDir(self.getParent(socketpath))
+                # ssh-agent not loaded
+                print("load ssh agent")
+                rc, result, err = self.execute("ssh-agent -a %s" % socketpath, die=False, showout=False, outputStderr=False)
 
-            if rc > 0:
-                # could not start ssh-agent
+                if rc > 0:
+                    # could not start ssh-agent
+                    raise RuntimeError(
+                        "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
+                else:
+                    # get pid from result of ssh-agent being started
+                    if not self.exists(socketpath):
+                        raise RuntimeError(
+                            "Serious bug, ssh-agent not started while there was no error, should never get here")
+                    piditems = [item for item in result.split("\n") if item.find("pid") != -1]
+                    # print(piditems)
+                    if len(piditems) < 1:
+                        print("results was:")
+                        print(result)
+                        print("END")
+                        raise RuntimeError("Cannot find items in ssh-add -l")
+                    self._initSSH_ENV(True)
+                    pid = int(piditems[-1].split(" ")[-1].strip("; "))
+                    self.writeFile(self.joinPaths(self.TMPDIR, "ssh-agent-pid"), str(pid))
+                    self._addSSHAgentToBashProfile()
+
+            # ssh agent should be loaded because ssh-agent socket has been found
+            if os.environ.get("SSH_AUTH_SOCK") != socketpath:
+                self._initSSH_ENV(True)
+            rc, result, err = self.execute("ssh-add -l", die=False, showout=False, outputStderr=False)
+            if rc == 2:
+                # no ssh-agent found
+                print(result)
+                raise RuntimeError("Could not connect to ssh-agent, this is bug, ssh-agent should be loaded by now")
+            elif rc == 1:
+                # no keys but agent loaded
+                result = ""
+            elif rc > 0:
                 raise RuntimeError(
                     "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
-            else:
-                # get pid from result of ssh-agent being started
-                if not self.exists(socketpath):
-                    raise RuntimeError(
-                        "Serious bug, ssh-agent not started while there was no error, should never get here")
-                piditems = [item for item in result.split("\n") if item.find("pid") != -1]
-                # print(piditems)
-                if len(piditems) < 1:
-                    print("results was:")
-                    print(result)
-                    print("END")
-                    raise RuntimeError("Cannot find items in ssh-add -l")
-                self._initSSH_ENV(True)
-                pid = int(piditems[-1].split(" ")[-1].strip("; "))
-                self.writeFile(self.joinPaths(self.TMPDIR, "ssh-agent-pid"), str(pid))
-                self._addSSHAgentToBashProfile()
-
-        # ssh agent should be loaded because ssh-agent socket has been found
-        if os.environ.get("SSH_AUTH_SOCK") != socketpath:
-            self._initSSH_ENV(True)
-        rc, result, err = self.execute("ssh-add -l", die=False, showout=False, outputStderr=False)
-        if rc == 2:
-            # no ssh-agent found
-            print(result)
-            raise RuntimeError("Could not connect to ssh-agent, this is bug, ssh-agent should be loaded by now")
-        elif rc == 1:
-            # no keys but agent loaded
-            result = ""
-        elif rc > 0:
-            raise RuntimeError(
-                "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
 
     def checkSSHAgentAvailable(self):
         if not self.exists(self._getSSHSocketpath()):
@@ -2426,17 +2469,18 @@ class InstallTools():
         will ignore changes !!!!!!!!!!!
 
         @param ssh ==True means will checkout ssh
-        @param ssh =="first" means will checkout sss first if that does not work will go to http
+        @param ssh =="auto" means will checkout ssh first if that does not work will go to http
         """
-
-        if ssh == "first":
+        if ssh == "auto":
             try:
                 return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
                                         reset, branch, revision, True, executor)
             except Exception as e:
-                return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
+                try:
+                    return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
                                         reset, branch, revision, False, executor)
-            raise RuntimeError("Could not checkout, needs to be with ssh or without.")
+                except Exception as e:
+                    raise RuntimeError("Could not checkout, needs to be with ssh or without.")
 
         base, provider, account, repo, dest, url = self.getGitRepoArgs(
             url, dest, login, passwd, reset=reset, ssh=ssh, codeDir=codeDir, executor=executor)
@@ -2491,13 +2535,13 @@ class InstallTools():
                 extra = "--depth=%s" % depth
             if url.find("http") != -1:
                 if branch is not None:
-                    cmd = "cd %s;git -c http.sslVerify=false clone %s --single-branch -b %s %s %s" % (
+                    cmd = "cd %s;git -c http.sslVerify=false clone %s -b %s %s %s" % (
                         self.getParent(dest), extra, branch, url, dest)
                 else:
                     cmd = "cd %s;git -c http.sslVerify=false clone %s  %s %s" % (self.getParent(dest), extra, url, dest)
             else:
                 if branch is not None:
-                    cmd = "cd %s;git clone %s --single-branch -b %s %s %s" % (
+                    cmd = "cd %s;git clone %s -b %s %s %s" % (
                         self.getParent(dest), extra, branch, url, dest)
                 else:
                     cmd = "cd %s;git clone %s  %s %s" % (self.getParent(dest), extra, url, dest)

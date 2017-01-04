@@ -59,15 +59,34 @@ class RunsCollection:
                     res1.append(key)
         return res1
 
+
     def find(self, state="", repo="", fromEpoch=0, toEpoch=9999999999999):
         res = []
-        for key in self._list_keys(state, fromEpoch, toEpoch):
+        keys = self._list_keys(state, fromEpoch, toEpoch)
+
+        for key in keys:
             if repo:
                 model = self.get(key)
                 if model.dbobj.repo != repo:
                     continue
             res.append(self.get(key))
         return res
+
+    def delete(self, state="", repo="", fromEpoch=0, toEpoch=9999999999999):
+        for key in self._list_keys(state, fromEpoch, toEpoch):
+            if repo:
+                model = self.get(key)
+
+                if model.dbobj.repo != repo.model.key:
+                    continue
+                idx = str(model.dbobj.state) + ':' + str(model.dbobj.lastModDate)
+                self._index.index_remove(key=idx)
+                self._db.delete(key=key)
+                # for job in model.jobs .. job. remove job
+                for step in model.dbobj.steps:
+                    for job in step.jobs:
+                        j.core.jobcontroller.db.jobs._db.delete(job.key)
+
 
     def destroy(self):
         self._db.destroy()

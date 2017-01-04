@@ -35,11 +35,24 @@ class RepoModel(ModelBase):
         try:
             repo = j.atyourservice._repoLoad(self.dbobj.path)
         except j.exceptions.NotFound as err:
-            self.logger.error("Repository at {path} doesn't exists. remove it from database".format(path=self.dbobj.path))
+            self.logger.error(
+                "Repository at {path} doesn't exists. remove it from database".format(path=self.dbobj.path))
             self.delete()
             raise err
 
         return repo
+
+    @property
+    def no_exec(self):
+        return self.dbobj.noExec
+
+    def enable_no_exec(self):
+        self.dbobj.noExec = True
+        self.save()
+
+    def disable_no_exec(self):
+        self.dbobj.noExec = False
+        self.save()
 
     def _pre_save(self):
         pass

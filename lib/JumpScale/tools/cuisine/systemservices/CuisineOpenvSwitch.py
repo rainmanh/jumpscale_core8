@@ -29,6 +29,7 @@ class CuisineOpenvSwitch(app):
         self._cuisine = cuisine
         self._executor = executor
         self.__controller = None
+        self._apt_packages = ['openssl', 'openvswitch-switch', 'openvswitch-common']
 
     @property
     def _controller(self):
@@ -54,14 +55,17 @@ class CuisineOpenvSwitch(app):
         if self.isInstalled():
             return
         if self._cuisine.core.isUbuntu:
-            self._cuisine.package.install('openssl')
-            self._cuisine.package.install('openvswitch-switch')
-            self._cuisine.package.install('openvswitch-common')
-            # TODO: check is ubuntu 16.04
+            self._cuisine.package.multiInstall(self._apt_packages)
         else:
             raise RuntimeError("only support ubuntu")
         # do checks if openvswitch installed & configured properly if not
         # install
+
+    def uninstall(self):
+        if not self.isInstalled():
+            return
+        for package in self._apt_packages:
+            self._cuisine.core.package.remove(package)
 
     def networkCreate(self, network_name, bridge_name=None, interfaces=None, ovs=True, start=True):
         """

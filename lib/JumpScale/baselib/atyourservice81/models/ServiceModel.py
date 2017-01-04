@@ -157,7 +157,8 @@ class ServiceModel(ActorServiceBaseModel):
                 self._index.index_remove(key)
 
         # delete actual model object
-        self._db.delete(self.key)
+        if self._db.exists(self.key):
+            self._db.delete(self.key)
 
     def objectGet(self, aysrepo):
         """

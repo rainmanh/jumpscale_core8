@@ -85,14 +85,6 @@ class ActorTemplate():
         if j.sal.fs.exists(hrdpath):
             return j.data.hrd.get(hrdpath, prefixWithName=False)
         else:
-            # check if we can find it in other ays template
-            if self.name.find(".") != -1:
-                name0 = self.name.split(".", 1)[0]
-                res = j.atyourservice.actorTemplatesFind(name=name0)
-                if len(res) == 1:
-                    return res[0].hrd
-                elif len(res) > 1:
-                    raise j.exceptions.RuntimeError('Found more then one actor template with name %s' % name)
             return j.data.hrd.get(content="")
 
     @property

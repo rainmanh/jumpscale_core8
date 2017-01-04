@@ -1,8 +1,11 @@
 
 from JumpScale import j
+from JumpScale.sal.fs.SystemFS import FileLock
 
 base = j.tools.cuisine._getBaseClass()
 
+LOCK_NAME = 'APT-LOCK'
+LOCK_TIMEOUT = 500
 
 class CuisinePackage(base):
 
@@ -18,13 +21,15 @@ class CuisinePackage(base):
     def _apt_get(self, cmd):
         CMD_APT_GET = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" '
         cmd = CMD_APT_GET + cmd
-        result = self._cuisine.core.sudo(cmd)
+        with FileLock(LOCK_NAME, locktimeout=LOCK_TIMEOUT):
+            result = self._cuisine.core.sudo(cmd)
         # If the installation process was interrupted, we might get the following message
         # E: dpkg was interrupted, you must manually self._cuisine.core.run 'sudo
         # dpkg --configure -a' to correct the problem.
         if "sudo dpkg --configure -a" in result:
-            self._cuisine.core.sudo("DEBIAN_FRONTEND=noninteractive dpkg --configure -a")
-            result = self._cuisine.core.sudo(cmd)
+            with FileLock(LOCK_NAME, locktimeout=LOCK_TIMEOUT):
+                self._cuisine.core.sudo("DEBIAN_FRONTEND=noninteractive dpkg --configure -a")
+                result = self._cuisine.core.sudo(cmd)
         return result
 
     def update(self, package=None):
@@ -44,7 +49,8 @@ class CuisinePackage(base):
         """
         self.logger.info("packages mdupdate")
         if self._cuisine.core.isUbuntu:
-            self._cuisine.core.run("apt-get update")
+            with FileLock(LOCK_NAME, locktimeout=LOCK_TIMEOUT):
+                self._cuisine.core.run("apt-get update")
         elif self._cuisine.core.isMac:
             location = self._cuisine.core.command_location("brew")
             # self._cuisine.core.run("sudo chown root %s" % location)
@@ -75,9 +81,10 @@ class CuisinePackage(base):
     def install(self, package, allow_unauthenticated=False):
 
         if self._cuisine.core.isUbuntu:
-            cmd = "apt-get install -y --assume-yes "
+            cmd = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes install '
             if allow_unauthenticated:
                 cmd += ' --allow-unauthenticated '
+
             cmd += package
 
         elif self._cuisine.core.isArch:
@@ -127,21 +134,22 @@ class CuisinePackage(base):
             raise j.exceptions.RuntimeError("could not install:%s, platform not supported" % package)
 
         mdupdate = False
-        while True:
-            rc, out, err = self._cuisine.core.run(cmd, die=False)
+        with FileLock(LOCK_NAME, locktimeout=LOCK_TIMEOUT):
+            while True:
+                rc, out, err = self._cuisine.core.run(cmd, die=False)
 
-            if rc > 0:
-                if mdupdate is True:
-                    raise j.exceptions.RuntimeError("Could not install:'%s' \n%s" % (package, out))
+                if rc > 0:
+                    if mdupdate is True:
+                        raise j.exceptions.RuntimeError("Could not install:'%s' \n%s" % (package, out))
 
-                if out.find("not found") != -1 or out.find("failed to retrieve some files") != -1:
-                    self.mdupdate()
-                    mdupdate = True
-                    continue
+                    if out.find("not found") != -1 or out.find("failed to retrieve some files") != -1:
+                        self.mdupdate()
+                        mdupdate = True
+                        continue
 
-                raise j.exceptions.RuntimeError("Could not install:%s %s" % (package, err))
+                    raise j.exceptions.RuntimeError("Could not install:%s %s" % (package, err))
 
-            return out
+                return out
 
     def multiInstall(self, packagelist, allow_unauthenticated=False):
         """
@@ -194,7 +202,8 @@ class CuisinePackage(base):
                     continue
                 # The most reliable way to detect success is to use the command status
                 # and suffix it with OK. This won't break with other locales.
-                _, status, _ = self._cuisine.core.run("dpkg-query -W -f='${Status} ' %s && echo **OK**;true" % p)
+                with FileLock(LOCK_NAME, locktimeout=LOCK_TIMEOUT):
+                    _, status, _ = self._cuisine.core.run("dpkg-query -W -f='${Status} ' %s && echo **OK**;true" % p)
                 if not status.endswith("OK") or "not-installed" in status:
                     self.install(p)
                     res[p] = False
@@ -225,10 +234,11 @@ class CuisinePackage(base):
 
         """
         if self._cuisine.core.isUbuntu:
-            if package is not None:
-                return self._apt_get("-y --purge remove %s" % package)
-            else:
-                self._cuisine.core.run("apt-get autoremove -y")
+            with FileLock(LOCK_NAME, locktimeout=LOCK_TIMEOUT):
+                if package is not None:
+                    return self._apt_get("-y --purge remove %s" % package)
+                else:
+                    self._cuisine.core.run("apt-get autoremove -y")
 
             self._apt_get("autoclean")
             C = """

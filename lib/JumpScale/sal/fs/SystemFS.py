@@ -37,6 +37,8 @@ if not sys.platform.startswith('win'):
 
 _LOCKDICTIONARY = dict()
 
+logger = j.logger.get('j.sal.fs')
+
 
 class LockException(Exception):
 
@@ -69,7 +71,7 @@ def cleanupString(string, replacewith="_", regex="([^A-Za-z0-9])"):
 
 def lock(lockname, locktimeout=60, reentry=False):
     '''Take a system-wide interprocess exclusive lock. Default timeout is 60 seconds'''
-    j.sal.fs.logger.debug('Lock with name: %s' % lockname)
+    logger.debug('Lock with name: %s' % lockname)
     try:
         result = lock_(lockname, locktimeout, reentry)
     except Exception as e:
@@ -151,7 +153,7 @@ def islocked(lockname, reentry=False):
 
 def unlock(lockname):
     """Unlock system-wide interprocess lock"""
-    j.sal.fs.logger.log('UnLock with name: %s' % lockname, 6)
+    logger.debug('Unlock with name: %s' % lockname)
     try:
         unlock_(lockname)
     except Exception as msg:
@@ -205,19 +207,20 @@ class FileLock:
     @see: L{unlock}
     '''
 
-    def __init__(self, lock_name, reentry=False):
+    def __init__(self, lock_name, reentry=False, locktimeout=60):
         self.lock_name = lock_name
         self.reentry = reentry
+        self.locktimeout = locktimeout
 
     def __enter__(self):
-        lock(self.lock_name, reentry=self.reentry)
+        lock(self.lock_name, reentry=self.reentry, locktimeout=self.locktimeout)
 
     def __exit__(self, *exc_info):
         unlock(self.lock_name)
 
     def __call__(self, func):
         def wrapper(*args, **kwargs):
-            lock(self.lock_name, reentry=self.reentry)
+            lock(self.lock_name, reentry=self.reentry, locktimeout=self.locktimeout)
             try:
                 return func(*args, **kwargs)
             finally:
@@ -870,9 +873,11 @@ class SystemFS:
             raise j.exceptions.RuntimeError(
                 'Failed to get current working directory')
 
-    def readlink(self, path):
+    def readlink(self, path, absolute=True):
         """Works only for unix
         Return a string representing the path to which the symbolic link points.
+        @param absolute, if True then look for absolute source location
+        returns the source location
         """
         while path[-1] == "/" or path[-1] == "\\":
             path = path[:-1]
@@ -881,12 +886,25 @@ class SystemFS:
             raise TypeError('Path is not passed in system.fs.readLink')
         if j.core.platformtype.myplatform.isUnix():
             try:
-                return os.readlink(path)
+                res = os.readlink(path)
             except Exception as e:
                 raise j.exceptions.RuntimeError(
                     'Failed to read link with path: %s \nERROR: %s' % (path, str(e)))
         elif j.core.platformtype.myplatform.isWindows():
             raise j.exceptions.RuntimeError('Cannot readLink on windows')
+
+        if res.startswith("..") and absolute:
+            if self.isFile(path):
+                srcDir = self.getDirName(path)
+            elif self.isDir(path):
+                srcDir = res
+            else:
+                raise j.exceptions.Input(message="link can only be file or dir", level=1, source="", tags="", msgpub="")
+
+            path = self.joinPaths(srcDir, res)
+            res = os.path.abspath(path)
+
+        return res
 
     def removeLinks(self, path):
         """
@@ -981,7 +999,6 @@ class SystemFS:
         # 2. `sensitive`: case-sensitive comparison
         # 3. `insensitive`: case-insensitive comparison
         """
-
         dircontent = self._listInDir(path)
         filesreturn = []
 
@@ -1499,7 +1516,6 @@ class SystemFS:
             fp.write(contents)
         # fp.write(contents)
         fp.close()
-
 
     def fileSize(self, filename):
         """Get Filesize of file in bytes

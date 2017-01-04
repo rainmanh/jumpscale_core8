@@ -10,14 +10,17 @@ class CuisineBrotli(app):
     def build(self, reset=False):
         if reset is False and self.isInstalled():
             return
+        sudo = 'sudo'
+        if self._cuisine.core.isMac:
+            sudo = ''
         C = """
         cd /tmp
-        sudo rm -rf brotli/
+        %s rm -rf brotli/
         git clone https://github.com/google/brotli.git
         cd /tmp/brotli/
         ./configure
         make bro
-        """
+        """ % sudo
         C = self._cuisine.core.args_replace(C)
         self._cuisine.core.execute_bash(C)
 
@@ -27,3 +30,4 @@ class CuisineBrotli(app):
         rm -rf /tmp/brotli
         """
         self._cuisine.core.execute_bash(C)
+        self._cuisine.development.pip.install('brotli>=0.5.2')

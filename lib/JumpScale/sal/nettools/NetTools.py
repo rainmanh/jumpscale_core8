@@ -2,6 +2,7 @@
 
 import time
 import socket
+import netaddr
 import re
 
 from JumpScale import j
@@ -10,7 +11,6 @@ IPBLOCKS = re.compile("(^|\n)(?P<block>\d+:.*?)(?=(\n\d+)|$)", re.S)
 IPMAC = re.compile("^\s+link/\w+\s+(?P<mac>(\w+:){5}\w{2})", re.M)
 IPIP = re.compile("^\s+inet\s(?P<ip>(\d+\.){3}\d+)/(?P<cidr>\d+)", re.M)
 IPNAME = re.compile("^\d+: (?P<name>.*?)(?=:)", re.M)
-
 
 def parseBlock(block):
     result = {'ip': [], 'cidr': [], 'mac': '', 'name': ''}
@@ -53,6 +53,12 @@ class NetTools:
             if conn:
                 conn.close()
         return True
+
+    def ip_to_num(self, ip="127.0.0.1"):
+        """
+        Convert an IP string to number
+        """
+        return int(netaddr.IPAddress(ip))
 
     def waitConnectionTest(self, ipaddr, port, timeout):
         """

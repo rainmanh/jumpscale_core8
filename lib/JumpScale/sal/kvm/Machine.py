@@ -3,6 +3,7 @@ from JumpScale import j
 import libvirt
 import yaml
 from BaseKVMComponent import BaseKVMComponent
+from MachineSnapshot import MachineSnapshot
 from time import sleep
 
 
@@ -47,6 +48,82 @@ class Machine(BaseKVMComponent):
         self._domain = None
         self._ip = None
         self._executor = None
+
+    @property
+    def is_created(self):
+        """
+        Return bool option is machine defined in libvirt or not.
+        """
+        try:
+            self.domain
+            return True
+        except libvirt.libvirtError as e:
+            return False
+
+    @property
+    def is_started(self):
+        """
+        Check if machine is started.
+        """
+        return bool(self.domain.isActive())
+
+
+    def create(self, username="root", passwd="gig1234", sshkey=None):
+        """
+        Create and define the instanse of the machine xml onto libvirt.
+
+        @param username  str: set the username to be set in the machine on boot.
+        @param passwd str: set the passwd to be set in the machine on boot.
+        @param sshkey str: public sshkey to authorize in the vm
+        """
+        cuisine = self.controller.executor.cuisine
+        cuisine.core.dir_ensure("%s/metadata/%s" % (self.controller.base_path, self.name))
+        if self.cloud_init:
+
+            sshkeys_to_authorize = [self.controller.pubkey]
+            if sshkey:
+                sshkeys_to_authorize.append(sshkey)
+
+            cuisine.core.dir_ensure("%s/metadata/%s" % (self.controller.base_path, self.name))
+            userdata = "#cloud-config\n"
+            userdata += yaml.dump({'chpasswd': {'expire': False},
+                                   'ssh_pwauth': True,
+                                   'users': [{'lock-passwd': False,
+                                              'name': username,
+                                              'plain_text_passwd': passwd,
+                                              'shell': '/bin/bash',
+                                              'ssh-authorized-keys': sshkeys_to_authorize,
+                                              'sudo': 'ALL=(ALL) NOPASSWD: ALL'}]
+                                   })
+            metadata = '{"local-hostname":"vm-%s"}' % self.name
+            userdata_path = "%s/metadata/%s/user-data" % (self.controller.base_path, self.name)
+            metadata_path = "%s/metadata/%s/meta-data" % (self.controller.base_path, self.name)
+            cuisine.core.file_write(userdata_path, userdata)
+            cuisine.core.file_write(metadata_path, metadata)
+            cmd = "genisoimage -o {base}/{name}_ci.iso -V cidata -r -J {metadata_path} {userdata_path}".format(
+                base=self.controller.base_path,
+                name=self.name,
+                metadata_path=metadata_path,
+                userdata_path=userdata_path)
+            cuisine.core.run(cmd)
+            cuisine.core.dir_remove("%s/images/%s " % (self.controller.base_path, self.name))
+        self.domain = self.controller.connection.defineXML(self.to_xml())
+
+    def start(self):
+        """
+        Start machine.
+        """
+        if self.is_started:
+            return 0
+        return self.domain.create() == 0
+
+    def delete(self):
+        """
+        Undefine machine in libvirt.
+        """
+        if not self.is_created:
+            return 0
+        return self.domain.undefine() == 0
 
     def to_xml(self):
         """
@@ -157,59 +234,6 @@ class Machine(BaseKVMComponent):
         """
         return self.executor.cuisine
 
-    def create(self, username="cloudscalers", passwd="gig1234"):
-        """
-        Create and define the instanse of the machine xml onto libvirt.
-
-        @param username  str: set the username to be set in the machine on boot.
-        @param passwd str: set the passwd to be set in the machine on boot.
-        """
-        cuisine = self.controller.executor.cuisine
-        cuisine.core.dir_ensure("%s/metadata/%s" % (self.controller.base_path, self.name))
-        if self.cloud_init:
-            cuisine.core.dir_ensure("%s/metadata/%s" % (self.controller.base_path, self.name))
-            userdata = "#cloud-config\n"
-            userdata += yaml.dump({'chpasswd': {'expire': False},
-                                   'ssh_pwauth': True,
-                                   'users': [{'lock-passwd': False,
-                                              'name': username,
-                                              'plain_text_passwd': passwd,
-                                              'shell': '/bin/bash',
-                                              'ssh-authorized-keys': [self.controller.pubkey],
-                                              'sudo': 'ALL=(ALL) NOPASSWD: ALL'}]
-                                   })
-            metadata = '{"local-hostname":"vm-%s"}' % self.name
-            userdata_path = "%s/metadata/%s/user-data" % (self.controller.base_path, self.name)
-            metadata_path = "%s/metadata/%s/meta-data" % (self.controller.base_path, self.name)
-            cuisine.core.file_write(userdata_path, userdata)
-            cuisine.core.file_write(metadata_path, metadata)
-            cmd = "genisoimage -o {base}/{name}_ci.iso -V cidata -r -J {metadata_path} {userdata_path}".format(
-                base=self.controller.base_path,
-                name=self.name,
-                metadata_path=metadata_path,
-                userdata_path=userdata_path)
-            cuisine.core.run(cmd)
-            cuisine.core.dir_remove("%s/images/%s " % (self.controller.base_path, self.name))
-        self.domain = self.controller.connection.defineXML(self.to_xml())
-
-    @property
-    def is_created(self):
-        """
-        Return bool option is machine defined in libvirt or not.
-        """
-        try:
-            self.domain
-            return True
-        except libvirt.libvirtError as e:
-            return False
-
-    @property
-    def is_started(self):
-        """
-        Check if machine is started.
-        """
-        return bool(self.domain.isActive())
-
     @property
     def state(self):
         """
@@ -227,18 +251,6 @@ class Machine(BaseKVMComponent):
         """
         return self.STATES[self.domain.state()[0]]
 
-    def delete(self):
-        """
-        Undefeine machine in libvirt.
-        """
-        return self.domain.undefine() == 0
-
-    def start(self):
-        """
-        Start machine.
-        """
-        return self.domain.create() == 0
-
     def shutdown(self, force=False):
         """
         Shutdown machine.
@@ -248,6 +260,7 @@ class Machine(BaseKVMComponent):
         else:
             return self.domain.shutdown() == 0
 
+    # to fullfill the BaseKVMComponent iterface
     stop = shutdown
 
     def suspend(self):

@@ -13,6 +13,11 @@ class Blueprint:
         self.aysrepo = aysrepo
         self.path = path
         self.active = True
+        self.models = []  # can be actions or services or recurring
+        self.actions = []
+        self.eventFilters = []
+        self._contentblocks = []
+
         if path != "":
             self.name = j.sal.fs.getBaseName(path)
             if self.name[0] == "_":
@@ -23,41 +28,34 @@ class Blueprint:
             self.name = 'unknown'
             self.content = content
 
-        try:
-            j.data.serializer.yaml.loads(self.content)
-        except yaml.YAMLError:
-            msg = 'Yaml format of the blueprint is not valid.'
-            raise j.exceptions.Input(message=msg, msgpub=msg)
+        self.is_valid = self._validate_yaml(self.content)
 
-        self.models = []  # can be actions or services or recurring
-        self.actions = []
-        self.eventFilters = []
-        self._contentblocks = []
+        if self.is_valid:
+            content = ""
+            nr = 0
+            # we need to do all this work because the yaml parsing does not
+            # maintain order because its a dict
+            for line in self.content.split("\n"):
+                if len(line) > 0 and line[0] == "#":
+                    continue
+                if content == "" and line.strip() == "":
+                    continue
 
-        content = ""
+                line = line.replace("\t", "    ")
+                nr += 1
+                if len(content) > 0 and (len(line) > 0 and line[0] != " "):
+                    self._add2models(content, nr)
+                    content = ""
 
-        nr = 0
-        # we need to do all this work because the yaml parsing does not
-        # maintain order because its a dict
-        for line in self.content.split("\n"):
-            if len(line) > 0 and line[0] == "#":
-                continue
-            if content == "" and line.strip() == "":
-                continue
+                content += "%s\n" % line
 
-            line = line.replace("\t", "    ")
-            nr += 1
-            if len(content) > 0 and (len(line) > 0 and line[0] != " "):
-                self._add2models(content, nr)
-                content = ""
+            # to process the last one
+            self._add2models(content, nr)
+            self._contentblocks = []
 
-            content += "%s\n" % line
+            self.hash = j.data.hash.md5_string(self.content)
 
-        # to process the last one
-        self._add2models(content, nr)
-        self._contentblocks = []
-
-        self.hash = j.data.hash.md5_string(self.content)
+            self.is_valid = self._validate_format(self.models)
 
     def load(self, role="", instance=""):
         self.actions = []
@@ -91,7 +89,7 @@ class Blueprint:
                             raise j.exceptions.Input(message="need to specify action.",
                                                      level=1, source="", tags="", msgpub="")
 
-                        actions = [item.strip() for item in actionModel["action"].split(",") if item.strip != ""]
+                        actions = [item.strip() for item in actionModel["action"].split(",") if item.strip() != ""]
 
                         for serviceObj in servicesFound:
                             for actionName in actions:
@@ -149,7 +147,7 @@ class Blueprint:
                         if key.find("__") == -1:
                             raise j.exceptions.Input(
                                 "Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
-                        actorname, bpinstance = key.lower().split("__", 1)
+                        actorname, bpinstance = key.split("__", 1)
 
                         if instance != "" and bpinstance != instance:
                             self.logger.info(
@@ -213,19 +211,15 @@ class Blueprint:
         for model in self.models:
 
             if model is not None:
-                for key, item in model.items():
-                    if key.find("__") == -1:
-                        raise j.exceptions.Input(
-                            "Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
+                for key in model.keys():
 
-                    aysname, aysinstance = key.lower().split("__", 1)
+                    aysname, aysinstance = key.split("__", 1)
                     if aysname.find(".") != -1:
                         rolefound, _ = aysname.split(".", 1)
                     else:
                         rolefound = aysname
 
-                    service = self.aysrepo.serviceGet(
-                        role=rolefound, instance=aysinstance, die=False)
+                    service = self.aysrepo.serviceGet(role=rolefound, instance=aysinstance, die=False)
                     if service:
                         services.append(service)
 
@@ -251,20 +245,46 @@ class Blueprint:
             self.path = newpath
             self.active = True
 
-    def validate(self):
-        for model in self.models:
-            if model is not None:
-                for key, item in model.items():
-                    if key.find("__") == -1:
-                        self.logger.error(
-                            "Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
-                        return False
+    def _validate_yaml(self, content):
+        try:
+            j.data.serializer.yaml.loads(content)
+            return True
+        except yaml.YAMLError:
+            raise j.exceptions.Input('Yaml format is not valid for %s please fix this to continue' % self.name)
 
-                    aysname, aysinstance = key.lower().split("__", 1)
-                    if aysname not in self.aysrepo.templates:
-                        self.logger.error(
-                            "Service template %s not found. Can't execute this blueprint" % aysname)
-                        return False
+    def _validate_format(self, models):
+        for model in models:
+            if not j.data.types.dict.check(model):
+                self.logger.error("Bad formatted blueprint: %s" % self.path)
+                return False
+
+            if model is not None:
+                for key in model.keys():
+
+                    # this two blocks doesn't have the same format as classic service declaration
+                    if key in ['actions', 'eventfilters']:
+                        if not j.data.types.list.check(model[key]):
+                            self.logger.error("%s should be a list of dictionary: found %s" % (key, type(model[key])))
+                            return False
+                    else:
+                        if key.find("__") == -1:
+                            self.logger.error("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
+                            return False
+
+                        aysname, _ = key.split("__", 1)
+                        if aysname not in self.aysrepo.templates:
+                            self.logger.error("Service template %s not found. Can't execute this blueprint" % aysname)
+                            return False
+
+        return True
+
+    def validate(self):
+        if not self._validate_yaml(self.content):
+            return False
+
+        if not self._validate_format(self.models):
+            return False
+
         return True
 
     def __str__(self):

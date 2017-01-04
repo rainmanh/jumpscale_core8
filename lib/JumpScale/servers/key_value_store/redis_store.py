@@ -22,6 +22,8 @@ class RedisKeyValueStore(KeyValueStoreBase):
                                    masterdb=masterdb, cache=cache, changelog=changelog)
         self._indexkey = "%s:index" % namespace
 
+        self.inMem = False
+
     def _getKey(self, key):
         return '%s:%s' % (self.namespace, key)
 

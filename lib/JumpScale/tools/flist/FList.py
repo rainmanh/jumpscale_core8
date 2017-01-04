@@ -1,22 +1,34 @@
 from JumpScale import j
 from stat import *
+import brotli
+import hashlib
+import functools
+import subprocess
 import pwd
 import grp
 import os
 import sys
 import re
 
+
 class FListFactory(object):
 
     def __init__(self):
         self.__jslocation__ = "j.tools.flist"
 
-    def create(self):
+    def get_flist(self):
+        """
+        Return a Flist object
+        """
         return FList()
 
-    def load(self, flist):
-        # ...
-        return FList()
+    def get_archiver(self):
+        """
+        Return a FListArchiver object
+
+        This is used to push flist to IPFS
+        """
+        return FListArchiver()
 
 
 class FList(object):
@@ -106,6 +118,7 @@ class FList(object):
     """
     Getters
     """
+
     def _indexsFromHash(self, hash):
         if hash not in self._hash:
             return None
@@ -356,12 +369,16 @@ class FList(object):
     Exporting
     """
 
-    def dumps(self):
+    def dumps(self, trim=''):
         data = []
 
         for f in self._data:
+            p = f[0]
+            if p.startswith(trim):
+                p = p[len(trim):]
+
             line = "%s|%s|%d|%s|%s|%s|%d|%d|%d|%s" % (
-                f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]
+                p, f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]
             )
             data.append(line)
 
@@ -375,3 +392,72 @@ class FList(object):
         print("Main table: %.2f ko" % (float(tableMain) / 1024))
         print("Hash table: %.2f ko" % (float(tableHash) / 1024))
         print("Path table: %.2f ko" % (float(tablePath) / 1024))
+
+
+class FListArchiver:
+    # This is a not efficient way, the only other possibility
+    # is to call brotli binary to compress big file if needed
+    # currently, this in-memory way is used
+
+    def __init__(self, ipfs_cfgdir=None):
+        cl = j.tools.cuisine.local
+        self._ipfs = cl.core.command_location('ipfs')
+        if not ipfs_cfgdir:
+            self._env = 'IPFS_PATH=%s' % cl.core.args_replace('$cfgDir/ipfs/main')
+        else:
+            self._env = 'IPFS_PATH=%s' % ipfs_cfgdir
+
+    def _compress(self, source, destination):
+        with open(source, 'rb') as content_file:
+            content = content_file.read()
+
+        compressed = brotli.compress(content, quality=6)
+
+        with open(destination, "wb") as output:
+            output.write(compressed)
+
+    def push_to_ipfs(self, source):
+        cmd = "%s %s add '%s'" % (self._env, self._ipfs, source)
+        out = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE)
+
+        m = re.match(r'^added (.+) (.+)$', out.stdout.decode())
+        if m is None:
+            raise RuntimeError('invalid output from ipfs add: %s' % out)
+
+        return m.group(1)
+
+    def build(self, flist, backend):
+        hashes = flist.getHashList()
+
+        if not os.path.exists(backend):
+            os.makedirs(backend)
+
+        for hash in hashes:
+            files = flist.filesFromHash(hash)
+
+            # skipping non regular files
+            if not flist.isRegular(files[0]):
+                continue
+
+            print("Processing: %s" % hash)
+
+            root = "%s/%s/%s" % (backend, hash[0:2], hash[2:4])
+            file = hash
+
+            target = "%s/%s" % (root, file)
+
+            if not os.path.exists(root):
+                os.makedirs(root)
+
+            # compressing the file
+            self._compress(files[0], target)
+
+            # adding it to ipfs network
+            hash = self.push_to_ipfs(target)
+            print("Network hash: %s" % hash)
+
+            # updating flist hash with ipfs hash
+            for f in files:
+                flist.setHash(f, hash)
+
+        print("Files compressed and shared")

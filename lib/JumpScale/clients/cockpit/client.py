@@ -319,6 +319,26 @@ class Client:
         self._assert_response(resp)
         return resp.json()
 
+    def updateTemplate(self, repository, template=None,  headers=None, query_params=None):
+        """
+        update template in repo
+        It is method for GET /ays/repository/{repository}/template/{template}/update
+        """
+        resp = self._client.updateTemplate(
+            template=template, repository=repository, headers=headers, query_params=query_params)
+        self._assert_response(resp)
+        return resp.json()
+
+    def updateTemplates(self, repository, headers=None, query_params=None):
+        """
+        update all templates in repo
+        It is method for GET /ays/repository/{repository}/template/update
+        """
+        resp = self._client.updateTemplates(
+            repository=repository, headers=headers, query_params=query_params)
+        self._assert_response(resp)
+        return resp.json()
+
     def getTemplate(self, repository, template, headers=None, query_params=None):
         """
         Get a template

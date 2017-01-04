@@ -15,16 +15,16 @@ the following commands show you the typical order in which you need to execute a
 - [destroy](destroy.md) destroys all service instances, from here you need to execute the blueprints again
 
 ## Advanced
-
-- [delete](delete.md) deletes a service instances and all its children
-- [discover](discover.md) discovers an AYS repository on the filesystem
-- [restore](restore.md) loads an AYS service instance from the filesystem
-- [run_info](run_info.md) displays information about a run/job
-- [do](do.md) is a helper method to easily schedule actions from the command line
-- [list](list.md) lists all service instances
-- [repo_list](repo_list.md) lists all known repositories
-- [update](update.md) updates an actor to the new version
-- [test](test.md) runs AYS tests
-- [show](show.md) shows information about a service instance
-- [state](state.md) displays the state of a service instance
-- [set_state](set_state.md) manually sets the state of a service action
+- [noexec](noexec.md) : Enable/Disable noexec mode
+- [delete](delete.md) : Delete a service and all its children
+- [discover](discover.md) : Discover AYS repository on the filesystem
+- [restore](restore.md)  : Load service from the filesystem
+- [run_info](run_info.md) : Display info about run
+- [do](do.md) : Helper method to easily schedule action from the command line
+- [list](list.md) : List all services from a repository
+- [repo_list](repo_list.md) : List all known repositories
+- [update](update.md) : Update actor to a new version.
+- [test](test.md) : Run AYS tests
+- [show](show.md) : show information about a service
+- [state](state.md) : Print the state of the selected services.
+- [set_state](set_state.md) : Manually set the state of a service action

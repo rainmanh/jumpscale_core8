@@ -7,6 +7,15 @@ class CuisineOwnCloud(app):
 
     NAME = 'owncloud'
 
+    def installAll(self):
+        """
+        install all deps (check if e.g. php, apache is installed otherwise not)
+        then install this sw
+        configure
+        """
+        pass
+        # TODO: *2 create 1 method which does all and is sort of guideline for a customer to understand this
+
     def install(self, start=True, storagepath="/data/", sitename="owncloudy.com"):
         """
         install owncloud 9.1 on top of nginx/php/tidb
@@ -18,6 +27,7 @@ class CuisineOwnCloud(app):
         self._cuisine.package.install('bzip2')
         C = """
         set -xe
+        #TODO: *1 need to use primitives in cuisine
         cd $tmpDir && [ ! -d $tmpDir/ays_owncloud ] && git clone https://github.com/0-complexity/ays_owncloud
         cd $tmpDir && [ ! -f $tmpDir/owncloud-9.1.1.tar.bz2 ] && wget https://download.owncloud.org/community/owncloud-9.1.1.tar.bz2 && cd $tmpDir && tar jxf owncloud-9.1.1.tar.bz2 && rm owncloud-9.1.1.tar.bz2
         [ ! -d {storagepath} ] && mkdir -p {storagepath}
@@ -206,7 +216,8 @@ class CuisineOwnCloud(app):
 
         owncloudsiterules = self._get_default_conf_nginx_site()
         owncloudsiterules = owncloudsiterules % {"sitename": sitename}
-        self._cuisine.core.file_write("$cfgDir/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
+        self._cuisine.core.file_write(
+            "$cfgDir/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
 
         privateIp = self._cuisine.net.getInfo(self._cuisine.net.nics[0])['ip'][0]
 
@@ -218,7 +229,7 @@ class CuisineOwnCloud(app):
 
         self._cuisine.core.execute_bash(C)
 
-        #TODO: if not installed
+        # TODO: if not installed
         cmd = """
         $appDir/php/bin/php $appDir/owncloud/occ maintenance:install  --database="mysql" --database-name="owncloud"\
         --database-host="{dbhost}" --database-user="owncloud" --database-pass="owncloud" --admin-user="admin" --admin-pass="admin"\
@@ -230,7 +241,8 @@ class CuisineOwnCloud(app):
         self._cuisine.core.execute_bash(cmd)
 
         basicnginxconf = self._cuisine.apps.nginx.get_basic_nginx_conf()
-        basicnginxconf = basicnginxconf.replace("include $appDir/nginx/etc/sites-enabled/*;", "include $cfgDir/nginx/etc/sites-enabled/*;")
+        basicnginxconf = basicnginxconf.replace(
+            "include $appDir/nginx/etc/sites-enabled/*;", "include $cfgDir/nginx/etc/sites-enabled/*;")
         basicnginxconf = self._cuisine.core.args_replace(basicnginxconf)
         C = """
         chown -R www-data:www-data $appDir/owncloud $cfgDir/nginx

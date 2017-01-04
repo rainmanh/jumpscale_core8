@@ -3,8 +3,19 @@ from JumpScale.clients.portal.PortalClient import ApiError
 import time
 import datetime
 import os
+import requests
 
-CACHETIME = 60
+def refresh_jwt(jwt, payload):
+    if payload['iss'] == 'itsyouonline':
+        refreshurl = "https://itsyou.online/v1/oauth/jwt/refresh"
+        response = requests.get(refreshurl, headers={'Authorization': 'bearer {}'.format(jwt)})
+        if response.ok:
+            return response.text
+        else:
+            raise RuntimeError("Failed to refresh JWT eror: {}:{}".format(response.status_code, response.text))
+        pass
+    else:
+        raise RuntimeError('Refresh JWT with issuers {} not support'.format(payload['iss']))
 
 
 class Factory:
@@ -20,7 +31,9 @@ class Factory:
         return self.get(
             url=service.model.data.url,
             login=service.model.data.login,
-            password=service.model.data.password)
+            password=service.model.data.password,
+            jwt=service.model.data.jwt,
+            port=service.model.data.port)
 
 
 def patchMS1(api):
@@ -46,8 +59,8 @@ def patchMS1(api):
 class Client:
 
     def __init__(self, url, login, password=None, secret=None, port=443, jwt=None):
-        if not password and not secret:
-            raise ValueError("Either secret or password should be given")
+        if not password and not secret and not jwt:
+            raise ValueError("Can not connect to openvcloud without either password, secret or jwt")
         self._url = url
         self._login = login
         self._password = password
@@ -66,11 +79,6 @@ class Client:
         else:
             self.api.load_swagger(group='cloudapi')
 
-        self._basekey = "openvcloud:%s:%s" % (self._url, self._login)
-        self._accounts_cache = j.data.redisdb.get(
-            "%s:accounts" % (self._basekey), CACHETIME)
-        self._locations_cache = j.data.redisdb.get(
-            "%s:locations" % (self._basekey), CACHETIME)
 
     def __patch_portal_client(self, api):
         # try to relogin in the case the connection is dead because of
@@ -82,7 +90,6 @@ class Client:
                 return origcall(that, *args, **kwargs)
             except ApiError:
                 if ApiError.response.status_code == 419:
-                    # TODO: this should handle token refresh
                     self.__login(self._password, self._secret, self._jwt)
                     return origcall(that, *args, **kwargs)
                 raise
@@ -93,8 +100,12 @@ class Client:
         if not password and not secret and not jwt:
             raise RuntimeError("Can not connect to openvcloud without either password, secret or jwt")
         if jwt:
-            self.api._session.headers['Authorization'] = 'token {}'.format(jwt)
-            # TODO: set self._login from the jwt
+            import jose.jwt
+            payload = jose.jwt.get_unverified_claims(jwt)
+            if payload['exp'] < time.time():
+                jwt = refresh_jwt(jwt, payload)
+            self.api._session.headers['Authorization'] = 'bearer {}'.format(jwt)
+            self._login = payload['username']
         else:
             if password:
                 if self._isms1:
@@ -109,36 +120,36 @@ class Client:
 
     @property
     def accounts(self):
-        if not self._accounts_cache:
-            # load from api
-            for item in self.api.cloudapi.accounts.list():
-                self._accounts_cache.set(item)
-        accounts = []
-        for account in self._accounts_cache:
-            accounts.append(Account(self, account.struct))
+        ovc_accounts = self.api.cloudapi.accounts.list()
+        accounts = list()
+        for account in ovc_accounts:
+            accounts.append(Account(self, account))
         return accounts
 
     @property
     def locations(self):
-        if not self._locations_cache:
-            # load from api
-            for item in self.api.cloudapi.locations.list():
-                self._locations_cache.set(item)
-        return [x.struct for x in self._locations_cache]
+        return self.api.cloudapi.locations.list()
 
-    def account_get(self, name):
+    def account_get(self, name, create=True,
+                    maxMemoryCapacity=-1, maxVDiskCapacity=-1, maxCPUCapacity=-1, maxNASCapacity=-1,
+                    maxNetworkOptTransfer=-1, maxNetworkPeerTransfer=-1, maxNumPublicIP=-1):
         for account in self.accounts:
             if account.model['name'] == name:
                 return account
-        raise KeyError("Not account with name %s" % name)
+        else:
+            if create is False:
+                raise KeyError("No account with name \"%s\" found" % name)
+            self.api.cloudbroker.account.create(username=self.login,
+                                                name=name,
+                                                maxMemoryCapacity=maxMemoryCapacity,
+                                                maxVDiskCapacity=maxVDiskCapacity,
+                                                maxCPUCapacity=maxCPUCapacity,
+                                                maxNASCapacity=maxNASCapacity,
+                                                maxNetworkOptTransfer=maxNetworkOptTransfer,
+                                                maxNetworkPeerTransfer=maxNetworkPeerTransfer,
+                                                maxNumPublicIP=maxNumPublicIP)
+            return self.account_get(name, False)
 
-    def reset(self):
-        """
-        """
-        for key in self._accounts_cache.db.keys('%s*' % self._basekey):
-            self._accounts_cache.db.delete(key)
-        self._accounts_cache.delete()
-        self._locations_cache.delete()
 
     @property
     def login(self):
@@ -150,31 +161,53 @@ class Client:
     __str__ = __repr__
 
 
-class Account:
+class Authorizables:
+
+    @property
+    def owners(self):
+        _owners = []
+        for user in self.model['acl']:
+            if not user['canBeDeleted']:
+                _owners.append(user['userGroupId'])
+        return _owners
+
+    @property
+    def authorized_users(self):
+        return [u['userGroupId'] for u in self.model['acl']]
+
+    def authorize_user(self, username, right="ACDRUX"):
+        if username not in self.authorized_users:
+            self._addUser(username, right)
+            self.refresh()
+        return True
+
+    def unauthorize_user(self, username):
+        canBeDeleted = [u['userGroupId'] for u in self.model['acl'] if u.get('canBeDeleted', True) is True]
+        if username in self.authorized_users and username in canBeDeleted:
+            self._deleteUser(username)
+            self.refresh()
+        return True
+
+
+class Account(Authorizables):
 
     def __init__(self, client, model):
         self.client = client
         self.model = model
         self.id = model['id']
-        self._basekey = "%s:%s" % (self.client._basekey, self.id)
-        self._spaces_cache = j.data.redisdb.get(
-            "%s:spaces" % self._basekey, CACHETIME)
 
     @property
     def spaces(self):
-        if not self._spaces_cache:
-            # load from api
-            for item in self.client.api.cloudapi.cloudspaces.list():
-                if item['accountId'] == self.model['id']:
-                    self._spaces_cache.set(item, id=item['id'])
-        spaces = []
-        for space in self._spaces_cache:
-            spaces.append(Space(self, space.struct))
+        ovc_spaces = self.client.api.cloudapi.cloudspaces.list()
+        spaces = list()
+        for space in ovc_spaces:
+            if space['accountId'] == self.model['id']:
+                spaces.append(Space(self, space))
         return spaces
 
     def space_get(self, name, location="", create=True,
                   maxMemoryCapacity=-1, maxVDiskCapacity=-1, maxCPUCapacity=-1, maxNASCapacity=-1,
-                  maxArchiveCapacity=-1, maxNetworkOptTransfer=-1, maxNetworkPeerTransfer=-1, maxNumPublicIP=-1):
+                  maxNetworkOptTransfer=-1, maxNetworkPeerTransfer=-1, maxNumPublicIP=-1):
         """
         will get space if it exists,if not will create it
         to retrieve existing one location does not have to be specified
@@ -197,11 +230,9 @@ class Account:
                                                             maxVDiskCapacity=maxVDiskCapacity,
                                                             maxCPUCapacity=maxCPUCapacity,
                                                             maxNASCapacity=maxNASCapacity,
-                                                            maxArchiveCapacity=maxArchiveCapacity,
                                                             maxNetworkOptTransfer=maxNetworkOptTransfer,
                                                             maxNetworkPeerTransfer=maxNetworkPeerTransfer,
                                                             maxNumPublicIP=maxNumPublicIP)
-                self._spaces_cache.delete()
                 return self.space_get(name, location, False)
             else:
                 raise j.exceptions.RuntimeError(
@@ -216,28 +247,50 @@ class Account:
                                                     type=type)
         return res
 
+    def _addUser(self, username, right):
+        self.client.api.cloudapi.accounts.addUser(
+            accountId=self.id, userId=username, accesstype=right)
+
+    def _deleteUser(self, username):
+        self.client.api.cloudapi.accounts.deleteUser(accountId=self.id, userId=username, recursivedelete=True)
+
+    def save(self):
+        self.client.api.cloudapi.accounts.update(accountId=self.model['id'],
+                                                 name=self.model['name'],
+                                                 maxMemoryCapacity=self.model.get('maxMemoryCapacity'),
+                                                 maxVDiskCapacity=self.model.get('maxVDiskCapacity'),
+                                                 maxCPUCapacity=self.model.get('maxCPUCapacity'),
+                                                 maxNASCapacity=self.model.get('maxNASCapacity'),
+                                                 maxNetworkOptTransfer=self.model.get('maxNetworkOptTransfer'),
+                                                 maxNetworkPeerTransfer=self.model.get('maxNetworkPeerTransfer'),
+                                                 maxNumPublicIP=self.model.get('maxNumPublicIP')
+                                                 )
+
+    def refresh(self):
+        accounts = self.client.api.cloudapi.accounts.list()
+        for account in accounts:
+            if account['id'] == self.id:
+                self.model = account
+                break
+        else:
+            raise j.exceptions.RuntimeError("Account has been deleted")
+
+    def delete(self):
+        self.client.api.cloudbroker.account.delete(accountId=self.id, reason='API request')
+
     def __str__(self):
         return "openvcloud client account: %(name)s" % (self.model)
 
     __repr__ = __str__
 
 
-class Space:
+class Space(Authorizables):
 
     def __init__(self, account, model):
         self.account = account
         self.client = account.client
         self.model = model
         self.id = model["id"]
-        self._basekey = "%s:%s" % (self.account._basekey, self.id)
-        self._machines_cache = j.data.redisdb.get(
-            "%s:machines" % self._basekey, CACHETIME)
-        self._sizes_cache = j.data.redisdb.get(
-            "%s:size" % self._basekey, CACHETIME)
-        self._images_cache = j.data.redisdb.get(
-            "%s:image" % self._basekey, CACHETIME)
-        self._portforwardings_cache = j.data.redisdb.get(
-            "%s:portforwardings" % self._basekey, CACHETIME)
 
     def add_external_network(self, name, subnet, gateway, startip, endip, gid, vlan):
         self.client.api.cloudbroker.iaas.addExternalNetwork(cloudspaceId=self.id,
@@ -252,34 +305,29 @@ class Space:
     def save(self):
         self.client.api.cloudapi.cloudspaces.update(cloudspaceId=self.model['id'],
                                                     name=self.model['name'],
-                                                    maxMemoryCapacity=self.model[
-                                                        'maxMemoryCapacity'],
-                                                    maxVDiskCapacity=self.model[
-                                                        'maxVDiskCapacity'],
-                                                    maxCPUCapacity=self.model[
-                                                        'maxCPUCapacity'],
-                                                    maxNASCapacity=self.model[
-                                                        'maxNASCapacity'],
-                                                    maxArchiveCapacity=self.model[
-                                                        'maxArchiveCapacity'],
-                                                    maxNetworkOptTransfer=self.model[
-                                                        'maxNetworkOptTransfer'],
-                                                    maxNetworkPeerTransfer=self.model[
-                                                        'maxNetworkPeerTransfer'],
-                                                    maxNumPublicIP=self.model[
-                                                        'maxNumPublicIP']
+                                                    maxMemoryCapacity=self.model.get('maxMemoryCapacity'),
+                                                    maxVDiskCapacity=self.model.get('maxVDiskCapacity'),
+                                                    maxCPUCapacity=self.model.get('maxCPUCapacity'),
+                                                    maxNASCapacity=self.model.get('maxNASCapacity'),
+                                                    maxNetworkOptTransfer=self.model.get('maxNetworkOptTransfer'),
+                                                    maxNetworkPeerTransfer=self.model.get('maxNetworkPeerTransfer'),
+                                                    maxNumPublicIP=self.model.get('maxNumPublicIP')
                                                     )
 
     @property
     def machines(self):
-        if not self._machines_cache:
-            # load from api
-            for item in self.client.api.cloudapi.machines.list(cloudspaceId=self.id):
-                self._machines_cache.set(item)
-        machines = {}
-        for machine in self._machines_cache:
-            machines[machine.struct['name']] = Machine(self, machine.struct)
+        ovc_machines = self.client.api.cloudapi.machines.list(cloudspaceId=self.id)
+        machines = dict()
+        for machine in ovc_machines:
+            machines[machine['name']] = Machine(self, machine)
         return machines
+
+    def _addUser(self, username, right):
+        self.client.api.cloudapi.cloudspaces.addUser(
+            cloudspaceId=self.id, userId=username, accesstype=right)
+
+    def _deleteUser(self, username):
+        self.client.api.cloudapi.cloudspaces.deleteUser(cloudspaceId=self.id, userId=username, recursivedelete=True)
 
     def refresh(self):
         cloudspaces = self.client.api.cloudapi.cloudspaces.list()
@@ -288,17 +336,17 @@ class Space:
                 self.model = cloudspace
                 break
         else:
-            raise j.exceptions.RuntimeError("Cloud space has been deleted")
-        self.account._spaces_cache.set(cloudspace, id=self.id)
+            raise j.exceptions.RuntimeError("Cloudspace has been deleted")
 
-    def machine_create(self, name, memsize=2, vcpus=1, disksize=10, datadisks=[], image="Ubuntu 15.10 x64"):
+    def machine_create(self, name, memsize=2, vcpus=1, disksize=10, datadisks=[], image="Ubuntu 15.10 x64", sizeId=None):
         """
         @param memsize in MB or GB
         for now vcpu's is ignored (waiting for openvcloud)
 
         """
         imageId = self.image_find_id(image)
-        sizeId = self.size_find_id(memsize)
+        if sizeId is None:
+            sizeId = self.size_find_id(memsize)
         if name in self.machines:
             raise j.exceptions.RuntimeError(
                 "Name is not unique, already exists in %s" % self)
@@ -306,50 +354,17 @@ class Space:
               (self.id, name, sizeId, imageId, disksize))
         self.client.api.cloudapi.machines.create(
             cloudspaceId=self.id, name=name, sizeId=sizeId, imageId=imageId, disksize=disksize, datadisks=datadisks)
-        self.reset()
         return self.machines[name]
 
     @property
     def portforwardings(self):
-        if not self._portforwardings_cache:
-            # load from api
-            for item in self.client.api.cloudapi.portforwarding.list(cloudspaceId=self.id):
-                self._portforwardings_cache.set(
-                    item, id='%(publicIp)s:%(publicPort)s -> %(localIp)s:%(localPort)s' % item)
-        return [x.struct for x in self._portforwardings_cache]
+        return self.client.api.cloudapi.portforwarding.list(cloudspaceId=self.id)
 
     def isPortforwardExists(self, publicIp, publicport, protocol):
         for pf in self.portforwardings:
             if pf['publicIp'] == publicIp and int(pf['publicPort']) == int(publicport) and pf['protocol'] == protocol:
                 return True
         return False
-
-    @property
-    def owners(self):
-        _owners = []
-        for user in self.model['acl']:
-            if not user['canBeDeleted']:
-                _owners.append(user['userGroupId'])
-        return _owners
-
-    @property
-    def authorized_users(self):
-        return [u['userGroupId'] for u in self.model['acl']]
-
-    def authorize_user(self, username, right="ACDRUX"):
-        if username not in self.authorized_users:
-            self.client.api.cloudapi.cloudspaces.addUser(
-                cloudspaceId=self.id, userId=username, accesstype=right)
-            self.refresh()
-        return True
-
-    def unauthorize_user(self, username):
-        canBeDeleted = [u['userGroupId'] for u in self.model['acl'] if u['canBeDeleted'] is True]
-
-        if username in self.authorized_users and username in canBeDeleted:
-            self.client.api.cloudapi.cloudspaces.deleteUser(cloudspaceId=self.id, userId=username, recursivedelete=True)
-            self.refresh()
-        return True
 
     def size_find_id(self, memory=None, vcpus=None):
         if memory < 100:
@@ -366,11 +381,7 @@ class Space:
 
     @property
     def sizes(self):
-        if not self._sizes_cache:
-            # load from api
-            for item in self.client.api.cloudapi.sizes.list(cloudspaceId=self.id):
-                self._sizes_cache.set(item)
-        return [x.struct for x in self._sizes_cache]
+        return self.client.api.cloudapi.sizes.list(cloudspaceId=self.id)
 
     def image_find_id(self, name):
         name = name.lower()
@@ -385,16 +396,7 @@ class Space:
 
     @property
     def images(self):
-        if self._images_cache.len() == 0:
-            # load from api
-            for item in self.client.api.cloudapi.images.list(cloudspaceId=self.id, accountId=self.account.id):
-                self._images_cache.set(item)
-        return [x.struct for x in self._images_cache]
-
-    def reset(self):
-        """
-        """
-        self._machines_cache.delete()
+        return self.client.api.cloudapi.images.list(cloudspaceId=self.id, accountId=self.account.id)
 
     def delete(self):
         self.client.api.cloudapi.cloudspaces.delete(cloudspaceId=self.id)
@@ -431,9 +433,6 @@ class Machine:
         self.model = model
         self.id = self.model["id"]
         self.name = self.model["name"]
-        self._basekey = "%s:%s" % (self.space._basekey, self.id)
-        self._portforwardings_cache = j.data.redisdb.get(
-            "%s:portforwardings" % self._basekey, CACHETIME)
 
     def start(self):
         self.client.api.cloudapi.machines.start(machineId=self.id)
@@ -456,12 +455,13 @@ class Machine:
     def delete_snapshot(self, epoch):
         self.client.api.cloudapi.machines.deleteSnapshot(machineId=self.id, epoch=epoch)
 
-    def add_disk(self, name, description, size=10, type='D'):
+    def add_disk(self, name, description, size=10, type='D', ssdSize=0):
         disk_id = self.client.api.cloudapi.machines.addDisk(machineId=self.id,
                                                             diskName=name,
                                                             description=description,
                                                             size=size,
-                                                            type=type)
+                                                            type=type,
+                                                            ssdSize=ssdSize)
         return disk_id
 
     def disk_limit_io(self, disk_id, iops=50):
@@ -469,12 +469,7 @@ class Machine:
 
     @property
     def portforwardings(self):
-        if not self._portforwardings_cache:
-            # load from api
-            for item in self.client.api.cloudapi.portforwarding.list(cloudspaceId=self.space.id, machineId=self.id):
-                self._portforwardings_cache.set(
-                    item, id='%(publicIp)s:%(publicPort)s/%(protocol)s -> %(localIp)s:%(localPort)s/%(protocol)s' % item)
-        return [x.struct for x in self._portforwardings_cache]
+        return self.client.api.cloudapi.portforwarding.list(cloudspaceId=self.space.id, machineId=self.id)
 
     def create_portforwarding(self, publicport, localport, protocol='tcp'):
         if protocol not in ['tcp', 'udp']:
@@ -482,8 +477,6 @@ class Machine:
 
         machineip, _ = self.get_machine_ip()
 
-        # force cache reset (try to reduce concurrent side effect)
-        self.space.refresh()
 
         publicAddress = self.space.model['publicipaddress']
         if not publicAddress:
@@ -522,16 +515,9 @@ class Machine:
                 # - if the port was choose excplicitly, then it's not the lib's fault
                 raise
 
-        self.space._portforwardings_cache.delete()
-        self._portforwardings_cache.delete()
-
         return (realpublicport, localport)
 
     def delete_portforwarding(self, publicport):
-        # Fix cache miss
-        if not self.space.model['publicipaddress']:
-            self.space.refresh()
-
         self.client.api.cloudapi.portforwarding.deleteByPort(
             cloudspaceId=self.space.id,
             publicIp=self.space.model['publicipaddress'],
@@ -539,14 +525,9 @@ class Machine:
             proto='tcp'
         )
 
-        self.space._portforwardings_cache.delete()
-        self._portforwardings_cache.delete()
-
     def delete_portfowarding_by_id(self, pfid):
         self.client.api.cloudapi.portforwarding.delete(cloudspaceid=self.space.id,
                                                        id=pfid)
-        self.space._portforwardings_cache.delete()
-        self._portforwardings_cache.delete()
 
     def get_machine_ip(self):
         machine = self.client.api.cloudapi.machines.get(machineId=self.id)
@@ -559,7 +540,7 @@ class Machine:
 
         machineip = getMachineIP(machine)
         start = time.time()
-        timeout = 120
+        timeout = 200
         while machineip == 'Undefined' and start + timeout > time.time():
             time.sleep(5)
             machineip = getMachineIP(machine)

@@ -53,9 +53,12 @@ class CuisineJS8(base):
         self._cuisine.development.pip.ensure()
         self._cuisine.apps.redis.install()
         self._cuisine.apps.brotli.build()
+        self._cuisine.apps.brotli.install()
 
         self._cuisine.development.pip.install('pytoml')
         self._cuisine.development.pip.install('pygo')
+        self._cuisine.package.ensure('libxml2-dev')
+        self._cuisine.package.ensure('libxslt1-dev')
 
         # python etcd
         C = """
@@ -146,6 +149,7 @@ class CuisineJS8(base):
         crontab
         beautifulsoup4
         lxml
+        pycapnp
         """
         self._cuisine.development.pip.multiInstall(C, upgrade=True)
 

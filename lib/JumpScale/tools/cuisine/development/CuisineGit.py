@@ -11,7 +11,7 @@ class CuisineGit(base):
         self._executor = executor
         self._cuisine = cuisine
 
-    def pullRepo(self, url, dest=None, login=None, passwd=None, depth=1,
+    def pullRepo(self, url, dest=None, login=None, passwd=None, depth=None,
                  ignorelocalchanges=True, reset=False, branch=None, revision=None, ssh="first"):
 
         if dest is None:
@@ -28,5 +28,8 @@ class CuisineGit(base):
         self._cuisine.core.file_append("$homeDir/.ssh/known_hosts", keys)
         self._cuisine.core.file_attribs("$homeDir/.ssh/known_hosts", mode=600)
 
+        print("pull %s with depth:%s" % (url, depth))
+
         return j.do.pullGitRepo(url=url, dest=dest, login=login, passwd=passwd, depth=depth,
-                                ignorelocalchanges=ignorelocalchanges, reset=reset, branch=branch, revision=revision, ssh=ssh, executor=self._executor)
+                                ignorelocalchanges=ignorelocalchanges, reset=reset, branch=branch, revision=revision,
+                                ssh=ssh, executor=self._executor)

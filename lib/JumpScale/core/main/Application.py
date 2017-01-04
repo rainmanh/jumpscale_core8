@@ -123,8 +123,12 @@ class Application:
         j.errorconditionhandler.setExceptHook()
         j.dirs.init()
 
-        if not embed():
+        if not embed() and self.config.jumpscale is not None:
             logging_cfg = self.config.jumpscale.get('logging')
+            if not logging_cfg:
+                # auto recover logging settings
+                j.do.installer._writeLoggingEnv(j.dirs.cfgDir)
+                logging_cfg = self.config.jumpscale.get('logging')
             level = logging_cfg.get('level', 'DEBUG')
             mode = logging_cfg.get('mode', 'DEV')
             filter_module = logging_cfg.get('filter', [])
@@ -192,7 +196,7 @@ class Application:
         if reload:
             self._config = None
 
-        if self.config is not None:
+        if self.config.jumpscale is not None:
             nodeid = self.config.jumpscale['system'].get("grid.node.id", 0)
             gridid = self.config.jumpscale['system'].get("grid.id", 0)
             self.logger.debug("gridid:%s,nodeid:%s" % (gridid, nodeid))

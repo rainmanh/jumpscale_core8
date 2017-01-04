@@ -1,9 +1,7 @@
 from JumpScale import j
 
 from JumpScale.baselib.atyourservice81.Actor import Actor
-from JumpScale.baselib.atyourservice81.Service import Service
 from JumpScale.baselib.atyourservice81.Blueprint import Blueprint
-from JumpScale.baselib.jobcontroller.Run import Run
 from JumpScale.baselib.atyourservice81.models.ActorsCollection import ActorsCollection
 from JumpScale.baselib.atyourservice81.models.ServicesCollection import  ServicesCollection
 
@@ -11,7 +9,7 @@ from JumpScale.baselib.atyourservice81.AtYourServiceDependencies import build_no
 
 import colored_traceback
 colored_traceback.add_hook(always=True)
-
+import yaml
 import os
 from collections import namedtuple
 
@@ -63,6 +61,23 @@ class AtYourServiceRepo():
         self.db.services.destroy()
         self.model.delete()
 
+    def enable_noexec(self):
+        """
+        Enable the no_exec mode.
+        Once this mode is enabled, no action will ever be execute.
+        But the state of the action will be updated as if everything went fine (state ok)
+
+        This mode can be used for demo or testing
+        """
+        self.model.enable_no_exec()
+
+    def disable_noexec(self):
+        """
+        Enable the no_exec mode.
+
+        see enable_no_exec for further info
+        """
+        self.model.disable_no_exec()
 
 # ACTORS
     def actorCreate(self, name):
@@ -279,14 +294,19 @@ class AtYourServiceRepo():
 
 # BLUEPRINTS
 
-    def _load_blueprints(self):
-        bps = {}
+    def get_blueprints_paths(self):
         bpdir = j.sal.fs.joinPaths(self.path, "blueprints")
+        items = []
         if j.sal.fs.exists(path=bpdir):
             items = j.sal.fs.listFilesInDir(bpdir)
-            for path in items:
-                if path not in bps:
-                    bps[path] = Blueprint(self, path=path)
+            return items
+
+    def _load_blueprints(self):
+        bps = {}
+        items = self.get_blueprints_paths()
+        for path in items:
+            if path not in bps:
+                bps[path] = Blueprint(self, path=path)
         return bps
 
     @property
@@ -317,10 +337,15 @@ class AtYourServiceRepo():
     def blueprintExecute(self, path="", content="", role="", instance=""):
         if path == "" and content == "":
             for bp in self.blueprints:
+                if not bp.is_valid:
+                    self.logger.warning("blueprint %s not executed because it doesn't have a valid format" % bp.path)
+                    return
                 bp.load(role=role, instance=instance)
         else:
             bp = Blueprint(self, path=path, content=content)
             # self._blueprints[bp.path] = bp
+            if not bp.is_valid:
+                return
             bp.load(role=role, instance=instance)
 
         self.init(role=role, instance=instance)

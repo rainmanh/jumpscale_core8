@@ -19,6 +19,7 @@ class CuisineTIDB(app): #TODO: *2 test on ovh4 over cuisine, use doneGet/Set
     NAME = 'tidb'
 
     def _build(self):
+        pass
 
     def install(self, start=True):
         """

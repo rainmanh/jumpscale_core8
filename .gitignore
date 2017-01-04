@@ -51,8 +51,7 @@ target/
 *.swp
 
 #OSX
-.DS_Store
-
+*.DS_Store
 #libext is for external extensions
 lib/JumpScale/libext/
 

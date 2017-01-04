@@ -1612,7 +1612,7 @@ class ExecutorMethods():
         if remote is not None:
             tmppathdest = "/tmp/do.sh"
             if sshkey:
-                if not self.getSSHKeyPathFromAgent(sshkey, die=False):
+                if not self.getSSHKeyPathFromAgent(sshkey, die=False)==None:
                     self.execute('ssh-add %s' % sshkey)
                 sshkey = '-i %s ' % sshkey.replace('!', '\!')
             self.execute("scp %s -oStrictHostKeyChecking=no -P %s %s root@%s:%s " %
@@ -2579,7 +2579,8 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         change["LOGDIR"] = lambda x: "%s/log" % x["VARDIR"]
         change["PIDDIR"] = lambda x: "%s/pid" % x["CFGDIR"]
         change["HRDDIR"] = lambda x: "%s/hrd" % x["CFGDIR"]
-        change["GODIR"] = lambda x: "%s/go/" % x["BASEDIR"]
+        change["GOROOTDIR"] = lambda x: "%s/go/root/" % x["BASEDIR"]
+        change["GOPATHDIR"] = lambda x: "%s/go/proj/" % x["BASEDIR"]
         change["NIMDIR"] = lambda x: "%s/nim/" % x["BASEDIR"]
         change["JSLIBDIR"] = lambda x: "%s/lib/JumpScale/" % x["JSBASE"]
         change["JSLIBEXTDIR"] = lambda x: "%s/lib/JumpScaleExtra/" % x["JSBASE"]

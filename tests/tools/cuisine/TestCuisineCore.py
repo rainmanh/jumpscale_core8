@@ -179,7 +179,7 @@ class TestCuisineCore(unittest.TestCase):
             cuisine_core.run.return_value = (0, 'hostname', '')
             input_text = "$BASEDIR:$JSAPPSDIR:$TEMPLATEDIR:$VARDIR:$BINDIR:$CODEDIR:$JSCFGDIR:$HOMEDIR:$JSLIBDIR:$LIBDIR:$LOGDIR:$PIDDIR:$TMPDIR:$hostname"
             expected_output = "/opt/jumpscale8/:/opt/jumpscale8//apps:/opt/jumpscale8//templates:/optvar/:/opt/jumpscale8//bin:/opt/code/:/optvar//cfg:/root:/opt/jumpscale8//lib/JumpScale/:/opt/jumpscale8//lib/:/optvar//log:/optvar//pid:/optvar//tmp:hostname"
-            actual_output = cuisine_core.args_replace(input_text)
+            actual_output = cuisine_core.replace(input_text)
             self.assertEqual(expected_output, actual_output)
 
     @unittest.skip("Needs fixing")
@@ -283,7 +283,7 @@ class TestCuisineCore(unittest.TestCase):
             path = '/tmp/file.tgz'
             to = '/tmp/dest'
             cuisine_core.run = mock.MagicMock()
-            cuisine_core.args_replace = mock.MagicMock()
+            cuisine_core.replace = mock.MagicMock()
             cuisine_core.file_expand(path, to)
 
     @unittest.skip("Needs fixing")
@@ -305,8 +305,8 @@ class TestCuisineCore(unittest.TestCase):
             path = '/tmp/file.txt'
             to = '/tmp/dest'
             cuisine_core.run = mock.MagicMock()
-            cuisine_core.args_replace = mock.MagicMock()
-            cuisine_core.args_replace.side_effect = (path, to)
+            cuisine_core.replace = mock.MagicMock()
+            cuisine_core.replace.side_effect = (path, to)
             j.exceptions.RuntimeError = JSExceptions.RuntimeError
             self.assertRaises(JSExceptions.RuntimeError, cuisine_core.file_expand, path, to)
 
@@ -326,7 +326,7 @@ class TestCuisineCore(unittest.TestCase):
             cuisine = j.tools.cuisine.local
             cuisine_core = CuisineCore(executor, cuisine)
             cuisine_core.run = mock.MagicMock()
-            cuisine_core.args_replace = mock.MagicMock()
+            cuisine_core.replace = mock.MagicMock()
             cuisine_core.file_write = mock.MagicMock()
             self.assertIsNone(cuisine_core.touch('/tmp/hello'))
             self.assertTrue(cuisine_core.file_write.called)

@@ -42,6 +42,7 @@ def init_actions_(service, args):
         'start': ['install'],
         'monitor': ['start'],
         'stop': [],
+        'delete': ['uninstall'],
         'uninstall': ['stop'],
     }
 

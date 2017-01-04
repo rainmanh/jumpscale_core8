@@ -248,7 +248,9 @@ class CuisineCore(base):
         - $BASEDIR
         - $JSAPPSDIR
         - $TEMPLATEDIR
-        - $VARDIR/
+        - $VARDIR
+        - $GOPATH
+        - $GOROOT
         - $BINDIR
         - $CODEDIR
         - $JSCFGDIR
@@ -257,7 +259,7 @@ class CuisineCore(base):
         - $LIBDIR
         - $LOGDIR
         - $PIDDIR
-        - $TMPDIR/
+        - $TMPDIR
         system
         - $hostname
 
@@ -341,35 +343,31 @@ class CuisineCore(base):
         return x
 
     def file_download(self, url, to="", overwrite=True, retry=3, timeout=0, login="",
-                      passwd="", minspeed=0, multithread=False, expand=False, minsizekb=30):
+                      passwd="", minspeed=0, multithread=False, expand=False, minsizekb=30,
+                      removeTopDir=False):
         """
         download from url
         @return path of downloaded file
         @param to is destination
         @param minspeed is kbytes per sec e.g. 50, if less than 50 kbytes during 10 min it will restart the download (curl only)
         @param when multithread True then will use aria2 download tool to get multiple threads
+        @param removeTopDir : if True and there is only 1 dir in the destination then will move files away from the one dir to parent (often in tgz the top dir is not relevant)
         """
-        destination = to
-        if to == "":
-            if expand:
-                destdir = ""
-            to = self.joinpaths("$TMPDIR", j.sal.fs.getBaseName(url))
-        else:
-            if expand:
-                destdir = to
+        if expand and to!="":
+            destination = to
+            if overwrite:
+                self.dir_remove(destination)
+
+        if to == "" or expand:
             to = self.joinpaths("$TMPDIR", j.sal.fs.getBaseName(url))
 
         to = self.replace(to)
-
-        # if expand:
-        #     destdir = to
-        #     self.dir_ensure(destdir)
-        #     to = self.joinpaths("$TMPDIR", "_%s" % j.sal.fs.getBaseName(url))
 
         if overwrite:
             if self.file_exists(to):
                 self.file_unlink(to)
                 self.file_unlink("%s.downloadok" % to)
+
         if not (self.file_exists(to) and self.file_exists("%s.downloadok" % to)):
 
             self.createDir(j.sal.fs.getDirName(to))
@@ -407,22 +405,13 @@ class CuisineCore(base):
                     self.touch("%s.downloadok" % to)
             else:
                 raise j.exceptions.RuntimeError("not implemented yet")
-        if destination:
-            #make sure we don't copy to ourselves
-            destinationCheck=self.replace(destination).strip().replace("//","/")
-            toCheck=self.replace(to).strip().replace("//","/")
-            if os.path.dirname(toCheck)==os.path.dirname(destinationCheck):
-                pass
-            elif os.path.dirname(toCheck)==destinationCheck:
-                pass
-            else:
-                self.file_copy(to, destination)
+
         if expand:
-            return self.file_expand(to, destdir)
+            return self.file_expand(to, destination,removeTopDir=removeTopDir)
 
         return to
 
-    def file_expand(self, path, to=""):
+    def file_expand(self, path, destination="",removeTopDir=False):
         path = self.replace(path)
         base = j.sal.fs.getBaseName(path)
         if base.endswith(".tgz"):
@@ -433,26 +422,33 @@ class CuisineCore(base):
             base = base[:-3]
         if base.endswith(".tar"):
             base = base[:-4]
-        if to == "":
-            to = self.joinpaths("$TMPDIR", base)
+        if destination == "":
+            destination = self.joinpaths("$TMPDIR", base)
         path = self.replace(path)
-        to = self.replace(to)
-        self.dir_ensure(to)
+        destination = self.replace(destination)
+        self.dir_ensure(destination)
         if path.endswith(".tar.gz") or path.endswith(".tgz"):
-            cmd = "tar -C %s -xzf %s" % (to, path)
+            cmd = "tar -C %s -xzf %s" % (destination, path)
             self.run(cmd)
         elif path.endswith(".xz"):
             if self.isMac:
                 self.cuisine.package.install('xz')
             else:
                 self.cuisine.package.install('xz-utils')
-            cmd = "tar -C %s -xzf %s" % (to, path)
+            cmd = "tar -C %s -xzf %s" % (destination, path)
             self.run(cmd)
         else:
             raise j.exceptions.RuntimeError("file_expand format not supported yet for %s" % path)
-        if self.dir_exists(self.joinpaths(to, base)):
-            return self.joinpaths(to, base)
-        return to
+
+        if removeTopDir:
+            res=self.find(destination,recursive=False,type="d")
+            if len(res)==1:
+                self.copyTree(res[0],destination)
+                self.dir_remove(res[0])
+                
+        if self.dir_exists(self.joinpaths(destination, base)):
+            return self.joinpaths(destination, base)
+        return destination
 
     def touch(self, path):
         path = self.replace(path)
@@ -953,7 +949,7 @@ class CuisineCore(base):
         """
 
         @param findstatement can be used if you want to use your own find arguments
-        for help on find see http: // www.gnu.org / software / findutils / manual / html_mono / find.html
+        for help on find see http://www.gnu.org/software/findutils/manual/html_mono/find.html
 
         @param pattern e.g. * / config / j*
             *   Matches any zero or more characters.
@@ -1021,6 +1017,7 @@ class CuisineCore(base):
                     paths2.append([path, int(size), int(float(mod))])
         else:
             paths2 = [item for item in paths if item.strip() != ""]
+            paths2 = [item for item in paths2 if os.path.basename(item) != "."]
 
         return paths2
 

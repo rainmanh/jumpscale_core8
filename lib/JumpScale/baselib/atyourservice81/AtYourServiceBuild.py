@@ -97,7 +97,7 @@ def build(service, build_func, build_destination='/mnt/building'):
     # do the actual building
     build_func(cuisine)
 
-    cfg_path = cuisine.core.args_replace("$optDir/build.yaml")
+    cfg_path = cuisine.core.replace("$BASEDIR/build.yaml")
     branch = service.model.data.branch if hasattr(service.model.data, 'branch') else 'master'
     versions = {service.model.role: branch}
     if cuisine.core.file_exists(cfg_path):

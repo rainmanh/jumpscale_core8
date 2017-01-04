@@ -34,7 +34,7 @@ class CuisineController(app):
         self.cuisine.development.golang.godep(url)
 
         # Do the actual building
-        self.cuisine.core.run("cd $GODIR/src/github.com/g8os/controller && go build .", profile=True)
+        self.cuisine.core.run("cd $GOPATHDIR/src/github.com/g8os/controller && go build .", profile=True)
 
         if install:
             self.install(start, listen_addr)
@@ -43,7 +43,7 @@ class CuisineController(app):
         """
         download, install, move files to appropriate places, and create relavent configs
         """
-        sourcepath = "$GODIR/src/github.com/g8os/controller"
+        sourcepath = "$GOPATHDIR/src/github.com/g8os/controller"
         # move binary
         if not self.cuisine.core.file_exists('$BINDIR/controller'):
             self.cuisine.core.file_move("%s/controller" % sourcepath, "$BINDIR/controller")

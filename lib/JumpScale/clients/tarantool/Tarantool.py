@@ -178,7 +178,7 @@ class TarantoolFactory:
         LUA = LUA.replace("$passwd", passwd)
         LUA = LUA.replace("$port", str(port))
 
-        luapath = cuisine.core.args_replace("$TMPDIR/tarantool.lua")
+        luapath = cuisine.core.replace("$TMPDIR/tarantool.lua")
 
         print("write lua startup to:%s" % luapath)
 

@@ -18,24 +18,24 @@ class CuisineVulcand(app):
 
         export goDir=$TMPDIR/vulcandgoDir
 
-        if [ ! -d $GODIR ]; then
-            mkdir -p $GODIR
+        if [ ! -d $GOPATHDIR ]; then
+            mkdir -p $GOPATHDIR
         fi
 
         go get -d github.com/vulcand/vulcand
 
-        cd $GODIR/src/github.com/vulcand/vulcand
+        cd $GOPATHDIR/src/github.com/vulcand/vulcand
         CGO_ENABLED=0 go build -a -ldflags '-s' -installsuffix nocgo .
         GOOS=linux go build -a -tags netgo -installsuffix cgo -ldflags '-w' -o ./vulcand .
         GOOS=linux go build -a -tags netgo -installsuffix cgo -ldflags '-w' -o ./vctl/vctl ./vctl
         GOOS=linux go build -a -tags netgo -installsuffix cgo -ldflags '-w' -o ./vbundle/vbundle ./vbundle
 
         mkdir -p /build/vulcand
-        cp $GODIR/src/github.com/vulcand/vulcand/vulcand $BASEDIR/bin/
-        cp $GODIR/src/github.com/vulcand/vulcand/vctl/vctl $BASEDIR/bin/
-        cp $GODIR/src/github.com/vulcand/vulcand/vbundle/vbundle $BASEDIR/bin/
+        cp $GOPATHDIR/src/github.com/vulcand/vulcand/vulcand $BASEDIR/bin/
+        cp $GOPATHDIR/src/github.com/vulcand/vulcand/vctl/vctl $BASEDIR/bin/
+        cp $GOPATHDIR/src/github.com/vulcand/vulcand/vbundle/vbundle $BASEDIR/bin/
 
-        rm -rf $GODIR
+        rm -rf $GOPATHDIR
 
         '''
         C = self.cuisine.bash.replaceEnvironInText(C)

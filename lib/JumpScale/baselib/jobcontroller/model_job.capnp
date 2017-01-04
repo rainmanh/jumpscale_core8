@@ -1,5 +1,43 @@
 @0xc95b52bf39888c7e;
 
+
+struct Command {
+  #ask for something to be executed in the engine
+
+  #me is unique email
+  me@0 :Text;
+
+  #is hash of my public key (md5), is to reverify my public key against public key servers
+  mehash @1 :Text;
+
+  #role of service e.g. node.ssh
+  actorName @2 :Text;
+
+  #name e.g. install
+  actionName @3 :Text;
+
+  #name of service run by actor e.g. myhost
+  serviceName @4 :Text;
+
+  #dict which will be given to method as **args (msgpack)
+  args @5 :Data;
+
+  doResult @6 :Bool;
+
+  #create a job
+  doJob @7 :Bool;
+
+  #create a log
+  doLog @8 :Bool;
+
+  doDebug @9 :Bool;
+
+  profile @10 :Bool;
+
+   @11 :Int32;
+
+}
+
 struct Job {
   #this object is hosted by actor based on FQDN
   #is the run which asked for this job

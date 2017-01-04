@@ -1018,7 +1018,7 @@ j.core.platformtype.myplatform.executor.cuisine.btrfs.subvolumesDelete?4([- path
 , - filter = ''
 ])
 j.core.platformtype.myplatform.executor.cuisine.core?8
-j.core.platformtype.myplatform.executor.cuisine.core.args_replace?4([- text
+j.core.platformtype.myplatform.executor.cuisine.core.replace?4([- text
 ])
 j.core.platformtype.myplatform.executor.cuisine.core.cd?8
 j.core.platformtype.myplatform.executor.cuisine.core.command_check?4([- command
@@ -5587,7 +5587,7 @@ j.tools.cuisine.local.bash.setOurProfile?4([])
 j.tools.cuisine.local.bash.write?4([])
 j.tools.cuisine.local.btrfs?8
 j.tools.cuisine.local.core?8
-j.tools.cuisine.local.core.args_replace?4([- text
+j.tools.cuisine.local.core.replace?4([- text
 ])
 j.tools.cuisine.local.core.cd?8
 j.tools.cuisine.local.core.command_check?4([- command
@@ -7994,7 +7994,7 @@ j.core.platformtype.myplatform.executor.cuisine.btrfs.subvolumesDelete?4([- path
 , - filter = ''
 ])
 j.core.platformtype.myplatform.executor.cuisine.core?8
-j.core.platformtype.myplatform.executor.cuisine.core.args_replace?4([- text
+j.core.platformtype.myplatform.executor.cuisine.core.replace?4([- text
 ])
 j.core.platformtype.myplatform.executor.cuisine.core.cd?8
 j.core.platformtype.myplatform.executor.cuisine.core.command_check?4([- command
@@ -12559,7 +12559,7 @@ j.tools.cuisine.local.bash.setOurProfile?4([])
 j.tools.cuisine.local.bash.write?4([])
 j.tools.cuisine.local.btrfs?8
 j.tools.cuisine.local.core?8
-j.tools.cuisine.local.core.args_replace?4([- text
+j.tools.cuisine.local.core.replace?4([- text
 ])
 j.tools.cuisine.local.core.cd?8
 j.tools.cuisine.local.core.command_check?4([- command
@@ -14892,7 +14892,7 @@ j.core.platformtype.myplatform.executor.cuisine.btrfs.subvolumesDelete?4([- path
 , - filter = ''
 ])
 j.core.platformtype.myplatform.executor.cuisine.core?8
-j.core.platformtype.myplatform.executor.cuisine.core.args_replace?4([- text
+j.core.platformtype.myplatform.executor.cuisine.core.replace?4([- text
 ])
 j.core.platformtype.myplatform.executor.cuisine.core.cd?8
 j.core.platformtype.myplatform.executor.cuisine.core.command_check?4([- command
@@ -20316,7 +20316,7 @@ j.tools.cuisine.local.bash.setOurProfile?4([])
 j.tools.cuisine.local.bash.write?4([])
 j.tools.cuisine.local.btrfs?8
 j.tools.cuisine.local.core?8
-j.tools.cuisine.local.core.args_replace?4([- text
+j.tools.cuisine.local.core.replace?4([- text
 ])
 j.tools.cuisine.local.core.cd?8
 j.tools.cuisine.local.core.command_check?4([- command

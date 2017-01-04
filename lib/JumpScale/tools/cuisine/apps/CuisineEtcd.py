@@ -27,7 +27,7 @@ class CuisineEtcd(app):
 
         go get -x -d -u github.com/coreos/etcd
 
-        cd $GODIR/src/$REPO_PATH
+        cd $GOPATHDIR/src/$REPO_PATH
 
         # first checkout master to prevent error if already in detached mode
         git checkout master

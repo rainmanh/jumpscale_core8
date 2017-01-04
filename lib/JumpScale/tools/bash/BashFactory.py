@@ -114,7 +114,7 @@ class Profile:
             text = text.replace("$%s" % key, val)
         return text
 
-    def save(self, includeInDefaultProfile=False):
+    def save(self, includeInDefaultProfile=True):
         """
         save to disk
         @param includeInDefaultProfile, if True then will include in the default profile
@@ -131,7 +131,8 @@ class Profile:
             self.cuisine.core.file_write(self.bash.profileDefault.pathProfile, out)
 
         self.cuisine.core.file_write(self.pathProfile, str(self), showout=False)
-        self.bash.reset()
+
+        self.bash.reset()#do not remove !
 
     def getLocaleItems(self, force=False, showout=False):
         out = self.cuisine.core.run("locale -a")[1]

@@ -19,7 +19,7 @@ class CuisineSkyDns(app):
         """
         download , install, move files to appropriate places, and create relavent configs
         """
-        self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$GODIR', 'bin', 'skydns'), '$BINDIR')
+        self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$GOPATHDIR', 'bin', 'skydns'), '$BINDIR')
         self.cuisine.bash.addPath(self.replace("$BINDIR"))
 
         if start:

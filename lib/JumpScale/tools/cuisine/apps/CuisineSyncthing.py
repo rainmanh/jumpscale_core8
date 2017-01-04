@@ -7,111 +7,105 @@ class CuisineSyncthing(app):
 
     NAME = 'syncthing'
 
-    def build(self, start=True, install=True, reset=False):
+
+    @property
+    def builddir(self):
+        return self.core.dir_paths['BUILDDIR']+"/syncthing"
+
+    def build(self, start=True, install=True, reset=False,version='v0.14.18'):
         """
         build and setup syncthing to run on :8384 , this can be changed from the config file in /optvar/cfg/syncthing
+        version e.g. 'v0.14.5'
         """
-        # install golang
-        if reset is False and self.isInstalled():
+
+        if self.doneGet("build") and not reset:
             return
-        # self.cuisine.development.golang.install()
+
+        self.cuisine.development.golang.install()
 
         # build
         url = "https://github.com/syncthing/syncthing.git"
-        if self.cuisine.core.file_exists('$GODIR/src/github.com/syncthing/syncthing'):
-            self.cuisine.core.dir_remove('$GODIR/src/github.com/syncthing/syncthing')
+        if self.cuisine.core.file_exists('$GOPATHDIR/src/github.com/syncthing/syncthing'):
+            self.cuisine.core.dir_remove('$GOPATHDIR/src/github.com/syncthing/syncthing')
         dest = self.cuisine.development.git.pullRepo(url,
-                                                     dest='$GODIR/src/github.com/syncthing/syncthing',
+                                                     dest='$GOPATHDIR/src/github.com/syncthing/syncthing',
                                                      ssh=False,
                                                      depth=1)
-        self.cuisine.core.run("cd %s && go run build.go -version v0.14.5 -no-upgrade" % dest, profile=True)
+
+        if version!=None:
+            self.cuisine.core.run("cd %s && go run build.go -version %s -no-upgrade" % (dest,version), profile=True)
+        else:
+            self.cuisine.core.run("cd %s && go run build.go" % dest, profile=True)
+
+        # self.core.dir_ensure(self.builddir+"/cfg")
+        # self.core.dir_ensure(self.builddir+"/bin")
+
+        self.core.copyTree('$GOPATHDIR/src/github.com/syncthing/syncthing/bin', self.builddir+"/bin", keepsymlinks=False, deletefirst=True, overwriteFiles=True, \
+                recursive=True, rsyncdelete=True, createdir=True,ignorefiles=['testutil', 'stbench'])
+
+
+        self.doneSet("build")
 
         if install:
-            self.install(start)
+            self.install(start=start)
 
-    def install(self, start=True):
+    def install(self, start=True,reset=False,homedir=""):
         """
         download, install, move files to appropriate places, and create relavent configs
         """
-        # create config file
-        config = """
-        <configuration version="14">
-            <folder id="default" path="$HOMEDIR/Sync" ro="false" rescanIntervalS="60" ignorePerms="false" autoNormalize="false">
-                <device id="H7MBKSF-XNFETHA-2ERDXTB-JQCAXTA-BBTTLJN-23TN5BZ-4CL7KLS-FYCISAR"></device>
-                <minDiskFreePct>1</minDiskFreePct>
-                <versioning></versioning>
-                <copiers>0</copiers>
-                <pullers>0</pullers>
-                <hashers>0</hashers>
-                <order>random</order>
-                <ignoreDelete>false</ignoreDelete>
-            </folder>
-            <device id="H7MBKSF-XNFETHA-2ERDXTB-JQCAXTA-BBTTLJN-23TN5BZ-4CL7KLS-FYCISAR" name="$hostname" compression="metadata" introducer="false">
-                <address>dynamic</address>
-            </device>
-            <gui enabled="true" tls="false">
-                <address>$lclAddrs:$port</address>
-            </gui>
-            <options>
-                <listenAddress>tcp://0.0.0.0:22000</listenAddress>
-                <globalAnnounceServer>default</globalAnnounceServer>
-                <globalAnnounceEnabled>true</globalAnnounceEnabled>
-                <localAnnounceEnabled>true</localAnnounceEnabled>
-                <localAnnouncePort>21025</localAnnouncePort>
-                <localAnnounceMCAddr>[ff32::5222]:21026</localAnnounceMCAddr>
-                <maxSendKbps>0</maxSendKbps>
-                <maxRecvKbps>0</maxRecvKbps>
-                <reconnectionIntervalS>60</reconnectionIntervalS>
-                <startBrowser>true</startBrowser>
-                <upnpEnabled>true</upnpEnabled>
-                <upnpLeaseMinutes>60</upnpLeaseMinutes>
-                <upnpRenewalMinutes>30</upnpRenewalMinutes>
-                <upnpTimeoutSeconds>10</upnpTimeoutSeconds>
-                <urAccepted>0</urAccepted>
-                <urUniqueID></urUniqueID>
-                <restartOnWakeup>true</restartOnWakeup>
-                <autoUpgradeIntervalH>12</autoUpgradeIntervalH>
-                <keepTemporariesH>24</keepTemporariesH>
-                <cacheIgnoredFiles>true</cacheIgnoredFiles>
-                <progressUpdateIntervalS>5</progressUpdateIntervalS>
-                <symlinksEnabled>true</symlinksEnabled>
-                <limitBandwidthInLan>false</limitBandwidthInLan>
-                <databaseBlockCacheMiB>0</databaseBlockCacheMiB>
-                <pingTimeoutS>30</pingTimeoutS>
-                <pingIdleTimeS>60</pingIdleTimeS>
-                <minHomeDiskFreePct>1</minHomeDiskFreePct>
-            </options>
-        </configuration>
-        """
-        # install deps
-        self.cuisine.development.golang.install()
 
-        # create config file
-        content = self.replace(config)
-        content = content.replace('$lclAddrs', '0.0.0.0', 1)
-        content = content.replace('$port', '18384', 1)
+        if self.doneGet("install") and not reset:
+            return
 
-        self.cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/syncthing/")
-        self.cuisine.core.file_write("$TEMPLATEDIR/cfg/syncthing/config.xml", content)
+        self.build()
+        j.tools.cuisine.local.development.pip.install("syncthing")
 
-        # If syncthing isn't found, it means that syncthing must be built first
-        if not self.cuisine.core.file_exists('$BINDIR/syncthing'):
-            self.cuisine.core.file_copy(source="$GODIR/src/github.com/syncthing/syncthing/bin/syncthing",
-                                        dest="$BINDIR",
-                                        recursive=True,
-                                        overwrite=False)
+        self.cuisine.core.dir_ensure("$CFGDIR/syncthing")
+        # self.cuisine.core.file_write("$CFGDIR/syncthing/syncthing.xml", config)
+
+        self.core.copyTree(self.builddir+"/bin","$BINDIR")
+
+        self.doneSet("install")
+
         if start:
             self.start()
 
-    def start(self):
-        self.cuisine.core.dir_ensure("$JSCFGDIR")
-        self.cuisine.core.file_copy("$TEMPLATEDIR/cfg/syncthing/", "$JSCFGDIR", recursive=True)
+    def start(self,reset=False):
+
+        if reset:
+            self.cuisine.core.run("killall syncthing",die=False)
+            self.cuisine.core.run("rm -rf $CFGDIR/syncthing")
+
+        if  self.core.dir_exists("$CFGDIR/syncthing")==False:
+            self.core.run(cmd="rm -rf $CFGDIR/syncthing;cd $BINDIR;./syncthing -generate  $CFGDIR/syncthing")
         pm = self.cuisine.processmanager.get("tmux")
-        pm.ensure(name="syncthing", cmd="./syncthing -home  $JSCFGDIR/syncthing", path="$BINDIR")
+        pm.ensure(name="syncthing", cmd="./syncthing -home  $CFGDIR/syncthing", path="$BINDIR")
+
+    @property
+    def apikey(self):
+        import xml.etree.ElementTree as etree
+        tree = etree.parse(self.replace("$CFGDIR/syncthing/config.xml"))
+        r=tree.getroot()
+        for item in r:
+            if item.tag=="gui":
+                for item2 in item:
+                    print (item2.tag)
+                    if item2.tag=="apikey":
+                        return item2.text
 
     def stop(self):
         pm = self.cuisine.processmanager.get("tmux")
         pm.stop("syncthing")
+
+    def getApiClient(self):
+        from IPython import embed
+        print ("DEBUG NOW u8")
+        embed()
+        raise RuntimeError("stop debug here")
+        import syncthing
+        sync=syncthing.Syncthing(api_key=self.apikey,host="127.0.0.1",port=8384)
+        sync.sys.config()
+        return sync
 
     def restart(self):
         self.stop()

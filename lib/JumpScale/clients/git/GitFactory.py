@@ -10,7 +10,7 @@ class GitFactory:
         self.logger = j.logger.get('j.clients.git')
         self.pullGitRepo = j.do.pullGitRepo
         self.getGitRepoArgs = j.do.getGitRepoArgs
-        self.rewriteGitRepoUrl = j.do.rewriteGitRepoUrlsel
+        self.rewriteGitRepoUrl = j.do.rewriteGitRepoUrl
         self.getGitBranch = j.do.getGitBranch
 
     def get(self, basedir="", check_path=True):

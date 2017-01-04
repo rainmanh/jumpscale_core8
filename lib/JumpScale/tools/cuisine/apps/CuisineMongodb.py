@@ -14,39 +14,37 @@ class CuisineMongodb(app):
         """
         if not reset and self.doneGet("install"):
             return
-        if reset and self.cuisine.core.isMac:
+        if self.cuisine.core.isMac:
             self.cuisine.core.run("brew uninstall mongodb", die=False)
-        if not reset and self.isInstalled():
-            self.log('MongoDB is already installed.')
-            return
+
+        appbase = "%s/" % self.cuisine.core.dir_paths["BINDIR"]
+        self.cuisine.core.dir_ensure(appbase)
+
+        url = None
+        if self.cuisine.core.isUbuntu:
+            # TODO: *2 upgrade ubuntu version as well
+            # https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-3.4.0.tgz
+            url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-3.2.9.tgz'
+        elif self.cuisine.core.isArch:
+            self.cuisine.package.install("mongodb")
+        elif self.cuisine.core.isMac:  # TODO: better platform mgmt
+            url = 'https://fastdl.mongodb.org/osx/mongodb-osx-ssl-x86_64-3.4.0.tgz'
         else:
-            appbase = "%s/" % self.cuisine.core.dir_paths["BINDIR"]
-            self.cuisine.core.dir_ensure(appbase)
+            raise j.exceptions.RuntimeError("unsupported platform")
 
-            url = None
-            if self.cuisine.core.isUbuntu:
-                # TODO: *2 upgrade ubuntu version as well
-                # https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-3.4.0.tgz
-                url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-3.2.9.tgz'
-            elif self.cuisine.core.isArch:
-                self.cuisine.package.install("mongodb")
-            elif self.cuisine.core.isMac:  # TODO: better platform mgmt
-                url = 'https://fastdl.mongodb.org/osx/mongodb-osx-ssl-x86_64-3.4.0.tgz'
-            else:
-                raise j.exceptions.RuntimeError("unsupported platform")
+        if url:
+            self.log('Downloading mongodb.')
+            self.cuisine.core.file_download(url, to="$TMPDIR", overwrite=False, expand=True)
+            tarpaths = self.cuisine.core.find("$TMPDIR", recursive=False, pattern="*mongodb*.tgz", type='f')
+            if len(tarpaths) == 0:
+                raise j.exceptions.Input(message="could not download:%s, did not find in %s" % (
+                    url, self.replace("$TMPDIR")), level=1, source="", tags="", msgpub="")
+            tarpath = tarpaths[0]
+            self.cuisine.core.file_expand(tarpath, "$TMPDIR")
+            extracted = self.cuisine.core.find("$TMPDIR", recursive=True, pattern="*mongodb*", type='d')[0]
+            for file in self.cuisine.core.find('%s/bin/' % extracted, type='f'):
+                self.cuisine.core.file_copy(file, appbase)
 
-            if url:
-                self.log('Downloading mongodb.')
-                self.cuisine.core.file_download(url, to="$TMPDIR", overwrite=False, expand=True)
-                tarpaths = self.cuisine.core.find("$TMPDIR", recursive=False, pattern="*mongodb*.tgz", type='f')
-                if len(tarpaths) == 0:
-                    raise j.exceptions.Input(message="could not download:%s, did not find in %s" % (
-                        url, self.replace("$TMPDIR")), level=1, source="", tags="", msgpub="")
-                tarpath = tarpaths[0]
-                self.cuisine.core.file_expand(tarpath, "$TMPDIR")
-                extracted = self.cuisine.core.find("$TMPDIR", recursive=True, pattern="*mongodb*", type='d')[0]
-                for file in self.cuisine.core.find('%s/bin/' % extracted, type='f'):
-                    self.cuisine.core.file_copy(file, appbase)
         self.cuisine.core.dir_ensure('$VARDIR/data/mongodb')
         self.doneSet("install")
         if start:

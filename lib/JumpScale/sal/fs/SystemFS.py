@@ -12,7 +12,7 @@ import codecs
 import pickle as pickle
 import stat
 from stat import ST_MTIME
-from SystemFSWalker import *
+from JumpScale.sal.fs.SystemFSWalker import *
 
 
 # We import only jumpscale as the j.sal.fs is used before jumpscale is
@@ -36,6 +36,8 @@ if not sys.platform.startswith('win'):
         pass
 
 _LOCKDICTIONARY = dict()
+
+logger = j.logger.get('j.sal.fs')
 
 
 class LockException(Exception):
@@ -69,7 +71,7 @@ def cleanupString(string, replacewith="_", regex="([^A-Za-z0-9])"):
 
 def lock(lockname, locktimeout=60, reentry=False):
     '''Take a system-wide interprocess exclusive lock. Default timeout is 60 seconds'''
-    j.sal.fs.logger.debug('Lock with name: %s' % lockname)
+    logger.debug('Lock with name: %s' % lockname)
     try:
         result = lock_(lockname, locktimeout, reentry)
     except Exception as e:
@@ -151,7 +153,7 @@ def islocked(lockname, reentry=False):
 
 def unlock(lockname):
     """Unlock system-wide interprocess lock"""
-    j.sal.fs.logger.log('UnLock with name: %s' % lockname, 6)
+    logger.debug('Unlock with name: %s' % lockname)
     try:
         unlock_(lockname)
     except Exception as msg:
@@ -205,19 +207,20 @@ class FileLock:
     @see: L{unlock}
     '''
 
-    def __init__(self, lock_name, reentry=False):
+    def __init__(self, lock_name, reentry=False, locktimeout=60):
         self.lock_name = lock_name
         self.reentry = reentry
+        self.locktimeout = locktimeout
 
     def __enter__(self):
-        lock(self.lock_name, reentry=self.reentry)
+        lock(self.lock_name, reentry=self.reentry, locktimeout=self.locktimeout)
 
     def __exit__(self, *exc_info):
         unlock(self.lock_name)
 
     def __call__(self, func):
         def wrapper(*args, **kwargs):
-            lock(self.lock_name, reentry=self.reentry)
+            lock(self.lock_name, reentry=self.reentry, locktimeout=self.locktimeout)
             try:
                 return func(*args, **kwargs)
             finally:
@@ -703,10 +706,7 @@ class SystemFS:
         if self.pathClean(toremove) == self.pathClean(path):
             return ""
         path = self.pathClean(path)
-
-        if path.startswith(toremove):
-            path = path[len(toremove):]
-
+        path = path.replace(self.pathDirClean(toremove), "")
         if removeTrailingSlash:
             if len(path) > 0 and path[0] == os.sep:
                 path = path[1:]

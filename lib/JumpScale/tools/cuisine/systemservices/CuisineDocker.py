@@ -1,5 +1,7 @@
 
 from JumpScale import j
+from JumpScale.sal.fs.SystemFS import FileLock
+from JumpScale.tools.cuisine.CuisinePackage import LOCK_NAME, LOCK_TIMEOUT
 import random
 
 app = j.tools.cuisine._getBaseAppClass()
@@ -26,14 +28,15 @@ class CuisineDocker(app):
                 C = """
                 wget -qO- https://get.docker.com/ | sh
                 """
-                self.cuisine.core.execute_bash(C)
-            # if not self.cuisine.core.command_check('docker-compose'):
+                with FileLock(LOCK_NAME, locktimeout=LOCK_TIMEOUT):
+                    self.cuisine.core.run(C)
+             # if not self.cuisine.core.command_check('docker-compose'):
             #     C = """
             #     curl -L https://github.com/docker/compose/releases/download/1.8.0-rc1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
             #     chmod +x /usr/local/bin/docker-compose
             #     """
-            #     self.cuisine.core.execute_bash(C)
-        if self.cuisine.core.isArch:
+            #     self.cuisine.core.run(C)
+        if self._cuisine.core.isArch:
             self.cuisine.package.install("docker")
             # self.cuisine.package.install("docker-compose")
         self._init_docker()

@@ -40,6 +40,10 @@ class OrgCollection(base):
         @param source str,, source of remote database.
         """
         res = []
+        member = int(member)
+        repo = int(repo)
+        owner = int(owner)
+        id = int(id)
         for key in self.list(id=id, name=name, source=source):
             res.append(self.get(key))
 

@@ -76,7 +76,6 @@ class GogsFactory:
             raise RuntimeError("stop debug here")
 
         for key, val in issues.items():
-            print(val)
             issue_model = IssueCollection.new()
             if val['assignees']:
                 issue_model.dbobj.init('assignees', len(val['assignees']))

@@ -349,7 +349,7 @@ class CuisineCore(base):
         @param minspeed is kbytes per sec e.g. 50, if less than 50 kbytes during 10 min it will restart the download (curl only)
         @param when multithread True then will use aria2 download tool to get multiple threads
         """
-
+        destination = to
         if to == "":
             if expand:
                 destdir = ""
@@ -407,6 +407,16 @@ class CuisineCore(base):
                     self.touch("%s.downloadok" % to)
             else:
                 raise j.exceptions.RuntimeError("not implemented yet")
+        if destination:
+            #make sure we don't copy to ourselves
+            destinationCheck=self.replace(destination).strip().replace("//","/")
+            toCheck=self.replace(to).strip().replace("//","/")
+            if os.path.dirname(toCheck)==os.path.dirname(destinationCheck):
+                pass
+            elif os.path.dirname(toCheck)==destinationCheck:
+                pass
+            else:
+                self.file_copy(to, destination)
         if expand:
             return self.file_expand(to, destdir)
 
@@ -1298,6 +1308,10 @@ class CuisineCore(base):
     @property
     def isUbuntu(self):
         return "ubuntu" in self.cuisine.platformtype.platformtypes
+
+    @property
+    def isLinux(self):
+        return "linux" in self.cuisine.platformtype.platformtypes
 
     @property
     def isArch(self):

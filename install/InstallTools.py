@@ -21,6 +21,23 @@ import re
 import inspect
 import yaml
 import importlib
+import fcntl
+
+
+class FileLock():
+    def __init__(self, fname):
+        self._fname = fname
+        self._f = None
+
+    def __enter__(self):
+        self._f = open(self._fname, 'w')
+        fcntl.lockf(self._f, fcntl.LOCK_EX)
+
+    def __exit__(self, *exit):
+        try:
+            fcntl.lockf(self._f, fcntl.LOCK_UN)
+        finally:
+            self._f.close()
 
 
 class UI():
@@ -281,68 +298,69 @@ class SSHMethods():
         the primary key is 'id_rsa' and will be used as default e.g. if authorizing another node then this key will be used
 
         """
-        # check if more than 1 agent
-        socketpath = self._getSSHSocketpath()
-        res = [item for item in self.execute("ps aux|grep ssh-agent", False, False)
-               [1].split("\n") if item.find("grep ssh-agent") == -1]
-        res = [item for item in res if item.strip() != ""]
-        res = [item for item in res if item[-2:] != "-l"]
+        with FileLock('/tmp/ssh-agent'):
+            # check if more than 1 agent
+            socketpath = self._getSSHSocketpath()
+            res = [item for item in self.execute("ps aux|grep ssh-agent", False, False)
+                   [1].split("\n") if item.find("grep ssh-agent") == -1]
+            res = [item for item in res if item.strip() != ""]
+            res = [item for item in res if item[-2:] != "-l"]
 
-        if len(res) > 1:
-            print("more than 1 ssh-agent, will kill all")
-            killfirst = True
-        if len(res) == 0 and self.exists(socketpath):
-            self.delete(socketpath)
+            if len(res) > 1:
+                print("more than 1 ssh-agent, will kill all")
+                killfirst = True
+            if len(res) == 0 and self.exists(socketpath):
+                self.delete(socketpath)
 
-        if killfirst:
-            cmd = "killall ssh-agent"
-            # print(cmd)
-            self.execute(cmd, showout=False, outputStderr=False, die=False)
-            # remove previous socketpath
-            self.delete(socketpath)
-            self.delete(self.joinPaths(self.TMPDIR, "ssh-agent-pid"))
+            if killfirst:
+                cmd = "killall ssh-agent"
+                # print(cmd)
+                self.execute(cmd, showout=False, outputStderr=False, die=False)
+                # remove previous socketpath
+                self.delete(socketpath)
+                self.delete(self.joinPaths(self.TMPDIR, "ssh-agent-pid"))
 
-        if not self.exists(socketpath):
-            self.createDir(self.getParent(socketpath))
-            # ssh-agent not loaded
-            print("load ssh agent")
-            rc, result, err = self.execute("ssh-agent -a %s" % socketpath, die=False, showout=False, outputStderr=False)
+            if not self.exists(socketpath):
+                self.createDir(self.getParent(socketpath))
+                # ssh-agent not loaded
+                print("load ssh agent")
+                rc, result, err = self.execute("ssh-agent -a %s" % socketpath, die=False, showout=False, outputStderr=False)
 
-            if rc > 0:
-                # could not start ssh-agent
+                if rc > 0:
+                    # could not start ssh-agent
+                    raise RuntimeError(
+                        "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
+                else:
+                    # get pid from result of ssh-agent being started
+                    if not self.exists(socketpath):
+                        raise RuntimeError(
+                            "Serious bug, ssh-agent not started while there was no error, should never get here")
+                    piditems = [item for item in result.split("\n") if item.find("pid") != -1]
+                    # print(piditems)
+                    if len(piditems) < 1:
+                        print("results was:")
+                        print(result)
+                        print("END")
+                        raise RuntimeError("Cannot find items in ssh-add -l")
+                    self._initSSH_ENV(True)
+                    pid = int(piditems[-1].split(" ")[-1].strip("; "))
+                    self.writeFile(self.joinPaths(self.TMPDIR, "ssh-agent-pid"), str(pid))
+                    self._addSSHAgentToBashProfile()
+
+            # ssh agent should be loaded because ssh-agent socket has been found
+            if os.environ.get("SSH_AUTH_SOCK") != socketpath:
+                self._initSSH_ENV(True)
+            rc, result, err = self.execute("ssh-add -l", die=False, showout=False, outputStderr=False)
+            if rc == 2:
+                # no ssh-agent found
+                print(result)
+                raise RuntimeError("Could not connect to ssh-agent, this is bug, ssh-agent should be loaded by now")
+            elif rc == 1:
+                # no keys but agent loaded
+                result = ""
+            elif rc > 0:
                 raise RuntimeError(
                     "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
-            else:
-                # get pid from result of ssh-agent being started
-                if not self.exists(socketpath):
-                    raise RuntimeError(
-                        "Serious bug, ssh-agent not started while there was no error, should never get here")
-                piditems = [item for item in result.split("\n") if item.find("pid") != -1]
-                # print(piditems)
-                if len(piditems) < 1:
-                    print("results was:")
-                    print(result)
-                    print("END")
-                    raise RuntimeError("Cannot find items in ssh-add -l")
-                self._initSSH_ENV(True)
-                pid = int(piditems[-1].split(" ")[-1].strip("; "))
-                self.writeFile(self.joinPaths(self.TMPDIR, "ssh-agent-pid"), str(pid))
-                self._addSSHAgentToBashProfile()
-
-        # ssh agent should be loaded because ssh-agent socket has been found
-        if os.environ.get("SSH_AUTH_SOCK") != socketpath:
-            self._initSSH_ENV(True)
-        rc, result, err = self.execute("ssh-add -l", die=False, showout=False, outputStderr=False)
-        if rc == 2:
-            # no ssh-agent found
-            print(result)
-            raise RuntimeError("Could not connect to ssh-agent, this is bug, ssh-agent should be loaded by now")
-        elif rc == 1:
-            # no keys but agent loaded
-            result = ""
-        elif rc > 0:
-            raise RuntimeError(
-                "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
 
     def checkSSHAgentAvailable(self):
         if not self.exists(self._getSSHSocketpath()):
@@ -633,7 +651,7 @@ class FSMethods():
     def getPythonLibSystem(self, jumpscale=False):
         PYTHONVERSION = platform.python_version()
         if self.TYPE.startswith("OSX"):
-            destjs = "/usr/local/lib/python3.5/site-packages"
+            destjs = "/usr/local/lib/python3.6/site-packages"
         elif self.TYPE.startswith("WIN"):
             destjs = "/usr/lib/python3.4/site-packages"
         else:
@@ -1011,15 +1029,11 @@ class FSMethods():
             raise RuntimeError("input can only be string or list")
 
         for item in items:
-            if "pip_%s" % item not in self.done or force:
-                cmd = "pip3 install %s --upgrade" % item
-                if executor == None:
-                    self.executeInteractive(cmd)
-                else:
-                    executor.execute(cmd)
-                self.doneSet("pip_%s" % item)
+            cmd = "pip3 install %s --upgrade" % item
+            if executor == None:
+                self.executeInteractive(cmd)
             else:
-                print("no need to pip install:%s" % item)
+                executor.execute(cmd)
 
     def symlink(self, src, dest, delete=False):
         """
@@ -1909,7 +1923,7 @@ class Installer():
         if sys.platform.startswith('win'):
             raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
 
-        PYTHONVERSION = "3.5"
+        PYTHONVERSION = "3.6"
 
         print(("Install Jumpscale in %s" % os.environ["JSBASE"]))
 
@@ -1986,7 +2000,7 @@ class Installer():
         #             ''')
 
         # link python
-        src = "/usr/bin/python3.5"
+        src = "/usr/bin/python3.6"
         if self.do.exists(src):
             # self.do.delete("/usr/bin/python")
             if not self.do.TYPE.startswith("OSX"):
@@ -2056,9 +2070,8 @@ class Installer():
         for key, val in os.environ.items():
             if "DIR" in key:
                 config["dirs"][key] = val
-
-        with open("%s/jumpscale/system.yaml" % os.environ["CFGDIR"], 'w') as outfile:
-            yaml.dump(config, outfile, default_flow_style=False)
+        configJSON=yaml.dump(config, default_flow_style=False)
+        do.writeFile("%s/jumpscale/system.yaml" % os.environ["CFGDIR"],configJSON)
 
         C = """
         # By default, AYS will use the JS redis. This is for quick testing
@@ -2172,7 +2185,7 @@ class Installer():
         #!/bin/bash
         # set -x
         source $BASEDIR/env.sh
-        exec python3.5 -q "$@"
+        exec python3 -q "$@"
         """
 
         # C2=C2.format(base=basedir, env=envfile)
@@ -2286,22 +2299,19 @@ class Installer():
 
         print("prepare")
 
-        self.checkPython()
+        #self.checkPython()
 
         # self.installpip()
 
         if sys.platform.startswith('win'):
             raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
         elif sys.platform.startswith('darwin'):
-            if "core_apps_installed" not in self.do.done:
-                cmds = "tmux psutils libtiff libjpeg webp little-cms2"
-                for item in cmds.split(" "):
-                    if item.strip() != "":
-                        cmd = "brew unlink %s;brew install %s" % (item, item)
-                        self.do.execute(cmd)
-                self.do.doneSet("core_apps_installed")
-            else:
-                print("no need to prepare system for base, already done.")
+            cmds = "tmux psutils libtiff libjpeg jpeg webp little-cms2"
+            for item in cmds.split(" "):
+                if item.strip() != "":
+                    self.do.execute("brew unlink %s",die=False)
+                    cmd = "brew install %s;brew link --overwrite %s" % (item,item)
+                    self.do.execute(cmd)
 
         self.do.dependencies.all()
 
@@ -2426,6 +2436,8 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         if self.config != {}:
             return self.config["dirs"]["TMPDIR"]
         else:
+            if self.exists("/tmp"):
+                os.environ["TMPDIR"]="/tmp"
             return os.environ["TMPDIR"]
 
     @property
@@ -2506,45 +2518,6 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             self._deps = handle.dependencies(self)
         return self._deps
 
-    @property
-    def done(self):
-        if self.readonly == False:
-            path = '%s/jumpscale_done.yaml' % os.environ["TMPDIR"]
-            if not self.exists(path):
-                return {}
-            with open(path, 'r') as conf:
-                cfg = yaml.load(conf)
-            return cfg
-        else:
-            # this to make sure works in readonly mode
-            return {}
-
-    def doneSet(self, key, val=True):
-        if self.readonly == False:
-            d = self.done
-            if val == "_DELETE":
-                d.pop(key)
-            else:
-                d[key] = val
-            path = '%s/jumpscale_done.yaml' % os.environ["TMPDIR"]
-            with open(path, 'w') as outfile:
-                yaml.dump(d, outfile, default_flow_style=False)
-
-    def doneGet(self, key, defval=None):
-        if key in self.done:
-            return self.done[key]
-        else:
-            if defval != None:
-                self.doneSet(key, defval)
-                return defval
-            else:
-                return False
-
-    def doneReset(self, prefix=""):
-        for key, val in self.done.items():
-            if prefix == "" or key.startswith(prefix):
-                self.doneSet(key, "_DELETE")
-
     def initEnv(self, env, executor=None):
 
         if executor:
@@ -2620,7 +2593,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
 
         return env
 
-    def fixCodeChangeDirVars(self, branch="8.1.0_cleanup"):
+    def fixCodeChangeDirVars(self, branch="8.2.0"):
         """
         walk over code dir & find all known old dir arguments & change them to new naming convention
         """

@@ -33,8 +33,7 @@ class CuisineNodeJS(app):
         """
         if not reset and self.doneGet("install"):
             return
-        # version = "6.9.2"
-        version = "7.2.1"
+        version = "7.3.0"
         if reset == False and self.cuisine.core.file_exists('$BINDIR/npm'):
             return
 
@@ -58,6 +57,7 @@ class CuisineNodeJS(app):
         if self.cuisine.core.file_exists('$BINDIR/npm'):
             self.cuisine.core.file_unlink('$BINDIR/npm')
         self.cuisine.core.file_link('$JSAPPSDIR/npm/cli.js', '$BINDIR/npm')
+
 
         self.cuisine.core.run("%s install -g bower" % self.npm)
 

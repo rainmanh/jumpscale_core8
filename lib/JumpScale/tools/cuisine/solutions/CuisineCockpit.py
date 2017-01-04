@@ -1,6 +1,5 @@
 from JumpScale import j
 
-
 base = j.tools.cuisine._getBaseClass()
 
 
@@ -43,39 +42,28 @@ class CuisineCockpit(base):
             self.start()
         self.doneSet("install")
 
-    def install_all_in_one(self, start=True, branch="8.1.0_cleanup", reset=False):
+    def install_all_in_one(self, start=True, branch="8.2.0", reset=True, ip="localhost"):
         """
         This will install the all the component of the cockpit in one command.
         (mongodb, portal, ays_api, ays_daemon)
 
         Make sure that you don't have uncommitted code in any code repository cause this method will discard them !!!
         """
-
-        self.log("Kill all remaining tmux sessions")
-
-        self.cuisine.core.run("killall tmux", die=False)
-
         # install mongodb, required for portal
-        self.cuisine.apps.mongodb.install(start=start, reset=reset)
+        self._cuisine.apps.mongodb.build(install=False, start=start, reset=reset)
+        self._cuisine.apps.mongodb.install(start=start)
 
         # install portal
         self.cuisine.apps.portal.install(start=False, branch=branch, reset=reset)
         # add link from portal to API
-        content = self.cuisine.core.file_read(
-            '$CODEDIR/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81/.space/nav.wiki')
+        # 1- copy the nav to the portalbase and then edit it
+        content = self.cuisine.core.file_read('$CODEDIR/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81/.space/nav.wiki')
+        # 2- fix the ays api endpoint.
         if 'REST API:/api' not in content:
-            self.cuisine.core.cuisine.core.file_write('$CODEDIR/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81/.space/nav.wiki',
-                                                      'AYS API:http://localhost:5000/apidocs/index.html?raml=api.raml',
-                                                      append=True)
-
-        txt = self.cuisine.core.file_read("$JSCFGDIR/portals/main/config.hrd")
-        hrd = j.data.hrd.get(content=txt)
-        hrd.prefixWithName = False  # bug in hrd
-        hrd.set("param.cfg.production", False)
-        self.cuisine.core.file_write("$JSCFGDIR/portals/main/config.hrd", str(hrd))
+            content += 'AYS API:http://{ip}:5000/apidocs/index.html?raml=api.raml'.format(ip=ip)
+        self.cuisine.core.file_write('$JSAPPSDIR/portals/main/base/AYS81/.space/nav.wiki', content=content)
 
         self.cuisine.apps.portal.configure(production=False)
-
         self.cuisine.apps.portal.start()
 
         # install REST API AND ays daemon
@@ -83,7 +71,7 @@ class CuisineCockpit(base):
 
         # configure base URI for api-console
         raml = self.cuisine.core.file_read('$JSAPPSDIR/ays_api/ays_api/apidocs/api.raml')
-        raml = raml.replace('$(baseuri)', "http://localhost:5000")
+        raml = raml.replace('baseUri: http://localhost:5000', "baseUri: http://{ip}:5000".format(ip=ip))
         self.cuisine.core.file_write('$JSAPPSDIR/ays_api/ays_api/apidocs/api.raml', raml)
 
         if start:

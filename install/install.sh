@@ -7,9 +7,14 @@ if [ -d "/tmp" ]; then
     export TMPDIR="/tmp"
 fi
 
+cd $TMPDIR
+
 #TO RESET, to develop faster uncomment
-rm -f $TMPDIR/jsinstall_systemcomponents_done
 rm -f $TMPDIR/done.yaml
+rm -rf /opt/var/cfg/jumpscale/
+rm -f $TMPDIR/jumpscale_done.yaml
+rm -rf $TMPDIR/jsexecutor.json
+rm -f $TMPDIR/done
 
 cd $TMPDIR
 
@@ -22,33 +27,28 @@ function clean_system {
 }
 
 function osx_install {
-    if [ -e $TMPDIR/jsinstall_systemcomponents_done ] ; then
-        echo "NO NEED TO INSTALL CURL/PYTHON/GIT"
-    else
-        brew unlink curl
-        brew install curl
-        brew link --overwrite curl
-        brew unlink python3
-        brew install python3
-        brew link --overwrite python3
-        brew unlink git
-        brew install git
-        brew link --overwrite git
-    fi
+    set +ex
+    brew unlink curl
+    brew unlink python3
+    brew unlink git
+    set -ex
+    brew install python3
+    brew link --overwrite python3
+    brew install git
+    brew link --overwrite git
+    brew install curl
+    brew link --overwrite curl
 }
 
 function pip_install {
-    if [ -e $TMPDIR/jsinstall_systemcomponents_done ] ; then
-        echo "NO NEED TO INSTALL PIP COMPONENTS"
-    else
-        cd $TMPDIR
-        curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python3 get-pip.py
-        pip3 install --upgrade pip setuptools
-        pip3 install --upgrade pyyaml
-        # pip3 install --upgrade uvloop
-        pip3 install --upgrade ipython
-        pip3 install --upgrade python-snappy
-    fi
+    cd $TMPDIR
+    rm -rf get-pip.py
+    curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python3 get-pip.py
+    pip3 install --upgrade pip setuptools
+    pip3 install --upgrade pyyaml
+    # pip3 install --upgrade uvloop
+    pip3 install --upgrade ipython
+    pip3 install --upgrade python-snappy
 }
 
 if [ "$(uname)" == "Darwin" ]; then
@@ -111,10 +111,7 @@ clean_system
 
 pip_install
 
-touch $TMPDIR/jsinstall_systemcomponents_done
-
 set -ex
-branch=${JSBRANCH-master}
 
 cd $STARTDIR
 
@@ -127,9 +124,9 @@ if [ -e "bootstrap.py" ]; then
     cp InstallTools.py $TMPDIR/InstallTools.py
     cp dependencies.py $TMPDIR/dependencies.py
 else
-    curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/bootstrap.py?$RANDOM  > $TMPDIR/bootstrap.py
-    curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/InstallTools.py?$RANDOM > $TMPDIR/InstallTools.py
-    curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/dependencies.py?$RANDOM > $TMPDIR/dependencies.py
+    curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/bootstrap.py?$RANDOM  > $TMPDIR/bootstrap.py
+    curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/InstallTools.py?$RANDOM > $TMPDIR/InstallTools.py
+    curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/dependencies.py?$RANDOM > $TMPDIR/dependencies.py
 fi
 
 

@@ -25,13 +25,13 @@ class CuisineLedis(app):
             """
             self.cuisine.development.golang.install()
             self.cuisine.development.git.pullRepo("https://github.com/siddontang/ledisdb",
-                                                   dest="$GODIR/src/github.com/siddontang/ledisdb")
+                                                   dest="$GOPATHDIR/src/github.com/siddontang/ledisdb")
 
             # set the backend in the server config
-            ledisdir = self.replace("$GODIR/src/github.com/siddontang/ledisdb")
+            ledisdir = self.replace("$GOPATHDIR/src/github.com/siddontang/ledisdb")
 
             configcontent = self.cuisine.core.file_read(os.path.join(ledisdir, "config", "config.toml"))
-            ledisdir = self.replace("$GODIR/src/github.com/siddontang/ledisdb")
+            ledisdir = self.replace("$GOPATHDIR/src/github.com/siddontang/ledisdb")
 
             if backend == "rocksdb":
                 self._preparerocksdb()
@@ -52,7 +52,7 @@ class CuisineLedis(app):
     def _prepareleveldb(self):
         # execute the build script in tools/build_leveldb.sh
         # it will install snappy/leveldb in /usr/local{snappy/leveldb} directories
-        ledisdir = self.replace("$GODIR/src/github.com/siddontang/ledisdb")
+        ledisdir = self.replace("$GOPATHDIR/src/github.com/siddontang/ledisdb")
         # leveldb_build file : ledisdir/tools/build_leveldb.sh
         rc, out, err = self.cuisine.core.run("bash {ledisdir}/tools/build_leveldb.sh".format(ledisdir=ledisdir))
         return rc, out, err
@@ -61,7 +61,7 @@ class CuisineLedis(app):
         raise NotImplementedError
 
     def install(self, start=True):
-        ledisdir = self.replace("$GODIR/src/github.com/siddontang/ledisdb")
+        ledisdir = self.replace("$GOPATHDIR/src/github.com/siddontang/ledisdb")
 
         #rc, out, err = self.cuisine.core.run("cd {ledisdir} && source dev.sh && make install".format(ledisdir=ledisdir), profile=True)
         self.cuisine.core.dir_ensure("$TEMPLATEDIR/cfg")

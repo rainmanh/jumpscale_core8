@@ -105,7 +105,7 @@ Removes a directory
 @param source is on remote host (on the ssh node)
 @param dest is on local (where we run the cuisine)
 will replace $VARDIR, $CODEDIR, ...
-- in source but then using cuisine.core.args_replace(dest) (so for cuisine host)
+- in source but then using cuisine.core.replace(dest) (so for cuisine host)
 - in dest using j.dirs.replaceTxtDirVars (is for local cuisine)
 
 @param dest, if empty then will be same as source very usefull when using e.g. $CODEDIR
@@ -358,7 +358,7 @@ Some tools/processes rely/want the hostname as an alias in
 
 will replace $VARDIR, $CODEDIR, ... in source using j.dirs.replaceTxtDirVars (is for local
     cuisine)
-will also replace in dest but then using cuisine.core.args_replace(dest) (so for cuisine
+will also replace in dest but then using cuisine.core.replace(dest) (so for cuisine
     host)
 
 @param dest, if empty then will be same as source very usefull when using e.g. $CODEDIR

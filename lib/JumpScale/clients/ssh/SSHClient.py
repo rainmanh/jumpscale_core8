@@ -89,30 +89,40 @@ class SSHClient:
             self.logger.info("Test connection to %s:%s:%s" %
                              (self.addr, self.port, self.login))
             start = j.data.time.getTimeEpoch()
-
             if j.sal.nettools.waitConnectionTest(self.addr, self.port, self.timeout) is False:
                 self.logger.error("Cannot connect to ssh server %s:%s with login:%s and using sshkey:%s" % (
                     self.addr, self.port, self.login, self.key_filename))
                 return None
+
             start = j.data.time.getTimeEpoch()
+            self.pkey = None
+
+            try:
+                self.pkey = paramiko.RSAKey.from_private_key_file(self.key_filename, password=self.passphrase)
+            except:
+                print("could not load pkey")
+                pass
+
+            self._client = paramiko.SSHClient()
+            self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+            if self.key_filename:
+                self.allow_agent = True
+                self.look_for_keys = True
+                # if not j.clients.ssh.checkSSHAgentAvailable():
+                #     j.clients.ssh._loadSSHAgent()
+                if j.clients.ssh.getSSHKeyPathFromAgent(self.key_filename, die=False)!=None and not self.passphrase:
+                    j.clients.ssh.loadSSHKeys(self.key_filename)
+
+
             while start + self.timeout > j.data.time.getTimeEpoch():
-                j.tools.console.hideOutput()
+                # j.tools.console.hideOutput()
                 try:
-                    self._client = paramiko.SSHClient()
-                    self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                    self.pkey = None
-                    if self.key_filename:
-                        # self.allow_agent = False
-                        self.look_for_keys = False
-                        self.pkey = paramiko.RSAKey.from_private_key_file(self.key_filename, password=self.passphrase)
-                        if not j.sal.ssh.checkSSHAgentAvailable():
-                            j.sal.ssh._loadSSHAgent()
-                        if not j.sal.ssh.getSSHKeyPathFromAgent(self.key_filename, die=False) and not self.passphrase:
-                            j.sal.ssh.loadSSHKeys(self.key_filename)
+                    print("connect to:%s"%self.addr)
                     self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,
-                                         pkey=self.pkey, allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,
-                                         timeout=2.0, banner_timeout=3.0)
-                    break
+                        allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,timeout=2.0, banner_timeout=3.0)
+                    print("connection ok")
+                    return self._client
                 except (BadHostKeyException, AuthenticationException) as e:
                     self.logger.error(
                         "Authentification error. Aborting connection")
@@ -132,6 +142,7 @@ class SSHClient:
                     msg = "Could not connect to ssh on %s@%s:%s. Error was: %s" % (
                         self.login, self.addr, self.port, e)
                     raise j.exceptions.RuntimeError(msg)
+
             if self._client is None:
                 raise j.exceptions.RuntimeError(
                     'Impossible to create SSH connection to %s:%s' % (self.addr, self.port))

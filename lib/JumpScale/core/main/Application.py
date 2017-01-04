@@ -16,11 +16,9 @@ def embed():
 class Config:
 
     def __getattribute__(self, attr):
-        config_path = os.path.join(j.dirs.JSCFGDIR, attr)
-        if not os.path.isdir(config_path):
-            return None
         config = {}
-        config_files = [f.path for f in os.scandir(config_path) if f.is_file()]
+        config_files=[f.path for f in os.scandir(j.dirs.JSCFGDIR) if f.is_file()]
+        # config_files = [f.path for f in os.scandir(config_path) if f.is_file()]
         for config_file in config_files:
             # support yaml, hrd, toml
             if config_file.endswith('.yaml'):

@@ -132,7 +132,7 @@ class CuisineGeoDns(app):
         self.cuisine.development.golang.get("github.com/abh/geodns")
 
         # moving files and creating config
-        self.cuisine.core.file_copy("$GODIR/bin/geodns", "$BINDIR")
+        self.cuisine.core.file_copy("$GOPATHDIR/bin/geodns", "$BINDIR")
         self.cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/geodns/dns", recursive=True)
         self.cuisine.bash.addPath('$BINDIR')
 

@@ -49,13 +49,10 @@ class AtYourServiceFactory:
         if self._config is None:
             default_metadata = {'metadata': {'jumpscale': {'url': 'https://github.com/Jumpscale/ays_jumpscale8', 'branch': 'master'}}}
             cfg = j.application.config.jumpscale['ays']
-            if not cfg:
-                self._config = {'redis': j.core.db.config_get('unixsocket')}
-                self._config.update(default_metadata)
+            if not cfg or 'metadata' not in cfg :
+                cfg._config.update(default_metadata)
             if 'redis' not in cfg:
                 cfg.update({'redis': j.core.db.config_get('unixsocket')})
-            if 'metadata' not in cfg:
-                cfg.update(default_metadata)
             self._config = cfg
         return self._config
 
@@ -84,10 +81,10 @@ class AtYourServiceFactory:
             if j.sal.fs.exists(path="/etc/my_init.d"):
                 self.indocker = True
 
-            localGitRepos = j.do.getGitReposListLocal()
+            localGitRepos = j.clients.git.getGitReposListLocal()
 
             # see if all specified ays templateRepo's are downloaded
-            # if we don't have write permissin on /opt don't try do download service templates
+            # if we don't have write permission on /opt don't try do download service templates
             codeDir = j.tools.path.get(j.dirs.CODEDIR)
             if codeDir.access(os.W_OK):
                 # can access the opt dir, lets update the atyourservice

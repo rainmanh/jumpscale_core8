@@ -31,7 +31,7 @@ class CuisineG8OSCore(app):
 
         url = "github.com/g8os/agent"
         self.cuisine.development.golang.godep(url)
-        self.cuisine.core.run("cd $GODIR/src/github.com/g8os/agent && go build -o superagent", profile=True)
+        self.cuisine.core.run("cd $GOPATHDIR/src/github.com/g8os/agent && go build -o superagent", profile=True)
 
         if install:
             self.install(start, gid, nid)
@@ -40,7 +40,7 @@ class CuisineG8OSCore(app):
         """
         download, install, move files to appropriate places, and create relavent configs
         """
-        sourcepath = "$GODIR/src/github.com/g8os/agent"
+        sourcepath = "$GOPATHDIR/src/github.com/g8os/agent"
         if not self.cuisine.core.file_exists('$BINDIR/agent'):
             self.cuisine.core.file_move("%s/superagent" % sourcepath, "$BINDIR/agent")
 

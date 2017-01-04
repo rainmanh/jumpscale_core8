@@ -58,7 +58,7 @@ class ExecutorSSH(ExecutorBase):
         if "eth0" in res:
             self.macaddr = res["eth0"]
         else:
-            keys = res.keys()
+            keys = [item for item in res.keys()]
             keys.sort()
             self.macaddr = res[keys[0]]
 

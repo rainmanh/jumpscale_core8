@@ -17,7 +17,7 @@ class CuisineG8OSFs(app):
         self.cuisine.package.install('build-essential')
 
         self.cuisine.development.golang.get("github.com/g8os/fs")
-        self.cuisine.core.file_copy("$GODIR/bin/fs", "$BASEDIR/bin")
+        self.cuisine.core.file_copy("$GOPATHDIR/bin/fs", "$BASEDIR/bin")
 
         if install:
             self.install(start)
@@ -48,9 +48,9 @@ class CuisineG8OSFs(app):
             passwd=""
         """
         self.cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/fs")
-        self.cuisine.core.file_copy("$GODIR/bin/fs", "$BASEDIR/bin")
-        self.cuisine.core.file_write("$GODIR/src/github.com/g8os/fs/config/config.toml", content)
-        self.cuisine.core.file_copy("$GODIR/src/github.com/g8os/fs/config/config.toml", "$TEMPLATEDIR/cfg/fs")
+        self.cuisine.core.file_copy("$GOPATHDIR/bin/fs", "$BASEDIR/bin")
+        self.cuisine.core.file_write("$GOPATHDIR/src/github.com/g8os/fs/config/config.toml", content)
+        self.cuisine.core.file_copy("$GOPATHDIR/src/github.com/g8os/fs/config/config.toml", "$TEMPLATEDIR/cfg/fs")
         self.cuisine.core.file_download(
             "https://stor.jumpscale.org/storx/static/js8_opt.flist", "$TEMPLATEDIR/cfg/fs/js8_opt.flist")
         if start:

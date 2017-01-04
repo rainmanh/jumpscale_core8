@@ -78,7 +78,7 @@ class CuisineSandbox(base):
         self.cuisine.core.dir_remove("$TMPDIR")
         self.cuisine.core.dir_ensure("$TMPDIR")
 
-        self.cuisine.core.dir_remove("$GODIR/src/*")
+        self.cuisine.core.dir_remove("$GOPATHDIR/src/*")
         self.cuisine.core.dir_remove("$TMPDIR/*")
         self.cuisine.core.dir_remove("$VARDIR/data/*")
         self.cuisine.core.dir_remove('/opt/code/github/domsj', True)

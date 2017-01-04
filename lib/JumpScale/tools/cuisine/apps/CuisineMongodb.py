@@ -23,8 +23,7 @@ class CuisineMongodb(app):
         url = None
         if self.cuisine.core.isUbuntu:
             # TODO: *2 upgrade ubuntu version as well
-            # https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-3.4.0.tgz
-            url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-3.2.9.tgz'
+            url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-3.4.0.tgz'
         elif self.cuisine.core.isArch:
             self.cuisine.package.install("mongodb")
         elif self.cuisine.core.isMac:  # TODO: better platform mgmt
@@ -63,4 +62,4 @@ class CuisineMongodb(app):
         self.doneSet("start")
 
     def stop(self):
-        self.cuisine.processmanager.stop()
+        self.cuisine.processmanager.stop("mongod")

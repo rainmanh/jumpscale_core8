@@ -221,6 +221,13 @@ class PlatformType:
         '''Checks whether the platform is Linux-based'''
         return self.has_parent("linux")
 
+    def isOSX(self):
+        return self.has_parent("darwin")
+
+    def isUbuntu(self):
+        return self.has_parent("ubuntu")
+
+
     def isGeneric(self):
         '''Checks whether the platform is generic (they all should)'''
         return self.has_parent("generic")

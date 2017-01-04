@@ -392,8 +392,12 @@ class GitMethods():
             (repository_host, repository_type, repository_account, repository_name, repository_url)
         """
 
-        if ssh == "auto":
+        if ssh == "auto" or ssh=="first":
             ssh = self.checkSSHAgentAvailable()
+        elif ssh==True or ssh==False:
+            pass
+        else:
+            raise RuntimeError("ssh needs to be auto, first or True or False: here:'%s'"%ssh)
 
         url_pattern_ssh = re.compile('^(git@)(.*?):(.*?)/(.*?)/?$')
         sshmatch = url_pattern_ssh.match(url)
@@ -529,7 +533,7 @@ class GitMethods():
         return repository_host, repository_type, repository_account, repository_name, dest, repository_url
 
     def pullGitRepo(self, url="", dest=None, login=None, passwd=None, depth=None, ignorelocalchanges=False,
-                    reset=False, branch=None, revision=None, ssh="auto", executor=None, codeDir=None):
+                    reset=False, branch=None, tag=None, revision=None, ssh="auto", executor=None, codeDir=None):
         """
         will clone or update repo
         if dest is None then clone underneath: /opt/code/$type/$account/$repo
@@ -539,16 +543,16 @@ class GitMethods():
         @param ssh =="first" means will checkout sss first if that does not work will go to http
         """
 
-        if ssh == "first":
+        if branch!=None and tag!=None:
+            raise RuntimeError("only branch or tag can be set")
+
+        if ssh == "first" or ssh=="auto":
             try:
                 return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
-                                        reset, branch, revision, True, executor)
+                                        reset, branch,tag=tag, revision=revision, ssh=True, executor=executor)
             except Exception as e:
-                try:
-                    return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
-                                            reset, branch, revision, False, executor)
-                except Exception as e:
-                    raise RuntimeError("Could not checkout, needs to be with ssh or without.")
+                return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
+                                            reset, branch,tag=tag, revision=revision, ssh=False, executor=executor)
 
         base, provider, account, repo, dest, url = self.getGitRepoArgs(
             url, dest, login, passwd, reset=reset, ssh=ssh, codeDir=codeDir, executor=executor)
@@ -559,6 +563,7 @@ class GitMethods():
 
         checkdir = "%s/.git" % (dest)
         existsGit = self.exists(checkdir) if not executor else executor.exists(checkdir)
+
 
         if existsGit:
             # if we don't specify the branch, try to find the currently checkedout branch
@@ -574,8 +579,6 @@ class GitMethods():
                 raise RuntimeError(
                     "Cannot pull repo, branch on filesystem is not same as branch asked for.\nBranch asked for:%s\nBranch found:%s\nTo choose other branch do e.g:\nexport JSBRANCH='%s'\n" % (branch, branchFound, branchFound))
 
-            if branch == None:
-                branch = branchFound
 
             if ignorelocalchanges:
                 print(("git pull, ignore changes %s -> %s" % (url, dest)))
@@ -587,7 +590,12 @@ class GitMethods():
                     print("reset branch to:%s" % branch)
                     self.execute("cd %s;git fetch; git reset --hard origin/%s" %
                                  (dest, branch), timeout=600, executor=executor)
+
             else:
+
+                if branch == None and tag==None:
+                    branch = branchFound
+
                 # pull
                 print(("git pull %s -> %s" % (url, dest)))
                 if url.find("http") != -1:
@@ -619,6 +627,12 @@ class GitMethods():
             print(cmd)
 
             self.execute(cmd, timeout=600, executor=executor)
+
+        if tag!=None:
+            print("reset tag to:%s" % tag)
+            self.execute("cd %s;git checkout tags/%s" %
+                         (dest, tag), timeout=60, executor=executor)
+
 
         if revision is not None:
             cmd = "mkdir -p %s;cd %s;git checkout %s" % (dest, dest, revision)
@@ -2040,6 +2054,9 @@ class Installer():
     def writeEnv(self):
 
         print("WRITENV")
+
+        self.do.initCreateDirs4System()
+
         self.do.createDir("%s/jumpscale" % os.environ["CFGDIR"])
         config = {}
         cats = {
@@ -2636,8 +2653,6 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
 
         self.initEnv(env=os.environ)
 
-        self.initCreateDirs4System()
-
         if platform.system().lower() == "windows" or platform.system().lower() == "cygwin_nt-10.0":
             # self.TYPE = "WIN"
             # os.environ["JSBASE"] = "%s/" % os.environ["JSBASE"].replace("\\", "/")
@@ -2653,8 +2668,10 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         self.TYPE += platform.architecture()[0][:2]
 
     def initCreateDirs4System(self):
-        for item in ["JSBASE", "HOME", "TMPDIR", "VARDIR", "DATADIR", "CODEDIR", "CFGDIR"]:
+        items=[item for item in self.initEnv( env=os.environ, executor=None) if item.endswith("DIR")]
+        for item in items:
             path = os.environ[item]
+            # print(path)
             self.createDir(path)
 
     def log(self, msg, level=None):

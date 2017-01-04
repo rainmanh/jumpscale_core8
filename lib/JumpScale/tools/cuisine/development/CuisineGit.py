@@ -22,7 +22,9 @@ class CuisineGit(base):
         self.cuisine.core.run('cd {} && make install'.format(path))
 
     def pullRepo(self, url, dest=None, login=None, passwd=None, depth=None,
-                 ignorelocalchanges=True, reset=False, branch=None, revision=None, ssh="first"):
+                 ignorelocalchanges=True, reset=False, branch=None, tag=None, revision=None, ssh="first"):
+
+
 
         if dest is None:
             base, provider, account, repo, dest, url = j.do.getGitRepoArgs(
@@ -30,6 +32,7 @@ class CuisineGit(base):
             # we need to work in remote linux so we only support /opt/code
         else:
             dest = self.replace(dest)
+
 
         self.cuisine.core.dir_ensure(j.sal.fs.getParent(dest))
         self.cuisine.core.dir_ensure('$HOMEDIR/.ssh')
@@ -42,4 +45,4 @@ class CuisineGit(base):
 
         return j.do.pullGitRepo(url=url, dest=dest, login=login, passwd=passwd, depth=depth,
                                 ignorelocalchanges=ignorelocalchanges, reset=reset, branch=branch, revision=revision,
-                                ssh=ssh, executor=self.executor)
+                                ssh=ssh, executor=self.executor,tag=tag)

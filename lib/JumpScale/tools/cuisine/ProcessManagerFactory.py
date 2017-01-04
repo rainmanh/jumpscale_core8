@@ -23,7 +23,7 @@ class ProcessManagerFactory:
         return res
 
     def get_prefered(self):
-        for pm in ["systemd", "sv", "tmux"]:
+        for pm in ["tmux","systemd", "sv"]:
             if self.is_available(pm):
                 return pm
 

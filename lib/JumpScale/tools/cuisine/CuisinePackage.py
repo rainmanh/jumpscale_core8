@@ -73,7 +73,10 @@ class CuisinePackage(base):
         else:
             raise j.exceptions.RuntimeError("could not upgrade, platform not supported")
 
-    def install(self, package, allow_unauthenticated=False):
+    def install(self, package, allow_unauthenticated=False,reset=False):
+
+        if self.doneGet("install_%s"%package) and reset==False:
+            return
 
         if self.cuisine.core.isUbuntu:
             cmd = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes install '
@@ -141,10 +144,13 @@ class CuisinePackage(base):
                         self.mdupdate()
                         mdupdate = True
                         continue
-
                     raise j.exceptions.RuntimeError("Could not install:%s %s" % (package, err))
+                if rc==0:
+                    self.doneSet("install_%s"%package)
+                    return out
 
-                return out
+
+
 
     def multiInstall(self, packagelist, allow_unauthenticated=False):
         """

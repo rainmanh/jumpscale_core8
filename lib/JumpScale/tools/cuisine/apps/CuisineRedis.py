@@ -39,7 +39,7 @@ class CuisineRedis(app):
             rm -f /usr/local/bin/redis-server
             rm -f /usr/local/bin/redis-cli
             """
-            C = self.cuisine.bash.replaceEnvironInText(C)
+            C = self.cuisine.core.replace(C)
             C = self.replace(C)
             self.cuisine.core.run(C)
 
@@ -51,7 +51,7 @@ class CuisineRedis(app):
             cp -f $TMPDIR/build/redis/redis-stable/src/redis-cli $BASEDIR/bin/
             rm -rf $BASEDIR/apps/redis
             """
-            C = self.cuisine.bash.replaceEnvironInText(C)
+            C = self.cuisine.core.replace(C)
             C = self.replace(C)
             self.cuisine.core.run(C)
         else:
@@ -71,7 +71,6 @@ class CuisineRedis(app):
               snapshot=False, slave=(), ismaster=False, passwd=None, unixsocket=None):
         redis_cli = j.sal.redis.getInstance(self.cuisine)
 
-        #TODO: *1 is only for localhost (need to work over SSH)
         redis_cli.configureInstance(name,
                                     ip,
                                     port,
@@ -82,6 +81,7 @@ class CuisineRedis(app):
                                     ismaster=ismaster,
                                     passwd=passwd,
                                     unixsocket=unixsocket)
+
         # return if redis is already running
         if redis_cli.isRunning(ip_address=ip, port=port, path='$BINDIR', password=passwd, unixsocket=unixsocket):
             self.log('Redis is already running!')

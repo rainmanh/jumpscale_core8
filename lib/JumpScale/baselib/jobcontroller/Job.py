@@ -181,6 +181,7 @@ class Job():
             finally:
                 if self.model.dbobj.profile:
                     pr.create_stats()
+                    # TODO: *1 this is slow, needs to be fetched differently
                     stat_file = j.sal.fs.getTempFileName()
                     pr.dump_stats(stat_file)
                     self.model.dbobj.profileData = j.sal.fs.fileGetBinaryContents(stat_file)

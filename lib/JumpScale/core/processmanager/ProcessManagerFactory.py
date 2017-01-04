@@ -17,7 +17,7 @@ Process Manager
 
 This class helps you to run a python method in a separate process and keep control over it.
 
-For exemple, here is a method:
+For example, here is a method:
 
 def MyMethod(hello):
     ....
@@ -52,7 +52,9 @@ The stdout and stderr variable contains the full buffer:
 
 """
 
+
 class StdDuplicate(object):
+
     def __init__(self, original):
         self.redirect = original
         self.buffer = StringIO()
@@ -66,6 +68,7 @@ class StdDuplicate(object):
 
     def restore(self):
         return self.redirect
+
 
 class Process():
 
@@ -89,7 +92,7 @@ class Process():
 
     def _flush(self):
         sys.stdout.flush()
-        sys.stderr.flush() # should be not necessary, stderr is unbuffered by default
+        sys.stderr.flush()  # should be not necessary, stderr is unbuffered by default
 
     def _close(self):
         sys.stdout.close()
@@ -278,9 +281,8 @@ class Process():
         if data['status'] == 'exception':
             self.error = data['eco']
 
-
     def wait(self):
-        # wait until a process the process is finished
+        # wait until the process is finished
         if self.pid == None:
             return
 
@@ -406,7 +408,6 @@ class ProcessManagerFactory:
                 cleared += 1
 
         return cleared
-
 
     def testSync(self):
         """
@@ -615,6 +616,6 @@ class ProcessManagerFactory:
         print("Process cleared at the end: %d" % cl)
 
         diff = time.time() - start
-        pps = int(nr / diff)
+        pps = nr / diff
 
         print("Number of processes per seconds: %s (%d process in %d seconds)" % (pps, nr, diff))

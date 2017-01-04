@@ -641,7 +641,7 @@ class StorSpace(object):
             - metadataStorspace!=None then use other storspace for uploading the plist
         - remove tmpdir if removetmpdir=True
         """
-        # TODO: maxim: specs have not been implemented, lets discuss what we will do and what not
+    
         if not host:
             host = j.tools.executor.getLocal()
 

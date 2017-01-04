@@ -5,7 +5,7 @@ from time import sleep
 app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineTIDB(app):
+class CuisineTIDB(app): #TODO: *2 test on ovh4 over cuisine, use doneGet/Set
     """
     Installs TIDB.
 
@@ -15,25 +15,12 @@ class CuisineTIDB(app):
     start_tipd()
     start_tikv()
     start_tidb()
-
-
     """
     NAME = 'tidb'
 
     def _build(self):
-        # TODO: *1
-        # SEE: https://github.com/pingcap/tidb
-        # deploy on top of tikv (which is distributed database backend on top of paxos)
-        # WILL BE BACKEND FOR e.g. OWNCLOUD / GOGS
-        self.cuisine.package.mdupdate()
-        self.cuisine.package.install('build-essential')
-        url = 'https://raw.githubusercontent.com/pingcap/docs/master/scripts/build.sh'
-        self.cuisine.core.dir_ensure('/tmp/tidb')
 
-        self.cuisine.core.run('cd /tmp/tidb/ && curl {} | bash'.format(url), profile=True)
-
-    # TODO:  Currently install with start=False and then run start_tipd, start_tikv, start_tidb separately
-    def install(self, start=False):
+    def install(self, start=True):
         """
         download, install, move files to appropriate places, and create relavent configs
 
@@ -50,7 +37,15 @@ class CuisineTIDB(app):
         """
         Build requires both golang and rust to be available on the system
         """
-        self._build()
+        # SEE: https://github.com/pingcap/tidb
+        # deploy on top of tikv (which is distributed database backend on top of paxos)
+        # WILL BE BACKEND FOR e.g. OWNCLOUD / GOGS
+        self.cuisine.package.mdupdate()
+        self.cuisine.package.install('build-essential')
+        url = 'https://raw.githubusercontent.com/pingcap/docs/master/scripts/build.sh'
+        self.cuisine.core.dir_ensure('/tmp/tidb')
+
+        self.cuisine.core.run('cd /tmp/tidb/ && curl {} | bash'.format(url), profile=True)
         if install:
             self.install(start)
 
@@ -87,7 +82,7 @@ class CuisineTIDB(app):
             --path="127.0.0.1:2379?cluster={clusterId}"'.format(**config)
         )
 
-    def simple_start(self, clusterId=1):
+    def start(self, clusterId=1):
         """
         Read docs here.
         https://github.com/pingcap/docs/blob/master/op-guide/clustering.md
@@ -108,12 +103,3 @@ class CuisineTIDB(app):
         # while "tikv" not in self.cuisine.processmanager.list( and tries < 3:
         #     sleep(2)
         #     tries += 1
-
-    def start(self, clusterId=1):
-        return self.simple_start()
-
-    def test(self):
-        raise NotImplementedError
-        # do some basic test to show how it works
-        # deploy 3 instances of tikv and then put behind tidb
-        # use standard mysql python client to do a test

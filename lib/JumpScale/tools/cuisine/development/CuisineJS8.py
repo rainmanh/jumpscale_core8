@@ -16,6 +16,7 @@ class CuisineJS8(base):
             killall redis
             killall redis-server
             killall ardb-server
+            killall tmux
             rm -f $TMPDIR/jsexecutor*
             rm -f $TMPDIR/jsinstall*
             rm -rf $TMPDIR/actions*

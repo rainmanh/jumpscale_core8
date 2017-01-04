@@ -10,11 +10,6 @@ app = j.tools.cuisine._getBaseAppClass()
 class CuisineNGINX(app):
     NAME = 'nginx'
 
-    def _build(self):
-        # TODO: *3 optional
-        # build nginx
-        return True
-
     def get_basic_nginx_conf(self):
         return """\
         user www-data;
@@ -163,7 +158,9 @@ class CuisineNGINX(app):
             self.start()
 
     def build(self, install=True, start=True):
-        self._build()
+        # TODO: *2 build nginx (look at example how we build openssl, ...), copy to proper build directory
+        # build nginx
+        return True
         if install:
             self.install(start)
 

@@ -3,7 +3,7 @@ from JumpScale import j
 
 app = j.tools.cuisine._getBaseAppClass()
 
-# TODO: *1 implement & test & document (test on packet.net)
+# TODO: *3 see if this works on packet, net
 
 # make sure you use the trick we used in jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine/systemservices/CuisineFW.py
 #   : setRuleset...   here we use a python script to make sure we set & set back to original if it doesn't work
@@ -110,7 +110,6 @@ class CuisineOpenvSwitch(app):
         @bridge str: name of bridge to add the interface to
         @qos int: limit the allowed rate to be used by interface
         """
-        # TODO: *1 spec
         # is a name relevant???, how do we identify a vnic
         interface = j.sal.kvm.Interface(self._controller, name, bridge)
         self.interfaces[name] = interface
@@ -134,7 +133,6 @@ class CuisineOpenvSwitch(app):
         @qos int: rate to be limited to in Kb
         @burst int: maximum allowed burst that can be reached in Kb/s
         """
-        # TODO: *1 spec what is relevant for a vnic from QOS perspective, what can we do
         # goal is we can do this at runtime
         interface = j.sal.kvm.Interface(self._controller, name, bridge)
         interface.qos(qos, burst)

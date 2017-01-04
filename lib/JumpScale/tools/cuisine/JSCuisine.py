@@ -59,10 +59,6 @@ class JSCuisine:
 
         # self.reset = self.core.reset
 
-    def reset(self):
-        self.core._cache.set('dir_paths', None)
-        # TODO: *1 remove other cache items
-
     @property
     def apps(self):
         if self._apps is None:

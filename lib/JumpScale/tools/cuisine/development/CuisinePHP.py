@@ -19,7 +19,7 @@ compileconfig['with_mysql_sock'] = "/var/run/mysqld/mysqld.sock"
 
 
 
-class CuisinePHP(app):
+class CuisinePHP(app): #TEST on ovh4 *3
 
     NAME = 'php'
 
@@ -108,7 +108,7 @@ class CuisinePHP(app):
         self.cuisine.processmanager.stop("php-fpm")
 
     def test(self):
-        # TODO: *1
+        # TODO: *2 test php deployed in nginx
         # check there is a local nginx running, if not install it
         # deploy some php script, test it works
         raise NotImplementedError

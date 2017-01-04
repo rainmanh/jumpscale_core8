@@ -3,8 +3,6 @@ from JumpScale import j
 
 base = j.tools.cuisine._getBaseClass()
 
-# TODO: *1 implement & test & document (test on packet.net)
-
 
 class CuisineExampleMongoCluster(base):
 

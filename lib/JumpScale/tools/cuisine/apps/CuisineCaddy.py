@@ -4,7 +4,7 @@ from JumpScale import j
 app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineCaddy(app):
+class CuisineCaddy(app): #TODO: *1, check if it works on ovh4 (ubuntu), make sure doneGet... used, see how we did with synchting, try to copy how we did it. use the build directory and then copy to install
     NAME = "caddy"
 
     def install(self, ssl=False, start=True, dns=None, reset=False):

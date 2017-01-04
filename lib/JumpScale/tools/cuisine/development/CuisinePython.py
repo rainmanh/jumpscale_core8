@@ -9,7 +9,7 @@ class CuisinePython(base):
         self.BUILDDIR = self.replace("$BUILDDIR/python3/")
         self.CODEDIR = self.replace("$CODEDIR/mercurial/cpython/")
 
-    def build(self,  reset=False):
+    def build(self,  reset=False): #TODO: *1 building on ovh4, gave issues, test, needs to integrate well with openssl
         """
         """
         if self.doneGet("build") and not reset:
@@ -177,7 +177,7 @@ class CuisinePython(base):
         find . -name '*.pyc' -delete
 
         find . -name 'get-pip.py' -delete
-        set +ex  #TODO: *1 should not give error. but works
+        set +ex
         find -L .  -name '__pycache__' -exec rm -rf {} \;
         find . -name "*.dist-info" -exec rm -rf {} \;
         find . -name "*.so" -exec mv {} lib/ \;

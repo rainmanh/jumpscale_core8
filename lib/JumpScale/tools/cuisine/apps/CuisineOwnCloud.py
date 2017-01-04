@@ -3,7 +3,7 @@ import textwrap
 app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineOwnCloud(app):
+class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
 
     NAME = 'owncloud'
 
@@ -14,7 +14,7 @@ class CuisineOwnCloud(app):
         configure
         """
         pass
-        # TODO: *2 create 1 method which does all and is sort of guideline for a customer to understand this
+        # TODO: *2 create a method which does all and is sort of guideline for a customer to understand this, call deps, use the doneSet/Get...
 
     def install(self, start=True, storagepath="/data/", sitename="owncloudy.com"):
         """
@@ -27,7 +27,6 @@ class CuisineOwnCloud(app):
         self.cuisine.package.install('bzip2')
         C = """
         set -xe
-        #TODO: *1 need to use primitives in cuisine
         cd $TMPDIR && [ ! -d $TMPDIR/ays_owncloud ] && git clone https://github.com/0-complexity/ays_owncloud
         cd $TMPDIR && [ ! -f $TMPDIR/owncloud-9.1.1.tar.bz2 ] && wget https://download.owncloud.org/community/owncloud-9.1.1.tar.bz2 && cd $TMPDIR && tar jxf owncloud-9.1.1.tar.bz2 && rm owncloud-9.1.1.tar.bz2
         [ ! -d {storagepath} ] && mkdir -p {storagepath}
@@ -59,7 +58,7 @@ class CuisineOwnCloud(app):
         if start:
             self.start(sitename)
         # look at which owncloud plugins to enable(pdf, ...)
-        # TODO: *1 storage path
+        # TODO: *3 storage path
 
     def _get_default_conf_owncloud(self):
         return """\
@@ -229,7 +228,7 @@ class CuisineOwnCloud(app):
 
         self.cuisine.core.execute_bash(C)
 
-        # TODO: if not installed
+        # TODO: *3 if not installed
         cmd = """
         $JSAPPSDIR/php/bin/php $JSAPPSDIR/owncloud/occ maintenance:install  --database="mysql" --database-name="owncloud"\
         --database-host="{dbhost}" --database-user="owncloud" --database-pass="owncloud" --admin-user="admin" --admin-pass="admin"\
@@ -259,6 +258,6 @@ class CuisineOwnCloud(app):
         pass
 
     def test(self):
-        # TODO: *2
+        # TODO: test owncloud api, simple test *2
         # call the api up/download a file
         pass

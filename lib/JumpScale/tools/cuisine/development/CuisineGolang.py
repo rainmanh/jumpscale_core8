@@ -33,7 +33,7 @@ class CuisineGolang(app):
 
         self.cuisine.core.run(cmd="rm -rf $GOROOTDIR", die=False)
 
-        profile=self.bash.profileJS
+        profile=self.cuisine.bash.profileJS
         profile.envSet("GOROOT", GOROOTDIR)
         profile.envSet("GOPATH", GOPATHDIR)
         profile.addPath(self.cuisine.core.joinpaths(GOPATHDIR, 'bin'))

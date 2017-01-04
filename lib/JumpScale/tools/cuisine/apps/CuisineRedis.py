@@ -65,11 +65,13 @@ class CuisineRedis(app):
         return self.cuisine.core.command_check('redis-server') and self.cuisine.core.command_check('redis-cli')
 
     def install(self, reset=False):
-        return True
+        return self.build(reset=reset)
 
-    def start(self, name="main", ip="localhost", port=6379, maxram="5mb", appendonly=True,
+    def start(self, name="main", ip="localhost", port=6379, maxram="50mb", appendonly=True,
               snapshot=False, slave=(), ismaster=False, passwd=None, unixsocket=None):
         redis_cli = j.sal.redis.getInstance(self.cuisine)
+
+        #TODO: *1 is only for localhost (need to work over SSH)
         redis_cli.configureInstance(name,
                                     ip,
                                     port,

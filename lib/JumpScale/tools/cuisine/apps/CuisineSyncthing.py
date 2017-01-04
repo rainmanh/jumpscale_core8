@@ -58,7 +58,7 @@ class CuisineSyncthing(app):
             return
 
         self.build()
-        j.tools.cuisine.local.development.pip.install("syncthing")
+        self.development.pip.install("syncthing")
 
         self.cuisine.core.dir_ensure("$CFGDIR/syncthing")
         # self.cuisine.core.file_write("$CFGDIR/syncthing/syncthing.xml", config)

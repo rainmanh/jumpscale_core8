@@ -65,4 +65,4 @@ class CuisineExampleMongoCluster(base):
                 "n%s" % i, ports='', pubkey=pubkey, weave=True, ssh=False, weavePeer=kvm1.ip).executor)
 
         # create mongo cluster on the docker containers
-        j.tools.cuisine.local.solutions.mongocluster.createCluster(nodes)
+        self.solutions.mongocluster.createCluster(nodes)

@@ -49,9 +49,9 @@ class CuisineSandbox(base):
 
         if reset:
             self.log("remove previous build info")
-            j.tools.cuisine.local.core.dir_remove("%s/%s" % (destination, name))
+            self.core.dir_remove("%s/%s" % (destination, name))
 
-        j.tools.cuisine.local.core.dir_remove("%s/%s/" % (destination, name))
+        self.core.dir_remove("%s/%s/" % (destination, name))
 
         dedupe_script = """
         j.tools.sandboxer.dedupe('/opt', storpath='$out/$name', name='js8_opt', reset=False, append=True, excludeDirs=['/opt/code'])

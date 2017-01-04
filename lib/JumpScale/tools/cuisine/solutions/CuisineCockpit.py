@@ -24,7 +24,7 @@ class CuisineCockpit(base):
         debug = true
         """
         self.cuisine.core.dir_ensure("$JSCFGDIR/cockpit_api")
-        j.tools.cuisine.local.core.file_write("$JSCFGDIR/cockpit_api/config.toml", C)
+        self.core.file_write("$JSCFGDIR/cockpit_api/config.toml", C)
 
     def install(self, start=True, branch="master"):
         if self.doneGet("install") and not reset:

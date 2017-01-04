@@ -768,7 +768,7 @@ class FSMethods():
         """
         if self.debug:
             print(("copy %s %s" % (source, dest)))
-        if not ssh and not self.exists(source):
+        if not ssh and not self.exists(source,executor=executor):
             raise RuntimeError("copytree:Cannot find source:%s" % source)
 
         if executor != None and rsync == False:
@@ -838,9 +838,9 @@ class FSMethods():
             cmd += " '%s' '%s'" % (source, dest)
             print(cmd)
             if executor != None:
-                rc, out, err = executor.execute(cmd, outputStderr=False)
+                rc, out, err = executor.execute(cmd)
             else:
-                rc, out, err = self.execute(cmd, outputStderr=False)
+                rc, out, err = self.execute(cmd)
             print(rc)
             print(out)
             return
@@ -1027,8 +1027,11 @@ class FSMethods():
         else:
             raise ValueError("Specified path: %s is not a Directory in self.listDir" % path)
 
-    def exists(self, path):
-        return os.path.exists(path)
+    def exists(self, path,executor=None):
+        if executor:
+            return executor.exists(path)
+        else:
+            return os.path.exists(path)
 
     def pip(self, items, force=False, executor=None):
         """

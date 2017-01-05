@@ -33,8 +33,8 @@ class CuisineInfluxdb(app):
             self.cuisine.core.execute_bash(C, profile=True)
         else:
             raise RuntimeError("cannot install, unsuported platform")
-
-        self.cuisine.bash.profileGet().addPath(self.replace("$BINDIR"))
+        self.cuisine.bash.profileJS.addPath(self.replace("$BINDIR"))
+        self.cuisine.bash.profileJS.save()
         binPath = self.cuisine.bash.cmdGetPath('influxd')
         self.cuisine.core.dir_ensure("$VARDIR/data/influxdb")
         self.cuisine.core.dir_ensure("$VARDIR/data/influxdb/meta")

@@ -287,13 +287,15 @@ class Blueprint:
         for m in self.models:
             for actorinstance, args in m.items():
                 # ACTOR NAME__instance
+                if actorinstance in ['actions', 'eventfilters']:
+                    continue
                 actorname, actorinstance = actorinstance.split("__")
                 actor = self.aysrepo.actorGet(name=actorname)
                 if not args:
                     continue
                 dataschema = actor.model.dbobj.serviceDataSchema
                 for field in args:
-                    normalizedfieldname = field.replace(".", "").lower()
+                    normalizedfieldname = field.replace(".", "").replace("_", "").lower()
                     if normalizedfieldname + " " not in dataschema.lower():
                         errors.append('- Invalid parameter [{field}] passed while creating instance[{actorinstance}] of [{actorname}].\nDataSchema: {dataschema}'.format(**locals()))
         if errors:

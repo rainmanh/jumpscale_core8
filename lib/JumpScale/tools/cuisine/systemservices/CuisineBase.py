@@ -49,4 +49,5 @@ class CuisineBase(base):
 
         self.cuisine.package.clean()
 
-        self.cuisine.bash.profileGet().addPath(j.sal.fs.joinPaths(self.cuisine.core.dir_paths["base"], "bin"))
+        self.cuisine.bash.profileJS.addPath(j.sal.fs.joinPaths(self.cuisine.core.dir_paths["BASEDIR"], "bin"))
+        self.cuisine.bash.profileJS.save()

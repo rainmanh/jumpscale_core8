@@ -92,7 +92,8 @@ class CuisinePHP(app): #TEST on ovh4 *3
         fpmwwwconf = self.replace(fpmwwwconf)
         self.cuisine.core.file_write("$JSAPPSDIR/php/etc/php-fpm.conf.default", content=fpmdefaultconf)
         self.cuisine.core.file_write("$JSAPPSDIR/php/etc/php-fpm.d/www.conf", content=fpmwwwconf)
-        self.cuisine.bash.addPath(self.replace('$JSAPPSDIR/php/bin'))
+        self.cuisine.bash.profileJS.addPath(self.replace('$JSAPPSDIR/php/bin'))
+        self.cuisine.bash.profileJS.save()
 
         if start:
             self.start()

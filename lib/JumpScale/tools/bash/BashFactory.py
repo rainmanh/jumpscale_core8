@@ -56,7 +56,7 @@ class Profile:
         path = path.replace("//", "/")
         path = path.replace("//", "/")
         path = path.rstrip("/")
-        if not path in self._path:
+        if path not in self._path:
             self._path.add(path)
 
     def addInclude(self, path):
@@ -64,7 +64,7 @@ class Profile:
         path = path.replace("//", "/")
         path = path.replace("//", "/")
         path = path.rstrip("/")
-        if not path in self._includes:
+        if path not in self._includes:
             self._includes.add(path)
 
     @property
@@ -121,7 +121,7 @@ class Profile:
         """
 
         # make sure we include our custom profile in the default
-        if includeInDefaultProfile is not None:
+        if includeInDefaultProfile is True:
             out = ""
             for line in self.cuisine.core.file_read(self.bash.profileDefault.pathProfile).split("\n"):
                 if line.find(self.pathProfile) != -1:
@@ -211,13 +211,13 @@ class Bash:
         """
         profile which we write for jumpscale std in ~/.profile_js
         """
-        if self._profile == None:
+        if self._profile is None:
             self._profile = self.profileGet()
         return self._profile
 
     @property
     def profileDefault(self):
-        if self._profileDefault == None:
+        if self._profileDefault is None:
             path = ""
             for attempt in [".profile", ".bash_profile"]:
                 ppath = j.sal.fs.joinPaths(self.home, attempt)

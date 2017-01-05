@@ -40,7 +40,7 @@ class CuisineNodeJS(app):
         if self.cuisine.core.isMac:
             url = 'https://nodejs.org/dist/v%s/node-v%s-darwin-x64.tar.gz' % (version, version)
         elif self.cuisine.core.isUbuntu:
-            url = 'https://nodejs.org/dist/v%s/node-v%s-linux-x64.tar.xz' % (version, version)
+            url = 'https://nodejs.org/dist/v%s/node-v%s-linux-x64.tar.gz' % (version, version)
 
         else:
             raise j.exceptions.Input(message="only support ubuntu & mac", level=1, source="", tags="", msgpub="")

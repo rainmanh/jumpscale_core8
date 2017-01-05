@@ -134,7 +134,9 @@ class CuisineGeoDns(app):
         # moving files and creating config
         self.cuisine.core.file_copy("$GOPATHDIR/bin/geodns", "$BINDIR")
         self.cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/geodns/dns", recursive=True)
-        self.cuisine.bash.addPath('$BINDIR')
+        profile = cuisine.bash.profileJS
+        profile.addPath('$BINDIR')
+        profile.save()
 
         self.cuisine.core.file_copy(
             "$TEMPLATEDIR/cfg/geodns", "$JSCFGDIR/", recursive=True)

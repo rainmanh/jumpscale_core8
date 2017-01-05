@@ -55,8 +55,8 @@ class DaemonClient:
         self.passwd = passwd
         self.ssl = ssl
 
-        if roles == [] and j.application.config.jsagent.get("grid.node.roles", False):
-            roles = j.application.config.jsagent.get("grid.node.roles")
+        if roles == [] and j.application.config.exists("grid.node.roles"):
+            roles = j.application.config.get("grid.node.roles")
             roles = [item.strip().lower() for item in roles]
 
         # WARNING: Do not put this back this makes it impossible to register a node

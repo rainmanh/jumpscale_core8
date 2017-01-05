@@ -78,13 +78,16 @@ class Worker(object):
                 self.log.info("check if work %s", self.queuename)
                 jtype, job = self.redisw._getWork(self.queuename, timeout=10)
             except Exception as e:
-                self.log.exception(e)
                 if str(e).find("Could not find queue to execute job") != -1:
+                    self.log.exception(e)
                     # create queue
                     self.log.info("could not find queue")
+                elif isinstance(e, ValueError):
+                    self.log.warning('invalid json sent in queue')
                 else:
                     # TODO: restore the ops error call
                     # j.events.opserror("Could not get work from redis, is redis running?", "workers.getwork", e)
+                    self.log.exception(e)
                     self.log.error("Could not get work from redis, is redis running?: %s" % e)
 
                 time.sleep(10)
@@ -247,7 +250,7 @@ if __name__ == '__main__':
 
     j.application.start("jumpscale:worker:%s" % opts.queuename)
 
-    if j.application.config.exists("grid.id"):
+    if j.application.config.jumpscale['system']['grid'].get("id", False):
         j.application.initGrid()
 
     logger = j.logger.get(j.logger.root_logger_name)

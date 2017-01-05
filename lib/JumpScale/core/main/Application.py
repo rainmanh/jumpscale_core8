@@ -197,8 +197,8 @@ class Application:
             self._config = None
 
         if self.config.jumpscale is not None:
-            nodeid = int(self.config.jsagent['grid'].get("grid.node.id", 0))
-            gridid = int(self.config.jsagent['grid'].get("grid.id", 0))
+            nodeid = self.config.jumpscale['system'].get("grid.node.id", 0)
+            gridid = self.config.jumpscale['system'].get("grid.id", 0)
             self.logger.debug("gridid:%s,nodeid:%s" % (gridid, nodeid))
         else:
             gridid = 0
@@ -414,8 +414,8 @@ class Application:
         """
         # if unique machine id is set in grid.hrd, then return it
         uniquekey = 'grid.node.machineguid'
-        if j.application.config.jsagent.get(uniquekey, False):
-            machineguid = j.application.config.jsagent.get(uniquekey)
+        if j.application.config.exists(uniquekey):
+            machineguid = j.application.config.get(uniquekey)
             if machineguid.strip():
                 return machineguid
 
@@ -436,8 +436,8 @@ class Application:
             raise j.exceptions.RuntimeError(
                 "Cannot find macaddress of nics in machine.")
 
-        if j.application.config.jsagent.get(uniquekey, False):
-            j.application.config.jsagent.set(uniquekey, macaddr[0])
+        if j.application.config.exists(uniquekey):
+            j.application.config.set(uniquekey, macaddr[0])
         return macaddr[0]
 
     def _setWriteExitcodeOnExit(self, value):

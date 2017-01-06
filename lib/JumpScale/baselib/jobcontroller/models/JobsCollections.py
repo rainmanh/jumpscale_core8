@@ -17,9 +17,9 @@ class JobsCollection:
         self.category = "Job"
         self.namespace_prefix = 'jobs'
         namespace = "%s:%s" % (self.namespace_prefix, self.category.lower())
-        self._db = j.servers.kvs.getRedisStore(namespace, namespace, **j.atyourservice.config['redis'])
+        self._db = j.servers.kvs.getARDBStore(namespace, namespace, **j.atyourservice.config['redis'])
         # for now we do index same as database
-        self._index = j.servers.kvs.getRedisStore(namespace, namespace, **j.atyourservice.config['redis'])
+        self._index = j.servers.kvs.getARDBStore(namespace, namespace, **j.atyourservice.config['redis'])
 
     def new(self):
         model = JobModel(

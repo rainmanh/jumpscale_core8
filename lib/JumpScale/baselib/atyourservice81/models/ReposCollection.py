@@ -13,7 +13,7 @@ class ReposCollections(ModelBaseCollection):
     #
 
     def __init__(self):
-        db = j.servers.kvs.getRedisStore("ays:repo", "ays:repo", **j.atyourservice.config['redis'])
+        db = j.servers.kvs.getARDBStore("ays:repo", "ays:repo", **j.atyourservice.config['redis'])
         super().__init__(schema=ModelCapnp.Repo, category="Repo", namespace="ays:repo", modelBaseClass=RepoModel, db=db, indexDb=db)
 
     def _list_keys(self, path="", returnIndex=False):

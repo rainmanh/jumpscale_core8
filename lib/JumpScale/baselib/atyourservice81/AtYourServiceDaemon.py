@@ -152,23 +152,28 @@ class Server:
 
         for repo in j.atyourservice.reposList():
             for service in repo.services:
-                if len(service.model.actionsEvent) <= 0:
+                if "processEvent" not in service.model.actions.keys():
                     continue
+                evJob = service.getJob("processEvent", {'event_args':args, 'event_type':event_type})
+                evJob.executeInProcess()
 
-                for action_name, event_obj in service.model.actionsEvent.items():
-                    if event_obj.event != event_type:
-                        continue
-
-                    self.logger.info('event %s propagated to %s from %s' % (event_type, service, repo))
-
-                    event_obj.lastRun = j.data.time.epoch
-                    service.save()
-
-                    self._workers.apply_async(run_action, (
-                        service.aysrepo.path,
-                        service.model.key,
-                        event_obj.action,
-                        args))
+                # if len(service.model.actionsEvent) <= 0:
+                #     continue
+                #
+                # for action_name, event_obj in service.model.actionsEvent.items():
+                #     if event_obj.event != event_type:
+                #         continue
+                #
+                #     self.logger.info('event %s propagated to %s from %s' % (event_type, service, repo))
+                #
+                #     event_obj.lastRun = j.data.time.epoch
+                #     service.save()
+                #
+                #     self._workers.apply_async(run_action, (
+                #         service.aysrepo.path,
+                #         service.model.key,
+                #         event_obj.action,
+                #         args))
 
     def _do_run(self, request):
         if 'run_key' not in request:

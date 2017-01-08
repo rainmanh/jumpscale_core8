@@ -9,7 +9,7 @@ This is demonstarted bellow, in the example wiki :
  - The second parameter specifies the lables to filter  issues on so in this case `priority_critical`, and  `state_verification`
  - the third paramter specifies to also filter issues  on assigned user with id `1` names wer avoided as gogs allows un duplication of usernames.
 ```
-{{kanbandata:issue labels:priority_critical,state_verification assingee:1 }}
+{{kanbandata:issue label:priority_critical,state_verification assingee:1 }}
 ```
 
 

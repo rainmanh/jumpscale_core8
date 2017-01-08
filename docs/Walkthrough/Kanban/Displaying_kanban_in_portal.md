@@ -11,6 +11,21 @@ This is demonstarted bellow, in the example wiki :
 ```
 {{kanbandata:issue label:priority_critical,state_verification assingee:1 }}
 ```
+The filter parameters support all the same paramters aas the find method in the collection of each source.
+so for example the issue I can filter on :   
+    `repo`  repo id   
+    `title`  title name   
+    `milestone`  milestone id   
+    `isClosed`  true or false   
+    `id`  issue id   
+    `creationTime`  in epoch     
+    `modTime`  in epoch    
+    `comment`  comment id   
+    `assignee`  user id  
+    `label`   label name  
+    `source`  source name  
 
+It will also accpet some regex arguments in the string params such as title and source.  
+Finally this will be the outcome:
 
-
+![Image of Kanban](kanbanexample.png)

@@ -44,8 +44,11 @@ class RedisKeyValueStore(KeyValueStoreBase):
         return self.redisclient.incr(self._getKey(key))
 
     def destroy(self):
+        # delete data
         for key in self.redisclient.keys(self.namespace + "*"):
             self.redisclient.delete(key)
+        # delete index to data
+        self.redisclient.delete(self._indexkey)
 
     def index(self, items, secret=""):
         """

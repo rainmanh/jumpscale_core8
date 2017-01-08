@@ -1,4 +1,4 @@
-from path import path
+from path import Path
 
 
 class PathFactory:
@@ -21,4 +21,4 @@ class PathFactory:
         files = d.walkfiles("*.pyc")
         num_files = len(d.files())
         """
-        return path(startpath)
+        return Path(startpath)

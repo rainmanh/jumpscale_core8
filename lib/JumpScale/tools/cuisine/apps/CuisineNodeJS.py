@@ -58,7 +58,8 @@ class CuisineNodeJS(app):
             self.cuisine.core.file_unlink('$BINDIR/npm')
         self.cuisine.core.file_link('$JSAPPSDIR/npm/cli.js', '$BINDIR/npm')
 
-
-        self.cuisine.core.run("%s install -g bower" % self.npm)
+        self.cuisine.bash.profileDefault.addPath(self.cuisine.core.replace("$BINDIR"))
+        self.cuisine.bash.profileDefault.save()
+        self.cuisine.core.run("%s install -g bower" % self.npm, profile=True)
 
         self.doneSet("install")

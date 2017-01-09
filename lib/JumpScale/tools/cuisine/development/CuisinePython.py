@@ -76,24 +76,23 @@ class CuisinePython(base):
                 self.cuisine.core.file_copy(setup_path+".dist", setup_path)
                 content = """
                     _socket socketmodule.c
-                    SSL=$BUILDDIRL
+                    SSL={openssldir}
                     _ssl _ssl.c -DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl -L$(SSL)/lib -lssl -lcrypto
-                    """
+                    """.format(openssldir=self.cuisine.development.openssl.BUILDDIRL)
 
-                self.cuisine.core.file_write(location=setup_path, content=self.replace(content), append=True)
+                self.cuisine.core.file_write(location=setup_path, content=content, append=True)
 
-                C = "cd {codedir};./configure --prefix={builddir}".format(builddir=self.BUILDDIRL, codedir=self.CODEDIRL)
-                self.log("configure python3")
-                self.log(C)
-                self.cuisine.core.file_write("%s/myconfigure.sh" % self.CODEDIRL, C, replaceArgs=True)
-                C = "cd %s;sh myconfigure.sh" % self.CODEDIRL
-                self.cuisine.core.run(C)
+                C = """
+                set -ex
+                cd {codedir}
 
-                C = "cd %s;make -s -j4; make install" % self.CODEDIRL
-                self.log("compile python3")
-                self.log(C)
-                self.cuisine.core.run(C)
+                ./configure --prefix={builddir}
 
+                export LD_LIBRARY_PATH={openssldir}/lib
+                make clean
+                make -j4
+                make install
+                """.format(builddir=self.BUILDDIRL, codedir=self.CODEDIRL, openssldir=self.cuisine.development.openssl.BUILDDIRL)
 
             self.log("compile python3")
             self.log(C)

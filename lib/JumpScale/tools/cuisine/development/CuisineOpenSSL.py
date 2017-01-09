@@ -69,7 +69,6 @@ class CuisineOpenSSL(base):
                 C=C.replace("$target","darwin64-x86_64-cc")
             else:
                 C=C.replace("$target","linux-generic64")
-            self.cuisine.core.file_write("%s/mycompile_all.sh" % self.CODEDIRL, C)
             self.cuisine.core.run(self.replace(C))
             self.doneSet("compile")
             self.log("BUILD DONE")

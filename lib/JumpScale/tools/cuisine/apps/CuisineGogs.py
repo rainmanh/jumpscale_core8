@@ -52,7 +52,7 @@ class CuisineGogs(app):
         go get golang.org/x/oauth2
         go get github.com/gogits/gogs
 
-        cd $GOGSDIR && git remote add xmonorigin https://github.com/xmonader/gogs-itsyouonline && git fetch xmonorigin && git checkout xmonorigin/rebranding
+        cd $GOGSDIR && git remote add gigforks https://github.com/gigforks/gogs && git fetch gigforks && git checkout gigforks/itsyouimpl
 
         cd $GOGSDIR && glide install && go build -tags "sqlite cert"
         echo **OK**

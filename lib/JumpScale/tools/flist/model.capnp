@@ -36,6 +36,9 @@ struct Dir {
       target @1: Text;
       modificationTime @2: UInt32;
       creationTime @3: UInt32;
+      size @4: UInt32;  # Remove me
+      aclkey @5: Text;  # Remove me
+      destname @6: Text;
   }
 
   specials @5 :List(Special);

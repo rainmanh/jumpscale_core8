@@ -169,12 +169,12 @@ class FList(object):
                             # Checking absolute path, relative may fail
                             destlink = os.path.realpath(pathAbsolute)
                             if not destlink.startswith(self.rootpath):  # check if is link & if outside of FS
-                                print("OUTSIDE")
+                                # print("OUTSIDE")
                                 ffiles.append((fname, stat))  # are links which point to outside of fs
                             else:
-                                print("INSIDE")
+                                # print("INSIDE")
                                 # Ensure relative path works
-                                # destlink = os.readlink(pathAbsolute)
+                                destlink = os.readlink(pathAbsolute)
                                 llinks.append((fname, stat, destlink))
                         else:
                             if S_ISREG(st_mode):
@@ -199,11 +199,12 @@ class FList(object):
                 # process links
                 counter = 0
                 for fname, stat, destlink in llinks:
-                    obj = ddir.dbobj.files[counter]
-                    relPath, dirkey = self.path2key(destlink)
+                    obj = ddir.dbobj.links[counter]
                     # FIXME
+                    # relPath, dirkey = self.path2key(destlink)
                     # obj.destDirKey = dirkey  # link to other directory
                     # obj.destname = j.sal.fs.getBaseName(destlink)
+                    obj.destname = destlink
                     self._setMetadata(obj, stat, fname)
                     counter += 1
 
@@ -394,17 +395,17 @@ class FList(object):
             return
 
         for item in ddir.dbobj.files:
-            print(item)
+            # print(item)
             if valid(j.sal.fs.joinPaths(ddir.dbobj.location, item.name), fileRegex) and "F" in types:
                 fileFunction(dirobj=ddir, type="F", name=item.name, subobj=item, args=args)
 
         for item in ddir.dbobj.links:
-            print(item)
+            # print(item)
             if valid(j.sal.fs.joinPaths(ddir.dbobj.location, item.name), fileRegex) and "L" in types:
                 linkFunction(dirobj=ddir, type="L", name=item.name, subobj=item, args=args)
 
         for item in ddir.dbobj.specials:
-            print(item)
+            # print(item)
             if valid(j.sal.fs.joinPaths(ddir.dbobj.location, item.name), fileRegex and "S" in types):
                 specialFunction(dirobj=ddir, type="S", name=item.name, subobj=item, args=args)
 
@@ -502,31 +503,35 @@ class FList(object):
             # Set types (directory)
             item[6] = "4"
 
-            print("|".join(item))
+            args.append("|".join(item))
 
         def procFile(dirobj, type, name, subobj, args):
             item = setDefault(dirobj, name, subobj)
 
             # Set filetype
-            item[1] = "** HASH **"
+            fullpath = "%s/%s/%s" % (self.rootpath, dirobj.dbobj.location, name)
+            item[1] = j.data.hash.md5(fullpath)
             item[6] = "2"
 
-            print("|".join(item))
+            args.append("|".join(item))
 
         def procLink(dirobj, type, name, subobj, args):
-            print("============== LINK")
-            print(subobj)
+            item = setDefault(dirobj, name, subobj)
 
-            print("%s/%s (%s)" % (dirobj.dbobj.location, name, type))
-            print("==============")
+            # Set filetype
+            item[6] = "1"
+            item[9] = subobj.destname
+
+            args.append("|".join(item))
 
         def procSpecial(dirobj, type, name, subobj, args):
-            print("============== SPECIAL")
+            print("============== SPECIAL (not implemented yet)")
             print(subobj)
 
             print("%s/%s (%s)" % (dirobj.dbobj.location, name, type))
             print("==============")
 
+        print("Building old flist format")
         result = []
         self.walk(
             dirFunction=procDir,
@@ -535,6 +540,9 @@ class FList(object):
             linkFunction=procLink,
             args=result
         )
+
+        print(result)
+        return "\n".join(result) + "\n"
 
         """
         from IPython import embed

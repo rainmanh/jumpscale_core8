@@ -2,6 +2,8 @@
 
 ## Creating AYS repository
 
+AYS repo contains service files and it is the environment in which a service instance is deployed and executed.
+
 Use the command <i>create_repo</i> to create the ays repository, specifying the github repo attached to it and the path where the repo will be created.<br>
 The command will create a directory containing the following:
 - <b>actorTemplates</b>: This folder contains all your locally created templates and their files.
@@ -12,10 +14,16 @@ An example command:
 	`ays create_repo -p {directory} -g {github repo url}`
 
 ## Creating an actor template
-To create an actor {actor name}, you need to create a directory called {actor name} under <b>actorTemplates</b>. Each actor directory has to contain a schema.hrd file which contains the specification of the service instance and establish the relationships between itself and other services.
+Actor templates defines the life cycle of a service.It defines the service parameters and its interactions with other services as well as specifies the actions that need to be executed by each service.<br>
+
+ To create an actor {actor name}, you need to create a directory called {actor name} under <b>actorTemplates</b>. Each actor directory has to contain a schema.hrd file which contains the specification of the service instance and establish the relationships between itself and other services.
 Parameter definition is as follows:
 
 `{parameter name} = type:{type of parameter(int,str,..)} default:’{default value if none is specified}’`
+
+There are two ways services can interact with each other:
+- Consumption: A service instance can consume another service instance which is called a producer. A consumer is dependent on the producer and the producer need to be deployed before the consumer.
+- Parenting: Is used to group services together by creating the child services as a subdirectory to the parent. The parent need to be created before the child unless the `optional` tag is used.
 
 To establish a  producer/consumer relationship with another service:
 
@@ -28,9 +36,19 @@ Parent/children interaction:
 
 `image = type:str  default:’ubuntu’  parent:{service name}`
 
-actions.py defines the behavior of the service.
+The relationship between parents and children is one to many.<br>
 
-The function `install(job)` is executed when AYS is run and usually the main operations of the service is implemented inside that function.
+We can add these specifications to the interactions:
+
+- The tag `auto` to create the specified service if it doesn't already exist in both interactions.
+
+- The tag `optional` to indicate that the relationship isn't required in a parenting relationship.   
+
+<i>actions.py</i> defines the behavior of the service. Each function in the python file corresponds to service action. The functions accept a single argument usually called job of type object. Using this object we can access the service object on which the actions is performed and the service parameters can be accessed.
+
+The functions specified in the blueprints are executed when AYS is run. `install(job)` is usually the main function where the main operations of the service are implemented. In most cases it is the action that is expected to be executed when the AYS is run.
+
+
 
 
 To use the parameters of the service inside the file use the job object as follows:
@@ -47,6 +65,7 @@ parent = service.parent.model.data
 appDocker = service.producers['app_docker'][0]
 ```
 ## Blueprints
+A blueprint is a YAML file that is used for interacting with AYS. It is responsible for specifying the deployment of a specific application. The required services instances are specified in this file and specifies their interactions. Blueprints are also used to indicate which actions should AYS execute.<br><br>
 Create a <a href = "www.yaml.org/start.html">YAML</a> file inside the blueprints directory. The file specifies the instances that need to be created from every actor as well as the actions that need to be executed, for example the `install()` function.
 ```
 node.packet.net__kvm:
@@ -59,7 +78,12 @@ node.packet.net__kvm:
     actions:
         - action: install
 ```
+In the above sample a new instance kvm is created. The client parameter references the instance of the service which is specified in <i>schema.hrd</i>. The actions field specifies the actions or functions to be executed by this instance.
 ## Running the services
-To create the services and schedule the actions run the command `ays blueprint`.<br>
-The command `ays run` execute the functions specified in the blueprints files.<br>
-Use `ays destroy` to reload the blueprints files.
+To create the services and schedule the actions run the command `ays blueprint`. All files in the <b>blueprints</b> directory will be used for the creation of the instances.<br>
+
+The command `ays run` execute the functions specified in the blueprints files. It searches for all scheduled, error or changed actions and start a run to execute these actions.<br>
+
+`ays blueprint` deletes all services instances as well as all scheduled actions in the repo.  
+
+To reload the blueprint files, first use `ays destroy` followed by `ays blueprint`. To provide a backup of the created instances you can use `ays commit` which commit the changes to the repo.

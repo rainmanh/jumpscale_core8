@@ -19,6 +19,7 @@ from JumpScale.tools.flist.models import ACIModel
 from JumpScale.tools.flist.models import ACICollection
 
 from JumpScale.tools.flist.FList import FList
+from JumpScale.tools.flist.FListMetadata import FListMetadata
 
 
 class FListFactory(object):
@@ -37,12 +38,17 @@ class FListFactory(object):
         schema = self.getCapnpSchema()
 
         # now default is mem, if we want redis as default store uncomment next, but leave for now, think mem here ok
-        if kvs == None:
-            kvs = j.servers.kvs.getRedisStore(name="flist", namespace=name, unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
+        if kvs is None:
+            kvs = j.servers.kvs.getRedisStore(name="flist",
+                                              namespace=name,
+                                              unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
 
-        collection = j.data.capnp.getModelCollection(
-            schema.Dir, category="flist_%s" % name, modelBaseClass=DirModel.DirModel,
-            modelBaseCollectionClass=DirCollection.DirCollection, db=kvs, indexDb=kvs)
+        collection = j.data.capnp.getModelCollection(schema.Dir,
+                                                     category="flist_%s" % name,
+                                                     modelBaseClass=DirModel.DirModel,
+                                                     modelBaseCollectionClass=DirCollection.DirCollection,
+                                                     db=kvs,
+                                                     indexDb=kvs)
         return collection
 
     def getACICollectionFromDB(self, name="test", kvs=None):
@@ -52,12 +58,17 @@ class FListFactory(object):
         """
         schema = self.getCapnpSchema()
 
-        if kvs == None:
-            kvs = j.servers.kvs.getRedisStore(name="flist", namespace=name, unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
+        if kvs is None:
+            kvs = j.servers.kvs.getRedisStore(name="flist",
+                                              namespace=name,
+                                              unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
 
-        collection = j.data.capnp.getModelCollection(
-            schema.ACI, category="ACI_%s" % name, modelBaseClass=ACIModel.ACIModel,
-            modelBaseCollectionClass=ACICollection.ACICollection, db=kvs, indexDb=kvs)
+        collection = j.data.capnp.getModelCollection(schema.ACI,
+                                                     category="ACI_%s" % name,
+                                                     modelBaseClass=ACIModel.ACIModel,
+                                                     modelBaseCollectionClass=ACICollection.ACICollection,
+                                                     db=kvs,
+                                                     indexDb=kvs)
         return collection
 
     def getUserGroupCollectionFromDB(self, name="usergroup", kvs=None):
@@ -66,7 +77,7 @@ class FListFactory(object):
         """
         schema = self.getCapnpSchema()
 
-        if kvs == None:
+        if kvs is None:
             kvs = j.servers.kvs.getRedisStore(name="flist", namespace=name, unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
 
         collection = j.data.capnp.getModelCollection(
@@ -82,7 +93,11 @@ class FListFactory(object):
         dirCollection = self.getDirCollectionFromDB(name="%s:dir" % namespace, kvs=kvs)
         aciCollection = self.getACICollectionFromDB(name="%s:aci" % namespace, kvs=kvs)
         userGroupCollection = self.getUserGroupCollectionFromDB(name="%s:users" % namespace, kvs=kvs)
-        return FList(rootpath=rootpath, namespace=namespace, dirCollection=dirCollection, aciCollection=aciCollection, userGroupCollection=userGroupCollection)
+        return FList(rootpath=rootpath,
+                     namespace=namespace,
+                     dirCollection=dirCollection,
+                     aciCollection=aciCollection,
+                     userGroupCollection=userGroupCollection)
 
     def get_archiver(self):
         """

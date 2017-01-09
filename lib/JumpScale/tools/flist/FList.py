@@ -5,7 +5,7 @@ import hashlib
 import binascii
 import pwd
 import grp
-from stat import *
+from stat import S_ISBLK, S_ISSOCK, S_ISCHR, S_ISFIFO, S_ISLNK, S_ISREG
 import functools
 import subprocess
 import os
@@ -21,7 +21,7 @@ from JumpScale.tools.flist.models import DirCollection
 from path import Path
 
 
-class FList(object):
+class FList:
     """
     FList (sometime "plist") files contains a plain/text representation of
     a complete file system tree
@@ -105,6 +105,21 @@ class FList(object):
     def getDir(self, key):
         return self.dirCollection.get(key)
 
+    def _loadDirProperties(self, dirKey, dirpathAbsolute, dirRelPath):
+        """Load dir properties into DirCollection dbobj"""
+        ddir = self.dirCollection.get(dirKey, autoCreate=True)
+        if ddir.dbobj.location == "":
+            ddir.dbobj.location = dirRelPath
+        else:
+            if ddir.location != dirRelPath:
+                raise RuntimeError("serious bug, location should always be same")
+
+        # sec base properties of current dirobj
+        statCurDir = os.stat(dirpathAbsolute, follow_symlinks=True)
+        dirname = j.sal.fs.getBaseName(dirpathAbsolute)
+        self._setMetadata(ddir.dbobj, statCurDir, dirname)
+        return ddir
+
     def add(self, path, excludes=[".*\.pyc", ".*__pycache__", ".*\.bak", ".*\.git"]):
         """
         walk over path and put in plist
@@ -123,9 +138,8 @@ class FList(object):
         if not j.sal.fs.exists(path, followlinks=True):
             if j.sal.fs.exists(j.sal.fs.joinPaths(self.rootpath, path), followlinks=True):
                 path = j.sal.fs.joinPaths(self.rootpath, path)
-
-        if not j.sal.fs.exists(path, followlinks=True):
-            raise j.exceptions.Input(message="Could not find path:%s" % path, level=1, source="", tags="", msgpub="")
+            else:
+                raise j.exceptions.Input(message="Could not find path:%s" % path, level=1, source="", tags="", msgpub="")
 
         # topdown=False means we do the lowest level dirs first
         for dirpathAbsolute, dirs, files in os.walk(path, followlinks=True, topdown=False):
@@ -135,25 +149,12 @@ class FList(object):
             print("%s||%s" % (dirpathAbsolute, dirKey))
 
             if self._valid(dirRelPath, _excludes):
-
-                ddir = self.dirCollection.get(dirKey, autoCreate=True)
-
-                if ddir.dbobj.location == "":
-                    ddir.dbobj.location = dirRelPath
-                else:
-                    if ddir.location != dirRelPath:
-                        raise RuntimeError("serious bug, location should always be same")
-
-                # sec base properties of current dirobj
-                statCurDir = os.stat(dirpathAbsolute, follow_symlinks=True)
-                dirname = j.sal.fs.getBaseName(dirpathAbsolute)
-                self._setMetadata(ddir.dbobj, statCurDir, dirname)
+                ddir = self._loadDirProperties(dirKey, dirpathAbsolute, dirRelPath)
 
                 # now we have our core object, from db or is new
                 ffiles = []
                 llinks = []
                 sspecials = []
-
                 for fname in files:
                     relPathWithName = os.path.join(dirRelPath, fname)
                     pathAbsolute = os.path.join(self.rootpath, relPathWithName)
@@ -188,30 +189,24 @@ class FList(object):
                 ddir.initNewSubObj("files", len(ffiles))
                 ddir.initNewSubObj("links", len(llinks))
                 ddir.initNewSubObj("specials", len(sspecials))
-
                 # process files
-                counter = 0
-                for fname, stat in ffiles:
-                    dbobj = ddir.dbobj.files[counter]
+                for index, (fname, stat) in enumerate(ffiles):
+                    dbobj = ddir.dbobj.files[index]
                     self._setMetadata(dbobj, stat, fname)
-                    counter += 1
 
                 # process links
-                counter = 0
-                for fname, stat, destlink in llinks:
-                    obj = ddir.dbobj.links[counter]
+                for index, (fname, stat, destlink) in enumerate(llinks):
+                    obj = ddir.dbobj.links[index]
                     # FIXME
                     # relPath, dirkey = self.path2key(destlink)
                     # obj.destDirKey = dirkey  # link to other directory
                     # obj.destname = j.sal.fs.getBaseName(destlink)
                     obj.destname = destlink
                     self._setMetadata(obj, stat, fname)
-                    counter += 1
 
                 # process special files
-                counter = 0
-                for fname, stat in sspecials:
-                    obj = ddir.dbobj.specials[counter]
+                for index, (fname, stat) in enumerate(sspecials):
+                    obj = ddir.dbobj.specials[index]
                     # testing special files type
                     if S_ISSOCK(stat.st_mode):
                         obj.type = "socket"
@@ -227,19 +222,15 @@ class FList(object):
                         id = '%d,%d' % (os.major(stat.st_rdev), os.minor(stat.st_rdev))
                         obj.data = id
                     self._setMetadata(obj, stat, fname)
-                    counter += 1
 
                 # filter the dirs based on the exclusions (starting from the relative paths)
                 dirs2 = [os.path.join(dirRelPath, item)
                          for item in dirs if self._valid(os.path.join(dirRelPath, item), _excludes)]
-
                 ddir.initNewSubObj("dirs", len(dirs2))
 
-                counter = 0
-                for dirRelPathFull in dirs2:
+                for index, dirRelPathFull in enumerate(dirs2):
                     absDirPathFull = os.path.join(self.rootpath, dirRelPathFull)
-                    dir_sub_obj = ddir.dbobj.dirs[counter]
-                    counter += 1
+                    dir_sub_obj = ddir.dbobj.dirs[index]
 
                     dir_sub_relpath, dir_sub_key = self.path2key(absDirPathFull)
                     print("%s|%s" % (absDirPathFull, dir_sub_key))
@@ -358,6 +349,7 @@ class FList(object):
                     return True
             return False
 
+        import ipdb; ipdb.set_trace()
         if j.data.types.string.check(dirRegex):
             if dirRegex.strip() == "":
                 dirRegex = []
@@ -385,11 +377,18 @@ class FList(object):
                                       key=item.key)
             else:
                 recurse = True
-            if not recurse == False:
+            if recurse is not False:
                 if item.key == "":
                     raise RuntimeError("key cannot be empty in a subdir of: ddir\n%s" % ddir)
-                self.walk(dirFunction=dirFunction, fileFunction=fileFunction, specialFunction=specialFunction,
-                          linkFunction=linkFunction,  args=args, currentDirKey=item.key, dirRegex=dirRegex, fileRegex=fileRegex, types=types)
+                self.walk(dirFunction=dirFunction,
+                          fileFunction=fileFunction,
+                          specialFunction=specialFunction,
+                          linkFunction=linkFunction,
+                          args=args,
+                          currentDirKey=item.key,
+                          dirRegex=dirRegex,
+                          fileRegex=fileRegex,
+                          types=types)
 
         if not valid(ddir.dbobj.location, dirRegex):
             return
@@ -483,18 +482,17 @@ class FList(object):
         def setDefault(dirobj, name, subobj):
             x = self.aciCollection.get(subobj.aclkey)
             item = [
-                "%s/%s" % (dirobj.dbobj.location, name), # Path
-                "", # To be filled lated                 # Hash
-                "%d" % subobj.size,                      # Size
-                x.dbobj.uname,                           # User (permissions)
-                x.dbobj.gname,                           # Group (permissions)
-                x.modeInOctFormat,                       # Permission mode
-                "", # To be filled later                 # File type
-                "%d" % subobj.creationTime,              # Creation Timestamp
-                "%d" % subobj.modificationTime,          # Modification Timestamp
-                ""  # To be filled later                 # Extended attributes
+                "%s/%s" % (dirobj.dbobj.location, name),  # Path
+                "", # To be filled lated                  # Hash
+                "%d" % subobj.size,                       # Size
+                x.dbobj.uname,                            # User (permissions)
+                x.dbobj.gname,                            # Group (permissions)
+                x.modeInOctFormat,                        # Permission mode
+                "", # To be filled later                  # File type
+                "%d" % subobj.creationTime,               # Creation Timestamp
+                "%d" % subobj.modificationTime,           # Modification Timestamp
+                ""  # To be filled later                  # Extended attributes
             ]
-
             return item
 
         def procDir(dirobj, type, name, args, key):

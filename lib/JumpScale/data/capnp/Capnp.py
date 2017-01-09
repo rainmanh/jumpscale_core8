@@ -61,7 +61,7 @@ class Capnp:
 
             ```
         """
-        if modelBaseCollectionClass == None:
+        if modelBaseCollectionClass is None:
             modelBaseCollectionClass = ModelBaseCollection
 
         return modelBaseCollectionClass(schema=schema, category=category, namespace=namespace,

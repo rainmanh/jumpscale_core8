@@ -138,8 +138,9 @@ class FList:
         if not j.sal.fs.exists(path, followlinks=True):
             if j.sal.fs.exists(j.sal.fs.joinPaths(self.rootpath, path), followlinks=True):
                 path = j.sal.fs.joinPaths(self.rootpath, path)
-            else:
-                raise j.exceptions.Input(message="Could not find path:%s" % path, level=1, source="", tags="", msgpub="")
+
+        if not j.sal.fs.exists(path, followlinks=True):
+            raise j.exceptions.Input(message="Could not find path:%s" % path, level=1, source="", tags="", msgpub="")
 
         # topdown=False means we do the lowest level dirs first
         for dirpathAbsolute, dirs, files in os.walk(path, followlinks=True, topdown=False):
@@ -349,7 +350,6 @@ class FList:
                     return True
             return False
 
-        import ipdb; ipdb.set_trace()
         if j.data.types.string.check(dirRegex):
             if dirRegex.strip() == "":
                 dirRegex = []

@@ -149,13 +149,13 @@ class Server:
 
         event_type = request['event']
         args = request.get('args', {})
-
+        handler_name = "on_" + event_type
         for repo in j.atyourservice.reposList():
             for service in repo.services:
-                if "processEvent" not in service.model.actions.keys():
+                if handler_name not in service.model.actions.keys():
                     continue
-                evJob = service.getJob("processEvent", {'event_args':args, 'event_type':event_type})
-                evJob.executeInProcess()
+                evJob = service.getJob(handler_name, {'event_args': args, 'event_type':event_type})
+                evJob.execute()
 
                 # if len(service.model.actionsEvent) <= 0:
                 #     continue

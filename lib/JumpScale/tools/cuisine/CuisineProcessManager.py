@@ -253,9 +253,7 @@ class CuisineTmuxec(ProcessManagerBase):
         res = [item.strip().rstrip("*-").strip() for item in res]
         return res
 
-    def ensure(self, name, cmd, env={}, path="", descr=""):
-        """Ensures that the given upstart service is self.running, starting
-        it if necessary."""
+    def ensure(self, name, cmd, env={}, path="", descr="",wait=10):
         self.stop(name=name)
 
         cmd = self.replace(cmd)
@@ -270,15 +268,16 @@ class CuisineTmuxec(ProcessManagerBase):
         if envstr != "":
             cmd = "%s%s" % (envstr, cmd)
 
-        self.cuisine.tmux.executeInScreen("main", name, cmd)
+        self.cuisine.tmux.executeInScreen("main", name, cmd,wait=wait)
 
     def stop(self, name):
-        """Ensures that the given upstart service is stopped."""
+        print ("stop...")
         if name in self.list():
             pid = self.cuisine.tmux.getPid('main', name)
             self.cuisine.core.run("kill -9 %s" % pid)
             self.cuisine.tmux.killWindow("main", name)
         self.cuisine.process.kill(name, signal=9, exact=False)
+        print ("...ok")
 
     def remove(self, name):
         """removes service """

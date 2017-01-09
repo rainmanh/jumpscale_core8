@@ -31,38 +31,45 @@ sudo mv -f /usr/bin/openssl_ /usr/bin/openssl
 class CuisineOpenSSL(base):
 
     def _init(self):
-        self.BUILDDIR = self.replace("$BUILDDIR/openssl/")
-        self.CODEDIR = self.replace("$CODEDIR/github/openssl/openssl/")
+        self.BUILDDIRL = self.core.replace("$BUILDDIR/openssl/")
+        self.CODEDIRL = self.core.replace("$CODEDIR/github/openssl/openssl/")
+
+    def reset(self):
+        base.reset(self)
+        self.core.dir_remove(self.BUILDDIRL)
+        self.core.dir_remove(self.CODEDIRL)
 
     def build(self, destpath="", reset=False):
         """
         @param destpath, if '' then will be $TMPDIR/build/openssl
         """
+        if reset:
+            self.reset()
+
         if self.doneGet("build") and not reset:
             return
-        if reset:
-            self.cuisine.core.run("rm -rf %s" % self.BUILDDIR)
 
         url = "https://github.com/openssl/openssl.git"
         cpath = self.cuisine.development.git.pullRepo(url, branch="OpenSSL_1_1_0-stable", reset=reset)
 
-        assert cpath.rstrip("/") == self.CODEDIR.rstrip("/")
+        assert cpath.rstrip("/") == self.CODEDIRL.rstrip("/")
 
         if not self.doneGet("compile") or reset:
             C = """
             set -ex
-            cd $CODEDIR
+            cd $CODEDIRL
             # ./config
-            ./Configure $target shared enable-ec_nistp_64_gcc_128 no-ssl2 no-ssl3 no-comp --openssldir=$BUILDDIR --prefix=$BUILDDIR
+            ./Configure $target shared enable-ec_nistp_64_gcc_128 no-ssl2 no-ssl3 no-comp --openssldir=$BUILDDIRL --prefix=$BUILDDIRL
             make depend
             make install
-            rm -rf $BUILDDIR/share
-            rm -rf $BUILDDIR/private
+            rm -rf $BUILDDIRL/share
+            rm -rf $BUILDDIRL/private
             """
             if self.cuisine.core.isMac:
                 C=C.replace("$target","darwin64-x86_64-cc")
             else:
                 C=C.replace("$target","linux-generic64")
+            self.cuisine.core.file_write("%s/mycompile_all.sh" % self.CODEDIRL, C)
             self.cuisine.core.run(self.replace(C))
             self.doneSet("compile")
             self.log("BUILD DONE")

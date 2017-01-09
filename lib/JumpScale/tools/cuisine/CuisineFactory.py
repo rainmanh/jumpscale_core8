@@ -46,6 +46,7 @@ class CuisineBase:
     def reset(self):
         self.configReset()
         self.cacheReset()
+        self._init()
 
     @property
     def config(self):

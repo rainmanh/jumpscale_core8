@@ -16,7 +16,7 @@ class CuisineSSHReflector(base):
 
     def server(self, reset=False, keyname="reflector"):
         """
-        configures the server
+        configurs the server
         to test
         js 'c=j.tools.cuisine.get("stor1:9022");c.installer.sshreflector.server'
         """
@@ -37,8 +37,6 @@ class CuisineSSHReflector(base):
 
         self.cuisine.core.dir_ensure("/home/sshreflector/.ssh", recursive=True, mode=None,
                                       owner="sshreflector", group="sshreflector")
-
-        #j.application.break_into_jshell("DEBUG NOW reflector")
 
         lpath = os.environ["HOME"] + "/.ssh/reflector"
         path = "/home/sshreflector/.ssh/reflector"

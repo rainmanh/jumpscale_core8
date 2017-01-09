@@ -179,6 +179,37 @@ class StoreFactory:
 
         return res
 
+    def getARDBStore(self, name, namespace='db', host='localhost', port=16379, unixsocket=None, db=0, password='',
+                      serializers=None, masterdb=None, cache=None, changelog=None):
+        '''
+        Gets a memory key value store.
+
+        @param name: name of the store
+        @type name: String
+
+        @param namespace: namespace of the store, defaults to None
+        @type namespace: String
+
+        @return: key value store
+        @rtype: MemoryKeyValueStore
+        '''
+        from servers.key_value_store.ardb_store import ARDBKeyValueStore
+        res = ARDBKeyValueStore(
+            name=name,
+            namespace=namespace,
+            host=host,
+            port=port,
+            unixsocket=unixsocket,
+            db=db,
+            password=password,
+            serializers=serializers,
+            masterdb=masterdb,
+            changelog=changelog,
+            cache=cache
+        )
+
+        return res
+
     def _aclSerialze(self, acl={}):
         """
         access list

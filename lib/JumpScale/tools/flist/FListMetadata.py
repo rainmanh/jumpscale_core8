@@ -81,7 +81,6 @@ class FListMetadata:
         if parentObj.dbobj.state != "":
             raise RuntimeError("%s: No such file or directory" % parent_path)
 
-<<<<<<< HEAD
         aciKey = self._initialize_aci(mode, stat.S_IFREG)
         fileDict = {
             "aclkey": aciKey,
@@ -93,17 +92,6 @@ class FListMetadata:
         }
         self._addObj(parentObj, fileDict, "F")
         parentObj.save()
-=======
-    def delete(self, path):
-        fType, dirObj = self._search_db(path)
-        if fType == "D":
-            dirObj.dbobj.state = "Deleted"
-        else:
-            _, entityList = self._getPropertyList(dirObj.dbobj, fType)
-            for entity in entityList:
-                entity.state = "Deleted"
-        dirObj.save()
->>>>>>> Implement delete
 
     def link(self, ppath, parent_path, file_type="s"):
         if file_type not in ("s", "h"):
@@ -260,11 +248,7 @@ class FListMetadata:
             if "{}/".format(old_path) in new_parent_path:
                 raise RuntimeError("Cannot move '{}' to a subdirectory of itself, '{}'".format(old_path, new_parent_path))
 
-<<<<<<< HEAD
             if oldDirObj.dbobj.state != "":
-=======
-            if oldDirObj.dbobj.state == "Deleted":
->>>>>>> Implement delete
                 raise RuntimeError("%s: No such file or directory" % old_path)
 
             _, parentDir = self._search_db(j.sal.fs.getDirName(old_path))

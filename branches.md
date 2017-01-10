@@ -6,6 +6,7 @@
 - 8.2.0_dev_flist: development of new flist approach based on key value stor
 - 8.2.0_ays: all development on ays (fixes, ...)
 - 8.2.0_merge810: very carefully get required fixes only from 8.1.0
+- 8.2.0_fix: codereview branch for fixes on 8.2.0
 
 ## branches soon to start working on
 - 8.2.0_jsagent: get the jsagent ready to be used again (as in OVC) in 8.2.0

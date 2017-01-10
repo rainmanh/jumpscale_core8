@@ -22,7 +22,14 @@ class FListMetadata:
         raise NotImplementedError
 
     def delete(self, path):
-        raise NotImplementedError
+        fType, dirObj = self._search_db(path)
+        if fType == "D":
+            dirObj.dbobj.state = "Deleted"
+        else:
+            _, entityList = self._getPropertyList(dirObj.dbobj, fType)
+            for entity in entityList:
+                entity.state = "Deleted"
+        dirObj.save()
 
     def chmod(self, path, mode=""):
         raise NotImplementedError
@@ -52,6 +59,10 @@ class FListMetadata:
         if oldFtype == "D":
             if "{}/".format(old_path) in new_parent_path:
                 raise RuntimeError("Cannot move '{}' to a subdirectory of itself, '{}'".format(old_path, new_parent_path))
+
+            if oldDirObj.dbobj.state == "Deleted":
+                raise RuntimeError("%s: No such file or directory" % old_path)
+
             _, parentDir = self._search_db(j.sal.fs.getDirName(old_path))
             self._move_dir(parentDir, newParentDirObj, oldDirObj, fname=fname)
         else:

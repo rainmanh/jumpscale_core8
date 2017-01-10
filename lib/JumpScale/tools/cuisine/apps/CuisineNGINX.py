@@ -37,7 +37,7 @@ class CuisineNGINX(app):
         	# server_names_hash_bucket_size 64;
         	# server_name_in_redirect off;
 
-        	include $JSAPPSDIR/nginx/etc/mime.types;
+        	include $BUILDDIR/nginx/conf/mime.types;
         	default_type application/octet-stream;
 
         	##
@@ -51,8 +51,8 @@ class CuisineNGINX(app):
         	# Logging Settings
         	##
 
-        	access_log /var/log/nginx/access.log;
-        	error_log /var/log/nginx/error.log;
+        	access_log $BUILDDIR/nginx/logs/access.log;
+        	error_log $BUILDDIR/nginx/logs/error.log;
 
         	##
         	# Gzip Settings
@@ -65,46 +65,18 @@ class CuisineNGINX(app):
         	# Virtual Host Configs
         	##
 
-        	include $JSAPPSDIR/nginx/etc/conf.d/*;
-        	include $JSAPPSDIR/nginx/etc/sites-enabled/*;
+        	include $BUILDDIR/nginx/conf/conf.d/*;
+        	include $BUILDDIR/nginx/conf/sites-enabled/*;
         }
         """
 
-    def install(self, start=True):
-        """
-        can install through ubuntu
-
-        """
-        # Install through ubuntu
-        self.cuisine.package.mdupdate()
-        self.cuisine.package.ensure('nginx')
-        # link nginx to binDir and use it from there
-
-        # self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/")
-        # self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/bin")
-        # self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/etc")
-        self.cuisine.core.dir_ensure("$JSCFGDIR")
-        self.cuisine.core.dir_ensure("$TMPDIR")
-        self.cuisine.core.dir_ensure("/optvar/tmp")
-        self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/")
-        self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/bin")
-        self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/etc")
-        self.cuisine.core.dir_ensure("$JSCFGDIR/nginx/etc")
-
-        self.cuisine.core.file_copy('/usr/sbin/nginx', '$JSAPPSDIR/nginx/bin/nginx', overwrite=True)
-        self.cuisine.core.dir_ensure('/var/log/nginx')
-        self.cuisine.core.file_copy('/etc/nginx/*', '$JSAPPSDIR/nginx/etc/', recursive=True)  # default conf
-        self.cuisine.core.file_copy('/etc/nginx/*', '$JSCFGDIR/nginx/etc/', recursive=True)  # variable conf
-        basicnginxconf = self.get_basic_nginx_conf()
-        defaultenabledsitesconf = """\
-
+    def get_basic_nginx_site(self, wwwPath="/var/www/html"):
+        return """\
         server {
             listen 80 default_server;
             listen [::]:80 default_server;
 
-
-
-            root /var/www/html;
+            root %s;
 
             # Add index.php to the list if you are using PHP
             index index.html index.htm index.nginx-debian.html index.php;
@@ -117,68 +89,135 @@ class CuisineNGINX(app):
                 try_files $uri $uri/ =404;
             }
 
-            # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+            # location ~ \.php$ {
+                # include $BUILDDIR/nginx/conf/snippets/fastcgi-php.conf;
 
-            location ~ \.php$ {
-                include $JSAPPSDIR/nginx/etc/snippets/fastcgi-php.conf;
-
-            #   # With php7.0-cgi alone:
-                fastcgi_pass 127.0.0.1:9000;
+                # With php7.0-cgi alone:
+                # fastcgi_pass 127.0.0.1:9000;
                 # With php7.0-fpm:
                 # fastcgi_pass unix:/run/php/php7.0-fpm.sock;
-            }
-
-            # deny access to .htaccess files, if Apache's document root
-            # concurs with nginx's one
-            #
-            #location ~ /\.ht {
-            #   deny all;
-            #}
+            # }
         }
+        """ % wwwPath
+
+    def install(self):
+        """
+        Moving build files to build directory and copying config files
+        """
 
         """
-        basicnginxconf = textwrap.dedent(basicnginxconf)
-        basicoptvarnginxconf = basicnginxconf.replace("$JSAPPSDIR", "$JSCFGDIR")
-        basicnginxconf = self.replace(basicnginxconf)
-        basicoptvarnginxconf = self.replace(basicoptvarnginxconf)
+        # Install through ubuntu
+        # self.cuisine.package.mdupdate()
+        # self.cuisine.package.ensure('nginx')
+        # link nginx to binDir and use it from there
 
-        defaultenabledsitesconf = textwrap.dedent(defaultenabledsitesconf)
-        defaultenabledsitesconf = self.replace(defaultenabledsitesconf)
+        # self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/")
+        # self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/bin")
+        # self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/etc")
+        self.cuisine.core.dir_ensure("$JSCFGDIR")
+        self.cuisine.core.dir_ensure("$TMPDIR")
+        # self.cuisine.core.dir_ensure("/optvar/tmp")
+        self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/")
+        self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/bin")
+        self.cuisine.core.dir_ensure("$JSAPPSDIR/nginx/etc")
+        self.cuisine.core.dir_ensure("$JSCFGDIR/nginx/etc")
 
-        self.cuisine.core.file_write("$JSAPPSDIR/nginx/etc/nginx.conf", content=basicnginxconf)
-        self.cuisine.core.file_write("$JSCFGDIR/nginx/etc/nginx.conf", content=basicoptvarnginxconf)
-        self.cuisine.core.file_write("$JSAPPSDIR/nginx/etc/sites-enabled/default", content=defaultenabledsitesconf)
+        self.cuisine.core.file_copy('/usr/sbin/nginx', '$JSAPPSDIR/nginx/bin/nginx', overwrite=True)
+        self.cuisine.core.dir_ensure('/var/log/nginx')
+        self.cuisine.core.file_copy('/etc/nginx/*', '$JSAPPSDIR/nginx/etc/', recursive=True)  # default conf
+        self.cuisine.core.file_copy('/etc/nginx/*', '$JSCFGDIR/nginx/etc/', recursive=True)  # variable conf
+        """
+
+        # Install nginx
+
+        C = """
+        #!/bin/bash
+        set -ex
+
+        cd $TMPDIR/build/nginx/nginx-1.11.3
+        make install
+        """
+
+        C = self.cuisine.core.replace(C)
+        C = self.replace(C)
+        self.cuisine.core.run(C)
+
+        # Writing config files
+        self.cuisine.core.dir_ensure("$BUILDDIR/nginx/conf/conf.d/")
+        self.cuisine.core.dir_ensure("$BUILDDIR/nginx/conf/sites-enabled/")
+
+        basicnginxconf = self.get_basic_nginx_conf()
+        basicnginxconf = self.replace(textwrap.dedent(basicnginxconf))
+
+        defaultenabledsitesconf = self.get_basic_nginx_site()
+        defaultenabledsitesconf = self.replace(textwrap.dedent(defaultenabledsitesconf))
+
+        self.cuisine.core.file_write("$BUILDDIR/nginx/conf/nginx.conf", content=basicnginxconf)
+        self.cuisine.core.file_write("$BUILDDIR/nginx/conf/sites-enabled/default", content=defaultenabledsitesconf)
+
+        """
         fst_cgi_conf = self.cuisine.core.file_read("$JSAPPSDIR/nginx/etc/fastcgi.conf")
-        fst_cgi_conf = fst_cgi_conf.replace(
-            "include fastcgi.conf;", "include /opt/jumpscale8/apps/nginx/etc/fastcgi.conf;")
+        fst_cgi_conf = fst_cgi_conf.replace("include fastcgi.conf;", "include /opt/jumpscale8/apps/nginx/etc/fastcgi.conf;")
         self.cuisine.core.file_write("$JSAPPSDIR/nginx/etc/fastcgi.conf", content=fst_cgi_conf)
 
         #self.cuisine.core.file_link(source="$JSCFGDIR/nginx", destination="$JSAPPSDIR/nginx")
         if start:
             self.start()
+        """
 
-    def build(self, install=True, start=True):
-        # TODO: *2 build nginx (look at example how we build openssl, ...), copy to proper build directory
-        # build nginx
-        return True
+    def build(self, install=True):
+        os.environ["LC_ALL"] = "C.UTF-8"
+        os.environ["LANG"] = "C.UTF-8"
+
+        if self.cuisine.core.isUbuntu:
+            self.cuisine.package.update()
+            self.cuisine.package.install("build-essential libpcre3-dev libssl-dev")
+
+            self.cuisine.core.dir_remove("$TMPDIR/build/nginx")
+            self.cuisine.core.dir_ensure("$TMPDIR/build/nginx")
+
+            C = """
+            #!/bin/bash
+            set -ex
+
+            cd $TMPDIR/build/nginx
+            wget http://nginx.org/download/nginx-1.11.3.tar.gz
+            tar xzf nginx-1.11.3.tar.gz
+
+            cd nginx-1.11.3
+            ./configure --prefix=$BUILDDIR/nginx/ --with-http_ssl_module --with-ipv6
+            make
+            """
+            C = self.cuisine.core.replace(C)
+            C = self.replace(C)
+            self.cuisine.core.run(C)
+
+        else:
+            raise j.exceptions.NotImplemented(
+                message="only ubuntu supported for building nginx", level=1, source="", tags="", msgpub="")
+
         if install:
-            self.install(start)
+            self.install()
 
     def start(self, name="nginx", nodaemon=True, nginxconfpath=None):
-        nginxbinpath = '$JSAPPSDIR/nginx/bin'
+        nginxbinpath = '$BUILDDIR/nginx/sbin'
+
         if nginxconfpath is None:
-            nginxconfpath = '$JSCFGDIR/nginx/etc/nginx.conf'
+            nginxconfpath = '$BUILDDIR/nginx/conf/nginx.conf'
+
         nginxconfpath = self.replace(nginxconfpath)
         nginxconfpath = os.path.normpath(nginxconfpath)
+
         if self.cuisine.core.file_exists(nginxconfpath):
             # foreground
-            nginxcmd = "$JSAPPSDIR/nginx/bin/nginx -c {nginxconfpath} -g 'daemon off;'".format(
-                nginxconfpath=nginxconfpath)
+            nginxcmd = "%s/nginx -c %s -g 'daemon off;'" % (nginxbinpath, nginxconfpath)
             nginxcmd = self.replace(nginxcmd)
-            self.log("cmd: ", nginxcmd)
+
+            self.log("cmd: %s" % nginxcmd)
             self.cuisine.processmanager.ensure(name=name, cmd=nginxcmd, path=nginxbinpath)
+
         else:
-            raise RuntimeError('failed to start nginx')
+            raise RuntimeError('Failed to start nginx')
 
     def stop(self):
         self.cuisine.processmanager.stop("nginx")

@@ -7,9 +7,13 @@ app = j.tools.cuisine._getBaseAppClass()
 
 class CuisineGogs(app):
     NAME = "gogs"
-    _gogspath = str()
-    _gopath = str()
-    _appini = str()
+
+    def _init(self):
+        self._gogspath = str()
+        self._gopath = str()
+        self._appini = str()
+        self.BUILDDIR = self.gogspath
+        self.CODEDIR = self.gogspath
 
     @property
     def gopath(self):
@@ -42,15 +46,15 @@ class CuisineGogs(app):
         # GOPATH: /optvar/go
         if self.doneGet('build') and not reset:
             return
-        if installDeps:
-            self.cuisine.development.golang.install()
-            self.cuisine.development.golang.glide()
+
+        self.cuisine.development.golang.install()
+        self.cuisine.development.golang.glide()
 
         self.cuisine.bash.envSet('GOGITSDIR', '%s/src/github.com/gogits' % self.gogspath )
         self.cuisine.bash.envSet('GOGSDIR', '$GOGITSDIR/gogs')
 
         self.cuisine.development.golang.get('golang.org/x/oauth2')
-        self.cuisine.development.golang.get('github.com/gogits/gogs', timeout=2000)
+        self.cuisine.development.golang.get('github.com/gogits/gogs')
 
         self.cuisine.core.run('cd %s && git remote add gigforks https://github.com/gigforks/gogs' % self.gogspath,
                               profile=True)
@@ -63,9 +67,11 @@ class CuisineGogs(app):
 
 
     def install(self):
-        raise NotImplementedError()
+        """
+        GOGS has no files to move this method is for standardization of cuisine
+        """
         pass
-    
+
     def write_itsyouonlineconfig(self):
         # ADD EXTRA CUSTOM INFO FOR ITS YOU ONLINE.
         if self.doneGet('config'):
@@ -88,13 +94,21 @@ class CuisineGogs(app):
                                          append=True)
         self.doneSet('config')
 
-    def start(self):
+    def start(self, name='main'):
         cmd = "{gogspath}/gogs web".format(gogspath=self.gogspath)
-        self.cuisine.processmanager.ensure(name='gogs', cmd=cmd)
+        self.cuisine.processmanager.ensure(name='gogs_%s' % name, cmd=cmd)
 
-    def stop(self):
-        self.cuisine.processmanager.stop('gogs')
+    def stop(self, name='main'):
+        self.cuisine.processmanager.stop('gogs_%s' % name)
 
     def restart(self):
         self.cuisine.processmanager.stop("gogs")
         self.start()
+
+    def reset(self):
+        """
+        helper method to clean what this module generates.
+        """
+        super().reset()
+        self.core.dir_remove(self.BUILDDIR)
+        self.core.dir_remove(self.CODEDIR)

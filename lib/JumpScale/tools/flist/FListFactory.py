@@ -131,7 +131,7 @@ class FListArchiver:
         cl = j.tools.cuisine.local
         self._ipfs = cl.core.command_location('ipfs')
         if not ipfs_cfgdir:
-            self._env = 'IPFS_PATH=%s' % cl.core.replace('$JSCFGDIR/ipfs/main')
+            self._env = 'IPFS_PATH=%s' % cl.core.args_replace('$JSCFGDIR/ipfs/main')
         else:
             self._env = 'IPFS_PATH=%s' % ipfs_cfgdir
 

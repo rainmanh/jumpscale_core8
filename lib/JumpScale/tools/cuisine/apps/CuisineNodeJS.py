@@ -40,7 +40,7 @@ class CuisineNodeJS(app):
         if self.cuisine.core.isMac:
             url = 'https://nodejs.org/dist/v%s/node-v%s-darwin-x64.tar.gz' % (version, version)
         elif self.cuisine.core.isUbuntu:
-            url = 'https://nodejs.org/dist/v%s/node-v%s-linux-x64.tar.xz' % (version, version)
+            url = 'https://nodejs.org/dist/v%s/node-v%s-linux-x64.tar.gz' % (version, version)
 
         else:
             raise j.exceptions.Input(message="only support ubuntu & mac", level=1, source="", tags="", msgpub="")
@@ -58,7 +58,8 @@ class CuisineNodeJS(app):
             self.cuisine.core.file_unlink('$BINDIR/npm')
         self.cuisine.core.file_link('$JSAPPSDIR/npm/cli.js', '$BINDIR/npm')
 
-
-        self.cuisine.core.run("%s install -g bower" % self.npm)
+        self.cuisine.bash.profileDefault.addPath(self.cuisine.core.replace("$BINDIR"))
+        self.cuisine.bash.profileDefault.save()
+        self.cuisine.core.run("%s install -g bower" % self.npm, profile=True)
 
         self.doneSet("install")

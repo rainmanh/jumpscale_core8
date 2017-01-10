@@ -971,7 +971,7 @@ j.core.platformtype.myplatform.executor.cuisine.bash.include?4([- path
 j.core.platformtype.myplatform.executor.cuisine.bash.profile?8
 j.core.platformtype.myplatform.executor.cuisine.bash.profile.addInclude?4([- path
 ])
-j.core.platformtype.myplatform.executor.cuisine.bash.profile.addPath?4([- path
+j.core.platformtype.myplatform.executor.cuisine.bash.profileJS.addPath?4([- path
 ])
 j.core.platformtype.myplatform.executor.cuisine.bash.profile.dump?4([])
 j.core.platformtype.myplatform.executor.cuisine.bash.profile.env_pattern?8
@@ -7947,7 +7947,7 @@ j.core.platformtype.myplatform.executor.cuisine.bash.include?4([- path
 j.core.platformtype.myplatform.executor.cuisine.bash.profile?8
 j.core.platformtype.myplatform.executor.cuisine.bash.profile.addInclude?4([- path
 ])
-j.core.platformtype.myplatform.executor.cuisine.bash.profile.addPath?4([- path
+j.core.platformtype.myplatform.executor.cuisine.bash.profileJS.addPath?4([- path
 ])
 j.core.platformtype.myplatform.executor.cuisine.bash.profile.dump?4([])
 j.core.platformtype.myplatform.executor.cuisine.bash.profile.env_pattern?8
@@ -14845,7 +14845,7 @@ j.core.platformtype.myplatform.executor.cuisine.bash.include?4([- path
 j.core.platformtype.myplatform.executor.cuisine.bash.profile?8
 j.core.platformtype.myplatform.executor.cuisine.bash.profile.addInclude?4([- path
 ])
-j.core.platformtype.myplatform.executor.cuisine.bash.profile.addPath?4([- path
+j.core.platformtype.myplatform.executor.cuisine.bash.profileJS.addPath?4([- path
 ])
 j.core.platformtype.myplatform.executor.cuisine.bash.profile.dump?4([])
 j.core.platformtype.myplatform.executor.cuisine.bash.profile.env_pattern?8

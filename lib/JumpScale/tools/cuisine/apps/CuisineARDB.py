@@ -70,7 +70,7 @@ class CuisineARDB(app):
 
         url = "git@github.com:yinqiwen/ardb.git"
         cpath = self.cuisine.development.git.pullRepo(url, tag="v0.9.3", reset=reset)
-        print (cpath)
+        print(cpath)
 
         assert cpath.rstrip("/") == self.CODEDIRARDB.rstrip("/")
 
@@ -102,8 +102,12 @@ class CuisineARDB(app):
 
         config = self.core.file_read("$CFGDIR/ardb.conf")
         datadir = self.replace("$VARDIR/data/ardb")
-        config = config.replace("${ARDB_HOME}", datadir)
+        config = config.replace("home  ..", "home {}".format(datadir))
         config = config.replace("0.0.0.0:16379", "localhost:16379")
+
+        # config = config.replace("redis-compatible-mode     no", "redis-compatible-mode     yes")
+        # config = config.replace("redis-compatible-version  2.8.0", "redis-compatible-version  3.5.2")
+
 
         self.core.dir_ensure(datadir)
 
@@ -113,11 +117,6 @@ class CuisineARDB(app):
 
         if start:
             self.start()
-
-
-    # def start(self, name="main", ip="localhost", port=6379, maxram=200, appendonly=True,
-    #           snapshot=False, slave=(), ismaster=False, passwd=None):
-        # raise NotImplementedError
 
     def start(self, reset=False):
         if not reset and self.doneGet("start"):

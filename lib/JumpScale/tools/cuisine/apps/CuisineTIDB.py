@@ -5,49 +5,51 @@ from time import sleep
 app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineTIDB(app): #TODO: *2 test on ovh4 over cuisine, use doneGet/Set
+class CuisineTIDB(app):
     """
     Installs TIDB.
-
-    # TODO :*1 FIX install method (to chain 3 start as a simple start method)
-    build(start=False)
-    then start manually
-    start_tipd()
-    start_tikv()
-    start_tidb()
     """
     NAME = 'tidb'
 
-    def _build(self):
+    def _init(self):
+        self.BUILDDIR = self.replace("$BUILDDIR/tidb/")
 
-    def install(self, start=True):
-        """
-        download, install, move files to appropriate places, and create relavent configs
-
-        """
-        script = '''
-        mv /tmp/tidb/bin/* $BINDIR/
-        '''
-        self.cuisine.core.execute_bash(script)
-
-        if start:
-            self.start()
-
-    def build(self, start=True, install=True):
+    def build(self, install=True, reset=False):
         """
         Build requires both golang and rust to be available on the system
         """
-        # SEE: https://github.com/pingcap/tidb
-        # deploy on top of tikv (which is distributed database backend on top of paxos)
-        # WILL BE BACKEND FOR e.g. OWNCLOUD / GOGS
+
+        if self.doneGet('build') and reset is False:
+            return
+
         self.cuisine.package.mdupdate()
         self.cuisine.package.install('build-essential')
-        url = 'https://raw.githubusercontent.com/pingcap/docs/master/scripts/build.sh'
-        self.cuisine.core.dir_ensure('/tmp/tidb')
 
-        self.cuisine.core.run('cd /tmp/tidb/ && curl {} | bash'.format(url), profile=True)
+        self.cuisine.core.dir_ensure(self.BUILDDIR)
+        build_script = self.cuisine.core.file_download('https://raw.githubusercontent.com/pingcap/docs/master/scripts/build.sh', \
+            j.sal.fs.joinPaths(self.BUILDDIR, 'build.sh'),minsizekb=0)
+
+        self.cuisine.core.run('cd {builddir}; bash {build}'.format(builddir=self.BUILDDIR, build=build_script), profile=True)
+
+        self.doneSet('build')
+
         if install:
-            self.install(start)
+            self.install(False)
+
+    def install(self, start=True):
+        """
+        install, move files to appropriate places, and create relavent configs
+        """
+        if self.doneGet('install'):
+            return
+
+        for path in self.cuisine.core.find(j.sal.fs.joinPaths(self.BUILDDIR, 'bin'), type='f'):
+            self.cuisine.core.file_copy(path, '$BINDIR')
+
+        self.doneSet('install')
+
+        if start:
+            self.start()
 
     def start_pd_server(self, clusterId=1):
         config = {
@@ -56,8 +58,7 @@ class CuisineTIDB(app): #TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         }
         self.cuisine.processmanager.ensure(
             'tipd',
-            'pd-server --cluster-id {clusterId} \
-            --data-dir={dataDir}'.format(**config),
+            'pd-server --data-dir={dataDir}'.format(**config),
         )
 
     def start_tikv(self, clusterId=1):
@@ -67,8 +68,7 @@ class CuisineTIDB(app): #TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         }
         self.cuisine.processmanager.ensure(
             'tikv',
-            'tikv-server -I {clusterId} -S raftkv \
-            --pd 127.0.0.1:2379 -s tikv1'.format(**config)
+            'tikv-server --pd 127.0.0.1:2379 -s tikv1'.format(**config)
         )
 
     def start_tidb(self, clusterId=1):
@@ -79,7 +79,7 @@ class CuisineTIDB(app): #TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         self.cuisine.processmanager.ensure(
             'tidb',
             'tidb-server -P 3306 --store=tikv \
-            --path="127.0.0.1:2379?cluster={clusterId}"'.format(**config)
+            --path="127.0.0.1:2379"'.format(**config)
         )
 
     def start(self, clusterId=1):
@@ -88,18 +88,29 @@ class CuisineTIDB(app): #TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         https://github.com/pingcap/docs/blob/master/op-guide/clustering.md
         """
         # Start a standalone cluster
-        # TODO: make it possible to start multinode cluster.
         self.start_pd_server()
+        if not self._check_running('pd-server', timeout=30):
+            raise j.exceptions.RuntimeError("tipd didn't start")
+
         self.start_tikv()
-        cmd = "ps aux | grep tikv-server"
-        rc, out, err = self.cuisine.core.run(cmd, die=False)
-        tries = 0  # Give it sometime to start.
-        while rc != 0 and tries < 3:
-            rc, out, err = self.cuisine.core.run(cmd, die=False)
-            sleep(2)
-            tries += 1
+        if not self._check_running('tikv-server', timeout=30):
+            raise j.exceptions.RuntimeError("tikv didn't start")
+
         self.start_tidb()
-        # tries = 0  # Give it sometime to start.
-        # while "tikv" not in self.cuisine.processmanager.list( and tries < 3:
-        #     sleep(2)
-        #     tries += 1
+        if not self._check_running('tidb-server', timeout=30):
+            raise j.exceptions.RuntimeError("tidb didn't start")
+
+    def _check_running(self, name, timeout=30):
+        """
+        check that a process is running.
+        name: str, name of the process to check
+        timout: int, timeout in second
+        """
+        now = j.data.time.epoch
+        cmd = "ps aux | grep {}".format(name)
+        rc, _, _ = self.cuisine.core.run(cmd, die=False, showout=False)
+        while rc != 0 and j.data.time.epoch < (now + timeout):
+            rc, _, _ = self.cuisine.core.run(cmd, die=False, showout=False)
+            if rc != 0:
+                sleep(2)
+        return rc == 0

@@ -133,5 +133,8 @@
   - [Working with Docker using the Docker SAL](Walkthrough/SAL/Docker.md)
   - [Installing Caddy using Cuisine](Walkthrough/Cuisine/install_caddy_on_docker.md)
   - [Installing Docker and Caddy with AYS](Walkthrough/AYS/Install_docker_and_caddy.md)
+  - [Creating Data Models](Walkthrough/Models/Creating_data_models.md)
+  - [Migrating Data Models](Walkthrough/Models/Migrating_data_from_gogs.md)
+  - [displaying kanban in portal](Walkthrough/Kanban/Displaying_kanban_in_portal.md)
 
 * [JumpScale API](JumpscaleAPI/SUMMARY.md)

@@ -678,7 +678,7 @@ class Service:
         can start
         """
         ds = list()
-        self.model._build_actions_chain(ds=ds)
+        self.model._build_actions_chain(action=action, ds=ds)
         ds.reverse()
         return ds
 

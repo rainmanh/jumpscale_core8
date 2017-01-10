@@ -8,6 +8,7 @@ from JumpScale.clients.redis.RedisQueue import RedisQueue
 import os
 import time
 import sys
+from redis._compat import nativestr
 # import itertools
 
 
@@ -25,18 +26,24 @@ class RedisFactory:
         self._redisq = {}
         self._config = {}
 
-    def get(self, ipaddr="localhost", port=6379, password="", fromcache=True, unixsocket=None):
+    def get(self, ipaddr="localhost", port=6379, password="", fromcache=True, unixsocket=None, ardb_patch=False, **args):
         if unixsocket is None:
             key = "%s_%s" % (ipaddr, port)
         else:
             key = unixsocket
         if key not in self._redis or not fromcache:
             if unixsocket is None:
-                self._redis[key] = Redis(ipaddr, port, password=password)  # , unixsocket=unixsocket)
+                self._redis[key] = Redis(ipaddr, port, password=password, **args)  # , unixsocket=unixsocket)
             else:
-                self._redis[key] = Redis(unix_socket_path=unixsocket, password=password)
+                self._redis[key] = Redis(unix_socket_path=unixsocket, password=password, **args)
+
+        if ardb_patch:
+            self._ardb_patch(self._redis[key])
 
         return self._redis[key]
+
+    def _ardb_patch(self, client):
+        client.response_callbacks['HDEL'] = lambda r: r and nativestr(r) == 'OK'
 
     def getQueue(self, ipaddr, port, name, namespace="queues", fromcache=True):
         if not fromcache:

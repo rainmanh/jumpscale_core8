@@ -343,8 +343,7 @@ class CuisineCore(base):
         return x
 
     def file_download(self, url, to="", overwrite=True, retry=3, timeout=0, login="",
-                      passwd="", minspeed=0, multithread=False, expand=False, minsizekb=30,
-                      removeTopDir=False):
+                      passwd="", minspeed=0, multithread=False, expand=False, minsizekb=40, removeTopDir=False):
         """
         download from url
         @return path of downloaded file
@@ -353,6 +352,9 @@ class CuisineCore(base):
         @param when multithread True then will use aria2 download tool to get multiple threads
         @param removeTopDir : if True and there is only 1 dir in the destination then will move files away from the one dir to parent (often in tgz the top dir is not relevant)
         """
+
+        #DO NOT CHANGE minsizekb<40, is to protect us against file not found, if there is a specific need then change the argument only for that 1 usecase
+
         if expand and to!="":
             destination = to
             if overwrite:
@@ -445,7 +447,7 @@ class CuisineCore(base):
             if len(res)==1:
                 self.copyTree(res[0],destination)
                 self.dir_remove(res[0])
-                
+
         if self.dir_exists(self.joinpaths(destination, base)):
             return self.joinpaths(destination, base)
         return destination

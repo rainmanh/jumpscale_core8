@@ -8,6 +8,7 @@ JumpScale is a cloud automation product and a branch from what used to be Pylabs
 
 Please check our [GitBook](https://gig.gitbooks.io/jumpscale-core8/content/) for a full documentation (always shows the master)
 
+- [branches](branches.md)
 - [version & roadmap info](../master/releases.md)
 
 ## how to install from master

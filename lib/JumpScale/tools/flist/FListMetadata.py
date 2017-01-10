@@ -2,6 +2,8 @@ from JumpScale import j
 import pyblake2
 import binascii
 import os
+import calendar
+import time
 
 
 class FListMetadata:
@@ -28,49 +30,80 @@ class FListMetadata:
     def move(self, old_path, new_parent_path, fname=""):
         oldFtype, oldDirObj = self._search_db(old_path)
         newFtype, newParentDirObj = self._search_db(new_parent_path)
-        fname = fname if fname else j.sal.fs.getBaseName(old_path)
+        oldFName = j.sal.fs.getBaseName(old_path)
+        fname = fname if fname else oldFName
 
         if oldFtype == "D":
-            if old_path in new_parent_path:
+            if "{}/".format(old_path) in new_parent_path:
                 raise RuntimeError("Cannot move '{}' to a subdirectory of itself, '{}'".format(old_path, new_parent_path))
             _, parentDir = self._search_db(j.sal.fs.getDirName(old_path))
             self._move_dir(parentDir, newParentDirObj, oldDirObj, fname=fname)
+        else:
+            self._move_file(oldDirObj, newParentDirObj, oldFName, fname, oldFtype)
 
     def _move_dir(self, parentDir, newParentDirObj, dirObj, fname):
         if parentDir.key != newParentDirObj.key:
-            dirProps = self._removeDirObj(parentDir, dirObj.dbobj.name)
+            dirProps = self._removeObj(parentDir, dirObj.dbobj.name, "D")
             dirProps["name"] = fname
-            self._addDirObj(newParentDirObj, dirProps)
+            self._addObj(newParentDirObj, dirProps, "D")
             dirObj.dbobj.location = os.path.join(newParentDirObj.dbobj.location, fname)
             dirObj.dbobj.name = fname
+            dirObj.dbobj.parent = newParentDirObj.key
         elif dirObj.dbobj.name != fname:  # Rename only
             for dir in parentDir.dbobj.dirs:
-                if dir.name == dirObj.dbobj.name:
+                if dir.name != dirObj.dbobj.name:
                     dir.name = fname
             dirObj.dbobj.location = os.path.join(newParentDirObj.dbobj.location, fname)
             dirObj.dbobj.name = fname
+        parentDir.save()
+        newParentDirObj.save()
+        dirObj.save()
 
-    def _removeDirObj(self, dirObj, name):
-        newDirs = []
-        poppedDir = {}
-        for index, dir in enumerate(dirObj.dbobj.dirs):
-            if dir.name == name:
-                poppedDir = dir.to_dict()
+    def _move_file(self, parentDir, newParentDirObj, oldFName, fname, ftype):
+        if parentDir.key != newParentDirObj.key:
+            fileProps = self._removeObj(parentDir, oldFName, ftype)
+            fileProps["name"] = fname
+            self._addObj(newParentDirObj, fileProps, ftype)
+        elif oldFName != fname:
+            for file in parentDir.dbobj.files:
+                if oldFName != fname:
+                    file.name = fname
+                    file.modificationTime = calendar.timegm(time.gmtime())
+        parentDir.save()
+        newParentDirObj.save()
+
+    def _removeObj(self, dirObj, name, ptype):
+        newFiles = []
+        poppedFile = {}
+        pName, pList = self._getPropertyList(dirObj.dbobj, ptype)
+        for index, file in enumerate(pList):
+            if file.name == name:
+                poppedFile = file.to_dict()
             else:
-                newDirs.append(dir.to_dict())
+                newFiles.append(file.to_dict())
 
-        newlist = dirObj.dbobj.init("dirs", len(newDirs))
-        for i, item in enumerate(newDirs):
+        newlist = dirObj.dbobj.init(pName, len(newFiles))
+        for i, item in enumerate(newFiles):
+            newlist[i] = item
+        return poppedFile
+
+    def _addObj(self, dirObj, fileProps, ptype):
+        pName, pList = self._getPropertyList(dirObj.dbobj, ptype)
+        newFiles = [item.to_dict() for item in pList]
+        newFiles.append(fileProps)
+        newlist = dirObj.dbobj.init(pName, len(newFiles))
+        for i, item in enumerate(newFiles):
             newlist[i] = item
 
-        return poppedDir
-
-    def _addDirObj(self, dirObj, dirProps):
-        newDirs = [item.to_dict() for item in dirObj.dbobj.dirs]
-        newDirs.append(dirProps)
-        newlist = dirObj.dbobj.init("dirs", len(newDirs))
-        for i, item in enumerate(newDirs):
-            newlist[i] = item
+    def _getPropertyList(self, dbobj, ptype):
+        if ptype == "D":
+            return "dirs", dbobj.dirs
+        if ptype == "F":
+            return "files", dbobj.files
+        if ptype == "L":
+            return "links", dbobj.links
+        if ptype == "S":
+            return "specials", dbobj.specials
 
     def get_fs(self, root_path="/"):
         raise NotImplemented

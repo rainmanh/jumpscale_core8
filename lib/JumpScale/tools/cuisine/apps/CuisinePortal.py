@@ -277,15 +277,13 @@ class CuisinePortal(base):
         passwd : if not None, change the admin password to passwd after start
         """
         self.cuisine.apps.mongodb.start()
-        if not reset and self.doneGet("start"):
+        if not reset:
             return
         cmd = "jspython portal_start.py"
         self.cuisine.processmanager.ensure('portal', cmd=cmd, path=j.sal.fs.joinPaths(self.portal_dir, 'main'))
 
         if passwd is not None:
             self.set_admin_password(passwd)
-
-        self.doneSet("start")
 
     def stop(self):
         self.cuisine.processmanager.stop('portal')

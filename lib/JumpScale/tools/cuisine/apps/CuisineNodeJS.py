@@ -26,7 +26,7 @@ class CuisineNodeJS(app):
                 self.bowerInstall(item)
         else:
             self.log("bower install %s" % name)
-            self.cuisine.core.run("cd %s;bower install %s" % (self._bowerDir, name))
+            self.cuisine.core.run("cd %s;bower --allow-root install  %s" % (self._bowerDir, name))
 
     def install(self, reset=False):
         """

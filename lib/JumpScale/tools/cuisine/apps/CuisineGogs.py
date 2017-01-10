@@ -89,13 +89,11 @@ class CuisineGogs(app):
         self.doneSet('config')
 
     def start(self):
-        if not self.doneGet('init'):
-            cmd = "{gogspath}/gogs web".format(gogspath=self.gogspath)
-            self.cuisine.processmanager.ensure(name='gogs', cmd=cmd)
-            self.doneSet('init')
-            return
-        self.cuisine.processmanager.start('gogs')
+        cmd = "{gogspath}/gogs web".format(gogspath=self.gogspath)
+        self.cuisine.processmanager.ensure(name='gogs', cmd=cmd)
 
+    def stop(self):
+        self.cuisine.processmanager.stop('gogs')
 
     def restart(self):
         self.cuisine.processmanager.stop("gogs")

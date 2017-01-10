@@ -99,6 +99,20 @@ class FListFactory(object):
                      aciCollection=aciCollection,
                      userGroupCollection=userGroupCollection)
 
+    def getFlistMetadata(self, rootpath="/", namespace="main", kvs=None):
+        """
+        @param namespace, this normally is some name you cannot guess, important otherwise no security
+        Return a FlistMetadata object
+        """
+        dirCollection = self.getDirCollectionFromDB(name="%s:dir" % namespace, kvs=kvs)
+        aciCollection = self.getACICollectionFromDB(name="%s:aci" % namespace, kvs=kvs)
+        userGroupCollection = self.getUserGroupCollectionFromDB(name="%s:users" % namespace, kvs=kvs)
+        return FListMetadata(rootpath=rootpath,
+                             namespace=namespace,
+                             dirCollection=dirCollection,
+                             aciCollection=aciCollection,
+                             userGroupCollection=userGroupCollection)
+
     def get_archiver(self):
         """
         Return a FListArchiver object

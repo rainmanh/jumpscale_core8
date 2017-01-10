@@ -12,6 +12,7 @@
 - 8.2.0_jsagent: get the jsagent ready to be used again (as in OVC) in 8.2.0
 - 8.2.0_buildsystem: once cuisine done we will see how to upgrade our build system
 - 8.2.0_flist_fuse: POC how to mount a filesystem on top of ardb & flist (in capnp models)
+- 8.2.0_ays_no_hrd: remove hrd from AYS
 
 ## branching rules
 

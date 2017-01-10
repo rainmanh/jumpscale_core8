@@ -217,7 +217,14 @@ class RecurringLoop(Thread):
 
                     now = j.data.time.epoch
                     for action_name, recurring_obj in service.model.actionsRecurring.items():
-
+                        deptree = service._build_actions_chain(action=action_name)
+                        ### PLEASE EXPLAIN
+                        for acname in deptree[:-1]:
+                            ac = service.model.actions[acname]
+                            if ac.state != 'ok':
+                                break
+                        else:
+                            continue
                         if recurring_obj.lastRun == 0 or now > (recurring_obj.lastRun + recurring_obj.period):
 
                             self.logger.info('recurring job for %s' % service)

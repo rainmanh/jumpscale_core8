@@ -774,6 +774,7 @@ class FSMethods():
         if executor != None and rsync == False:
             raise RuntimeError("when executor used only rsync supported")
         if rsync:
+            executor.cuisine.package.ensure('rsync')
             excl = ""
             for item in ignoredir:
                 excl += "--exclude '*%s*/' " % item

@@ -16,7 +16,7 @@ struct Dir {
       blocksize @1 : UInt8;
       blocks @2 :List(Data); #list of the hashes of the blocks
       size @3 : UInt64; #in bytes
-      aclkey @4: Text; #is pointer to ACL
+      aclkey @4: UInt32; #is pointer to ACL
       modificationTime @5: UInt32;
       creationTime @6: UInt32;
   }
@@ -30,12 +30,11 @@ struct Dir {
   links @4 :List(Link); #only for non dirs
   struct Link{
       name @0 : Text;
-      # aclkey @1: Text; #is pointer to ACL
-      # destDirKey @2: Text; #key of dir in which destination is
-      # destName @3: Text;
-      target @1: Text;
-      modificationTime @2: UInt32;
-      creationTime @3: UInt32;
+      aclkey @1: UInt32; #is pointer to ACL
+      destDirKey @2: Text; #key of dir in which destination is
+      destName @3: Text;
+      modificationTime @4: UInt32;
+      creationTime @5: UInt32;
   }
 
   specials @5 :List(Special);
@@ -57,15 +56,13 @@ struct Dir {
       data @2 :Data;
       modificationTime @3: UInt32;
       creationTime @4: UInt32;
-      size @5: UInt32;
-      aclkey @6: Text; #is pointer to ACL
   }
 
   parent @6 :Text; #dir key of parent
 
   #metadata for dir
   size @7 : UInt64; #in bytes
-  aclkey @8: Text; #is pointer to ACL
+  aclkey @8: UInt32; #is pointer to ACL
   isLink @9: Bool; #if is link and not physically on disk
   modificationTime @10: UInt32;
   creationTime @11: UInt32;

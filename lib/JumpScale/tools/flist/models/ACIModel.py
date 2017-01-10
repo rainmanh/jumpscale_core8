@@ -17,13 +17,13 @@ class ACIModel(base):
 
     @property
     def id(self):
-        # if self.dbobj.id == 0:
-        #    raise RuntimeError("id cannot be 0")
+        if self.dbobj.id == 0:
+            raise RuntimeError("id cannot be 0")
         return self.dbobj.id
 
     def index(self):
         # ind = "%s" % (self.id)
-        # self._index.index({key: self.key})
+        # self._index.index({ind: self.key})
         self._index.lookupSet("id", self.id, self.key)
 
     def getAsText(self, withUserNames=False):

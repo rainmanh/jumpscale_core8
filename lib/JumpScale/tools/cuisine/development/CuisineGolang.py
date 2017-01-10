@@ -64,6 +64,15 @@ class CuisineGolang(app):
         '''
         self.cuisine.core.execute_bash(C, profile=True)
 
+    def glide(self):
+        """
+        install glide
+        """
+        if self.doneGet('glide'):
+            return
+        self.cuisine.core.file_download('https://glide.sh/get', '$TMPDIR/installglide.sh', minsizekb=4)
+        self.cuisine.core.run('. $TMPDIR/installglide.sh', profile=True)
+        self.doneSet('glide')
 
     @property
     def GOPATH(self):

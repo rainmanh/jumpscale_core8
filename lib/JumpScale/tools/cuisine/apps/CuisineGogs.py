@@ -7,11 +7,14 @@ app = j.tools.cuisine._getBaseAppClass()
 
 class CuisineGogs(app):
     NAME = "gogs"
+    _gogspath = str()
+    _gopath = str()
+    _appini = str()
 
     @property
     def gopath(self):
         if not self._gopath:
-            self._gopath = self.cuisine.bash.env.get('GOPATH')
+            self._gopath = self.cuisine.development.golang.GOPATH
             return self._gopath
         else:
             return self._gopath
@@ -37,34 +40,36 @@ class CuisineGogs(app):
         # if reset is False and self.isInstalled():
         #     return
         # GOPATH: /optvar/go
+        if self.doneGet('build') and not reset:
+            return
         if installDeps:
             self.cuisine.development.golang.install()
+            self.cuisine.development.golang.glide()
 
-        script = """
-        #set -xe
-        . ~/.profile_js
-        curl https://glide.sh/get > installglide.sh
-        . installglide.sh
+        self.cuisine.bash.envSet('GOGITSDIR', '%s/src/github.com/gogits' % self.gogspath )
+        self.cuisine.bash.envSet('GOGSDIR', '$GOGITSDIR/gogs')
 
-        GOGITSDIR=$GOPATH/src/github.com/gogits
-        GOGSDIR=$GOGITSDIR/gogs
+        self.cuisine.development.golang.get('golang.org/x/oauth2')
+        self.cuisine.development.golang.get('github.com/gogits/gogs', timeout=2000)
 
-        go get golang.org/x/oauth2
-        go get github.com/gogits/gogs
+        self.cuisine.core.run('cd %s && git remote add gigforks https://github.com/gigforks/gogs' % self.gogspath,
+                              profile=True)
+        self.cuisine.core.run('cd %s && git fetch gigforks && git checkout gigforks/itsyouimpl' % self.gogspath,
+                              profile=True, timeout=1200)
+        self.cuisine.core.run('cd %s && glide install && go build -tags "sqlite cert"' % self.gogspath, profile=True,
+                              timeout=1200)
 
-        cd $GOGSDIR && git remote add gigforks https://github.com/gigforks/gogs && git fetch gigforks && git checkout gigforks/itsyouimpl
+        self.doneSet('build')
 
-        cd $GOGSDIR && glide install && go build -tags "sqlite cert"
-        echo **OK**
 
-        """
-        # BUILD GOGS WITH SQLITE3 tags
-        rc, out = self.cuisine.core.execute_bash(script)
-        if rc != 0:
-            raise RuntimeError("Couldn't build gogs.")
-
+    def install(self):
+        raise NotImplementedError()
+        pass
+    
     def write_itsyouonlineconfig(self):
         # ADD EXTRA CUSTOM INFO FOR ITS YOU ONLINE.
+        if self.doneGet('config'):
+            return
         itsyouonlinesection = """\
         [itsyouonline]
         CLIENT_ID     = itsyouref
@@ -81,11 +86,16 @@ class CuisineGogs(app):
             self.cuisine.core.file_write(location=self.appini,
                                          content=itsyouonlinesection,
                                          append=True)
+        self.doneSet('config')
 
     def start(self):
-        pm = self.cuisine.processmanager.get("tmux")
-        cmd = "{gogspath}/gogs web".format(gogspath=self.gogspath)
-        pm.ensure(name='gogs', cmd=cmd)
+        if not self.doneGet('init'):
+            cmd = "{gogspath}/gogs web".format(gogspath=self.gogspath)
+            self.cuisine.processmanager.ensure(name='gogs', cmd=cmd)
+            self.doneSet('init')
+            return
+        self.cuisine.processmanager.start('gogs')
+
 
     def restart(self):
         self.cuisine.processmanager.stop("gogs")

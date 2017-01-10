@@ -12,7 +12,7 @@ This is demonstarted below, in the example wiki:
 ```
 {{kanbandata:issue label:priority_critical,state_verification assingee:1 }}
 ```
-The filter parameters support all the same paramters aas the find method in the collection of each source.
+The filter parameters support all the same paramters as the find method in the collection of each source.
 so for example the issue I can filter on :   
     `repo`  repo id   
     `title`  title name   

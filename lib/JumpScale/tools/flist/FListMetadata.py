@@ -28,6 +28,22 @@ class FListMetadata:
         raise NotImplementedError
 
     def move(self, old_path, new_parent_path, fname=""):
+        """
+        Move/Rename files or directories
+        :param old_path: path of files/dirs to be moved
+        :param new_parent_path: path of the new parent directory
+        :param fname: file name if desired to rename the entity
+
+        Examples:
+        ## Move directory:
+        flistmeta.move("/tmp/mleegy/submleegy", "/tmp/mleegy/submleegy2")
+        ## Rename directory
+        flistmeta.move("/tmp/mleegy/submleegy", "/tmp/mleegy/submleegy", "submleegy3")
+        ## Move file
+        flistmeta.move("/tmp/mleegy/submleegy/sample.txt", "/tmp/mleegy/submleegy2")
+        ## Rename file
+        flistmeta.move("/tmp/mleegy/submleegy/sample.txt", "/tmp/mleegy/submleegy", "sample2.txt")
+        """
         oldFtype, oldDirObj = self._search_db(old_path)
         newFtype, newParentDirObj = self._search_db(new_parent_path)
         oldFName = j.sal.fs.getBaseName(old_path)

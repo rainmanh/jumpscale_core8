@@ -13,6 +13,8 @@
 - 8.2.0_buildsystem: once cuisine done we will see how to upgrade our build system
 - 8.2.0_flist_fuse: POC how to mount a filesystem on top of ardb & flist (in capnp models)
 - 8.2.0_ays_no_hrd: remove hrd from AYS
+- 8.2.0_cuisine_autotest: ays driven autotest of cuisine features
+- 8.2.0_generic_autotest: generic set of ays driven autotests
 
 ## branching rules
 

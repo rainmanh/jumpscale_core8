@@ -8,6 +8,7 @@ struct Dir {
   #location in filesystem = namespace
   location @1 :Text;
 
+
   files @2 :List(File);
   struct File{
       name @0 : Text;
@@ -19,6 +20,7 @@ struct Dir {
       aclkey @4: Text; #is pointer to ACL
       modificationTime @5: UInt32;
       creationTime @6: UInt32;
+      state @7: Text;
   }
 
   dirs @3 :List(SubDir);
@@ -39,6 +41,7 @@ struct Dir {
       size @4: UInt32;  # Remove me
       aclkey @5: Text;  # Remove me
       destname @6: Text;
+      state @7: Text;
   }
 
   specials @5 :List(Special);
@@ -62,6 +65,7 @@ struct Dir {
       creationTime @4: UInt32;
       size @5: UInt32;
       aclkey @6: Text; #is pointer to ACL
+      state @7: Text;
   }
 
   parent @6 :Text; #dir key of parent
@@ -72,7 +76,7 @@ struct Dir {
   isLink @9: Bool; #if is link and not physically on disk
   modificationTime @10: UInt32;
   creationTime @11: UInt32;
-
+  state @12: Text;
 
 }
 

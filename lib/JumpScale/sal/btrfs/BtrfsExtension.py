@@ -1,7 +1,6 @@
 from JumpScale import j
 import re
 
-
 BASECMD = "btrfs"
 
 KB = 1024
@@ -13,32 +12,35 @@ Mi = Ki * 1024
 Gi = Mi * 1024
 Ti = Gi * 1024
 
-FACTOR = {None: 1,
-          '': 1,
-          'KB': KB,
-          'MB': MB,
-          'GB': GB,
-          'TB': TB,
-          'KI': Ki,
-          'MI': Mi,
-          'GI': Gi,
-          'TI': Ti
-          }
+FACTOR = {
+    None: 1,
+    '':   1,
+    'KB': KB,
+    'MB': MB,
+    'GB': GB,
+    'TB': TB,
+    'KI': Ki,
+    'MI': Mi,
+    'GI': Gi,
+    'TI': Ti
+}
 
-
-class BtrfsExtension:
-
+class BtrfsExtensionFactory(object):
     def __init__(self):
         self.__jslocation__ = "j.sal.btrfs"
-        self.__conspattern = re.compile(
-            "^(?P<key>[^:]+): total=(?P<total>[^,]+), used=(?P<used>.+)$", re.MULTILINE)
-        self.__listpattern = re.compile(
-            "^ID (?P<id>\d+).+?path (?P<name>.+)$", re.MULTILINE)
-        self._executor = j.tools.executor.getLocal()
+
+    def getBtrfs(self, executor=None):
+        ex = executor if executor is not None else j.tools.executor.getLocal()
+        return BtrfsExtension(ex)
+
+class BtrfsExtension:
+    def __init__(self, executor):
+        self.__conspattern = re.compile("^(?P<key>[^:]+): total=(?P<total>[^,]+), used=(?P<used>.+)$", re.MULTILINE)
+        self.__listpattern = re.compile("^ID (?P<id>\d+).+?path (?P<name>.+)$", re.MULTILINE)
+        self._executor = executor
 
     def __btrfs(self, command, action, *args):
-        cmd = "%s %s %s %s" % (BASECMD, command, action,
-                               " ".join(['"%s"' % a for a in args]))
+        cmd = "%s %s %s %s" % (BASECMD, command, action, " ".join(['"%s"' % a for a in args]))
         code, out, err = self._executor.execute(cmd, die=False)
 
         if code > 0:

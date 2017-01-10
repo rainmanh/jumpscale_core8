@@ -15,12 +15,6 @@ class FListMetadata:
         self.userGroupCollection = userGroupCollection
         self.rootpath = rootpath
 
-    def create(self, parent_path, name, mode=""):
-        raise NotImplementedError
-
-    def mkdir(self, parent_path, name, mode=""):
-        raise NotImplementedError
-
     def delete(self, path):
         fType, dirObj = self._search_db(path)
         if fType == "D":
@@ -28,10 +22,32 @@ class FListMetadata:
         else:
             _, entityList = self._getPropertyList(dirObj.dbobj, fType)
             for entity in entityList:
-                entity.state = "Deleted"
+                if entity.name == j.sal.fs.getBaseName(path):
+                    entity.state = "Deleted"
         dirObj.save()
 
-    def chmod(self, path, mode=""):
+    def stat(self, path):
+        fType, dirObj = self._search_db(path)
+        stat = {}
+
+        if dirObj.dbobj.state == "Deleted":
+            raise RuntimeError("%s: No such file or directory" % path)
+
+        if fType == "D":
+            stat["modificationTime"] = dirObj.dbobj.modificationTime
+            stat["size"] = dirObj.dbobj.size
+            stat["creationTime"] = dirObj.dbobj.creationTime
+        else:
+            _, entityList = self._getPropertyList(dirObj.dbobj, fType)
+            for entity in entityList:
+                if entity.name == j.sal.fs.getBaseName(path):
+                    stat["modificationTime"] = entity.modificationTime
+                    stat["size"] = entity.size
+                    stat["creationTime"] = entity.creationTime
+                    stat["blocksize"] = entity.blocksize
+        return stat
+
+    def get_fs(self, root_path="/"):
         raise NotImplementedError
 
     def move(self, old_path, new_parent_path, fname=""):
@@ -131,9 +147,6 @@ class FListMetadata:
             return "links", dbobj.links
         if ptype == "S":
             return "specials", dbobj.specials
-
-    def get_fs(self, root_path="/"):
-        raise NotImplemented
 
     def _search_db(self, ppath):
         """

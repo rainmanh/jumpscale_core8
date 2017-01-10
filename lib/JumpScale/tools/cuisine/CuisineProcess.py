@@ -108,7 +108,7 @@ class CuisineProcess(base):
         RE_SPACES = re.compile("[\s\t]+")
 
         cmd = "ps -A | grep {0} ; true".format(name) if is_string else "ps -A"
-        processes = self.cuisine.core.run(cmd, replaceArgs=False)[1]
+        processes = self.cuisine.core.run(cmd, replaceArgs=False, die=False)[1]
 
         res = []
         for line in processes.split("\n"):

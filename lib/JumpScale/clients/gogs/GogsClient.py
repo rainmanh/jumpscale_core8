@@ -115,16 +115,20 @@ class GogsClient:
     def build_url(self, *args):
         return j.sal.fs.joinPaths(self.baseurl, *args)
 
-    def reposList(self):
+    def reposList(self, owner=None):
         """
         return list of all repositories owned by the logged in user.
         @return
         [[$id,$name,$ssh_url]]
         """
+        if not owner:
+            owner = self.login
+
+        respone_user = self.userGet(owner)
+        response_repos = self.session.get(self.build_url("repos", "search"), params={'uid': respone_user['id']})
         repos = list()
-        response_repos = self.session.get(self.build_url("user", "repos"))
         if response_repos.status_code == 200:
-            for repo in response_repos.json():
+            for repo in response_repos.json()['data']:
                 repos.append([repo['id'], repo['full_name'], repo['ssh_url']])
             return repos
         else:
@@ -499,6 +503,41 @@ class GogsClient:
             return True
         return False
 
+    def ownerSetLabels(self, owner, labels=None):
+        """
+        Set labels for all repos in organization or user.
+
+        @param owner string: organization name.
+        @param labels  [(label_name, label_color)]: list of tuples with index 0 label name and index 1 label color.
+        """
+
+        if not labels:
+            labels = [('priority_critical', '#b60205'), ('priority_major', '#f9d0c4'), ('priority_minor', '#f9d0c4'),
+                      ('process_duplicate', '#d4c5f9'), ('process_wontfix', '#d4c5f9'),
+                      ('state_documentation', '#c2e0c6'), ('state_inprogress', '#c2e0c6'), ('state_planned', '#c2e0c6'),
+                      ('state_question', '#c2e0c6'), ('state_verification', '#c2e0c6'), ('type_bug', '#fef2c0'),
+                      ('type_documentation', '#fef2c0'), ('type_feature', '#fef2c0'), ('type_question', '#fef2c0'),
+                      ('type_ticket', '#fef2c0')]
+        repos = self.reposList(owner=owner)
+        result = list()
+        for repo in repos:
+            for label in labels:
+                result.append(self.labelCreate(repo[1].split('/')[-1], label[0], label[1], owner))
+        return result
+
+    def setAllRepoLabels(self, labels=None):
+        """
+        Set labels to all repos in Gogs.
+
+        @param labels  [(label_name, label_color)]: list of tuples with index 0 label name and index 1 label color.
+        """
+        owners = self.usersList()
+        owners += self.organizationsList()
+
+        for owner in owners:
+            self.ownerSetLabels(owner['username'], labels)
+
+
     def issuesList(self, reponame, owner=None):
         """
         List all issues owned by owner in repositroy reponame
@@ -573,6 +612,24 @@ class GogsClient:
             else:
                 raise NotFoundException("User or repo does not exist")
 
+    def issueAddLabels(self, repo, issue_index, labels, owner=None):
+        if not owner:
+            owner = self.login
+
+        body = {
+            "labels": labels
+        }
+
+        response_list = self.session.post(
+            self.build_url("repos", owner, repo, "issues", issue_index, "labels"), body)
+
+        if response_list.status_code == 200:
+            return response_list.json()
+        elif response_list.status_code == 403:
+            raise AdminRequiredException("user does not have access to repo")
+        else:
+            raise NotFoundException("User or repo does not exist")
+
     def issueUpdate(self):
         raise NotImplementedError
 
@@ -604,6 +661,53 @@ class GogsClient:
         if response_close.status_code == 201:
             return response_close.json()
         elif response_close.status_code == 403:
+            raise AdminRequiredException("user does not have access to repo")
+        else:
+            raise NotFoundException("User or repo does not exist")
+
+    def labelCreate(self, reponame, label_name, label_color, owner=None):
+        if not owner:
+            owner = self.login
+        if label_name in self.labelList(reponame, owner):
+            return {}
+        body = {
+            "name": label_name,
+            "color": label_color
+        }
+
+        response_create = self.session.post(
+            self.build_url("repos", owner, reponame, "labels"), json=body)
+
+        if response_create.status_code == 201:
+            return response_create.json()
+        elif response_create.status_code == 403:
+            raise AdminRequiredException("user does not have access to repo")
+        else:
+            raise NotFoundException("User or repo does not exist")
+
+    def labelUpdate():
+        pass
+
+    def labelDelete():
+        pass
+
+    def labelGet():
+        pass
+
+    def labelList(self, reponame, owner=None):
+        if not owner:
+            owner = self.login
+
+        response_list = self.session.get(
+            self.build_url("repos", owner, reponame, "labels"))
+
+        labellist = list()
+        for label in response_list.json():
+            labellist.append(label['name'])
+
+        if response_list.status_code == 200:
+            return labellist
+        elif response_list.status_code == 403:
             raise AdminRequiredException("user does not have access to repo")
         else:
             raise NotFoundException("User or repo does not exist")

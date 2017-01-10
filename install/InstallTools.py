@@ -2457,7 +2457,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             return self.config["dirs"]["TMPDIR"]
         else:
             if self.exists("/tmp"):
-                os.environ["TMPDIR"]="/tmp"
+                os.environ["TMPDIR"] = "/tmp"
             return os.environ["TMPDIR"]
 
     @property
@@ -2577,7 +2577,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             env["JSBASE"] = "%s/jumpscale8" % env["BASEDIR"]
 
         if not "VARDIR" in env:
-            env["VARDIR"] = os.path.abspath("%s/var" % env["BASEDIR"])
+            env["VARDIR"] = "/optvar"
 
         env["HOMEDIR"] = env["HOME"]
 

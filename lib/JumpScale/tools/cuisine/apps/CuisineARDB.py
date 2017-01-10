@@ -3,6 +3,7 @@ from JumpScale import j
 
 app = j.tools.cuisine._getBaseAppClass()
 
+
 class CuisineARDB(app):
     NAME = 'ardb'
 
@@ -21,12 +22,12 @@ class CuisineARDB(app):
         if reset:
             self.cuisine.core.run("rm -rf %s" % self.BUILDDIR)
 
-        #not needed to build separately is done in ardb automatically
+        # not needed to build separately is done in ardb automatically
         # self.buildForestDB(reset=reset)
 
-        self.buildARDB(reset=reset  )
+        self.buildARDB(reset=reset)
 
-    def buildForestDB(self,reset=False):
+    def buildForestDB(self, reset=False):
         if self.doneGet("buildforestdb") and not reset:
             return
 
@@ -54,7 +55,7 @@ class CuisineARDB(app):
         self.cuisine.core.run(self.replace(C))
         self.doneSet("buildforestdb")
 
-    def buildARDB(self,reset=False,storageEngine="forestdb"):
+    def buildARDB(self, reset=False, storageEngine="forestdb"):
         """
         @param storageEngine rocksdb or forestdb
         """
@@ -62,15 +63,14 @@ class CuisineARDB(app):
             return
 
         if self.cuisine.platformtype.isOSX():
-            storageEngine="rocksdb"
+            storageEngine = "rocksdb"
             # self.cuisine.package.install("boost")
 
         self.cuisine.package.install("wget")
 
-
         url = "git@github.com:yinqiwen/ardb.git"
         cpath = self.cuisine.development.git.pullRepo(url, tag="v0.9.3", reset=reset)
-        print (cpath)
+        print(cpath)
 
         assert cpath.rstrip("/") == self.CODEDIRARDB.rstrip("/")
 
@@ -84,13 +84,12 @@ class CuisineARDB(app):
             cp src/ardb-server $BUILDDIRARDB/
             cp ardb.conf $BUILDDIRARDB/
             """
-        C=C.replace("$storageEngine",storageEngine)
+        C = C.replace("$storageEngine", storageEngine)
         self.cuisine.core.run(self.replace(C))
 
         self.doneSet("buildardb")
 
-
-    def install(self, reset=False,start=True):
+    def install(self, reset=False, start=True):
         """
         as backend use ForestDB
         """
@@ -98,28 +97,26 @@ class CuisineARDB(app):
             return
         self.buildARDB()
 
-        self.core.file_copy("$BUILDDIR/ardb/ardb-server","$BINDIR/ardb-server")
-        self.core.file_copy("$BUILDDIR/ardb/ardb.conf","$CFGDIR/ardb.conf")
+        self.core.file_copy("$BUILDDIR/ardb/ardb-server", "$BINDIR/ardb-server")
+        self.core.file_copy("$BUILDDIR/ardb/ardb.conf", "$CFGDIR/ardb.conf")
 
-        config=self.core.file_read("$CFGDIR/ardb.conf")
-        datadir=self.replace("$VARDIR/data/ardb")
-        config=config.replace("${ARDB_HOME}",datadir)
-        config=config.replace("0.0.0.0:16379","localhost:16379")
+        config = self.core.file_read("$CFGDIR/ardb.conf")
+        datadir = self.replace("$VARDIR/data/ardb")
+        config = config.replace("home  ..", "home {}".format(datadir))
+        config = config.replace("0.0.0.0:16379", "localhost:16379")
 
+        # config = config.replace("redis-compatible-mode     no", "redis-compatible-mode     yes")
+        # config = config.replace("redis-compatible-version  2.8.0", "redis-compatible-version  3.5.2")
+        
 
         self.core.dir_ensure(datadir)
 
-        self.core.file_write("$CFGDIR/ardb.conf",config)
+        self.core.file_write("$CFGDIR/ardb.conf", config)
 
         self.doneSet("install")
 
         if start:
             self.start()
-
-
-    # def start(self, name="main", ip="localhost", port=6379, maxram=200, appendonly=True,
-    #           snapshot=False, slave=(), ismaster=False, passwd=None):
-        # raise NotImplementedError
 
     def start(self, reset=False):
         if not reset and self.doneGet("start"):
@@ -135,17 +132,14 @@ class CuisineARDB(app):
     def stop(self):
         self.cuisine.processmanager.stop("ardb-server")
 
-
     def getClient(self):
         pass
-
-
 
     def test(self):
         """
         do some test through normal redis client
         """
-        r=j.clients.redis.get(port=16379)
-        r.set("test","test")
-        assert r.get("test")==b"test"
+        r = j.clients.redis.get(port=16379)
+        r.set("test", "test")
+        assert r.get("test") == b"test"
         r.delete("test")

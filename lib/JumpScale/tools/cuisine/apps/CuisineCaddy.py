@@ -4,8 +4,13 @@ from JumpScale import j
 app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineCaddy(app): #TODO: *1, check if it works on ovh4 (ubuntu), make sure doneGet... used, see how we did with synchting, try to copy how we did it. use the build directory and then copy to install
+class CuisineCaddy(app):
+
     NAME = "caddy"
+
+    @property
+    def builddir(self):
+        return j.sal.fs.joinPaths(self.core.dir_paths['BUILDDIR'], "caddy")
 
     def install(self, ssl=False, start=True, dns=None, reset=False):
         """
@@ -16,14 +21,16 @@ class CuisineCaddy(app): #TODO: *1, check if it works on ovh4 (ubuntu), make sur
         @param dns str: default address to run caddy on.
         @param reset bool:  if True this will install even if the service is already installed.
         """
-        if reset is False and self.isInstalled():
+        if self.doneGet('install') and reset is False and self.isInstalled():
             return
+
         caddy_url = 'https://github.com/mholt/caddy/releases/download/v0.9.4/caddy_linux_amd64.tar.gz'
-        dest = '$TMPDIR/caddy_linux_amd64.tar.gz'
+        dest = j.sal.fs.joinPaths(self.builddir, 'caddy_linux_amd64.tar.gz')
         self.cuisine.core.file_download(caddy_url, dest)
-        self.cuisine.core.run('cd $TMPDIR; tar xvf $TMPDIR/caddy_linux_amd64.tar.gz')
-        self.cuisine.core.file_copy('$TMPDIR/caddy', '$BINDIR')
-        self.cuisine.bash.addPath(self.replace("$BINDIR"))
+        self.cuisine.core.run('cd {builddir}; tar xvf {builddir}/caddy_linux_amd64.tar.gz'.format(builddir=self.builddir))
+        self.cuisine.core.file_copy('{builddir}/caddy_linux_amd64'.format(builddir=self.builddir), '$BINDIR/caddy')
+        self.cuisine.bash.profileDefault.addPath(self.cuisine.core.dir_paths['BINDIR'])
+        self.cuisine.bash.profileDefault.save()
 
         addr = dns if ssl and dns else ':80'
 
@@ -43,6 +50,8 @@ class CuisineCaddy(app): #TODO: *1, check if it works on ovh4 (ubuntu), make sur
         self.cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/caddy/log/")
         self.cuisine.core.dir_ensure("$TEMPLATEDIR/cfg/caddy/www/")
         self.cuisine.core.file_write(cpath, C)
+
+        self.doneSet('install')
 
         if start:
             self.start(ssl)
@@ -64,9 +73,9 @@ class CuisineCaddy(app): #TODO: *1, check if it works on ovh4 (ubuntu), make sur
         if ssl:
             # Do if not  "ufw status 2> /dev/null" didn't run properly
             if fw:
-                self.cuisine.ufw.allowIncoming(443)
-                self.cuisine.ufw.allowIncoming(80)
-                self.cuisine.ufw.allowIncoming(22)
+                self.cuisine.systemservices.ufw.allowIncoming(443)
+                self.cuisine.systemservices.ufw.allowIncoming(80)
+                self.cuisine.systemservices.ufw.allowIncoming(22)
 
             if self.cuisine.process.tcpport_check(80, "") or self.cuisine.process.tcpport_check(443, ""):
                 raise RuntimeError("port 80 or 443 are occupied, cannot install caddy")
@@ -77,8 +86,8 @@ class CuisineCaddy(app): #TODO: *1, check if it works on ovh4 (ubuntu), make sur
 
             PORTS = ":80"
             if fw:
-                self.cuisine.ufw.allowIncoming(80)
-                self.cuisine.ufw.allowIncoming(22)
+                self.cuisine.systemservices.ufw.allowIncoming(80)
+                self.cuisine.systemservices.ufw.allowIncoming(22)
 
         cmd = self.cuisine.bash.cmdGetPath("caddy")
         self.cuisine.processmanager.ensure("caddy", '%s -conf=%s -email=info@greenitglobe.com' % (cmd, cpath))

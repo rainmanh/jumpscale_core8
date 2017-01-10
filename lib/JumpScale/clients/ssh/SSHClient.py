@@ -4,7 +4,7 @@ import paramiko
 from paramiko.ssh_exception import SSHException, BadHostKeyException, AuthenticationException
 import time
 import socket
-
+import os
 import threading
 import queue
 
@@ -300,3 +300,17 @@ class SSHClient:
 
     def ssh_authorize(self, user, key):
         self.cuisine.ssh.authorize(user, key)
+
+    def portforwardToLocal(self,remoteport,localport):
+        self.portforwardKill(localport)
+        C="ssh -L %s:localhost:%s root@%s -p %s"%(remoteport,localport,self.addr,self.port)
+        print (C)
+        j.tools.cuisine.local.processmanager.ensure(cmd=C,name="ssh_%s"%localport,wait=0.5)
+        print ("Test tcp port to:%s"%localport)
+        if not j.sal.nettools.waitConnectionTest("127.0.0.1",localport,10):
+            raise RuntimeError("Cannot open ssh forward:%s_%s_%s"%(self,remoteport,localport))
+        print ("Connection ok")
+
+    def portforwardKill(self,localport):
+        print ("kill portforward %s"%localport)
+        j.tools.cuisine.local.processmanager.stop('ssh_%s'%localport)

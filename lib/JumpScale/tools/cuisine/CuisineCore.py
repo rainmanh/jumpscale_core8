@@ -343,8 +343,7 @@ class CuisineCore(base):
         return x
 
     def file_download(self, url, to="", overwrite=True, retry=3, timeout=0, login="",
-                      passwd="", minspeed=0, multithread=False, expand=False, minsizekb=30,
-                      removeTopDir=False):
+                      passwd="", minspeed=0, multithread=False, expand=False, minsizekb=0, removeTopDir=False):
         """
         download from url
         @return path of downloaded file

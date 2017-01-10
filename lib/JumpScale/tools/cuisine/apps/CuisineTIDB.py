@@ -26,7 +26,8 @@ class CuisineTIDB(app):
         self.cuisine.package.install('build-essential')
 
         self.cuisine.core.dir_ensure(self.BUILDDIR)
-        build_script = self.cuisine.core.file_download('https://raw.githubusercontent.com/pingcap/docs/master/scripts/build.sh', j.sal.fs.joinPaths(self.BUILDDIR, 'build.sh'))
+        build_script = self.cuisine.core.file_download('https://raw.githubusercontent.com/pingcap/docs/master/scripts/build.sh', \
+            j.sal.fs.joinPaths(self.BUILDDIR, 'build.sh'),minsizekb=0)
 
         self.cuisine.core.run('cd {builddir}; bash {build}'.format(builddir=self.BUILDDIR, build=build_script), profile=True)
 

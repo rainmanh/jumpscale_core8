@@ -105,6 +105,10 @@ class CuisineARDB(app):
         config = config.replace("home  ..", "home {}".format(datadir))
         config = config.replace("0.0.0.0:16379", "localhost:16379")
 
+        # config = config.replace("redis-compatible-mode     no", "redis-compatible-mode     yes")
+        # config = config.replace("redis-compatible-version  2.8.0", "redis-compatible-version  3.5.2")
+        
+
         self.core.dir_ensure(datadir)
 
         self.core.file_write("$CFGDIR/ardb.conf", config)

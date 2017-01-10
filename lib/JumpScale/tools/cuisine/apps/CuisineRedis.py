@@ -39,7 +39,8 @@ class CuisineRedis(app):
             rm -f /usr/local/bin/redis-server
             rm -f /usr/local/bin/redis-cli
             """
-            C = self.cuisine.core.replace(C)
+
+            C = self.cuisine.bash.profileJS.replace(C)
             C = self.replace(C)
             self.cuisine.core.run(C)
 
@@ -70,7 +71,6 @@ class CuisineRedis(app):
     def start(self, name="main", ip="localhost", port=6379, maxram="50mb", appendonly=True,
               snapshot=False, slave=(), ismaster=False, passwd=None, unixsocket=None):
         redis_cli = j.sal.redis.getInstance(self.cuisine)
-
         redis_cli.configureInstance(name,
                                     ip,
                                     port,
@@ -81,7 +81,6 @@ class CuisineRedis(app):
                                     ismaster=ismaster,
                                     passwd=passwd,
                                     unixsocket=unixsocket)
-
         # return if redis is already running
         if redis_cli.isRunning(ip_address=ip, port=port, path='$BINDIR', password=passwd, unixsocket=unixsocket):
             self.log('Redis is already running!')

@@ -131,13 +131,13 @@ class NetTools:
 
         self.logger.debug('Checking whether a service is running on port %d' % port)
 
-        if j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
+        if j.core.platformtype.myplatform.isLinux():
             # netstat: n == numeric, -t == tcp, -u = udp, l= only listening, p = program
             command = "netstat -ntulp | grep ':%s '" % port
             # raise j.exceptions.RuntimeError("stop")
             (exitcode, output) = j.sal.process.execute(command, die=False, showout=False)
             return exitcode == 0
-        elif j.core.platformtype.myplatform.isSolaris() or j.core.platformtype.myplatform.isDarwin():
+        elif j.core.platformtype.myplatform.isOSX():
             command = "netstat -an -f inet"
             (exitcode, output) = j.sal.process.execute(command, die=False, showout=False)
             for line in output.splitlines():

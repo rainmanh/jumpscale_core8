@@ -33,9 +33,6 @@ struct Command {
   doDebug @9 :Bool;
 
   profile @10 :Bool;
-
-   @11 :Int32;
-
 }
 
 struct Job {
@@ -153,7 +150,7 @@ struct Action {
   remember @12: Bool;
 
   language @13 :Language;
-  enum State {
+  enum Language {
       python @0;
       lua @1;
   }
@@ -162,6 +159,7 @@ struct Action {
   capnpIn @14 : Text;
   #is optional, capnp schema of result for this method
   capnpOut @15 : Text;
+  whoami @16: Text;
 
 }
 

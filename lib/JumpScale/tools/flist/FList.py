@@ -268,6 +268,16 @@ class FList:
         if not self.aciCollection.exists(aci.key):
             aci.save()
 
+        #WAS THE OLD CODE: prob needs to come back, need to discuss
+        # if self.aciCollection.exists(aci.key):
+        #     aci2 = self.aciCollection.get(aci.key)
+        #     id = aci2.id
+        # else:
+        #     id = int(aci.key[0: 4], 16)
+        #     while self.aciCollection.lookup(id) != None:  # means exists
+        #         id += 1
+        #     aci.dbobj.id = id
+
         dbobj.aclkey = aci.key
 
     def walk(self, dirFunction=None, fileFunction=None, specialFunction=None, linkFunction=None, args={}, currentDirKey="", dirRegex=[], fileRegex=[], types="DFLS"):

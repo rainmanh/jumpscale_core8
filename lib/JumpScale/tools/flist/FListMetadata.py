@@ -19,6 +19,24 @@ class FListMetadata:
     def get_fs(self, root_path="/"):
         raise NotImplementedError
 
+    def chown(self, path, gname, uname):
+        fType, dirObj = self._search_db(path)
+        if dirObj.dbobj.state != "":
+            raise RuntimeError("%s: No such file or directory" % path)
+
+        if fType == "D":
+            aclObj = self.aciCollection.get(dirObj.dbobj.aclkey)
+            aclObj.dbobj.gname = gname
+            aclObj.dbobj.uname = uname
+            aclObj.save()
+        else:
+            for file in self._getPropertyList(dirObj.dbobj, fType):
+                if file.name == j.sal.fs.getBaseName(path):
+                    aclObj = self.aciCollection.get(file.aclkey)
+                    aclObj.dbobj.gname = gname
+                    aclObj.dbobj.uname = uname
+                    aclObj.save()
+
     def chmod(self, path, mode):
         """
         Change mode for files or directories

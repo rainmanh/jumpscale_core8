@@ -15,6 +15,9 @@ class FListMetadata:
         self.userGroupCollection = userGroupCollection
         self.rootpath = rootpath
 
+    def get_fs(self, root_path="/"):
+        raise NotImplementedError
+
     def delete(self, path):
         fType, dirObj = self._search_db(path)
         if fType == "D":
@@ -47,9 +50,6 @@ class FListMetadata:
                     stat["blocksize"] = entity.blocksize
         return stat
 
-    def get_fs(self, root_path="/"):
-        raise NotImplementedError
-
     def move(self, old_path, new_parent_path, fname=""):
         """
         Move/Rename files or directories
@@ -59,13 +59,13 @@ class FListMetadata:
 
         Examples:
         ## Move directory:
-        flistmeta.move("/tmp/mleegy/submleegy", "/tmp/mleegy/submleegy2")
+        flistmeta.move("/tmp/dir/subdir", "/tmp/dir/subdir2")
         ## Rename directory
-        flistmeta.move("/tmp/mleegy/submleegy", "/tmp/mleegy/submleegy", "submleegy3")
+        flistmeta.move("/tmp/dir/subdir", "/tmp/dir/subdir", "subdir3")
         ## Move file
-        flistmeta.move("/tmp/mleegy/submleegy/sample.txt", "/tmp/mleegy/submleegy2")
+        flistmeta.move("/tmp/dir/subdir/sample.txt", "/tmp/dir/subdir2")
         ## Rename file
-        flistmeta.move("/tmp/mleegy/submleegy/sample.txt", "/tmp/mleegy/submleegy", "sample2.txt")
+        flistmeta.move("/tmp/dir/subdir/sample.txt", "/tmp/dir/subdir", "sample2.txt")
         """
         oldFtype, oldDirObj = self._search_db(old_path)
         newFtype, newParentDirObj = self._search_db(new_parent_path)

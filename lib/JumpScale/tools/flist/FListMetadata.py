@@ -33,7 +33,7 @@ class FListMetadata:
         fType, dirObj = self._search_db(path)
         stat = {}
 
-        if dirObj.dbobj.state == "Deleted":
+        if dirObj.dbobj.state != "":
             raise RuntimeError("%s: No such file or directory" % path)
 
         if fType == "D":
@@ -76,7 +76,7 @@ class FListMetadata:
             if "{}/".format(old_path) in new_parent_path:
                 raise RuntimeError("Cannot move '{}' to a subdirectory of itself, '{}'".format(old_path, new_parent_path))
 
-            if oldDirObj.dbobj.state == "Deleted":
+            if oldDirObj.dbobj.state != "":
                 raise RuntimeError("%s: No such file or directory" % old_path)
 
             _, parentDir = self._search_db(j.sal.fs.getDirName(old_path))
@@ -92,12 +92,24 @@ class FListMetadata:
             dirObj.dbobj.location = os.path.join(newParentDirObj.dbobj.location, fname)
             dirObj.dbobj.name = fname
             dirObj.dbobj.parent = newParentDirObj.key
+
+            _, dirKey = self._path2key(os.path.join(self.rootpath, newParentDirObj.dbobj.location, fname))
+            ddir = self.dirCollection.get(dirKey, autoCreate=True)
+            ddir.dbobj = dirObj.dbobj
+            ddir.save()
+            dirObj.dbobj.state = "Moved"
         elif dirObj.dbobj.name != fname:  # Rename only
             for dir in parentDir.dbobj.dirs:
                 if dir.name != dirObj.dbobj.name:
                     dir.name = fname
             dirObj.dbobj.location = os.path.join(newParentDirObj.dbobj.location, fname)
             dirObj.dbobj.name = fname
+            # Save new dir object
+            _, dirKey = self._path2key(self.rootpath, os.path.join(newParentDirObj.dbobj.location, fname))
+            ddir = self.dirCollection.get(dirKey, autoCreate=True)
+            ddir.dbobj = dirObj.dbobj
+            ddir.save()
+            dirObj.dbobj.state = "Moved"
         parentDir.save()
         newParentDirObj.save()
         dirObj.save()

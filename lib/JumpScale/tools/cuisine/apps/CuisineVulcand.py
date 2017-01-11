@@ -39,5 +39,5 @@ class CuisineVulcand(app):
 
         '''
         C = self.cuisine.bash.replaceEnvironInText(C)
-        self.cuisine.core.execute_bash(C, profile=True)
+        self.cuisine.core.run(C, profile=True)
         self.cuisine.bash.addPath("$BASEDIR/bin")

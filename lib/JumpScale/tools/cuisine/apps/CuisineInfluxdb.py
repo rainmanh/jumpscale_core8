@@ -30,7 +30,7 @@ class CuisineInfluxdb(app):
             tar xvfz influxdb-0.13.0_linux_amd64.tar.gz
             cp influxdb-0.13.0-1/usr/bin/influxd $BINDIR/influxd
             cp influxdb-0.13.0-1/etc/influxdb/influxdb.conf $TEMPLATEDIR/cfg/influxdb/influxdb.conf"""
-            self.cuisine.core.execute_bash(C, profile=True)
+            self.cuisine.core.run(C, profile=True)
         else:
             raise RuntimeError("cannot install, unsuported platform")
         self.cuisine.bash.profileJS.addPath(self.replace("$BINDIR"))

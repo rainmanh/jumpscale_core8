@@ -18,7 +18,7 @@ class CuisineHadoop(base):
             """
             C = self.cuisine.bash.replaceEnvironInText(C)
             C = self.replace(C)
-            self.cuisine.core.execute_bash(C, profile=True)
+            self.cuisine.core.run(C, profile=True)
             self.cuisine.bash.addPath("/opt/hadoop-2.7.2/bin")
             self.cuisine.bash.addPath("/opt/hadoop-2.7.2/sbin")
             self.cuisine.bash.envSet("JAVA_HOME", "/usr/lib/jvm/java-7-openjdk-amd64")

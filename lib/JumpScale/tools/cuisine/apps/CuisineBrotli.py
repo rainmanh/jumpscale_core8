@@ -22,12 +22,12 @@ class CuisineBrotli(app):
         make bro
         """ % sudo
         C = self.replace(C)
-        self.cuisine.core.execute_bash(C)
+        self.cuisine.core.run(C)
 
     def install(self):
         C = """
         cp /tmp/brotli/bin/bro /usr/local/bin/
         rm -rf /tmp/brotli
         """
-        self.cuisine.core.execute_bash(C)
+        self.cuisine.core.run(C)
         self.cuisine.development.pip.install('brotli>=0.5.2')

@@ -27,7 +27,7 @@ class CuisinePIP(base):
             curl https://bootstrap.pypa.io/get-pip.py >  get-pip.py
             """
         C = self.replace(C)
-        self.cuisine.core.execute_bash(C)
+        self.cuisine.core.run(C)
         C = "python3 $TMPDIR/get-pip.py"
         C = self.replace(C)
         self.cuisine.core.run(C)

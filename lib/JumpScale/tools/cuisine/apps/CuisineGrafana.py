@@ -20,7 +20,7 @@ class CuisineGrafana(app):
             sudo dpkg -i grafana_3.1.1-1470047149_amd64.deb
 
             """
-            self.cuisine.core.execute_bash(C, profile=True)
+            self.cuisine.core.run(C, profile=True)
         else:
             raise RuntimeError("platform not supported")
 

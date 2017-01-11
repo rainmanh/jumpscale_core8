@@ -62,7 +62,7 @@ class CuisineGolang(app):
         cd $GOPATH/src/github.com/Jumpscale/go-raml
         sh build.sh
         '''
-        self.cuisine.core.execute_bash(C, profile=True)
+        self.cuisine.core.run(C, profile=True)
 
     def glide(self):
         """

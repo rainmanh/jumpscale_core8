@@ -774,6 +774,7 @@ class FSMethods():
         if executor != None and rsync == False:
             raise RuntimeError("when executor used only rsync supported")
         if rsync:
+            executor.cuisine.package.ensure('rsync')
             excl = ""
             for item in ignoredir:
                 excl += "--exclude '*%s*/' " % item
@@ -1738,10 +1739,10 @@ class ExecutorMethods():
         async def _read_stream(stream, cb, res):
             while True:
                 line = await stream.readline()
-                if res != None:
+                if res is not None:
                     res.append(line)
                 if line:
-                    if cb != None:
+                    if cb is not None:
                         cb(line)
                 else:
                     break
@@ -2592,7 +2593,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         change = {}
         change["JSAPPSDIR"] = lambda x: "%s/apps" % x["JSBASE"]
         change["JSBASEDIR"] = lambda x: x["JSBASE"]
-        change["BINDIR"] = lambda x: "%s/bin" % x["BASEDIR"]
+        change["BINDIR"] = lambda x: "%s/bin" % x["JSBASE"]
         change["DATADIR"] = lambda x: "%s/data" % x["VARDIR"]
         change["CODEDIR"] = lambda x: "%s/code" % x["BASEDIR"]
         change["BUILDDIR"] = lambda x: "%s/build" % x["VARDIR"]

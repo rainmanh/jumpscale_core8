@@ -15,6 +15,7 @@ class MemoryKeyValueStore(KeyValueStoreBase):
             self.db = dict()
         KeyValueStoreBase.__init__(self, namespace=namespace)
         self.dbindex = dict()
+        self.lookup = dict()
         self.inMem = True
 
     def get(self, key, secret=""):
@@ -77,3 +78,19 @@ class MemoryKeyValueStore(KeyValueStoreBase):
                     for key2 in key.split(","):
                         res.add((item, key2))
         return list(res)
+
+    def lookupSet(self, name, key, fkey):
+        if name not in self.lookup:
+            self.lookup[name] = {}
+        self.lookup[name][key] = fkey
+
+    def lookupGet(self, name, key):
+        if name not in self.lookup:
+            return None
+        if key in self.lookup[name]:
+            return self.lookup[name][key]
+        else:
+            return None
+
+    def lookupDestroy(self, name):
+        self.lookup.pop(name)

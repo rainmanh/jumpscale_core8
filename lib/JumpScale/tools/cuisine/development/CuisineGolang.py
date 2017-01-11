@@ -33,14 +33,14 @@ class CuisineGolang(app):
 
         self.cuisine.core.run(cmd="rm -rf $GOROOTDIR", die=False)
 
-        profile=self.cuisine.bash.profileJS
+        profile = self.cuisine.bash.profileDefault
         profile.envSet("GOROOT", GOROOTDIR)
         profile.envSet("GOPATH", GOPATHDIR)
         profile.addPath(self.cuisine.core.joinpaths(GOPATHDIR, 'bin'))
         profile.addPath(self.cuisine.core.joinpaths(GOROOTDIR, 'bin'))
         profile.save()
 
-        self.cuisine.core.file_download(downl, GOROOTDIR, overwrite=False, retry=3, timeout=0, expand=True,removeTopDir=True)
+        self.cuisine.core.file_download(downl, GOROOTDIR, overwrite=False, retry=3, timeout=0, expand=True, removeTopDir=True)
 
         self.cuisine.core.dir_ensure("%s/src" % GOPATHDIR)
         self.cuisine.core.dir_ensure("%s/pkg" % GOPATHDIR)
@@ -64,6 +64,15 @@ class CuisineGolang(app):
         '''
         self.cuisine.core.execute_bash(C, profile=True)
 
+    def glide(self):
+        """
+        install glide
+        """
+        if self.doneGet('glide'):
+            return
+        self.cuisine.core.file_download('https://glide.sh/get', '$TMPDIR/installglide.sh', minsizekb=4)
+        self.cuisine.core.run('. $TMPDIR/installglide.sh', profile=True)
+        self.doneSet('glide')
 
     @property
     def GOPATH(self):

@@ -9,10 +9,7 @@ class CuisineZerotier(base):
         self.BUILDDIRL = self.core.replace("$BUILDDIR/zerotier/")
 
     def reset(self):
-        base.reset(self)
         self.core.dir_remove(self.BUILDDIRL)
-        self.core.dir_remove(self.CODEDIRL)
-        self.cuisine.development.pip.reset()
 
     def build(self, reset=False, install=True):
         """
@@ -32,11 +29,11 @@ class CuisineZerotier(base):
             self.cuisine.package.ensure("gcc")
             self.cuisine.package.ensure("g++")
             self.cuisine.package.ensure('make')
-            self.cuisine.package.ensure('npm')
+        self.cuisine.package.ensure('npm')
 
         self.cuisine.development.git.pullRepo("https://github.com/zerotier/ZeroTierOne", dest=self.BUILDDIRL, reset=reset, depth=1, branch='master')
 
-        C="""cd $BUILDDIRL && make"""
+        C = """cd $BUILDDIRL && make"""
         C = C.replace('$BUILDDIRL', self.BUILDDIRL)
         self.cuisine.core.run(C, profile=True)
 

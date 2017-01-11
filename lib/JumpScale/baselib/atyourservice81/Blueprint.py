@@ -60,8 +60,6 @@ class Blueprint:
     def load(self, role="", instance=""):
         self.actions = []
         self.eventFilters = []
-        # self._validate_models_data()  #CANNOT WORK because the input(job) action hasn't been used so if we manipulate input then this will fail
-        #TODO: *1 if we want to check the validity then we need to do this once we know the service & get the args processed through input()
         for model in self.models:
             if model is not None:
 
@@ -278,29 +276,6 @@ class Blueprint:
                             return False
 
         return True
-
-    def _validate_models_data(self):
-        """
-        Validates the models by checking the parameters passed to the blueprint for each instance.
-        """
-
-        errors = []
-        for m in self.models:
-            for actorinstance, args in m.items():
-                # ACTOR NAME__instance
-                if actorinstance in ['actions', 'eventfilters']:
-                    continue
-                actorname, actorinstance = actorinstance.split("__")
-                actor = self.aysrepo.actorGet(name=actorname)
-                if not args:
-                    continue
-                dataschema = actor.model.dbobj.serviceDataSchema
-                for field in args:
-                    normalizedfieldname = field.replace(".", "").replace("_", "").lower()
-                    if normalizedfieldname + " " not in dataschema.lower():
-                        errors.append('- Invalid parameter [{field}] passed while creating instance[{actorinstance}] of [{actorname}].\nDataSchema: {dataschema}'.format(**locals()))
-        if errors:
-            raise j.exceptions.Input("The blueprint contains the following errors: \n" + "\n".join(errors))
 
     def validate(self):
         if not self._validate_yaml(self.content):

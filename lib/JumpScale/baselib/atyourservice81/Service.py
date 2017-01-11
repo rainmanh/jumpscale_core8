@@ -89,6 +89,8 @@ class Service:
             raise j.exceptions.Input(message="result from input needs to be dict,service:%s" % self,
                                      level=1, source="", tags="", msgpub="")
 
+        self._valdidate_service_args(args)
+
         dbobj.data = j.data.capnp.getBinaryData(j.data.capnp.getObj(dbobj.dataSchema, args=args, name='Schema'))
 
         # parents/producers
@@ -113,6 +115,24 @@ class Service:
         self.model.actions['input'].state = 'ok'
 
         self.saveAll()
+
+    def _valdidate_service_args(self, args):
+        """
+        validate the arguments passed to the service during initialization to be sure we don't pass not defined arguments.
+        """
+        errors = []
+        schema = j.data.capnp.getSchemaFromText(self.model.dbobj.dataSchema)
+        for field in args:
+            normalizedfieldname = j.data.hrd.sanitize_key(field)
+            if normalizedfieldname not in schema.schema.fieldnames:
+                errors.append('- Invalid parameter [{field}] passed while creating {service}.\n'.format(
+                    field=field,
+                    service="%s!%s" % (self.model.role, self.model.dbobj.name)))
+
+        if errors:
+            msg = "The arguments passed to the service contains the following errors: \n" + "\n".join(errors)
+            msg += '\nDataSchema : {}'.format(self.model.dbobj.dataSchema)
+            raise j.exceptions.Input(msg)
 
     def _initParent(self, actor, args):
         if actor.model.dbobj.parent.actorRole is not "":

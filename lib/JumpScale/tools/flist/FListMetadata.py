@@ -20,6 +20,14 @@ class FListMetadata:
         raise NotImplementedError
 
     def chmod(self, path, mode):
+        """
+        Change mode for files or directories
+        :param path: path of file/dir
+        :param mode: string of the mode
+
+        Examples:
+        flistmeta.chmod("/tmp/dir1", "777")
+        """
         fType, dirObj = self._search_db(path)
         if dirObj.dbobj.state != "":
             raise RuntimeError("%s: No such file or directory" % path)

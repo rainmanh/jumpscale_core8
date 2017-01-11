@@ -21,6 +21,11 @@ class FListMetadata:
     def delete(self, path):
         fType, dirObj = self._search_db(path)
         if fType == "D":
+            dbobj = dirObj.dbobj
+            if dbobj.state != "":
+                raise RuntimeError("%s: No such file or directory" % path)
+            if len(dbobj.dirs) != 0 and len(dbobj.files) != 0 and len(dbobj.links) != 0 and len(dbobj.specials) != 0:
+                raise RuntimeError("failed to remove '%s': Directory not empty" % path)
             dirObj.dbobj.state = "Deleted"
         else:
             _, entityList = self._getPropertyList(dirObj.dbobj, fType)

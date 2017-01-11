@@ -4,6 +4,7 @@ import binascii
 import os
 import calendar
 import time
+import stat
 
 
 class FListMetadata:
@@ -18,12 +19,57 @@ class FListMetadata:
     def get_fs(self, root_path="/"):
         raise NotImplementedError
 
+    def chmod(self, path, mode):
+        fType, dirObj = self._search_db(path)
+        if dirObj.dbobj.state != "":
+            raise RuntimeError("%s: No such file or directory" % path)
+
+        try:
+            mode = int(mode, 8)
+        except ValueError:
+            raise ValueError("Invalid mode.")
+        else:
+            if fType == "D":
+                _mode = mode + stat.S_IFDIR
+                aclObj = self.aciCollection.get(dirObj.dbobj.aclkey)
+                aclObj.dbobj.mode = _mode
+                aclObj.save()
+            elif fType == "F":
+                _mode = mode + stat.S_IFREG
+                for file in dirObj.dbobj.files:
+                    if file.name == j.sal.fs.getBaseName(path):
+                        aclObj = self.aciCollection.get(file.aclkey)
+                        aclObj.dbobj.mode = _mode
+                        aclObj.save()
+            elif fType == "L":
+                _mode = mode + stat.S_IFLNK
+                for file in dirObj.dbobj.links:
+                    if file.name == j.sal.fs.getBaseName(path):
+                        aclObj = self.aciCollection.get(file.aclkey)
+                        aclObj.dbobj.mode = _mode
+                        aclObj.save()
+            else:
+                for file in dirObj.dbobj.links:
+                    if file.name == j.sal.fs.getBaseName(path):
+                        aclObj = self.aciCollection.get(file.aclkey)
+                        if stat.S_ISSOCK(aclObj.dbobj.st_mode):
+                            _mode = mode + stat.S_IFSOCK
+                        elif stat.S_ISBLK(aclObj.dbobj.st_mode):
+                            _mode = mode + stat.S_IFBLK
+                        elif stat.S_ISCHR(aclObj.dbobj.st_mode):
+                            _mode = mode + stat.S_IFCHR
+                        elif stat.S_ISFIFO(aclObj.dbobj.st_mode):
+                            _mode = mode + stat.S_IFIFO
+                        aclObj.dbobj.mode = _mode
+                        aclObj.save()
+
     def delete(self, path):
         fType, dirObj = self._search_db(path)
+        if dirObj.dbobj.state != "":
+                raise RuntimeError("%s: No such file or directory" % path)
+
         if fType == "D":
             dbobj = dirObj.dbobj
-            if dbobj.state != "":
-                raise RuntimeError("%s: No such file or directory" % path)
             if len(dbobj.dirs) != 0 and len(dbobj.files) != 0 and len(dbobj.links) != 0 and len(dbobj.specials) != 0:
                 raise RuntimeError("failed to remove '%s': Directory not empty" % path)
             dirObj.dbobj.state = "Deleted"

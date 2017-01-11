@@ -30,7 +30,8 @@ class FListMetadata:
             aclObj.dbobj.uname = uname
             aclObj.save()
         else:
-            for file in self._getPropertyList(dirObj.dbobj, fType):
+            _, propList = self._getPropertyList(dirObj.dbobj, fType)
+            for file in propList:
                 if file.name == j.sal.fs.getBaseName(path):
                     aclObj = self.aciCollection.get(file.aclkey)
                     aclObj.dbobj.gname = gname
@@ -60,16 +61,11 @@ class FListMetadata:
                 aclObj = self.aciCollection.get(dirObj.dbobj.aclkey)
                 aclObj.dbobj.mode = _mode
                 aclObj.save()
-            elif fType == "F":
-                _mode = mode + stat.S_IFREG
-                for file in dirObj.dbobj.files:
-                    if file.name == j.sal.fs.getBaseName(path):
-                        aclObj = self.aciCollection.get(file.aclkey)
-                        aclObj.dbobj.mode = _mode
-                        aclObj.save()
-            elif fType == "L":
-                _mode = mode + stat.S_IFLNK
-                for file in dirObj.dbobj.links:
+
+            elif fType == "F" or fType == "L":
+                _mode = mode + stat.S_IFREG if fType == "F" else mode + stat.S_IFLNK
+                _, propList = self._getPropertyList(dirObj.dbobj, fType)
+                for file in propList:
                     if file.name == j.sal.fs.getBaseName(path):
                         aclObj = self.aciCollection.get(file.aclkey)
                         aclObj.dbobj.mode = _mode

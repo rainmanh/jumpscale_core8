@@ -200,7 +200,7 @@ class Diskmanager:
                         if partfound is None and mounted != True:
                             mountpoint = "/mnt/tmp"
                             cmd = "mount %s /mnt/tmp" % partition.path
-                            rcode, output = j.sal.process.execute(
+                            rcode, output, err = j.sal.process.execute(
                                 cmd, ignoreErrorOutput=False, die=False,)
                             if rcode != 0:
                                 # mount did not work

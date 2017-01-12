@@ -33,7 +33,6 @@ class CuisineBtrfsProgs(CuisineApp):
         self._run("cd $TMPDIR; wget -c %s/%s" % (self._host, self._file))
         self._run("cd $TMPDIR; tar -xf %s -C $CODEDIR" % self._file)
 
-        self._run("echo $CODEDIR")
         self._run("cd $CODEDIR; ./configure --prefix=$BUILDDIR --disable-documentation")
         self._run("cd $CODEDIR; make")
         self._run("cd $CODEDIR; make install")

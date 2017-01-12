@@ -202,7 +202,7 @@ def tidy(self, path=""):
         path = j.sal.fs.getcwd()
     for item in j.sal.fs.listFilesInDir(path, True, filter="*.md"):
         cmd = "cat %s|tidy-markdown" % item
-        rc, out,err = j.sal.process.execute(cmd)
+        rc, out, err = j.sal.process.execute(cmd)
         if rc == 0 and len(out.strip()) > 0:
             j.sal.fs.writeFile(filename=item, contents=out, append=False)
 

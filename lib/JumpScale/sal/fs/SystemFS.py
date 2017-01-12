@@ -1303,7 +1303,7 @@ class SystemFS:
                 'Failed to check if the specified path: %s is a file...in system.fs.isFile' % path)
 
     def isExecutable(self, path):
-        statobj = self.statPath(path)
+        statobj = self.statPath(path, follow_symlinks=False)
         return not (stat.S_IXUSR & statobj.st_mode == 0)
 
     def isLink(self, path, checkJunction=False):
@@ -1346,14 +1346,14 @@ class SystemFS:
             raise TypeError('Path is passed null in system.fs.isMount')
         return os.path.ismount(path)
 
-    def statPath(self, path):
+    def statPath(self, path, follow_symlinks=True):
         """Perform a stat() system call on the given path
         @rtype: object whose attributes correspond to the members of the stat structure
         """
         if path is None:
             raise TypeError('Path is None in system.fs.statPath')
         try:
-            return os.stat(path)
+            return os.stat(path, follow_symlinks=follow_symlinks)
         except:
             raise OSError(
                 'Failed to perform stat system call on the specific path: %s in system.fs.statPath' % (path))

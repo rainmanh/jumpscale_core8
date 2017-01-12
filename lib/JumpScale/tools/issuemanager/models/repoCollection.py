@@ -34,18 +34,15 @@ class RepoCollection(base):
         """
         List all instances of repo model with specified params.
 
-        @param owner int,, id of owner the repo belongs to.
+        @param owner str,, name of owner the repo belongs to.
         @param name str,, name of repo.
         @param id int,, repo id in db.
-        @param milestone int,, id of milestone in repo.
-        @param member int,, id of member in repo.
-        @param milestone int,, label in repo.
+        @param milestone name,, name of milestone in repo.
+        @param member str,, name of member in repo.
         @param source str,, source of remote database.
         @param returnIndexalse bool,, return the index used.
         """
         res = []
-        milestone = int(milestone)
-        member = int(member)
         id = int(id)
         for key in self.list(owner=owner, name=name, id=id, source=source):
             res.append(self.get(key))
@@ -53,15 +50,17 @@ class RepoCollection(base):
         if milestone:
             for model in res[::-1]:
                 for milestone_model in model.dictFiltered.get('milestones', []):
-                    if milestone == milestone_model['id']:
+                    if milestone == milestone_model['name']:
                         break
                 else:
                     res.remove(model)
 
         if member:
+            users = j.tools.issuemanager.getUserCollectionFromDB()
+            member_id = users.find(name=member)[0].dictFiltered.get('id')
             for model in res[::-1]:
                 for member_model in model.dictFiltered.get('members', []):
-                    if member == member_model['userKey']:
+                    if member_id == member_model['userKey']:
                         break
                 else:
                     res.remove(model)

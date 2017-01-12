@@ -40,27 +40,30 @@ class OrgCollection(base):
         @param source str,, source of remote database.
         """
         res = []
-        member = int(member)
-        repo = int(repo)
-        owner = int(owner)
         id = int(id)
         for key in self.list(id=id, name=name, source=source):
             res.append(self.get(key))
 
         if member:
+            users = j.tools.issuemanager.getUserCollectionFromDB()
+            member_id = users.find(name=member)[0].dictFiltered.get('id')
             for model in res[::-1]:
                 for member_model in model.dictFiltered.get('members', []):
-                    if member == member_model['id']:
+                    if member_id == member_model['userKey']:
                         break
                 else:
                     res.remove(model)
         if repo:
+            repos = j.tools.issuemanager.getRepoCollectionFromDB()
+            repo_id = repos.find(name=repo)[0].dictFiltered.get('id')
             for model in res[::-1]:
-                if (repo not in model.dictFiltered.get('repos', [])) or not model.dictFiltered.get('repos', False):
+                if (repo_id not in model.dictFiltered.get('repos', [])) or not model.dictFiltered.get('repos', False):
                     res.remove(model)
         if owner:
+            users = j.tools.issuemanager.getUserCollectionFromDB()
+            owner_id = users.find(name=owner)[0].dictFiltered.get('id')
             for model in res[::-1]:
-                if (owner not in model.dictFiltered.get('owners', [])) or not model.dictFiltered.get('owners', False):
+                if (owner_id not in model.dictFiltered.get('owners', [])) or not model.dictFiltered.get('owners', False):
                     res.remove(model)
 
         return res

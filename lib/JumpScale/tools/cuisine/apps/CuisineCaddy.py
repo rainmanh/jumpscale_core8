@@ -8,18 +8,35 @@ class CuisineCaddy(app):
 
     NAME = "caddy"
 
-    @property
-    def builddir(self):
-        return j.sal.fs.joinPaths(self.core.dir_paths['BUILDDIR'], "caddy")
+    def _init(self):
+        self.BUILDDIR_ = self.replace("$BUILDDIR/caddy")
+        self.CODEDIR_ = self.replace("$CODEDIR/github/mholt/caddy")
+
+    def reset(self):
+        app.reset(self)
+        self._init()
 
     def build(self):
         """
         Get/Build the binaries of caddy itself.
         """
+
+        url = "git@github.com:mholt/caddy.git"
+        cpath = self.cuisine.development.git.pullRepo(url, tag="v0.9.4", reset=reset)
+        print(cpath)
+
+        from IPython import embed
+        print("DEBUG NOW ooo")
+        embed()
+        raise RuntimeError("stop debug here")
+
+        assert cpath.rstrip("/") == self.CODEDIRARDB.rstrip("/")
+
         caddy_url = 'https://github.com/mholt/caddy/releases/download/v0.9.4/caddy_linux_amd64.tar.gz'
         dest = j.sal.fs.joinPaths(self.builddir, 'caddy_linux_amd64.tar.gz')
         self.cuisine.core.file_download(caddy_url, dest)
-        self.cuisine.core.run('cd {builddir}; tar xvf {builddir}/caddy_linux_amd64.tar.gz'.format(builddir=self.builddir))
+        self.cuisine.core.run(
+            'cd {builddir}; tar xvf {builddir}/caddy_linux_amd64.tar.gz'.format(builddir=self.builddir))
 
     def install(self, ssl=False, start=True, dns=None, reset=False, wwwrootdir=None):
         """
@@ -31,7 +48,7 @@ class CuisineCaddy(app):
         @param reset bool:  if True this will install even if the service is already installed.
         """
         if self.doneGet('install') and reset is False and self.isInstalled():
-           return
+            return
 
         self.cuisine.core.file_copy('{builddir}/caddy_linux_amd64'.format(builddir=self.builddir), '$BINDIR/caddy')
         self.cuisine.bash.profileDefault.addPath(self.cuisine.core.dir_paths['BINDIR'])

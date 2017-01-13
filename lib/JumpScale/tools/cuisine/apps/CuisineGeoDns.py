@@ -7,6 +7,10 @@ app = j.tools.cuisine._getBaseAppClass()
 class CuisineGeoDns(app):
     NAME = "geodns"
 
+    def reset(self):
+        app.reset(self)
+        self._init()
+
     def install(self, reset=False):
         """
         installs and builds geodns from github.com/abh/geodns

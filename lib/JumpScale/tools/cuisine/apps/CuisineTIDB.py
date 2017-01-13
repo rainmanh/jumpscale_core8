@@ -14,6 +14,10 @@ class CuisineTIDB(app):
     def _init(self):
         self.BUILDDIR = self.replace("$BUILDDIR/tidb/")
 
+    def reset(self):
+        app.reset(self)
+        self._init()
+
     def build(self, install=True, reset=False):
         """
         Build requires both golang and rust to be available on the system
@@ -33,7 +37,8 @@ class CuisineTIDB(app):
         #
         # self.cuisine.core.run('cd {builddir}; bash {build}'.format(builddir=self.BUILDDIR, build=build_script), profile=True, timeout=1000)
         self.cuisine.core.file_download(tidb_url, dest)
-        self.cuisine.core.run('cd $BUILDDIR && tar xvf $BUILDDIR/tidb-latest-linux-amd64.tar.gz && mv $BUILDDIR/tidb-latest-linux-amd64/* {builddir}'.format(builddir=self.BUILDDIR))
+        self.cuisine.core.run(
+            'cd $BUILDDIR && tar xvf $BUILDDIR/tidb-latest-linux-amd64.tar.gz && mv $BUILDDIR/tidb-latest-linux-amd64/* {builddir}'.format(builddir=self.BUILDDIR))
         self.doneSet('build')
 
         if install:

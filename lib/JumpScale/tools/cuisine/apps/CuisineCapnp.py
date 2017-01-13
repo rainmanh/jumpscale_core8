@@ -18,6 +18,8 @@ class CuisineCapnp(app):
         self.cuisine.package.mdupdate()
         self.cuisine.package.multiInstall(['curl', 'make', 'g++', 'python-dev'])
 
+        #@TODO: *2 use git checkout on tag like we do for ARDB
+
         # c++ deps libs
         script = """
         cd $TMPDIR

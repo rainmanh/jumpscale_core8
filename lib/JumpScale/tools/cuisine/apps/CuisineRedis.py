@@ -8,6 +8,10 @@ app = j.tools.cuisine._getBaseAppClass()
 class CuisineRedis(app):
     NAME = 'redis-server'
 
+    def reset(self):
+        app.reset(self)
+        self._init()
+
     def build(self, reset=False, start=False):
         os.environ["LC_ALL"] = "C.UTF-8"
         os.environ["LANG"] = "C.UTF-8"

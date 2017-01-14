@@ -82,6 +82,31 @@ class FListMetadata:
         self._addObj(parentObj, fileDict, "F")
         parentObj.save()
 
+    def link(self, ppath, parent_path, file_type="s"):
+        if file_type not in ("s", "h"):
+            raise j.exceptions.Input(message="file_type must be 's' or 'h")
+
+        _, parentObj = self._search_db(parent_path)
+        if parentObj.dbobj.state != "":
+            raise RuntimeError("%s: No such file or directory" % parent_path)
+
+        if parent_path == j.sal.fs.getDirName(ppath):
+            raise RuntimeError("Cannot link to file to itself")
+
+        relpath = ppath[len(self.rootpath):].strip("/")
+        for link in parentObj.dbobj.links:
+            if link.target == relpath:
+                raise j.exceptions.Input(message="Link already exists")
+
+        linkDict = {
+            "name": j.sal.fs.getBaseName(ppath),
+            "creationTime": calendar.timegm(time.gmtime()),
+            "modificationTime": calendar.timegm(time.gmtime()),
+            "target": relpath
+        }
+        self._addObj(parentObj, linkDict, "L")
+        parentObj.save()
+
     def chown(self, ppath, gname, uname):
         fType, dirObj = self._search_db(ppath)
         if dirObj.dbobj.state != "":

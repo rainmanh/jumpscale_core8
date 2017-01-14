@@ -5,6 +5,8 @@ import os
 import calendar
 import time
 import stat
+import pwd
+import grp
 
 
 class FListMetadata:
@@ -16,13 +18,65 @@ class FListMetadata:
         self.userGroupCollection = userGroupCollection
         self.rootpath = rootpath
 
-    def get_fs(self, root_path="/"):
-        raise NotImplementedError
-
-    def chown(self, path, gname, uname):
-        fType, dirObj = self._search_db(path)
+    def getDir(self, ppath):
+        """
+        :param ppath: path of directory or file
+        :return: dict of dirctory object, in case of file path it returns parent directory of that file
+        """
+        _, dirObj = self._search_db(ppath)
         if dirObj.dbobj.state != "":
-            raise RuntimeError("%s: No such file or directory" % path)
+            raise RuntimeError("%s: No such file or directory" % ppath)
+        return dirObj.dbobj.to_dict()
+
+    def mkdir(self, parent_path, name, mode="755"):
+        """
+        :param param_name:
+        :return:
+        """
+        ppath = j.sal.fs.joinPaths(parent_path, name)
+        dirRelPath, dirKey = self._path2key(ppath)
+        if self.dirCollection.exists(dirKey):
+            raise RuntimeError("cannot create directory '%s': File exists" % ppath)
+        dirObj = self.dirCollection.get(dirKey, autoCreate=True)
+
+        _, dirKeyParent = self._path2key(parent_path)
+        parentObj = self.dirCollection.get(dirKeyParent)
+        if parentObj.dbobj.state != "":
+            raise RuntimeError("%s: No such file or directory" % ppath)
+
+        aci = self.aciCollection.new()
+        # Initialize dirObj
+        dirObj.dbobj.name = name
+        dirObj.dbobj.location = dirRelPath
+        dirObj.dbobj.creationTime = calendar.timegm(time.gmtime())
+        dirObj.dbobj.modificationTime = calendar.timegm(time.gmtime())
+        dirObj.dbobj.aclkey = aci.key
+        dirObj.dbobj.dirs = []
+        dirObj.dbobj.files = []
+        dirObj.dbobj.links = []
+        dirObj.dbobj.specials = []
+        dirObj.dbobj.size = 0
+        dirObj.dbobj.parent = dirKeyParent
+        dirObj.dbobj.isLink = False
+        dirObj.save()
+
+        # Initialize aci
+        uid = os.getuid()
+        aci.dbobj.id = uid
+        aci.dbobj.uname = pwd.getpwuid(uid).pw_name
+        aci.dbobj.gname = grp.getgrgid(os.getgid()).gr_name
+        aci.dbobj.mode = int(mode, 8) + stat.S_IFDIR
+        aci.save()
+
+        # add dir to parent directory
+        dirProps = {"key": dirKey, "name": name}
+        self._addObj(parentObj, dirProps, "D")
+        parentObj.save()
+
+    def chown(self, ppath, gname, uname):
+        fType, dirObj = self._search_db(ppath)
+        if dirObj.dbobj.state != "":
+            raise RuntimeError("%s: No such file or directory" % ppath)
 
         if fType == "D":
             aclObj = self.aciCollection.get(dirObj.dbobj.aclkey)
@@ -32,24 +86,24 @@ class FListMetadata:
         else:
             _, propList = self._getPropertyList(dirObj.dbobj, fType)
             for file in propList:
-                if file.name == j.sal.fs.getBaseName(path):
+                if file.name == j.sal.fs.getBaseName(ppath):
                     aclObj = self.aciCollection.get(file.aclkey)
                     aclObj.dbobj.gname = gname
                     aclObj.dbobj.uname = uname
                     aclObj.save()
 
-    def chmod(self, path, mode):
+    def chmod(self, ppath, mode):
         """
         Change mode for files or directories
-        :param path: path of file/dir
+        :param ppath: path of file/dir
         :param mode: string of the mode
 
         Examples:
         flistmeta.chmod("/tmp/dir1", "777")
         """
-        fType, dirObj = self._search_db(path)
+        fType, dirObj = self._search_db(ppath)
         if dirObj.dbobj.state != "":
-            raise RuntimeError("%s: No such file or directory" % path)
+            raise RuntimeError("%s: No such file or directory" % ppath)
 
         try:
             mode = int(mode, 8)
@@ -66,13 +120,13 @@ class FListMetadata:
                 _mode = mode + stat.S_IFREG if fType == "F" else mode + stat.S_IFLNK
                 _, propList = self._getPropertyList(dirObj.dbobj, fType)
                 for file in propList:
-                    if file.name == j.sal.fs.getBaseName(path):
+                    if file.name == j.sal.fs.getBaseName(ppath):
                         aclObj = self.aciCollection.get(file.aclkey)
                         aclObj.dbobj.mode = _mode
                         aclObj.save()
             else:
                 for file in dirObj.dbobj.links:
-                    if file.name == j.sal.fs.getBaseName(path):
+                    if file.name == j.sal.fs.getBaseName(ppath):
                         aclObj = self.aciCollection.get(file.aclkey)
                         if stat.S_ISSOCK(aclObj.dbobj.st_mode):
                             _mode = mode + stat.S_IFSOCK
@@ -85,29 +139,29 @@ class FListMetadata:
                         aclObj.dbobj.mode = _mode
                         aclObj.save()
 
-    def delete(self, path):
-        fType, dirObj = self._search_db(path)
+    def delete(self, ppath):
+        fType, dirObj = self._search_db(ppath)
         if dirObj.dbobj.state != "":
-                raise RuntimeError("%s: No such file or directory" % path)
+                raise RuntimeError("%s: No such file or directory" % ppath)
 
         if fType == "D":
             dbobj = dirObj.dbobj
             if len(dbobj.dirs) != 0 and len(dbobj.files) != 0 and len(dbobj.links) != 0 and len(dbobj.specials) != 0:
-                raise RuntimeError("failed to remove '%s': Directory not empty" % path)
+                raise RuntimeError("failed to remove '%s': Directory not empty" % ppath)
             dirObj.dbobj.state = "Deleted"
         else:
             _, entityList = self._getPropertyList(dirObj.dbobj, fType)
             for entity in entityList:
-                if entity.name == j.sal.fs.getBaseName(path):
+                if entity.name == j.sal.fs.getBaseName(ppath):
                     entity.state = "Deleted"
         dirObj.save()
 
-    def stat(self, path):
-        fType, dirObj = self._search_db(path)
+    def stat(self, ppath):
+        fType, dirObj = self._search_db(ppath)
         stat = {}
 
         if dirObj.dbobj.state != "":
-            raise RuntimeError("%s: No such file or directory" % path)
+            raise RuntimeError("%s: No such file or directory" % ppath)
 
         if fType == "D":
             stat["modificationTime"] = dirObj.dbobj.modificationTime
@@ -116,7 +170,7 @@ class FListMetadata:
         else:
             _, entityList = self._getPropertyList(dirObj.dbobj, fType)
             for entity in entityList:
-                if entity.name == j.sal.fs.getBaseName(path):
+                if entity.name == j.sal.fs.getBaseName(ppath):
                     stat["modificationTime"] = entity.modificationTime
                     stat["size"] = entity.size
                     stat["creationTime"] = entity.creationTime

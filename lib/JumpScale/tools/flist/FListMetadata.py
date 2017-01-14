@@ -44,13 +44,13 @@ class FListMetadata:
         if parentObj.dbobj.state != "":
             raise RuntimeError("%s: No such file or directory" % ppath)
 
-        aci = self.aciCollection.new()
+        aciKey = self._initialize_aci(mode, stat.S_IFDIR)
         # Initialize dirObj
         dirObj.dbobj.name = name
         dirObj.dbobj.location = dirRelPath
         dirObj.dbobj.creationTime = calendar.timegm(time.gmtime())
         dirObj.dbobj.modificationTime = calendar.timegm(time.gmtime())
-        dirObj.dbobj.aclkey = aci.key
+        dirObj.dbobj.aclkey = aciKey
         dirObj.dbobj.dirs = []
         dirObj.dbobj.files = []
         dirObj.dbobj.links = []
@@ -60,17 +60,26 @@ class FListMetadata:
         dirObj.dbobj.isLink = False
         dirObj.save()
 
-        # Initialize aci
-        uid = os.getuid()
-        aci.dbobj.id = uid
-        aci.dbobj.uname = pwd.getpwuid(uid).pw_name
-        aci.dbobj.gname = grp.getgrgid(os.getgid()).gr_name
-        aci.dbobj.mode = int(mode, 8) + stat.S_IFDIR
-        aci.save()
-
         # add dir to parent directory
         dirProps = {"key": dirKey, "name": name}
         self._addObj(parentObj, dirProps, "D")
+        parentObj.save()
+
+    def addFile(self, parent_path, name, size=0, mode="644"):
+        _, parentObj = self._search_db(parent_path)
+        if parentObj.dbobj.state != "":
+            raise RuntimeError("%s: No such file or directory" % parent_path)
+
+        aciKey = self._initialize_aci(mode, stat.S_IFREG)
+        fileDict = {
+            "aclkey": aciKey,
+            "blocksize": size,
+            "creationTime": calendar.timegm(time.gmtime()),
+            "modificationTime": calendar.timegm(time.gmtime()),
+            "name": name,
+            "size": size,
+        }
+        self._addObj(parentObj, fileDict, "F")
         parentObj.save()
 
     def chown(self, ppath, gname, uname):
@@ -340,3 +349,17 @@ class FListMetadata:
         bl = pyblake2.blake2b(toHash.encode(), 32)
         binhash = bl.digest()
         return relPath, binascii.hexlify(binhash).decode()
+
+    def _initialize_aci(self, mode, fileType):
+        valid_types = [stat.S_IFREG, stat.S_IFDIR, stat.S_IFCHR, stat.S_IFBLK, stat.S_IFIFO, stat.S_IFLNK, stat.S_IFSOCK]
+        if fileType not in valid_types:
+            raise RuntimeError("Invalid file type.")
+
+        aci = self.aciCollection.new()
+        uid = os.getuid()
+        aci.dbobj.id = uid
+        aci.dbobj.uname = pwd.getpwuid(uid).pw_name
+        aci.dbobj.gname = grp.getgrgid(os.getgid()).gr_name
+        aci.dbobj.mode = int(mode, 8) + fileType
+        aci.save()
+        return aci.key

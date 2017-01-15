@@ -27,7 +27,7 @@ class CuisinePython(base):
             return
 
         self.cuisine.development.openssl.build()
-
+        self.cuisine.package.install('zlib1g-dev')
         if self.cuisine.core.isMac:
             if not self.doneGet("xcode_install"):
                 self.cuisine.core.run("xcode-select --install", die=False, showout=True)

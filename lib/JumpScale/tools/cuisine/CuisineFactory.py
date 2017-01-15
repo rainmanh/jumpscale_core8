@@ -215,7 +215,7 @@ class JSCuisineFactory:
     def _generate_pubkey(self):
         if not j.do.checkSSHAgentAvailable():
             j.do._loadSSHAgent()
-        rc, out = j.sal.process.execute("ssh-add -l")
+        rc, out, err = j.sal.process.execute("ssh-add -l")
         keys = []
         for line in out.split("\n"):
             try:

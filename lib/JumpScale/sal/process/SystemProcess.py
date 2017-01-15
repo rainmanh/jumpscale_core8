@@ -1346,8 +1346,7 @@ class SystemProcess:
         out = "\n".join([item.rstrip().decode("UTF-8") for item in resout])
         err = "\n".join([item.rstrip().decode("UTF-8") for item in reserr])
 
-        #??? err ignored, but is not in spec
-        return rc, out
+        return rc, out, err
 
     def executeIndependant(self, cmd):
         """
@@ -1490,7 +1489,7 @@ class SystemProcess:
             cmd = "ps aux --sort={sortkey} | grep '{filterstr}'".format(filterstr=filterstr, sortkey=sortkey)
         else:
             cmd = "ps ax | grep '{filterstr}'".format(filterstr=filterstr)
-        rcode, out = j.sal.process.execute(cmd)
+        rcode, out, err = j.sal.process.execute(cmd)
         # print out
         found = []
         for line in out.split("\n"):
@@ -1507,7 +1506,7 @@ class SystemProcess:
 
     def getPidsByFilter(self, filterstr):
         cmd = "ps ax | grep '%s'" % filterstr
-        rcode, out = j.sal.process.execute(cmd)
+        rcode, out, err = j.sal.process.execute(cmd)
         # print out
         found = []
         for line in out.split("\n"):
@@ -1569,7 +1568,7 @@ class SystemProcess:
             # Need to set $COLUMNS such that we can grep full commandline
             # Note: apparently this does not work on solaris
             command = "bash -c 'env COLUMNS=300 ps -ef'"
-            (exitcode, output) = j.sal.process.execute(command, die=False, showout=False)
+            (exitcode, output, err) = j.sal.process.execute(command, die=False, showout=False)
             pids = list()
             co = re.compile(
                 "\s*(?P<uid>[a-z]+)\s+(?P<pid>[0-9]+)\s+(?P<ppid>[0-9]+)\s+(?P<cpu>[0-9]+)\s+(?P<stime>\S+)\s+(?P<tty>\S+)\s+(?P<time>\S+)\s+(?P<cmd>.+)")
@@ -1655,7 +1654,7 @@ class SystemProcess:
         self.logger.info('Checking whether process with PID %d is actually %s' % (pid, process))
         if j.core.platformtype.myplatform.isUnix():
             command = "ps -p %i" % pid
-            (exitcode, output) = j.sal.process.execute(command, die=False, showout=False)
+            (exitcode, output, err) = j.sal.process.execute(command, die=False, showout=False)
             i = 0
             for line in output.splitlines():
                 if j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
@@ -1720,7 +1719,7 @@ class SystemProcess:
             return None
         if j.core.platformtype.myplatform.isLinux():
             command = "netstat -ntulp | grep ':%s '" % port
-            (exitcode, output) = j.sal.process.execute(command, die=False, showout=False)
+            (exitcode, output, err) = j.sal.process.execute(command, die=False, showout=False)
 
             # Not found if grep's exitcode  > 0
             if not exitcode == 0:
@@ -1750,7 +1749,7 @@ class SystemProcess:
             # Need to set $COLUMNS such that we can grep full commandline
             # Note: apparently this does not work on solaris
             command = "bash -c 'env COLUMNS=300 ps -ef'"
-            (exitcode, output) = j.sal.process.execute(command, die=False, showout=False)
+            (exitcode, output, err) = j.sal.process.execute(command, die=False, showout=False)
             co = re.compile(
                 "\s*(?P<uid>[a-z]+)\s+(?P<pid>[0-9]+)\s+(?P<ppid>[0-9]+)\s+(?P<cpu>[0-9]+)\s+(?P<stime>\S+)\s+(?P<tty>\S+)\s+(?P<time>\S+)\s+(?P<cmd>.+)")
             for line in output.splitlines():
@@ -1816,7 +1815,7 @@ class SystemProcess:
         return j.core.db.hkeys("application")
 
     def getDefunctProcesses(self):
-        rc, out = j.sal.process.execute("ps ax")
+        rc, out, err = j.sal.process.execute("ps ax")
         llist = []
         for line in out.split("\n"):
             if line.strip() == "":

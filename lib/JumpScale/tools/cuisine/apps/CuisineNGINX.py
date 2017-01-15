@@ -10,6 +10,9 @@ app = j.tools.cuisine._getBaseAppClass()
 class CuisineNGINX(app):
     NAME = 'nginx'
 
+    def _init(self):
+        self.BUILDDIR = self.replace("$BUILDDIR")
+
     def get_basic_nginx_conf(self):
         return """\
         user www-data;
@@ -94,13 +97,13 @@ class CuisineNGINX(app):
 
                 # With php7.0-cgi alone:
                 # fastcgi_pass 127.0.0.1:9000;
-                # With php7.0-fpm:
+            # With php7.0-fpm:
                 # fastcgi_pass unix:/run/php/php7.0-fpm.sock;
             # }
         }
         """ % wwwPath
 
-    def install(self):
+    def install(self, start=True):
         """
         Moving build files to build directory and copying config files
         """
@@ -155,15 +158,15 @@ class CuisineNGINX(app):
         self.cuisine.core.file_write("$BUILDDIR/nginx/conf/nginx.conf", content=basicnginxconf)
         self.cuisine.core.file_write("$BUILDDIR/nginx/conf/sites-enabled/default", content=defaultenabledsitesconf)
 
-        """
-        fst_cgi_conf = self.cuisine.core.file_read("$JSAPPSDIR/nginx/etc/fastcgi.conf")
-        fst_cgi_conf = fst_cgi_conf.replace("include fastcgi.conf;", "include /opt/jumpscale8/apps/nginx/etc/fastcgi.conf;")
-        self.cuisine.core.file_write("$JSAPPSDIR/nginx/etc/fastcgi.conf", content=fst_cgi_conf)
+
+        fst_cgi_conf = self.cuisine.core.file_read("$BUILDDIR/nginx/conf/fastcgi.conf")
+        fst_cgi_conf = fst_cgi_conf.replace("include fastcgi.conf;", self.replace("include $BUILDDIR/nginx/conf/fastcgi.conf;"))
+        self.cuisine.core.file_write("$BUILDDIR/nginx/conf/fastcgi.conf", content=fst_cgi_conf)
 
         #self.cuisine.core.file_link(source="$JSCFGDIR/nginx", destination="$JSAPPSDIR/nginx")
         if start:
             self.start()
-        """
+
 
     def build(self, install=True):
         os.environ["LC_ALL"] = "C.UTF-8"
@@ -201,6 +204,8 @@ class CuisineNGINX(app):
 
     def start(self, name="nginx", nodaemon=True, nginxconfpath=None):
         nginxbinpath = '$BUILDDIR/nginx/sbin'
+        # COPY BINARIES TO BINDIR
+        self.cuisine.core.run("cp $BUILDDIR/nginx/sbin/* $BINDIR/")
 
         if nginxconfpath is None:
             nginxconfpath = '$BUILDDIR/nginx/conf/nginx.conf'

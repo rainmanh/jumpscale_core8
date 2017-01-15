@@ -100,6 +100,8 @@ class CuisinePHP(app): #TEST on ovh4 *3
 
     def start(self):
         phpfpmbinpath = '$JSAPPSDIR/php/sbin'
+        #COPY BINARIES
+        self.cuisine.core.run("cp $JSAPPSDIR/php/sbin/* $BINDIR")
 
         phpfpmcmd = "$JSAPPSDIR/php/sbin/php-fpm -F -y $JSAPPSDIR/php/etc/php-fpm.conf.default"  # foreground
         phpfpmcmd = self.replace(phpfpmcmd)

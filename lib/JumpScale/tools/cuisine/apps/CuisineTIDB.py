@@ -103,6 +103,11 @@ class CuisineTIDB(app):
         if not self._check_running('tidb-server', timeout=30):
             raise j.exceptions.RuntimeError("tidb didn't start")
 
+    def stop(self):
+        self.cuisine.processmanager.stop("tidb-server")
+        self.cuisine.processmanager.stop("pd-server")
+        self.cuisine.processmanager.stop("tikv-server")
+        
     def _check_running(self, name, timeout=30):
         """
         check that a process is running.

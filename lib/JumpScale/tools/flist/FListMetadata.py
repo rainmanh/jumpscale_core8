@@ -18,15 +18,37 @@ class FListMetadata:
         self.userGroupCollection = userGroupCollection
         self.rootpath = rootpath
 
-    def getDir(self, ppath):
+    def getDirOrFile(self, ppath):
         """
         :param ppath: path of directory or file
         :return: dict of dirctory object, in case of file path it returns parent directory of that file
         """
-        _, dirObj = self._search_db(ppath)
+        fType, dirObj = self._search_db(ppath)
         if dirObj.dbobj.state != "":
             raise RuntimeError("%s: No such file or directory" % ppath)
-        return dirObj.dbobj.to_dict()
+
+        if fType == "D":
+            return dirObj.dbobj.to_dict()
+        else:
+            file_name = j.sal.fs.getBaseName(ppath)
+            if fType == "F":
+                for file in dirObj.dbobj.files:
+                    if file.name == file_name:
+                        return file.to_dict()
+                return file.to_dict()
+
+            if fType == "L":
+                for file in dirObj.dbobj.links:
+                    if file.name == file_name:
+                        return file.to_dict()
+                return file.to_dict()
+
+            if fType == "S":
+                for file in dirObj.dbobj.specials:
+                    if file.name == file_name:
+                        return file.to_dict()
+                return file.to_dict()
+
 
     def mkdir(self, parent_path, name, mode="755"):
         """
@@ -292,11 +314,14 @@ class FListMetadata:
         newFiles = []
         poppedFile = {}
         pName, pList = self._getPropertyList(dirObj.dbobj, ptype)
-        for index, file in enumerate(pList):
+        for file in pList:
             if file.name == name:
                 poppedFile = file.to_dict()
             else:
                 newFiles.append(file.to_dict())
+
+        if poppedFile == {}:
+            raise RuntimeError("cannot remove '%s': No such file or directory" % dirObj.dbobj.location)
 
         newlist = dirObj.dbobj.init(pName, len(newFiles))
         for i, item in enumerate(newFiles):

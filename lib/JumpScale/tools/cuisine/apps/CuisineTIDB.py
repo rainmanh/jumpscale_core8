@@ -17,7 +17,7 @@ class CuisineTIDB(app):
 
 
     """
-    NAME = 'tidb'
+    NAME = 'tidb-server'
 
     def __init__(self, executor, cuisine):
         self._executor = executor
@@ -31,10 +31,16 @@ class CuisineTIDB(app):
         # WILL BE BACKEND FOR e.g. OWNCLOUD / GOGS
         self._cuisine.package.mdupdate()
         self._cuisine.package.install('build-essential')
-        url = 'https://raw.githubusercontent.com/pingcap/docs/master/scripts/build.sh'
-        self._cuisine.core.dir_ensure('/tmp/tidb')
 
-        self._cuisine.core.run('cd /tmp/tidb/ && curl {} | bash'.format(url), profile=True)
+        self._cuisine.core.dir_ensure("/optvar/build")
+        tidb_url = 'http://download.pingcap.org/tidb-latest-linux-amd64.tar.gz'
+        dest = j.sal.fs.joinPaths("/optvar/build", 'tidb-latest-linux-amd64.tar.gz')
+        # build_script = self.cuisine.core.file_download('https://raw.githubusercontent.com/pingcap/docs/master/scripts/build.sh', \
+        #     j.sal.fs.joinPaths(self.BUILDDIR, 'build.sh'),minsizekb=0)
+        #
+        # self.cuisine.core.run('cd {builddir}; bash {build}'.format(builddir=self.BUILDDIR, build=build_script), profile=True, timeout=1000)
+        self._cuisine.core.file_download(tidb_url, dest)
+        self._cuisine.core.run('cd /optvar/build && tar xvf /optvar/build/tidb-latest-linux-amd64.tar.gz && mv /optvar/build/tidb-latest-linux-amd64 /optvar/build/tidb  ')
 
     # TODO:  Currently install with start=False and then run start_tipd, start_tikv, start_tidb separately
     def install(self, start=False):
@@ -43,7 +49,7 @@ class CuisineTIDB(app):
 
         """
         script = '''
-        mv /tmp/tidb/bin/* $binDir/
+        mv /optvar/build/tidb/bin/* $binDir/
         '''
         self._cuisine.core.execute_bash(script)
 

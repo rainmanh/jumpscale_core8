@@ -14,7 +14,7 @@
         """
   'execute':
         'prefix':'execute'
-        'body':'rc, out = j.sal.process.execute($1, die=True, showout=False, ignoreErrorOutput=False)'
+        'body':'rc, out, _ = j.sal.process.execute($1, die=True, showout=False, ignoreErrorOutput=False)'
   'createdir':
         'prefix':'createdir'
         'body':'j.sal.fs.createDir($1)'

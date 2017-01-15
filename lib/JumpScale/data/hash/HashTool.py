@@ -7,7 +7,7 @@ import binascii
 try:
     from pyblake2 import blake2b
 except:
-    rc, out = j.sal.process.execute("pip3 install pyblake2", die=True, showout=False, ignoreErrorOutput=False)
+    rc, out, err = j.sal.process.execute("pip3 install pyblake2", die=True, showout=False, ignoreErrorOutput=False)
 
 
 class HashTool:

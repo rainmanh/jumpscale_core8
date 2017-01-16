@@ -27,28 +27,17 @@ class FListMetadata:
         if dirObj.dbobj.state != "":
             raise RuntimeError("%s: No such file or directory" % ppath)
 
-        if fType == "D":
+        if fType == "D" and dirObj.dbobj.location == ppath[len(self.rootpath):].strip("/"):
             return dirObj.dbobj.to_dict()
         else:
             file_name = j.sal.fs.getBaseName(ppath)
-            if fType == "F":
-                for file in dirObj.dbobj.files:
-                    if file.name == file_name:
-                        return file.to_dict()
-                return file.to_dict()
-
-            if fType == "L":
-                for file in dirObj.dbobj.links:
-                    if file.name == file_name:
-                        return file.to_dict()
-                return file.to_dict()
-
-            if fType == "S":
-                for file in dirObj.dbobj.specials:
-                    if file.name == file_name:
-                        return file.to_dict()
-                return file.to_dict()
-
+            _, propList = self._getPropertyList(dirObj.dbobj, fType)
+            for file in propList:
+                if file.name == file_name:
+                    if fType == "D":
+                        return self.dirCollection.get(file.key).dbobj.to_dict()
+                    return file.to_dict()
+            return file.to_dict()
 
     def mkdir(self, parent_path, name, mode="755"):
         """

@@ -85,7 +85,7 @@ class CuisineGolang(app):
         e.g. url=github.com/tools/godep
         """
         self.clean_src_path()
-        GOPATH = self.cuisine.bash.env['GOPATH']
+        GOPATH = self.GOPATH
 
         pullurl = "git@%s.git" % url.replace('/', ':', 1)
 

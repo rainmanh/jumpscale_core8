@@ -6,14 +6,7 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisinePyFTPServer(base):
 
-    def install(self, root="/storage/ftpserver", config="", port=2121):
-        self.cuisine.development.js8.install()
-        self.cuisine.systemservices.ufw.ufw_enable()
-        self.cuisine.systemservices.ufw.allowIncoming(port)
-
-        cmd = "sudo ufw allow 50000:65535/tcp"
-        self.cuisine.core.run(cmd)
-
+    def install(self, root="/storage/ftpserver", config="", port=2121, reset=False):
         """
         example config
             config='''
@@ -49,26 +42,29 @@ class CuisinePyFTPServer(base):
         "w" = store a file to the server (STOR, STOU commands)
         "M" = change mode/permission (SITE CHMOD command)
         ```
-
         """
+        if not reset and self.doneGet('install'):
+            return
 
-        # DEBUG
-        # config='''
-        # home:
-        #   guest2: ['123456']
-        #   root: ['1234', elradfmwM]
-        # public:
-        #   guest: ['123456']
-        #   anonymous: []
-        # '''
-
-        self.cuisine.systemservices.base.install()
         self.cuisine.development.pip.install("pyftpdlib")
+        self.configure(root=root, config=config, port=port)
+
+        self.doneSet('install')
+
+        self.start()
+
+
+    def configure(self, root="/storage/ftpserver", config="", port=2121):
+        """
+        see install docstring for config example
+        """
+        if self.cuisine.platformtype.isLinux():
+            self.cuisine.package.ensure('btrfs-tools')
+        elif self.cuisine.platformtype.isOSX():
+            # TODO install btrfs for mac
+            pass
 
         self.cuisine.btrfs.subvolumeCreate(root)
-
-        #
-        #
 
         if config == "":
             authorizer = "    pyftpdlib.authorizers.UnixAuthorizer"
@@ -136,10 +132,11 @@ class CuisinePyFTPServer(base):
         C = C.replace("$port", str(port))
         C = C.replace("$authorizers", authorizer)
 
-        self.cuisine.core.dir_ensure("/etc/ftpserver")
+        self.cuisine.core.dir_ensure("$CFGDIR/ftpserver")
+        self.cuisine.core.file_write("$CFGDIR/ftpserver/start.py", C)
 
-        self.cuisine.core.file_write("/etc/ftpserver/start.py", C)
+    def start(self):
+        self.cuisine.processmanager.ensure("pyftpserver", "python3 $CFGDIR/ftpserver/start.py")
 
-        self.cuisine.processmanager.ensure("polipo", cmd)
-
-        self.cuisine.processmanager.ensure("pyftpserver", "python3 /etc/ftpserver/start.py")
+    def stop(self):
+        self.cuisine.processmanager.stop('pyftpserver')

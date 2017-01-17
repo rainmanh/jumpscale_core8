@@ -27,7 +27,7 @@ class CuisineCockpit(base):
         self.core.file_write("$JSCFGDIR/cockpit_api/config.toml", C)
 
     def install(self, start=True, branch="master"):
-        if self.doneGet("install") and not reset:
+        if self.doneGet("install"):
             return
         self.install_deps()
         self.cuisine.development.git.pullRepo('https://github.com/Jumpscale/jscockpit', branch=branch)

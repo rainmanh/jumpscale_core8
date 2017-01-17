@@ -600,7 +600,7 @@ Read a object from a file(file contents in pickle format)
 
 ```
 
-#### readlink(*path*) 
+#### readLink(*path*) 
 
 ```
 Works only for unix

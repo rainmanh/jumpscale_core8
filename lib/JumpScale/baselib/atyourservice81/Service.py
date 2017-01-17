@@ -141,7 +141,7 @@ class Service:
             # try to get the instance name from the args. Look for full actor name ('node.ssh') or just role (node)
             # if none of the two is available in the args, don't use instance name and
             # expect the parent service to be unique in the repo
-            parent_name = args.get(actor.model.dbobj.parent.argKey, args.get(parent_role, ''))
+            parent_name = args.get(actor.model.dbobj.parent.argname, args.get(parent_role, ''))
             res = self.aysrepo.servicesFind(name=parent_name, actor='%s(\..*)?' % parent_role)
             res = [s for s in res if s.model.role == parent_role]
             if len(res) == 0:
@@ -176,7 +176,7 @@ class Service:
 
         """
 
-        # for every producer model in the producers, we get the user set services `argKey` to be consumed in the blueprint itself.
+        # for every producer model in the producers, we get the user set services `argname` to be consumed in the blueprint itself.
         # calculate the difference of the available services and the user set
         # calculate the min required services and see if we should create new ones if auto is set
         # create the services required till the minServices is reached.
@@ -186,7 +186,7 @@ class Service:
         for producer_model in actor.model.dbobj.producers:
             producer_role = producer_model.actorRole
             usersetservices = []
-            passedservicesnames = args.get(producer_model.argKey, args.get(producer_role, ""))
+            passedservicesnames = args.get(producer_model.argname, args.get(producer_role, ""))
             if not j.data.types.list.check(passedservicesnames):
                 passedservicesnames = [passedservicesnames]
             for svname in passedservicesnames:

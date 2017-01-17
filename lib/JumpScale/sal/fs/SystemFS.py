@@ -25,7 +25,7 @@ from JumpScale import j
 
 toStr = j.data.text.toStr
 
-#from JumpScale.core.decorators import deprecated
+# from JumpScale.core.decorators import deprecated
 
 # We do not use the j.core.platformtype here nor do we import the PlatformType as this would
 # lead to circular imports and raise an exception
@@ -433,7 +433,7 @@ class SystemFS:
                             self.unlink(dstname)
 
                     if keepsymlinks and j.sal.fs.isLink(srcname):
-                        linkto = j.sal.fs.readlink(srcname)
+                        linkto = j.sal.fs.readLink(srcname)
                         j.sal.fs.symlink(linkto, dstname, overwriteFiles)
                     elif j.sal.fs.isDir(srcname):
                         # print "1:%s %s"%(srcname,dstname)
@@ -873,7 +873,7 @@ class SystemFS:
             raise j.exceptions.RuntimeError(
                 'Failed to get current working directory')
 
-    def readlink(self, path, absolute=True):
+    def readLink(self, path, absolute=True):
         """Works only for unix
         Return a string representing the path to which the symbolic link points.
         @param absolute, if True then look for absolute source location
@@ -895,14 +895,11 @@ class SystemFS:
 
         if res.startswith("..") and absolute:
             if self.isFile(path):
-                srcDir = self.getDirName(path)
-            elif self.isDir(path):
-                srcDir = res
+                srcDir = self.getParent(self.getDirName(path))
             else:
-                raise j.exceptions.Input(message="link can only be file or dir", level=1, source="", tags="", msgpub="")
-
-            path = self.joinPaths(srcDir, res)
-            res = os.path.abspath(path)
+                srcDir = self.getDirName(path)
+            path2 = self.joinPaths(srcDir, res)
+            res = os.path.abspath(path2)
 
         return res
 
@@ -925,7 +922,7 @@ class SystemFS:
         if path is None:
             raise TypeError('Path is not passed in system.fs.listDir')
         if(j.sal.fs.exists(path)):
-            if(j.sal.fs.isDir(path)) or (followSymlinks and self.checkDirOrLink(path)):
+            if self.isDir(path, followSymlinks):
                 names = os.listdir(path)
                 return names
             else:
@@ -1015,7 +1012,7 @@ class SystemFS:
 
             # if followSymlinks:
             #     if self.isLink(fullpath):
-            #         fullpath=self.readlink(fullpath)
+            #         fullpath=self.readLink(fullpath)
 
             if self.isFile(fullpath) and "f" in type:
                 includeFile = False
@@ -1059,25 +1056,6 @@ class SystemFS:
 
         return filesreturn, depth
 
-    def checkDirOrLink(self, fullpath):
-        """
-        check if path is dir or link to a dir
-        """
-        return self.checkDirOrLinkToDir(fullpath)
-
-    def checkDirOrLinkToDir(self, fullpath):
-        """
-        check if path is dir or link to a dir
-        """
-        if not self.isLink(fullpath) and os.path.isdir(fullpath):
-            return True
-        if self.isLink(fullpath):
-            link = self.readlink(fullpath)
-            path = self.joinPaths(self.getDirName(fullpath), link)
-            if self.isDir(path):
-                return True
-        return False
-
     def changeFileNames(self, toReplace, replaceWith, pathToSearchIn,
                         recursive=True, filter=None, minmtime=None, maxmtime=None):
         """
@@ -1106,7 +1084,7 @@ class SystemFS:
         for path in paths:
             templateengine.replaceInsideFile(path)
 
-    def listDirsInDir(self, path, recursive=False, dirNameOnly=False, findDirectorySymlinks=True):
+    def listDirsInDir(self, path, recursive=False, dirNameOnly=False, findDirectorySymlinks=True, followSymlinks=True):
         """ Retrieves list of directories found in the specified directory
         @param path: string represents directory path to search in
         @rtype: list
@@ -1114,27 +1092,21 @@ class SystemFS:
         self.logger.debug('List directories in directory with path: %s, recursive = %s' % (
             path, str(recursive)))
 
-        # if recursive:
-        # if not j.sal.fs.exists(path):
-        #raise ValueError('Specified path: %s does not exist' % path)
-        # if not j.sal.fs.isDir(path):
-        #raise ValueError('Specified path: %s is not a directory' % path)
-        #result = []
-        #os.path.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
-        # return result
-
-        files = self._listInDir(path, followSymlinks=True)
+        items = self._listInDir(path)
         filesreturn = []
-        for file in files:
-            fullpath = os.path.join(path, file)
-            if (findDirectorySymlinks and self.checkDirOrLink(fullpath)) or self.isDir(fullpath):
+        for item in items:
+            fullpath = os.path.join(path, item)
+            if self.isDir(fullpath, findDirectorySymlinks):
                 if dirNameOnly:
-                    filesreturn.append(file)
+                    filesreturn.append(item)
                 else:
                     filesreturn.append(fullpath)
-                if recursive:
-                    filesreturn.extend(self.listDirsInDir(
-                        fullpath, recursive, dirNameOnly, findDirectorySymlinks))
+            if recursive and self.isDir(fullpath, followSymlinks):
+                if self.isLink(fullpath):
+                    fullpath = self.readLink(fullpath)
+                filesreturn.extend(self.listDirsInDir(
+                    fullpath, recursive=recursive, dirNameOnly=dirNameOnly,
+                    findDirectorySymlinks=findDirectorySymlinks, followSymlinks=followSymlinks))
         return filesreturn
 
     def listPyScriptsInDir(self, path, recursive=True, filter="*.py"):
@@ -1169,7 +1141,7 @@ class SystemFS:
         if os.path.exists(path) or os.path.islink(path):
             if self.isLink(path) and followlinks:
                 self.logger.debug('path %s exists' % str(path.encode("utf-8")))
-                relativelink = self.readlink(path)
+                relativelink = self.readLink(path)
                 newpath = self.joinPaths(self.getParent(path), relativelink)
                 return self.exists(newpath)
             else:
@@ -1246,7 +1218,7 @@ class SystemFS:
         path = path.replace("/", os.sep)
         return path
 
-    def isDir(self, path, followSoftlink=True):
+    def isDir(self, path, followSoftlink=False):
         """Check if the specified Directory path exists
         @param path: string
         @param followSoftlink: boolean
@@ -1254,11 +1226,11 @@ class SystemFS:
         """
         if (path is None):
             raise TypeError('Directory path is None in system.fs.isDir')
-
-        if not followSoftlink and self.isLink(path):
-            return False
-
-        return self.checkDirOrLinkToDir(path)
+        if self.isLink(path):
+            if not followSoftlink:
+                return False
+            path = self.readLink(path)
+        return os.path.isdir(path)
 
     def isEmptyDir(self, path):
         """Check if the specified directory path is empty
@@ -2000,7 +1972,7 @@ class SystemFS:
                 destpath = j.sal.fs.joinPaths(
                     destInTar, j.sal.fs.pathRemoveDirPart(path, sourcepath))
                 if j.sal.fs.isLink(path) and followlinks:
-                    path = j.sal.fs.readlink(path)
+                    path = j.sal.fs.readLink(path)
                 self.logger.debug("fs.tar: add file %s to tar" % path)
                 # print "fstar: add file %s to tar" % path
                 if not (j.core.platformtype.myplatform.isWindows() and j.sal.windows.checkFileToIgnore(path)):

@@ -3,23 +3,25 @@ from JumpScale import j
 from JumpScale.baselib.atyourservice81.Actor import Actor
 from JumpScale.baselib.atyourservice81.Blueprint import Blueprint
 from JumpScale.baselib.atyourservice81.models.ActorsCollection import ActorsCollection
-from JumpScale.baselib.atyourservice81.models.ServicesCollection import  ServicesCollection
+from JumpScale.baselib.atyourservice81.models.ServicesCollection import ServicesCollection
 
 from JumpScale.baselib.atyourservice81.AtYourServiceDependencies import build_nodes, create_graphs, get_task_batches, create_job
 
 import colored_traceback
 colored_traceback.add_hook(always=True)
-import yaml
-import os
+
+# import yaml
+# import os
 from collections import namedtuple
 
 VALID_ACTION_STATE = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 DBTuple = namedtuple("DB", ['actors', 'services'])
 
+
 class AtYourServiceRepo():
 
-    def __init__(self, name, gitrepo, path, model=None):
+    def __init__(self, path, model=None):
 
         self._init = False
 
@@ -31,15 +33,21 @@ class AtYourServiceRepo():
 
         self.path = path
 
-        self.git = gitrepo
+        self.gitrepo = j.atyourservice.gitrepoAdd(self.path)
+        if self.gitrepo != None:
+            self.git = self.gitrepo.git
+        else:
+            self.git = None
 
-        self.name = name
+        self.name = j.sal.fs.getBaseName(self.path)
 
         self._db = None
-        if model is None:
-            self.model = j.atyourservice._repos.find(path=path)[0]
-        else:
-            self.model = model
+
+        # TODO: *1
+        # if model is None:
+        #     self.model = j.atyourservice._repos.find(path=path)[0]
+        # else:
+        #     self.model = model
 
         j.atyourservice._loadActionBase()
 
@@ -52,13 +60,10 @@ class AtYourServiceRepo():
             )
         return self._db
 
-
     def destroy(self):
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "actors"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "services"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "recipes"))  # for old time sake
-        self.db.actors.destroy()
-        self.db.services.destroy()
         self.model.delete()
 
     def enable_noexec(self):
@@ -93,7 +98,8 @@ class AtYourServiceRepo():
         if len(actor_models) == 1:
             obj = actor_models[0].objectGet(self)
         elif len(actor_models) > 1:
-            raise j.exceptions.Input(message="More than one actor found with name:%s" % name, level=1, source="", tags="", msgpub="")
+            raise j.exceptions.Input(message="More than one actor found with name:%s" %
+                                     name, level=1, source="", tags="", msgpub="")
         elif len(actor_models) < 1:
             # checking if we have the actor on the file system
             actors_dir = j.sal.fs.joinPaths(self.path, 'actors')
@@ -101,7 +107,8 @@ class AtYourServiceRepo():
             if len(results) == 1:
                 return Actor(aysrepo=self, name=name)
             elif die:
-                raise j.exceptions.Input(message="Could not find actor with name:%s" % name, level=1, source="", tags="", msgpub="")
+                raise j.exceptions.Input(message="Could not find actor with name:%s" %
+                                         name, level=1, source="", tags="", msgpub="")
 
             obj = self.actorCreate(name)
 
@@ -240,7 +247,6 @@ class AtYourServiceRepo():
             raise j.exceptions.Input(message='%s is not a valid state. Should one of %s' %
                                      (state, ', '.join(VALID_ACTION_STATE)))
 
-
         if "install" in actions:
             if "init" not in actions:
                 actions.insert(0, "init")
@@ -371,7 +377,8 @@ class AtYourServiceRepo():
         producerRoles = self._processProducerRoles(producerRoles)
         scope = set(self.servicesFind(actor="%s.*" % role, name=instance, hasAction=action))
         for service in scope:
-            producer_candidates = service.getProducersRecursive(producers=set(), callers=set(), action=action, producerRoles=producerRoles)
+            producer_candidates = service.getProducersRecursive(
+                producers=set(), callers=set(), action=action, producerRoles=producerRoles)
             if producerRoles != '*':
                 producer_valid = [item for item in producer_candidates if item.model.role in producerRoles]
             else:

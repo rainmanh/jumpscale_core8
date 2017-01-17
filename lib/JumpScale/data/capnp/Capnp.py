@@ -7,6 +7,33 @@ from collections import OrderedDict
 from ModelBase import *
 
 
+class Tools():
+
+    def listInDictCreation(self, listInDict, name, manipulateDef=None):
+        """
+        check name exist in the dict
+        then check its a dict, if yes walk over it and make sure they become strings or use the manipulateDef function
+        string 'a,b,c' gets translated to list
+        @param manipulateDef if None then will make it a string, could be e.g. int if you want to have all elements to be converted to int
+        """
+        if name in listInDict:
+            if j.data.types.list.check(listInDict[name]):
+                if manipulateDef is None:
+                    listInDict[name] = [str(item).strip() for item in listInDict[name]]
+                else:
+                    listInDict[name] = [manipulateDef(item) for item in listInDict[name]]
+            else:
+                if manipulateDef is None:
+                    if "," in str(listInDict[name]):
+                        listInDict[name] = [item.strip()
+                                            for item in listInDict[name].split(",") if item.strip() != ""]
+                    else:
+                        listInDict[name] = [str(listInDict[name])]
+                else:
+                    listInDict[name] = [manipulateDef(listInDict[name])]
+        return listInDict
+
+
 class Capnp:
     """
     """
@@ -18,6 +45,7 @@ class Capnp:
         j.sal.fs.createDir(self._capnpVarDir)
         if self._capnpVarDir not in sys.path:
             sys.path.append(self._capnpVarDir)
+        self.tools = Tools()
 
     def getModelBaseClass(self):
         return ModelBase

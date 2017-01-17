@@ -6,8 +6,12 @@ from collections import OrderedDict
 class ModelBase():
 
     def __init__(self, capnp_schema, category, db, index, key="", new=False):
-        self.logger = j.logger.get(capnp_schema.schema.node.displayName)  # TODO find something better than this
+
+        self._propnames = []
         self._capnp_schema = capnp_schema
+        self._propnames = [item for item in self._capnp_schema.schema.fields.keys()]
+
+        self.logger = j.logger.get(capnp_schema.schema.node.displayName)  # TODO find something better than this
         self._category = category
         self._db = db
         self._index = index
@@ -65,8 +69,65 @@ class ModelBase():
         buff = self._db.get(key)
         self.dbobj = self._capnp_schema.from_bytes(buff, builder=True)
 
+    def __getattr__(self, attr):
+        # print("GETATTR:%s" % attr)
+        if attr in self._subobjects:
+            return self.__dict__[attr]
+        else:
+            try:
+                obj = eval("self.dbobj.%s" % attr)
+            except Exception as e:
+                if "has no such member" in str(e):
+                    raise j.exceptions.Input(message="attr '%s' does not exist on %s" %
+                                             (attr, self._capnp_schema), level=1, source="", tags="", msgpub="")
+            return obj
+
+    # TODO: *2 would be nice that this works, but can't get it to work, something recursive
+    # def __setattr__(self, attr, val):
+    #     if attr in ["_propnames", "_subobjects", "dbobj", "_capnp_schema"]:
+    #         self.__dict__[attr] = val
+    #         print("SETATTRBASE:%s" % attr)
+    #         # return ModelBase.__setattr__(self, attr, val)
+    #
+    #     print("SETATTR:%s" % attr)
+    #     if attr in self._propnames:
+    #         print("1%s" % attr)
+    #         # TODO: is there no more clean way?
+    #         dbobj = self._subobjects
+    #         print(2)
+    #         exec("dbobj.%s=%s" % (attr, val))
+    #         print(3)
+    #         #
+    #     else:
+    #         raise j.exceptions.Input(message="Cannot set attr:%s in %s" %
+    #                                  (attr, self), level=1, source="", tags="", msgpub="")
+
+    def __dir__(self):
+        propnames = ["key", "index", "load", "_post_init", "_pre_save", "_generate_key", "save",
+                     "dictFiltered", "reSerialize", "dictJson", "raiseError", "addSubItem", "_listAddRemoveItem",
+                     "logger", "_capnp_schema", "_category", "_db", "_index", "_key", "dbobj", "changed", "_subobjects"]
+        return propnames + self._propnames
+
     def save(self):
         self._pre_save()
+        toRemove = []
+        for key, item in self._subobjects.items():
+            prop = self.__dict__[key]
+            dbobjprop = eval("self.dbobj.%s" % key)
+            if len(dbobjprop) != 0:
+                raise RuntimeError("bug, dbobj prop should be empty, means we didn't reserialize properly")
+            if len(prop) > 0:
+                # init the subobj, iterate over all the items we have & insert them
+                subobj = self.dbobj.init(key, len(prop))
+                for x in range(0, len(prop)):
+                    subobj[x] = prop[x]
+            # capnp has been set remove the python props
+            self.__dict__.pop(key)
+            toRemove.append(key)
+
+        for toRemoveItem in toRemove:
+            self._subobjects.pop(toRemoveItem)
+
         if self._db.inMem:
             self._db.db[self.key] = self
         else:
@@ -88,8 +149,29 @@ class ModelBase():
     @dictFiltered.setter
     def dictFiltered(self, ddict):
         """
-        remove items from obj which cannot be serialized to json or not relevant in dict
         """
+        self.dbobj = self._capnp_schema.new_message(**ddict)
+
+    def reSerialize(self, propertyName=None):
+        """
+        will create an empty object & copy all from existing one into the new one to make sure its as dense as possible
+        """
+        # print("RESERIALIZE")
+        if propertyName in self._subobjects:
+            # means we are already prepared
+            return
+        ddict = self.dbobj.to_dict()
+        if propertyName in ddict:
+            if propertyName in self.__dict__ and len(self.__dict__[propertyName]) != 0:
+                raise RuntimeError("bug in reSerialize, this needs to be empty")
+            self.__dict__[propertyName] = []
+            prop = eval("self.dbobj.%s" % propertyName)
+            for item in prop:
+                self.__dict__[propertyName].append(item)
+                self._subobjects[propertyName] = True
+
+            ddict.pop(propertyName)
+            # is now a clean obj without the property
         self.dbobj = self._capnp_schema.new_message(**ddict)
 
     @property
@@ -101,35 +183,29 @@ class ModelBase():
         msg = "Error in dbobj:%s (%s)\n%s" % (self._category, self.key, msg)
         raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
 
-    def initNewSubObj(self, name, nritems):
+    def addSubItem(self, name, capnpmsg):
+        self._listAddRemoveItem(name)
+        self.__dict__[name].append(capnpmsg)
+        return capnpmsg
+
+    def _listAddRemoveItem(self, name):
         """
-        create new subobj of certain type (=name), if size changes then this is a slow operation
+        if you want to change size of a list on obj use this method
+        capnp doesn't allow modification of lists, so when we want to change size of a list then we need to reSerialize
+        and put content of a list in a python list of dicts
+        we then re-serialize and leave the subobject empty untill we know that we are at point we need to save the object
+        when we save we populate the subobject so we get a nicely created capnp message
         """
-        if name in self._subobjects and self._subobjects[name] != nritems:
-            # self.raiseError("Cannot add new subobj, has already been done for %s" %name)
-            print("warning: capnp unefficient add of subobj:%s" % name)
-            # will copy data out of obj
-            ddict = self.dictFiltered
-            ee = ddict[name]
-            # make sure the obj we changed is not copied back
-            ddict.pop(name)
-            # will reinsert the data appart from the obj we are changing
-            self.dictFiltered = ddict
-            self.dbobj.init(name, nritems)  # create a new empty one
-            # remember how many objects we have now
-            self._subobjects[name] = nritems
-            counter = 0
-            # TODO:*3 is slow, there needs to be a better way
-            for subobj in eval("self.dbobj.%s" % name):
-                subobj0 = ee[counter]
-                for key, val in subobj0.items():
-                    subobj.from_dict(subobj0)
-                    counter += 1
+        if name in self._subobjects:
+            # means we are already prepared
+            return
+        prop = eval("self.dbobj.%s" % name)
+        if len(prop) == 0:
+            self._subobjects[name] = True
+            self.__dict__[name] = []
         else:
-            if not name in self._subobjects:
-                # need to create new one
-                self.dbobj.init(name, nritems)
-                self._subobjects[name] = nritems
+            self.reSerialize(propertyName=name)
+        self.changed = True
 
     def __repr__(self):
         out = "key:%s\n" % self.key

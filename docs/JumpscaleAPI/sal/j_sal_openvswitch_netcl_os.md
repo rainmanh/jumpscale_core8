@@ -31,7 +31,7 @@
     - get_exec_path
     - PRIO_PGRP
     - waitid_result
-    - readlink
+    - readLink
     - getpriority
     - WSTOPPED
     - fsync

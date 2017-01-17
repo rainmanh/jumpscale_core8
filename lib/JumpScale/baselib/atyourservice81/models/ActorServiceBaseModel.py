@@ -23,31 +23,20 @@ class ActorServiceBaseModel(ModelBaseWithData):
                                      level=1, source="", tags="", msgpub="")
         return self.dbobj.name
 
-    def _producerNewObj(self):
-        olditems = [item.to_dict() for item in self.dbobj.producers]
-        newlist = self.dbobj.init("producers", len(olditems) + 1)
-        for i, item in enumerate(olditems):
-            newlist[i] = item
-        return newlist[-1]
-
-    def _producerRemoveObj(self, key):
-        newitems = [item.to_dict() for item in self.dbobj.producers if item.key != key]
-        newlist = self.dbobj.init("producers", len(newitems))
-        for i, item in enumerate(newitems):
-            newlist[i] = item
-
-    def _consumerNewObj(self):
-        olditems = [item.to_dict() for item in self.dbobj.consumers]
-        newlist = self.dbobj.init("consumers", len(olditems) + 1)
-        for i, item in enumerate(olditems):
-            newlist[i] = item
-        return newlist[-1]
-
-    def _consumerRemoveObj(self, key):
-        newitems = [item.to_dict() for item in self.dbobj.consumers if item.key != key]
-        newlist = self.dbobj.init("consumers", len(newitems))
-        for i, item in enumerate(newitems):
-            newlist[i] = item
+    def recurringAdd(self, role, min=1, max=1, auto=True, optional=False, argname=""):
+        """
+          struct ActorPointer {
+            actorRole @0 :Text;
+            minServices @1 :UInt8;
+            maxServices @2 :UInt8;
+            auto @3 :Bool;
+            optional @4 :Bool;
+            argname @5 :Text; # key in the args that contains the instance name of the targets
+          }
+        """
+        msg = self._capnp_schema.ActorPointer.new_message(actorRole=role, minServices=int(min), maxServices=int(max),
+                                                          auto=bool(auto), optional=bool(optional), argname=argname)
+        self.addSubItem("producers", msg)
 
 # actions
 
@@ -107,44 +96,6 @@ class ActorServiceBaseModel(ModelBaseWithData):
             actions[act.name] = act
         return actions
 
-    def actionAdd(self, name, key="", period=0, log=True):
-        """
-        creates and add an action code model to the actor/service
-        """
-        action_obj = None
-        for act in self.dbobj.actions:
-            if act.name == name:
-                action_obj = act
-                if key != "" and action_obj.actionKey != key:
-                    action_obj.state = "changed"
-                    self.changed = True
-                break
-
-        if action_obj is None:
-            action_obj = self._actionsNewObj()
-            action_obj.state = "new"
-            self.changed = True
-            action_obj.name = name
-            if key == "":
-                raise j.exceptions.Input(message="key cannot be empty when adding action:%s to %s" %
-                                         (name, self), level=1, source="", tags="", msgpub="")
-
-        if key != "":
-            action_obj.actionKey = key
-
-        if j.data.types.string.check(period):
-            period = j.data.time.getDeltaTime(period)
-
-        need2save = False
-        if action_obj.period != period:
-            action_obj.period = period
-            self.changed = True
-        if action_obj.log != log:
-            action_obj.log = log
-            self.changed = True
-
-        return action_obj
-
     @property
     def actionsRecurring(self):
         """
@@ -161,26 +112,6 @@ class ActorServiceBaseModel(ModelBaseWithData):
     @property
     def eventFilters(self):
         return list(self.dbobj.eventFilters)
-
-    def _actionsNewObj(self):
-        olditems = [item.to_dict() for item in self.dbobj.actions]
-        newlist = self.dbobj.init("actions", len(olditems) + 1)
-        for i, item in enumerate(olditems):
-            newlist[i] = item
-        action = newlist[-1]
-        self.changed = True
-        return action
-
-    def actionDelete(self, name):
-        olditems = [item.to_dict() for item in self.dbobj.actions]
-        for item in olditems:
-            if item['name'] == name:
-                olditems.remove(item)
-                break
-        newlist = self.dbobj.init("actions", len(olditems))
-        for i, item in enumerate(olditems):
-            newlist[i] = item
-        self.changed = True
 
     def actionGet(self, name, die=True):
         for action in self.dbobj.actions:

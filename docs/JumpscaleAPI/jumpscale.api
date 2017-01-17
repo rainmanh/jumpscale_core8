@@ -3918,7 +3918,7 @@ j.sal.fs.readFile?4([- filename
 ])
 j.sal.fs.readObjectFromFile?4([- filelocation
 ])
-j.sal.fs.readlink?4([- path
+j.sal.fs.readLink?4([- path
 ])
 j.sal.fs.remove?4([- path
 ])
@@ -10890,7 +10890,7 @@ j.sal.fs.readFile?4([- filename
 ])
 j.sal.fs.readObjectFromFile?4([- filelocation
 ])
-j.sal.fs.readlink?4([- path
+j.sal.fs.readLink?4([- path
 ])
 j.sal.fs.remove?4([- path
 ])
@@ -18029,7 +18029,7 @@ j.sal.fs.readFile?4([- filename
 ])
 j.sal.fs.readObjectFromFile?4([- filelocation
 ])
-j.sal.fs.readlink?4([- path
+j.sal.fs.readLink?4([- path
 ])
 j.sal.fs.remove?4([- path
 ])

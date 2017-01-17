@@ -10,7 +10,7 @@ class Dep:
         self.name = name
         self.path = path
         if j.sal.fs.isLink(self.path):
-            link = j.sal.fs.readlink(self.path)
+            link = j.sal.fs.readLink(self.path)
             if j.sal.fs.exists(path=link):
                 self.path = link
                 return
@@ -171,7 +171,7 @@ class Sandboxer:
                "pyc", "bak"], append=False, reset=False, removePrefix="", compress=True, delete=False, excludeDirs=[]):
         def copy2dest(src, removePrefix):
             if j.sal.fs.isLink(src):
-                srcReal = j.sal.fs.readlink(src)
+                srcReal = j.sal.fs.readLink(src)
                 if not j.sal.fs.isAbsolute(srcReal):
                     srcReal = j.sal.fs.joinPaths(j.sal.fs.getParent(src), srcReal)
             else:

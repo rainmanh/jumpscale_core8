@@ -24,19 +24,19 @@ struct EventFilter {
     # the command that will trigger the execution of the action.
     command @1 :Text;
     # action e.g. start, can be left empty
-    action @2 :Text;
+    actions @2 :List(Text);
     # tags which define sort of filtering e.g. importance:urgent state:down
     tags @3 :Text;
-    # secrets (comma separated list of secret keys which allow event to execute)
-    secrets @4 :Text;
+    # secrets
+    secrets @4 :List(Text);
+    role @5 :Text;
+    #if you want to specify a specific service instance
+    service @6 :Text;
+    #when there is no service but only instances of objects on which actor can work
+    instance @7 :Text;
+    log @8 :Bool;
 }
 
-
-struct Repo {
-  name @0 :Text;
-  path @1 :Text;
-  noExec @2 :Bool;
-}
 
 struct Actor {
 
@@ -64,7 +64,7 @@ struct Actor {
     maxServices @2 :UInt8;
     auto @3 :Bool;
     optional @4 :Bool;
-    argKey @5 :Text; # key in the args that contains the instance name of the targets
+    argname @5 :Text; # key in the args that contains the instance name of the targets
   }
 
   actions @5 :List(Action);
@@ -109,7 +109,7 @@ struct Actor {
 
   serviceDataSchema @10 :Text;
 
-  data @11 :Data; #is msgpack dict
+  data @11 :Data; #is capnp struct
 
   dataUI @12 :Text;
 

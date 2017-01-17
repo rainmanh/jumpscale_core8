@@ -37,14 +37,17 @@ class SystemFSWalker:
 
     @staticmethod
     def _findhelper(arg, path):
+        print(path)
         arg.append(path)
 
     @staticmethod
     def find(root, recursive=True, includeFolders=False, pathRegexIncludes=[
-             ".*"], pathRegexExcludes=[], contentRegexIncludes=[], contentRegexExcludes=[], depths=[]):
+             ".*"], pathRegexExcludes=[".git"], contentRegexIncludes=[], contentRegexExcludes=[],
+             depths=[], followlinks=True):
         listfiles = []
         SystemFSWalker.walk(root, SystemFSWalker._findhelper, listfiles, recursive, includeFolders,
-                            pathRegexIncludes, pathRegexExcludes, contentRegexIncludes, contentRegexExcludes, depths)
+                            pathRegexIncludes, pathRegexExcludes, contentRegexIncludes, contentRegexExcludes,
+                            depths, followlinks=followlinks)
         return listfiles
 
     @staticmethod
@@ -156,7 +159,7 @@ class SystemFSWalker:
 
     @staticmethod
     def walkFunctional(root, callbackFunctionFile=None, callbackFunctionDir=None, arg="",
-                       callbackForMatchDir=None, callbackForMatchFile=None):
+                       callbackForMatchDir=None, callbackForMatchFile=None, findDirectorySymlinks=True):
         '''Walk through filesystem and execute a method per file and dirname
 
         Walk through all files and folders starting at C{root}, recursive by
@@ -198,11 +201,12 @@ class SystemFSWalker:
         # print "ROOT OF WALKER:%s"%root
 
         j.sal.fs.walker._walkFunctional(
-            root, callbackFunctionFile, callbackFunctionDir, arg, callbackForMatchDir, callbackForMatchFile)
+            root, callbackFunctionFile, callbackFunctionDir, arg, callbackForMatchDir,
+            callbackForMatchFile, findDirectorySymlinks=findDirectorySymlinks)
 
     @staticmethod
     def _walkFunctional(path, callbackFunctionFile=None, callbackFunctionDir=None,
-                        arg="", callbackForMatchDir=None, callbackForMatchFile=None):
+                        arg="", callbackForMatchDir=None, callbackForMatchFile=None, findDirectorySymlinks=True):
 
         paths = sorted(j.sal.fs.listFilesInDir(path, listSymlinks=True))
         for path2 in paths:
@@ -212,7 +216,7 @@ class SystemFSWalker:
                 # execute
                 callbackFunctionFile(path2, arg)
 
-        paths = sorted(j.sal.fs.listDirsInDir(path))
+        paths = sorted(j.sal.fs.listDirsInDir(path, findDirectorySymlinks=findDirectorySymlinks))
         for path2 in paths:
             # print "walker dirpath:%s"% path2
             if callbackForMatchDir is None or callbackForMatchDir(path2, arg):
@@ -226,4 +230,4 @@ class SystemFSWalker:
                     if result != False:
                         # print "walker recurse:%s"% path2
                         j.sal.fs.walker._walkFunctional(
-                            path2, callbackFunctionFile, callbackFunctionDir, arg, callbackForMatchDir, callbackForMatchFile)
+                            path2, callbackFunctionFile, callbackFunctionDir, arg, callbackForMatchDir, callbackForMatchFile, findDirectorySymlinks=findDirectorySymlinks)

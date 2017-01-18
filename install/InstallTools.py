@@ -1738,10 +1738,10 @@ class ExecutorMethods():
         async def _read_stream(stream, cb, res):
             while True:
                 line = await stream.readline()
-                if res != None:
+                if res is not None:
                     res.append(line)
                 if line:
-                    if cb != None:
+                    if cb is not None:
                         cb(line)
                 else:
                     break
@@ -1786,7 +1786,7 @@ class ExecutorMethods():
         if useShell:
             cmds = ["bash", "-c", command]
         else:
-            cmds = [command]
+            cmds = command.split()
 
         rc, resout, reserr = loop.run_until_complete(
             _stream_subprocess(
@@ -2592,7 +2592,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         change = {}
         change["JSAPPSDIR"] = lambda x: "%s/apps" % x["JSBASE"]
         change["JSBASEDIR"] = lambda x: x["JSBASE"]
-        change["BINDIR"] = lambda x: "%s/bin" % x["BASEDIR"]
+        change["BINDIR"] = lambda x: "%s/bin" % x["JSBASE"]
         change["DATADIR"] = lambda x: "%s/data" % x["VARDIR"]
         change["CODEDIR"] = lambda x: "%s/code" % x["BASEDIR"]
         change["BUILDDIR"] = lambda x: "%s/build" % x["VARDIR"]

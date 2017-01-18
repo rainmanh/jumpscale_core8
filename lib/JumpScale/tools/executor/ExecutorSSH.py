@@ -32,7 +32,7 @@ class ExecutorSSH(ExecutorBase):
 
     @property
     def logger(self):
-        if self._logger == None:
+        if self._logger is None:
             self._logger = j.logger.get("executor.%s" % self.addr)
         return self._logger
 
@@ -66,7 +66,7 @@ class ExecutorSSH(ExecutorBase):
 
     @property
     def id(self):
-        if self._id == None:
+        if self._id is None:
             self._id = '%s_%s' % (self.addr, self.getMacAddr())
         return self._id
 
@@ -199,7 +199,7 @@ class ExecutorSSH(ExecutorBase):
         if showout:
             self.logger.debug("cmd: %s" % cmds)
 
-        if checkok == None:
+        if checkok is None:
             checkok = self.checkok
 
         cmds2 = self._transformCmds(cmds, die, checkok=checkok, env=env)

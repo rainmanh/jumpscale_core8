@@ -102,7 +102,7 @@ class CuisineGolang(app):
 
     @property
     def GOPATH(self):
-        return self.cuisine.core.dir_paths["self.GOPATHDIR"]
+        return j.dirs.GOPATHDIR
 
     def clean_src_path(self):
         srcpath = self.cuisine.core.joinpaths(self.GOPATH, 'src')

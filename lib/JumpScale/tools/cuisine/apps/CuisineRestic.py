@@ -52,65 +52,64 @@ class CuisineRestic(app):
 
         self.doneSet("install")
 
+    def getRepository(self, path, password):
+        """
+        @return ResticRepository object. If the repo doesn't exist yet, it will
+                be created and initialized
+        """
+        return ResticRepository(path, password, self.cuisine)
 
-    def initRepository(self, path, password):
-        """
-        @param path: where to create the backup repository
-        @param password: password to set on the repository
-        """
+
+class ResticRepository:
+    """This class represent a restic repository used for backup"""
+    def __init__(self, path, password, cuisine):
+        self.path = path
+        self.__password = password
+        self._cuisine = cuisine
+
+        if not self._exists():
+            self.initRepository()
+
+    def _exists(self):
+        test_file = j.sal.fs.joinPaths(self.path, 'config')
+        return self._cuisine.core.file_exists(test_file)
+
+    def _run(self, cmd, env=None, die=True, showout=True):
         env = {
-            'RESTIC_REPOSITORY': path,
-            'RESTIC_PASSWORD': password
+            'RESTIC_REPOSITORY': self.path,
+            'RESTIC_PASSWORD': self.__password
         }
-        cmd = '$BINDIR/restic init'
-        self.cuisine.core.run(cmd, env=env)
+        if env:
+            env.update(env)
+        return self._cuisine.core.run(cmd=cmd, env=env, die=die, showout=showout)
 
-    def snapshot(self, path, repo, password, tag=None):
+    def initRepository(self):
+        """
+        initialize the repository at self.path location
+        """
+        cmd = '$BINDIR/restic init'
+        self._run(cmd)
+
+    def snapshot(self, path, tag=None):
         """
         @param path: directory/file to snapshot
-        @param repo: restic repository where to create the snapshot
-        @param password: password to use to unlock the restic repository
+        @param tag: tag to add to the snapshot
         """
-        env = {
-            'RESTIC_REPOSITORY': repo,
-            'RESTIC_PASSWORD': password
-        }
         cmd = '$BINDIR/restic backup {} '.format(path)
         if tag:
             cmd += " --tag {}".format(tag)
-        self.cuisine.core.run(cmd, env=env)
+        self._run(cmd)
 
-    def restore_snapshot(self, snapshot_id, dest, repo, password):
+    def restore_snapshot(self, snapshot_id, dest):
         """
         @param snapshot_id: id of the snapshot to restore
         @param dest: path where to restore the snapshot to
-        @param repo: restic repository where to create the snapshot
-        @param password: password to use to unlock the restic repository
         """
-        env = {
-            'RESTIC_REPOSITORY': repo,
-            'RESTIC_PASSWORD': password
-        }
         cmd = '$BINDIR/restic restore --target {dest} {id} '.format(dest=dest, id=snapshot_id)
-        self.cuisine.core.run(cmd, env=env)
+        self._run(cmd)
 
-    def _chunk(self, line):
-        word = ''
-        for c in line:
-            if c == ' ':
-                if word:
-                    yield word
-                    word = ''
-                continue
-            else:
-                word += c
-        if word:
-            yield word
-
-    def list_snapshots(self, repo, password):
+    def list_snapshots(self):
         """
-        @param repo: restic repository where to create the snapshot
-        @param password: password to use to unlock the restic repository
         @return: list of dict representing a snapshot
         { 'date': '2017-01-17 16:15:28',
           'directory': '/optvar/cfg',
@@ -119,12 +118,8 @@ class CuisineRestic(app):
           'tags': 'backup1'
         }
         """
-        env = {
-            'RESTIC_REPOSITORY': repo,
-            'RESTIC_PASSWORD': password
-        }
         cmd = '$BINDIR/restic snapshots'
-        _, out, _ = self.cuisine.core.run(cmd, env=env)
+        _, out, _ = self._run(cmd, showout=False)
 
         snapshots = []
         for line in out.splitlines()[2:]:
@@ -145,18 +140,28 @@ class CuisineRestic(app):
 
         return snapshots
 
-    def check_repo_integrity(self, repo, password):
+    def check_repo_integrity(self):
         """
-        @param repo: restic repository where to create the snapshot
-        @param password: password to use to unlock the restic repository
         @return: True if integrity is ok else False
         """
-        env = {
-            'RESTIC_REPOSITORY': repo,
-            'RESTIC_PASSWORD': password
-        }
         cmd = '$BINDIR/restic check'
-        rc, _, _ = self.cuisine.core.run(cmd, env=env, die=False)
+        rc, _, _ = self._run(cmd)
         if rc != 0:
             return False
         return True
+
+    def _chunk(self, line):
+        """
+        passe line and yield each word separated by space
+        """
+        word = ''
+        for c in line:
+            if c == ' ':
+                if word:
+                    yield word
+                    word = ''
+                continue
+            else:
+                word += c
+        if word:
+            yield word

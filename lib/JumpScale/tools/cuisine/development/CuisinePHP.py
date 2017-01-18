@@ -16,7 +16,7 @@ compileconfig['exec_prefix'] = "$appDir/php"
 compileconfig['with_mysqli'] = True
 compileconfig['with_pdo_mysql'] = True
 compileconfig['with_mysql_sock'] = "/var/run/mysqld/mysqld.sock"
-
+compileconfig['with_apxs2'] = "/usr/bin/apxs2"
 
 
 class CuisinePHP(app):
@@ -29,6 +29,11 @@ class CuisinePHP(app):
 
         buildconfig = deepcopy(compileconfig)
         buildconfig.update(config)  # should be defaultconfig.update(config) instead of overriding the explicit ones.
+
+        # check for apxs2 binary if it's valid.
+        apxs = buildconfig['with_apxs2']
+        if not self._cuisine.core.file_exist(apxs):
+            buildconfig.pop('with_apxs2')
 
         args_string = ""
         for k, v in buildconfig.items():

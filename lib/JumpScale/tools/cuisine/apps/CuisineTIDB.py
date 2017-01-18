@@ -67,34 +67,40 @@ class CuisineTIDB(app):
     def start_pd_server(self, clusterId=1):
         config = {
             'clusterId': clusterId,
-            'dataDir': j.sal.fs.joinPaths(j.dirs.varDir, 'tidb'),
+            'dataDir': j.sal.fs.joinPaths(j.dirs.varDir, 'tidb_data'),
         }
+        self._cuisine.core.dir_ensure(config['dataDir'])
+        cmd = 'pd-server --data-dir={dataDir}'.format(**config)
+        # print("CMD PD-SERVER: ", cmd)
         self._cuisine.processmanager.ensure(
             'tipd',
-            'pd-server --cluster-id {clusterId} \
-            --data-dir={dataDir}'.format(**config),
+            cmd,
         )
 
     def start_tikv(self, clusterId=1):
         config = {
             'clusterId': clusterId,
-            'dataDir': j.sal.fs.joinPaths(j.dirs.varDir, 'tidb'),
+            'dataDir': j.sal.fs.joinPaths(j.dirs.varDir, 'tidb_data'),
+
         }
+        cmd = 'tikv-server --pd="127.0.0.1:2379" --store=tikv'.format(**config)
+        # print("CMD: TIKV: ", cmd)
+
         self._cuisine.processmanager.ensure(
             'tikv',
-            'tikv-server -I {clusterId} -S raftkv \
-            --pd 127.0.0.1:2379 -s tikv1'.format(**config)
+            cmd
         )
 
     def start_tidb(self, clusterId=1):
         config = {
             'clusterId': clusterId,
-            'dataDir': j.sal.fs.joinPaths(j.dirs.varDir, 'tidb'),
+            'dataDir': j.sal.fs.joinPaths(j.dirs.varDir, 'tidb_data'),
         }
+        cmd = 'tidb-server -P 3306 --store=tikv --path="127.0.0.1:2379"'.format(**config)
+        # print("CMD: TIDB: ", cmd)
         self._cuisine.processmanager.ensure(
             'tidb',
-            'tidb-server -P 3306 --store=tikv \
-            --path="127.0.0.1:2379?cluster={clusterId}"'.format(**config)
+            cmd
         )
 
     def simple_start(self, clusterId=1):
@@ -119,6 +125,11 @@ class CuisineTIDB(app):
         #     sleep(2)
         #     tries += 1
 
+
+    def stop(self):
+        self._cuisine.processmanager.stop("tidp")
+        self._cuisine.processmanager.stop("tikv")
+        self._cuisine.processmanager.stop("tidb")
 
     def start(self, clusterId=1):
         return self.simple_start()

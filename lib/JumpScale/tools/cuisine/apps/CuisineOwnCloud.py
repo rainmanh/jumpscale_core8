@@ -13,16 +13,22 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         then install this sw
         configure
         """
+        # SQL client
+        self.cuisine.package.install("mysql-client-core-5.7")
         if not self.cuisine.apps.nginx.isInstalled():
             self.cuisine.apps.nginx.build()
-            self.cuisine.apps.nginx.start()
+            #self.cuisine.apps.nginx.start()
+        # if not self.cuisine.development.php.isInstalled():
+        #     self.cuisine.development.php.build()
+        #     self.cuisine.development.php.install()
+
+        # NO NEED TO INSTALL GO/RUST BECAUSE WE USE THE BINARIES OF TIDB.
+        # if not self.cuisine.development.golang.isInstalled():
+        #     self.cuisine.development.golang.install()
+        # if not self.cuisine.development.rust.isInstalled():
+        #     self.cuisine.development.rust.install()
         if not self.cuisine.development.php.isInstalled():
-            self.cuisine.development.php.build()
             self.cuisine.development.php.install()
-        if not self.cuisine.development.golang.isInstalled():
-            self.cuisine.development.golang.install()
-        if not self.cuisine.development.rust.isInstalled():
-            self.cuisine.development.rust.install()
         if not self.cuisine.apps.tidb.isInstalled():
             self.cuisine.apps.tidb.build()
             self.cuisine.apps.tidb.install()
@@ -30,7 +36,7 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         self.install(start=start, storagepath=storagepath, sitename=sitename)
         # TODO: *2 create a method which does all and is sort of guideline for a customer to understand this, call deps, use the doneSet/Get...
 
-    def install(self, start=True, storagepath="/data/", sitename="owncloudy.com"):
+    def install(self, start=True, storagepath="/data", sitename="owncloudy.com"):
         """
         install owncloud 9.1 on top of nginx/php/tidb
         tidb is the mysql alternative which is ultra reliable & distributed
@@ -40,10 +46,10 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         self.cuisine.package.mdupdate()
         self.cuisine.package.install('bzip2')
         C = """
-        set -xe
-        cd $TMPDIR && [ ! -d $TMPDIR/ays_owncloud ] && git clone https://github.com/0-complexity/ays_owncloud
-        cd $TMPDIR && [ ! -f $TMPDIR/owncloud-9.1.1.tar.bz2 ] && wget https://download.owncloud.org/community/owncloud-9.1.1.tar.bz2 && cd $TMPDIR && tar jxf owncloud-9.1.1.tar.bz2 && rm owncloud-9.1.1.tar.bz2
-        [ ! -d {storagepath} ] && mkdir -p {storagepath}
+        set -xe #FIXME
+        rm -rf /tmp/ownc* &&  cd $TMPDIR && [ ! -d $TMPDIR/ays_owncloud ] && git clone https://github.com/0-complexity/ays_owncloud
+        cd $TMPDIR && [ ! -f $TMPDIR/owncloud-9.1.3.tar.bz2 ] && wget https://download.owncloud.org/community/owncloud-9.1.3.tar.bz2 && tar jxf owncloud-9.1.3.tar.bz2 && rm owncloud-9.1.3.tar.bz2
+        #cd $TMPDIR && [ ! -d {storagepath} ] && mkdir -p {storagepath}
         """.format(storagepath=storagepath)
 
         self.cuisine.core.run(C)
@@ -226,18 +232,19 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         return conf
 
     def start(self, sitename='owncloudy.com', dbhost="127.0.0.1", dbuser="root", dbpass=""):
-
+        if dbpass != "":
+            dbpass = '-p "{dbpass}"'.format(dbpass=dbpass) # DBPASS ARGUMENT.
         owncloudsiterules = self._get_default_conf_nginx_site()
         owncloudsiterules = owncloudsiterules % {"sitename": sitename}
         self.cuisine.core.file_write(
-            "$JSCFGDIR/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
+            "$BUILDDIR/nginx/conf/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
 
         privateIp = self.cuisine.net.getInfo(self.cuisine.net.nics[0])['ip'][0]
 
         C = r"""\
-        mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --port 3306 --execute "CREATE DATABASE owncloud"
-        mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --port 3306 --execute "CREATE USER 'owncloud'@'{ip}' IDENTIFIED BY 'owncloud'"
-        mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --port 3306 --execute "grant all on *.* to 'owncloud'@'{ip}'"
+        mysql -h {dbhost} -u {dbuser} {dbpass} --port 3306 --execute "CREATE DATABASE owncloud"
+        mysql -h {dbhost} -u {dbuser} {dbpass} --port 3306 --execute "CREATE USER 'owncloud'@'{ip}' IDENTIFIED BY 'owncloud'"
+        mysql -h {dbhost} -u {dbuser} {dbpass} --port 3306 --execute "grant all on *.* to 'owncloud'@'{ip}'"
         """.format(dbhost=dbhost, dbuser=dbuser, dbpass=dbpass, ip=privateIp)
 
         self.cuisine.core.run(C)
@@ -255,7 +262,7 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
 
         basicnginxconf = self.cuisine.apps.nginx.get_basic_nginx_conf()
         basicnginxconf = basicnginxconf.replace(
-            "include $JSAPPSDIR/nginx/etc/sites-enabled/*;", "include $JSCFGDIR/nginx/etc/sites-enabled/*;")
+            "include $BUILDDIR/nginx/conf/sites-enabled/*;", "include $BUILDDIR/nginx/conf/sites-enabled/*;")
         basicnginxconf = self.replace(basicnginxconf)
         C = """
         chown -R www-data:www-data $JSAPPSDIR/owncloud $JSCFGDIR/nginx
@@ -263,7 +270,7 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         chown -R www-data:www-data /data
         """
         self.cuisine.core.run(C)
-        self.cuisine.core.file_write("$JSCFGDIR/nginx/etc/nginx.conf", content=basicnginxconf)
+        self.cuisine.core.file_write("$BUILDDIR/nginx/conf/nginx.conf", content=basicnginxconf)
         self.cuisine.apps.nginx.stop()
         self.cuisine.apps.nginx.start()
         self.cuisine.development.php.start()

@@ -1162,7 +1162,7 @@ class CuisineCore(base):
         if interpreter == "bash":
             content += "\necho '**OK**'\n"
         elif interpreter.startswith("python") or interpreter.startswith("jspython"):
-            content += "\nself.log('**OK**\\n')\n"
+            content += "\nprint('**OK**\\n')\n"
 
         ext = "sh"
         if interpreter.startswith("python"):

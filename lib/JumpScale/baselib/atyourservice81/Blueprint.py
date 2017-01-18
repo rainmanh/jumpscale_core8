@@ -60,6 +60,7 @@ class Blueprint:
     def load(self, role="", instance=""):
         self.actions = []
         self.eventFilters = []
+        self._validate_models_data()
         for model in self.models:
             if model is not None:
 
@@ -253,29 +254,56 @@ class Blueprint:
 
     def _validate_format(self, models):
         for model in models:
-            if not j.data.types.dict.check(model):
+            if model is None:
+                continue
+
+            if model and not j.data.types.dict.check(model):
                 self.logger.error("Bad formatted blueprint: %s" % self.path)
                 return False
 
-            if model is not None:
-                for key in model.keys():
+            for key in model.keys():
 
-                    # this two blocks doesn't have the same format as classic service declaration
-                    if key in ['actions', 'eventfilters']:
-                        if not j.data.types.list.check(model[key]):
-                            self.logger.error("%s should be a list of dictionary: found %s" % (key, type(model[key])))
-                            return False
-                    else:
-                        if key.find("__") == -1:
-                            self.logger.error("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
-                            return False
+                # this two blocks doesn't have the same format as classic service declaration
+                if key in ['actions', 'eventfilters']:
+                    if not j.data.types.list.check(model[key]):
+                        self.logger.error("%s should be a list of dictionary: found %s" % (key, type(model[key])))
+                        return False
+                else:
+                    if key.find("__") == -1:
+                        self.logger.error("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
+                        return False
 
-                        aysname, _ = key.split("__", 1)
-                        if aysname not in self.aysrepo.templates:
-                            self.logger.error("Service template %s not found. Can't execute this blueprint" % aysname)
-                            return False
+                    aysname, _ = key.split("__", 1)
+                    if aysname not in self.aysrepo.templates:
+                        self.logger.error("Service template %s not found. Can't execute this blueprint" % aysname)
+                        return False
 
         return True
+
+    def _validate_models_data(self):
+        """
+        Validates the models by checking the parameters passed to the blueprint for each instance.
+        """
+
+        errors = []
+        for m in self.models:
+            if m is None:
+                continue
+            for actorinstance, args in m.items():
+                # ACTOR NAME__instance
+                if actorinstance in ['actions', 'eventfilters']:
+                    continue
+                actorname, actorinstance = actorinstance.split("__")
+                actor = self.aysrepo.actorGet(name=actorname)
+                if not args:
+                    continue
+                dataschema = actor.model.dbobj.serviceDataSchema
+                for field in args:
+                    normalizedfieldname = field.replace(".", "").replace("_", "").lower()
+                    if normalizedfieldname + " " not in dataschema.lower():
+                        errors.append('- Invalid parameter [{field}] passed while creating instance[{actorinstance}] of [{actorname}].\nDataSchema: {dataschema}'.format(**locals()))
+        if errors:
+            raise j.exceptions.Input("The blueprint contains the following errors: \n" + "\n".join(errors))
 
     def validate(self):
         if not self._validate_yaml(self.content):

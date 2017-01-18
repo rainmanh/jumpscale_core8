@@ -16,7 +16,7 @@ class CuisineMariadb(app):
         chown -R mysql.mysql /var/run/mysqld
         mysql_install_db --basedir=/usr --datadir=/data/db
         """
-        self.cuisine.core.execute_bash(script)
+        self.cuisine.core.run(script)
         if start:
             self.start()
 

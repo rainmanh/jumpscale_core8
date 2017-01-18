@@ -7,6 +7,10 @@ app = j.tools.cuisine._getBaseAppClass()
 class CuisineARDB(app):
     NAME = 'ardb'
 
+    def reset(self):
+        app.reset(self)
+        self._init()
+
     def _init(self):
         self.BUILDDIRFDB = self.replace("$BUILDDIR/forestdb/")
         self.CODEDIRFDB = self.replace("$CODEDIR/github/couchbase/forestdb")
@@ -107,7 +111,6 @@ class CuisineARDB(app):
 
         # config = config.replace("redis-compatible-mode     no", "redis-compatible-mode     yes")
         # config = config.replace("redis-compatible-version  2.8.0", "redis-compatible-version  3.5.2")
-        
 
         self.core.dir_ensure(datadir)
 

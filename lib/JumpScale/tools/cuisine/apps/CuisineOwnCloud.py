@@ -7,13 +7,27 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
 
     NAME = 'owncloud'
 
-    def installAll(self):
+    def installAll(self, start=True, storagepath='/data/', sitename="owncloudy.com"):
         """
         install all deps (check if e.g. php, apache is installed otherwise not)
         then install this sw
         configure
         """
-        pass
+        if not self.cuisine.apps.nginx.isInstalled():
+            self.cuisine.apps.nginx.build()
+            self.cuisine.apps.nginx.start()
+        if not self.cuisine.development.php.isInstalled():
+            self.cuisine.development.php.build()
+            self.cuisine.development.php.install()
+        if not self.cuisine.development.golang.isInstalled():
+            self.cuisine.development.golang.install()
+        if not self.cuisine.development.rust.isInstalled():
+            self.cuisine.development.rust.install()
+        if not self.cuisine.apps.tidb.isInstalled():
+            self.cuisine.apps.tidb.build()
+            self.cuisine.apps.tidb.install()
+
+        self.install(start=start, storagepath=storagepath, sitename=sitename)
         # TODO: *2 create a method which does all and is sort of guideline for a customer to understand this, call deps, use the doneSet/Get...
 
     def install(self, start=True, storagepath="/data/", sitename="owncloudy.com"):
@@ -32,7 +46,7 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         [ ! -d {storagepath} ] && mkdir -p {storagepath}
         """.format(storagepath=storagepath)
 
-        self.cuisine.core.execute_bash(C)
+        self.cuisine.core.run(C)
 
         # deploy in $JSAPPSDIR/owncloud
         # use nginx/php other cuisine packages
@@ -50,7 +64,7 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
 
         """
 
-        self.cuisine.core.execute_bash(C)
+        self.cuisine.core.run(C)
         gigconf = self._get_default_conf_owncloud()
         gigconf = gigconf % {'storagepath': storagepath}
         self.cuisine.core.file_write("$JSAPPSDIR/owncloud/config/config.php", content=gigconf)
@@ -226,7 +240,7 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         mysql -h {dbhost} -u {dbuser} -p "{dbpass}" --port 3306 --execute "grant all on *.* to 'owncloud'@'{ip}'"
         """.format(dbhost=dbhost, dbuser=dbuser, dbpass=dbpass, ip=privateIp)
 
-        self.cuisine.core.execute_bash(C)
+        self.cuisine.core.run(C)
 
         # TODO: *3 if not installed
         cmd = """
@@ -237,7 +251,7 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         $JSAPPSDIR/php/bin/php $JSAPPSDIR/owncloud/occ config:system:set trusted_domains 1 --value={sitename}
         """.format(dbhost=dbhost, sitename=sitename)
 
-        self.cuisine.core.execute_bash(cmd)
+        self.cuisine.core.run(cmd)
 
         basicnginxconf = self.cuisine.apps.nginx.get_basic_nginx_conf()
         basicnginxconf = basicnginxconf.replace(
@@ -248,14 +262,20 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         chmod 777 -R $JSAPPSDIR/owncloud/config
         chown -R www-data:www-data /data
         """
-        self.cuisine.core.execute_bash(C)
+        self.cuisine.core.run(C)
         self.cuisine.core.file_write("$JSCFGDIR/nginx/etc/nginx.conf", content=basicnginxconf)
-        self.cuisine.processmanager.stop("nginx")
+        self.cuisine.apps.nginx.stop()
         self.cuisine.apps.nginx.start()
         self.cuisine.development.php.start()
 
     def restart(self):
-        pass
+        """
+        Restart owncloud.
+        """
+        self.cuisine.apps.nginx.stop()
+        self.cuisine.apps.nginx.start()
+        self.cuisine.development.php.stop()
+        self.cuisine.development.php.start()
 
     def test(self):
         # TODO: test owncloud api, simple test *2

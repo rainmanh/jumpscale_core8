@@ -17,23 +17,26 @@ class Profile:
         export Y
         """
         self.bash = bash
-        self.home = bash.home
-        self.cuisine = bash.cuisine
-        self._env = {}
-        self._path = set()
-        self._includes = set()
-
         if profilePath == "":
             self.pathProfile = j.sal.fs.joinPaths(self.home, ".profile_js")
         else:
             self.pathProfile = profilePath
 
-        content = self.cuisine.core.file_read(profilePath)
+        self.load()
+
+    def load(self):
+        self.home = self.bash.home
+        self.cuisine = self.bash.cuisine
+        self._env = {}
+        self._path = []
+        self._includes = []
+
+        content = self.cuisine.core.file_read(self.pathProfile)
 
         for match in Profile.env_pattern.finditer(content):
             self._env[match.group(1)] = match.group(2)
         for match in Profile.include_pattern.finditer(content):
-            self._includes.add(match.group(1))
+            self._includes.append(match.group(1))
 
         # load path
         if 'PATH' in self._env:
@@ -57,7 +60,7 @@ class Profile:
         path = path.replace("//", "/")
         path = path.rstrip("/")
         if path not in self._path:
-            self._path.add(path)
+            self._path.append(path)
 
     def addInclude(self, path):
         path = path.strip()
@@ -65,7 +68,7 @@ class Profile:
         path = path.replace("//", "/")
         path = path.rstrip("/")
         if path not in self._includes:
-            self._includes.add(path)
+            self._includes.append(path)
 
     @property
     def paths(self):
@@ -82,6 +85,41 @@ class Profile:
 
     def envDelete(self, key):
         del self._env[key]
+
+    def envDeleteAll(self, key):
+        """
+        dangerous function will look for env argument which has been set in the profile
+        if found will delete
+        and will do this multiple times to make sure all instances are found
+        """
+        while self.envExists(key):
+            self.envDelete(key)
+
+    def deleteAll(self, key):
+        while self.envExists(key):
+            path = self.envGet(key)
+            if path in self.paths:
+                self._path.pop(self._path.index(path))
+            self.envDelete(key)
+
+    def pathDelete(self, filter):
+        """
+        @param filter e.g. /go/
+        """
+        for path in self.paths:
+            if path.find(filter) != -1:
+                self._path.pop(self._path.index(path))
+
+    def deletePathFromEnv(self, key):
+        """
+        dangerous function will look for env argument which has been set in the profile
+        if found will delete
+        and will do this multiple times to make sure all instances are found
+        """
+        while self.envExists(key):
+            path = self.envGet(key)
+            self.cuisine.core.dir_remove(path)
+            self.envDelete(key)
 
     def __str__(self):
         self._env['PATH'] = ':'.join(set(self.paths)) + ":$PATH"
@@ -120,19 +158,25 @@ class Profile:
         @param includeInDefaultProfile, if True then will include in the default profile
         """
 
+        self.cuisine.core.file_write(self.pathProfile, str(self), showout=True)
+
         # make sure we include our custom profile in the default
         if includeInDefaultProfile is True:
-            out = ""
-            for line in self.cuisine.core.file_read(self.bash.profileDefault.pathProfile).split("\n"):
-                if line.find(self.pathProfile) != -1:
-                    continue
-                out += "%s\n" % line
-            out += "\nsource %s\n" % self.pathProfile
-            self.cuisine.core.file_write(self.bash.profileDefault.pathProfile, out)
+            if self.pathProfile != self.bash.profileDefault.pathProfile:
+                print("INCLUDE IN DEFAULT PROFILE:%s" % self.pathProfile)
+                out = ""
+                inProfile = self.cuisine.core.file_read(self.bash.profileDefault.pathProfile)
+                for line in inProfile.split("\n"):
+                    if line.find(self.pathProfile) != -1:
+                        continue
+                    out += "%s\n" % line
 
-        self.cuisine.core.file_write(self.pathProfile, str(self), showout=False)
+                out += "\nsource %s\n" % self.pathProfile
+                if out.replace("\n", "") != inProfile.replace("\n", ""):
+                    self.cuisine.core.file_write(self.bash.profileDefault.pathProfile, out)
+                    self.bash.profileDefault.load()
 
-        self.bash.reset()#do not remove !
+        self.bash.reset()  # do not remove !
 
     def getLocaleItems(self, force=False, showout=False):
         out = self.cuisine.core.run("locale -a")[1]

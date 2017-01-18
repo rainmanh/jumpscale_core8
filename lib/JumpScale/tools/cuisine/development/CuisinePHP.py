@@ -52,7 +52,7 @@ class CuisinePHP(app): #TEST on ovh4 *3
         """.format(args_string=args_string)
 
         C = self.replace(C)
-        self.cuisine.core.execute_bash(C)
+        self.cuisine.core.run(C, timeout=3000)
 
         # check if we need an php accelerator: https://en.wikipedia.org/wiki/List_of_PHP_accelerators
 
@@ -87,7 +87,7 @@ class CuisinePHP(app): #TEST on ovh4 *3
         """
 
         C = self.replace(C)
-        self.cuisine.core.execute_bash(C)
+        self.cuisine.core.run(C)
         fpmdefaultconf = self.replace(fpmdefaultconf)
         fpmwwwconf = self.replace(fpmwwwconf)
         self.cuisine.core.file_write("$JSAPPSDIR/php/etc/php-fpm.conf.default", content=fpmdefaultconf)

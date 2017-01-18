@@ -7,7 +7,7 @@ def test(geodns_install=False, dnsresolver_install=True, port=3333, tmux=True):
     # start geodns instance(this is the main object to be used it is an
     # abstraction of the domain object)
     cuisine = j.tools.cuisine.local
-    geodns = cuisine.geodns
+    geodns = cuisine.apps.geodns
 
     if dnsresolver_install:
         cuisine.core.run('pip install dnspython')
@@ -18,20 +18,19 @@ def test(geodns_install=False, dnsresolver_install=True, port=3333, tmux=True):
         # cuisine.core.run("cd %s && python setup.py" % extracted)
 
     if geodns_install:
-        geodns.install()
-
+        geodns.install(reset=True)
     geodns.start(port=port, tmux=tmux)
 
     # create a domain(the domain object is used as for specific trasactions
     # and is exposed for debugging purposes)
-    domain_manager = j.sal.domainmanager.get(cuisine)
+    domain_manager = j.clients.domainmanager.get(cuisine)
     domain = domain_manager.ensure_domain("gig.com", serial=3, ttl=600)
     print(domain._a_records)
     print(domain._cname_records)
 
     # add an A record
-    domain_manager.add_record("gig.com", "www", "a", "123.45.123.1")
-
+    domain.add_a_record("123.45.123.1", "www")
+    domain.save()
     # test_connection
     my_resolver = dns.resolver.Resolver()
     my_resolver.nameservers = ['127.0.0.1', '192.168.122.250']
@@ -44,8 +43,8 @@ def test(geodns_install=False, dnsresolver_install=True, port=3333, tmux=True):
         print("failure")
 
     # add cname record
-    domain_manager.add_record("gig.com", "grid", "cname", "www")
-
+    domain.add_cname_record("www", "grid")
+    domain.save()
     # test connection
     answer2 = my_resolver.query("grid.gig.com", rdtype="cname")
     time.sleep(5)
@@ -56,19 +55,19 @@ def test(geodns_install=False, dnsresolver_install=True, port=3333, tmux=True):
     print(str(type(answer1)) + str(type(answer2)))
 
     # get A record
-    a_records = domain_manager.get_record("gig.com", "a")
+    a_records = domain.get_a_record()
 
     if a_records == {"www": [["123.45.123.1", 100]]}:
         print("get A record Test SUCCESS")
 
     # get cname record
-    cname_records = domain_manager.get_record("gig.com", "cname")
+    cname_records = domain.get_cname_record()
     if cname_records == {"grid": "www"}:
         print("get cname cname_records")
 
     # delete A record
-    domain_manager.del_record("gig.com", "a", "www", full=True)
-
+    domain.del_a_record("www", full=True)
+    domain.save()
     # test deltion
     try:
         answer1 = my_resolver.query('www.gig.com')
@@ -76,8 +75,8 @@ def test(geodns_install=False, dnsresolver_install=True, port=3333, tmux=True):
         print(str(e))
 
     # delete cname record
-    domain_manager.del_record("gig.com", "cname", "grid", full=True)
-
+    domain.del_cname_record("grid")
+    domain.save()
     # test deltion
     try:
         answer1 = my_resolver.query('grid.gig.com')
@@ -86,4 +85,4 @@ def test(geodns_install=False, dnsresolver_install=True, port=3333, tmux=True):
 
 
 if __name__ == "__main__":
-    test()
+    test(geodns_install=False)

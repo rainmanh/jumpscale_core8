@@ -19,7 +19,7 @@ class CuisineLua(app):
         curl -L https://github.com/luvit/lit/raw/master/get-lit.sh | sh
 
         """
-        self.cuisine.core.execute_bash(C, profile=True)
+        self.cuisine.core.run(C, profile=True)
         self.package("luash")
         self.package("luasocket")
         self.package("luasec")
@@ -104,7 +104,7 @@ class CuisineLua(app):
 
         sudo luarocks install lightningmdb
         """
-        self.cuisine.core.execute_bash(C)
+        self.cuisine.core.run(C)
 
         # REQUIRED IN BASH
         # export LUA_PATH=$JSBASE/lib/lua/?.lua;./?.lua;$JSBASE/lib/lua/?/?.lua;$JSBASE/lib/lua/?/init.lua

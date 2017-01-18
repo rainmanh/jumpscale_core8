@@ -44,7 +44,7 @@ class CuisineZerotier(base):
     def install(self):
         built = [item for item in self.cuisine.core.run("ls %s/" % self.BUILDDIRL)[1].split("\n") if item.startswith("zerotier-")]
         for item in built:
-            self.cuisine.core.file_copy("%s/%s" % (self.BUILDDIRL, item), self.cuisine.core.dir_paths['BINDIR'])
+            self.cuisine.core.file_copy("%s/%s" % (self.BUILDDIRL, item), "%s/%s" % (self.cuisine.core.dir_paths['BINDIR'], item))
 
     def start(self):
         self.cuisine.bash.profileDefault.addPath(self.cuisine.core.replace("$BINDIR"))

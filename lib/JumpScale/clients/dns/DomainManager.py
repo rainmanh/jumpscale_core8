@@ -3,7 +3,7 @@ from JumpScale import j
 
 class DomainManager:
     def __init__(self):
-        self.__jslocation__ = "j.sal.domainmanager"
+        self.__jslocation__ = "j.clients.domainmanager"
         self.cuisine = j.tools.cuisine.local
 
     def get(self, cuisine):

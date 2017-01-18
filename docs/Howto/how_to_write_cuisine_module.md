@@ -29,6 +29,19 @@ class CuisineExample(CuisineApp):
         self.core.dir_remove(self.CODEDIR)
         self.cuisine.development.pip.reset()
 
+    def _run(self, command):
+        """
+        to simplify your life, you can use this method to apply BUILDDIR and CODEDIR
+        automatically during a 'run' command.
+
+        this will let you do:
+          self._run("cd $CODEDIR; make")
+
+        and not:
+          self.cuisine.core.run(self.replace("cd $CODEDIR; make"))
+        """"
+        return self.cuisine.core.run(self.replace(command))
+
     def build(self,  reset=False):
         """
         build method: it builds the application from source.
@@ -42,7 +55,7 @@ class CuisineExample(CuisineApp):
 
         reset is a boolean used to reset before trying to build. If reset is true, we start clean and start the build from scratch
         """
-        if reset is False or self.isInstalled() or self.doneGet('build'):
+        if reset is False and (self.isInstalled() or self.doneGet('build')):
             return
 
         self.cuisine.development.git.pullRepo("https://github.com/example/myapp")

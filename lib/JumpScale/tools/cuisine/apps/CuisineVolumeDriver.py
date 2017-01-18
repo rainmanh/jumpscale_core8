@@ -75,5 +75,5 @@ class CuisineVolumeDriver(app):
         ./volumedriver/src/buildscripts/jenkins-release-dev.sh ${WORKSPACE}/volumedriver
         """ % str_repl
 
-        self.cuisine.core.execute_bash(build_script)
+        self.cuisine.core.run(build_script)
         self.cuisine.core.file_copy('$TMPDIR/volumedriver-workspace/volumedriver/build/bin/*', '$BINDIR')

@@ -12,6 +12,12 @@ class GogsFactory:
     def getRestClient(self, addr='https://127.0.0.1', port=3000, login='root', passwd='root'):
         return GogsClient(addr=addr, port=port, login=login, passwd=passwd)
 
+    def syncAllFromPSQL(self, ipaddr="127.0.0.1", port=5432, login='gogs', passwd='something', dbname="gogs"):
+        self.getIssuesFromPSQL(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
+        self.getUsersFromPSQL(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
+        self.getReposFromPSQL(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
+        self.getOrgsFromPSQL(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
+
     def getIssuesFromPSQL(self, ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs"):
         """
         Load issues from remote database into model.

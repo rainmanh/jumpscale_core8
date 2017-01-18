@@ -2566,13 +2566,19 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             if exists("%s/env.sh" % curdir) and exists("%s/js.sh" % (curdir)):
                 env["BASEDIR"] = os.getcwd()
             else:
-                env["BASEDIR"] = "/opt"
+                if self.TYPE != "LINUX":
+                    env["BASEDIR"] = "%s/opt" % env['HOME']
+                else:
+                    env["BASEDIR"] = "/opt"
 
         if not "JSBASE" in env:
             env["JSBASE"] = "%s/jumpscale8" % env["BASEDIR"]
 
         if not "VARDIR" in env:
-            env["VARDIR"] = "/optvar"
+            if self.TYPE != "LINUX":
+                env["VARDIR"] = "%s/optvar" % env['HOME']
+            else:
+                env["VARDIR"] = "/optvar"
 
         env["HOMEDIR"] = env["HOME"]
 
@@ -2580,7 +2586,10 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             env["CFGDIR"] = "%s/cfg" % env["VARDIR"]
 
         if exists("/tmp"):
-            env["TMPDIR"] = "/tmp"
+            if self.TYPE != "LINUX":
+                env["TMPDIR"] = "%s/tmp" % env['HOME']
+            else:
+                env["TMPDIR"] = "/tmp"
         if not "TMPDIR" in env:
             raise RuntimeError("Cannot define a tmp dir, set env variable")
 
@@ -2649,7 +2658,6 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
 
     def init(self):
 
-        self.initEnv(env=os.environ)
 
         if platform.system().lower() == "windows" or platform.system().lower() == "cygwin_nt-10.0":
             # self.TYPE = "WIN"
@@ -2663,6 +2671,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         else:
             raise RuntimeError("Jumpscale only supports windows 7+, macosx, ubuntu 12+")
 
+        self.initEnv(env=os.environ)
         self.TYPE += platform.architecture()[0][:2]
 
     def initCreateDirs4System(self):

@@ -4,7 +4,11 @@ set -ex
 export STARTDIR=$PWD
 
 if [ -d "/tmp" ]; then
-    export TMPDIR="/tmp"
+    if  [ "$(uname)" == "Darwin" ]; then
+        export  TMPDIR="/JS8/tmp"
+    else
+        export TMPDIR="/tmp"
+    fi
 fi
 
 cd $TMPDIR
@@ -17,7 +21,6 @@ rm -rf $TMPDIR/jsexecutor.json
 rm -f $TMPDIR/done
 
 cd $TMPDIR
-
 function clean_system {
     set +ex
     sed -i.bak /AYS_/d $HOME/.bashrc
@@ -28,9 +31,7 @@ function clean_system {
 
 function osx_install {
     set +ex
-    brew unlink curl
-    brew unlink python3
-    brew unlink git
+    brew list -1 | while read line; do brew unlink $line;
     set -ex
     brew install python3
     brew link --overwrite python3
@@ -115,14 +116,18 @@ set -ex
 
 cd $STARTDIR
 
-rm -f $TMPDIR/bootstrap.py
-rm -f $TMPDIR/InstallTools.py
-rm -f $TMPDIR/dependencies.py
+#rm -f $TMPDIR/bootstrap.py
+#rm -f $TMPDIR/InstallTools.py
+#rm -f $TMPDIR/dependencies.py
 
 if [ -e "bootstrap.py" ]; then
-    cp bootstrap.py $TMPDIR/bootstrap.py
-    cp InstallTools.py $TMPDIR/InstallTools.py
-    cp dependencies.py $TMPDIR/dependencies.py
+    if [ "$PWD" == "$TMPDIR" ]; then
+        echo "using existing python jumpscale files"
+    else
+        cp  -f bootstrap.py $TMPDIR/bootstrap.py
+        cp  -f InstallTools.py $TMPDIR/InstallTools.py
+        cp  -f dependencies.py $TMPDIR/dependencies.py
+    fi
 else
     curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/bootstrap.py?$RANDOM  > $TMPDIR/bootstrap.py
     curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/InstallTools.py?$RANDOM > $TMPDIR/InstallTools.py

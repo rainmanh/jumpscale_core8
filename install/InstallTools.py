@@ -1786,7 +1786,7 @@ class ExecutorMethods():
         if useShell:
             cmds = ["bash", "-c", command]
         else:
-            cmds = [command]
+            cmds = command.split()
 
         rc, resout, reserr = loop.run_until_complete(
             _stream_subprocess(

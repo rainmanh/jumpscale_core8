@@ -62,6 +62,75 @@ class AtYourServiceFactory:
             self._config = cfg
         return self._config
 
+    def upgrade(self):
+
+        path = j.sal.fs.pathNormalize(j.dirs.CODEDIR)
+
+        res = []
+
+        def returnFalse(path, arg):
+            return False
+
+        # check if this is already an actortemplate dir, if not no need to recurse
+        def isValidTemplate(path):
+            dirname = j.sal.fs.getBaseName(path)
+            tocheck = ['schema.hrd']
+            if dirname.startswith("_") or dirname.startswith("."):
+                return False
+            for aysfile in tocheck:
+                if j.sal.fs.exists('%s/%s' % (path, aysfile)):
+                    if not dirname.startswith("_"):
+                        return True
+                    else:
+                        return False
+            return False
+
+        def callbackFunctionDir(path, arg):
+            # print(path)
+            # base = j.sal.fs.getBaseName(path)
+            if arg[3] != "" and isValidTemplate(path):
+                # print(path)
+                arg[1].append(path)
+
+        def callbackForMatchDir(path, arg):
+            base = j.sal.fs.getBaseName(path)
+            if base.startswith("."):
+                return False
+            # if base in [".git", ".hg", ".github"]:
+            #     return False
+            if base.startswith("ays_"):
+                arg[2] = path
+            elif arg[2] != "":
+                if not path.startswith(arg[2]):
+                    arg[2] = ""
+                    # because means that ays repo is no longer our parent
+
+            if base == "templates" and arg[2] != "":
+                arg[3] = path
+            elif arg[3] != "":
+                if not path.startswith(arg[3]):
+                    arg[3] = ""
+                    # because means that  is no longer our parent
+
+            depth = len(j.sal.fs.pathRemoveDirPart(path, arg[0]).split("/"))
+            # print("%s:%s" % (depth, j.sal.fs.pathRemoveDirPart(path, arg[0])))
+            if depth < 4:
+                return True
+            elif depth < 8 and arg[3] != "":
+                return True
+            return False
+
+        j.sal.fswalker.walkFunctional(path, callbackFunctionFile=None, callbackFunctionDir=callbackFunctionDir, arg=[path, res, "", ""],
+                                      callbackForMatchDir=callbackForMatchDir, callbackForMatchFile=returnFalse)
+        for ppath in res:
+            hrd = j.data.hrd.get(path=ppath + "/schema.hrd")
+            if hrd != None:
+
+            from IPython import embed
+            print("DEBUG NOW 384728347")
+            embed()
+            raise RuntimeError("stop debug here")
+
     def test(self):
         r = self.get()
         print(r.servicesFind())

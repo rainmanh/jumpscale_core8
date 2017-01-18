@@ -77,7 +77,7 @@ class ActorTemplate():
     @property
     def schema(self):
         try:
-            return j.data.capnp.getSchemaFromText(self.schemaCapnpText, name="Args")
+            return j.data.capnp.getSchemaFromText(self.schemaCapnpText, name="Schema")
         except Exception as e:
             errmsg = str(e).split("stack:")[0]
             msg = "Could not load capnp schema for:%s\n" % self

@@ -122,14 +122,86 @@ class AtYourServiceFactory:
 
         j.sal.fswalker.walkFunctional(path, callbackFunctionFile=None, callbackFunctionDir=callbackFunctionDir, arg=[path, res, "", ""],
                                       callbackForMatchDir=callbackForMatchDir, callbackForMatchFile=returnFalse)
-        for ppath in res:
-            hrd = j.data.hrd.get(path=ppath + "/schema.hrd")
-            if hrd != None:
 
-            from IPython import embed
-            print("DEBUG NOW 384728347")
-            embed()
-            raise RuntimeError("stop debug here")
+        def sanitize_key(key):
+            """
+            make sure the key of an HRD schema has a valid format for Capnp Schema
+            e.g.:
+                ssh.port becomes sshPort
+            """
+            separator = ['_', '.']
+            for sep in separator:
+                if key.find(sep) != -1:
+                    ss = key.split(sep)
+                    key = ss[0]
+                    for s in ss[1:]:
+                        key += s[0].upper()
+                        if len(s) > 1:
+                            key += s[1:]
+            return key
+
+        for ppath in res:
+            print("upgrade:%s" % ppath)
+            # hrd = j.data.hrd.get(path=ppath + "/schema.hrd")
+            schema = j.data.hrd.getSchema(path=ppath + "/schema.hrd")
+            if schema != None:
+                j.sal.fs.writeFile(ppath + "/schema.capnp", schema.capnpSchema)
+
+            config = {}
+
+            schemaParent = schema.parentSchemaItemGet()
+            schemaConsume = schema.consumeSchemaItemsGet()
+
+            C = ""
+
+            if schemaParent != None or schemaConsume != []:
+                C = """
+                links:"""
+
+            if schemaParent != None:
+                C = C + """
+                    parent:
+                        role: $role
+                        auto: $auto
+                        optional: $optional
+
+                """
+                C = C.replace("$role", sanitize_key(schemaParent.parent))
+                C = C.replace("$auto", str(schemaParent.auto))
+                C = C.replace("$optional", str(schemaParent.optional))
+
+            if schemaConsume != []:
+                C = C + """
+                    consume:"""
+                C2 = """
+                        -   role: $role
+                            argname: $argname
+                            auto: $auto
+                            min: $min
+                            max: $max
+                """
+                for item in schemaConsume:
+                    C2 = C2.replace("$role", item.consume_link)
+                    C2 = C2.replace("$argname", sanitize_key(item.name))
+                    C2 = C2.replace("$auto", str(item.auto))
+                    C2 = C2.replace("$min", str(item.consume_nr_min))
+                    C2 = C2.replace("$max", str(item.consume_nr_max))
+                    C = C + C2
+
+            docs = [(item[0], item[1].description) for item in schema.items.items()]
+            if docs != []:
+                C = C + """
+                doc:
+                    properties:"""
+            for key, doc in docs:
+                C = C + """
+                        - $name: '$doc'""".replace("$name", sanitize_key(key)).replace("$doc", doc)
+
+            C = j.data.text.strip(C)
+
+            j.sal.fs.writeFile(ppath + "/config.yaml", C)
+
+            j.sal.fs.remove(ppath + "/schema.hrd")
 
     def test(self):
         r = self.get()

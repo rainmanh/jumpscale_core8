@@ -9,7 +9,7 @@ class CuisineTIDB(app):
     """
     Installs TIDB.
     """
-    NAME = 'tidb'
+    NAME = 'tidb-server'
 
     def _init(self):
         self.BUILDDIR = self.replace("$BUILDDIR/tidb/")
@@ -51,8 +51,9 @@ class CuisineTIDB(app):
         if self.doneGet('install'):
             return
 
-        for path in self.cuisine.core.find(j.sal.fs.joinPaths(self.BUILDDIR, 'bin'), type='f'):
-            self.cuisine.core.file_copy(path, '$BINDIR')
+        self.cuisine.core.run("cp $BUILDDIR/tidb/bin/* $BINDIR/")
+        #for path in self.cuisine.core.find(j.sal.fs.joinPaths(self.BUILDDIR, 'bin'), type='f'):
+        #    self.cuisine.core.file_copy(path, '$BINDIR')
 
         self.doneSet('install')
 
@@ -107,6 +108,11 @@ class CuisineTIDB(app):
         self.start_tidb()
         if not self._check_running('tidb-server', timeout=30):
             raise j.exceptions.RuntimeError("tidb didn't start")
+
+    def stop(self):
+        self.cuisine.processmanager.stop("tidb-server")
+        self.cuisine.processmanager.stop("pd-server")
+        self.cuisine.processmanager.stop("tikv-server")
 
     def _check_running(self, name, timeout=30):
         """

@@ -254,27 +254,29 @@ class Blueprint:
 
     def _validate_format(self, models):
         for model in models:
-            if not j.data.types.dict.check(model):
+            if model is None:
+                continue
+
+            if model and not j.data.types.dict.check(model):
                 self.logger.error("Bad formatted blueprint: %s" % self.path)
                 return False
 
-            if model is not None:
-                for key in model.keys():
+            for key in model.keys():
 
-                    # this two blocks doesn't have the same format as classic service declaration
-                    if key in ['actions', 'eventfilters']:
-                        if not j.data.types.list.check(model[key]):
-                            self.logger.error("%s should be a list of dictionary: found %s" % (key, type(model[key])))
-                            return False
-                    else:
-                        if key.find("__") == -1:
-                            self.logger.error("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
-                            return False
+                # this two blocks doesn't have the same format as classic service declaration
+                if key in ['actions', 'eventfilters']:
+                    if not j.data.types.list.check(model[key]):
+                        self.logger.error("%s should be a list of dictionary: found %s" % (key, type(model[key])))
+                        return False
+                else:
+                    if key.find("__") == -1:
+                        self.logger.error("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
+                        return False
 
-                        aysname, _ = key.split("__", 1)
-                        if aysname not in self.aysrepo.templates:
-                            self.logger.error("Service template %s not found. Can't execute this blueprint" % aysname)
-                            return False
+                    aysname, _ = key.split("__", 1)
+                    if aysname not in self.aysrepo.templates:
+                        self.logger.error("Service template %s not found. Can't execute this blueprint" % aysname)
+                        return False
 
         return True
 
@@ -285,6 +287,8 @@ class Blueprint:
 
         errors = []
         for m in self.models:
+            if m is None:
+                continue
             for actorinstance, args in m.items():
                 # ACTOR NAME__instance
                 if actorinstance in ['actions', 'eventfilters']:

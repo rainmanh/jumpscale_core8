@@ -103,8 +103,7 @@ class JSCuisine:
 
     @property
     def btrfs(self):
-        j.sal.btrfs.executor = self.executor
-        return j.sal.btrfs
+        return j.sal.btrfs.getBtrfs(self.executor)
 
     @property
     def package(self):

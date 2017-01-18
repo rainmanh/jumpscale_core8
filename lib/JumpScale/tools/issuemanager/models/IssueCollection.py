@@ -64,15 +64,42 @@ class IssueCollection(base):
         @param source str,, source of remote database.
         """
         res = []
-        modTime = int(modTime)
         comment = int(comment)
-        assignee = int(assignee)
         id = int(id)
-        milestone = int(milestone)
-        for key in self.list(id=id, milestone=milestone, creationTime=creationTime,
-                             modTime=modTime, isClosed=isClosed,
-                             repo=repo, title=title, source=source):
+        for key in self.list(id=id, isClosed=isClosed, repo=repo, title=title, source=source):
             res.append(self.get(key))
+
+        if milestone:
+            milestoneids = list()
+            repos = j.tools.issuemanager.getRepoCollectionFromDB()
+            if repo:
+                repo_models = repos.find(id=repo)
+            else:
+                repo_models = repos.find()
+            for repo_model in repo_models:
+                milestones = repo_model.dictFiltered.get('milestones', False)
+                if milestones:
+                    for milestone_dict in milestones:
+                        if milestone == milestone_dict.get('name'):
+                            milestoneids.append(milestone_dict.get('id'))
+                            break
+
+            for model in res[::-1]:
+                milestone = model.dictFiltered.get('milestone', 0)
+                if milestone not in milestoneids:
+                    res.remove(model)
+
+        if modTime:
+            modTime = j.data.time.getEpochAgo(modTime)
+            for model in res[::-1]:
+                if modTime > model.dictFiltered.get('modTime'):
+                    res.remove(model)
+
+        if creationTime:
+            creationTime = j.data.time.getEpochAgo(creationTime)
+            for model in res[::-1]:
+                if creationTime > model.dictFiltered.get('creationTime'):
+                    res.remove(model)
 
         if comment:
             for model in res[::-1]:
@@ -82,8 +109,10 @@ class IssueCollection(base):
                 else:
                     res.remove(model)
         if assignee:
+            users = j.tools.issuemanager.getUserCollectionFromDB()
+            assignee_id = users.find(name=assignee)[0].dictFiltered.get('id')
             for model in res[::-1]:
-                if (assignee not in model.dictFiltered.get('assignees', [])) or not model.dictFiltered.get('assignees', False):
+                if (assignee_id not in model.dictFiltered.get('assignees', [])) or not model.dictFiltered.get('assignees', False):
                     res.remove(model)
         if label:
             for model in res[::-1]:

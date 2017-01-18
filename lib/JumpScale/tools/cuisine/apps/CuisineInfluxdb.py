@@ -49,7 +49,7 @@ class CuisineInfluxdb(app):
         self.cuisine.core.file_write('$JSCFGDIR/influxdb/influxdb.conf', j.data.serializer.toml.dumps(cfg))
         cmd = "%s -config $JSCFGDIR/influxdb/influxdb.conf" % (binPath)
         cmd = self.replace(cmd)
-        self.cuisine.core.file_write("/opt/jumpscale8/bin/start_influxdb.sh", cmd, 777, replaceArgs=True)
+        self.cuisine.core.file_write("$BINDIR/start_influxdb.sh", cmd, 777, replaceArgs=True)
 
         if start:
             self.start()

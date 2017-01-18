@@ -161,4 +161,4 @@ class AtomEditor:
         pip3 install flake8
         pip3 install flake8-docstrings
         """
-        rc, out = j.sal.process.execute(C, die=True, showout=False, ignoreErrorOutput=False)
+        rc, out, err = j.sal.process.execute(C, die=True, showout=False, ignoreErrorOutput=False)

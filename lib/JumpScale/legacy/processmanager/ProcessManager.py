@@ -55,7 +55,7 @@ class ProcessmanagerFactory:
     def _checkIsNFSMounted(self, check=""):
         if check == "":
             check = j.dirs.CODEDIR
-        rc, out = j.sal.process.execute("mount")
+        rc, out, err = j.sal.process.execute("mount")
         found = False
         for line in out.split("\n"):
             if line.find(check) != -1:

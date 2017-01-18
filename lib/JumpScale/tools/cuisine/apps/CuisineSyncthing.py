@@ -10,7 +10,7 @@ class CuisineSyncthing(app):
 
     @property
     def builddir(self):
-        return self.core.dir_paths['BUILDDIR']+"/syncthing"
+        return self.cuisine.core.dir_paths['BUILDDIR']+"/syncthing"
 
     def build(self, start=True, install=True, reset=False,version='v0.14.18'):
         """
@@ -37,10 +37,10 @@ class CuisineSyncthing(app):
         else:
             self.cuisine.core.run("cd %s && go run build.go" % dest, profile=True)
 
-        # self.core.dir_ensure(self.builddir+"/cfg")
-        # self.core.dir_ensure(self.builddir+"/bin")
+        # self.cuisine.core.dir_ensure(self.builddir+"/cfg")
+        # self.cuisine.core.dir_ensure(self.builddir+"/bin")
 
-        self.core.copyTree('$GOPATHDIR/src/github.com/syncthing/syncthing/bin', self.builddir+"/bin", keepsymlinks=False, deletefirst=True, overwriteFiles=True, \
+        self.cuisine.core.copyTree('$GOPATHDIR/src/github.com/syncthing/syncthing/bin', self.builddir+"/bin", keepsymlinks=False, deletefirst=True, overwriteFiles=True, \
                 recursive=True, rsyncdelete=True, createdir=True,ignorefiles=['testutil', 'stbench'])
 
 
@@ -58,12 +58,12 @@ class CuisineSyncthing(app):
             return
 
         self.build()
-        self.development.pip.install("syncthing")
+        self.cuisine.development.pip.install("syncthing")
 
         self.cuisine.core.dir_ensure("$CFGDIR/syncthing")
         # self.cuisine.core.file_write("$CFGDIR/syncthing/syncthing.xml", config)
 
-        self.core.copyTree(self.builddir+"/bin","$BINDIR")
+        self.cuisine.core.copyTree(self.builddir+"/bin","$BINDIR")
 
         self.doneSet("install")
 
@@ -76,8 +76,8 @@ class CuisineSyncthing(app):
             self.cuisine.core.run("killall syncthing",die=False)
             self.cuisine.core.run("rm -rf $CFGDIR/syncthing")
 
-        if  self.core.dir_exists("$CFGDIR/syncthing")==False:
-            self.core.run(cmd="rm -rf $CFGDIR/syncthing;cd $BINDIR;./syncthing -generate  $CFGDIR/syncthing")
+        if  self.cuisine.core.dir_exists("$CFGDIR/syncthing")==False:
+            self.cuisine.core.run(cmd="rm -rf $CFGDIR/syncthing;cd $BINDIR;./syncthing -generate  $CFGDIR/syncthing")
         pm = self.cuisine.processmanager.get("tmux")
         pm.ensure(name="syncthing", cmd="./syncthing -home  $CFGDIR/syncthing", path="$BINDIR")
 

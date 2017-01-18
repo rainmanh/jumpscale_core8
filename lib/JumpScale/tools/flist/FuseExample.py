@@ -3,8 +3,10 @@ import errno
 import pwd
 import grp
 import os
+import stat
 import llfuse
 from time import time
+import g8os_stor
 from llfuse import FUSEError
 
 from JumpScale import j
@@ -22,6 +24,8 @@ class FuseOperations(llfuse.Operations):
     contents = []
     # {inode: path}
     inode_path = {}
+    inode_hash = {}
+    inode_buffer = {}
 
     def __init__(self, rootpath):
         super().__init__()
@@ -29,6 +33,7 @@ class FuseOperations(llfuse.Operations):
         self._flistmeta = j.tools.flist.getFlistMetadata(rootpath)
         self.init_data()
         self.max_inode_count = llfuse.ROOT_INODE
+        self.client = g8os_stor.getClientId0("172.17.0.4", 16379)
 
     def init_data(self):
         self.inode_path[llfuse.ROOT_INODE] = self.rootpath
@@ -49,7 +54,11 @@ class FuseOperations(llfuse.Operations):
                 if inode_p == content['parent_inode'] and name.decode("utf-8") == content['name']:
                     inode = content['inode']
                     break
-        return self.getattr(inode, ctx)
+        try:
+            inode_entry = self.getattr(inode, ctx)
+        except UnboundLocalError:
+            raise(llfuse.FUSEError(errno.ENOENT))
+        return inode_entry
 
     def getattr(self, inode, ctx=None):
         ppath = self.inode_path[inode]
@@ -150,12 +159,56 @@ class FuseOperations(llfuse.Operations):
         return inode
 
     def read(self, fh, offset, length):
-        # FIXME: port to ardb
-        import ipdb; ipdb.set_trace()
-        data = self.get_row('SELECT data FROM inodes WHERE id=?', (fh,))[0]
+        ppath = '/tmp/{}'.format(j.sal.fs.getBaseName(self.inode_path[fh]))
+        g8os_stor.downloadFile0(self.client, ppath, self.inode_hash[fh])
+        with open(ppath, 'rb') as f:
+            data = f.read()
+        j.sal.fs.remove(ppath)
+        return data[offset:offset+length]
+
+    def create(self, inode_parent, name, mode, flags, ctx):
+        self.max_inode_count += 1
+        name = name.decode("utf-8")
+        content = {
+            'name': name,
+            'parent_inode': inode_parent,
+            'inode': self.max_inode_count,
+        }
+        self.contents.append(content)
+        parent_path = self.inode_path[inode_parent]
+        self.inode_path[self.max_inode_count] = os.path.join(parent_path, name)
+        if stat.S_ISDIR(mode):
+            self._flistmeta.mkdir(parent_path, name)
+        else:
+            self._flistmeta.addFile(parent_path, name)
+        return (self.max_inode_count, self.getattr(self.max_inode_count))
+
+    def write(self, fh, offset, buf):
+        data = self.inode_buffer.get(fh, None)
         if data is None:
             data = b''
-        return data[offset:offset+length]
+        data = data
+        data = data[:offset] + buf + data[offset+len(buf):]
+        self.inode_buffer[fh] = data
+        return len(buf)
+
+    def release(self, fh):
+        data = None
+        if self.inode_buffer.get(fh, None):
+            ppath = '/tmp/{}'.format(j.sal.fs.getBaseName(self.inode_path[fh]))
+            if self.inode_hash.get(fh, None):
+                g8os_stor.downloadFile0(self.client, ppath, self.inode_hash[fh])
+                with open(ppath) as f:
+                    data = f.read()
+
+            with open(ppath, 'wb') as f:
+                if data is None:
+                    data = self.inode_buffer.pop(fh)
+                else:
+                    data = bytes(data, 'utf-8') + self.inode_buffer[fh]
+                f.write(data)
+            self.inode_hash[fh] = g8os_stor.uploadFile0(self.client, ppath, 0)
+            j.sal.fs.remove(ppath)
 
 
 class FuseExample(llfuse.Operations):

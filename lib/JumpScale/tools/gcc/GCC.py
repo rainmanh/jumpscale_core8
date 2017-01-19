@@ -133,7 +133,7 @@ class GCC_Mgmt():
         node.cuisine.apps.skydns.build(start=True, force=force)
         node.cuisine.apps.aydostore(start=True, addr='127.0.0.1:8090', backend="$VARDIR/aydostor", force=force)
         # node.cuisine.apps.agentcontroller(start=True, force=force)
-        node.cuisine.apps.caddy.install(ssl=True, start=True, dns=node.addr, force=force)
+        node.cuisine.apps.caddy.build(ssl=True, start=True, dns=node.addr, force=force)
         self._configCaddy(node)
         self._configSkydns(node)
 

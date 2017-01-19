@@ -211,7 +211,7 @@ class ExecutorSSH(ExecutorBase):
             #     self.logger.debug("EXECUTESCRIPT} %s:%s:\n%s"%(self.addr, self.port, cmds))
             sshkey = self.sshclient.key_filename or ""
             rc, out, err = j.do.executeBashScript(content=cmds2, path=None, die=die,
-                                                  remote=self.addr, sshport=self.port, sshkey=sshkey)
+                                                  remote=self.addr, sshport=self.port, sshkey=sshkey, timeout=timeout)
         else:
             # online command, we use cuisine
             if showout:

@@ -217,17 +217,15 @@ class AtYourServiceFactory:
             print(r)
             break
 
-        for key, t in self.actorTemplates.items():
-            print(t.role)
-            print(t.schemaCapnpText)
-            print(t.schema)
-            print(t.recurringConfig)
-            print(t.consumptionConfig)
-            print(t.parentConfig)
-            print(t.eventsConfig)
-            print(t.getActorModelObj(r))
-
-            break
+        t = self.actorTemplatesFind(role="node.docker")
+        print(t.role)
+        print(t.schemaCapnpText)
+        print(t.schema)
+        print(t.recurringConfig)
+        print(t.consumptionConfig)
+        print(t.parentConfig)
+        print(t.eventsConfig)
+        print(t.getActorModelObj(r))
 
     def _doinit(self, force=False):
 

@@ -16,6 +16,7 @@ cd $TMPDIR
 #TO RESET, to develop faster uncomment
 rm -f $TMPDIR/done.yaml
 rm -rf /opt/var/cfg/jumpscale/
+rm -rf /optvar/cfg/jumpscale/
 rm -f $TMPDIR/jumpscale_done.yaml
 rm -rf $TMPDIR/jsexecutor.json
 rm -f $TMPDIR/done

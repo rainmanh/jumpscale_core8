@@ -1605,7 +1605,7 @@ class ExecutorMethods():
         return False
 
     def executeBashScript(self, content="", path=None, die=True, remote=None,
-                          sshport=22, showout=True, outputStderr=True, sshkey=""):
+                          sshport=22, showout=True, outputStderr=True, sshkey="", timeout=600):
         """
         @param remote can be ip addr or hostname of remote, if given will execute cmds there
         """
@@ -1629,15 +1629,15 @@ class ExecutorMethods():
         if remote is not None:
             tmppathdest = "/tmp/do.sh"
             if sshkey:
-                if not self.getSSHKeyPathFromAgent(sshkey, die=False) == None:
+                if not self.getSSHKeyPathFromAgent(sshkey, die=False) is None:
                     self.execute('ssh-add %s' % sshkey)
                 sshkey = '-i %s ' % sshkey.replace('!', '\!')
             self.execute("scp %s -oStrictHostKeyChecking=no -P %s %s root@%s:%s " %
                          (sshkey, sshport, path2, remote, tmppathdest), die=die)
             rc, res, err = self.execute("ssh %s -oStrictHostKeyChecking=no -A -p %s root@%s 'bash %s'" %
-                                        (sshkey, sshport, remote, tmppathdest), die=die)
+                                        (sshkey, sshport, remote, tmppathdest), die=die, timeout=timeout)
         else:
-            rc, res, err = self.execute("bash %s" % path2, die=die, showout=showout, outputStderr=outputStderr)
+            rc, res, err = self.execute("bash %s" % path2, die=die, showout=showout, outputStderr=outputStderr, timeout=timeout)
         return rc, res, err
 
     def executeCmds(self, cmdstr, showout=True, outputStderr=True, useShell=True,

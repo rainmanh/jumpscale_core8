@@ -2,6 +2,7 @@ from JumpScale import j
 
 from ExecutorSSH import *
 from ExecutorLocal import *
+from ExecutorAsyncSSH import ExecutorAsyncSSH
 
 
 class ExecutorFactory:
@@ -9,6 +10,7 @@ class ExecutorFactory:
     def __init__(self):
         self.__jslocation__ = "j.tools.executor"
         self._executors = {}
+        self._executors_async = {}
 
     def pushkey(self, addr, passwd, keyname="", pubkey="", port=22, login="root"):
         """
@@ -100,6 +102,31 @@ class ExecutorFactory:
                                                key_filename=key_filename,
                                                passphrase=passphrase)
         return self._executors[key]
+
+    def getAsyncSSHBased(self, addr="localhost", port=22, login="root", passwd=None, debug=False, allow_agent=True,
+                         look_for_keys=True, timeout=5, usecache=True, passphrase=None, key_filename=()):
+        """
+        returns an asyncssh-based executor where:
+        allow_agent: uses the ssh-agent to connect
+        look_for_keys: will iterate over keys loaded on the ssh-agent and try to use them to authenticate
+        pushkey: authorizes itself on remote
+        pubkey: uses this particular key (path) to connect
+        usecache: gets cached executor if available. False to get a new one.
+        """
+        key = '%s:%s:%s' % (addr, port, login)
+        if key not in self._executors_async or usecache is False:
+            self._executors_async[key] = ExecutorAsyncSSH(addr=addr,
+                                                    port=port,
+                                                    login=login,
+                                                    passwd=passwd,
+                                                    debug=debug,
+                                                    allow_agent=allow_agent,
+                                                    look_for_keys=look_for_keys,
+                                                    timeout=timeout,
+                                                    key_filename=key_filename,
+                                                    passphrase=passphrase)
+
+        return self._executors_async[key]
 
     def getJSAgentBased(self, agentControllerClientKey, debug=False, checkok=False):
         return ExecutorAgent2(addr, debug=debug, checkok=debug)

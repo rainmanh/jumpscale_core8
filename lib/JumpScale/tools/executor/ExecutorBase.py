@@ -145,6 +145,8 @@ class ExecutorBase:
         if self.CURDIR != "":
             pre += "cd %s\n" % (self.CURDIR)
 
+        # need to do this cause by default sshd doesn't allow client to set
+        # environment variable from the ssh session.
         if env != {}:
             for key, val in env.items():
                 pre += "export %s='%s'\n" % (key, val)

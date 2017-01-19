@@ -162,29 +162,6 @@ class ExecutorSSH(ExecutorBase):
         ex._sshclient = jumpedto
         return ex
 
-    def authorizeKey(self, pubkey=None, keyname=None, passphrase=None, login="root"):
-        """
-        This will authenticate the ssh client to access the target machine
-        using the given pubkey.
-
-        :param pubkey: Public key to authenticate with (is the content)
-        :return:
-        """
-
-        if not pubkey:
-            path = j.do.getSSHKeyPathFromAgent(keyname, die=True)
-            self._getSSHClient(path, passphrase)  # should be the correct client now
-
-        self.sshclient._cuisine = self.cuisine
-
-        # was private key,need to add .pub to have public key
-        path = '%s.pub' % path
-        if j.sal.fs.exists(path):
-            pubkey = j.sal.fs.fileGetContents(path)
-        else:
-            raise j.exceptions.RuntimeError("Could not find key:%s" % path)
-        self._sshclient.ssh_authorize(login, pubkey)
-
     def executeRaw(self, cmd, die=True, showout=False):
         return self.sshclient.execute(cmd, die=die, showout=showout)
 
@@ -194,21 +171,20 @@ class ExecutorSSH(ExecutorBase):
         @param async is not used method, but is only used for interface comaptibility
         return (rc,out,err)
         """
+        env2 = {}
         if env:
-            self.env.update(env)
-        if showout:
-            self.logger.debug("cmd: %s" % cmds)
+            env2 = self.env.copy()
+            env2.update(env)
 
-        if checkok == None:
+        if checkok is None:
             checkok = self.checkok
 
-        cmds2 = self._transformCmds(cmds, die, checkok=checkok, env=env)
+        cmds2 = self._transformCmds(cmds, die, checkok=checkok, env=env2)
 
         if cmds.find("\n") != -1:
             if showout:
                 self.logger.info("EXECUTESCRIPT} %s:%s:\n%s" % (self.addr, self.port, cmds))
-            # else:
-            #     self.logger.debug("EXECUTESCRIPT} %s:%s:\n%s"%(self.addr, self.port, cmds))
+
             sshkey = self.sshclient.key_filename or ""
             rc, out, err = j.do.executeBashScript(content=cmds2, path=None, die=die,
                                                   remote=self.addr, sshport=self.port, sshkey=sshkey, timeout=timeout)
@@ -216,8 +192,6 @@ class ExecutorSSH(ExecutorBase):
             # online command, we use cuisine
             if showout:
                 self.logger.info("EXECUTE %s:%s: %s" % (self.addr, self.port, cmds))
-            # else:
-            #     self.logger.debug("EXECUTE %s:%s: %s"%(self.addr, self.port, cmds))
             rc, out, err = self.sshclient.execute(cmds2, die=die, showout=showout)
 
         if checkok and die:

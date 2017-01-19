@@ -249,30 +249,6 @@ class JSCuisineFactory:
                                                 login=login,
                                                 passwd=passwd)
 
-    # UNUSED METHOD
-    def authorizeKey(self, addr='localhost:22', login="root", passwd="", keyname="", pubkey="", passphrase=None):
-        """
-        will try to login if not ok then will try to push key with passwd
-        will push local key to remote, if not specified will list & you can select
-
-        if passwd not specified will ask
-
-        @param pubkey is the pub key to use (is content of key), if this is specified then keyname not used & ssh-agent neither
-        """
-        if addr.find(":") != -1:
-            addr, port = addr.split(":", 1)
-            addr = addr.strip()
-            port = int(port.strip())
-        else:
-            port = 22
-
-        j.clients.ssh.cache = {}  # Empty the cache
-
-        _pubkey = pubkey if pubkey else self.get_pubkey(keyname=keyname)
-        executor = self._get_ssh_executor(addr, port, login, passphrase, passwd)
-        executor.cuisine.ssh.authorize(login, _pubkey)
-        executor.cuisine.core.run("chmod -R 700 /root/.ssh")
-
     def get(self, executor=None, usecache=True):
         """
         example:

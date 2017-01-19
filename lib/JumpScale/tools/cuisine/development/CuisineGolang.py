@@ -55,7 +55,8 @@ class CuisineGolang(app):
             downl = "https://storage.googleapis.com/golang/go1.7.4.linux-amd64.tar.gz"
         else:
             raise j.exceptions.RuntimeError("platform not supported")
-
+        self.cuisine.core.dir_ensure(self.GOROOTDIR)
+        self.cuisine.core.dir_ensure(self.GOPATHDIR)
         self.cuisine.core.run(cmd="rm -rf $self.GOROOTDIR", die=False)
 
         profile = self.cuisine.bash.profileDefault

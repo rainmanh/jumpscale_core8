@@ -772,7 +772,7 @@ class FSMethods():
 
         if executor != None and rsync == False:
             raise RuntimeError("when executor used only rsync supported")
-        if rsync and not self.isMac:
+        if rsync and not self.isMac():
             executor.cuisine.package.ensure('rsync')
             excl = ""
             for item in ignoredir:
@@ -1889,7 +1889,7 @@ class ExecutorMethods():
             raise RuntimeError("Could not kill:%s, is still, there check if its not autorestarting." % name)
 
     def removeFromAutostart(self, name):
-        if self.isMac:
+        if self.isMac():
             items = ["~/Library/LaunchAgents", "/Library/LaunchAgents", "/Library/LaunchDaemons",
                      "/System/Library/LaunchAgents", "/System/Library/LaunchDaemons"]
             for item in items:
@@ -2571,7 +2571,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             if exists("%s/env.sh" % curdir) and exists("%s/js.sh" % (curdir)):
                 env["BASEDIR"] = os.getcwd()
             else:
-                if self.TYPE != "LINUX":
+                if not self.TYPE.startswith("LINUX"):
                     env["BASEDIR"] = "%s/opt" % env['HOME']
                 else:
                     env["BASEDIR"] = "/opt"
@@ -2580,7 +2580,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             env["JSBASE"] = "%s/jumpscale8" % env["BASEDIR"]
 
         if not "VARDIR" in env:
-            if self.TYPE != "LINUX":
+            if not self.TYPE.startswith("LINUX"):
                 env["VARDIR"] = "%s/optvar" % env['HOME']
             else:
                 env["VARDIR"] = "/optvar"
@@ -2591,7 +2591,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             env["CFGDIR"] = "%s/cfg" % env["VARDIR"]
 
         if exists("/tmp"):
-            if self.TYPE != "LINUX":
+            if not self.TYPE.startswith("LINUX"):
                 env["TMPDIR"] = "%s/tmp" % env['HOME']
             else:
                 env["TMPDIR"] = "/tmp"

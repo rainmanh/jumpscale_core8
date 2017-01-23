@@ -49,21 +49,11 @@ Please note: to fire a new event you need to push a `payload` on the command que
 For the consumer
 we can listen for the events in two ways
 
-#### 1-
- `action.py`
+
+`action.py`
 
 ```python
 
-def init(job):
-    service = job.service
-    # SET UP EVENT HANDLERS.
-    handlers_map = [('producer_installed', 'on_producer_installed1'),
-                    ('producer_installed', 'on_producer_installed2'),
-                    ('new_msg_sent', 'on_new_msg_sent')]
-
-    for (event, callback) in handlers_map:
-        service.model.eventFilterSet(command=event, action=callback)
-    service.saveAll()
 
 def on_producer_installed1(job):
     args = job.model.args
@@ -81,7 +71,21 @@ def on_new_msg_sent(job):
 
 
 ```
+#### 1- through init action
 
+```python
+
+def init(job):
+    service = job.service
+    # SET UP EVENT HANDLERS.
+    handlers_map = [('producer_installed', 'on_producer_installed1'),
+                    ('producer_installed', 'on_producer_installed2'),
+                    ('new_msg_sent', 'on_new_msg_sent')]
+
+    for (event, callback) in handlers_map:
+        service.model.eventFilterSet(command=event, action=callback)
+    service.saveAll()
+```
 blueprint:
 
 ```yaml
@@ -90,7 +94,7 @@ actproducer__p1:
 actconsumer__c1:
 ```
 
-#### 2-
+#### 2- through blueprint
 ```yaml
 
 actproducer__p1:

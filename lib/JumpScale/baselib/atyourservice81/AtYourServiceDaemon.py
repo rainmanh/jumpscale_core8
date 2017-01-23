@@ -25,7 +25,7 @@ def run_action(repo_path, service_key, action_name, args=None):
 
 def do_run(run_key, callback=None):
     """
-    do_run execute a run asyncronously
+    do_run execute a run asynchronously
     at the end of the run or if an error occurs during exection a request is made to callback to
     notify the event (ok/error)
     """
@@ -56,6 +56,7 @@ class Server:
 
         self.logger = j.atyourservice.logger
 
+        # RecurringLoop is used for dispatching the requests (events/execute/run) asynchronously
         self._recurring_loop = RecurringLoop()
         self._workers = Pool()
 
@@ -67,18 +68,26 @@ class Server:
         def stop(signum, stack_frame):
             self.stop()
 
+        # HANDLE INTERRUPT SIGNAL using stop method.
         signal.signal(signal.SIGINT, stop)
 
     def start(self):
+        """
+        Starting AYS Server.
+        """
         if self._running is True:
             return
 
+        # START THE RECURRING LOOP.
         self._recurring_loop.start()
 
         self.logger.info('starting server')
         self._running = True
 
         while self._running:
+            # FETCH COMMAND FROM THE QUEUE AND MAKE A `REQUEST` TO DISPATCH.
+            # COMMAND CAN BE ONE OF (execute/run/event)
+            # (i.e) payload = {"command": "event", "event": "producer_installed", "args":[""]}
             payload = self._command_queue.queueGet('command', timeout=2)
             if payload is None:
                 # timeout without receiving command
@@ -94,6 +103,7 @@ class Server:
                 self.logger.error("request doesn't have proper format, should be a dict with a 'command' key. request is: %s" % request)
                 continue
 
+            # DISPATCH REQUEST TO THE APPROPRIATE HANDLER.
             self._dispatch(request)
 
         self.logger.info('server stopped')
@@ -114,6 +124,9 @@ class Server:
         self._workers.join()
 
     def _dispatch(self, request):
+        """
+        Dispatch the request to the appropriate handler.
+        """
         self.logger.info('dispatch request %s' % request)
 
         # TODO: implement other commands
@@ -121,7 +134,7 @@ class Server:
             self._execute(request)
 
         elif request['command'] == 'event':
-            self._progagate_event(request)
+            self._propagate_event(request)
 
         elif request['command'] == 'run':
             self._do_run(request)
@@ -141,41 +154,36 @@ class Server:
         except Exception as e:
             self.logger.error('error: %s' % str(e))
 
-    def _progagate_event(self, request):
-
+    def _propagate_event(self, request):
+        """
+         propagate event to the underlying services in all repos for the subscribed services.
+        """
         if 'event' not in request:
             self.logger.error('event command received but not event type specified in request.')
             return
 
         event_type = request['event']
         args = request.get('args', {})
-        handler_name = "on_" + event_type
+
         for repo in j.atyourservice.reposList():
             for service in repo.services:
-                if handler_name not in service.model.actions.keys():
+                # SEARCH FILTERS TO CHECK IF `service` IS INTERESTED IN THAT KIND OF EVENT `event_type`
+                filters = service.model.eventFiltersFind(command=event_type)
+                if not len(filters):
                     continue
-                evJob = service.getJob(handler_name, {'event_args': args, 'event_type':event_type})
-                evJob.execute()
 
-                # if len(service.model.actionsEvent) <= 0:
-                #     continue
-                #
-                # for action_name, event_obj in service.model.actionsEvent.items():
-                #     if event_obj.event != event_type:
-                #         continue
-                #
-                #     self.logger.info('event %s propagated to %s from %s' % (event_type, service, repo))
-                #
-                #     event_obj.lastRun = j.data.time.epoch
-                #     service.save()
-                #
-                #     self._workers.apply_async(run_action, (
-                #         service.aysrepo.path,
-                #         service.model.key,
-                #         event_obj.action,
-                #         args))
+                for f in filters:
+                    action = f.action
+                    self._workers.apply_async(run_action, (
+                        service.aysrepo.path,
+                        service.model.key,
+                        action,
+                        {'event_args': args}))
 
     def _do_run(self, request):
+        """
+        do run asynchronously.
+        """
         if 'run_key' not in request:
             self.logger.error("run_key not present in request. can't execute run")
             return
@@ -217,18 +225,17 @@ class RecurringLoop(Thread):
 
                     now = j.data.time.epoch
                     for action_name, recurring_obj in service.model.actionsRecurring.items():
-                        deptree = service._build_actions_chain(action=action_name)
-                        ### PLEASE EXPLAIN
-                        for acname in deptree[:-1]:
-                            ac = service.model.actions[acname]
-                            if ac.state != 'ok':
-                                break
-                        else:
-                            continue
+                        # FIXME: FIX THE dependency_chain check.
+                        # deptree = service._build_actions_chain(action=action_name)
+                        # ### PLEASE EXPLAIN
+                        # for acname in deptree[:-1]:
+                        #     ac = service.model.actions[acname]
+                        #     if ac.state != 'ok':
+                        #         break
+                        # else:
+                        #     continue
                         if recurring_obj.lastRun == 0 or now > (recurring_obj.lastRun + recurring_obj.period):
-
                             self.logger.info('recurring job for %s' % service)
-
                             try:
                                 self._workers.apply_async(run_action, (
                                     service.aysrepo.path,
@@ -237,13 +244,11 @@ class RecurringLoop(Thread):
                                 ))
                             except Exception as e:
                                 self.logger.error('error: %s' % str(e))
-
             time.sleep(5)
 
     def stop(self):
         if self._running:
             self._running = False
-
 
 
 def main():
@@ -252,6 +257,7 @@ def main():
     """
     server = Server()
     server.start()
+
 
 if __name__ == '__main__':
     main()

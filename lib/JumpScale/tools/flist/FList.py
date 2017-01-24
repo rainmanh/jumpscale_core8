@@ -167,10 +167,6 @@ class FList(object):
                         except FileNotFoundError:
                             continue
 
-                        print(pathAbsolute)
-                        print(stat)
-                        print(S_ISLNK(st_mode))
-
                         if S_ISLNK(st_mode):
                             # Checking absolute path, relative may fail
                             destlink = os.readlink(pathAbsolute)

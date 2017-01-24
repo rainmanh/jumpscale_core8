@@ -160,28 +160,27 @@ class FList(object):
 
                     # exclusion checking
                     if self._valid(relPathWithName, _excludes):
+                        try:
+                            stat = os.stat(pathAbsolute, follow_symlinks=False)
+                            st_mode = stat.st_mode
 
-                        stat = os.stat(pathAbsolute, follow_symlinks=False)
-                        st_mode = stat.st_mode
+                        except FileNotFoundError:
+                            continue
+
+                        print(pathAbsolute)
+                        print(stat)
+                        print(S_ISLNK(st_mode))
 
                         if S_ISLNK(st_mode):
-                            # print("LINK")
                             # Checking absolute path, relative may fail
-                            destlink = os.path.realpath(pathAbsolute)
-                            if not destlink.startswith(self.rootpath):  # check if is link & if outside of FS
-                                # print("OUTSIDE")
-                                ffiles.append((fname, stat))  # are links which point to outside of fs
-                            else:
-                                # print("INSIDE")
-                                # Ensure relative path works
-                                destlink = os.readlink(pathAbsolute)
-                                llinks.append((fname, stat, destlink))
+                            destlink = os.readlink(pathAbsolute)
+                            llinks.append((fname, stat, destlink))
+
                         else:
                             if S_ISREG(st_mode):
-                                # print("REGULAR")
                                 ffiles.append((fname, stat))
+
                             else:
-                                # print("SPECIAL")
                                 sspecials.append((fname, stat))
 
                 # initialize right amount of objects in capnp
@@ -395,7 +394,6 @@ class FList(object):
             return
 
         for item in ddir.dbobj.files:
-            # print(item)
             if valid(j.sal.fs.joinPaths(ddir.dbobj.location, item.name), fileRegex) and "F" in types:
                 fileFunction(dirobj=ddir, type="F", name=item.name, subobj=item, args=args)
 
@@ -525,11 +523,26 @@ class FList(object):
             args.append("|".join(item))
 
         def procSpecial(dirobj, type, name, subobj, args):
-            print("============== SPECIAL (not implemented yet)")
-            print(subobj)
+            item = setDefault(dirobj, name, subobj)
 
-            print("%s/%s (%s)" % (dirobj.dbobj.location, name, type))
-            print("==============")
+            if subobj.type == "socket":
+                item[6] = "0"
+
+            if subobj.type == "block" or subobj.type == "chardev":
+                if subobj.type == "block":
+                    item[6] = "3"
+
+                if subobj.type == "chardev":
+                    item[6] = "5"
+
+                stat = os.stat("%s/%s" % (self.rootpath, item[0]), follow_symlinks=False)
+                item[9] = '%d,%d' % (os.major(stat.st_rdev), os.minor(stat.st_rdev))
+
+            if subobj.type == "fifopipe":
+                item[6] = "6"
+
+            args.append("|".join(item))
+
 
         print("Building old flist format")
         result = []
@@ -541,7 +554,7 @@ class FList(object):
             args=result
         )
 
-        print(result)
+        # print(result)
         return "\n".join(result) + "\n"
 
         """

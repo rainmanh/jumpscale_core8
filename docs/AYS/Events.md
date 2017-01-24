@@ -5,7 +5,9 @@ AYS supports events in your services (managed by the `AYSDaemon`)
 > `ays start` will run the ays daemon
 
 ## Example
-Here we have a simple example around two actors `actproducer`, `actconsumer`, Where `actproducer` has a recurring action `every 5 seconds` and we want `actconsumer` to be able to listen on some events like [`producer_installed` which will be triggered after the `install` action] and [`new_msg_sent` which will be triggered `every 5 seconds`]
+Here we have a simple example around two actors `actproducer`, `actconsumer`, Where `actproducer` has a recurring action `every 5 seconds` and we want `actconsumer` to be able to listen on some events like
+  - `producer_installed` which will be triggered after the `install` action
+  - `new_msg_sent` which will be triggered `every 5 seconds`
 
 ### Actor producer
 schema.hrd:

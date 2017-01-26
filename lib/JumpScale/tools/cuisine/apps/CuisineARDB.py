@@ -35,8 +35,7 @@ class CuisineARDB(app):
         if self.doneGet("buildforestdb") and not reset:
             return
 
-        self.cuisine.package.install("cmake")
-        self.cuisine.package.install("libsnappy-dev")
+        self.cuisine.package.multiInstall(["git-core", "cmake", "libsnappy-dev", "g++"])
 
         url = "git@github.com:couchbase/forestdb.git"
         cpath = self.cuisine.development.git.pullRepo(url, tag="v1.2", reset=reset)
@@ -70,7 +69,21 @@ class CuisineARDB(app):
             storageEngine = "rocksdb"
             # self.cuisine.package.install("boost")
 
-        self.cuisine.package.install("wget")
+        # Default packages needed
+        packages = ["wget", "bzip2"]
+
+        # ForestDB
+        packages += ["git-core", "cmake", "libsnappy-dev", "g++"]
+
+        # RocksDB
+        packages += ["libbz2-dev"]
+
+        # PerconaFT
+        packages += ["unzip"]
+
+        # Install dependancies
+        self.cuisine.package.multiInstall(packages)
+
 
         url = "git@github.com:yinqiwen/ardb.git"
         cpath = self.cuisine.development.git.pullRepo(url, tag="v0.9.3", reset=reset)

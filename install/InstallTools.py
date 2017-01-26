@@ -1815,7 +1815,7 @@ class ExecutorMethods():
             out = "\n".join([item.rstrip().decode("UTF-8") for item in resout])
             err = "\n".join([item.rstrip().decode("UTF-8") for item in reserr])
             if rc == 124:
-                raise RuntimeError("\nOUT:\n%s\nSTDERR:\n%s\nERROR: Cannot execute (TIMEOUT):'%s'\nreturncode (%s)" %
+                raise TimeoutError("\nOUT:\n%s\nSTDERR:\n%s\nERROR: Cannot execute (TIMEOUT):'%s'\nreturncode (%s)" %
                                    (out, err, command, rc))
             else:
                 raise RuntimeError("\nOUT:\n%s\nSTDERR:\n%s\nERROR: Cannot execute:'%s'\nreturncode (%s)" %

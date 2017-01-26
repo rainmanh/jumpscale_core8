@@ -24,6 +24,10 @@ import importlib
 import fcntl
 
 
+# CustomTimeoutError from RuntimeError to keep execute interface consistent 
+class TimeoutError(RuntimeError, TimeoutError):
+    pass
+
 class FileLock():
     def __init__(self, fname):
         self._fname = fname

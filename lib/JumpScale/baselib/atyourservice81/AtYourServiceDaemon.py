@@ -226,24 +226,24 @@ class RecurringLoop(Thread):
                     now = j.data.time.epoch
                     for action_name, recurring_obj in service.model.actionsRecurring.items():
                         # FIXME: FIX THE dependency_chain check.
-                        # deptree = service._build_actions_chain(action=action_name)
-                        # ### PLEASE EXPLAIN
-                        # for acname in deptree[:-1]:
-                        #     ac = service.model.actions[acname]
-                        #     if ac.state != 'ok':
-                        #         break
-                        # else:
-                        #     continue
-                        if recurring_obj.lastRun == 0 or now > (recurring_obj.lastRun + recurring_obj.period):
-                            self.logger.info('recurring job for %s' % service)
-                            try:
-                                self._workers.apply_async(run_action, (
-                                    service.aysrepo.path,
-                                    service.model.key,
-                                    action_name,
-                                ))
-                            except Exception as e:
-                                self.logger.error('error: %s' % str(e))
+                        deptree = service._build_actions_chain(action=action_name)
+                        # WE GO ALL OVER THE DEPENDENCY CHAIN AND CHECK THE STATE OF EACH ONE IF THERE'S ANY.
+                        # IF STATE OF THE DEPENDENCY ACTION != ok THEN WE CONTINUE SEARCHING FOR ANOTHER REUCRRING ACTION.
+                        for acname in deptree[:-1]:
+                            ac = service.model.actions.get(acname, None)
+                            if ac is None or ac.state != 'ok':
+                                break
+                        else:
+                            if recurring_obj.lastRun == 0 or now > (recurring_obj.lastRun + recurring_obj.period):
+                                self.logger.info('recurring job for %s' % service)
+                                try:
+                                    self._workers.apply_async(run_action, (
+                                        service.aysrepo.path,
+                                        service.model.key,
+                                        action_name,
+                                    ))
+                                except Exception as e:
+                                    self.logger.error('error: %s' % str(e))
             time.sleep(5)
 
     def stop(self):

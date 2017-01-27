@@ -4,6 +4,7 @@ import sys
 import os
 import capnp
 from collections import OrderedDict
+import capnp
 from ModelBase import *
 
 
@@ -99,7 +100,7 @@ class Capnp:
         id = [item for item in schemaInText.split("\n") if item.strip() != ""][0][3:-1]
         return id
 
-    def getSchemas(self, schemaInText):
+    def _getSchemas(self, schemaInText):
         schemaInText = j.data.text.strip(schemaInText)
         schemaInText = schemaInText.strip() + "\n"
         schemaId = self.getId(schemaInText)
@@ -107,22 +108,13 @@ class Capnp:
             nameOnFS = "schema_%s.capnp" % (schemaId)
             path = j.sal.fs.joinPaths(self._capnpVarDir, nameOnFS)
             j.sal.fs.writeFile(filename=path, contents=schemaInText, append=False)
-            try:
-                cmd = "import schema_%s_capnp as schema_%s" % (schemaId, schemaId)
-                exec(cmd)
-            except Exception as e:
-                if str(e).find("invalid syntax") != -1:
-                    raise j.exceptions.Input(message="Could not import schema:%s\n%s\n\nschema:\n%s\npath:%s\nimportcmd:%s\n" %
-                                             (schemaId, e, schemaInText, path, cmd), level=1, source="", tags="", msgpub="")
-                raise e
-
-            # cl = eval("schema_%s" % schemaId + ".schema")
-            cl = eval("schema_%s" % schemaId)
-            self._cache[schemaId] = cl
+            parser = capnp.SchemaParser()
+            schema = parser.load(path)
+            self._cache[schemaId] = schema
         return self._cache[schemaId]
 
     def getSchemaFromText(self, schemaInText, name="Schema"):
-        schemas = self.getSchemas(schemaInText)
+        schemas = self._getSchemas(schemaInText)
         schema = eval("schemas.%s" % name)
         return schema
 
@@ -130,10 +122,8 @@ class Capnp:
         """
         @param path is path to schema
         """
-        # need to check if dirname of path is in sys.path
-        # load the schema
-        # return the schema
-        #@TODO *1
+        content = j.sal.fs.fileGetContents(path)
+        return self.getSchemaFromText(schemaInText=content, name=name)
 
     def getObj(self, schemaInText, name="Schema", args={}, binaryData=None):
 

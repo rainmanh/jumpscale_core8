@@ -186,24 +186,24 @@ class LoggerFactory:
 
     def enableMemHandler(self):
         self.logging.handlers = []
-        self.logging.propagate = True
+        # self.logging.propagate = True
         self.logging.addHandler(self.handlers.memoryHandler)
 
     def enableConsoleHandler(self):
         self.logging.handlers = []
-        self.logging.propagate = True
+        # self.logging.propagate = True
         self.logging.addHandler(self.handlers.consoleHandler)
 
     def enableConsoleMemHandler(self):
         self.logging.handlers = []
-        self.logging.propagate = True
+        # self.logging.propagate = True
         self.logging.addHandler(self.handlers.memoryHandler)
         self.logging.addHandler(self.handlers.consoleHandler)
 
     def _enable_production_mode(self):
         self.logging.handlers = []
         self.logging.addHandler(logging.NullHandler())
-        self.logging.propagate = True
+        # self.logging.propagate = True
 
     def _enable_dev_mode(self):
         logging.setLoggerClass(JSLogger)
@@ -211,6 +211,7 @@ class LoggerFactory:
         self.logging.propagate = False
         logging.lastResort = None
         self.enableConsoleHandler()
+        self.logging.addHandler(self.handlers.fileRotateHandler)
 
     def __fileRotateHandler(self, name='jumpscale'):
         if not j.sal.fs.exists("%s/log/" % j.dirs.VARDIR):

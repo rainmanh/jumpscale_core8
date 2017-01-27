@@ -109,7 +109,7 @@ class PlatformType:
     def uname(self):
         def get():
             # print("CMD: uname -mnprs")
-            rc, self._uname, err = self.executor.execute("uname -mnprs", showout=True, timeout=3, die=True)
+            rc, self._uname, err = self.executor.execute("uname -mnprs", showout=False, timeout=3, die=True)
             # print("OK")
             self._uname = self._uname.strip()
             if self._uname.find("warning: setlocale") != -1:

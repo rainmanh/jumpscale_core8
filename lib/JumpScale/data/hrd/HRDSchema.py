@@ -298,17 +298,20 @@ class HRDSchema:
             k = self.sanitize_key(k)
 
             if ttype.list is not True:
-            # if ttype.list is not True and ttype.consume_link == '':
-                serializeddata += "\t" + k + \
-                    " @%d :%s;\n" % (fid, typesmap[ttype.hrd_ttype])
-            else:
-                serializeddata += "\t" + k + \
-                    " @%d :List(%s);\n" % (fid, typesmap[ttype.hrd_ttype])
-            fid += 1
+                serializeddata += "\t{key} @{fid} :{type}".format(key=k,fid=fid,type=typesmap[ttype.hrd_ttype])
 
-        # if self.path:
-        #     actorname = j.sal.fs.getBaseName(j.sal.fs.getParent(self.path))
-        #     serializeddata += "\t actor @%d :Text;\n" % (fid)
+                if ttype.default is not None and ttype.default != '':
+                    if ttype.hrd_ttype in ['str', 'multiline']:
+                        serializeddata += ' = "{default}"'.format(default=ttype.default)
+                    elif ttype.hrd_ttype in ['int', 'integer', 'float']:
+                        serializeddata += " = {default}".format(default=ttype.default)
+                    elif ttype.hrd_ttype in ['bool', 'boolean']:
+                        serializeddata += " = {default}".format(default=str(ttype.default).lower())
+            else:
+                serializeddata += "\t{key} @{fid} :List({type})".format(key=k,fid=fid,type=typesmap[ttype.hrd_ttype])
+
+            serializeddata += ";\n"
+            fid += 1
 
         template = """
 @%s;

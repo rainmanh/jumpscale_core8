@@ -1,5 +1,6 @@
 from JumpScale import j
 
+import asyncio
 import time
 import pygments.lexers
 from pygments.formatters import get_formatter_by_name
@@ -36,16 +37,12 @@ class RunStep:
         job.model.dbobj.runKey = self.run.model.key
         job.save()
 
-        olditems = [item.to_dict() for item in self.dbobj.jobs]
-        newlist = self.dbobj.init("jobs", len(olditems) + 1)
-        for i, item in enumerate(olditems):
-            newlist[i] = item
-        jobdbobj = newlist[-1]
-        jobdbobj.actionName = job.model.dbobj.actionName
-        jobdbobj.actorName = job.model.dbobj.actorName
-        jobdbobj.key = job.model.key
-        jobdbobj.serviceName = job.model.dbobj.serviceName
-        jobdbobj.serviceKey = job.model.dbobj.serviceKey
+        jobobj = self.run.model.jobNew(step=self.dbobj)
+        jobobj.actionName = job.model.dbobj.actionName
+        jobobj.actorName = job.model.dbobj.actorName
+        jobobj.key = job.model.key
+        jobobj.serviceName = job.model.dbobj.serviceName
+        jobobj.serviceKey = job.model.dbobj.serviceKey
 
     @property
     def jobs(self):
@@ -66,76 +63,23 @@ class RunStep:
         service_action_obj.state = 'ok'
         job.save()
 
-    def execute(self):
-        processes = {}
+    async def execute(self):
+        futures = []
         for job in self.jobs:
             self.logger.info('execute %s' % job)
             # don't actually execute anything
             if job.service.aysrepo.model.no_exec is True:
                 self._fake_exec(job)
             else:
-                process = job.execute()
+                futures.append(job.execute())
 
-                if job.model.dbobj.debug is False:
-                    now = j.data.time.epoch
-                    processes[job] = {'process': process, 'epoch': j.data.time.epoch}
-
-        # loop over all jobs from a step, waiting for them to be done
-        # printing output of the jobs as it get synced from the subprocess
-        all_done = False
-        last_output = None
-        while not all_done:
-            all_done = True
-
-            for job, process_info in processes.items():
-                process = process_info['process']
-
-                if not process.isDone():
-                    all_done = False
-                    time.sleep(0.5)
-                    process.sync()
-
-                    if process.new_stdout != "":
-                        if last_output != job.model.key:
-                            self.logger.info("stdout of %s" % job)
-                        self.logger.info(process.new_stdout)
-                        last_output = job.model.key
-
-        # save state of jobs, process logs and errors
-        for job, process_info in processes.items():
-            process = process_info['process']
-            action_name = job.model.dbobj.actionName
-
-            while not process.isDone():
-                self.logger.debug('wait for {}'.format(str(job)))
-                # just to make sure process is cleared
-                process.wait()
-
-            # if the action is a reccuring action, save last execution time in model
-            if action_name in job.service.model.actionsRecurring:
-                job.service.model.actionsRecurring[action_name].lastRun = process_info['epoch']
-
-            service_action_obj = job.service.model.actions[action_name]
-
-            if process.state != 'success':
-                self.state = 'error'
-                job.model.dbobj.state = 'error'
-                service_action_obj.state = 'error'
-                # processError creates the logs entry in job object
-                job._processError(process.error)
-            else:
-                self.state = 'ok'
-                job.model.dbobj.state = 'ok'
-                service_action_obj.state = 'ok'
-
-                log_enable = j.core.jobcontroller.db.actions.get(service_action_obj.actionKey).dbobj.log
-                if log_enable:
-                    if process.stdout != '':
-                        job.model.log(msg=process.stdout, level=5, category='out')
-                    if process.stderr != '':
-                        job.model.log(msg=process.stderr, level=5, category='err')
-                self.logger.info("job {} done sucessfuly".format(str(job)))
-            job.save()
+        if len(futures) > 0:
+            # TODO: implement timout in the asyncio.wait
+            done, pending = await asyncio.wait(futures)
+            if len(pending) != 0:
+                for future in pending:
+                    future.cancel()
+                raise j.exceptions.RuntimeError('not all job done')
 
     def __repr__(self):
         out = "step:%s (%s)\n" % (self.dbobj.number, self.state)
@@ -181,10 +125,7 @@ class Run:
         return self.model.epoch
 
     def delete(self):
-        from IPython import embed
-        print("DEBUG NOW delete")
-        embed()
-        raise RuntimeError("stop debug here")
+        self.model.delete()
 
     def newStep(self):
         self.lastnr += 1
@@ -238,7 +179,7 @@ class Run:
     def save(self):
         self.model.save()
 
-    def execute(self):
+    async def execute(self):
         """
         Execute executes all the steps contained in this run
         if a step finishes with an error state. print the error of all jobs in the step that has error states then raise any
@@ -248,7 +189,7 @@ class Run:
         try:
             for step in self.steps:
 
-                step.execute()
+                await step.execute()
 
                 if step.state == 'error':
                     self.state = 'error'

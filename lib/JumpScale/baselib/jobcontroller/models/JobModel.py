@@ -1,6 +1,7 @@
 from JumpScale import j
 
 ModelBase = j.data.capnp.getModelBaseClass()
+from JumpScale.data.capnp.ModelBase import emptyObject
 
 import importlib
 # import inspect
@@ -35,6 +36,7 @@ class JobModel(ModelBase):
 
         if epoch is None:
             epoch = j.data.time.getTimeEpoch()
+
         logitem = self._logObjNew()
         logitem.category = category
         logitem.level = int(level)
@@ -44,12 +46,9 @@ class JobModel(ModelBase):
         return logitem
 
     def _logObjNew(self):
-        # for logs not very fast but lets go with this for now
-        olditems = [item.to_dict() for item in self.dbobj.logs]
-        newlist = self.dbobj.init("logs", len(olditems) + 1)
-        for i, item in enumerate(olditems):
-            newlist[i] = item
-        log = newlist[-1]
+        msg = self._capnp_schema.LogEntry.new_message()
+        log = emptyObject(msg.to_dict(verbose=True))
+        self.dbobj.logs.append(log)
         return log
 
     @property

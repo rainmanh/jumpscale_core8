@@ -498,8 +498,15 @@ class Text:
 
         example line:
             def echo('f',g = 1, x=[1,2,3])
+            async def echo('f',g = 1, x=[1,2,3])
 
         """
+        async = False
+        definition = ''
+        if line.find('async') == 0:
+            async = True
+            line = line[len('async '):]
+
         definition, args = line.split("(", 1)
         amName = definition[4:].strip()
         args = args.strip()

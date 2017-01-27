@@ -1,5 +1,6 @@
 from JumpScale import j
 from JumpScale.baselib.jobcontroller.Run import Run
+from JumpScale.data.capnp.ModelBase import emptyObject
 
 ModelBase = j.data.capnp.getModelBaseClass()
 
@@ -20,31 +21,28 @@ class RunModel(ModelBase):
             self._index.redisclient.hdel(self._index._indexkey, item[0])
         self._index.index({ind: self.key})
 
-    def stepNew(self, **kwargs):
-        olditems = [item.to_dict() for item in self.dbobj.steps]
-        newlist = self.dbobj.init("steps", len(olditems) + 1)
-        for i, item in enumerate(olditems):
-            newlist[i] = item
-        step = newlist[-1]
-
-        for k, v in kwargs.items():
-            if k == 'jobs':
-                for job in v:
-                    self.job_new(step, job.to_dict())
-            if hasattr(step, k):
-                setattr(step, k, v)
+    def stepNew(self):
+        msg = self._capnp_schema.RunStep.new_message()
+        step = emptyObject(msg.to_dict(verbose=True))
+        self.dbobj.steps.append(step)
+        # olditems = [item.to_dict() for item in self.dbobj.steps]
+        # newlist = self.dbobj.init("steps", len(olditems) + 1)
+        # for i, item in enumerate(olditems):
+        #     newlist[i] = item
+        # step = newlist[-1]
+        #
+        # for k, v in kwargs.items():
+        #     if k == 'jobs':
+        #         for job in v:
+        #             self.job_new(step, job.to_dict())
+        #     if hasattr(step, k):
+        #         setattr(step, k, v)
         return step
 
-    def jobNew(self, step, **kwargs):
-        olditems = [item.to_dict() for item in step.jobs]
-        newlist = step.init("jobs", len(olditems) + 1)
-        for i, item in enumerate(olditems):
-            newlist[i] = item
-        job = newlist[-1]
-
-        for k, v in kwargs.items():
-            if hasattr(job, k):
-                setattr(job, k, v)
+    def jobNew(self, step):
+        msg = self._capnp_schema.RunStep.Job.new_message()
+        job = emptyObject(msg.to_dict(verbose=True))
+        step.jobs.append(job)
 
         return job
 
@@ -60,6 +58,12 @@ class RunModel(ModelBase):
 
         return logs
 
+    def delete(self):
+        ind = "%s:%s" % (self.dbobj.state, self.dbobj.lastModDate)
+        self._index.index_remove(ind)
+        # delete actual model object
+        if self._db.exists(self.key):
+            self._db.delete(self.key)
 
     def objectGet(self):
         return Run(model=self)

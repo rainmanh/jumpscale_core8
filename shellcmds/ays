@@ -87,7 +87,7 @@ def repo_list():
     List all known repositories
     """
     print("AYS Repositories: ")
-    repos = j.atyourservice.reposList()
+    repos = j.atyourservice.repos.values()
     for repo in sorted(repos):
         print(repo.path)
 

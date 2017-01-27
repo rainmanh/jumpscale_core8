@@ -14,6 +14,7 @@ from JumpScale.baselib.jobcontroller.Job import Job
 from JumpScale.baselib.jobcontroller.Run import Run
 from JumpScale.baselib.jobcontroller.Engine import Engine
 
+from concurrent.futures import ThreadPoolExecutor
 
 DBTuple = namedtuple('db', ['runs', 'jobs', 'actions'])
 
@@ -32,6 +33,7 @@ class JobController:
             ActionsCollection(),
         )
         self._methods = {}
+        self._executor = ThreadPoolExecutor()
 
         self._init = False
 
@@ -95,9 +97,9 @@ class JobController:
         method is link to method (function)
         """
         action = self.getActionObjFromMethod(method)
-        if not j.core.jobcontroller.db.action.exists(action.key):
+        if not j.core.jobcontroller.db.actions.exists(action.key):
             action.save()
-        job = j.core.jobcontroller.db.job.new()
+        job = j.core.jobcontroller.db.jobs.new()
         job.dbobj.actionKey = action.key
         job.dbobj.actionName = action.dbobj.name
         job.dbobj.actorName = action.dbobj.actorName

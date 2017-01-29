@@ -24,7 +24,7 @@ class CuisinePHP(app): #TEST on ovh4 *3
     NAME = 'php'
 
     def build(self, **config):
-        pkgs = "libxml2-dev libpng-dev libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev"
+        pkgs = "libxml2-dev libpng-dev libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev file"
         list(map(self.cuisine.package.ensure, pkgs.split(sep=" ")))
 
         buildconfig = deepcopy(compileconfig)

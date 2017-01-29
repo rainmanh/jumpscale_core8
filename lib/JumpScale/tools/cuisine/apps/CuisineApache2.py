@@ -69,6 +69,7 @@ class CuisineApache2(app):
         #LoadModule userdir_module
         #LoadModule slotmem_shm_module
         #LoadModule rewrite_module modules/mod_rewrite.so
+        #LoadModule mpm_prefork_module modules/mod_mpm_prefork.so
 
         #Include conf/extra/httpd-multilang-errordoc.con
         #Include conf/extra/httpd-autoindex.con
@@ -82,6 +83,15 @@ class CuisineApache2(app):
             line = line.strip()
             if line:
                 mod = line.replace("#", "")
+                conffile = conffile.replace(line, mod)
+        disabled = """
+        LoadModule mpm_worker_module modules/mod_mpm_worker.so
+        LoadModule mpm_event_module modules/mod_mpm_event.so
+        """
+        for line in disabled:
+            line = line.strip()
+            if line:
+                mod = "#"+line
                 conffile = conffile.replace(line, mod)
         conffile += "\nInclude sites-enabled/*"
         conffile += "\nAddType application/x-httpd-php .php"

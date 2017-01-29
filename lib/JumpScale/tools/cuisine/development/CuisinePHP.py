@@ -10,13 +10,14 @@ compileconfig['with_gd'] = True
 compileconfig['with_curl'] = True  # apt-get install libcurl4-openssl-dev libzip-dev
 compileconfig['with_libzip'] = True
 compileconfig['with_zlib'] = True
+compileconfig['with_openssl'] = True
 compileconfig['enable_fpm'] = True
 compileconfig['prefix'] = "$appDir/php"
 compileconfig['exec_prefix'] = "$appDir/php"
 compileconfig['with_mysqli'] = True
 compileconfig['with_pdo_mysql'] = True
 compileconfig['with_mysql_sock'] = "/var/run/mysqld/mysqld.sock"
-compileconfig['with_apxs2'] = "/usr/bin/apxs2"
+
 
 
 class CuisinePHP(app):
@@ -27,12 +28,13 @@ class CuisinePHP(app):
         pkgs = "libxml2-dev libpng-dev libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev"
         list(map(self._cuisine.package.ensure, pkgs.split(sep=" ")))
 
+        compileconfig['with_apxs2'] = self._cuisine.core.args_replace("$appDir/apache2/bin/apxs")
         buildconfig = deepcopy(compileconfig)
         buildconfig.update(config)  # should be defaultconfig.update(config) instead of overriding the explicit ones.
 
         # check for apxs2 binary if it's valid.
         apxs = buildconfig['with_apxs2']
-        if not self._cuisine.core.file_exist(apxs):
+        if not self._cuisine.core.file_exists(apxs):
             buildconfig.pop('with_apxs2')
 
         args_string = ""
@@ -47,9 +49,9 @@ class CuisinePHP(app):
         rm -rf $appDir/php
         set -xe
         rm -rf $tmpDir/php-7.0.11
-        cd $tmpDir && [ ! -f $tmpDir/php-7.0.11.tar.bz2 ] && cd $tmpDir && wget http://be2.php.net/distributions/php-7.0.11.tar.bz2 && tar xvjf $tmpDir/php-7.0.11.tar.bz2
-        cd $tmpDir && tar xvjf $tmpDir/php-7.0.11.tar.bz2
-        mv $tmpDir/php-7.0.11/ $tmpDir/php
+        cd $tmpDir && [ ! -f $tmpDir/php-7.0.11.tar.bz2 ] && cd $tmpDir && wget http://be2.php.net/distributions/php-7.1.1.tar.bz2 && tar xvjf $tmpDir/php-7.1.1.tar.bz2
+        cd $tmpDir && tar xvjf $tmpDir/php-7.1.1.tar.bz2
+        mv $tmpDir/php-7.1.1/ $tmpDir/php
 
         #build
         cd $tmpDir/php && ./configure {args_string} && make
@@ -99,6 +101,8 @@ class CuisinePHP(app):
         self._cuisine.core.file_write("$appDir/php/etc/php-fpm.d/www.conf", content=fpmwwwconf)
         self._cuisine.bash.addPath(self._cuisine.core.args_replace('$appDir/php/bin'))
 
+        # FOR APACHE
+        self._cuisine.file_copy("$tmpDir/php/php.ini-development", "$appDir/php/lib/php.ini")
         if start:
             self.start()
 

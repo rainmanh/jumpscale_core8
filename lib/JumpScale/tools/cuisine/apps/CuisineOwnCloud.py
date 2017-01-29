@@ -280,8 +280,8 @@ class CuisineOwnCloud(app):
             apachesiteconf = self.cuisine.core.args_replace(self._get_apache_siteconf())
             apachesiteconf = apachesiteconf.format(ServerName=sitename)
             self._cuisine.apps.apache.stop()
-            self._cuisine.core.file_write("/etc/apache2/sites-available/owncloud.conf", apachesiteconf)
-            self._cuisine.core.file_link("/etc/apache2/sites-available/owncloud.conf", "/etc/apache2/sites-enabled/owncloud.conf")
+            self._cuisine.core.file_write("$appDir/apache2/sites-available/owncloud.conf", apachesiteconf)
+            self._cuisine.core.file_link("$appDir/apache2/sites-available/owncloud.conf", "/etc/apache2/sites-enabled/owncloud.conf")
             C = """
             chown -R www-data:www-data $appDir/owncloud
             chmod 777 -R $appDir/owncloud/config
@@ -304,8 +304,8 @@ class CuisineOwnCloud(app):
           Dav off
          </IfModule>
 
-         SetEnv HOME /opt/jumpscale8//apps/owncloud/
-         SetEnv HTTP_HOME $appDir/owncloud/
+         SetEnv HOME /opt/jumpscale8/apps/owncloud/
+         SetEnv HTTP_HOME /opt/jumpscale8/apps/owncloud/
         </Directory>
         <VirtualHost *:80>
             ServerAdmin admin@there.com

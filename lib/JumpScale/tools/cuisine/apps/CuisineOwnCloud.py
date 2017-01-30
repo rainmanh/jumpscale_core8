@@ -21,15 +21,19 @@ class CuisineOwnCloud(app):
         """
         # SQL client
         self.cuisine.package.install("mysql-client-core-5.7")
+        if not self.cuisine.apps.apache2.isInstalled():
+            self.cuisine.apps.apache2.build()
+            self.cuisine.apps.apache2.install()
+            self.cuisine.apps.apache2.start()
         if not self.cuisine.development.php.isInstalled():
             self.cuisine.development.php.install()
         if not self.cuisine.apps.tidb.isInstalled():
             self.cuisine.apps.tidb.build()
             self.cuisine.apps.tidb.install()
-        if not self.cuisine.apps.apache.isInstalled():
-            self.cuisine.apps.apache.build()
-            self.cuisine.apps.apache.install()
-            self.cuisine.apps.apache.start()
+
+        self.install()
+        self.start(localinstall=True)
+
 
 
         # TODO: *2 create 1 method which does all and is sort of guideline for a customer to understand this
@@ -231,7 +235,7 @@ class CuisineOwnCloud(app):
         conf = self._cuisine.core.args_replace(conf)
         return conf
 
-    def start(self, sitename='owncloudy.com', dbhost="127.0.0.1", dbuser="root", dbpass="", nginx=False):
+    def start(self, sitename='owncloudy.com', dbhost="127.0.0.1", dbuser="root", dbpass="", nginx=False, localinstall=False):
 
         owncloudsiterules = self._get_default_conf_nginx_site()
         owncloudsiterules = owncloudsiterules % {"sitename": sitename}
@@ -239,7 +243,10 @@ class CuisineOwnCloud(app):
             "$cfgDir/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
 
         dbpass = "" if dbpass == "" else ' -p "{dbpass}"'.format(dbpass=dbpass)
-        privateIp = self._cuisine.net.getInfo(self._cuisine.net.nics[0])['ip'][0]
+        if localinstall:
+            privateIp = dbhost
+        else:
+            privateIp = self._cuisine.net.getInfo(self._cuisine.net.nics[0])['ip'][0]
 
         C = r"""\
         mysql -h {dbhost} -u {dbuser} {dbpass} --port 3306 --execute "CREATE DATABASE owncloud"
@@ -279,9 +286,9 @@ class CuisineOwnCloud(app):
             # APACHE CONF.
             apachesiteconf = self.cuisine.core.args_replace(self._get_apache_siteconf())
             apachesiteconf = apachesiteconf.format(ServerName=sitename)
-            self._cuisine.apps.apache.stop()
+            self._cuisine.apps.apache2.stop()
             self._cuisine.core.file_write("$appDir/apache2/sites-available/owncloud.conf", apachesiteconf)
-            self._cuisine.core.file_link("$appDir/apache2/sites-available/owncloud.conf", "/etc/apache2/sites-enabled/owncloud.conf")
+            #self._cuisine.core.file_link("$appDir/apache2/sites-available/owncloud.conf", "$appDir/apache2/sites-enabled/owncloud.conf")
             C = """
             chown -R www-data:www-data $appDir/owncloud
             chmod 777 -R $appDir/owncloud/config
@@ -289,7 +296,7 @@ class CuisineOwnCloud(app):
             """
             self._cuisine.core.execute_bash(C)
             self._cuisine.development.php.start()
-            self._cuisine.apps.apache.start()
+            self._cuisine.apps.apache2.start()
 
     def _get_apache_siteconf(self):
         conf = textwrap.dedent("""\
@@ -305,7 +312,7 @@ class CuisineOwnCloud(app):
          </IfModule>
 
          SetEnv HOME /opt/jumpscale8/apps/owncloud/
-         SetEnv HTTP_HOME /opt/jumpscale8/apps/owncloud/
+             SetEnv HTTP_HOME /opt/jumpscale8/apps/owncloud/
         </Directory>
         <VirtualHost *:80>
             ServerAdmin admin@there.com

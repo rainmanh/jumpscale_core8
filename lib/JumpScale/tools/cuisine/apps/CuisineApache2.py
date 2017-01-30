@@ -9,6 +9,10 @@ class CuisineApache2(app):
     NAME = 'apachectl'
 
     def build(self, reset=True):
+
+        pkgs = "wget curl gcc libaprutil1-dev libapr1-dev libpcre3-dev libxml2-dev build-essential unzip".split()
+        self._cuisine.package.multiInstall(pkgs)
+
         httpdir = "/optvar/build/httpd"
 
         if reset and self._cuisine.core.dir_exists(httpdir):

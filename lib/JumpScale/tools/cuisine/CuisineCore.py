@@ -343,7 +343,7 @@ class CuisineCore(base):
         return x
 
     def file_download(self, url, to="", overwrite=True, retry=3, timeout=0, login="",
-                      passwd="", minspeed=0, multithread=False, expand=False, minsizekb=40, removeTopDir=False):
+                      passwd="", minspeed=0, multithread=False, expand=False, minsizekb=40, removeTopDir=False, processtimeout=300):
         """
         download from url
         @return path of downloaded file
@@ -391,12 +391,12 @@ class CuisineCore(base):
                     cmd += " -C -"
                 self.logger.info(cmd)
                 self.file_unlink("%s.downloadok" % to)
-                rc, out, err = self.run(cmd, die=False)
+                rc, out, err = self.run(cmd, die=False, timeout=processtimeout)
                 if rc == 33:  # resume is not support try again withouth resume
                     self.file_unlink(to)
                     cmd = "curl -L '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (
                         url, to, user, minsp, retry, timeout)
-                    rc, out, err = self.run(cmd, die=False)
+                    rc, out, err = self.run(cmd, die=False, timeout=processtimeout)
                 fsize = self.file_size(to)
                 if minsizekb != 0 and fsize < minsizekb:
                     raise j.exceptions.RuntimeError(

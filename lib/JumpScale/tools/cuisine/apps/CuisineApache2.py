@@ -9,10 +9,11 @@ class CuisineApache2(app):
     NAME = 'apachectl'
 
     def build(self, reset=True):
+        httpdir = "/optvar/build/httpd"
+
         if reset and self._cuisine.core.dir_exists(httpdir):
             self._cuisine.core.dir_remove("$appDir/apache2")
 
-        httpdir = "/optvar/build/httpd"
         self._cuisine.core.dir_ensure("/optvar/build")
 
         ## DOWNLOAD LINK

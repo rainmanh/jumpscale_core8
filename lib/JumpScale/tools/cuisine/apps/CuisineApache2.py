@@ -6,7 +6,7 @@ app = j.tools.cuisine._getBaseAppClass()
 
 class CuisineApache2(app):
 
-    NAME = 'httpd'
+    NAME = 'apachectl'
 
     def build(self, reset=True):
         if reset and self._cuisine.core.dir_exists(httpdir):

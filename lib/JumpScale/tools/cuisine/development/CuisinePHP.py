@@ -49,7 +49,7 @@ class CuisinePHP(app):
         rm -rf $appDir/php
         set -xe
         rm -rf $tmpDir/php-7.0.11
-        cd $tmpDir && [ ! -f $tmpDir/php-7.0.11.tar.bz2 ] && cd $tmpDir && wget http://be2.php.net/distributions/php-7.1.1.tar.bz2 && tar xvjf $tmpDir/php-7.1.1.tar.bz2
+        cd $tmpDir && [ ! -f $tmpDir/php-7.1.1.tar.bz2 ] && cd $tmpDir && wget http://be2.php.net/distributions/php-7.1.1.tar.bz2 && tar xvjf $tmpDir/php-7.1.1.tar.bz2
         cd $tmpDir && tar xvjf $tmpDir/php-7.1.1.tar.bz2
         mv $tmpDir/php-7.1.1/ $tmpDir/php
 

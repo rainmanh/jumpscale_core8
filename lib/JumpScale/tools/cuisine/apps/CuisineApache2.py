@@ -93,7 +93,7 @@ class CuisineApache2(app):
         LoadModule mpm_worker_module modules/mod_mpm_worker.so
         LoadModule mpm_event_module modules/mod_mpm_event.so
         """
-        for line in disabled:
+        for line in disabled.splitlines():
             line = line.strip()
             if line:
                 mod = "#"+line

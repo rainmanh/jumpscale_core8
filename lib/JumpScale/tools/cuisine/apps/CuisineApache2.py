@@ -9,10 +9,15 @@ class CuisineApache2(app):
     NAME = 'apachectl'
 
     def build(self, reset=True):
-        if reset and self._cuisine.core.dir_exists(httpdir):
-            self._cuisine.core.dir_remove("$appDir/apache2")
+
+        pkgs = "wget curl gcc libaprutil1-dev libapr1-dev libpcre3-dev libxml2-dev build-essential unzip".split()
+        self._cuisine.package.multiInstall(pkgs)
 
         httpdir = "/optvar/build/httpd"
+
+        if reset and self._cuisine.core.dir_exists(httpdir):
+            self._cuisine.core.dir_remove("$JSAPPSDIR/apache2")
+
         self._cuisine.core.dir_ensure("/optvar/build")
 
         ## DOWNLOAD LINK
@@ -24,13 +29,13 @@ class CuisineApache2(app):
 
         # EXTRACT SROURCE CODE
         self._cuisine.core.run("cd /optvar/build && tar xjf {dest} && mv /optvar/build/httpd-2.4.25 /optvar/build/httpd".format(**locals()))
-        self._cuisine.core.dir_ensure("$appDir/apache2/bin")
-        self._cuisine.core.dir_ensure("$appDir/apache2/lib")
+        self._cuisine.core.dir_ensure("$JSAPPSDIR/apache2/bin")
+        self._cuisine.core.dir_ensure("$JSAPPSDIR/apache2/lib")
 
         buildscript = """
 
-        cd {httpdir} &&  ./configure --prefix=$appDir/apache2 --bindir=$appDir/apache2/bin --sbindir=$appDir/apache2/bin \
-              --libdir=$appDir/apache2/lib \
+        cd {httpdir} &&  ./configure --prefix=$JSAPPSDIR/apache2 --bindir=$JSAPPSDIR/apache2/bin --sbindir=$JSAPPSDIR/apache2/bin \
+              --libdir=$JSAPPSDIR/apache2/lib \
               --enable-mpms-shared=all \
               --enable-modules=all \
               --enable-mods-shared=all \
@@ -57,11 +62,11 @@ class CuisineApache2(app):
         self._cuisine.core.run(installscript)
 
         #COPY APACHE BINARIES to /opt/jumpscale8/bin
-        self._cuisine.core.file_copy("$appDir/apache2/bin/*",'$binDir/')
+        self._cuisine.core.file_copy("$JSAPPSDIR/apache2/bin/*",'$BINDIR/')
 
 
     def configure(self):
-        conffile = self._cuisine.core.file_read("$appDir/apache2/conf/httpd.conf")
+        conffile = self._cuisine.core.file_read("$JSAPPSDIR/apache2/conf/httpd.conf")
         # SANE CONFIGURATIONS
         lines = """
         #LoadModule negotiation_module
@@ -88,7 +93,7 @@ class CuisineApache2(app):
         LoadModule mpm_worker_module modules/mod_mpm_worker.so
         LoadModule mpm_event_module modules/mod_mpm_event.so
         """
-        for line in disabled:
+        for line in disabled.splitlines():
             line = line.strip()
             if line:
                 mod = "#"+line
@@ -97,10 +102,10 @@ class CuisineApache2(app):
         conffile += "\nAddType application/x-httpd-php .php"
 
         # MAKE VHOSTS DIRECTORY
-        self._cuisine.core.dir_ensure("$appDir/apache2/sites-available")
-        self._cuisine.core.dir_ensure("$appDir/apache2/sites-enabled")
-
-        self._cuisine.core.file_write("$appDir/apache2/conf/httpd.conf", conffile)
+        self._cuisine.core.dir_ensure("$JSAPPSDIR/apache2/sites-available")
+        self._cuisine.core.dir_ensure("$JSAPPSDIR/apache2/sites-enabled")
+        #print("Config to be written = ", conffile)
+        self._cuisine.core.file_write("$JSAPPSDIR/apache2/conf/httpd.conf", conffile)
 
 
     def start(self):

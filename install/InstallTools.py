@@ -770,10 +770,9 @@ class FSMethods():
         if not ssh and not self.exists(source, executor=executor):
             raise RuntimeError("copytree:Cannot find source:%s" % source)
 
-        if executor != None and rsync == False:
+        if executor and not rsync:
             raise RuntimeError("when executor used only rsync supported")
         if rsync and not self.isMac():
-            executor.cuisine.package.ensure('rsync')
             excl = ""
             for item in ignoredir:
                 excl += "--exclude '*%s*/' " % item
@@ -807,6 +806,7 @@ class FSMethods():
                     # self.createDir(self.getParent(dest))
                     dest = dest.split(':')[1] if ':' in dest else dest
             else:
+                executor.cuisine.package.ensure('rsync')
                 if executor.cuisine.core.dir_exists(source):
                     if dest[-1] != "/":
                         dest += "/"

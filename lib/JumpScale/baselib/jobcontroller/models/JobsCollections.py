@@ -32,6 +32,8 @@ class JobsCollection:
         return model
 
     def get(self, key):
+        if not self.exists(key):
+            return
         return JobModel(
             capnp_schema=ModelCapnp.Job,
             category=self.category,
@@ -60,7 +62,7 @@ class JobsCollection:
         res1 = []
         for index, key in res0:
             epoch = int(index.split(":")[-1])
-            if fromEpoch < epoch and epoch < toEpoch:
+            if fromEpoch <= epoch and epoch < toEpoch:
                 if returnIndex:
                     res1.append((index, key))
                 else:
@@ -72,6 +74,13 @@ class JobsCollection:
         for key in self._list_keys(actor, service, action, state, serviceKey, fromEpoch, toEpoch):
             res.append(self.get(key))
         return res
+
+
+    def getIndexFromKey(self, key):
+        job = self.get(key)
+        ind = "%s:%s:%s:%s:%s:%s" % (job.dbobj.actorName, job.dbobj.serviceName,
+                                     job.dbobj.actionName, job.dbobj.state, job.dbobj.serviceKey, job.dbobj.lastModDate)
+        return ind
 
     def destroy(self):
         self._db.destroy()

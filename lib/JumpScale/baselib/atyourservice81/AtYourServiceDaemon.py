@@ -3,6 +3,7 @@ import signal
 import time
 from multiprocessing import Pool
 from threading import Thread
+from JumpScale.baselib.jobcontroller.models.JobsCollections import JobsCollection
 import requests
 
 
@@ -21,6 +22,16 @@ def run_action(repo_path, service_key, action_name, args=None):
 
     service.model.actions[action_name].lastRun = j.data.time.epoch
     service.saveAll()
+
+
+def job_cleanup():
+    jobs = set()
+    jc = JobsCollection()
+    job_keys = jc._list_keys(fromEpoch=j.data.time.getEpochAgo('-2d'))
+    for job_key in job_keys:
+        jobs.add(jc.getIndexFromKey(job_key))
+    jc._db.index_remove(list(jobs))
+    return
 
 
 def do_run(run_key, callback=None):
@@ -79,6 +90,12 @@ class Server:
         self._running = True
 
         while self._running:
+            try:
+                job_cleanup()
+            except Exception as e:
+                self.logger.error("error while cleaning jobs : %s" % str(e))
+                continue
+
             payload = self._command_queue.queueGet('command', timeout=2)
             if payload is None:
                 # timeout without receiving command

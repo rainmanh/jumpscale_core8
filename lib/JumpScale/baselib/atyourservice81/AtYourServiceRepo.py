@@ -4,7 +4,7 @@ from JumpScale.baselib.atyourservice81.Actor import Actor
 from JumpScale.baselib.atyourservice81.Blueprint import Blueprint
 from JumpScale.baselib.atyourservice81.models.ActorsCollection import ActorsCollection
 from JumpScale.baselib.atyourservice81.models.ServicesCollection import  ServicesCollection
-
+from JumpScale.baselib.jobcontroller.models.JobsCollections import JobsCollection
 from JumpScale.baselib.atyourservice81.AtYourServiceDependencies import build_nodes, create_graphs, get_task_batches, create_job
 
 import colored_traceback
@@ -57,6 +57,18 @@ class AtYourServiceRepo():
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "actors"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "services"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "recipes"))  # for old time sake
+
+        # removing the related jobs
+        jobs = set()
+        services = self.db.services.list()
+        jc = JobsCollection()
+        for service in services:
+            job_keys = jc._list_keys(serviceKey=service)
+            for job_key in job_keys:
+                jobs.add(jc.getIndexFromKey(job_key))
+        jc._db.index_remove(list(jobs))
+
+        # removing related actors, services , and the repo model itslef.
         self.db.actors.destroy()
         self.db.services.destroy()
         self.model.delete()

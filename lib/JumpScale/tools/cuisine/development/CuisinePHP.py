@@ -25,7 +25,7 @@ class CuisinePHP(app):
     NAME = 'php'
 
     def build(self, **config):
-        pkgs = "libxml2-dev libpng-dev libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev"
+        pkgs = "libxml2-dev libpng-dev libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev re2c bison"
         list(map(self._cuisine.package.ensure, pkgs.split(sep=" ")))
 
         compileconfig['with_apxs2'] = self._cuisine.core.args_replace("$appDir/apache2/bin/apxs")
@@ -45,21 +45,21 @@ class CuisinePHP(app):
             else:
                 args_string += " --{k}={v}".format(k=k, v=v)
         C = """
-        rm -rf $tmpDir/php
-        rm -rf $appDir/php
-        set -xe
-        rm -rf $tmpDir/php-7.0.11
-        cd $tmpDir && [ ! -f $tmpDir/php-7.1.1.tar.bz2 ] && cd $tmpDir && wget http://be2.php.net/distributions/php-7.1.1.tar.bz2 && tar xvjf $tmpDir/php-7.1.1.tar.bz2
-        cd $tmpDir && tar xvjf $tmpDir/php-7.1.1.tar.bz2
-        mv $tmpDir/php-7.1.1/ $tmpDir/php
+        cd $TMPDIR && [ ! -f $TMPDIR/php-7.0.11.tar.bz2 ] && wget http://be2.php.net/distributions/php-7.0.11.tar.bz2
+        cd $TMPDIR && tar xvjf $TMPDIR/php-7.0.11.tar.bz2
+        mv $TMPDIR/php-7.0.11/ $TMPDIR/php
 
-        #build
-        cd $tmpDir/php && ./configure {args_string} && make
+        """
 
-        """.format(args_string=args_string)
+        C = self.cuisine.core.args_replace(C)
+        self.cuisine.core.run(C)
 
-        C = self._cuisine.core.args_replace(C)
-        self._cuisine.core.execute_bash(C)
+        C = """cd $TMPDIR/php && ./configure {args_string}""".format(args_string=args_string)
+        self.cuisine.core.run(C, die=False)
+
+        C = """cd $TMPDIR/php && make"""
+        self.cuisine.core.run(C, die=False)
+
 
         # check if we need an php accelerator: https://en.wikipedia.org/wiki/List_of_PHP_accelerators
 

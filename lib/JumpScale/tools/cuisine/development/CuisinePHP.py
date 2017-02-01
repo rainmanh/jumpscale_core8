@@ -102,7 +102,7 @@ class CuisinePHP(app):
         self._cuisine.bash.addPath(self._cuisine.core.args_replace('$appDir/php/bin'))
 
         # FOR APACHE
-        self._cuisine.file_copy("$tmpDir/php/php.ini-development", "$appDir/php/lib/php.ini")
+        self._cuisine.core.file_copy("$tmpDir/php/php.ini-development", "$appDir/php/lib/php.ini")
         if start:
             self.start()
 

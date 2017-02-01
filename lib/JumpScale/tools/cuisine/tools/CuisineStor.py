@@ -641,7 +641,7 @@ class StorSpace(object):
             - metadataStorspace!=None then use other storspace for uploading the plist
         - remove tmpdir if removetmpdir=True
         """
-    
+
         if not host:
             host = j.tools.executor.getLocal()
 
@@ -654,24 +654,27 @@ class StorSpace(object):
             target = source
 
         # building the flist struct
-        f = j.tools.flist.get_flist()
-        f.build(target, excludes)
+        f = j.tools.flist.getFlist(target)
+        f.add(target, excludes)
 
-        exists = self.exists(f.getHashList())
-        needed = []
+        # exists = self.exists(f.getHashList())
+        # needed = []
+        #
+        # for key, exist in exists.items():
+        #     files = f.filesFromHash(key)
+        #
+        #     # from a hash, all files will point to the same content
+        #     # by checking only the first one from the filelist, we will know
+        #     # if this this key point to regular file(s) or not
+        #     #
+        #     # if it's not found, we will only append one file
+        #     # it's not needed to append each file, they contains all the same data
+        #     if not exist and f.isRegular(files[0]):
+        #         needed.append({'hash': key, 'file': files[0]})
 
-        for key, exist in exists.items():
-            files = f.filesFromHash(key)
+        dirs = f.dirCollection.find()
 
-            # from a hash, all files will point to the same content
-            # by checking only the first one from the filelist, we will know
-            # if this this key point to regular file(s) or not
-            #
-            # if it's not found, we will only append one file
-            # it's not needed to append each file, they contains all the same data
-            if not exist and f.isRegular(files[0]):
-                needed.append({'hash': key, 'file': files[0]})
-
+        needed = [(target + d.dbobj.location, d.key) for d in dirs]
         if len(needed) == 0:
             # nothing to upload
             return True
@@ -681,8 +684,7 @@ class StorSpace(object):
         tar = j.tools.tarfile.get(tmptar, j.tools.tarfile.WRITE)
 
         for file in needed:
-            hash = self.hashPath(file['hash'])
-            tar.addFiltered(file['file'], hash, self._clearFile)
+            tar.addFiltered(file[0], file[1], self._clearFile)
 
         tar.close()
 

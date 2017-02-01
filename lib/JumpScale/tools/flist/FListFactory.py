@@ -20,7 +20,7 @@ from JumpScale.tools.flist.models import ACICollection
 
 from JumpScale.tools.flist.FList import FList
 from JumpScale.tools.flist.FListMetadata import FListMetadata
-from JumpScale.tools.flist.FuseExample import FuseExample
+# from JumpScale.tools.flist.FuseExample import FuseExample
 
 
 class FListFactory(object):

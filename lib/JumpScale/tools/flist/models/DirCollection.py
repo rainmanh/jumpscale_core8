@@ -17,10 +17,10 @@ class DirCollection(base):
         """
         res = []
         for item in self.list(location=location):
-            res.append(self.get(item))
+            res.append(self.get(item[1]))
         return res
 
-    def list(self, locationRegex=".*"):
+    def list(self, location=".*"):
         """
         DO Not forget to add .* at end otherwise you won't find much, its a real regex instruction
         """

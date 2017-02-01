@@ -132,6 +132,17 @@ class JobModel(ModelBase):
                 del ddict[key]
         return ddict
 
+    def save(self):
+        self._pre_save()
+        if not self._db.inMem:
+            # expiration of 172800 = 2 days  expire=172800
+            buff = self.dbobj.to_bytes()
+            if hasattr(self.dbobj, 'clear_write_flag'):
+                self.dbobj.clear_write_flag()
+            self._db.set(self.key, buff, expire=172800)
+        self.index()
+
+
     def __repr__(self):
         out = self.dictJson + "\n"
         if self.dbobj.args not in ["", b""]:

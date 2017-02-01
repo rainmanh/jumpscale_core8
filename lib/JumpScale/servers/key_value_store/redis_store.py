@@ -66,12 +66,15 @@ class RedisKeyValueStore(KeyValueStoreBase):
                 self.redisclient.hset(self._indexkey, key, val)
         return True
 
-    def index_remove(self, key, secret=""):
+    def index_remove(self, keys, secret=""):
         """
         @param keys is the key to remove from index
         """
-        if self.redisclient.hexists(self._indexkey, key):
-            self.redisclient.hdel(self._indexkey, key)
+        if not isinstance(keys, list):
+            keys = [keys]
+        for key in keys:
+            if self.redisclient.hexists(self._indexkey, key):
+                self.redisclient.hdel(self._indexkey, key)
 
     def list(self, regex=".*", returnIndex=False, secret=""):
         """

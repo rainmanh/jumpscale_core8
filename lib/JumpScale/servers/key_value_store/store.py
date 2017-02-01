@@ -220,7 +220,9 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
         data = self._encode(value2, expire, acl)
 
-        self._set(key, data)
+        # the expire is non-generic as it only translates to the redis core does not break at the moment.
+        # any _set should take expire to allow compatability.
+        self._set(key, data, expire)
 
         # if self.cache != None:
         #     self.cache._set(key=key, category=category, value=value1)

@@ -207,7 +207,8 @@ class Account(Authorizables):
 
     def space_get(self, name, location="", create=True,
                   maxMemoryCapacity=-1, maxVDiskCapacity=-1, maxCPUCapacity=-1, maxNASCapacity=-1,
-                  maxNetworkOptTransfer=-1, maxNetworkPeerTransfer=-1, maxNumPublicIP=-1):
+                  maxNetworkOptTransfer=-1, maxNetworkPeerTransfer=-1, maxNumPublicIP=-1,
+                  externalnetworkId=None):
         """
         will get space if it exists,if not will create it
         to retrieve existing one location does not have to be specified
@@ -232,7 +233,8 @@ class Account(Authorizables):
                                                             maxNASCapacity=maxNASCapacity,
                                                             maxNetworkOptTransfer=maxNetworkOptTransfer,
                                                             maxNetworkPeerTransfer=maxNetworkPeerTransfer,
-                                                            maxNumPublicIP=maxNumPublicIP)
+                                                            maxNumPublicIP=maxNumPublicIP,
+                                                            externalnetworkId=externalnetworkId)
                 return self.space_get(name, location, False)
             else:
                 raise j.exceptions.RuntimeError(

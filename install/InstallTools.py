@@ -1711,7 +1711,7 @@ class ExecutorMethods():
         @param captureOutput, if that one == False then will not populate resout/reserr
         @param outMethod,errMethod if None then will print to out
         """
-        return self.execute(command=command, showout=True, outputStderr=True, useShell=useShell, log=True, cwd=cwd, timeout=timout, errors=[], \
+        return self.execute(command=command, showout=True, outputStderr=True, useShell=useShell, log=True, cwd=cwd, timeout=None, errors=[], \
                             ok=[], captureout=captureOutput, die=die, async=False, executor=None)
         # TODO: *2 check if this works on windows
         # TODO: *2 there is an ugly error when there is a timeout (on some systems seems to work though)

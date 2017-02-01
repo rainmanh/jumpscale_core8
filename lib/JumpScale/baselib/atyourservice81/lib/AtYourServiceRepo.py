@@ -1,5 +1,6 @@
 from JumpScale import j
 from JumpScale.baselib.atyourservice81.lib.Actor import Actor
+from JumpScale.baselib.atyourservice81.lib.Service import Service
 from JumpScale.baselib.atyourservice81.lib.Blueprint import Blueprint
 from JumpScale.baselib.atyourservice81.lib.models.ActorsCollection import ActorsCollection
 from JumpScale.baselib.atyourservice81.lib.models.ServicesCollection import ServicesCollection
@@ -117,7 +118,11 @@ class AtYourServiceRepo():
         self.name = j.sal.fs.getBaseName(self.path)
         self.git = j.clients.git.get(self.path, check_path=False)
         self._db = None
+        self.no_exec = False
         j.atyourservice._loadActionBase()
+
+        self._services = {}
+        self._load_services()
 
     @property
     def db(self):
@@ -127,6 +132,16 @@ class AtYourServiceRepo():
                 ServicesCollection(self)
             )
         return self._db
+
+    def _load_services(self):
+        """
+        load the services from the filesystem when AYS starts
+        """
+        services_dir = j.sal.fs.joinPaths(self.path, 'services')
+        if j.sal.fs.exists(services_dir) and len(self.services) <= 0:
+            for service_path in j.sal.fs.listDirsInDir(services_dir, recursive=True):
+                s = Service.init_from_fs(aysrepo=self, path=service_path)
+                self._services[s.model.key] = s
 
     def destroy(self):
         self.db.actors.destroy()
@@ -146,7 +161,8 @@ class AtYourServiceRepo():
 
         This mode can be used for demo or testing
         """
-        self.model.enable_no_exec()
+        # self.model.enable_no_exec()
+        self.no_exec = True
 
     def disable_noexec(self):
         """
@@ -154,7 +170,8 @@ class AtYourServiceRepo():
 
         see enable_no_exec for further info
         """
-        self.model.disable_no_exec()
+        self.no_exec = False
+        # self.model.disable_no_exec()
 
 # ACTORS
     def actorCreate(self, name):
@@ -165,7 +182,7 @@ class AtYourServiceRepo():
         actor = Actor(aysrepo=self, template=actorTemplate)
         return actor
 
-    def actorGet(self, name, reload=False, die=False):
+    def actorGet(self, name, die=False):
         actor_models = self.db.actors.find(name=name)
         if len(actor_models) == 1:
             obj = actor_models[0].objectGet(self)
@@ -183,9 +200,6 @@ class AtYourServiceRepo():
                                          name, level=1, source="", tags="", msgpub="")
 
             obj = self.actorCreate(name)
-
-        if reload:
-            obj.loadFromFS()
 
         return obj
 
@@ -255,9 +269,9 @@ class AtYourServiceRepo():
     @property
     def services(self):
         services = []
-        for service_model in self.db.services.find():
-            if service_model.dbobj.state != "disabled":
-                services.append(service_model.objectGet(aysrepo=self))
+        for service in self._services.values():
+            if service.model.dbobj.state != "disabled":
+                services.append(service)
         return services
 
     def serviceGet(self, role, instance, key=None, die=True):
@@ -268,20 +282,27 @@ class AtYourServiceRepo():
         if role.strip() == "" or instance.strip() == "":
             raise j.exceptions.Input("role and instance cannot be empty.")
 
-        objs = self.db.services.find(actor="%s.*" % role, name=instance)
+        # objs = self.db.services.find(actor="%s.*" % role, name=instance)
+        objs = [s for s in self._services.values() if s.model.role == role and s.name == instance]
         if len(objs) == 0:
             if die:
-                raise j.exceptions.Input(message="Cannot find service %s:%s" %
+                raise j.exceptions.NotFound(message="Cannot find service %s:%s" %
                                          (role, instance), level=1, source="", tags="", msgpub="")
             return None
-        return objs[0].objectGet(self)
+        # return objs[0].objectGet(self)
+        return objs[0]
 
     def serviceGetByKey(self, key):
-        return self.db.services.get(key=key).objectGet(self)
+        objs = [s for s in self._services.values() if s.model.key == key]
+        if len(objs) <= 0:
+            raise j.exceptions.NotFound(message="Cannot find service with key {}".format(key))
+        return objs[0]
+        # return self.db.services.get(key=key).objectGet(self)
 
     @property
     def serviceKeys(self):
-        return [model.key for model in self.db.services.find()]
+        return [s.model.key for s in self._services.values()]
+        # return [model.key for model in self.db.services.find()]
 
     def serviceSetState(self, actions=[], role="", instance="", state="new"):
         """
@@ -332,23 +353,58 @@ class AtYourServiceRepo():
             disabled
             changed
         """
-        if actor == '' and role != '':
-            actor = '%s(\..*)?' % role
-
-        res = []
-        for service_model in self.db.services.find(name=name, actor=actor, state=state, parent=parent, producer=producer):
-            if hasAction != "" and hasAction not in service_model.actionsState.keys():
+        results = []
+        for service in self._services.values():
+            if name != '' and service.name != name:
                 continue
 
-            if includeDisabled is False and service_model.dbobj.state == "disabled":
+            if actor != '' and service.model.dbobj.actorName != actor:
                 continue
 
-            res.append(service_model.objectGet(self))
+            if role != '' and service.model.role != role:
+                continue
+
+            if state != '' and service.model.state != state:
+                continue
+
+            if parent != '' and "{}!{}".format(service.parent.role, service.parent.name) != parent:
+                continue
+
+            # if producer != '':
+            #     for prod in service.producers:
+            #         if "{}!{}".format(prod.role, prod.name) !=
+
+            if includeDisabled is False and service.model.dbobj.state == "disabled":
+                continue
+
+            if hasAction != "" and hasAction not in service.model.actions.keys():
+                continue
+
+            results.append(service)
+
         if first:
-            if len(res) == 0:
-                raise j.exceptions.Input("cannot find service %s|%s:%s" % (self.name, actor, name), "ays.servicesFind")
-            return res[0]
-        return res
+            if len(results) == 0:
+                raise j.exceptions.NotFound("cannot find service %s|%s:%s" % (self.name, actor, name), "ays.servicesFind")
+            return results[0]
+        return results
+
+        # if actor == '' and role != '':
+        #     actor = '%s(\..*)?' % role
+        #
+        # res = []
+        # for service_model in self.db.services.find(name=name, actor=actor, state=state, parent=parent, producer=producer):
+        #     if hasAction != "" and hasAction not in service_model.actionsState.keys():
+        #         continue
+        #
+        #     if includeDisabled is False and service_model.dbobj.state == "disabled":
+        #         continue
+
+        #     res.append(service_model.objectGet(self))
+        # if first:
+        #     if len(res) == 0:
+        #         raise j.exceptions.Input("cannot find service %s|%s:%s" % (self.name, actor, name), "ays.servicesFind")
+        #     return res[0]
+        # return res
 
 # BLUEPRINTS
 
@@ -398,15 +454,15 @@ class AtYourServiceRepo():
                 if not bp.is_valid:
                     self.logger.warning("blueprint %s not executed because it doesn't have a valid format" % bp.path)
                     return
-                bp.load(role=role, instance=instance)
+                await bp.load(role=role, instance=instance)
         else:
             bp = Blueprint(self, path=path, content=content)
             # self._blueprints[bp.path] = bp
             if not bp.is_valid:
                 return
-            bp.load(role=role, instance=instance)
+            await bp.load(role=role, instance=instance)
 
-        self.init(role=role, instance=instance)
+        await self.init(role=role, instance=instance)
 
         print("blueprint done")
 
@@ -473,7 +529,8 @@ class AtYourServiceRepo():
         It then creates actions chains for all schedules actions.
         """
         result = {}
-        for service_model in self.db.services.find():
+        for service in self.services:
+            service_model = service.model
             for action, state in service_model.actionsState.items():
                 if state in ['scheduled', 'changed', 'error']:
                     if service_model not in result:
@@ -513,10 +570,10 @@ class AtYourServiceRepo():
         return run
 
 # ACTIONS
-    def init(self, role="", instance="", hasAction="", includeDisabled=False, data=""):
+    async def init(self, role="", instance="", hasAction="", includeDisabled=False, data=""):
         for service in self.servicesFind(name=instance, actor='%s.*' % role, hasAction=hasAction, includeDisabled=includeDisabled):
             self.logger.info('init service: %s' % service)
-            service.init()
+            await service.init()
 
         print("init done")
 

@@ -18,6 +18,7 @@ class Blueprint:
         self.eventFilters = []
         self._contentblocks = []
 
+
         if path != "":
             self.name = j.sal.fs.getBaseName(path)
             if self.name[0] == "_":
@@ -57,7 +58,7 @@ class Blueprint:
 
             self.is_valid = self._validate_format(self.models)
 
-    def load(self, role="", instance=""):
+    async def load(self, role="", instance=""):
         self.actions = []
         self.eventFilters = []
         for model in self.models:
@@ -173,9 +174,9 @@ class Blueprint:
                             raise j.exceptions.Input(message="Cannot find actor:%s" %
                                                      actorname, level=1, source="", tags="", msgpub="")
 
-                        actor = self.aysrepo.actorGet(actorname, reload=False)
+                        actor = self.aysrepo.actorGet(actorname)
                         args = {} if item is None else item
-                        actor.serviceCreate(instance=bpinstance, args=args)
+                        await actor.serviceCreate(instance=bpinstance, args=args)
 
         # first we had to make sure all services do exist, then we can add these properties
         for action_info in self.actions:

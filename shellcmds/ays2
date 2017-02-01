@@ -162,7 +162,7 @@ def show(role, name):
             print(' None')
         else:
             print('')
-            print("{role}!{name}".format(**parent))
+            print("{role}!{name}".format(**service['parent']))
 
         print("\nProducers:", end='')
         if not service['producers']:
@@ -321,8 +321,8 @@ def run():
     Group of commands about runs
     """
 def _print_run(run, logs=False):
-    def print_log(log):
-        print("\t{datetime} leve:{level} category:{category} | {log}".format(**log, datetime=print_date(job['epoch'])))
+    def format_log(log):
+        return " {datetime} {category}: {log}\n".format(**log, datetime=print_date(log['epoch']))
 
     out = "RUN:{}\n".format(run['key'])
     out += "-------\n"
@@ -332,9 +332,11 @@ def _print_run(run, logs=False):
         for job in step['jobs']:
             out += "- {actor_name:15} {service_name:15} | {action_name:15} ({state})\n".format(**job)
             if logs:
-                import ipdb; ipdb.set_trace()
+                out += "logs:"
+                # import ipdb; ipdb.set_trace()
                 for log in job['logs']:
-                    print_log(log)
+                    if log['log']:
+                        out += format_log(log)
     print(out)
 
 @run.command()

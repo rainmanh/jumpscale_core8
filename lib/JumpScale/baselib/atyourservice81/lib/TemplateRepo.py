@@ -208,7 +208,7 @@ class TemplateRepo():
                     msg = 'Found duplicate template:found %s in \n- %s and \n- %s' % (templ.name, path, self._templates[templ.name].path)
                     raise j.exceptions.Input(msg)
 
-            self.logger.debug("load template {} from {}".format(templ, path))
+            # self.logger.debug("load template {} from {}".format(templ, path))
             self._templates[templ.name] = templ
 
         # make sure all loaded repo still exists

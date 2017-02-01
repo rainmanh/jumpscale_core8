@@ -18,8 +18,10 @@ class RunsCollection:
         self.namespace_prefix = 'runs'
         namespace = "%s:%s" % (self.namespace_prefix, self.category.lower())
         self._db = j.servers.kvs.getARDBStore(namespace, namespace, **j.atyourservice.config['redis'])
+        # self._db = j.servers.kvs.getMemoryStore(namespace, namespace)
         # for now we do index same as database
         self._index = j.servers.kvs.getARDBStore(namespace, namespace, **j.atyourservice.config['redis'])
+        # self._index = j.servers.kvs.getMemoryStore(namespace, namespace)
 
     def new(self):
         model = RunModel(

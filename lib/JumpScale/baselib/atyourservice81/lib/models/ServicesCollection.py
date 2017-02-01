@@ -15,6 +15,7 @@ class ServicesCollection(ModelBaseCollection):
         self.repository = repository
         namespace = "ays:%s:service" % repository.name
         db = j.servers.kvs.getARDBStore(namespace, namespace, **j.atyourservice.config['redis'])
+        # db = j.servers.kvs.getMemoryStore(namespace, namespace)
         super().__init__(
             schema=ModelCapnp.Service,
             category="Service",

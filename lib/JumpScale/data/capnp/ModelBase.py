@@ -80,6 +80,10 @@ class ModelBase():
             self._key = self._generate_key()
         return self._key
 
+    @key.setter
+    def key(self, value):
+        self._key = value
+
     def _post_init(self):
         pass
 
@@ -96,8 +100,8 @@ class ModelBase():
         self._index.index({self.dbobj.name: self.key})
 
     def load(self, key):
-        if self._db.inMem:
-            raise RuntimeError("when using in memory store it should not try to load")
+        # if self._db.inMem:
+        #     raise RuntimeError("when using in memory store it should not try to load")
 
         buff = self._db.get(key)
         msg = self._capnp_schema.from_bytes(buff)
@@ -174,7 +178,9 @@ class ModelBase():
         """
         remove items from obj which cannot be serialized to json or not relevant in dict
         """
-        return self.dbobj.__dict__
+        d = self.dbobj.to_dict()
+        d['key'] = self.key
+        return d
 
     @dictFiltered.setter
     def dictFiltered(self, ddict):

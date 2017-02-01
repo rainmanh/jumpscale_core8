@@ -68,18 +68,22 @@ class RunStep:
         for job in self.jobs:
             self.logger.info('execute %s' % job)
             # don't actually execute anything
-            if job.service.aysrepo.model.no_exec is True:
+            if job.service.aysrepo.no_exec is True:
                 self._fake_exec(job)
             else:
                 futures.append(job.execute())
 
-        if len(futures) > 0:
-            # TODO: implement timout in the asyncio.wait
-            done, pending = await asyncio.wait(futures)
-            if len(pending) != 0:
-                for future in pending:
-                    future.cancel()
-                raise j.exceptions.RuntimeError('not all job done')
+        # TODO: implement timout in the asyncio.wait
+        self.logger.debug("wait for all jobs to complete")
+        done, pending = await asyncio.wait(futures)
+        if len(pending) != 0:
+            for future in pending:
+                future.cancel()
+            raise j.exceptions.RuntimeError('not all job done')
+
+        states = [job.model.state for job in self.jobs]
+        self.state = 'error' if 'error' in states else 'ok'
+        self.logger.info("runstep {}: {}".format(self.dbobj.number, self.state))
 
     def __repr__(self):
         out = "step:%s (%s)\n" % (self.dbobj.number, self.state)
@@ -192,6 +196,7 @@ class Run:
                 await step.execute()
 
                 if step.state == 'error':
+                    self.logger.error("error during execution of step {} in run {}".format(step.dbobj.number, self.key))
                     self.state = 'error'
 
                     for job in step.jobs:
@@ -199,9 +204,13 @@ class Run:
                             log = job.model.dbobj.logs[-1]
                             print(job.str_error(log.log))
 
-                    raise j.exceptions.RuntimeError("Error during execution of step %d\n See stacktrace above to identify the issue" % step.dbobj.number)
+                    raise j.exceptions.RuntimeError(log.log)
+                    # raise j.exceptions.RuntimeError("Error during execution of step %d\n See stacktrace above to identify the issue" % step.dbobj.number)
 
             self.state = 'ok'
+        except:
+            self.state = 'error'
+            raise
         finally:
             self.save()
 

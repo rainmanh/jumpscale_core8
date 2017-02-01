@@ -32,15 +32,16 @@ class ServiceModel(ActorServiceBaseModel):
         if self.dbobj.parent.serviceName == '' or self.dbobj.parent.actorName == '':
             return None
 
-        parentModels = self._aysrepo.db.services.find(
-            name=self.dbobj.parent.serviceName, actor=self.dbobj.parent.actorName)
-        if len(parentModels) <= 0:
+        parents = self._aysrepo.servicesFind(name=self.dbobj.parent.serviceName, actor=self.dbobj.parent.actorName)
+        # parentModels = self._aysrepo.db.services.find(
+        #     name=self.dbobj.parent.serviceName, actor=self.dbobj.parent.actorName)
+        if len(parents) <= 0:
             return None
-        elif len(parentModels) > 1:
+        elif len(parents) > 1:
             raise j.exceptions.RuntimeError("More then one parent model found for model %s:%s" %
                                             (self.dbobj.actorName, self.dbobj.name))
 
-        return parentModels[0]
+        return parents[0].model
 
     def _executeActionService(self, action, args={}):
         # execute an action in process without creating a job
@@ -77,18 +78,20 @@ class ServiceModel(ActorServiceBaseModel):
 
     @property
     def producers(self):
-        producers = None
-        if self._cache is True:
-            if self._producers != []:
-                return self._producers
-            else:
-                producers = self._producers
-        else:
-            producers = []
+        # producers = None
+        # if self._cache is True:
+        #     if self._producers != []:
+        #         return self._producers
+        #     else:
+        #         producers = self._producers
+        # else:
+        #     producers = []
+        producers = []
 
         for prod in self.dbobj.producers:
-            producers.extend(self._aysrepo.db.services.find(name=prod.serviceName, actor=prod.actorName))
-        return producers
+            producers.extend(self._aysrepo.servicesFind(name=prod.serviceName, actor=prod.actorName))
+            # producers.extend(self._aysrepo.db.services.find(name=prod.serviceName, actor=prod.actorName))
+        return [p.model for p in producers]
 
     def getProducersRecursive(self, producers=set(), action="", producerRoles="*"):
         for producer_model in self.producers:
@@ -110,9 +113,11 @@ class ServiceModel(ActorServiceBaseModel):
         else:
             consumers = []
 
-        for prod in self.dbobj.consumers:
-            consumers.extend(self._aysrepo.db.services.find(name=prod.serviceName, actor=prod.actorName))
-        return consumers
+        for cons in self.dbobj.consumers:
+            consumers.extend(self._aysrepo.servicesFind(name=cons.serviceName, actor=cons.actorName))
+            # producers.extend(self._aysrepo.db.services.find(name=prod.serviceName, actor=prod.actorName))
+        return [c.model for c in consumers]
+
 
     def getConsumersRecursive(self, consumers=set(), action="", consumersRoles="*"):
         for consumer_model in self.consumers:
@@ -168,8 +173,11 @@ class ServiceModel(ActorServiceBaseModel):
         """
         returns an Service object created from this model
         """
-        service = Service(name=self.dbobj.name, aysrepo=aysrepo, model=self)
-        return service
+        if self.key not in self._aysrepo._services:
+            self._aysrepo._services[self.key] = Service.init_from_model(aysrepo=aysrepo, model=self)
+        return self._aysrepo._services[self.key]
+        # service = Service(name=self.dbobj.name, aysrepo=aysrepo, model=self)
+        # return service
 
     @property
     def wiki(self):
@@ -224,11 +232,12 @@ class ServiceModel(ActorServiceBaseModel):
         """
         Add another service to the producers list
         """
-        msg = self._capnp_schema.ServicePointer.new_message(
+        obj = j.data.capnp.getMemoryObj(
+            schema=self._capnp_schema.ServicePointer,
             actorName=actorName,
             serviceName=serviceName,
             key=key)
-        obj = emptyObject(msg.to_dict(verbose=True))
+
         self.dbobj.producers.append(obj)
         self.save()
 
@@ -240,18 +249,18 @@ class ServiceModel(ActorServiceBaseModel):
             if prod.key == service.model.key:
                 self.dbobj.producers.pop(i)
 
-        # self._producerRemoveObj(service.model.key)
-
     def consumerAdd(self, actorName, serviceName, key):
         """
         Add another service to the consumers list
         """
-        msg = self._capnp_schema.ServicePointer.new_message(
+        obj = j.data.capnp.getMemoryObj(
+            schema=self._capnp_schema.ServicePointer,
             actorName=actorName,
             serviceName=serviceName,
             key=key)
-        obj = emptyObject(msg.to_dict(verbose=True))
+
         self.dbobj.consumers.append(obj)
+        self.save()
 
     def consumerRemove(self, service):
         """
@@ -260,14 +269,13 @@ class ServiceModel(ActorServiceBaseModel):
         for i, consumer in enumerate(self.dbobj.consumers):
             if consumer.key == service.model.key:
                 self.dbobj.consumers.pop(i)
-        # self._consumerRemoveObj(service.model.key)
 
-    def check(self):
-        """
-        walks over the recurring items and if too old will execute
-        """
-        # TODO: *1 need to check, probably differently implemented
-        j.application.break_into_jshell("DEBUG NOW check recurring")
+    # def check(self):
+    #     """
+    #     walks over the recurring items and if too old will execute
+    #     """
+    #     # TODO: *1 need to check, probably differently implemented
+    #     j.application.break_into_jshell("DEBUG NOW check recurring")
 
 # events
 
@@ -350,7 +358,8 @@ class ServiceModel(ActorServiceBaseModel):
 
     @property
     def dictFiltered(self):
-        ddict = self.dbobj.to_dict()
+        ddict = super().dictFiltered
+        # ddict = self.dbobj.to_dict()
         if "data" in ddict:
             ddict.pop("data")
         return ddict

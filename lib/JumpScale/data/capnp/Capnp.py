@@ -246,3 +246,13 @@ class Capnp:
 
     def getBinaryData(self, obj):
         return obj.to_bytes_packed()
+
+    def getMemoryObj(self, schema, *args, **kwargs):
+        """
+        creates an object similar as a capnp message but without the constraint of the capnpn on the type and list.
+        Use this to store capnp object in memory instead of using directly capnp object
+        It will be converted in capnp message when saved
+        """
+        msg = schema.new_message(**kwargs)
+        obj = emptyObject(msg.to_dict(verbose=True))
+        return obj

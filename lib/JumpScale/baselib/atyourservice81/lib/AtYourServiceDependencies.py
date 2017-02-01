@@ -9,7 +9,9 @@ def build_nodes(repo):
     These node are going to be used to create the dependency graphs
     """
     all_nodes = {}
-    for model in repo.db.services.find():
+    for service in repo.services:
+        model = service.model
+    # for model in repo.db.services.find():
         for action in model.actions.keys():
             node = Node(model, action)
             all_nodes[node.id] = node
@@ -51,7 +53,10 @@ def addEdges(node, action, all_nodes, nodes):
     recursivlely add edged to a node
     """
     for prod in node.model.producers:
-        name = "%s-%s" % (prod.key, action)
+        try:
+            name = "%s-%s" % (prod.key, action)
+        except:
+            import ipdb; ipdb.set_trace()
         edge = all_nodes.get(name)
         if edge:
             addEdges(edge, action, all_nodes, nodes)

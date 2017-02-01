@@ -20,12 +20,15 @@ def _execute_cb(job, epoch, future):
     future: future that hold the result of the job execution
     """
     service_action_obj = None
+
     if job.service is not None:
-        # if the action is a reccuring action, save last execution time in model
         action_name = job.model.dbobj.actionName
-        if action_name in job.service.model.actionsRecurring:
-            job.service.model.actionsRecurring[action_name].lastRun = epoch
+        if action_name in job.service.model.actions:
             service_action_obj = job.service.model.actions[action_name]
+        if action_name in job.service.model.actionsRecurring and service_action_obj:
+            # if the action is a reccuring action, save last execution time in model
+            print("update lastrun")
+            service_action_obj.lastRun = epoch
 
     exception = future.exception()
     if exception is not None:
@@ -44,38 +47,61 @@ def _execute_cb(job, epoch, future):
         log_enable = True
         if service_action_obj:
             log_enable = j.core.jobcontroller.db.actions.get(service_action_obj.actionKey).dbobj.log
-        if log_enable:
+        if log_enable and job.model.dbobj.debug is False:
+            # don't generate log when debug is enable, cause streams are not redirect in debug mode
             _, stdout, stderr = future.result()
-            if stdout != '':
+            if stdout:
                 job.model.log(msg=stdout, level=5, category='out')
-            if stderr != '':
+            if stderr:
                 job.model.log(msg=stderr, level=5, category='err')
         job.logger.info("job {} done sucessfuly".format(str(job)))
+
     job.save()
 
 @contextmanager
 def stdstreams_redirector(stdout, stderr):
     """
-    redirect std and stderr to buffer
+    redirect std and stderr to the buffers passed in arguments
     """
-    yield
-    # old_stdout = sys.stdout
-    # sys.stdout = stdout
-    # old_stderr = sys.stderr
-    # sys.stderr = stderr
-    # try:
-    #     yield
-    # finally:
-    #     sys.stdout = old_stdout
-    #     sys.stderr = old_stderr
+    old_stdout = sys.stdout
+    sys.stdout = stdout
+    old_stderr = sys.stderr
+    sys.stderr = stderr
+    try:
+        yield
+    finally:
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
 
-def wraper(args):
+@contextmanager
+def generate_profile(job):
+    """
+    context manager that generate profile of the code it wrap
+    """
+    if job.model.dbobj.profile is False:
+        yield
+    else:
+        try:
+            pr = cProfile.Profile()
+            pr.enable()
+            yield
+        finally:
+            pr.create_stats()
+            # TODO: *1 this is slow, needs to be fetched differently
+            stat_file = j.sal.fs.getTempFileName()
+            pr.dump_stats(stat_file)
+            job.model.dbobj.profileData = j.sal.fs.fileGetBinaryContents(stat_file)
+            j.sal.fs.remove(stat_file)
+
+def reditect_stream_wraper(args):
     stdout = StringIO()
     stderr = StringIO()
     func = args[0]
     with stdstreams_redirector(stdout, stderr):
         if len(args) >= 2:
-            result = func(*args[1:])
+            job = args[1]
+            with generate_profile(job):
+                result = func(*args[1:])
         else:
             result = func()
     return (result, stdout.getvalue(), stderr.getvalue())
@@ -153,8 +179,9 @@ class Job():
         if self._service is None:
             if self.model.dbobj.actorName != "":
                 repo = j.atyourservice.aysRepos.get(path=self.model.dbobj.repoKey)
-                serviceModel = repo.db.services.get(self.model.dbobj.serviceKey)
-                self._service = serviceModel.objectGet(repo)
+                self._service = repo.serviceGetByKey(self.model.dbobj.serviceKey)
+                # serviceModel = repo.db.services.get(self.model.dbobj.serviceKey)
+                # self._service = serviceModel.objectGet(repo)
         return self._service
 
     def _processError(self, eco):
@@ -211,59 +238,20 @@ class Job():
 
     def save(self):
         self.model.save()
-        if self.saveService and self.service is not None:
-            if self.saveService:
-                self.service.reload()
-                if self.model.dbobj.actionName in self.service.model.actions:
-                    service_action_obj = self.service.model.actions[self.model.dbobj.actionName]
-                    service_action_obj.state = str(self.model.dbobj.state)
-                self.service.saveAll()
+        # if self.saveService and self.service is not None:
+            # if self.saveService:
+            #     # self.service.reload()
+            #     if self.model.dbobj.actionName in self.service.model.actions:
+            #         service_action_obj = self.service.model.actions[self.model.dbobj.actionName]
+            #         service_action_obj.state = str(self.model.dbobj.state)
+                # self.service.saveAll()
 
     def executeInProcess(self):
         """
-        execute the job in the process, capture output when possible
-        if debug job then will not capture output so our debugging features work
+        deprecated, all jobs are exected in process now.
+        it's now a synonyme of execute()
         """
         return self.execute()
-        # # to make sure we don't put it in the profiler
-        # self.method
-        #
-        # if self.service.aysrepo.model.no_exec is False:
-        #
-        #     if self.model.dbobj.profile:
-        #         pr = cProfile.Profile()
-        #         pr.enable()
-        #
-        #     try:
-        #         if self.model.dbobj.actorName != "":
-        #             res = self.method(job=self)
-        #         else:
-        #             res = self.method(**self.model.args)
-        #
-        #     except Exception as e:
-        #         self.model.dbobj.state = 'error'
-        #         eco = j.errorconditionhandler.processPythonExceptionObject(e)
-        #         self._processError(eco)
-        #         log = self.model.dbobj.logs[-1]
-        #         print(self.str_error(log.log))
-        #         raise j.exceptions.RuntimeError("could not execute job:%s" % self)
-        #
-        #     finally:
-        #         if self.model.dbobj.profile:
-        #             pr.create_stats()
-        #             # TODO: *1 this is slow, needs to be fetched differently
-        #             stat_file = j.sal.fs.getTempFileName()
-        #             pr.dump_stats(stat_file)
-        #             self.model.dbobj.profileData = j.sal.fs.fileGetBinaryContents(stat_file)
-        #             j.sal.fs.remove(stat_file)
-        # else:
-        #     res = None
-        #
-        # self.model.dbobj.state = 'ok'
-        #
-        # self.model.result = res
-        # self.save()
-        # return res
 
     def execute(self):
         """
@@ -273,9 +261,19 @@ class Job():
 
         ex: result, stdout, stderr = await job.execute()
         """
-        loop = asyncio.get_event_loop()
         # for now use default ThreadPoolExecutor
-        future = loop.run_in_executor(None, wraper, (self.method, self))
+        loop = asyncio.get_event_loop()
+
+        if self.model.dbobj.debug is False:
+            self.model.dbobj.debug = self.sourceToExecute.find('ipdb') != -1 or self.sourceToExecute.find('IPython') != -1
+
+        if self.model.dbobj.debug is False:
+            future = loop.run_in_executor(None, reditect_stream_wraper, (self.method, self))
+        else:
+            # to debug we don't redirect stdout and stderr so ipdb can work
+            future = loop.run_in_executor(None, self.method, self)
+
+        # register callback to deal with logs and state of the job after execution
         now = j.data.time.epoch
         future.add_done_callback(functools.partial(_execute_cb, self, now))
 
@@ -283,21 +281,6 @@ class Job():
         self.save()
         return future
 
-        # if self.service.aysrepo.model.no_exec is True:
-        #     return None
-
-        # # TODO improve debug detection
-        # if self.model.dbobj.debug is False:
-        #     debugInCode = self.sourceToExecute.find('ipdb') != -1 or self.sourceToExecute.find('IPython') != -1
-        #     self.model.dbobj.debug = debugInCode
-        #
-        # # can be execute in paralle so we don't wait for end of execution here.
-        # if self.model.dbobj.debug:
-        #     process = self.executeInProcess()
-        # else:
-        #     process = j.core.processmanager.startProcess(self.method, {'job': self})
-        #
-        # return process
 
     def str_error(self, error):
         out = 'Error of %s:' % str(self)

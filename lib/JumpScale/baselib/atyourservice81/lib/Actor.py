@@ -7,7 +7,7 @@ from JumpScale.baselib.atyourservice81.lib import model_capnp as ModelCapnp
 
 class Actor():
 
-    def __init__(self, aysrepo, template=None, model=None):
+    def __init__(self, aysrepo, template=None, model=None, name=None):
         """
         init from a template or from a model
         """
@@ -21,6 +21,8 @@ class Actor():
             self._initFromTemplate(template)
         elif model is not None:
             self.model = model
+        elif name is not None:
+            self.loadFromFS(name=name)
         else:
             raise j.exceptions.Input(
                 message="template or model or name needs to be specified when creating an actor", level=1, source="", tags="", msgpub="")
@@ -43,7 +45,8 @@ class Actor():
         # for now we don't reload the actions codes.
         # when using distributed DB, the actions code could still be available
         del json['actions']
-        self.model.dbobj = ModelCapnp.Actor.new_message(**json)
+        self.model.dbobj = j.data.capnp.getMemoryObj(schema=ModelCapnp.Actor, **json)
+        # self.model.dbobj = ModelCapnp.Actor.new_message(**json)
 
         # need to save already here cause processActionFile is doing a find
         # and it need to be able to find this new actor model we are creating
@@ -372,7 +375,7 @@ class Actor():
 
 # SERVICE
 
-    def serviceCreate(self, instance="main", args={}):
+    async def serviceCreate(self, instance="main", args={}):
         instance = instance
         service = self.aysrepo.serviceGet(role=self.model.role, instance=instance, die=False)
         if service is not None:
@@ -386,9 +389,11 @@ class Actor():
         if len(results) > 1:
             raise j.exceptions.RuntimeError("found more then one service directory for %s" % target)
         elif len(results) == 1:
-            service = Service(aysrepo=self.aysrepo, path=results[0])
+            service = Service.init_from_fs(aysrepo=self.aysrepo, path=results[0])
+            # service = Service(aysrepo=self.aysrepo, path=results[0])
         else:
-            service = Service(aysrepo=self.aysrepo, actor=self, name=instance, args=args)
+            # service = Service(aysrepo=self.aysrepo, actor=self, name=instance, args=args)
+            service = await Service.init_from_actor(aysrepo=self.aysrepo, actor=self, name=instance, args=args)
 
         return service
 

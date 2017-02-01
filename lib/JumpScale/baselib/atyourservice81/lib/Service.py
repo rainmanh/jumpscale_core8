@@ -1,12 +1,13 @@
 from JumpScale import j
+from JumpScale.baselib.atyourservice81.lib.Recurring import RecurringTask
 
 import capnp
 import time
-
+import asyncio
 
 class Service:
 
-    def __init__(self, aysrepo, actor=None, model=None, name="", args={}, path=None):
+    def __init__(self, aysrepo, loop=None):
         """
         init from a template or from a model
         """
@@ -14,25 +15,42 @@ class Service:
         self._schema = None
         self._path = ""
         self._schema = None
-        self.name = name
+        self._loop = loop or asyncio.get_event_loop()
+        self._recurring_tasks = {}
 
         self.aysrepo = aysrepo
         self.logger = j.atyourservice.logger
 
-        if actor is not None:
-            try:
-                self._initFromActor(actor, args=args, name=name)
-            except Exception as e:
-                # cleanup if init fails
-                self.delete()
-                raise e
-        elif model is not None:
-            self.model = model
-        elif path is not None:
-            self.loadFromFS(path)
-        else:
-            raise j.exceptions.Input(
-                message="template or model needs to be specified when creating an actor", level=1, source="", tags="", msgpub="")
+        self._loop.call_soon(self._ensure_recurring)
+
+    @classmethod
+    async def init_from_actor(cls, aysrepo, actor, args, name):
+        try:
+            self = cls(aysrepo)
+            await self._initFromActor(actor=actor, args=args, name=name)
+            return self
+        except Exception as e:
+            # cleanup if init fails
+            self.delete()
+            raise e
+
+    @classmethod
+    def init_from_model(cls, aysrepo, model):
+        self = cls(aysrepo=aysrepo)
+        self.model = model
+        self.aysrepo._services[self.model.key] = self
+        return self
+
+    @classmethod
+    def init_from_fs(cls, aysrepo, path):
+        self = cls(aysrepo=aysrepo)
+        self.loadFromFS(path)
+        self.aysrepo._services[self.model.key] = self
+        return self
+
+    @property
+    def name(self):
+        return self.model.dbobj.name
 
     @property
     def path(self):
@@ -42,7 +60,7 @@ class Service:
             self._path = j.sal.fs.joinPaths(self.aysrepo.path, relpath)
         return self._path
 
-    def _initFromActor(self, actor, name, args={}):
+    async def _initFromActor(self, actor, name, args={}):
         self.logger.info("init service %s from %s" % (name, actor.model.name))
         if j.data.types.string.check(actor):
             raise j.exceptions.RuntimeError("no longer supported, pass actor")
@@ -89,7 +107,7 @@ class Service:
         del(msg)  # make sure we don't hold the memory
 
         # input will always happen in process
-        args2 = self.input(args=args)
+        args2 = await self.input(args=args)
         # print("%s:%s" % (self, args2))
         if args2 is not None and j.data.types.dict.check(args2):
             args = args2
@@ -103,7 +121,7 @@ class Service:
         dbobj.data = j.data.capnp.getBinaryData(j.data.capnp.getObj(dbobj.dataSchema, args=args, name='Schema'))
 
         # parents/producers
-        parent = self._initParent(actor, args)
+        parent = await self._initParent(actor, args)
         if parent is not None:
             fullpath = j.sal.fs.joinPaths(parent.path, skey)
             newpath = j.sal.fs.pathRemoveDirPart(fullpath, self.aysrepo.path)
@@ -111,11 +129,12 @@ class Service:
                 j.sal.fs.moveDir(dbobj.gitRepo.path)
             dbobj.gitRepo.path = newpath
 
-        self._initProducers(actor, args)
+        await self._initProducers(actor, args)
 
         self.save()
+        self.aysrepo._services[self.model.key] = self
 
-        self.init()
+        await self.init()
 
         # make sure we have the last version of the model if something changed during init
         self.reload()
@@ -143,7 +162,7 @@ class Service:
             msg += '\nDataSchema : {}'.format(self.model.dbobj.dataSchema)
             raise j.exceptions.Input(msg)
 
-    def _initParent(self, actor, args):
+    async def _initParent(self, actor, args):
         if actor.model.dbobj.parent.actorRole is not "":
             parent_role = actor.model.dbobj.parent.actorRole
 
@@ -151,7 +170,8 @@ class Service:
             # if none of the two is available in the args, don't use instance name and
             # expect the parent service to be unique in the repo
             parent_name = args.get(actor.model.dbobj.parent.argname, args.get(parent_role, ''))
-            res = self.aysrepo.servicesFind(name=parent_name, actor='%s(\..*)?' % parent_role)
+            # res = self.aysrepo.servicesFind(name=parent_name, actor='%s(\..*)?' % parent_role)
+            res = self.aysrepo.servicesFind(name=parent_name, role=parent_role)
             res = [s for s in res if s.model.role == parent_role]
             if len(res) == 0:
                 if actor.model.dbobj.parent.optional:
@@ -162,7 +182,7 @@ class Service:
                 else:
                     auto_actor = self.aysrepo.actorGet(parent_role)
                     instance = j.data.idgenerator.generateIncrID('parent_%s' % parent_role)
-                    res.append(auto_actor.serviceCreate(instance="auto_%d" % instance, args={}))
+                    res.append(await auto_actor.serviceCreate(instance="auto_%d" % instance, args={}))
             elif len(res) > 1:
                 raise j.exceptions.Input(message="could not find parent:%s for %s, found more than 1." %
                                          (parent_name, self), level=1, source="", tags="", msgpub="")
@@ -176,7 +196,7 @@ class Service:
 
         return None
 
-    def _initProducers(self, actor, args):
+    async def _initProducers(self, actor, args):
         """
         Initialize the producers of an actor.
 
@@ -191,7 +211,6 @@ class Service:
         # create the services required till the minServices is reached.
         # set add each to our producers and add ourself the their consumers list.
         # maintain the parent relationship (parent is always a producer and we are always a consumer of the parent.)
-
         for producer_model in actor.model.dbobj.producers:
             producer_role = producer_model.actorRole
             usersetservices = []
@@ -200,10 +219,11 @@ class Service:
                 passedservicesnames = [passedservicesnames]
             for svname in passedservicesnames:
                 if svname:
-                    foundservices = self.aysrepo.servicesFind(name=svname, actor="%s(\..*)?" % producer_model.actorRole)
+                    # foundservices = self.aysrepo.servicesFind(name=svname, actor="%s(\..*)?" % producer_model.actorRole)
+                    foundservices = self.aysrepo.servicesFind(name=svname, role=producer_model.actorRole)
                     usersetservices.extend(foundservices)
 
-            available_services = self.aysrepo.servicesFind(actor=producer_role)
+            available_services = self.aysrepo.servicesFind(role=producer_role)
             available_services = list(set(available_services) - set(usersetservices))
 
             extraservices = len(usersetservices) - producer_model.maxServices
@@ -216,7 +236,7 @@ class Service:
                 if producer_model.auto:
                     for idx in range(tocreate):
                         auto_actor = self.aysrepo.actorGet(producer_role)
-                        available_services.append(auto_actor.serviceCreate(instance="auto_%s" % idx, args={}))
+                        available_services.append(await auto_actor.serviceCreate(instance="auto_%s" % idx, args={}))
                 else:
                     raise j.exceptions.Input(message="Minimum number of services required is %s and only %s are provided. [Hint: Maybe you want to set auto to auto create the missing services?]" % (producer_model.minServices, len(usersetservices)),
                                              level=1, source="", tags="", msgpub="")
@@ -267,33 +287,21 @@ class Service:
             self.model = self.aysrepo.db.services.new()
 
         model_json = j.data.serializer.json.load(j.sal.fs.joinPaths(path, "service.json"))
-        # for now we don't reload the actions codes.
-        # when using distributed DB, the actions code could still be available
-        actions_bak = model_json.pop('actions')
-        self.model.dbobj = self.aysrepo.db.services.capnp_schema.new_message(**model_json)
+        self.model.key = model_json.pop('key')
+        self.model.dbobj = j.data.capnp.getMemoryObj(self.aysrepo.db.services.capnp_schema, **model_json)
 
         data_json = j.data.serializer.json.load(j.sal.fs.joinPaths(path, "data.json"))
         self.model.dbobj.data = j.data.capnp.getBinaryData(
             j.data.capnp.getObj(self.model.dbobj.dataSchema, args=data_json))
-        # data_obj = j.data.capnp.getObj(self.model.dbobj.dataSchema, data_json)
-        # self.model._data = data_obj
 
-        # actions
         # relink actions from the actor to be sure we have good keys
         actor = self.aysrepo.actorGet(name=self.model.dbobj.actorName)
-        actions = self.model.dbobj.init("actions", len(actor.model.dbobj.actions))
-        counter = 0
-        for action in actor.model.dbobj.actions:
-            for backup_action in actions_bak:
-                if action.name == backup_action['name']:
+        for actor_action in actor.model.dbobj.actions:
+            # search correct action in actor model
+            for service_action in self.model.dbobj.actions:
+                if actor_action.name == service_action.name:
+                    service_action.actionKey = actor_action.actionKey
                     break
-            actionnew = actions[counter]
-            actionnew.state = backup_action['state']
-            actionnew.actionKey = action.actionKey
-            actionnew.name = action.name
-            actionnew.log = backup_action['log']
-            actionnew.period = backup_action['period']
-            counter += 1
 
         self.saveAll()
 
@@ -316,8 +324,9 @@ class Service:
         self.saveToFS()
 
     def reload(self):
-        self.model._data = None
-        self.model.load(self.model.key)
+        pass
+        # self.model._data = None
+        # self.model.load(self.model.key)
 
     def delete(self):
         """
@@ -326,6 +335,10 @@ class Service:
         all the children of this service are going to be deleted too
         """
         # TODO should probably warn user relation may be broken
+
+        # cancel all recurring tasks
+        for task in self._recurring_tasks.values():
+            task.stop()
 
         for prod_model in self.model.producers:
             prod_model.consumerRemove(self)
@@ -338,6 +351,8 @@ class Service:
 
         self.model.delete()
         j.sal.fs.removeDirTree(self.path)
+        if self.model.key in self.aysrepo._services:
+            del self.aysrepo._services[self.model.key]
 
     @property
     def parent(self):
@@ -366,12 +381,17 @@ class Service:
     def producers(self):
         producers = {}
         for prod_model in self.model.producers:
-
             if prod_model.role not in producers:
                 producers[prod_model.role] = []
-
-            result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
-            producers[prod_model.role].extend(result)
+            producers[prod_model.role].extend(self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName))
+            # producers.extend(self._aysrepo.db.services.find(name=prod.serviceName, actor=prod.actorName))
+        # for prod_model in self.model.producers:
+        #
+        #     if prod_model.role not in producers:
+        #         producers[prod_model.role] = []
+        #
+        #     result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
+        #     producers[prod_model.role].extend(result)
 
         return producers
 
@@ -559,18 +579,18 @@ class Service:
             args = job.executeInProcess()
             job.model.save()
 
-    def input(self, args={}):
+    async def input(self, args={}):
         job = self.getJob("input", args=args)
         job._service = self
         job.saveService = False  # this is done to make sure we don't save the service at this point !!!
-        args = job.executeInProcess()
+        args, _, _ = await job.executeInProcess()
         job.model.actorName = self.model.dbobj.actorName
         job.model.save()
         return args
 
-    def init(self):
+    async def init(self):
         job = self.getJob(actionName="init")
-        job.executeInProcess()
+        await job.executeInProcess()
         job.model.save()
         return job
 
@@ -607,6 +627,8 @@ class Service:
                 period = int(period)
             # save period into actionCode model
             action_model.period = period
+            self._ensure_recurring()
+
 
         if not force and action_model.state == 'ok':
             self.logger.info("action %s already in ok state, don't schedule again" % action_model.name)
@@ -615,7 +637,7 @@ class Service:
 
         self.saveAll()
 
-    def executeAction(self, action, args={}, inprocess=False):
+    async def executeAction(self, action, args={}, inprocess=False):
         if action[-1] == "_":
             return self.executeActionService(action)
         else:
@@ -633,60 +655,22 @@ class Service:
         res = eval(action)(service=self, args=args)
         return res
 
-    def executeActionJob(self, actionName, args={}, inprocess=False):
-        self.logger.debug('execute action %s on %s' % (actionName, self))
+    async def executeActionJob(self, actionName, args={}):
+        """
+        creates a job and execute the action names actionName
+        @param actionName: name of the action to execute
+        @actionName type: string
+        @param args: arguments to pass to the action
+        @args type: dict
+        @return: result of the action.
+        """
         job = self.getJob(actionName=actionName, args=args)
 
-        # inprocess means we don't want to create subprocesses for this job
-        # used mainly for action called from other actions.
-        if inprocess:
-            job.model.dbobj.debug = True
-
-        now = j.data.time.epoch
-        p = job.execute()
-
-        if job.model.dbobj.debug is True:
-            return job
-
-        while not p.isDone():
-            time.sleep(0.5)
-            p.sync()
-            if p.new_stdout != "":
-                self.logger.info(p.new_stdout)
-
-        # just to make sure process is cleared
-        p.wait()
-
-        # if the action is a reccuring action, save last execution time in model
-        if actionName in self.model.actionsRecurring:
-            self.model.actionsRecurring[actionName].lastRun = now
-
-        service_action_obj = self.model.actions[actionName]
-
-        if p.state != 'success':
-            job.model.dbobj.state = 'error'
-            service_action_obj.state = 'error'
-            # processError creates the logs entry in job object
-            job._processError(p.error)
-            # print error
-            log = job.model.dbobj.logs[-1]
-            print(job.str_error(log.log))
+        result = await job.execute()
+        if isinstance(result, tuple) and len(result) == 3:
+            return result[0]
         else:
-            job.model.dbobj.state = 'ok'
-            service_action_obj.state = 'ok'
-
-            log_enable = j.core.jobcontroller.db.actions.get(service_action_obj.actionKey).dbobj.log
-            if log_enable:
-                if p.stdout != '':
-                    job.model.log(msg=p.stdout, level=5, category='out')
-                if p.stderr != '':
-                    job.model.log(msg=p.stderr, level=5, category='err')
-            self.logger.info("job {} done sucessfuly".format(str(job)))
-
-        job.model.save()
-        job.service.saveAll()
-
-        return job
+            return result
 
     def getJob(self, actionName, args={}):
         action = self.model.actions[actionName]
@@ -712,6 +696,37 @@ class Service:
         self.model._build_actions_chain(action=action, ds=ds)
         ds.reverse()
         return ds
+
+    def _ensure_recurring(self):
+        """
+        this method is added to the event loop after service creation
+        it makes sure all the recurrung action of the services are created and running
+        """
+        for action, info in self.model.actionsRecurring.items():
+            if action not in self._recurring_tasks:
+                # creates new tasks
+                task = RecurringTask(service=self, action=action, period=info.period, loop=None)
+                task.start()
+                self._recurring_tasks[action] = task
+            else:
+                # task already exists, make sure the period is correct
+                # and the task is running
+                task = self._recurring_tasks[action]
+                if info.period != task.period:
+                    task.period = info.period
+                if not task.started:
+                    task.start()
+
+        # stop recurring tasks that doesn't exists anymore
+        needed = set(self.model.actionsRecurring.keys())
+        actual = set(self._recurring_tasks.keys())
+        for name in actual.difference(needed):
+            task = self._recurring_tasks[name]
+            task.stop()
+            del self._recurring_tasks[name]
+
+        # reschedule itself
+        self._loop.call_later(5, self._ensure_recurring)
 
     def __eq__(self, service):
         if not service:

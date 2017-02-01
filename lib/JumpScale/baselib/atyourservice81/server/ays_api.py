@@ -172,7 +172,8 @@ async def CreateRun(request, repository):
     except j.exceptions.Input as e:
         return json({'error': e.msgpub}, 500)
     except Exception as e:
-        return json({'error':"Unexpected error: {}".format(str(e))}, 500)
+        raise e
+        # return json({'error':"Unexpected error: {}".format(str(e))}, 500)
 
 async def getRun(request, aysrun, repository):
     '''
@@ -205,8 +206,11 @@ async def executeRun(request, aysrun, repository):
         aysrun_model = repo.runGet(aysrun)
         aysrun = aysrun_model.objectGet()
         await aysrun.execute()
+        # asyncio.ensure_future(aysrun.execute())
     except j.exceptions.NotFound as e:
         return json({'error':e.message}, 404)
+    except Exception as e:
+        return json({'error':str(e)}, 500)
 
     return json(run_view(aysrun), 200)
 

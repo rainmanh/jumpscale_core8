@@ -12,7 +12,7 @@ from JumpScale.baselib.jobcontroller.models.RunsCollection import RunsCollection
 from JumpScale.baselib.jobcontroller.models.JobsCollections import JobsCollection
 from JumpScale.baselib.jobcontroller.Job import Job
 from JumpScale.baselib.jobcontroller.Run import Run
-from JumpScale.baselib.jobcontroller.Engine import Engine
+
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -86,11 +86,6 @@ class JobController:
                 step.addJob(job)
 
         print(run)
-
-    def engine(self):
-        e=Engine()
-        e.start()
-
 
     def newJobFromMethod(self, method, runKey="", **args):
         """

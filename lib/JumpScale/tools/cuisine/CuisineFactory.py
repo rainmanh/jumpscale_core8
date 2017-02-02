@@ -159,6 +159,13 @@ class CuisineApp(CuisineBase):
         """
         return self.cuisine.core.command_check(self.NAME)
 
+    def isStarted(self):
+        """
+        Checks if a package already started
+        You can ovveride it to use another way for checking
+        """
+        return not self._cuisine.core.run('pgrep %s' % self.NAME, die=False)[0]
+
     def install(self):
         if not self.isInstalled():
             raise NotImplementedError()

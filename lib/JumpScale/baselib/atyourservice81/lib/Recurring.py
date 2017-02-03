@@ -4,8 +4,10 @@ import asyncio
 class RecurringTask:
     """Execute a job periodicly"""
     def __init__(self, service, action, period, loop=None):
+        self.logger = j.logger.get('j.atyourservice')
         self._loop = None or asyncio.get_event_loop()
         self._future = None
+        self._job = None
         self.service = service
         self.action = action
         self.period = period
@@ -13,7 +15,9 @@ class RecurringTask:
 
     async def _run(self):
         while self.started:
-            await self.service.executeActionJob(actionName=self.action)
+            self._job =  self.service.getJob(actionName=self.action)
+            await self._job.execute()
+
             action_info = self.service.model.actions[self.action]
             elapsed = (j.data.time.epoch - action_info.lastRun)
             sleep = action_info.period - elapsed
@@ -24,11 +28,23 @@ class RecurringTask:
     def start(self):
         self.started = True
         self._future = asyncio.ensure_future(self._run(), loop=self._loop)
+        return self._future
 
-    def stop(self):
-        if self._future and not self._future.done():
-            self.started = False
+    async def stop(self):
+        self.started = False
+        # cancel recurring task
+        if self._future:
             self._future.cancel()
+            try:
+                # we wait here to make sure to give the time to the futur to cancel itself.
+                # TODO: timeout after a while ?
+                await self._future
+            except asyncio.CancelledError:
+                #  it should pass here, the canceld future should raise this exception
+                self.logger.info("recurring task for {}:{} is cancelled".format(self.service, self.action))
+
+        if self._job:
+            await self._job.cancel()
 
 
 if __name__ == '__main__':

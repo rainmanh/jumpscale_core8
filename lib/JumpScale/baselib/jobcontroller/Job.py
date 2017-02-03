@@ -19,6 +19,9 @@ def _execute_cb(job, epoch, future):
     epoch: is the epoch when the job started
     future: future that hold the result of the job execution
     """
+    if job._cancelled is True:
+        return
+
     service_action_obj = None
 
     if job.service is not None:
@@ -27,7 +30,6 @@ def _execute_cb(job, epoch, future):
             service_action_obj = job.service.model.actions[action_name]
         if action_name in job.service.model.actionsRecurring and service_action_obj:
             # if the action is a reccuring action, save last execution time in model
-            print("update lastrun")
             service_action_obj.lastRun = epoch
 
     exception = future.exception()
@@ -115,9 +117,11 @@ class Job():
     def __init__(self, model):
         self.logger = j.atyourservice.logger
         self.model = model
+        self._cancelled = False
         self._action = None
         self._service = None
         self._source = None
+        self._future = None
         self.saveService = True
 
     @property
@@ -179,7 +183,11 @@ class Job():
         if self._service is None:
             if self.model.dbobj.actorName != "":
                 repo = j.atyourservice.aysRepos.get(path=self.model.dbobj.repoKey)
-                self._service = repo.serviceGetByKey(self.model.dbobj.serviceKey)
+                try:
+                    self._service = repo.serviceGetByKey(self.model.dbobj.serviceKey)
+                except j.exceptions.NotFound:
+                    self.logger.warning("job {} tried to access a non existing service {}".format(self,self.model.dbobj.serviceKey ))
+                    return None
                 # serviceModel = repo.db.services.get(self.model.dbobj.serviceKey)
                 # self._service = serviceModel.objectGet(repo)
         return self._service
@@ -268,18 +276,28 @@ class Job():
             self.model.dbobj.debug = self.sourceToExecute.find('ipdb') != -1 or self.sourceToExecute.find('IPython') != -1
 
         if self.model.dbobj.debug is False:
-            future = loop.run_in_executor(None, reditect_stream_wraper, (self.method, self))
+            self._future = loop.run_in_executor(None, reditect_stream_wraper, (self.method, self))
         else:
             # to debug we don't redirect stdout and stderr so ipdb can work
-            future = loop.run_in_executor(None, self.method, self)
+            self._future = loop.run_in_executor(None, self.method, self)
 
         # register callback to deal with logs and state of the job after execution
         now = j.data.time.epoch
-        future.add_done_callback(functools.partial(_execute_cb, self, now))
+        self._future.add_done_callback(functools.partial(_execute_cb, self, now))
 
         self.model.dbobj.state = 'running'
         self.save()
-        return future
+        return self._future
+
+    async def cancel(self):
+        self._cancelled = True
+        if self._future:
+            self._future.remove_done_callback(_execute_cb)
+            self._future.cancel()
+            try:
+                await self._future
+            except asyncio.CancelledError:
+                self.logger.info("job {} cancelled".format(self))
 
 
     def str_error(self, error):

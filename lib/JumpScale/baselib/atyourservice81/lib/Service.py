@@ -31,7 +31,7 @@ class Service:
             return self
         except Exception as e:
             # cleanup if init fails
-            self.delete()
+            await self.delete()
             raise e
 
     @classmethod
@@ -328,26 +328,26 @@ class Service:
         # self.model._data = None
         # self.model.load(self.model.key)
 
-    def delete(self):
+    async def delete(self):
         """
         delete this service completly.
         remove it from db and from filesystem
         all the children of this service are going to be deleted too
         """
         # TODO should probably warn user relation may be broken
+        for service in self.children:
+            await service.delete()
 
         # cancel all recurring tasks
-        for task in self._recurring_tasks.values():
-            task.stop()
+        for k in list(self._recurring_tasks.keys()):
+            await self._recurring_tasks[k].stop()
+            del self._recurring_tasks[k]
 
         for prod_model in self.model.producers:
             prod_model.consumerRemove(self)
 
         for cons_model in self.model.consumers:
             cons_model.producerRemove(self)
-
-        for service in self.children:
-            service.delete()
 
         self.model.delete()
         j.sal.fs.removeDirTree(self.path)
@@ -724,9 +724,6 @@ class Service:
             task = self._recurring_tasks[name]
             task.stop()
             del self._recurring_tasks[name]
-
-        # reschedule itself
-        self._loop.call_later(5, self._ensure_recurring)
 
     def __eq__(self, service):
         if not service:

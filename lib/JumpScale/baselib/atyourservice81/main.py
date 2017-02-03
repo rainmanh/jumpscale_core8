@@ -23,6 +23,7 @@ if __name__ == '__main__':
     loop.set_debug(True)
 
     # load the app
-    j.atyourservice
+    async def init_ays(sanic, loop):
+        j.atyourservice.start(loop=loop)
     # start server
-    sanic_app.run(debug=True, host='0.0.0.0', port=5000, workers=1, loop=loop)
+    sanic_app.run(debug=True, host='0.0.0.0', port=5000, workers=1, before_start=init_ays)

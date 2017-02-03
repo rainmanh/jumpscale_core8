@@ -21,13 +21,18 @@ class AtYourServiceFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.atyourservice"
-        self.loop = asyncio.get_event_loop()
+        self.loop = None
         self._config = None
         self._domains = []
         self.debug = j.core.db.get("atyourservice.debug") == 1
         self.logger = j.logger.get('j.atyourservice')
 
         self.baseActions = {}
+        self.templateRepos = None # actor templates repositories
+        self.aysRepos = None  # ays repositories
+
+    def start(self, loop=None):
+        self.loop = loop or asyncio.get_event_loop()
         self.templateRepos = TemplateRepoCollection(loop=self.loop) # actor templates repositories
         self.aysRepos = AtYourServiceRepoCollection(loop=self.loop) # ays repositories
 

@@ -127,6 +127,7 @@ class AtYourServiceFactory:
         for ppath in actors_paths:
             print("upgrade:%s" % ppath)
             schema = j.data.hrd.getSchema(path=ppath + "/schema.hrd")
+            actor = j.data.hrd.get(path=ppath + "/actor.hrd")
             if schema != None:
                 j.sal.fs.writeFile(ppath + "/schema.capnp", schema.capnpSchema)
 
@@ -167,8 +168,17 @@ class AtYourServiceFactory:
                     sanitize_key(key): doc
                 })
 
+            output['recurring'] = []
+            for action_name, info in actor.getDictFromPrefix('recurring').items():
+                output['recurring'].append({
+                    'action': action_name,
+                    'log': j.data.types.bool.fromString(info['log']),
+                    'period': info['period']
+                })
+
             j.data.serializer.yaml.dump(j.sal.fs.joinPaths(ppath, 'config.yaml'), output)
             j.sal.fs.remove(ppath + "/schema.hrd")
+            j.sal.fs.remove(ppath + "/actor.hrd")
 
 
     def reset(self):

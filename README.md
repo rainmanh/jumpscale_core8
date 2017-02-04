@@ -24,8 +24,6 @@ bash install.sh
 ## how to install from a branch
 
 ```
-#if required
-export TMPDIR=/tmp
 cd $TMPDIR
 rm -f install.sh
 export JSBRANCH="8.2.0_ays_noHrd"

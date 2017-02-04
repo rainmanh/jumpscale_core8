@@ -115,18 +115,15 @@ set -ex
 
 cd $STARTDIR
 
-#rm -f $TMPDIR/bootstrap.py
-#rm -f $TMPDIR/InstallTools.py
-#rm -f $TMPDIR/dependencies.py
+#need to remove, if you want to develop you need to call the install from the code directory
+rm -f $TMPDIR/bootstrap.py
+rm -f $TMPDIR/InstallTools.py
+rm -f $TMPDIR/dependencies.py
 
 if [ -e "bootstrap.py" ]; then
-    if [ "$PWD" == "$TMPDIR" ]; then
-        echo "using existing python jumpscale files"
-    else
-        cp  -f bootstrap.py $TMPDIR/bootstrap.py
-        cp  -f InstallTools.py $TMPDIR/InstallTools.py
-        cp  -f dependencies.py $TMPDIR/dependencies.py
-    fi
+    cp  -f bootstrap.py $TMPDIR/bootstrap.py
+    cp  -f InstallTools.py $TMPDIR/InstallTools.py
+    cp  -f dependencies.py $TMPDIR/dependencies.py
 else
     curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/bootstrap.py?$RANDOM  > $TMPDIR/bootstrap.py
     curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/InstallTools.py?$RANDOM > $TMPDIR/InstallTools.py

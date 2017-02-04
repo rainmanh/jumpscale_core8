@@ -4,11 +4,7 @@ set -ex
 export STARTDIR=$PWD
 
 if [ -d "/tmp" ]; then
-    if  [ "$(uname)" == "Darwin" ]; then
-        export  TMPDIR="/JS8/tmp"
-    else
-        export TMPDIR="/tmp"
-    fi
+    export TMPDIR="/tmp"
 fi
 
 cd $TMPDIR
@@ -32,7 +28,9 @@ function clean_system {
 
 function osx_install {
     set +ex
-    brew list -1 | while read line; do brew unlink $line;
+    brew unlink curl
+    brew unlink python3
+    brew unlink git
     set -ex
     brew install python3
     brew link --overwrite python3

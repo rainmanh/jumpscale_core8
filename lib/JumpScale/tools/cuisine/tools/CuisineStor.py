@@ -674,7 +674,7 @@ class StorSpace(object):
 
         dirs = f.dirCollection.find()
 
-        needed = [(target + d.dbobj.location, d.key) for d in dirs]
+        needed = [(os.path.join(target, d.dbobj.location), d.key) for d in dirs]
         if len(needed) == 0:
             # nothing to upload
             return True

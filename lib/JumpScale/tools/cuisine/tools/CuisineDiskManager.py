@@ -11,4 +11,5 @@ class CuisineDiskManager(base):
     def get(self):
         dm = DiskManager()
         dm.set_executor(self.executor)
+        dm.getDisks()
         return dm

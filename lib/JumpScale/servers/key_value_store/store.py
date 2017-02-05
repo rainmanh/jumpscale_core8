@@ -30,7 +30,8 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         self.changelog = changelog
         self.masterdb = masterdb
         self._schema = b""
-        self.owner = j.application.owner
+        # self.owner = j.application.owner
+        self.owner="" #std empty
         self.inMem = False
 
     def __new__(cls, *args, **kwargs):
@@ -50,6 +51,15 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
                 attr.__doc__ = baseAttr.__doc__
 
         return object.__new__(cls)
+
+    @property
+    def keys(self):
+        raise RuntimeError("keys not implemented, only works for mem & redis for now")
+
+    def destroy(self):
+        # delete data
+        for key in self.keys:
+            self.delete(key)
 
     @property
     def schema(self):
@@ -74,10 +84,16 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         """
         to define who owns this object, normally when you open a store, you set the owner if not the default
         """
+        if self._owner=="":
+            return ""
         return j.data.hash.bin2hex(self._owner).decode()
 
     @owner.setter
     def owner(self, val):
+        if val=="":
+            self._owner=""
+            return
+
         if len(val) == 32:
             val = j.data.hash.hex2bin(val)
         elif len(val) != 16:
@@ -101,6 +117,9 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         # type = 4bits:  $schemaYesNo,$expireYesNo,0,0 + 4 bit version of format now 0
         ttype = 0
 
+        if expire == None:
+            expire = 0
+
         if self._schema != b"":
             ttype += 0b1000000
 
@@ -111,8 +130,14 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         else:
             expireb = b""
 
-        # data should be binary if not lets msgpack
-        if j.data.types.bytes.check(val) == False:
+        if self._owner!="":
+            ttype += 0b0001000
+
+        # data should be binary if not lets msgpack or leave as string
+        if j.data.types.string.check(val):
+            val=val.encode()
+            ttype += 0b0000100
+        elif j.data.types.bytes.check(val) == False:
             val = j.data.serializer.msgpack.dumps(val)
             ttype += 0b0010000
 
@@ -120,11 +145,12 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
         aclb = j.servers.kvs._aclSerialze(acl)
 
-        # TODO: *1 not sure this is ok, why str encode, what if its binary?
-        # val = str.encode(val)
         val = snappy.compress(val)
 
-        serialized = typeb + self._owner + self._schema + expireb + aclb + val
+        if self._owner=="":
+            serialized = typeb + self._schema + expireb + aclb + val
+        else:
+            serialized = typeb + self._owner + self._schema + expireb + aclb + val
 
         # checksum
         crc = j.data.hash.crc32_string(serialized)
@@ -149,9 +175,12 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         header = data[0]
 
         counter = 1
-        owner = j.data.hash.bin2hex(data[counter:counter + 16]).decode()
 
-        counter += 16
+        if header & 0b0001000:#means there is an owner defined, get it
+            owner = j.data.hash.bin2hex(data[counter:counter + 16]).decode()
+            counter += 16
+        else:
+            owner=""
 
         if header & 0b1000000:
             # schema defined
@@ -176,14 +205,18 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
         val = data[counter:-4]
 
+
         val = snappy.decompress(val)
 
-        if header & 0b0010000:
+        if header & 0b0000100:
+            #is string
+            val=val.decode()
+        elif header & 0b0010000:
             val = j.data.serializer.msgpack.loads(val)
 
         return (val, owner, schema, expire, acl)
 
-    def set(self, key, value=None, expire=None, acl={}, secret=""):
+    def set(self, key, value=None, expire=0, acl={}, secret=""):
         """
         @param secret, when not specified the owner will be used, allows to specify different secret than youw own owner key
         @param expire is seconds from now, when obj will expire
@@ -191,27 +224,19 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
         """
 
-        res = self.getraw(key, secret=secret, die=False, modecheck="w")
+        if acl!={} or secret!="":
+            res = self.getraw(key, secret=secret, die=False, modecheck="w")
 
-        if res != None:
-            (valOld, owner, schemaOld, expireOld, aclOld) = res
+            if res != None:
+                (valOld, owner, schemaOld, expireOld, aclOld) = res
 
-            if schemaOld != self.schema:
-                msg = "schema of this db instance should be same as what is found in db"
-                raise j.exceptions.Input(message=msg, level=1)
+                if schemaOld != self.schema:
+                    msg = "schema of this db instance should be same as what is found in db"
+                    raise j.exceptions.Input(message=msg, level=1)
 
-            if expire == None:
-                expire = expireOld
-
-            if value == None:
-                value = valOld
-
-            acl.update(aclOld)
+                acl.update(aclOld)
 
         else:
-            if expire == None:
-                expire = 0
-
             if value == None:
                 raise j.exceptions.Input(message="value needs to be set (not None), key:%s" %
                                          key, level=1, source="", tags="", msgpub="")
@@ -219,8 +244,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         value2 = self.serialize(value)
 
         data = self._encode(value2, expire, acl)
-
-        self._set(key, data)
+        self._set(key, data,expire=expire)
 
         # if self.cache != None:
         #     self.cache._set(key=key, category=category, value=value1)
@@ -240,7 +264,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
             raise e
         return res != None
 
-    def get(self, key, secret=""):
+    def get(self, key, secret="",die=False):
         '''
         Gets a key value pair from the store
 
@@ -250,7 +274,10 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         @return: value of the key value pair
 
         '''
-        return self.getraw(key, secret, die=True)[0]
+        (val, owner, schema, expire, acl) = self.getraw(key, secret, die=die)
+        if expire!=0 and expire < j.data.time.getTimeEpoch():
+            return None
+        return val
 
     def getraw(self, key, secret="", die=False, modecheck="r"):
         '''
@@ -276,7 +303,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
             if die:
                 raise j.exceptions.Input(message="Cannot find object: %s" % key, level=1, source="", tags="", msgpub="")
             else:
-                return None
+                return (None,"","",0,{})
 
         if secret == "":
             secret = self.owner
@@ -314,8 +341,6 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
         return value
 
-    def destroy(self):
-        raise NotImplemented()
 
     def index(self, items, secret=""):
         """
@@ -342,7 +367,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
     def index_remove(self, keys, secret=""):
         self.delete("index")
 
-    def list(self, regex=".*", returnIndex=False, secret=""):
+    def index_list(self, regex=".*", returnIndex=False, secret=""):
         """
         regex is regex on the index, will return matched keys
         e.g. .*:new:.* would match e.g. all obj with state new

@@ -11,11 +11,13 @@ class CacheFactory:
     def __init__(self):
         self.__jslocation__ = "j.tools.cache"
 
-    def get(self, db, expiration=300):
+    def get(self, db=None, expiration=300):
         """
         db is keyvalue stor to use
         e.g. j.tools.cache.get(j.servers.kvs.getRedisStore(namespace="cache"))
         """
+        if db==None:
+            db=j.servers.kvs.getRedisStore(namespace="cache")
         return Cache(db, expiration)
 
 

@@ -1,6 +1,7 @@
 from JumpScale import j
 
 from servers.key_value_store.store import KeyValueStoreBase
+import time
 
 
 class StoreFactory:
@@ -33,7 +34,49 @@ class StoreFactory:
     #     return self._cache[key]
 
     def test(self):
-        cache = j.servers.kvs.getRedisCacheLocal()
+
+
+        for db in [j.servers.kvs.getRedisStore(name="kvs", namespace="testdb"),j.servers.kvs.getMemoryStore()]:
+
+            print(db)
+            db.destroy()
+
+            assert []==db.list()
+
+            #some basic tests
+
+            db.set("mykey33", "string")
+            val2=db.get("mykey33")
+            assert "string"==val2
+
+            val=db.set("mykey34", b"byte")
+            val2=db.get("mykey34")
+            assert b"byte"==val2
+
+            val=db.set("mykey35", [1,2,3])
+            val2=db.get("mykey35")
+            assert [1,2,3]==val2
+
+            if db.type=="redis" or db.type=="mem":
+                assert []!=db.keys
+
+            db.destroy()
+            assert []==db.keys
+
+            #test now expiration
+            print("expiration test")
+            db.set("mykey", "string",expire=1)
+
+            assert "string" == db.get("mykey")
+            time.sleep(2)
+
+            assert None == db.get("mykey")
+
+            db.destroy()
+
+        # cache = j.servers.kvs.getRedisCacheLocal()
+        cache=None #NOT IMPLEMENTED YET
+
         serializer = j.data.serializer.json
         db = j.servers.kvs.getRedisStore(name="kvs", namespace="testdb", serializers=[serializer], cache=cache)
         db.destroy()
@@ -75,7 +118,7 @@ class StoreFactory:
                 res2 = db._decode(res)
             print("stop decode test")
 
-        # encodetest()
+        encodetest()
 
         print("test ok")
 
@@ -138,7 +181,7 @@ class StoreFactory:
     #             name, namespace=namespace, baseDir=baseDir, serializers=serializers, cache=cache, masterdb=masterdb, changelog=changelog)
     #     return self._cache[name]
     #
-    def getMemoryStore(self, name, namespace=None, changelog=None):
+    def getMemoryStore(self, name="core", namespace=None, changelog=None):
         '''
         Gets a memory key value store.
 
@@ -148,7 +191,7 @@ class StoreFactory:
         from servers.key_value_store.memory_store import MemoryKeyValueStore
         return MemoryKeyValueStore(name=name, namespace=namespace)
 
-    def getRedisStore(self, name, namespace='db', host='localhost', port=6379, unixsocket=None, db=0, password='',
+    def getRedisStore(self, name="core", namespace='db', host='localhost', port=6379, unixsocket=None, db=0, password='',
                       serializers=None, masterdb=None, cache=None, changelog=None):
         '''
         Gets a memory key value store.
@@ -179,7 +222,7 @@ class StoreFactory:
 
         return res
 
-    def getARDBStore(self, name, namespace='db', host='localhost', port=16379, unixsocket=None, db=0, password='',
+    def getARDBStore(self, name="core", namespace='db', host='localhost', port=16379, unixsocket=None, db=0, password='',
                       serializers=None, masterdb=None, cache=None, changelog=None):
         '''
         Gets a memory key value store.

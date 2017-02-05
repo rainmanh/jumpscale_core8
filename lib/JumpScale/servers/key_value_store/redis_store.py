@@ -23,6 +23,7 @@ class RedisKeyValueStore(KeyValueStoreBase):
         self._indexkey = "index:%s" % namespace
 
         self.inMem = False
+        self.type="redis"
 
     def _getKey(self, key):
         return '%s:%s' % (self.namespace, key)
@@ -39,16 +40,15 @@ class RedisKeyValueStore(KeyValueStoreBase):
     def _exists(self, key):
         return self.redisclient.exists(self._getKey(key))
 
+    @property
+    def keys(self):
+        l=len(self.namespace)+1
+        res=[item.decode()[l:] for item in self.redisclient.keys(self.namespace+":*")]
+        return res
+
     def increment(self, key):
         # only overrule if supporting DB has better ways
         return self.redisclient.incr(self._getKey(key))
-
-    def destroy(self):
-        # delete data
-        for key in self.redisclient.keys(self.namespace + "*"):
-            self.redisclient.delete(key)
-        # delete index to data
-        self.redisclient.delete(self._indexkey)
 
     def index(self, items, secret=""):
         """

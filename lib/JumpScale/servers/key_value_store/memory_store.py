@@ -4,24 +4,39 @@ NAMESPACES = dict()
 
 import re
 
+from JumpScale import j
 
 class MemoryKeyValueStore(KeyValueStoreBase):
 
     def __init__(self, name=None, namespace=None):
         self.name = name
-        if namespace:
-            self.db = NAMESPACES.setdefault(namespace, dict())
+        self.namespace=namespace
+        self.destroy()
+
+    def destroy(self):
+        if self.namespace:
+            self.db = NAMESPACES.setdefault(self.namespace, dict())
         else:
             self.db = dict()
-        KeyValueStoreBase.__init__(self, namespace=namespace)
+        KeyValueStoreBase.__init__(self, namespace=self.namespace)
         self.dbindex = dict()
         self.lookup = dict()
         self.inMem = True
+        self.expire={}
+        self.type="mem"
+
+    @property
+    def keys(self):
+        return [item for item in self.db.keys()]
 
     def get(self, key, secret=""):
         key = str(key)
         if not self.exists(key):
             raise j.exceptions.RuntimeError("Could not find object with category %s key %s" % (self.category, key))
+        if key in self.expire:
+            if self.expire[key]<j.data.time.epoch:
+                self.delete(key)
+                return None
         return self.db[key]
 
     def getraw(self, key, secret="", die=False, modecheck="r"):
@@ -33,12 +48,20 @@ class MemoryKeyValueStore(KeyValueStoreBase):
                 raise j.exceptions.RuntimeError("Could not find object with category %s key %s" % (self.category, key))
         return self.db[key]
 
-    def set(self, key, value, secret=""):
+    def set(self, key, value, secret="",expire=None, acl={}):
+        """
+        @param secret is not used !!!
+        @param acl is not used !!!
+        """
         key = str(key)
+        if expire!=None:
+            self.expire[key]=j.data.time.epoch+expire
         self.db[key] = value
 
     def delete(self,  key, secret=""):
         key = str(key)
+        if key in self.expire:
+            self.expire.pop(key)
         if self.exists(key):
             del(self.db[key])
 

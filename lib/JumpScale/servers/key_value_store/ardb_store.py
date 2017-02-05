@@ -11,3 +11,4 @@ class ARDBKeyValueStore(RedisKeyValueStore):
                                    masterdb=masterdb, cache=cache, changelog=changelog)
         self._indexkey = "index:%s" % namespace
         self.inMem = False
+        self.type="ardb"

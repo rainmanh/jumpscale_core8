@@ -1,6 +1,7 @@
 
 from JumpScale import j
 
+import time
 
 class Cache:
 
@@ -8,13 +9,17 @@ class Cache:
         self.__jslocation__ = "j.data.cache"
         self._cache = {}
 
-    def get(self, id="main", db=None, reset=False):
+    def get(self, id="main", db=None, reset=False,expiration=360):
         """
         @param id is a unique id for the cache
         db = e.g. j.core.db or None, when none then will be in memory
         """
+        if db==None:
+            db=j.servers.kvs.getRedisStore(name=id, namespace="cache")        
         if id not in self._cache:
-            self._cache[id] = CacheCategory(id=id, db=db)
+            self._cache[id] = CacheCategory(id=id, db=db,expiration=expiration)
+        if self._cache[id].db.name!=db.name or self._cache[id].db.namespace!=db.namespace :
+            self._cache[id] = CacheCategory(id=id, db=db,expiration=expiration)
         if reset:
             self.reset(id)
         return self._cache[id]
@@ -37,7 +42,17 @@ class Cache:
             def return1():
                 return 1
 
-            assert c.get("somethingElse", return1) == 1
+            def return2():
+                return 2
+
+            try:
+                r=c.get("somethingElse", return1)
+                assert c.get("somethingElse", return1) == 1
+            except:
+                from IPython import embed
+                print ("DEBUG NOW 87")
+                embed()
+                raise RuntimeError("stop debug here")
             assert c.get("somethingElse") == 1
 
             c.reset()
@@ -48,54 +63,57 @@ class Cache:
                 if not "Cannot get 'somethingElse' from cache" in str(e):
                     raise RuntimeError("error in test. non expected output")
 
-        c = self.get("test")
+
+            print("expiration test")
+            time.sleep(2)
+
+            try:
+                assert c.get("somethingElse",return2) == 2
+            except:
+                from IPython import embed
+                print ("DEBUG NOW 98")
+                embed()
+                raise RuntimeError("stop debug here")
+
+
+        c = self.get("test",expiration=1)
         testAll(c)
-        c = self.get("test", j.core.db)
+        c = self.get("test", j.servers.kvs.getMemoryStore(name='cache', namespace="mycachetest"),expiration=1)
         testAll(c)
         print("TESTOK")
 
 
 class CacheCategory():
 
-    def __init__(self, id, db=None):
+    def __init__(self, id, db=None,expiration=300):
         self.id = id
-        self.hkey = "cache:%s" % self.id
+
         self.db = db
-        self._cache = {}
 
-    def _get(self, key):
-        if self.db == None:
-            if key in self._cache:
-                return self._cache[key]
-            else:
-                return None
-        else:
-            val = self.db.hget(self.hkey, key)
-            val = j.data.serializer.json.loads(val)
-            return val
+        if "inMem" not in db.__dict__:
+            raise RuntimeError("please get db from j.servers.kvs...")
 
-    def set(self, key, val):
-        if self.db == None:
-            self._cache[key] = val
-        else:
-            val = j.data.serializer.json.dumps(val)
-            self.db.hset(self.hkey, key, val)
+        self.expiration = expiration
 
-    def get(self, key, method=None, refresh=False, **kwargs):
-        if method == None and refresh == True:
-            raise j.exceptions.Input(message="method cannot be None", level=1, source="", tags="", msgpub="")
+    def set(self, key, value,expire=None):
+        if expire==None:
+            expire=self.expiration
+        self.db.set(key, value, expire=expire)
 
+    def get(self, key, method=None, refresh=False,expire=None, **kwargs):
         # check if key exists then return (only when no refresh)
-        if refresh or self._get(key) == None:
+        res=self.db.get(key)
+        if refresh or res == None:
             if method == None:
                 raise j.exceptions.RuntimeError("Cannot get '%s' from cache,not found & method None" % key)
+            print("cache miss")
             val = method(**kwargs)
+            print(val)
             if val is None or val == "":
                 raise j.exceptions.RuntimeError("cache method cannot return None or empty string.")
             self.set(key, val)
             return val
         else:
-            res = self._get(key)
             if res == None:
                 raise j.exceptions.RuntimeError("Cannot get '%s' from cache" % key)
             return res
@@ -104,4 +122,4 @@ class CacheCategory():
         if self.db == None:
             self._cache = {}
         else:
-            self.db.delete(self.hkey)
+            self.db.destroy()

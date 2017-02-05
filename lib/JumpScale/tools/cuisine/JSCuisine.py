@@ -22,6 +22,7 @@ from JumpScale.tools.cuisine.solutions.solutions import solutions
 from JumpScale.tools.cuisine.systemservices.systemservices import systemservices
 from JumpScale.tools.cuisine.testscripts.testscripts import testscripts
 from JumpScale.tools.cuisine.tools.tools import tools
+from JumpScale.tools.cuisine.ovc.ovc import ovc
 
 
 class JSCuisine:
@@ -53,6 +54,7 @@ class JSCuisine:
         self._systemservices = None
         self._testscripts = None
         self._tools = None
+        self._ovc = None
 
         self.core = CuisineCore(self._executor, self)
         self.pnode = CuisinePNode(self._executor, self)
@@ -61,8 +63,7 @@ class JSCuisine:
 
     def reset(self):
         self.core._cache.set('dir_paths', None)
-        #TODO: *1 remove other cache items
-
+        # TODO: *1 remove other cache items
 
     @property
     def apps(self):
@@ -186,6 +187,12 @@ class JSCuisine:
         if self._processmanager is None:
             self._processmanager = ProcessManagerFactory(self).get()
         return self._processmanager
+
+    @property
+    def ovc(self):
+        if self._ovc is None:
+            self._ovc = ovc(self._executor, self)
+        return self._ovc
 
     def __str__(self):
         return "cuisine:%s:%s" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))

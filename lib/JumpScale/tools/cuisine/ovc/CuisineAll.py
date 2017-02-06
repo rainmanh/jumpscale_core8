@@ -10,3 +10,4 @@ class CuisineAll(app):
     def build(self, root='/opt/jumpscale7', corebranch='master', ovcbranch='master'):
         self.cuisine.ovc.jumpscale.build(root, corebranch)
         self.cuisine.ovc.portal.build(root, corebranch)
+        self.cuisine.ovc.openvcloud.build(root, ovcbranch)

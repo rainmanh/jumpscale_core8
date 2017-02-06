@@ -35,7 +35,6 @@ class CuisineJumpscale(app):
         _reset "PYTHONPATH"
         _reset "PS1"
         _reset "PYTHONHOME"
-        _reset "LD_LIBRARY_PATH"
         if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
             hash -r 2>/dev/null
         fi
@@ -46,7 +45,6 @@ class CuisineJumpscale(app):
     export JSBASE={root}
     export PYTHONPATH={root}/lib:{root}/lib/lib-dynload/:{root}/bin:{root}/lib/python.zip:{root}/lib/plat-x86_64-linux-gnu
     export PYTHONHOME={root}/lib
-    export LD_LIBRARY_PATH={root}/bin
     export PS1="(JumpScale7)$PS1"
 
     # This should detect bash and zsh, which have a hash command that must
@@ -99,8 +97,10 @@ class CuisineJumpscale(app):
     '''
 
     def _build_bin(self, root, repo='base_python'):
-        url = 'http://git.aydo.com/binary/%s' % repo
-        source = self.cuisine.development.git.pullRepo(url, depth=1)
+        url = 'git@git.aydo.com:binary/%s' % repo
+        source = self.cuisine.development.git.pullRepo(
+            url, depth=1, branch='nosandbox', ssh=True,
+        )
 
         for name in ('lib', 'bin', 'env.sh'):
             self.cuisine.core.file_copy(
@@ -198,10 +198,10 @@ class CuisineJumpscale(app):
 
         # TODO: Fix debug section
         # clone jumpscale
-        # url = 'https://github.com/jumpscale7/jumpscale_core7'
+        # url = 'git@github.com:jumpscale7/jumpscale_core7'
         #
         # source = self.cuisine.development.git.pullRepo(
-        #     url, depth=1, branch=branch
+        #     url, depth=1, branch=branch, ssh=True,
         # )
         source = '/opt/code/github/jumpscale7/jumpscale_core7/'
 

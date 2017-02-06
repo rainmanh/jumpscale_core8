@@ -5,8 +5,10 @@ app = j.tools.cuisine._getBaseAppClass()
 
 class CuisinePortal(app):
     def _build_bin(self, root, repo='web_python'):
-        url = 'http://git.aydo.com/binary/%s' % repo
-        source = self.cuisine.development.git.pullRepo(url, depth=1)
+        url = 'git@git.aydo.com:binary/%s' % repo
+        source = self.cuisine.development.git.pullRepo(
+            url, depth=1, ssh=True,
+        )
 
         self.cuisine.core.file_copy(
             j.sal.fs.joinPaths(source, 'root', 'jslib'),
@@ -61,9 +63,9 @@ class CuisinePortal(app):
 
         self._build_bin(root)
 
-        url = 'https://github.com/jumpscale7/jumpscale_portal'
+        url = 'git@github.com:jumpscale7/jumpscale_portal'
         source = self.cuisine.development.git.pullRepo(
-            url, depth=1, branch=branch
+            url, depth=1, branch=branch, ssh=True,
         )
 
         self._build_portal(source, root)

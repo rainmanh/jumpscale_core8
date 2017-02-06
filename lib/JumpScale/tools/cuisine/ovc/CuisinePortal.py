@@ -22,11 +22,26 @@ class CuisinePortal(app):
 
     def _build_portal(self, source, root):
         # copy portal base
+        for dir in ['macros', 'system', 'templates', 'wiki']:
+            self.cuisine.core.file_copy(
+                j.sal.fs.joinPaths(source, 'apps', 'portalbase', dir),
+                j.sal.fs.joinPaths(root, 'apps', 'portals', 'portalbase'),
+                recursive=True,
+            )
+
         self.cuisine.core.file_copy(
-            j.sal.fs.joinPaths(source, 'apps', 'portalbase'),
-            j.sal.fs.joinPaths(root, 'apps', 'portals'),
+            j.sal.fs.joinPaths(source, 'apps', 'portalbase', 'portal_start.py'),
+            j.sal.fs.joinPaths(root, 'apps', 'portals', 'main'),
             recursive=True,
         )
+
+        # copy portals
+        for dir in ['base/AYS', 'base/Grid', 'base/system_*']:
+            self.cuisine.core.file_copy(
+                j.sal.fs.joinPaths(source, 'apps', 'gridportal', dir),
+                j.sal.fs.joinPaths(root, 'apps', 'portals', 'main', 'base'),
+                recursive=True,
+            )
 
         # copy portal lib
         self.cuisine.core.file_copy(
@@ -35,10 +50,14 @@ class CuisinePortal(app):
             recursive=True,
         )
 
+    def _ensure_root(self, root):
+        for directory in ['apps/portals/main/base', 'apps/portals/portalbase']:
+            self.cuisine.core.dir_ensure(
+                j.sal.fs.joinPaths(root, directory)
+            )
+
     def build(self, root='/opt/jumpscale7', branch='master'):
-        self.cuisine.core.dir_ensure(
-            j.sal.fs.joinPaths(root, 'apps', 'portals')
-        )
+        self._ensure_root(root)
 
         self._build_bin(root)
 

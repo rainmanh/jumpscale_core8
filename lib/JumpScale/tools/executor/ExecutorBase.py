@@ -15,6 +15,7 @@ class ExecutorBase:
 
         self._cuisine = None
         self._config = None
+        self._config_changed = False
         self._env = None
         self._logger = None
 
@@ -49,20 +50,21 @@ class ExecutorBase:
 
         return self._config
 
-    def configGet(self, key, defval=None):
+    def configGet(self, key, defval=None,set=False):
         """
         """
         if key in self.config:
             return self.config[key]
         else:
             if defval != None:
-                self.configSet(key, defval)
+                if set:
+                    self.configSet(key, defval)
                 return defval
             else:
                 raise j.exceptions.Input(message="could not find config key:%s in executor:%s" %
                                          (key, self), level=1, source="", tags="", msgpub="")
 
-    def configSet(self, key, val):
+    def configSet(self, key, val,save=True):
         """
         @return True if changed
         """
@@ -72,7 +74,9 @@ class ExecutorBase:
             val2 = None
         if val != val2:
             self.config[key] = val
-            self.configSave()
+            self._config_changed = True
+            if save:
+                self.configSave()
             return True
         else:
             return False
@@ -81,9 +85,12 @@ class ExecutorBase:
         if self.readonly:
             raise j.exceptions.Input(message="cannot write config to '%s', because is readonly" %
                                      self, level=1, source="", tags="", msgpub="")
+        if self._config_changed==False:
+            return
         data = j.data.serializer.json.dumps(self.config, sort_keys=True, indent=True)
         self.log("config save")
         self.cuisine.core.file_write("$VARDIR/jsexecutor.json", data, showout=False)
+        self._config_changed = False
 
     def configReset(self):
         self._config = {}

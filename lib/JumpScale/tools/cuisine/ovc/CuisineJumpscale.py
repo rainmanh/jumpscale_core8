@@ -110,12 +110,12 @@ class CuisineJumpscale(app):
             )
 
     def _ensure_root(self, root):
-        for directory in ['bin', 'lib', 'apps', 'hrd/system', 'hrd/apps']:
+        for directory in ['bin', 'lib', 'libext', 'apps', 'hrd/system', 'hrd/apps']:
             self.cuisine.core.dir_ensure(
                 j.sal.fs.joinPaths(root, directory)
             )
 
-    def _build_js(self, source, root, branch):
+    def _build_js(self, source, root):
         # copy jumpscale
         self.cuisine.core.file_copy(
             j.sal.fs.joinPaths(source, 'lib', 'JumpScale'),
@@ -205,7 +205,7 @@ class CuisineJumpscale(app):
         # )
         source = '/opt/code/github/jumpscale7/jumpscale_core7/'
 
-        self._build_js(source, root, branch)
+        self._build_js(source, root)
         self._build_cfg(source, root)
         self._build_shellcmds(source, root)
 

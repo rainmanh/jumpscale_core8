@@ -12,10 +12,10 @@ class Cache:
     def get(self, id="main", db=None, reset=False,expiration=360):
         """
         @param id is a unique id for the cache
-        db = e.g. j.core.db or None, when none then will be in memory
+        db = when none then will be in memory
         """
         if db==None:
-            db=j.servers.kvs.getRedisStore(name=id, namespace="cache")        
+            db=j.servers.kvs.getRedisStore(name=id, namespace="cache")
         if id not in self._cache:
             self._cache[id] = CacheCategory(id=id, db=db,expiration=expiration)
         if self._cache[id].db.name!=db.name or self._cache[id].db.namespace!=db.namespace :

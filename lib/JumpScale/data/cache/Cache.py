@@ -9,7 +9,7 @@ class Cache:
         self.__jslocation__ = "j.data.cache"
         self._cache = {}
 
-    def get(self, id="main", db=None, reset=False,expiration=360):
+    def get(self, id="main", db=None, reset=False,expiration=60):
         """
         @param id is a unique id for the cache
         db = when none then will be in memory
@@ -60,13 +60,7 @@ class Cache:
             print("expiration test")
             time.sleep(2)
 
-            try:
-                assert c.get("somethingElse",return2) == 2
-            except Exception as e:
-                from IPython import embed
-                print ("DEBUG NOW 98")
-                embed()
-                raise RuntimeError("stop debug here")
+            assert c.get("somethingElse",return2) == 2
 
 
         c = self.get("test",j.servers.kvs.getRedisStore(name='cache', namespace="mycachetest"),expiration=1)
@@ -78,7 +72,7 @@ class Cache:
 
 class CacheCategory():
 
-    def __init__(self, id, db,expiration=300):
+    def __init__(self, id, db,expiration=60):
         self.id = id
 
         self.db = db
@@ -114,3 +108,14 @@ class CacheCategory():
 
     def reset(self):
         self.db.destroy()
+
+
+    def __str__(self):
+        res={}
+        for key in self.db.keys:
+            val=self.db.get(key)
+            res[key]=val
+        out=j.data.serializer.yaml.dumps(res, default_flow_style=False)
+        return out
+
+    __repr__=__str__

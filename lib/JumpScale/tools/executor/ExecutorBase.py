@@ -38,13 +38,13 @@ class ExecutorBase:
     @property
     def config(self):
         """
-        is dict which is stored on node itself in msgpack format in /tmp/jsexecutor.json
+        is dict which is stored on node itself in json format in /tmp/jsexecutor.json
         """
         if self._config == None:
-            if self.exists("$TMPDIR/jsexecutor.json") == False:
+            if self.exists("$VARDIR/jsexecutor.json") == False:
                 self._config = {}
             else:
-                data = self.cuisine.core.file_read("$TMPDIR/jsexecutor.json")
+                data = self.cuisine.core.file_read("$VARDIR/jsexecutor.json")
                 self._config = j.data.serializer.json.loads(data)
 
         return self._config
@@ -83,7 +83,7 @@ class ExecutorBase:
                                      self, level=1, source="", tags="", msgpub="")
         data = j.data.serializer.json.dumps(self.config, sort_keys=True, indent=True)
         self.log("config save")
-        self.cuisine.core.file_write("$TMPDIR/jsexecutor.json", data, showout=False)
+        self.cuisine.core.file_write("$VARDIR/jsexecutor.json", data, showout=False)
 
     def configReset(self):
         self._config = {}

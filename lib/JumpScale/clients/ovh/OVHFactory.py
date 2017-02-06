@@ -8,69 +8,89 @@ except:
 
 import time
 
-class OVHServer:
-
-    def __init__(self,ovhclient,name):
-        self.ovhclient=ovhclient
-        self.name=name
-
-    def reload(self):
-        from IPython import embed
-        print ("DEBUG NOW kk")
-        embed()
-        raise RuntimeError("stop debug here")
+# class OVHServer:
+#
+#     def __init__(self,ovhclient,name):
+#         self.ovhclient=ovhclient
+#         self.name=name
+#
+#     def reload(self):
+#         from IPython import embed
+#         print ("DEBUG NOW kk")
+#         embed()
+#         raise RuntimeError("stop debug here")
 
 
 class OVHClient:
 
     def __init__(self,appkey, appsecret,consumerkey="",endpoint='soyoustart-eu'):
-        if consumerkey=="":
-            client = ovh.Client(endpoint=endpoint)
-            ck = client.new_consumer_key_request()
-            ck.add_recursive_rules(ovh.API_READ_WRITE, '/')
+        # if consumerkey=="":
+        #     client = ovh.Client(endpoint=endpoint)
+        #     ck = client.new_consumer_key_request()
+        #     ck.add_recursive_rules(ovh.API_READ_WRITE, '/')
         self.client = ovh.Client(
             endpoint=endpoint,
             application_key=appkey,
             application_secret=appsecret,
             consumer_key=consumerkey,
         )
-        self.details={}
-        self._installationTemplates=None
-        self._sshKeys=None
+        id="ovhclient_%s"%consumerkey
+        self.cache=j.data.cache.get(id=id,db=j.servers.kvs.getRedisStore(name="cache",namespace=id),expiration=60)
+
+    def reset(self):
+        self.cache.reset()
 
     @property
     def installationTemplates(self):
-        if self._installationTemplates==None:
-            self._installationTemplates=self.client.get('/dedicated/installationTemplate')
-        return self._installationTemplates
+        def getData():
+            print("get installationTemplates")
+            return self.client.get('/dedicated/installationTemplate')
+        return self.cache.get("installationTemplates",getData,expire=3600)
 
     @property
     def sshKeys(self):
-        if self._sshKeys==None:
-            self._sshKeys=self.client.get('/me/sshKey')
-        return self._sshKeys
+        def getData():
+            print("get sshkeys")
+            return self.client.get('/me/sshKey')
+        return self.cache.get("sshKeys",getData)
 
+    @property
     def serversList(self):
-        return self.client.get("/dedicated/server")
+        def getData():
+            print("get serversList")
+            return self.client.get("/dedicated/server")
+        return self.cache.get("serversList",getData)
 
     def serverGetDetail(self,name,reload=False):
-        if not name in self.details or reload:
-            self.details[name]= self.client.get("/dedicated/server/%s"%name)
-        return self.details[name]
+        key="serverGetDetail_%s"%name
+        if reload:
+            self.cache.delete(key)
+        def getData(name):
+            print("get %s"%key)
+            return self.client.get("/dedicated/server/%s"%name)
+        return self.cache.get(key,getData,name=name)
 
-    def serverGetInstallStatus(self,name):
-        try:
-            return self.client.get("/dedicated/server/%s/install/status"%name)
-        except Exception as e:
-            if "Server is not being installed or reinstalled at the moment" in str(e):
-                return None
-            else:
-                raise e
+    def serverGetInstallStatus(self,name,reload=False):
+        key="serverGetInstallStatus%s"%name
+        if reload:
+            self.cache.delete(key)
+        def getData(name):
+            print("get %s"%key)
+            try:
+                return self.client.get("/dedicated/server/%s/install/status"%name)
+            except Exception as e:
+                if "Server is not being installed or reinstalled at the moment" in str(e):
+                    return None
+                else:
+                    raise e
+        return self.cache.get(key,getData,name=name)
 
-    def serversGetDetail(self):
-        res={}
-        for item in self.serversList():
-            res[item]=self.serverGetDetail(item)
+
+    @property
+    def servers(self):
+        res=[]
+        for item in self.serversList:
+            res.append((item,self.serverGetDetail(item)))
         return res
 
     def cuisineGet(self,name):
@@ -110,7 +130,7 @@ class OVHClient:
         returns [(name,cuisine),]
         """
         res=[]
-        for name in self.serversList():
+        for name in self.serversList:
             details=self.serverGetDetail(name)
             e=j.tools.executor.get(details["ip"])
             res.append((name,e.cuisine))
@@ -122,7 +142,9 @@ class OVHClient:
         while nrInstalling>0:
             nrInstalling=0
             for item in self.serversList():
-                status=self.serverGetInstallStatus(name=item)
+                status=self.serverGetInstallStatus(name=item,reload=True)
+                key="serverGetDetail_%s"%item#lets make sure server is out of cache too
+                self.cache.delete(key)
                 if status!=None:
                     print(item)
                     print(j.data.serializer.yaml.dumps(status))
@@ -158,6 +180,10 @@ class OVHClient:
             details["noRaid"]=noRaid
             details["customHostname"]=hostname
             details["sshKeyName"]=sshKeyName
+
+            #make sure cache for this server is gone
+            key="serverGetDetail_%s"%name
+            self.cache.delete(key)
 
             try:
                 self.client.post("/dedicated/server/%s/install/start"%name, details=details,templateName=installationTemplate)

@@ -54,7 +54,8 @@ class CuisinePortal(base):
 
         self.cuisine.apps.mongodb.install()
         self.cuisine.apps.nodejs.install() #will install nodejs & bower, used to build the libs
-
+        self.cuisine.bash.profileDefault.addPath(self.cuisine.core.replace("$BINDIR"))
+        self.cuisine.bash.profileDefault.save()
         self.installLibs()
 
         # install the dependencies if required

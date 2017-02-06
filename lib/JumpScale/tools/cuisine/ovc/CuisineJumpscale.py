@@ -64,6 +64,40 @@ class CuisineJumpscale(app):
     exec $JSBASE/bin/python2.7 "$@"
     '''
 
+    _system_hrd_template = '''\
+    paths.base={root}
+    paths.bin=$(paths.base)/bin
+    paths.code={code}
+    paths.lib=$(paths.base)/lib
+
+    paths.python.lib.js=$(paths.lib)/JumpScale
+    paths.python.lib.ext=$(paths.base)/libext
+    paths.app=$(paths.base)/apps
+    paths.var=$(paths.base)/var
+    paths.log=$(paths.var)/log
+    paths.pid=$(paths.var)/pid
+
+    paths.cfg=$(paths.base)/cfg
+    paths.hrd=$(paths.base)/hrd
+
+    system.logging = 1
+    system.sandbox = 1
+    '''
+
+    _ays_hrd_template = '''\
+    #here domain=jumpscale, change name for more domains
+    metadata.jumpscale =
+        url:'{url}',
+        branch:'{branch}',
+    '''
+
+    _whoami_hrd_template = '''\
+    email                   =
+    fullname                =
+    git.login               = 'ssh'
+    git.passwd              = 'ssh'
+    '''
+
     def _build_bin(self, root, repo='base_python'):
         url = 'http://git.aydo.com/binary/%s' % repo
         source = self.cuisine.development.git.pullRepo(url, depth=1)
@@ -82,8 +116,6 @@ class CuisineJumpscale(app):
             )
 
     def _build_js(self, source, root, branch):
-        self._ensure_root(root)
-
         # copy jumpscale
         self.cuisine.core.file_copy(
             j.sal.fs.joinPaths(source, 'lib', 'JumpScale'),
@@ -120,6 +152,32 @@ class CuisineJumpscale(app):
             mode=744,
         )
 
+    def _build_cfg(self, source, root):
+        self.cuisine.core.file_write(
+            j.sal.fs.joinPaths(root, 'hrd', 'system', 'system.hrd'),
+            textwrap.dedent(self._system_hrd_template.format(
+                root=root,
+                code='/opt/code',
+            ))
+        )
+
+        self.cuisine.core.file_write(
+            j.sal.fs.joinPaths(root, 'hrd', 'system', 'atyourservice.hrd'),
+            textwrap.dedent(
+                self._ays_hrd_template.format(
+                    url='https://github.com/jumpscale7/ays_jumpscale7.git',
+                    branch='master',
+                )
+            )
+        )
+
+        self.cuisine.core.file_write(
+            j.sal.fs.joinPaths(root, 'hrd', 'system', 'whoami.hrd'),
+            textwrap.dedent(
+                self._whoami_hrd_template
+            )
+        )
+
     def _build_shellcmds(self, source, root):
         # copy shellcmds
         root = root.replace('/', r'\/')
@@ -133,14 +191,19 @@ class CuisineJumpscale(app):
 
     def build(self, root='/opt/jumpscale7', branch='master'):
         self.cuisine.core.dir_ensure(root)
+        self._ensure_root(root)
+
         self._build_bin(root)
 
+        # TODO: Fix debug section
         # clone jumpscale
-        url = 'https://github.com/jumpscale7/jumpscale_core7'
-
+        # url = 'https://github.com/jumpscale7/jumpscale_core7'
+        #
         # source = self.cuisine.development.git.pullRepo(
         #     url, depth=1, branch=branch
         # )
         source = '/opt/code/github/jumpscale7/jumpscale_core7/'
+
         self._build_js(source, root, branch)
+        self._build_cfg(source, root)
         self._build_shellcmds(source, root)

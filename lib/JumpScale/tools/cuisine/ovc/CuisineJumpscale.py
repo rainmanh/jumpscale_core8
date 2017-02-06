@@ -110,7 +110,7 @@ class CuisineJumpscale(app):
             )
 
     def _ensure_root(self, root):
-        for directory in ['bin', 'lib', 'hrd/system', 'hrd/apps']:
+        for directory in ['bin', 'lib', 'apps', 'hrd/system', 'hrd/apps']:
             self.cuisine.core.dir_ensure(
                 j.sal.fs.joinPaths(root, directory)
             )
@@ -123,6 +123,14 @@ class CuisineJumpscale(app):
             recursive=True,
         )
 
+        # copy apps
+        for file in ['apps/agentcontroller', 'apps/jsagent', 'apps/osis']:
+            self.cuisine.core.file_copy(
+                j.sal.fs.joinPaths(source, file),
+                j.sal.fs.joinPaths(root, 'apps'),
+                recursive=True,
+            )
+
         # copy install tools
         for file in ['install/InstallTools.py', 'install/ExtraTools.py']:
             self.cuisine.core.file_copy(
@@ -130,13 +138,6 @@ class CuisineJumpscale(app):
                 j.sal.fs.joinPaths(root, 'lib', 'JumpScale'),
                 recursive=True,
             )
-
-        # copy shellcmds
-        self.cuisine.core.file_copy(
-            j.sal.fs.joinPaths(source, 'shellcmds', '*'),
-            j.sal.fs.joinPaths(root, 'bin'),
-            recursive=True,
-        )
 
         # write jspython
         self.cuisine.core.file_write(
@@ -184,7 +185,7 @@ class CuisineJumpscale(app):
         for file in self.cuisine.core.fs_find(j.sal.fs.joinPaths(source, 'shellcmds'), type='f'):
             name = j.sal.fs.getBaseName(file)
             self.cuisine.core.run(
-                r'sed "s/\/usr\/bin\/env jspython/{root}\/bin\/jspython/" {file} > {root}/bin/{name}'.format(
+                r'sed "s/\/usr\/bin\/env jspython/{root}\/bin\/jspython/" {file} > {root}/bin/{name} && chmod a+x {root}/bin/{name}'.format(
                     root=root, file=file, name=name
                 )
             )

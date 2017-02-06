@@ -15,7 +15,7 @@ class Cache:
         db = when none then will be in memory
         """
         if db==None:
-            db=j.servers.kvs.getRedisStore(name=id, namespace="cache")
+            db=j.servers.kvs.getMemoryStore(name=id, namespace="cache")
         if id not in self._cache:
             self._cache[id] = CacheCategory(id=id, db=db,expiration=expiration)
         if self._cache[id].db.name!=db.name or self._cache[id].db.namespace!=db.namespace :
@@ -35,8 +35,8 @@ class Cache:
     def test(self):
 
         def testAll(c):
+            c.reset()
             c.set("something", "OK")
-
             assert "OK" == c.get("something")
 
             def return1():
@@ -45,14 +45,7 @@ class Cache:
             def return2():
                 return 2
 
-            try:
-                r=c.get("somethingElse", return1)
-                assert c.get("somethingElse", return1) == 1
-            except:
-                from IPython import embed
-                print ("DEBUG NOW 87")
-                embed()
-                raise RuntimeError("stop debug here")
+            assert c.get("somethingElse", return1) == 1
             assert c.get("somethingElse") == 1
 
             c.reset()
@@ -69,14 +62,14 @@ class Cache:
 
             try:
                 assert c.get("somethingElse",return2) == 2
-            except:
+            except Exception as e:
                 from IPython import embed
                 print ("DEBUG NOW 98")
                 embed()
                 raise RuntimeError("stop debug here")
 
 
-        c = self.get("test",expiration=1)
+        c = self.get("test",j.servers.kvs.getRedisStore(name='cache', namespace="mycachetest"),expiration=1)
         testAll(c)
         c = self.get("test", j.servers.kvs.getMemoryStore(name='cache', namespace="mycachetest"),expiration=1)
         testAll(c)
@@ -85,7 +78,7 @@ class Cache:
 
 class CacheCategory():
 
-    def __init__(self, id, db=None,expiration=300):
+    def __init__(self, id, db,expiration=300):
         self.id = id
 
         self.db = db
@@ -103,12 +96,13 @@ class CacheCategory():
     def get(self, key, method=None, refresh=False,expire=None, **kwargs):
         # check if key exists then return (only when no refresh)
         res=self.db.get(key)
+        # print("res:%s"%res)
         if refresh or res == None:
             if method == None:
                 raise j.exceptions.RuntimeError("Cannot get '%s' from cache,not found & method None" % key)
-            print("cache miss")
+            # print("cache miss")
             val = method(**kwargs)
-            print(val)
+            # print(val)
             if val is None or val == "":
                 raise j.exceptions.RuntimeError("cache method cannot return None or empty string.")
             self.set(key, val)
@@ -119,7 +113,4 @@ class CacheCategory():
             return res
 
     def reset(self):
-        if self.db == None:
-            self._cache = {}
-        else:
-            self.db.destroy()
+        self.db.destroy()

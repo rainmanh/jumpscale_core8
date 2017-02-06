@@ -223,7 +223,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
             if you want to set then needs to be an int>0 or 0
 
         """
-
+        # print("Expire0:%s"%expire)
         if acl!={} or secret!="":
             res = self.getraw(key, secret=secret, die=False, modecheck="w")
 

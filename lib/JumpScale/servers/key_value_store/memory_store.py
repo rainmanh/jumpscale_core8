@@ -1,6 +1,6 @@
 from servers.key_value_store.store import KeyValueStoreBase
 
-NAMESPACES = dict()
+# NAMESPACES = dict()
 
 import re
 
@@ -14,13 +14,9 @@ class MemoryKeyValueStore(KeyValueStoreBase):
         self.destroy()
 
     def destroy(self):
-        if self.namespace:
-            self.db = NAMESPACES.setdefault(self.namespace, dict())
-        else:
-            self.db = dict()
-        KeyValueStoreBase.__init__(self, namespace=self.namespace)
+        self.db = dict()
         self.dbindex = dict()
-        self.lookup = dict()
+        # self.lookup = dict()
         self.inMem = True
         self.expire={}
         self.type="mem"
@@ -29,14 +25,19 @@ class MemoryKeyValueStore(KeyValueStoreBase):
     def keys(self):
         return [item for item in self.db.keys()]
 
-    def get(self, key, secret=""):
+    def get(self, key, secret="",die=False):
         key = str(key)
-        if not self.exists(key):
-            raise j.exceptions.RuntimeError("Could not find object with category %s key %s" % (self.category, key))
         if key in self.expire:
             if self.expire[key]<j.data.time.epoch:
+                # print ("expired")
                 self.delete(key)
                 return None
+            # else:
+            #     print ("not expired: %s/%s"%(self.expire[key],j.data.time.epoch))
+        if not self.exists(key):
+            if die==False:
+                return None
+            raise j.exceptions.RuntimeError("Could not find object with category %s key %s" % (self.category, key))
         return self.db[key]
 
     def getraw(self, key, secret="", die=False, modecheck="r"):
@@ -53,9 +54,11 @@ class MemoryKeyValueStore(KeyValueStoreBase):
         @param secret is not used !!!
         @param acl is not used !!!
         """
+        # print("Expire0:%s"%expire)
         key = str(key)
-        if expire!=None:
+        if expire!=None and expire!=0:
             self.expire[key]=j.data.time.epoch+expire
+            # print("expire:%s:%s now(%s)"%(key,self.expire[key],j.data.time.epoch))
         self.db[key] = value
 
     def delete(self,  key, secret=""):

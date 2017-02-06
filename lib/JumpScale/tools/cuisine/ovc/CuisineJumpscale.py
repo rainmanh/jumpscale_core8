@@ -208,3 +208,10 @@ class CuisineJumpscale(app):
         self._build_js(source, root, branch)
         self._build_cfg(source, root)
         self._build_shellcmds(source, root)
+
+    def install(self, root='/opt/jumpscale7'):
+        for file in ['js', 'jspython']:
+            self.cuisine.core.file_link(
+                j.sal.fs.joinPaths(root, 'bin', file),
+                '/usr/local/bin/{}7'.format(file)
+            )

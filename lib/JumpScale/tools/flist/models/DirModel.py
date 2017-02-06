@@ -14,13 +14,13 @@ class DirModel(base):
         self._index.index({ind: self.key})
 
     def fileExists(self, name):
-        return not self.fileGet(name, False) == None
+        return not self.fileGet(name, False) is None
 
     def fileSpecialExists(self, name):
-        return not self.fileSpecialGet(name, False) == None
+        return not self.fileSpecialGet(name, False) is None
 
     def linkExists(self, name):
-        return not self.fileSpecialGet(name, False) == None
+        return not self.fileSpecialGet(name, False) is None
 
     def fileGet(self, name):
         for obj in self.dbobj.files:
@@ -59,14 +59,14 @@ class DirModel(base):
     @property
     def dictFiltered(self):
         ddict = self.dbobj.to_dict()
-        for item in ddict["specials"]:
+        for item in ddict.get("specials", []):
             if "data" in item:
                 item["data"] = binascii.hexlify(item["data"])
         return ddict
 
     @dictFiltered.setter
     def dictFiltered(self, ddict):
-        for item in ddict["specials"]:
+        for item in ddict.get("specials", []):
             if "data" in item:
                 item["data"] = binascii.unhexlify(item["data"])
         self.dbobj = self._capnp_schema.new_message(**ddict)

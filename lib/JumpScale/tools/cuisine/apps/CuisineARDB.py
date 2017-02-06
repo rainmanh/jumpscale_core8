@@ -35,7 +35,10 @@ class CuisineARDB(app):
         if self.doneGet("buildforestdb") and not reset:
             return
 
-        self.cuisine.package.multiInstall(["git-core", "cmake", "libsnappy-dev", "g++"])
+        self.cuisine.package.multiInstall(["git-core",
+                                           "cmake",
+                                           "libsnappy-dev",
+                                           "g++"])
 
         url = "git@github.com:couchbase/forestdb.git"
         cpath = self.cuisine.development.git.pullRepo(url, tag="v1.2", reset=reset)
@@ -113,17 +116,18 @@ class CuisineARDB(app):
         if self.doneGet("install") and not reset:
             return
         self.buildARDB()
-
+        self.cuisine.core.dir_ensure("$BINDIR")
+        self.cuisine.core.dir_ensure("$CFGDIR")
         self.core.file_copy("$BUILDDIR/ardb/ardb-server", "$BINDIR/ardb-server")
         self.core.file_copy("$BUILDDIR/ardb/ardb.conf", "$CFGDIR/ardb.conf")
 
         config = self.core.file_read("$CFGDIR/ardb.conf")
         datadir = self.replace("$VARDIR/data/ardb")
-        config = config.replace("home  ..", "home {}".format(datadir))
-        config = config.replace("0.0.0.0:16379", "localhost:16379")
 
         # config = config.replace("redis-compatible-mode     no", "redis-compatible-mode     yes")
         # config = config.replace("redis-compatible-version  2.8.0", "redis-compatible-version  3.5.2")
+        config = config.replace("${ARDB_HOME}", datadir)
+        config = config.replace("localhost:16379", "0.0.0.0:16379")
 
         self.core.dir_ensure(datadir)
 

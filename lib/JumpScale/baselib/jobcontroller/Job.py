@@ -246,13 +246,6 @@ class Job():
 
     def save(self):
         self.model.save()
-        # if self.saveService and self.service is not None:
-            # if self.saveService:
-            #     # self.service.reload()
-            #     if self.model.dbobj.actionName in self.service.model.actions:
-            #         service_action_obj = self.service.model.actions[self.model.dbobj.actionName]
-            #         service_action_obj.state = str(self.model.dbobj.state)
-                # self.service.saveAll()
 
     def executeInProcess(self):
         """

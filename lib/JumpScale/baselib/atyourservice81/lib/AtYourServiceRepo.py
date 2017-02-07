@@ -182,7 +182,6 @@ class AtYourServiceRepo():
         see enable_no_exec for further info
         """
         self.no_exec = False
-        # self.model.disable_no_exec()
 
 # ACTORS
     def actorCreate(self, name):
@@ -294,14 +293,12 @@ class AtYourServiceRepo():
         if role.strip() == "" or instance.strip() == "":
             raise j.exceptions.Input("role and instance cannot be empty.")
 
-        # objs = self.db.services.find(actor="%s.*" % role, name=instance)
         objs = [s for s in self._services.values() if s.model.role == role and s.name == instance]
         if len(objs) == 0:
             if die:
                 raise j.exceptions.NotFound(message="Cannot find service %s:%s" %
                                             (role, instance), level=1, source="", tags="", msgpub="")
             return None
-        # return objs[0].objectGet(self)
         return objs[0]
 
     def serviceGetByKey(self, key):
@@ -309,12 +306,10 @@ class AtYourServiceRepo():
         if len(objs) <= 0:
             raise j.exceptions.NotFound(message="Cannot find service with key {}".format(key))
         return objs[0]
-        # return self.db.services.get(key=key).objectGet(self)
 
     @property
     def serviceKeys(self):
         return [s.model.key for s in self._services.values()]
-        # return [model.key for model in self.db.services.find()]
 
     def serviceSetState(self, actions=[], role="", instance="", state="new"):
         """
@@ -382,10 +377,6 @@ class AtYourServiceRepo():
             if parent != '' and "{}!{}".format(service.parent.role, service.parent.name) != parent:
                 continue
 
-            # if producer != '':
-            #     for prod in service.producers:
-            #         if "{}!{}".format(prod.role, prod.name) !=
-
             if includeDisabled is False and service.model.dbobj.state == "disabled":
                 continue
 
@@ -400,24 +391,6 @@ class AtYourServiceRepo():
                                             (self.name, actor, name), "ays.servicesFind")
             return results[0]
         return results
-
-        # if actor == '' and role != '':
-        #     actor = '%s(\..*)?' % role
-        #
-        # res = []
-        # for service_model in self.db.services.find(name=name, actor=actor, state=state, parent=parent, producer=producer):
-        #     if hasAction != "" and hasAction not in service_model.actionsState.keys():
-        #         continue
-        #
-        #     if includeDisabled is False and service_model.dbobj.state == "disabled":
-        #         continue
-
-        #     res.append(service_model.objectGet(self))
-        # if first:
-        #     if len(res) == 0:
-        #         raise j.exceptions.Input("cannot find service %s|%s:%s" % (self.name, actor, name), "ays.servicesFind")
-        #     return res[0]
-        # return res
 
 # BLUEPRINTS
 

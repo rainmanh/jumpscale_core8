@@ -127,8 +127,6 @@ class Actor():
                                  )
 
     def _initProducers(self, template):
-        # self.model.dbobj.init('producers', len(template.consumptionConfig))
-
         for consume_info in template.consumptionConfig:
             self.model.producerAdd(
                 role=consume_info['role'],
@@ -137,31 +135,13 @@ class Actor():
                 auto=bool(consume_info['auto']),
                 argname=consume_info['argname']
             )
-                # producer = self.model.dbobj.producers[i]
-                # producer.actorRole =
-                # producer.minServices =
-                # producer.maxServices =
-                # producer.auto = bool(consume_info['auto'])
-                # producer.argname =
+
 
     def _initRecurringActions(self, template):
         for reccuring_info in template.recurringConfig:
             action_model = self.model.actions[reccuring_info['action']]
             action_model.period = j.data.types.duration.convertToSeconds(reccuring_info['period'])
             action_model.log = j.data.types.bool.fromString(reccuring_info['log'])
-
-    # def _initFlists(self, template):
-    #     self.model.dbobj.init('flists', len(template.flists))
-    #
-    #     for i, name in enumerate(template.flists):
-    #         info = template.flists[name]
-    #         flistObj = self.model.dbobj.flists[i]
-    #         flistObj.name = name
-    #         flistObj.mountpoint = info['mountpoint']
-    #         flistObj.namespace = info['namespace']
-    #         flistObj.mode = info['mode'].lower()
-    #         flistObj.storeUrl = info['store_url']
-    #         flistObj.content = info['content']
 
     def _processActionsFile(self, path):
         def string_has_triple_quotes(s):
@@ -390,9 +370,7 @@ class Actor():
             raise j.exceptions.RuntimeError("found more then one service directory for %s" % target)
         elif len(results) == 1:
             service = Service.init_from_fs(aysrepo=self.aysrepo, path=results[0])
-            # service = Service(aysrepo=self.aysrepo, path=results[0])
         else:
-            # service = Service(aysrepo=self.aysrepo, actor=self, name=instance, args=args)
             service = await Service.init_from_actor(aysrepo=self.aysrepo, actor=self, name=instance, args=args)
 
         return service

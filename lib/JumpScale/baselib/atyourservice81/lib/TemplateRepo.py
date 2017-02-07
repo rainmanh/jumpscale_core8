@@ -49,7 +49,6 @@ def searchActorTemplates(path):
                 # because means that  is no longer our parent
 
         depth = len(j.sal.fs.pathRemoveDirPart(path, arg[0]).split("/"))
-        # print("%s:%s" % (depth, j.sal.fs.pathRemoveDirPart(path, arg[0])))
         if depth < 4:
             return True
         elif depth < 8 and arg[3] != "":

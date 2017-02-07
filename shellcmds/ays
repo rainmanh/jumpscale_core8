@@ -6,50 +6,48 @@
 import os
 from JumpScale import j
 import click
+from http import HTTPStatus
 
 os.environ['LC_ALL'] = 'C.UTF-8'
 os.environ['LANG'] = 'C.UTF-8'
 
 repo = None
+ayscl = j.clients.atyourservice.get()
 
+def _current_repo_name():
+    return j.sal.fs.getBaseName(j.sal.fs.getcwd())
 
+def _extract_error(resp):
+    if resp.headers['Content-type'] == 'application/json':
+        content = resp.json()
+        return content.get('error', resp.text)
+    return resp.text
+
+def print_date(epoch):
+    if epoch == 0:
+        return "never"
+    return j.data.time.epoch2HRDateTime(epoch)
+
+# main CLI
 @click.group()
 def cli():
     pass
 
 
-@click.command()
-@click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
-@click.option('--force', default=False, is_flag=True, help='force execution even if no change')
-@click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
-@click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
-def run(ask, force, debug, profile):
+
+# AYS repository related group of commands
+@cli.group()
+def repo():
     """
-    Look for all action with a state 'schedule', 'changed' or 'error' and create a run.
-    A run is an collection of actions that will be run on the repository.
+    Group of commands about AYS repositories
     """
-    repo = j.atyourservice.get()
-    print("Compute dependency graph...")
-    run = repo.runCreate(debug=debug, profile=profile)
-
-    if len(run.steps) <= 0:
-        print("Nothing to do.")
-        return
-    else:
-        print(run)
-
-    if ask:
-        resp = j.tools.console.askYesNo('Do you want to execute this run ?')
-        if resp is False:
-            return
-
-    run.execute()
+    pass
 
 
-@click.command()
+@repo.command()
 @click.option('--path', '-p', default=None, help='path of the new AYS repo you want to create')
 @click.option('--git', '-g', default=None, help='URL of the git repository to attach to this AYS repository')
-def create_repo(path, git):
+def create(path, git):
     """
     create a new AYS repository
     """
@@ -60,382 +58,200 @@ def create_repo(path, git):
     if path is None:
         path = j.sal.fs.getcwd()
 
-    j.atyourservice.repoCreate(path=path, git_url=git)
+    data = j.data.serializer.json.dumps({'name': j.sal.fs.getBaseName(path), 'git_url': git})
+    resp = ayscl.api.ays.createRepository(data=data)
 
-
-@click.command()
-@click.option('--path', '-p', default=None, help='Path where to start looking for AYS repository')
-def discover(path=None):
-    """
-    Discover AYS repository on the filesystem and save them in DB.
-    """
-    if path is None:
-        path = j.sal.fs.getcwd()
-    repos = j.atyourservice.reposDiscover(path)
-
-    print('Repositories discovered: ')
-    if len(repos) > 0:
-        for repo in repos:
-            print(repo.path)
+    if resp.status_code == HTTPStatus.CREATED:
+        print("AYS repository created at {}".format(resp.json()['path']))
     else:
-        print('None')
+        print("Error during creation of the repository: {}".format(_extract_error(resp)))
 
 
-@click.command()
-def repo_list():
+@repo.command()
+def list():
     """
     List all known repositories
     """
     print("AYS Repositories: ")
-    repos = j.atyourservice.repos.values()
-    for repo in sorted(repos):
-        print(repo.path)
 
-
-@click.command()
-@click.option('--name', '-n', default=None, help='name of the actor to update')
-def update(name):
-    """
-    Update actor to a new version.
-    Any change detected in the actor will be propagated to the services and processChange method will be
-    called all the way from actor to service instances.
-    """
-    repo = j.atyourservice.get()
-    names = []
-    if name is None:
-        names = repo.templates.keys()
+    resp = ayscl.api.ays.listRepositories()
+    if resp.status_code == HTTPStatus.OK:
+        repos = resp.json()
+        for repo in sorted(repos, key=lambda r: r['name']):
+            print(repo['path'])
     else:
-        names = [name]
-
-    for n in names:
-        template = repo.templateGet(name=n)
-        try:
-            actor = repo.actorGet(name=n)
-        except:
-            import ipdb
-            ipdb.set_trace()
-
-        actor._initFromTemplate(template)
+        print("Error during listing of the repositories: {}".format(_extract_error(resp)))
 
 
-@click.command()
-@click.argument('path', default='')
-@click.option('--role', '-r', default="", help='optional role for ays instances to init')
-@click.option('--instance', '-i', default="", help='optional name of instance')
-def blueprint(path, role, instance):
-    """
-    will process the blueprint(s) pointed to
-
-    it path is directory then all blueprints in directory will be processed (when not starting with _)
-    if is file than only that 1 file
-
-    if path=="" then blueprints found in $aysdir/blueprints will be processed
-
-    if role & instance specified then only the ays instances with specified role/instance will be processed
-    """
-    repo = j.atyourservice.get()
-    repo.blueprintExecute(role=role, instance=instance, path=path)
-
-def _do(action, role, instance, force, producerroles, args, ask, debug, profile):
-    repo = j.atyourservice.get()
-    data = {}
-    if args is not None:
-        if j.sal.fs.exists(args):
-            # args is the path to a file
-            ext = j.sal.fs.getFileExtension(args)
-            if ext in ['yaml', 'yml']:
-                data = j.data.serializer.yaml.load(args)
-            elif ext in ['toml']:
-                data = j.data.serializer.toml.load(args)
-            else:
-                data = j.data.serializer.json.load(args)
-        else:
-            obj = j.data.tags.getObject(tagstring=args)
-            data = obj.getDict()
-
-    for service in repo.servicesFind(actor="%s.*" % role, name=instance):
-        service.scheduleAction(action=action, period=None, log=True, force=force)
-
-    run = repo.runCreate(profile=profile, debug=debug)
-    if len(run.steps) <= 0:
-        print("Nothing to do.")
-        return
-    else:
-        print(run)
-    if ask:
-        resp = j.tools.console.askYesNo('Do you want to execute this run ?')
-        if resp is False:
-            return
-    run.execute()
-
-
-@click.command()
-@click.argument('action')
-@click.option('--role', '-r', default="", help='optional role for ays instances execute an action on')
-@click.option('--instance', '-i', default="", help='optional name of instance')
-@click.option('--force', default=False, is_flag=True, help='force execution even if no change')
-@click.option('--producerroles', '-p', default="*", help='roles of producers which will be taken into consideration, if * all')
-@click.option('--args', default=None, help='argument to pass to the run. Can be a list of tags e.g: "key:value key:value" \
-or a path to a file containing the argument. Format of the file can be json, yaml, toml. format is detected using file extension. default format is json')
-@click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
-@click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
-@click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
-def do(action, role, instance, force, producerroles, args, ask, debug, profile):
-    """
-    Schedule an action then immediatly create a run.
-    This is a shortcut from sending a blueprint with an actions block and the do `ays run`
-    """
-    _do(action=action, role=role, instance=instance, force=force, producerroles=producerroles, ask=ask, debug=debug, profile=profile, args=args)
-
-
-@click.command()
-@click.option('--role', '-r', default="", help='optional role for ays instances execute an action on')
-@click.option('--instance', '-i', default="", help='optional name of instance')
-@click.option('--force', default=False, is_flag=True, help='if True then will ignore state of service action.')
-@click.option('--producerroles', '-p', default="*", help='roles of producers which will be taken into consideration, if * all')
-@click.option('--args', default=None, help='argument to pass to the run. Can be a list of tags e.g: "key:value key:value" \
-or a path to a file containing the argument. Format of the file can be json, yaml, toml. format is detected using file extension. default format is json')
-@click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
-@click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
-@click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
-def install(role, instance, force, producerroles, ask, args, debug, profile):
-    """
-    alias for 'ays do install'
-    make it reality
-    if you want more finegrained controle please use the do cmd
-    """
-    _do(action='install', role=role, instance=instance, force=force, producerroles=producerroles, ask=ask, debug=debug, profile=profile, args=args)
-
-
-@click.command()
-@click.option('--role', '-r', default="", help='optional role for ays instances execute an action on')
-@click.option('--instance', '-i', default="", help='optional name of instance')
-def simulate(role="", instance=""):
-    """
-    is like do only does not execute it,
-    is ideal to figure out what would happen if you run a certain action
-    """
-    repo = j.atyourservice.get()
-    run = repo.runCreate(profile=False, debug=False)
-    if len(run.steps) <= 0:
-        print("Nothing to do.")
-        return
-
-    print(run)
-
-
-@click.command()
-@click.argument('action')
-@click.option('--state', default="ok", help='state to set, can be: new, ok, scheduled')
-@click.option('--role', default="", help='optional role for ays instances execute an action on')
-@click.option('--instance', default="", help='optional name of the service')
-def set_state(action, state, role, instance):
-    """
-    Manually set the state of an action.
-    You can filter on which services to apply the state using --role and --instance
-    Only use this command if you know what you're doing !!
-    """
-
-    if state not in ['ok', 'new', 'scheduled']:
-        print("State {} not supported.".format(state))
-        return
-
-    repo = j.atyourservice.get()
-    services = repo.servicesFind(name=instance, actor='{}.*'.format(role))
-    for service in services:
-        if action in service.model.actions:
-            print('setting state of action {action} from service {service} to {state}'.format(state=state, action=action, service=service))
-            service.model.actions[action].state = state
-        service.saveAll()
-
-@click.command()
-@click.option('--role', '-r', default='')
-@click.option('--instance', '-i', default='')
-@click.option('--deep', default=False, is_flag=True, help='show producers and consumers recursivlely')
-def show(role, instance, deep):
-    '''
-    show information about a service
-    '''
-    def print_date(epoch):
-        if epoch == 0:
-            return "never"
-        return j.data.time.epoch2HRDateTime(epoch)
-
-    repo = j.atyourservice.get()
-    services = repo.servicesFind(actor="%s.*" % role, name=instance)
-    for service in services:
-        print('\n')
-        print('---------------------------------------------------')
-        print("Service: %s - Actor: %s" % (service.model.dbobj.name, service.model.dbobj.actorName))
-        print("\nInstance data:")
-        instance_data = service.model.data.to_dict()
-        for k in sorted(instance_data):
-            print("- %s : %s" % (k, instance_data[k]))
-
-        if service.parent is not None:
-            print("\nParent:")
-            print(service.parent)
-
-        print("\nProducers:")
-        if deep:
-            service.printProducersRecursive()
-        else:
-            for producer in service.producers:
-                print(producer)
-
-        print("\nRecurring actions:")
-        for name, model in service.model.actionsRecurring.items():
-            print("%s: period:%5s lastRun:%s " % (name, j.data.time.getSecondsInHR(model.period), print_date(model.lastRun)))
-
-        print("\nEvent filters:")
-        for event_filter in service.model.eventFilters:
-            print('- action: %s' % event_filter.action)
-            print('  command: %s' % event_filter.command)
-            print('  channel: %s' % event_filter.channel)
-            print('  tags: %s' % event_filter.tags)
-            print('  secrets: not shown')
-
-@click.command()
-@click.option('--role', '-r', default='')
-@click.option('--instance', '-i', default='')
-def list(role, instance):
-    """
-    The list command lists all service instances with specific role and instance name.
-    """
-    repo = j.atyourservice.get()
-    print("Installed services:")
-    print("-------------------")
-    services = repo.servicesFind(actor="%s.*" % role, name=instance)
-    for s in sorted(services, key=lambda service: service.model.role):
-        print("%s!%s" % (s.model.role, s.model.dbobj.name))
-
-
-@click.command()
+@repo.command()
 def destroy():
     """
-    reset in current ays repo all services & recipe's in current repo (DANGEROUS)
+    reset all services & recipe's in current repo (DANGEROUS)
     all instances will be lost !!!
 
     make sure to do a commit before you do a distroy, this will give you a chance to roll back.
     """
-    repo = j.atyourservice.get()
-    repo.destroy()
+    resp = ayscl.api.ays.deleteRepository(repository=_current_repo_name())
+    if resp.status_code == HTTPStatus.NO_CONTENT:
+        print("repository destroyed")
+    else:
+        print("Error while destroying repository: {}".format(_extract_error(resp)))
 
 
-@click.command()
-@click.argument('cmd', default='doall')
-@click.option('--name', '-n', help="Name of test.", default='fake_IT_env')
-@click.option('--message', '-m', help="Message as used in e.g. pull/push.", default='unknown')
-def test(cmd, name, message):
+# AYS service related group of commands
+@cli.group()
+def service():
     """
-    there is a test suite for ays, this command allows to control the test suite
-
-    cmds are
-     - doall : execute all tests
-     - push : push modified tests to the repo
-     - pull : get the repo with the tests
+    Group of commands about services
     """
-    repo = j.atyourservice.get()
-    tester = j.repo.getTester(name)
-    if cmd == "doall":
-        tester.doall()
-    elif cmd == "push":
-        tester.gitpush(message=message)
-    elif cmd == "pull":
-        tester.gitpull(message=message)
+    pass
 
-
-@click.command()
-@click.option('--branch', '-b', help="Name of branch, can be used in commit/push request to do change mgmt.", default='master')
-@click.option('--message', '-m', help="Message as used in e.g. pull/push.", default='')
-@click.option('--push', '-p', default=False, is_flag=True, help='if True then will push changes to git repo.')
-def commit(message, branch="master", push=False):
+@service.command()
+@click.option('--role', '-r', default='')
+@click.option('--name', '-n', default='')
+def list(role, name):
     """
-    commit the changes in the ays repo to git, can optionally push.
-    this is very important because it allows you to see change in ays repo.
+    The list command lists all service instances with specific role and instance name.
     """
-    repo = j.atyourservice.get()
-    repo.commit(message, branch, push=push)
+    resp = ayscl.api.ays.listServices(_current_repo_name())
+    if resp.status_code == HTTPStatus.OK:
+        services = resp.json()
+        print("Installed services:")
+        print("-------------------")
+        for s in sorted(services, key=lambda service: service['role']):
+            print("%s!%s" % (s['role'], s['name']))
+    else:
+        print("Error while listing services: {}".format(_extract_error(resp)))
 
-@click.command()
-def restore():
-    """
-    Use this command when you want to populate the database with the service present on the file system.
-    This is usefull when you download an AYS repository from a git and want to start using it locally.
-    """
-    from JumpScale.baselib.atyourservice81.Service import Service
-    repo = j.atyourservice.get()
-    for service_path in j.sal.fs.listDirsInDir('{repo}/services'.format(repo=repo.path), recursive=True):
-        Service(repo, path=service_path)
+@service.command()
+@click.option('--role', '-r', default='')
+@click.option('--name', '-n', default='')
+# @click.option('--deep', default=False, is_flag=True, help='show producers and consumers recursivlely')
+def show(role, name):
+    '''
+    show information about a service
+    '''
+    # def get_service(key):
 
-@click.command()
-@click.option('--id', default=None)
-@click.option('--list',default=False, is_flag=True, help='list all run ids')
-def run_info(id, list):
-    """
-    Print info about run, if not specified will be latest run
-    """
-    repo = j.atyourservice.get()
-    if list:
-        print("Run IDs:")
-
-        runs = repo.runsList()
-        if len(runs) <= 0:
-            print("no run in this repo yet")
-
-        for model in sorted(runs, key=lambda r: r.dbobj.lastModDate):
-            print('{key} - mod date: {epoch}'.format(key=model.key, epoch=j.data.time.epoch2HRDateTime(model.dbobj.lastModDate)))
-
+    resp = ayscl.api.ays.listServices(_current_repo_name())
+    if resp.status_code != HTTPStatus.OK:
+        print("Error while listing services: {}".format(_extract_error(resp)))
         return
 
-    if id is None:
-        print("No run id specified")
-        return
+    services = resp.json()
+    for service in services:
+        if role and service['role'] != role:
+            continue
+        if name and service['name'] != name:
+            continue
 
-    run = repo.runGet(id)
-    print(run.objectGet())
+        print('\n')
+        print('---------------------------------------------------')
+        print("Service: %s - Role: %s" % (service['name'], service['role']))
+        print("\nInstance data:", end='')
+        instance_data = service['data']
+        if not instance_data:
+            print(" None")
+        else:
+            print('')
+            for k in sorted(instance_data):
+                print("- %s : %s" % (k, instance_data[k]))
+
+        print("\nParent:", end='')
+        if not service['parent']:
+            print(' None')
+        else:
+            print('')
+            print("{role}!{name}".format(**service['parent']))
+
+        print("\nProducers:", end='')
+        if not service['producers']:
+            print(' None')
+        else:
+            print('')
+            for producer in service['producers']:
+                print("{role}!{name}".format(**producer))
+
+        print("\nRecurring actions:", end='')
+        if not service['recurring']:
+            print(' None')
+        else:
+            print('')
+            for recurring in service['recurring']:
+                print("%s: period:%5s last run:%s " % (recurring['name'], j.data.time.getSecondsInHR(recurring['period']), print_date(recurring['last_run'])))
+
+        print("\nEvent filters:", end='')
+        if not service['events']:
+            print(' None')
+        else:
+            print('')
+            for event_filter in service['events']:
+                print('- action: %s' % event_filter['action'])
+                print('  command: %s' % event_filter['command'])
+                print('  channel: %s' % event_filter['channel'])
+                print('  tags: %s' % event_filter['tags'])
 
 
-@click.command()
-@click.option('--role', '-r', default="", help='optional role for ays instances execute an action on')
-@click.option('--instance', '-i', default="", help='optional name of instance')
-def state(role='', instance=''):
+@service.command()
+@click.option('--role', '-r', default="", help='optional role of the service')
+@click.option('--name', '-n', default="", help='optional name of the service')
+def state(role, name):
     """
     Print the state of the selected services. If not role or instances specified, all services from the repository are selected
     """
-    repo = j.atyourservice.get()
-    services = repo.servicesFind(name=instance, actor='%s.*' % role)
-    services = sorted(services, key=lambda s: s.model.dbobj.actorName)
+    resp = ayscl.api.ays.listServices(_current_repo_name())
+    if resp.status_code != HTTPStatus.OK:
+        print("Error while listing services: {}".format(_extract_error(resp)))
+        return
+
+    services = resp.json()
+    services = sorted(services, key=lambda s: s['role'])
     for service in services:
-        print('State of service : %s!%s' % (service.model.dbobj.actorName, service.model.dbobj.name))
-        actionsNames = sorted(service.model.actionsState.keys())
-        for actionName in actionsNames:
-            print("\t%-25s : %s" % (actionName, service.model.actionsState[actionName]))
+        if role and service['role'] != role:
+            continue
+        if name and service['name'] != name:
+            continue
+
+        print('State of service : %s!%s' % (service['role'], service['name']))
+        for state in service['actions_state']:
+            print("\t%-25s : %s" % (state['name'], state['state']))
 
 
-@click.command()
-@click.option('--role', '-r', default="", help='optional role for ays instances you want to delete')
-@click.option('--instance', '-i', default="", help='optional name of instance')
+
+@service.command()
+@click.option('--role', '-r', default="", help='optional role for the service you want to delete')
+@click.option('--name', '-n', default="", help='optional name of the service')
 @click.option('--ask', default=True, is_flag=True, help='ask confirmation before delete services')
-def delete(role, instance, ask):
+def delete(role, name, ask):
     """
     Delete a service and all its children
     Be carefull with this action, there is no come back once a service is deleted.
     """
-    repo = j.atyourservice.get()
-    services = repo.servicesFind(name=instance, actor='%s.*' % role)
-    if len(services) <= 0:
-        print('Nothing to be deleted')
+    resp = ayscl.api.ays.listServices(_current_repo_name())
+    if resp.status_code != HTTPStatus.OK:
+        print("Error while listing services: {}".format(_extract_error(resp)))
         return
 
-    services = sorted(services, key=lambda s: s.model.dbobj.actorName)
+    filterd = []
+    for service in resp.json():
+        if role and service['role'] != role:
+            continue
+        if name and service['name'] != name:
+            continue
+        filterd.append(service)
+
+    services = sorted(filterd, key=lambda s: s['role'])
 
     print("Services selected for deletion:")
     for service in services:
-        print("- %s" % service)
-        print('\nchild that will also be deleted:')
-        for child in service.children:
-            print('  - %s' % child)
+        print("- {role}!{name}".format(**service))
+        if service['children']:
+            print('  child that will also be deleted:')
+            if service['children']:
+                for child in service['children']:
+                    print("  - {role}!{name}".format(**child))
+            else:
+                print("   None")
 
     if ask:
         resp = j.tools.console.askYesNo('\nAre you sure you want to delete ?')
@@ -443,96 +259,180 @@ def delete(role, instance, ask):
             return
 
     for service in services:
-        print('delete %s' % service)
-        service.delete()
+        resp = ayscl.api.ays.deleteServiceByName(name=service['name'],role=service['role'], repository=_current_repo_name())
+        if resp.status_code == HTTPStatus.NO_CONTENT:
+            print('service {role}!{name} deleted'.format(**service))
+        else:
+            print("error during deletion of service {role}!{name}: {error}".format(**service, error=_extract_error(resp)))
 
-@click.command()
-@click.option('--enable', is_flag=True, default=False)
-@click.option('--disable', is_flag=True, default=False)
-@click.option('--show', is_flag=True, default=False)
-def noexec(enable, disable, show):
+@cli.group()
+def actor():
     """
-    Enable/Disable the no_exec mode.
-    Once this mode is enabled, no action will ever be execute.
-    But the state of the action will be updated as if everything went fine (state ok)
-
-    This mode can be used for demo or testing
+    Group of commands about actors
     """
-    repo = j.atyourservice.get()
 
-    if show:
-        out = 'no-exec mode is '
-        out += 'enable' if repo.model.no_exec else "disable"
-        print(out)
+@actor.command()
+def list():
+    """
+    list all actor of the repository
+    """
+    resp = ayscl.api.ays.listActors(repository=_current_repo_name())
+    if resp.status_code == HTTPStatus.OK:
+        print("Installed actors:")
+        print("-------------------")
+
+        actors = resp.json()
+        for actor in sorted(resp.json(), key=lambda x:x['name']):
+            print("{name}".format(**actor))
+    else:
+        print("error during listing of actors: {}".format(_extract_error(resp)))
+
+
+@actor.command()
+@click.option('--name', '-n', default=None, help='name of the actor to update')
+def update(name):
+    """
+    Update actor to a new version.
+    Any change detected in the actor will be propagated to the services and processChange method will be
+    called all the way from actor to service instances.
+    """
+    names = []
+    if name is None:
+        resp = ayscl.api.ays.listActors(repository=_current_repo_name())
+        if resp.status_code == HTTPStatus.OK:
+            names = [a['name'] for a in resp.json()]
+        else:
+            print("error during listing of actors: {}".format(_extract_error(resp)))
+            return
+    else:
+        names = [name]
+
+    for name in names:
+        resp = ayscl.api.ays.updateActor(data='', name=name, repository=_current_repo_name())
+        if resp.status_code == HTTPStatus.OK:
+            print("actor {} updated".format(name))
+        else:
+            print("error during update of actor {}: {}".format(name, _extract_error(resp)))
+            return
+
+@cli.group()
+def run():
+    """
+    Group of commands about runs
+    """
+def _print_run(run, logs=False):
+    def format_log(log):
+        return " {datetime} {category}: {log}\n".format(**log, datetime=print_date(log['epoch']))
+
+    out = "RUN:{}\n".format(run['key'])
+    out += "-------\n"
+    for step in run['steps']:
+        out += "## step:{}\n\n".format(step['number'])
+        out += "step:{number} ({state})\n".format(**step)
+        for job in step['jobs']:
+            out += "- {actor_name:15} {service_name:15} | {action_name:15} ({state})\n".format(**job)
+            if logs:
+                out += "logs:\n"
+                # import ipdb; ipdb.set_trace()
+                for log in job['logs']:
+                    if log['log']:
+                        out += format_log(log) + '\n'
+    print(out)
+
+@run.command()
+@click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
+@click.option('--force', default=False, is_flag=True, help='force execution even if no change')
+@click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
+@click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
+def create(ask, force, debug, profile):
+    """
+    Look for all action with a state 'schedule', 'changed' or 'error' and create a run.
+    A run is an collection of actions that will be run on the repository.
+    """
+    print("Creation of the run...")
+    resp = ayscl.api.ays.createRun(data=None, repository=_current_repo_name(), query_params={'simulate': True})
+    if resp.status_code != HTTPStatus.OK:
+        print("Error during creation of the run: {}".format(_extract_error(resp)))
         return
 
-    ok = j.tools.console.askYesNo("warning ! Changing the noexec mode of your repo required to destroy it first.\nAre you sure you want to continue?")
-    if not ok:
+    run = resp.json()
+    if len(run['steps']) <= 0:
+        print("Nothing to do.")
         return
 
-    if enable and not disable:
-        if not repo.model.no_exec:
-            repo.destroy()
-            print("enable noexec mode")
-            repo.enable_noexec()
-        else:
-            print("already enabled")
-    elif not enable and disable:
-        if repo.model.no_exec:
-            repo.destroy()
-            print("disable noexec mode")
-            repo.disable_noexec()
-        else:
-            print("already disabled")
+    _print_run(run)
+
+    if ask:
+        resp = j.tools.console.askYesNo('Do you want to execute this run ?')
+        if resp is False:
+            return
+
+    resp = ayscl.api.ays.executeRun(data=None, aysrun=run['key'], repository=_current_repo_name())
+    if resp.status_code == HTTPStatus.OK:
+        print("execution of the run started: {}".format(run['key']))
     else:
-        print("can't enable and disable at the same time")
-#
-# @click.command()
-# def disable_noexec():
-#     repo = j.atyourservice.get()
-#     repo.disable_noexec()
+        print("error during execution of the run: {}".format(_extract_error(resp)))
+        return
+
+@run.command()
+def list():
+    resp = ayscl.api.ays.listRuns(repository=_current_repo_name())
+    if resp.status_code != HTTPStatus.OK:
+        print("Error during listing of the runs: {}".format(_extract_error(resp)))
+        return
+    runs = resp.json()
+    runs = sorted(runs, key=lambda x:x['epoch'])
+    for run in runs:
+        print("run :{date} {key} ({state})".format(**run, date=print_date(run['epoch'])))
+
+@run.command()
+@click.option('--key', '-k', default=None, help='key of the run to show')
+@click.option('--logs', '-l', default=False, is_flag=True, help='show logs of the jobs')
+def show(key, logs):
+    if key is None:
+        resp = ayscl.api.ays.listRuns(repository=_current_repo_name())
+        if resp.status_code != HTTPStatus.OK:
+            print("Error during listing of the runs: {}".format(_extract_error(resp)))
+            return
+        runs = resp.json()
+        runs = sorted(runs, key=lambda x:x['epoch'])
+        key = runs[-1]['key']
+
+    resp = ayscl.api.ays.getRun(aysrun=key, repository=_current_repo_name())
+    if resp.status_code != HTTPStatus.OK:
+        print("Error during retreive of the run {}: {}".format(key, _extract_error(resp)))
+        return
+
+    _print_run(resp.json(), logs=logs)
 
 
 
-@click.command()
-@click.option('--config', '-c', default="", help='path of ays config file')
-def start(config):
+# AYS service related group of commands
+@cli.command()
+@click.argument('name', default='')
+def blueprint(name):
     """
-    Start the AYS daemon
+    will process the blueprint(s) pointed by name
+    if name is empty    then all blueprints found in $aysdir/blueprints will be processed
     """
-    from JumpScale.baselib.atyourservice81.AtYourServiceDaemon import Server
-    if config:
-        cfg = j.data.serializer.yaml.load(config)
-        if 'redis' not in cfg:
-            raise j.exceptions.Input('format of the config file not valid. Missing redis section')
+    if name == '':
+        resp = ayscl.api.ays.listBlueprints(_current_repo_name())
+        if resp.status_code != HTTPStatus.OK:
+            print("error during listing of blueptins: {}".format(_extract_error(resp)))
+            return
 
-        redis_config = cfg['redis']
-        server = Server(redis_config=redis_config)
+        blueprints = resp.json()
+        names = [bp['name'] for bp in blueprints]
     else:
-        server = Server()
-    server.start()
+        names = [name]
 
-cli.add_command(run)
-cli.add_command(create_repo)
-cli.add_command(discover)
-cli.add_command(repo_list)
-cli.add_command(run_info)
-cli.add_command(simulate)
-cli.add_command(test)
-cli.add_command(set_state)
-cli.add_command(commit)
-cli.add_command(restore)
-cli.add_command(blueprint)
-cli.add_command(destroy)
-cli.add_command(update)
-cli.add_command(install)
-cli.add_command(do)
-cli.add_command(show)
-cli.add_command(list)
-cli.add_command(state)
-cli.add_command(delete)
-cli.add_command(noexec)
-cli.add_command(start)
+    for name in sorted(names):
+        resp = ayscl.api.ays.executeBlueprint(data=None,blueprint=name, repository=_current_repo_name())
+        if resp.status_code == HTTPStatus.OK:
+            print("blueprint {} executed".format(name))
+        else:
+            print('error during execution of the blueprint {}: {}'.format(name, _extract_error(resp)))
+            return
 
 if __name__ == '__main__':
     cli()

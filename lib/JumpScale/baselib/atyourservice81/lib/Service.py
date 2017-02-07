@@ -16,18 +16,17 @@ class Service:
         self._path = ""
         self._schema = None
         self._loop = loop or asyncio.get_event_loop()
-        self._recurring_tasks = {}
+        self._recurring_tasks = {} # for recurring jobs
 
         self.aysrepo = aysrepo
         self.logger = j.atyourservice.logger
-
-        self._loop.call_soon(self._ensure_recurring)
 
     @classmethod
     async def init_from_actor(cls, aysrepo, actor, args, name):
         try:
             self = cls(aysrepo)
             await self._initFromActor(actor=actor, args=args, name=name)
+            self._ensure_recurring()
             return self
         except Exception as e:
             # cleanup if init fails
@@ -39,6 +38,7 @@ class Service:
         self = cls(aysrepo=aysrepo)
         self.model = model
         self.aysrepo._services[self.model.key] = self
+        self._ensure_recurring()
         return self
 
     @classmethod
@@ -46,6 +46,7 @@ class Service:
         self = cls(aysrepo=aysrepo)
         self.loadFromFS(path)
         self.aysrepo._services[self.model.key] = self
+        self._ensure_recurring()
         return self
 
     @property

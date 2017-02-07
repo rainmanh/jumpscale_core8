@@ -24,18 +24,22 @@ class AtYourServiceRepoCollection:
     def _load(self):
         self.logger.info("reload AYS repos")
         # search repo on the filesystem
-        for dir_path in [j.dirs.CODEDIR, j.dirs.VARDIR]:
+        for dir_path in [ j.dirs.VARDIR, j.dirs.CODEDIR]:
+            self.logger.debug("search ays repo in {}".format(dir_path))
             for path in self._searchAysRepos(dir_path):
                 if path not in self._repos:
-                    self.logger.info("AYS repo found {}".format(path))
-                    repo = AtYourServiceRepo(path)
-                    self._repos[repo.path] = repo
+                    self.logger.debug("AYS repo found {}".format(path))
+                    try:
+                        repo = AtYourServiceRepo(path)
+                        self._repos[repo.path] = repo
+                    except Exception as e:
+                        self.logger.error("can't load repo at {}: {}".format(path, str(e)))
 
         # make sure all loaded repo still exists
         for repo in list(self._repos.values()):
             if not j.sal.fs.exists(repo.path):
                 self.logger.info("repo {} doesnt exists anymore, unload".format(repo.path))
-                del(self._repos[repo.path])
+                del self._repos[repo.path]
 
         self._loop.call_later(60, self._load)
 

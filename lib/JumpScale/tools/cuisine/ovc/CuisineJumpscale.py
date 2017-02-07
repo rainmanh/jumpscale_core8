@@ -143,14 +143,14 @@ class CuisineJumpscale(app):
         self.cuisine.core.file_write(
             j.sal.fs.joinPaths(root, 'bin', 'jspython'),
             textwrap.dedent(self._jspython_template.format(root=root)),
-            mode=744,
+            mode=755,
         )
 
         # write env.sh
         self.cuisine.core.file_write(
             j.sal.fs.joinPaths(root, 'env.sh'),
             textwrap.dedent(self._env_template.format(root=root)),
-            mode=744,
+            mode=755,
         )
 
     def _build_cfg(self, source, root):

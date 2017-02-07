@@ -196,14 +196,10 @@ class CuisineJumpscale(app):
 
         self._build_bin(root)
 
-        # TODO: Fix debug section
-        # clone jumpscale
-        # url = 'git@github.com:jumpscale7/jumpscale_core7'
-        #
-        # source = self.cuisine.development.git.pullRepo(
-        #     url, depth=1, branch=branch, ssh=True,
-        # )
-        source = '/opt/code/github/jumpscale7/jumpscale_core7/'
+        url = 'git@github.com:jumpscale7/jumpscale_core7'
+        source = self.cuisine.development.git.pullRepo(
+            url, depth=1, branch=branch, ssh=True,
+        )
 
         self._build_js(source, root)
         self._build_cfg(source, root)

@@ -610,10 +610,9 @@ class Service:
         Change the state of an action so it marked as need to be executed
         if the period is specified, also create a recurring period for the action
         """
-        self.logger.info('schedule action %s on %s' % (action, self))
         if action not in self.model.actions:
-            raise j.exceptions.Input(
-                "Trying to schedule action %s on %s. but this action doesn't exist" % (action, self))
+            self.logger.warning("Trying to schedule action %s on %s. but this action doesn't exist" % (action, self))
+            return
 
         action_model = self.model.actions[action]
 
@@ -634,6 +633,7 @@ class Service:
         if not force and action_model.state == 'ok':
             self.logger.info("action %s already in ok state, don't schedule again" % action_model.name)
         else:
+            self.logger.info('schedule action %s on %s' % (action, self))
             action_model.state = 'scheduled'
 
         self.saveAll()

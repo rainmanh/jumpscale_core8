@@ -20,13 +20,14 @@ node.ovc__vm:
         - '2222:22'
     vdc: '{random_vdc}'
 
-js8_install_test__test:
+# 'QA SERVICE' (THE TEMPLATE SHOULD HAS THIS LINE)
+test_js8_install__test:
     os: 'vm'
-    branch: 'master'
+    branch: '{branch}'
 
 actions:
     - action: 'install'
     - action: 'test'
-      actor: js8_install_test
+      actor: test_js8_install
 
 

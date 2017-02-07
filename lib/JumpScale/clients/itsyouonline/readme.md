@@ -41,3 +41,8 @@ Out[17]: {'label': 'Home', 'phonenumber': '+15551234'}
 
 ...
 ```
+
+
+## to get updated version of the client
+
+- copy from https://github.com/itsyouonline/identityserver/tree/master/clients/python/itsyouonline

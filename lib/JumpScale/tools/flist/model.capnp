@@ -1,5 +1,10 @@
 @0xae9223e76351538a;
 
+enum State {
+  normal @0;
+  deleted @1;
+}
+
 struct Dir {
 
   #name of dir
@@ -20,7 +25,7 @@ struct Dir {
       aclkey @4: Text; #is pointer to ACL
       modificationTime @5: UInt32;
       creationTime @6: UInt32;
-      state @7: Text;
+      state @7: State;
   }
 
   dirs @3 :List(SubDir);
@@ -41,18 +46,18 @@ struct Dir {
       size @4: UInt32;  # Remove me
       aclkey @5: Text;  # Remove me
       destname @6: Text;
-      state @7: Text;
+      state @7: State;
   }
 
   specials @5 :List(Special);
   struct Special{
       name @0 : Text;
-      type @1 :State;
+      type @1 :Type;
       # - 0: socket       (S_IFSOCK)
       # - 1: block device (S_IFBLK)
       # - 2: char. device (S_IFCHR)
       # - 3: fifo pipe    (S_IFIFO)
-      enum State {
+      enum Type {
         socket @0;
         block @1;
         chardev @2;
@@ -65,7 +70,8 @@ struct Dir {
       creationTime @4: UInt32;
       size @5: UInt32;
       aclkey @6: Text; #is pointer to ACL
-      state @7: Text;
+      state @7 :State;
+
   }
 
   parent @6 :Text; #dir key of parent
@@ -76,7 +82,7 @@ struct Dir {
   isLink @9: Bool; #if is link and not physically on disk
   modificationTime @10: UInt32;
   creationTime @11: UInt32;
-  state @12: Text;
+  state @12: State;
 
 }
 

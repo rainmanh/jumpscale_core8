@@ -2,22 +2,6 @@ import datetime
 import time
 
 
-def build_query_string(query_params=None):
-    """
-    build query parameter
-    input  `query_params` : dictionary
-    output string with format `?key=val&key2=val2`
-    """
-    if query_params is None:
-        return ""
-
-    qs = "?"
-    for key, elem in query_params.items():
-        qs += key + "=" + str(elem) + "&"
-
-    return qs[:-1]
-
-
 def generate_rfc3339(d, local_tz=True):
     """
     generate rfc3339 time format
@@ -59,16 +43,14 @@ def _calculate_offset(date, local_tz):
     otherwise return 0
     """
     if local_tz:
-        # handle year before 1970 most sytem there is no timezone information
-        # before 1970.
+        #handle year before 1970 most sytem there is no timezone information before 1970.
         if date.year < 1970:
             # Use 1972 because 1970 doesn't have a leap day
             t = time.mktime(date.replace(year=1972).timetuple)
         else:
             t = time.mktime(date.timetuple())
 
-        # handle daylightsaving, if daylightsaving use altzone, otherwise use
-        # timezone
+        # handle daylightsaving, if daylightsaving use altzone, otherwise use timezone
         if time.localtime(t).tm_isdst:
             return -time.altzone
         else:

@@ -23,7 +23,7 @@ node.ovc__vm:
 # 'QA SERVICE' (THE TEMPLATE SHOULD HAS THIS LINE)
 test_js8_install__test:
     os: 'vm'
-    branch: '{branch}'
+    branch: '{jsbranch}'
 
 actions:
     - action: 'install'

@@ -332,11 +332,11 @@ def _print_run(run, logs=False):
         for job in step['jobs']:
             out += "- {actor_name:15} {service_name:15} | {action_name:15} ({state})\n".format(**job)
             if logs:
-                out += "logs:"
+                out += "logs:\n"
                 # import ipdb; ipdb.set_trace()
                 for log in job['logs']:
                     if log['log']:
-                        out += format_log(log)
+                        out += format_log(log) + '\n'
     print(out)
 
 @run.command()
@@ -390,8 +390,13 @@ def list():
 @click.option('--logs', '-l', default=False, is_flag=True, help='show logs of the jobs')
 def show(key, logs):
     if key is None:
-        print("please specify the key of the run to show using --key")
-        return
+        resp = ayscl.api.ays.listRuns(repository=_current_repo_name())
+        if resp.status_code != HTTPStatus.OK:
+            print("Error during listing of the runs: {}".format(_extract_error(resp)))
+            return
+        runs = resp.json()
+        runs = sorted(runs, key=lambda x:x['epoch'])
+        key = runs[-1]['key']
 
     resp = ayscl.api.ays.getRun(aysrun=key, repository=_current_repo_name())
     if resp.status_code != HTTPStatus.OK:

@@ -108,19 +108,20 @@ class AtYourServiceRepoCollection:
                 return repo
 
         raise j.exceptions.NotFound(message="Could not find repo in path:%s" %
-                                     path, level=1, source="", tags="", msgpub="")
+                                    path, level=1, source="", tags="", msgpub="")
 
     def delete(self, repo):
         if repo.path in self._repos:
-            del(self._repos[repo.path])
+            del self._repos[repo.path]
 
 VALID_ACTION_STATE = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 DBTuple = namedtuple("DB", ['actors', 'services'])
 
+
 class AtYourServiceRepo():
 
-    def __init__(self, path, model=None):
+    def __init__(self, path):
         self.logger = j.logger.get('j.atyourservice')
         self.path = j.sal.fs.pathNormalize(path)
         self.name = j.sal.fs.getBaseName(self.path)

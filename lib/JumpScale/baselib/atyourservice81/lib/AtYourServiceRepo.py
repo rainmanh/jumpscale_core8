@@ -5,15 +5,19 @@ from JumpScale.baselib.atyourservice81.lib.Blueprint import Blueprint
 from JumpScale.baselib.atyourservice81.lib.models.ActorsCollection import ActorsCollection
 from JumpScale.baselib.atyourservice81.lib.models.ServicesCollection import ServicesCollection
 from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import build_nodes, create_graphs, get_task_batches, create_job
+import asyncio
 
 import colored_traceback
 colored_traceback.add_hook(always=True)
 from collections import namedtuple
 
+
+
 class AtYourServiceRepoCollection:
-    def __init__(self, loop):
+
+    def __init__(self):
         self.logger = j.logger.get('j.atyourservice')
-        self._loop = loop
+        self._loop = asyncio.get_event_loop()
         self._repos = {}
         self._loop.call_soon(self._load)
 

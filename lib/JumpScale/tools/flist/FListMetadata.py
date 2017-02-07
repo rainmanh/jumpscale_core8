@@ -219,7 +219,7 @@ class FListMetadata:
                     stat["modificationTime"] = entity.modificationTime
                     stat["size"] = entity.size
                     stat["creationTime"] = entity.creationTime
-                    stat["blocksize"] = entity.blocksize
+                    # stat["blocksize"] = entity.blocksize # FIXME
         return stat
 
     def move(self, old_path, new_parent_path, fname=""):

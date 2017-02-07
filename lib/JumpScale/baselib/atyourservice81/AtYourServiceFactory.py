@@ -38,7 +38,8 @@ class AtYourServiceFactory:
     def actorTemplates(self):
         templates = []
         for template_repo in self.templateRepos.list():
-            templates.extend(template_repo.templates)
+            if template_repo.is_global:
+                templates.extend(template_repo.templates)
         return templates
 
     @property

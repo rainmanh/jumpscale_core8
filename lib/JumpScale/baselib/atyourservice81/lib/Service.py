@@ -16,18 +16,17 @@ class Service:
         self._path = ""
         self._schema = None
         self._loop = loop or asyncio.get_event_loop()
-        self._recurring_tasks = {}
+        self._recurring_tasks = {} # for recurring jobs
 
         self.aysrepo = aysrepo
         self.logger = j.atyourservice.logger
-
-        self._loop.call_soon(self._ensure_recurring)
 
     @classmethod
     async def init_from_actor(cls, aysrepo, actor, args, name):
         try:
             self = cls(aysrepo)
             await self._initFromActor(actor=actor, args=args, name=name)
+            self._ensure_recurring()
             return self
         except Exception as e:
             # cleanup if init fails
@@ -39,6 +38,7 @@ class Service:
         self = cls(aysrepo=aysrepo)
         self.model = model
         self.aysrepo._services[self.model.key] = self
+        self._ensure_recurring()
         return self
 
     @classmethod
@@ -46,6 +46,7 @@ class Service:
         self = cls(aysrepo=aysrepo)
         self.loadFromFS(path)
         self.aysrepo._services[self.model.key] = self
+        self._ensure_recurring()
         return self
 
     @property
@@ -81,8 +82,6 @@ class Service:
         dbobj.gitRepo.path = j.sal.fs.joinPaths("services", skey)
 
         # actions
-        # actions = dbobj.init("actions", len(actor.model.dbobj.actions))
-        counter = 0
         for action in actor.model.dbobj.actions:
             self.model.actionAdd(
                 name=action.name,
@@ -90,13 +89,6 @@ class Service:
                 period=action.period,
                 log=action.log
             )
-            # actionnew = actions[counter]
-            # actionnew.state = "new"
-            # actionnew.actionKey = action.actionKey
-            # actionnew.name = action.name
-            # actionnew.log = action.log
-            # actionnew.period = action.period
-            # counter += 1
 
         # set default value for argument not specified in blueprint
         template = self.aysrepo.templateGet(actor.model.name)
@@ -108,7 +100,6 @@ class Service:
 
         # input will always happen in process
         args2 = await self.input(args=args)
-        # print("%s:%s" % (self, args2))
         if args2 is not None and j.data.types.dict.check(args2):
             args = args2
 
@@ -135,9 +126,6 @@ class Service:
         self.aysrepo._services[self.model.key] = self
 
         await self.init()
-
-        # make sure we have the last version of the model if something changed during init
-        self.reload()
 
         # need to do this manually cause execution of input method is a bit special.
         self.model.actions['input'].state = 'ok'
@@ -324,9 +312,8 @@ class Service:
         self.saveToFS()
 
     def reload(self):
+        # service are kept in memory so we never need to relad anyomre
         pass
-        # self.model._data = None
-        # self.model.load(self.model.key)
 
     async def delete(self):
         """
@@ -384,25 +371,14 @@ class Service:
             if prod_model.role not in producers:
                 producers[prod_model.role] = []
             producers[prod_model.role].extend(self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName))
-            # producers.extend(self._aysrepo.db.services.find(name=prod.serviceName, actor=prod.actorName))
-        # for prod_model in self.model.producers:
-        #
-        #     if prod_model.role not in producers:
-        #         producers[prod_model.role] = []
-        #
-        #     result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
-        #     producers[prod_model.role].extend(result)
-
         return producers
 
     @property
     def consumers(self):
         consumers = {}
         for prod_model in self.model.consumers:
-
             if prod_model.role not in consumers:
                 consumers[prod_model.role] = []
-
             result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
             consumers[prod_model.role].extend(result)
 
@@ -609,10 +585,9 @@ class Service:
         Change the state of an action so it marked as need to be executed
         if the period is specified, also create a recurring period for the action
         """
-        self.logger.info('schedule action %s on %s' % (action, self))
         if action not in self.model.actions:
-            raise j.exceptions.Input(
-                "Trying to schedule action %s on %s. but this action doesn't exist" % (action, self))
+            self.logger.warning("Trying to schedule action %s on %s. but this action doesn't exist" % (action, self))
+            return
 
         action_model = self.model.actions[action]
 
@@ -633,6 +608,7 @@ class Service:
         if not force and action_model.state == 'ok':
             self.logger.info("action %s already in ok state, don't schedule again" % action_model.name)
         else:
+            self.logger.info('schedule action %s on %s' % (action, self))
             action_model.state = 'scheduled'
 
         self.saveAll()

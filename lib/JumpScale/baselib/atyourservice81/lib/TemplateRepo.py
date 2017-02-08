@@ -1,5 +1,7 @@
 from JumpScale import j
 from JumpScale.baselib.atyourservice81.lib.ActorTemplate import ActorTemplate
+import asyncio
+
 
 def searchActorTemplates(path):
     """
@@ -47,7 +49,6 @@ def searchActorTemplates(path):
                 # because means that  is no longer our parent
 
         depth = len(j.sal.fs.pathRemoveDirPart(path, arg[0]).split("/"))
-        # print("%s:%s" % (depth, j.sal.fs.pathRemoveDirPart(path, arg[0])))
         if depth < 4:
             return True
         elif depth < 8 and arg[3] != "":
@@ -55,17 +56,18 @@ def searchActorTemplates(path):
         return False
 
     j.sal.fswalker.walkFunctional(path, callbackFunctionFile=None, callbackFunctionDir=callbackFunctionDir, arg=[path, res, "", ""],
-                                  callbackForMatchDir=callbackForMatchDir, callbackForMatchFile=lambda x,y: False)
+                                  callbackForMatchDir=callbackForMatchDir, callbackForMatchFile=lambda x, y: False)
     return res
+
 
 class TemplateRepoCollection:
     """
     Class reponsible for search/load tempates repos
     """
 
-    def __init__(self, loop):
+    def __init__(self):
         self.logger = j.logger.get('j.atyourservice')
-        self._loop = loop
+        self._loop = asyncio.get_event_loop()
         self._template_repos = {}
         self._loop.call_soon(self._load)
 
@@ -85,7 +87,7 @@ class TemplateRepoCollection:
         # todo protect with lock
         return list(self._template_repos.values())
 
-    def create(self, path):
+    def create(self, path, is_global=True):
         """
         path can be any path in a git repo
         will look for the directory with .git and create a TemplateRepo object if it doesn't exist yet
@@ -101,7 +103,7 @@ class TemplateRepoCollection:
                 raise j.exceptions.NotFound("path '{}' and its parents is not a git repository".format(original_path))
 
             self.logger.debug("New tempalte repos found at {}".format(path))
-            self._template_repos[path] = TemplateRepo(path, self._loop)
+            self._template_repos[path] = TemplateRepo(path, is_global=is_global)
 
         return self._template_repos[path]
 
@@ -179,15 +181,18 @@ class TemplateRepoCollection:
     #         self.actorTemplates
     #     return self._actorTemplatesRepos
 
+
 class TemplateRepo():
     """
     Represent git repository containing Actor templates
     """
-    def __init__(self, path, loop):
+
+    def __init__(self, path, is_global=True):
         self.logger = j.logger.get('j.atyourservice')
-        self._loop = loop
+        self._loop = asyncio.get_event_loop()
         self.path = j.sal.fs.pathNormalize(path)
         self.git = j.clients.git.get(self.path, check_path=False)
+        self.is_global = is_global
         self._templates = {}
         self._load()
         self._loop.call_later(60, self._load)
@@ -205,7 +210,8 @@ class TemplateRepo():
             templ = ActorTemplate(path=path, template_repo=self)
             if templ.name in self._templates:
                 if path != self._templates[templ.name].path:
-                    msg = 'Found duplicate template:found %s in \n- %s and \n- %s' % (templ.name, path, self._templates[templ.name].path)
+                    msg = 'Found duplicate template:found %s in \n- %s and \n- %s' % (
+                        templ.name, path, self._templates[templ.name].path)
                     raise j.exceptions.Input(msg)
 
             # self.logger.debug("load template {} from {}".format(templ, path))

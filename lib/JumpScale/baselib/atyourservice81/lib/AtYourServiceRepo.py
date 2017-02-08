@@ -5,33 +5,41 @@ from JumpScale.baselib.atyourservice81.lib.Blueprint import Blueprint
 from JumpScale.baselib.atyourservice81.lib.models.ActorsCollection import ActorsCollection
 from JumpScale.baselib.atyourservice81.lib.models.ServicesCollection import ServicesCollection
 from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import build_nodes, create_graphs, get_task_batches, create_job
+import asyncio
 
 import colored_traceback
 colored_traceback.add_hook(always=True)
 from collections import namedtuple
 
+
+
 class AtYourServiceRepoCollection:
-    def __init__(self, loop):
+
+    def __init__(self):
         self.logger = j.logger.get('j.atyourservice')
-        self._loop = loop
+        self._loop = asyncio.get_event_loop()
         self._repos = {}
         self._loop.call_soon(self._load)
 
     def _load(self):
         self.logger.info("reload AYS repos")
         # search repo on the filesystem
-        for dir_path in [j.dirs.CODEDIR, j.dirs.VARDIR]:
+        for dir_path in [ j.dirs.VARDIR, j.dirs.CODEDIR]:
+            self.logger.debug("search ays repo in {}".format(dir_path))
             for path in self._searchAysRepos(dir_path):
                 if path not in self._repos:
-                    self.logger.info("AYS repo found {}".format(path))
-                    repo = AtYourServiceRepo(path)
-                    self._repos[repo.path] = repo
+                    self.logger.debug("AYS repo found {}".format(path))
+                    try:
+                        repo = AtYourServiceRepo(path)
+                        self._repos[repo.path] = repo
+                    except Exception as e:
+                        self.logger.error("can't load repo at {}: {}".format(path, str(e)))
 
         # make sure all loaded repo still exists
         for repo in list(self._repos.values()):
             if not j.sal.fs.exists(repo.path):
                 self.logger.info("repo {} doesnt exists anymore, unload".format(repo.path))
-                del(self._repos[repo.path])
+                del self._repos[repo.path]
 
         self._loop.call_later(60, self._load)
 
@@ -59,7 +67,7 @@ class AtYourServiceRepoCollection:
             return False
 
         j.sal.fswalker.walkFunctional(path, callbackFunctionFile=None, callbackFunctionDir=callbackFunctionDir, arg=[path, res],
-                                      callbackForMatchDir=callbackForMatchDir, callbackForMatchFile=lambda x,y: False)
+                                      callbackForMatchDir=callbackForMatchDir, callbackForMatchFile=lambda x, y: False)
         return res
 
     def list(self):
@@ -70,7 +78,8 @@ class AtYourServiceRepoCollection:
         path = j.sal.fs.pathNormalize(path)
 
         if j.sal.fs.exists(path):
-            raise j.exceptions.Input("Directory %s already exists. Can't create AYS repo at the same location." % path)
+            raise j.exceptions.Input(
+                "Directory %s already exists. Can't create AYS repo at the same location." % path)
 
         j.sal.fs.createDir(path)
         j.sal.fs.createEmptyFile(j.sal.fs.joinPaths(path, '.ays'))
@@ -78,7 +87,8 @@ class AtYourServiceRepoCollection:
         j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'blueprints'))
         j.tools.cuisine.local.core.run('cd {};git init'.format(path))
         if git_url:
-            j.tools.cuisine.local.core.run('cd {path};git remote add origin {url}'.format(path=path, url=git_url))
+            j.tools.cuisine.local.core.run(
+                'cd {path};git remote add origin {url}'.format(path=path, url=git_url))
         j.sal.nettools.download(
             'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
         name = j.sal.fs.getBaseName(path)
@@ -100,19 +110,20 @@ class AtYourServiceRepoCollection:
                 return repo
 
         raise j.exceptions.NotFound(message="Could not find repo in path:%s" %
-                                     path, level=1, source="", tags="", msgpub="")
+                                    path, level=1, source="", tags="", msgpub="")
 
     def delete(self, repo):
         if repo.path in self._repos:
-            del(self._repos[repo.path])
+            del self._repos[repo.path]
 
 VALID_ACTION_STATE = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 DBTuple = namedtuple("DB", ['actors', 'services'])
 
+
 class AtYourServiceRepo():
 
-    def __init__(self, path, model=None):
+    def __init__(self, path):
         self.logger = j.logger.get('j.atyourservice')
         self.path = j.sal.fs.pathNormalize(path)
         self.name = j.sal.fs.getBaseName(self.path)
@@ -171,7 +182,6 @@ class AtYourServiceRepo():
         see enable_no_exec for further info
         """
         self.no_exec = False
-        # self.model.disable_no_exec()
 
 # ACTORS
     def actorCreate(self, name):
@@ -197,7 +207,7 @@ class AtYourServiceRepo():
                 return Actor(aysrepo=self, name=name)
             elif die:
                 raise j.exceptions.NotFound(message="Could not find actor with name:%s" %
-                                         name, level=1, source="", tags="", msgpub="")
+                                            name, level=1, source="", tags="", msgpub="")
 
             obj = self.actorCreate(name)
 
@@ -229,7 +239,8 @@ class AtYourServiceRepo():
         # load local templates
         templateRepo = j.atyourservice.templateRepos.create(self.path)
         for template in templateRepo.templates:
-            # here we want to overrides the global templates with local one. so having duplicate name is normal
+            # here we want to overrides the global templates with local one. so having
+            # duplicate name is normal
             templates[template.name] = template
 
         return templates
@@ -282,14 +293,12 @@ class AtYourServiceRepo():
         if role.strip() == "" or instance.strip() == "":
             raise j.exceptions.Input("role and instance cannot be empty.")
 
-        # objs = self.db.services.find(actor="%s.*" % role, name=instance)
         objs = [s for s in self._services.values() if s.model.role == role and s.name == instance]
         if len(objs) == 0:
             if die:
                 raise j.exceptions.NotFound(message="Cannot find service %s:%s" %
-                                         (role, instance), level=1, source="", tags="", msgpub="")
+                                            (role, instance), level=1, source="", tags="", msgpub="")
             return None
-        # return objs[0].objectGet(self)
         return objs[0]
 
     def serviceGetByKey(self, key):
@@ -297,12 +306,10 @@ class AtYourServiceRepo():
         if len(objs) <= 0:
             raise j.exceptions.NotFound(message="Cannot find service with key {}".format(key))
         return objs[0]
-        # return self.db.services.get(key=key).objectGet(self)
 
     @property
     def serviceKeys(self):
         return [s.model.key for s in self._services.values()]
-        # return [model.key for model in self.db.services.find()]
 
     def serviceSetState(self, actions=[], role="", instance="", state="new"):
         """
@@ -370,10 +377,6 @@ class AtYourServiceRepo():
             if parent != '' and "{}!{}".format(service.parent.role, service.parent.name) != parent:
                 continue
 
-            # if producer != '':
-            #     for prod in service.producers:
-            #         if "{}!{}".format(prod.role, prod.name) !=
-
             if includeDisabled is False and service.model.dbobj.state == "disabled":
                 continue
 
@@ -384,27 +387,10 @@ class AtYourServiceRepo():
 
         if first:
             if len(results) == 0:
-                raise j.exceptions.NotFound("cannot find service %s|%s:%s" % (self.name, actor, name), "ays.servicesFind")
+                raise j.exceptions.NotFound("cannot find service %s|%s:%s" %
+                                            (self.name, actor, name), "ays.servicesFind")
             return results[0]
         return results
-
-        # if actor == '' and role != '':
-        #     actor = '%s(\..*)?' % role
-        #
-        # res = []
-        # for service_model in self.db.services.find(name=name, actor=actor, state=state, parent=parent, producer=producer):
-        #     if hasAction != "" and hasAction not in service_model.actionsState.keys():
-        #         continue
-        #
-        #     if includeDisabled is False and service_model.dbobj.state == "disabled":
-        #         continue
-
-        #     res.append(service_model.objectGet(self))
-        # if first:
-        #     if len(res) == 0:
-        #         raise j.exceptions.Input("cannot find service %s|%s:%s" % (self.name, actor, name), "ays.servicesFind")
-        #     return res[0]
-        # return res
 
 # BLUEPRINTS
 
@@ -452,7 +438,8 @@ class AtYourServiceRepo():
         if path == "" and content == "":
             for bp in self.blueprints:
                 if not bp.is_valid:
-                    self.logger.warning("blueprint %s not executed because it doesn't have a valid format" % bp.path)
+                    self.logger.warning(
+                        "blueprint %s not executed because it doesn't have a valid format" % bp.path)
                     return
                 await bp.load(role=role, instance=instance)
         else:
@@ -488,7 +475,8 @@ class AtYourServiceRepo():
             producer_candidates = service.getProducersRecursive(
                 producers=set(), callers=set(), action=action, producerRoles=producerRoles)
             if producerRoles != '*':
-                producer_valid = [item for item in producer_candidates if item.model.role in producerRoles]
+                producer_valid = [
+                    item for item in producer_candidates if item.model.role in producerRoles]
             else:
                 producer_valid = producer_candidates
             scope = scope.union(producer_valid)
@@ -519,7 +507,6 @@ class AtYourServiceRepo():
         list Runs on repo
         """
         runs_models = j.core.jobcontroller.db.runs.find(repo=self.path)
-
 
         return [run.objectGet() for run in runs_models]
 

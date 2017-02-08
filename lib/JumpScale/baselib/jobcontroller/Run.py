@@ -205,7 +205,6 @@ class Run:
                             print(job.str_error(log.log))
 
                     raise j.exceptions.RuntimeError(log.log)
-                    # raise j.exceptions.RuntimeError("Error during execution of step %d\n See stacktrace above to identify the issue" % step.dbobj.number)
 
             self.state = 'ok'
         except:

@@ -246,13 +246,6 @@ class Job():
 
     def save(self):
         self.model.save()
-        # if self.saveService and self.service is not None:
-            # if self.saveService:
-            #     # self.service.reload()
-            #     if self.model.dbobj.actionName in self.service.model.actions:
-            #         service_action_obj = self.service.model.actions[self.model.dbobj.actionName]
-            #         service_action_obj.state = str(self.model.dbobj.state)
-                # self.service.saveAll()
 
     def executeInProcess(self):
         """
@@ -271,7 +264,6 @@ class Job():
         """
         # for now use default ThreadPoolExecutor
         loop = asyncio.get_event_loop()
-
         if self.model.dbobj.debug is False:
             self.model.dbobj.debug = self.sourceToExecute.find('ipdb') != -1 or self.sourceToExecute.find('IPython') != -1
 
@@ -284,6 +276,10 @@ class Job():
         # register callback to deal with logs and state of the job after execution
         now = j.data.time.epoch
         self._future.add_done_callback(functools.partial(_execute_cb, self, now))
+
+        if self.service is not None and self.model.dbobj.actionName in self.service.model.actions:
+            service_action_obj = self.service.model.actions[self.model.dbobj.actionName]
+            service_action_obj.state = 'running'
 
         self.model.dbobj.state = 'running'
         self.save()

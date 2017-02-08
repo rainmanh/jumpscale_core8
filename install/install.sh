@@ -31,7 +31,7 @@ function clean_system {
 
 function osx_install {
     set +ex
-    brew list -1 | while read line; do brew unlink $line;
+    brew list -1 | while read line; do brew unlink $line; done
     set -ex
     brew install python3
     brew link --overwrite python3

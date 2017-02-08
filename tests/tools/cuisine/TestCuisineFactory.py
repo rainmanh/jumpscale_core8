@@ -75,6 +75,20 @@ class TestCuisineFactory(unittest.TestCase):
 
     @unittest.skip("No longer represent the method")
     @mock.patch('JumpScale.j.clients.ssh')
+    @mock.patch('JumpScale.j.tools.console')
+    @mock.patch('JumpScale.j.tools.executor')
+    def test_get_push_key_if_ssh_client_returned(self, mock_executor, mock_console, mock_ssh):
+        """
+        Test getting ssh executor
+        """
+        # check the path where the password is not set
+        mock_ssh.get.return_value = True
+        self.factory.authorizeKey()
+        self.assertTrue(mock_executor.getSSHBased.called)
+        self.assertFalse(mock_console.askPassword.called)
+
+    @unittest.skip("No longer represent the method")
+    @mock.patch('JumpScale.j.clients.ssh')
     @mock.patch('JumpScale.j.sal.process')
     @mock.patch('JumpScale.j.tools.console')
     def test_get_push_key_if_ssh_client_error(self, mock_console, mock_process, mock_ssh):

@@ -26,7 +26,7 @@ class RunModel(ModelBase):
         return step
 
     def jobNew(self, step):
-        job = j.data.capnp.getMemoryObj(self._capnp_schema.Job)
+        job = j.data.capnp.getMemoryObj(self._capnp_schema.RunStep.Job)
         step.jobs.append(job)
         return job
 

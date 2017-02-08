@@ -69,7 +69,7 @@ class ActorModel(ActorServiceBaseModel):
             argname @5 :Text; # key in the args that contains the instance name of the targets
           }
         """
-        o = j.data.capnp.getMemoryStore(
+        o = j.data.capnp.getMemoryObj(
                 self._capnp_schema.ActorPointer,
                 actorRole=role, minServices=int(min), maxServices=int(max),
                 auto=bool(auto), optional=bool(optional), argname=argname

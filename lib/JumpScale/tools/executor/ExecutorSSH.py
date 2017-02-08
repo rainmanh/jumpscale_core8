@@ -185,18 +185,49 @@ class ExecutorSSH(ExecutorBase):
         if cmds.find("\n") != -1:
             if showout:
                 self.logger.info("EXECUTESCRIPT} %s:%s:\n%s" % (self.addr, self.port, cmds))
+            # sshkey = self.sshclient.key_filename or ""
+            return self._execute_script(content=cmds2, showout=showout, die=die, checkok=checkok)
 
-            sshkey = self.sshclient.key_filename or ""
-            rc, out, err = j.do.executeBashScript(content=cmds2, path=None, die=die,
-                                                  remote=self.addr, sshport=self.port, sshkey=sshkey, timeout=timeout)
-        else:
-            # online command, we use cuisine
-            if showout:
-                self.logger.info("EXECUTE %s:%s: %s" % (self.addr, self.port, cmds))
-            rc, out, err = self.sshclient.execute(cmds2, die=die, showout=showout)
+        # online command, we use cuisine
+        if showout:
+            self.logger.info("EXECUTE %s:%s: %s" % (self.addr, self.port, cmds))
+        rc, out, err = self.sshclient.execute(cmds2, die=die, showout=showout)
 
         if checkok and die:
             out = self.docheckok(cmds, out)
+
+        return rc, out, err
+
+    def _execute_script(self, content="", die=True, showout=True, checkok=None):
+        """
+        @param remote can be ip addr or hostname of remote, if given will execute cmds there
+        """
+        if content[-1] != "\n":
+            content += "\n"
+
+        if die:
+            content = "set -ex\n%s" % content
+
+        path = j.sal.fs.getTempFileName()
+        path2 = j.sal.fs.getTempFileName()
+        j.sal.fs.writeFile(path, content)
+
+        sftp = self.sshclient.getSFTP()
+        parent_dir = j.sal.fs.getParent(path2)
+        try:
+            sftp.stat(parent_dir)
+        except FileNotFoundError:
+            sftp.mkdir(parent_dir)
+        sftp.put(path, path2)
+
+        cmd = "bash {}".format(path2)
+        rc, out, err = self.sshclient.execute(cmd, die=die, showout=showout)
+
+        if checkok and die:
+            out = self.docheckok(content, out)
+
+        j.sal.fs.remove(path)
+        sftp.remove(path2)
 
         return rc, out, err
 

@@ -19,7 +19,7 @@ class Service:
         self._recurring_tasks = {} # for recurring jobs
 
         self.aysrepo = aysrepo
-        self.logger = j.atyourservice.logger
+        self.logger = j.logger.get('j.atyourservice.service')
 
     @classmethod
     async def init_from_actor(cls, aysrepo, actor, args, name):

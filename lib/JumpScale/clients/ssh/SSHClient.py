@@ -97,11 +97,8 @@ class SSHClient:
             start = j.data.time.getTimeEpoch()
             self.pkey = None
 
-            try:
+            if self.key_filename is not None and self.key_filename != '':
                 self.pkey = paramiko.RSAKey.from_private_key_file(self.key_filename, password=self.passphrase)
-            except:
-                print("could not load pkey")
-                pass
 
             self._client = paramiko.SSHClient()
             self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -119,13 +116,12 @@ class SSHClient:
                 # j.tools.console.hideOutput()
                 try:
                     self.logger.info("connect to:%s"%self.addr)
-                    self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,
+                    self._client.connect(self.addr, self.port, username=self.login, password=self.passwd, pkey=self.pkey,
                         allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,timeout=2.0, banner_timeout=3.0)
                     self.logger.info("connection ok")
                     return self._client
                 except (BadHostKeyException, AuthenticationException) as e:
-                    self.logger.error(
-                        "Authentification error. Aborting connection")
+                    self.logger.error("Authentification error. Aborting connection")
                     self.logger.error(e)
                     raise j.exceptions.RuntimeError(str(e))
 

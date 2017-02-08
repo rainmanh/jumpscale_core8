@@ -23,7 +23,7 @@ class CuisineBase:
     @property
     def logger(self):
         if self._logger is None:
-            self._logger = j.logger.get(self._classname)
+            self._logger = j.logger.get(self.classname)
         return self._logger
 
 

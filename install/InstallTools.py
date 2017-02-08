@@ -2060,6 +2060,7 @@ class Installer():
 
     def __init__(self):
         self._readonly = None
+        self.logger = logger
 
     def checkPython(self):
         if sys.platform.startswith('darwin'):

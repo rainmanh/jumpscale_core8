@@ -160,7 +160,7 @@ class CuisineNet(base):
 
         res = []
         for nic in getNetworkInfo():
-            # self.log(nic["name"])
+            # self.logger.info(nic["name"])
             if nic["name"] == device:
                 return nic
             res.append(nic)
@@ -210,10 +210,10 @@ class CuisineNet(base):
         f.write(C)
 
         # now applying
-        self.log("restart network")
+        self.logger.info("restart network")
         rc=os.system("/etc/init.d/networking restart")
         rc=os.system("/etc/init.d/networking restart")
-        self.log("restart network done")
+        self.logger.info("restart network done")
 
         rc=os.system("ping -c 1 $pinghost")
         rc2=0
@@ -222,10 +222,10 @@ class CuisineNet(base):
             # could not ping need to restore
             os.system("cp /etc/network/interfaces_old /etc/network/interfaces")
 
-            self.log("restart network to recover")
+            self.logger.info("restart network to recover")
             rc2=os.system("/etc/init.d/networking restart")
             rc2=os.system("/etc/init.d/networking restart")
-            self.log("restart done to recover")
+            self.logger.info("restart done to recover")
 
         if rc>0 or rc2>0:
             raise RuntimeError("Could not set interface file, something went wrong, previous situation restored.")
@@ -234,6 +234,6 @@ class CuisineNet(base):
         pscript = pscript.replace("$ifacefile", ifacefile)
         pscript = pscript.replace("$pinghost", pinghost)
 
-        self.log(pscript)
+        self.logger.info(pscript)
 
         self.cuisine.core.execute_bash(content=pscript, die=True, interpreter="python3", tmux=True)

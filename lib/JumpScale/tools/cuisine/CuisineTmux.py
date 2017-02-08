@@ -17,7 +17,7 @@ class CuisineTmux(base):
             self.cuisine.package.install("tmux")
         # else:
         #     from IPython import embed
-        #     self.log("DEBUG NOW sdsd")
+        #     self.logger.info("DEBUG NOW sdsd")
         #     embed()
         #     raise RuntimeError("stop debug here")
         #     raise j.exceptions.RuntimeError(message="only support ubuntu", level=1, source="", tags="", msgpub="")
@@ -129,7 +129,7 @@ class CuisineTmux(base):
                 ffound = '**START**' in out
                 if not ffound:
                     time.sleep(0.1)
-                    self.log("reread from tmux, cmd did not start yet")
+                    self.logger.info("reread from tmux, cmd did not start yet")
                 counter += 1
                 if out.find("**ERROR**") != -1:
                     break

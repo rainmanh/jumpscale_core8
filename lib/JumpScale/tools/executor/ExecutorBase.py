@@ -27,9 +27,6 @@ class ExecutorBase:
             self._logger = j.logger.get("unknown")
         return self._logger
 
-    def log(self, msg):
-        self.logger.info(msg)
-
     @property
     def id(self):
         if self._id == None:
@@ -88,7 +85,7 @@ class ExecutorBase:
         if self._config_changed==False:
             return
         data = j.data.serializer.json.dumps(self.config, sort_keys=True, indent=True)
-        self.log("config save")
+        self.logger.info("config save")
         self.cuisine.core.file_write("$VARDIR/jsexecutor.json", data, showout=False)
         self._config_changed = False
 

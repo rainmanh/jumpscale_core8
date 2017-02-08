@@ -218,7 +218,7 @@ class CuisineNGINX(app):
             nginxcmd = "%s/nginx -c %s -g 'daemon off;'" % (nginxbinpath, nginxconfpath)
             nginxcmd = self.replace(nginxcmd)
 
-            self.log("cmd: %s" % nginxcmd)
+            self.logger.info("cmd: %s" % nginxcmd)
             self.cuisine.processmanager.ensure(name=name, cmd=nginxcmd, path=nginxbinpath)
 
         else:

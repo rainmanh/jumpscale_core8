@@ -69,7 +69,7 @@
 #         return url_opt
 #
 #     def sandbox_python(self, python=True):
-#         self.log("START SANDBOX")
+#         self.logger.info("START SANDBOX")
 #         if self.cuisine.executor.type != "local":
 #             raise j.exceptions.RuntimeError("only supports cuisine in local mode")
 #         if python:
@@ -99,7 +99,7 @@
 #
 #         j.tools.sandboxer.sandboxLibs("%s/lib" % self.cuisine.core.dir_paths['base'], recursive=True)
 #         j.tools.sandboxer.sandboxLibs("%s/bin" % self.cuisine.core.dir_paths['base'], recursive=True)
-#         self.log("SANDBOXING DONE, ALL OK IF TILL HERE, A Segfault can happen because we have overwritten ourselves.")
+#         self.logger.info("SANDBOXING DONE, ALL OK IF TILL HERE, A Segfault can happen because we have overwritten ourselves.")
 #
 #     def dedupe(self, dedupe_path, namespace, store_addr, output_dir='/tmp/sandboxer', sandbox_python=True):
 #         if self.cuisine.executor.type != "local":
@@ -114,7 +114,7 @@
 #             dedupe_path = [dedupe_path]
 #
 #         for path in dedupe_path:
-#             self.log("DEDUPE:%s" % path)
+#             self.logger.info("DEDUPE:%s" % path)
 #             j.tools.sandboxer.dedupe(path, storpath=output_dir, name=namespace,
 #                                      reset=False, append=True, excludeDirs=['/opt/code'])
 #
@@ -124,17 +124,17 @@
 #         error_files = []
 #         for f in files:
 #             src_hash = j.data.hash.md5(f)
-#             self.log('uploading %s' % f)
+#             self.logger.info('uploading %s' % f)
 #             uploaded_hash = store_client.putFile(namespace, f)
 #             if src_hash != uploaded_hash:
 #                 error_files.append(f)
-#                 self.log("%s hash doesn't match\nsrc     :%32s\nuploaded:%32s" % (f, src_hash, uploaded_hash))
+#                 self.logger.info("%s hash doesn't match\nsrc     :%32s\nuploaded:%32s" % (f, src_hash, uploaded_hash))
 #
 #         if len(error_files) == 0:
-#             self.log("all uploaded ok")
+#             self.logger.info("all uploaded ok")
 #         else:
 #             raise RuntimeError('some files didnt upload properly. %s' % ("\n".join(error_files)))
 #
 #         metadataPath = j.sal.fs.joinPaths(output_dir, "md", "%s.flist" % namespace)
-#         self.log('uploading %s' % metadataPath)
+#         self.logger.info('uploading %s' % metadataPath)
 #         store_client.putStaticFile(namespace + ".flist", metadataPath)

@@ -42,13 +42,13 @@ class CuisineSandbox(base):
         j.tools.sandboxer.sandboxLibs("%s/lib" % base, recursive=True)
         j.tools.sandboxer.sandboxLibs("%s/bin" % base, recursive=True)
         """
-        self.log("start sandboxing")
+        self.logger.info("start sandboxing")
         self.cuisine.core.execute_jumpscript(sandbox_script)
 
         name = "js8"
 
         if reset:
-            self.log("remove previous build info")
+            self.logger.info("remove previous build info")
             self.core.dir_remove("%s/%s" % (destination, name))
 
         self.core.dir_remove("%s/%s/" % (destination, name))
@@ -58,7 +58,7 @@ class CuisineSandbox(base):
         """
         dedupe_script = dedupe_script.replace("$name", name)
         dedupe_script = dedupe_script.replace("$out", destination)
-        self.log("start dedupe")
+        self.logger.info("start dedupe")
         self.cuisine.core.execute_jumpscript(dedupe_script)
 
         copy_script = """
@@ -68,7 +68,7 @@ class CuisineSandbox(base):
         """
         copy_script = copy_script.replace("$name", name)
         copy_script = copy_script.replace("$out", destination)
-        self.log("start copy sandbox")
+        self.logger.info("start copy sandbox")
         self.cuisine.core.execute_jumpscript(copy_script)
 
     def cleanup(self, aggressive=False):

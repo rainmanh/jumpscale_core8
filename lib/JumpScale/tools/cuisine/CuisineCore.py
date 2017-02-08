@@ -200,6 +200,13 @@ class CuisineCore(base):
     def _init(self):
         self.sudomode = False
 
+    @property
+    def logger(self):
+        if self._logger is None:
+            self._logger = j.logger.get("cuisine.core")
+        return self._logger
+
+
     def shell_safe(self, path):
         SHELL_ESCAPE = " '\";`|"
         """Makes sure that the given path/string is escaped and safe for shell"""
@@ -637,7 +644,7 @@ class CuisineCore(base):
             dest = source
         source = j.dirs.replaceTxtDirVars(source)
         dest = self.replace(dest)
-        self.log("upload local:%s to remote:%s" % (source, dest))
+        self.logger.info("upload local:%s to remote:%s" % (source, dest))
         if self.cuisine.id == 'localhost':
             j.do.copyTree(source, dest, keepsymlinks=True)
             return
@@ -658,7 +665,7 @@ class CuisineCore(base):
             dest = source
         dest = j.dirs.replaceTxtDirVars(dest)
         source = self.replace(source)
-        self.log("download remote:%s to local:%s" % (source, dest))
+        self.logger.info("download remote:%s to local:%s" % (source, dest))
         if self.cuisine.id == 'localhost':
             j.do.copyTree(source, dest, keepsymlinks=True)
             return
@@ -685,7 +692,7 @@ class CuisineCore(base):
                 content = self.replace(content)
 
             # if showout:
-            #     self.log("filewrite: %s"%location)
+            #     self.logger.info("filewrite: %s"%location)
 
             self.dir_ensure(j.sal.fs.getParent(location))
 
@@ -904,7 +911,7 @@ class CuisineCore(base):
         """Updates the mode / owner / group for the given remote directory."""
         location = self.replace(location)
         if showout:
-            # self.log("set dir attributes:%s"%location)
+            # self.logger.info("set dir attributes:%s"%location)
             self.logger.debug('set dir attributes:%s"%location')
         recursive = recursive and "-R " or ""
         if mode:
@@ -916,13 +923,13 @@ class CuisineCore(base):
 
     def dir_exists(self, location):
         """Tells if there is a remote directory at the given location."""
-        # self.log("dir exists:%s"%location)
+        # self.logger.info("dir exists:%s"%location)
         return self._check_is_ok('test -d', location)
 
     def dir_remove(self, location, recursive=True):
         """ Removes a directory """
         location = self.replace(location)
-        # self.log("dir remove:%s"%location)
+        # self.logger.info("dir remove:%s"%location)
         self.logger.debug("dir remove:%s" % location)
         flag = ''
         if recursive:
@@ -993,7 +1000,7 @@ class CuisineCore(base):
 
         out = self.run(cmd, showout=False)[1]
 
-        # self.log(cmd)
+        # self.logger.info(cmd)
         self.logger.debug(cmd)
 
         paths = []
@@ -1050,13 +1057,13 @@ class CuisineCore(base):
         """
         @param profile, execute the bash profile first
         """
-        # self.log(cmd)
+        # self.logger.info(cmd)
         if not env:
             env = {}
         if replaceArgs:
             cmd = self.replace(cmd)
         self.executor.curpath = self.cd
-        # self.log("CMD:'%s'"%cmd)
+        # self.logger.info("CMD:'%s'"%cmd)
         if debug:
             debugremember = copy.copy(debug)
             self.executor.debug = debug
@@ -1094,7 +1101,7 @@ class CuisineCore(base):
 
         if rc > 0 and "brew unlink" in out and "To install this version" in out:
             from IPython import embed
-            self.log("DEBUG NOW brew unlink (run)")
+            self.logger.info("DEBUG NOW brew unlink (run)")
             embed()
             raise RuntimeError("stop debug here")
             self.executor.execute("brew unlink ", checkok=checkok, die=False, showout=showout, env=env)
@@ -1162,7 +1169,7 @@ class CuisineCore(base):
         if interpreter == "bash":
             content += "\necho '**OK**'\n"
         elif interpreter.startswith("python") or interpreter.startswith("jspython"):
-            content += "\nprint('**OK**\\n')\n"
+            content += "\nself.logger.info('**OK**\\n')\n"
 
         ext = "sh"
         if interpreter.startswith("python"):
@@ -1191,7 +1198,7 @@ class CuisineCore(base):
         if tmux:
             rc, out = self.cuisine.tmux.executeInScreen("cmd", "cmd", cmd, wait=True, die=False)
             if showout:
-                self.log(out)
+                self.logger.info(out)
         else:
             # outfile = "$TMPDIR/%s.out" % (rnr)
             # outfile = self.replace(outfile)
@@ -1206,7 +1213,7 @@ class CuisineCore(base):
             elif lastline.find("**OK**") != -1:
                 rc = 0
             else:
-                self.log(out)
+                self.logger.info(out)
                 raise RuntimeError("wrong output of cmd")
             # out = self.file_read(outfile)
             out = self._clean(out)

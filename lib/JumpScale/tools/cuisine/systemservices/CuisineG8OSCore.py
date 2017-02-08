@@ -111,7 +111,7 @@ class CuisineG8OSCore(app):
 
         self.cuisine.apps.mongodb.start()
         self.cuisine.apps.redis.start()
-        self.log("connection test ok to agentcontroller")
+        self.logger.info("connection test ok to agentcontroller")
         #@todo (*1*) need to implement to work on node
         env = {}
         env["TMPDIR"] = self.cuisine.core.dir_paths["TMPDIR"]

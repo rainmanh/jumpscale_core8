@@ -65,7 +65,7 @@ class MongoInstance(Startable):
         if public_port is None:
             public_port = private_port
         self.dbdir = dbdir
-        self.log(cuisine, private_port, public_port, type_, replica, configdb, dbdir)
+        self.logger.info(cuisine, private_port, public_port, type_, replica, configdb, dbdir)
 
     def _install(self):
         super()._install()
@@ -96,7 +96,7 @@ class MongoInstance(Startable):
     @Startable.ensure_installed
     def _start(self):
         super()._start()
-        self.log("starting: ", self._gen_service_name(), self._gen_service_cmd())
+        self.logger.info("starting: ", self._gen_service_name(), self._gen_service_cmd())
         a = self.cuisine.processmanager.ensure(self._gen_service_name(), self._gen_service_cmd())
         return a
 
@@ -106,11 +106,11 @@ class MongoInstance(Startable):
             rc, out, err = self.cuisine.core.run("LC_ALL=C $BINDIR/mongo --port %s --eval '%s'" %
                                                  (self.private_port, cmd.replace("\\", "\\\\").replace("'", "\\'")), die=False)
             if not rc and out.find('errmsg') == -1:
-                self.log('command executed %s' % (cmd))
+                self.logger.info('command executed %s' % (cmd))
                 break
             sleep(5)
         else:
-            self.log('cannot execute command %s' % (cmd))
+            self.logger.info('cannot execute command %s' % (cmd))
         return rc, out
 
     def __repr__(self):

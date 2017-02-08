@@ -17,7 +17,7 @@ class CuisineUFW(base):
             if not self.cuisine.core.isMac:
                 if self.cuisine.bash.cmdGetPath("nft", die=False) is not False:
                     self._ufw_enabled = False
-                    self.log("cannot use ufw, nft installed")
+                    self.logger.info("cannot use ufw, nft installed")
                 if self.cuisine.bash.cmdGetPath("ufw", die=False) is False:
                     self.cuisine.package.install("ufw")
                     self.cuisine.bash.cmdGetPath("ufw")
@@ -96,9 +96,9 @@ class CuisineUFW(base):
     def show(self):
         a = self.ufw_rules_allow
         b = self.ufw_rules_deny
-        self.log("ALLOW")
-        self.log(a)
-        self.log("DENY")
-        self.log(b)
+        self.logger.info("ALLOW")
+        self.logger.info(a)
+        self.logger.info("DENY")
+        self.logger.info(b)
 
-        # self.log(self.cuisine.core.run("iptables -t nat -nvL"))
+        # self.logger.info(self.cuisine.core.run("iptables -t nat -nvL"))

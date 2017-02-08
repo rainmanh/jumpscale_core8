@@ -31,7 +31,7 @@ class SSHClient:
             self.key_filename = key_filename
             self.passphrase = passphrase
 
-        self.logger = j.logger.get("j.clients.ssh")
+        self.logger = j.logger.get("ssh sync client: %s(%s):"%(self.addr,self.port))
 
         self._transport = None
         self._client = None
@@ -86,7 +86,7 @@ class SSHClient:
     @property
     def client(self):
         if self._client is None:
-            self.logger.info("Test connection to %s:%s:%s" %
+            self.logger.info("Test sync ssh connection to %s:%s:%s" %
                              (self.addr, self.port, self.login))
             start = j.data.time.getTimeEpoch()
             if j.sal.nettools.waitConnectionTest(self.addr, self.port, self.timeout) is False:
@@ -118,10 +118,10 @@ class SSHClient:
             while start + self.timeout > j.data.time.getTimeEpoch():
                 # j.tools.console.hideOutput()
                 try:
-                    print("connect to:%s"%self.addr)
+                    self.logger.info("connect to:%s"%self.addr)
                     self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,
                         allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,timeout=2.0, banner_timeout=3.0)
-                    print("connection ok")
+                    self.logger.info("connection ok")
                     return self._client
                 except (BadHostKeyException, AuthenticationException) as e:
                     self.logger.error(
@@ -155,6 +155,7 @@ class SSHClient:
         # self._transport = None
 
     def getSFTP(self):
+        self.logger.info("open sftp")
         sftp = self.client.open_sftp()
         return sftp
 

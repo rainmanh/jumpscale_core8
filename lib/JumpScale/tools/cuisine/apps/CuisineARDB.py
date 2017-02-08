@@ -90,7 +90,7 @@ class CuisineARDB(app):
 
         url = "git@github.com:yinqiwen/ardb.git"
         cpath = self.cuisine.development.git.pullRepo(url, tag="v0.9.3", reset=reset)
-        print(cpath)
+        self.logger.info(cpath)
 
         assert cpath.rstrip("/") == self.CODEDIRARDB.rstrip("/")
 

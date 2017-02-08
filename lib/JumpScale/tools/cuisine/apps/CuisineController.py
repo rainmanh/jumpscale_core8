@@ -136,8 +136,8 @@ class CuisineController(app):
             ElementTree.SubElement(folder, 'ignoreDelete').text = 'false'
 
         dump = ElementTree.tostring(sync_cfg, 'unicode')
-        j.logger.log("SYNCTHING CONFIG", level=10)
-        j.logger.log(dump, level=10)
+        j.logger.info("SYNCTHING CONFIG", level=10)
+        j.logger.info(dump, level=10)
         self.cuisine.core.file_write("$JSCFGDIR/syncthing/config.xml", dump)
 
         # start

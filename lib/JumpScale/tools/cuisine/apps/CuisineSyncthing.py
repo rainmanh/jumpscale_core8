@@ -89,7 +89,7 @@ class CuisineSyncthing(app):
         for item in r:
             if item.tag=="gui":
                 for item2 in item:
-                    print (item2.tag)
+                    self.logger.info(item2.tag)
                     if item2.tag=="apikey":
                         return item2.text
 
@@ -99,7 +99,7 @@ class CuisineSyncthing(app):
 
     def getApiClient(self):
         from IPython import embed
-        print ("DEBUG NOW u8")
+        self.logger.info("DEBUG NOW u8")
         embed()
         raise RuntimeError("stop debug here")
         import syncthing

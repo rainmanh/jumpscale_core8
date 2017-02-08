@@ -136,7 +136,7 @@ class CuisineAlba(base):
         # cleaning
         #
         if self.cuisine.core.file_exists('$TMPDIR/OPAM/%s/lib/rocks/META' % self.ocaml_version):
-            self.log('rocksdb already found')
+            self.logger.info('rocksdb already found')
             return
 
         if self.cuisine.core.file_exists('/usr/local/lib/librocksdb.so'):
@@ -186,7 +186,7 @@ class CuisineAlba(base):
         # cleaning
         #
         if self.cuisine.core.file_exists('$TMPDIR/OPAM/%s/lib/ordma/META' % self.ocaml_version):
-            self.log('ordma already found')
+            self.logger.info('ordma already found')
             return
 
         #

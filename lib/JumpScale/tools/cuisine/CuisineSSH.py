@@ -12,20 +12,20 @@ class CuisineSSH(base):
         login = "root"
         res = []
         for item in self.scan(range=range):
-            self.log("test for login/passwd on %s" % item)
+            self.logger.info("test for login/passwd on %s" % item)
             try:
                 client = j.clients.ssh.get(item, port, login, passwd, timeout=1, die=False)
             except Exception as e:
-                self.log("  NOT OK")
+                self.logger.info("  NOT OK")
                 continue
             if testoutput is False:
-                self.log("  NOT OK")
+                self.logger.info("  NOT OK")
                 continue
             executor = j.tools.executor.getSSHBased(item, port, login, passwd, checkok=True)
             if onlyplatform != "":
                 if not str(executor.cuisine.platformtype).startswith(onlyplatform):
                     continue
-            self.log("  RESPONDED!!!")
+            self.logger.info("  RESPONDED!!!")
             res.append(item)
         return res
 
@@ -172,7 +172,7 @@ class CuisineSSH(base):
     def unauthorizeAll(self):
         """
         """
-        self.log("clean known hosts/autorized keys")
+        self.logger.info("clean known hosts/autorized keys")
         self.cuisine.core.dir_ensure("/root/.ssh")
         self.cuisine.core.dir_remove("/root/.ssh/known_hosts")
         self.cuisine.core.dir_remove("/root/.ssh/authorized_keys")
@@ -184,19 +184,19 @@ class CuisineSSH(base):
         """
 
         # leave here is to make sure we have a backdoor for when something goes wrong further
-        self.log("create backdoor")
+        self.logger.info("create backdoor")
         self.cuisine.user.ensure(backdoorlogin, passwd=backdoorpasswd, home=None, uid=None,
                                  gid=None, shell=None, fullname=None, encrypted_passwd=True, group="root")
         self.cuisine.core.run("rm -fr /home/%s/.ssh/" % backdoorlogin)
         self.cuisine.group.user_add('sudo', '$(system.backdoor.login)')
 
-        self.log("test backdoor")
+        self.logger.info("test backdoor")
         j.tools.executor.getSSHBased(addr="$(node.tcp.addr)", port=int("$(ssh.port)"), login="$(system.backdoor.login)",
                                      passwd=passwd, debug=False, checkok=True, allow_agent=False, look_for_keys=False)
         # make sure the backdoor is working
-        self.log("backdoor is working (with passwd)")
+        self.logger.info("backdoor is working (with passwd)")
 
-        self.log("make sure some required packages are installed")
+        self.logger.info("make sure some required packages are installed")
         self.cuisine.package.install('openssl')
         self.cuisine.package.install('rsync')
 
@@ -207,17 +207,17 @@ class CuisineSSH(base):
                 raise j.exceptions.RuntimeError("ssh.key.public cannot be empty")
             self.authorize("root", pub)
 
-        self.log("add git repos to known hosts")
+        self.logger.info("add git repos to known hosts")
         self.cuisine.core.run("ssh-keyscan github.com >> /root/.ssh/known_hosts")
         self.cuisine.core.run("ssh-keyscan git.aydo.com >> /root/.ssh/known_hosts")
 
-        self.log("enable access done.")
+        self.logger.info("enable access done.")
 
     def sshagent_add(self, path, removeFirst=True):
         """
         @path is path to private key
         """
-        self.log("add ssh key to ssh-agent: %s" % path)
+        self.logger.info("add ssh key to ssh-agent: %s" % path)
         self.cuisine.core.run("ssh-add -d '%s'" % path, die=False, showout=False)
         _, keys, _ = self.cuisine.core.run("ssh-add -l", showout=False)
         if path in keys:
@@ -228,7 +228,7 @@ class CuisineSSH(base):
         """
         @path is path to private key
         """
-        self.log("remove ssh key to ssh-agent: %s" % path)
+        self.logger.info("remove ssh key to ssh-agent: %s" % path)
         self.cuisine.core.run("ssh-add -d '%s'" % path, die=False, showout=False)
         _, keys, _ = self.cuisine.core.run("ssh-add -l", showout=False)
         if path in keys:

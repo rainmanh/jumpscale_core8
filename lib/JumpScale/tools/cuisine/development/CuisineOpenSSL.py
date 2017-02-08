@@ -71,9 +71,9 @@ class CuisineOpenSSL(base):
                 C=C.replace("$target","linux-generic64")
             self.cuisine.core.run(self.replace(C))
             self.doneSet("compile")
-            self.log("BUILD DONE")
+            self.logger.info("BUILD DONE")
         else:
-            self.log("NO NEED TO BUILD")
+            self.logger.info("NO NEED TO BUILD")
 
-        self.log("BUILD COMPLETED OK")
+        self.logger.info("BUILD COMPLETED OK")
         self.doneSet("build")

@@ -45,7 +45,7 @@ class MonitoringService():
 
         base_path = '%s'
         os.chdir(base_path)
-        print(j.clients.openvcloud.get().getRemoteNodes())
+        self.logger.info(j.clients.openvcloud.get().getRemoteNodes())
         """ % config.base_path
 
     def get_remote_nodes(self):

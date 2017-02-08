@@ -30,10 +30,11 @@ class ExecutorSSH(ExecutorBase):
         self.passphrase = passphrase
         self._id = None
 
+
     @property
     def logger(self):
         if self._logger is None:
-            self._logger = j.logger.get("executor.%s" % self.addr)
+            self._logger = j.logger.get("excr.%s" % self.addr)
         return self._logger
 
     def getMacAddr(self):
@@ -219,3 +220,8 @@ class ExecutorSSH(ExecutorBase):
         j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False,
                              overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
                              ssh=True, sshport=self.port, recursive=recursive)
+
+    def __repr__(self):
+        return ("Executor ssh: %s (%s)"%(self.addr,self.port))
+
+    __str__=__repr__

@@ -276,9 +276,6 @@ class FSWalker():
         else:
             self.fs = filesystemobject()
 
-    def log(self, msg):
-        print(msg)
-
     def statsStart(self):
         self.stats = FSWalkerStats(self.do)
 
@@ -434,7 +431,7 @@ else:
         paths = self.fs.list(root)
         for path2 in paths:
             path2 = path2.replace("//", "/")
-            # self.log("walker path:%s"% path2)
+            # self.logger.info("walker path:%s"% path2)
             if self.fs.isLink(path2):
                 # print "LINK:%s"%path2
                 ttype = "L"
@@ -447,7 +444,7 @@ else:
 
             if ttype not in callbackMatchFunctions or (ttype in callbackMatchFunctions and callbackMatchFunctions[
                                                        ttype](path2, arg, pathRegexIncludes, pathRegexExcludes)):
-                # self.log("walker filepath:%s"% path2)
+                # self.logger.info("walker filepath:%s"% path2)
                 self.statsAdd(path=path2, ttype=ttype, sizeUncompressed=0, sizeCompressed=0, duplicate=False)
 
                 if ttype in callbackFunctions:

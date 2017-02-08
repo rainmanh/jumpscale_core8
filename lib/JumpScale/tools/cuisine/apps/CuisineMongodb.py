@@ -31,7 +31,7 @@ class CuisineMongodb(app):
             raise j.exceptions.RuntimeError("unsupported platform")
 
         if url:
-            self.log('Downloading mongodb.')
+            self.logger.info('Downloading mongodb.')
             self.cuisine.core.file_download(url, to="$TMPDIR", overwrite=False, expand=True)
             tarpaths = self.cuisine.core.find("$TMPDIR", recursive=False, pattern="*mongodb*.tgz", type='f')
             if len(tarpaths) == 0:

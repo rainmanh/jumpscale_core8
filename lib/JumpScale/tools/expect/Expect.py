@@ -524,7 +524,7 @@ class Expect:
         After sending a command, one of the receive functions must be called to
         check for the result on C{stdout} or C{stderr}.
         """
-        self.log("send: %s" % data, category="send")
+        self.logger.info("send: %s" % data, category="send")
         self._lastsend = data
         self._lastOutput = ""
         self._lastError = ""
@@ -691,7 +691,7 @@ class Expect:
 
         @param timeoutval: time in seconds we maximum will wait
         """
-        self.log("wait: %s sec" % timeoutval, category="wait")
+        self.logger.info("wait: %s sec" % timeoutval, category="wait")
         timeout = False
         starttime = j.data.time.getTimeEpoch()
         r = ""  # full return

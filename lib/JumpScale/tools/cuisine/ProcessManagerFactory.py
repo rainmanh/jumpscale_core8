@@ -8,18 +8,23 @@ class ProcessManagerFactory:
     def __init__(self, cuisine):
         self.pms = {}
         self.cuisine = cuisine
+        self._logger = None
 
-    def log(self, msg):
-        print(msg)
+    @property
+    def logger(self):
+        if self._logger is None:
+            self._logger = j.logger.get("processmanagerfactory")
+        return self._logger
+
 
     def systemdOK(self):
         res = not self.cuisine.core.isDocker and self.cuisine.core.command_check("systemctl")
-        self.log("systemd:%s" % res)
+        self.logger.info("systemd:%s" % res)
         return res
 
     def svOK(self):
         res = self.cuisine.core.command_check("sv")
-        self.log("systemd:%s" % res)
+        self.logger.info("systemd:%s" % res)
         return res
 
     def get_prefered(self):

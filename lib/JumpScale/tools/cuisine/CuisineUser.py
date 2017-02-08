@@ -20,7 +20,7 @@ class CuisineUser(base):
 
     def passwd(self, name, passwd, encrypted_passwd=False):
         """Sets the given user password."""
-        self.log("set user:%s passwd for %s" % (name, self))
+        self.logger.info("set user:%s passwd for %s" % (name, self))
         name = name.strip()
         passwd = passwd.strip()
 

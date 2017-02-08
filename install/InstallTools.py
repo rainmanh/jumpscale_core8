@@ -23,6 +23,54 @@ import importlib
 import fcntl
 
 
+#INITIALIZATION OF STD logging
+
+import logging
+import logging.handlers
+CONSOLE_FORMAT = '%(cyan)s[%(asctime)s]%(reset)s - %(filename)-20s:%(lineno)-4d:%(name)-30s - %(log_color)s%(levelname)-8s%(reset)s - %(message)s'
+from colorlog import ColoredFormatter
+class LimitFormater(ColoredFormatter):
+
+    def __init__(self, fmt, datefmt, reset, log_colors, secondary_log_colors, style, lenght):
+        super(LimitFormater, self).__init__(
+            fmt=fmt,
+            datefmt=datefmt,
+            reset=reset,
+            log_colors=log_colors,
+            secondary_log_colors=secondary_log_colors,
+            style=style)
+        self.lenght = lenght
+
+    def format(self, record):
+        if len(record.pathname) > self.lenght:
+            record.pathname = "..." + record.pathname[-self.lenght:]
+        return super(LimitFormater, self).format(record)
+
+formatter = LimitFormater(
+    fmt=CONSOLE_FORMAT,
+    datefmt="%a%d %H:%M",
+    reset=True,
+    log_colors={
+        'DEBUG':    'cyan',
+        'INFO':     'green',
+        'WARNING':  'yellow',
+        'ERROR':    'red',
+        'CRITICAL': 'red,bg_white',
+    },
+    secondary_log_colors={},
+    style='%',
+    lenght=37
+)
+
+ch = logging.StreamHandler()
+
+# ch.setLevel(logging.INFO)
+ch.setFormatter(formatter)
+
+logger = logging.getLogger("installtools")
+logger.addHandler(ch)
+logger.setLevel(logging.DEBUG)
+
 class FileLock():
 
     def __init__(self, fname):
@@ -86,7 +134,7 @@ class SSHMethods():
             out += "%s\n" % line
 
         if "SSH_AUTH_SOCK" in os.environ:
-            print("NO NEED TO ADD SSH_AUTH_SOCK to env")
+            self.logger.info("NO NEED TO ADD SSH_AUTH_SOCK to env")
             self.writeFile(bashprofile_path, out)
             return
 
@@ -148,7 +196,7 @@ class SSHMethods():
         for item in res:
             pathkey = "%s/%s" % (path, item)
             # timeout after 24 h
-            print("load sshkey: %s" % pathkey)
+            self.logger.info("load sshkey: %s" % pathkey)
             cmd = "ssh-add -t %s %s " % (duration, pathkey)
             self.executeInteractive(cmd)
 
@@ -223,14 +271,14 @@ class SSHMethods():
     def authorize_user(self, sftp_client, ip_address, keyname, username):
         basename = self.getBaseName(keyname)
         tmpfile = "/home/%s/.ssh/%s" % (username, basename)
-        print("push key to /home/%s/.ssh/%s" % (username, basename))
+        self.logger.info("push key to /home/%s/.ssh/%s" % (username, basename))
         sftp_client.put(keyname, tmpfile)
 
         # cannot upload directly to root dir
         auth_key_path = "/home/%s/.ssh/authorized_keys" % username
         cmd = "ssh %s@%s 'cat %s | sudo tee -a %s '" % username, ip_address, tmpfile, auth_key_path
-        print("do the following on the console\nsudo -s\ncat %s >> %s" % (tmpfile, auth_key_path))
-        print(cmd)
+        self.logger.info("do the following on the console\nsudo -s\ncat %s >> %s" % (tmpfile, auth_key_path))
+        self.logger.info(cmd)
         self.executeInteractive(cmd)
 
     def authorize_root(self, sftp_client, ip_address, keyname):
@@ -257,10 +305,10 @@ class SSHMethods():
                 C2 = "%s\n%s\n" % (C.strip(), Cnew)
                 C2 = C2.strip() + "\n"
                 self.writeFile(tmppath, C2)
-                print("sshauthorized adjusted")
+                self.logger.info("sshauthorized adjusted")
                 sftp_client.put(tmppath, auth_key_path)
             else:
-                print("ssh key was already authorized")
+                self.logger.info("ssh key was already authorized")
 
     def authorizeSSHKey(self, remoteipaddr, keyname, login="root", passwd=None, sshport=22, removeothers=False):
         """
@@ -275,12 +323,12 @@ class SSHMethods():
         ssh = paramiko.SSHClient()
 
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        print("ssh connect:%s %s" % (remoteipaddr, login))
+        self.logger.info("ssh connect:%s %s" % (remoteipaddr, login))
 
         if not self.listSSHKeyFromAgent(self.getBaseName(keyname)):
             self.loadSSHKeys(self.getParent(keyname))
         ssh.connect(remoteipaddr, username=login, password=passwd, allow_agent=True, look_for_keys=False)
-        print("ok")
+        self.logger.info("ok")
 
         ftp = ssh.open_sftp()
 
@@ -307,14 +355,14 @@ class SSHMethods():
             res = [item for item in res if item[-2:] != "-l"]
 
             if len(res) > 1:
-                print("more than 1 ssh-agent, will kill all")
+                self.logger.info("more than 1 ssh-agent, will kill all")
                 killfirst = True
             if len(res) == 0 and self.exists(socketpath):
                 self.delete(socketpath)
 
             if killfirst:
                 cmd = "killall ssh-agent"
-                # print(cmd)
+                # self.logger.info(cmd)
                 self.execute(cmd, showout=False, outputStderr=False, die=False)
                 # remove previous socketpath
                 self.delete(socketpath)
@@ -323,7 +371,7 @@ class SSHMethods():
             if not self.exists(socketpath):
                 self.createDir(self.getParent(socketpath))
                 # ssh-agent not loaded
-                print("load ssh agent")
+                self.logger.info("load ssh agent")
                 rc, result, err = self.execute("ssh-agent -a %s" % socketpath, die=False,
                                                showout=False, outputStderr=False)
 
@@ -558,7 +606,7 @@ class GitMethods():
         base, provider, account, repo, dest, url = self.getGitRepoArgs(
             url, dest, login, passwd, reset=reset, ssh=ssh, codeDir=codeDir, executor=executor)
 
-        print("pull:%s ->%s" % (url, dest))
+        self.logger.info("%s:pull:%s ->%s" % (executor,url, dest))
 
         existsDir = self.exists(dest) if not executor else executor.exists(dest)
 
@@ -580,13 +628,13 @@ class GitMethods():
                     "Cannot pull repo, branch on filesystem is not same as branch asked for.\nBranch asked for:%s\nBranch found:%s\nTo choose other branch do e.g:\nexport JSBRANCH='%s'\n" % (branch, branchFound, branchFound))
 
             if ignorelocalchanges:
-                print(("git pull, ignore changes %s -> %s" % (url, dest)))
+                self.logger.info(("git pull, ignore changes %s -> %s" % (url, dest)))
                 cmd = "cd %s;git fetch" % dest
                 if depth is not None:
                     cmd += " --depth %s" % depth
                     self.execute(cmd, executor=executor)
                 if branch is not None:
-                    print("reset branch to:%s" % branch)
+                    self.logger.info("reset branch to:%s" % branch)
                     self.execute("cd %s;git fetch; git reset --hard origin/%s" %
                                  (dest, branch), timeout=600, executor=executor)
 
@@ -596,15 +644,15 @@ class GitMethods():
                     branch = branchFound
 
                 # pull
-                print(("git pull %s -> %s" % (url, dest)))
+                self.logger.info(("git pull %s -> %s" % (url, dest)))
                 if url.find("http") != -1:
                     cmd = "mkdir -p %s;cd %s;git -c http.sslVerify=false pull origin %s" % (dest, dest, branch)
                 else:
                     cmd = "cd %s;git pull origin %s" % (dest, branch)
-                print(cmd)
+                self.logger.info(cmd)
                 self.execute(cmd, timeout=600, executor=executor)
         else:
-            print(("git clone %s -> %s" % (url, dest)))
+            self.logger.info(("git clone %s -> %s" % (url, dest)))
             extra = ""
             if depth is not None:
                 extra = "--depth=%s" % depth
@@ -623,18 +671,19 @@ class GitMethods():
                     cmd = "mkdir -p %s;cd %s;git clone %s  %s %s" % (self.getParent(dest),
                                                                      self.getParent(dest), extra, url, dest)
 
-            print(cmd)
+            self.logger.info(cmd)
 
+            # self.logger.info(str(executor)+" "+cmd)
             self.execute(cmd, timeout=600, executor=executor)
 
         if tag != None:
-            print("reset tag to:%s" % tag)
+            self.logger.info("reset tag to:%s" % tag)
             self.execute("cd %s;git checkout tags/%s" %
                          (dest, tag), timeout=60, executor=executor)
 
         if revision is not None:
             cmd = "mkdir -p %s;cd %s;git checkout %s" % (dest, dest, revision)
-            print(cmd)
+            self.logger.info(cmd)
             self.execute(cmd, timeout=600, executor=executor)
 
         return dest
@@ -743,7 +792,7 @@ class FSMethods():
         #     raise RuntimeError('cannot delete protected dirs')
 
         if self.debug:
-            print(("delete: %s" % path))
+            self.logger.info(("delete: %s" % path))
         if os.path.exists(path) or os.path.islink(path):
             if os.path.isdir(path):
                 # print "delete dir %s" % path
@@ -765,7 +814,7 @@ class FSMethods():
         if ssh format of source or dest is: remoteuser@remotehost:/remote/dir
         """
         if self.debug:
-            print(("copy %s %s" % (source, dest)))
+            self.logger.info(("copy %s %s" % (source, dest)))
         if not ssh and not self.exists(source, executor=executor):
             raise RuntimeError("copytree:Cannot find source:%s" % source)
 
@@ -835,7 +884,7 @@ class FSMethods():
             if ssh:
                 cmd += " -e 'ssh -o StrictHostKeyChecking=no -p %s' " % sshport
             cmd += " '%s' '%s'" % (source, dest)
-            print(cmd)
+            self.logger.info(cmd)
             if executor != None:
                 rc, out, err = executor.execute(cmd)
             else:
@@ -862,7 +911,7 @@ class FSMethods():
         @param overwriteFiles: if True will overwrite files, otherwise will not overwrite when destination exists
         """
 
-        self.log('Copy directory tree from %s to %s' % (src, dst), 6)
+        self.logger.info('Copy directory tree from %s to %s' % (src, dst), 6)
         if ((src is None) or (dst is None)):
             raise TypeError(
                 'Not enough parameters passed in system.fs.copyTree to copy directory from %s to %s ' % (src, dst))
@@ -927,7 +976,7 @@ class FSMethods():
         if deletefirst:
             self.delete(dest)
         if self.debug:
-            print(("copy %s %s" % (source, dest)))
+            self.logger.info(("copy %s %s" % (source, dest)))
 
         shutil.copy(source, dest)
 
@@ -942,7 +991,7 @@ class FSMethods():
         """Changes Current Directory
         @param path: string (Directory path to be changed to)
         """
-        self.log('Changing directory to: %s' % path, 6)
+        self.logger.info('Changing directory to: %s' % path, 6)
         if create:
             self.createDir(path)
         if self.exists(path):
@@ -1010,13 +1059,13 @@ class FSMethods():
                 return False
 
         if(os.path.islink(path)):
-            # self.log('path %s is a link'%path,8)
+            # self.logger.info('path %s is a link'%path,8)
             return True
-        # self.log('path %s is not a link'%path,8)
+        # self.logger.info('path %s is not a link'%path,8)
         return False
 
     def list(self, path):
-        # self.log("list:%s"%path)
+        # self.logger.info("list:%s"%path)
         if(self.isDir(path)):
             s = sorted(["%s/%s" % (path, item) for item in os.listdir(path)])
             return s
@@ -1056,7 +1105,7 @@ class FSMethods():
         dest is where the link will be created pointing to src
         """
         if self.debug:
-            print(("symlink: src:%s dest(islink):%s" % (src, dest)))
+            self.logger.info(("symlink: src:%s dest(islink):%s" % (src, dest)))
 
         if self.isLink(dest):
             self.removeSymlink(dest)
@@ -1088,14 +1137,14 @@ class FSMethods():
         for item in items:
             dest2 = "%s/%s" % (dest, self.getBaseName(item))
             dest2 = dest2.replace("//", "/")
-            print(("link %s:%s" % (item, dest2)))
+            self.logger.info(("link %s:%s" % (item, dest2)))
             self.symlink(item, dest2, delete=delete)
 
     def removeSymlink(self, path):
         if self.TYPE == "WIN":
             try:
                 cmd = "junction -d %s 2>&1 > null" % (path)
-                print(cmd)
+                self.logger.info(cmd)
                 os.system(cmd)
             except Exception as e:
                 pass
@@ -1105,7 +1154,7 @@ class FSMethods():
 
     def getBaseName(self, path):
         """Return the base name of pathname path."""
-        # self.log('Get basename for path: %s'%path,9)
+        # self.logger.info('Get basename for path: %s'%path,9)
         if path is None:
             raise TypeError('Path is not passed in system.fs.getDirName')
         try:
@@ -1138,7 +1187,7 @@ class FSMethods():
          e.g. ...getDirName("/opt/qbase/bin/something/test.py", levelsUp=1) would return bin
          e.g. ...getDirName("/opt/qbase/bin/something/test.py", levelsUp=10) would raise an error
         """
-        # self.log('Get directory name of path: %s' % path,9)
+        # self.logger.info('Get directory name of path: %s' % path,9)
         if path is None:
             raise TypeError('Path is not passed in system.fs.getDirName')
         dname = os.path.dirname(path)
@@ -1163,7 +1212,7 @@ class FSMethods():
         """
         while path[-1] == "/" or path[-1] == "\\":
             path = path[:-1]
-        # self.log('Read link with path: %s'%path,8)
+        # self.logger.info('Read link with path: %s'%path,8)
         if path is None:
             raise TypeError('Path is not passed in system.fs.readLink')
         if self.isWindows():
@@ -1204,7 +1253,7 @@ class FSMethods():
         @param path: string represents directory path to search in
         @rtype: list
         """
-        # self.log('List directories in directory with path: %s, recursive = %s' % (path, str(recursive)),9)
+        # self.logger.info('List directories in directory with path: %s, recursive = %s' % (path, str(recursive)),9)
 
         # if recursive:
         # if not self.exists(path):
@@ -1248,7 +1297,7 @@ class FSMethods():
         """
         if depth is not None:
             depth = int(depth)
-        # self.log('List files in directory with path: %s' % path,9)
+        # self.logger.info('List files in directory with path: %s' % path,9)
         if depth == 0:
             depth = None
         # if depth is not None:
@@ -1276,7 +1325,7 @@ class FSMethods():
         """
         if depth is not None:
             depth = int(depth)
-        self.log('List files in directory with path: %s' % path, 9)
+        self.logger.info('List files in directory with path: %s' % path, 9)
         if depth == 0:
             depth = None
         # if depth is not None:
@@ -1378,7 +1427,7 @@ class FSMethods():
                     out.close()
                     return
                 except Exception as e:
-                    print("DOWNLOAD ERROR:%s\n%s" % (url, e))
+                    self.logger.info("DOWNLOAD ERROR:%s\n%s" % (url, e))
                     try:
                         handle.close()
                     except:
@@ -1390,7 +1439,7 @@ class FSMethods():
                     handle = urlopen(url)
                     nr += 1
 
-        print(('Downloading %s ' % (url)))
+        self.logger.info(('Downloading %s ' % (url)))
         if to == "":
             to = self.TMPDIR + "/" + url.replace("\\", "/").split("/")[-1]
 
@@ -1420,7 +1469,7 @@ class FSMethods():
                 url, to, user, minsp, retry, timeout)
             if self.exists(to):
                 cmd += " -C -"
-            print(cmd)
+            self.logger.info(cmd)
             self.delete("%s.downloadok" % to)
             rc, out, err = self.execute(cmd, die=False)
             if rc == 33:  # resume is not support try again withouth resume
@@ -1441,7 +1490,7 @@ class FSMethods():
         return to
 
     def downloadExpandTarGz(self, url, destdir, deleteDestFirst=True, deleteSourceAfter=True):
-        print((self.getBaseName(url)))
+        self.logger.info((self.getBaseName(url)))
         tmppath = self.getTmpPath(self.getBaseName(url))
         self.download(url, tmppath)
         self.expandTarGz(tmppath, destdir)
@@ -1581,7 +1630,7 @@ class ExecutorMethods():
 
     def isUbuntu(self):
         from IPython import embed
-        print("DEBUG NOW test if is ubuntu")
+        self.logger.info("DEBUG NOW test if is ubuntu")
         embed()
         raise RuntimeError("stop debug here")
         if sys.platform.lower().find("linux") != -1:
@@ -1604,7 +1653,7 @@ class ExecutorMethods():
         return False
 
     def executeBashScript(self, content="", path=None, die=True, remote=None,
-                          sshport=22, showout=True, outputStderr=True, sshkey="", timeout=600):
+                          sshport=22, showout=True, outputStderr=True, sshkey="", timeout=600,executor=None):
         """
         @param remote can be ip addr or hostname of remote, if given will execute cmds there
         """
@@ -1632,22 +1681,22 @@ class ExecutorMethods():
                     self.execute('ssh-add %s' % sshkey)
                 sshkey = '-i %s ' % sshkey.replace('!', '\!')
             self.execute("scp %s -oStrictHostKeyChecking=no -P %s %s root@%s:%s " %
-                         (sshkey, sshport, path2, remote, tmppathdest), die=die)
+                         (sshkey, sshport, path2, remote, tmppathdest), die=die,executor=executor)
             rc, res, err = self.execute("ssh %s -oStrictHostKeyChecking=no -A -p %s root@%s 'bash %s'" %
-                                        (sshkey, sshport, remote, tmppathdest), die=die, timeout=timeout)
+                                        (sshkey, sshport, remote, tmppathdest), die=die, timeout=timeout,executor=executor)
         else:
-            rc, res, err = self.execute("bash %s" % path2, die=die, showout=showout, outputStderr=outputStderr, timeout=timeout)
+            rc, res, err = self.execute("bash %s" % path2, die=die, showout=showout, outputStderr=outputStderr, timeout=timeout,executor=executor)
         return rc, res, err
 
     def executeCmds(self, cmdstr, showout=True, outputStderr=True, useShell=True,
-                    log=True, cwd=None, timeout=120, captureout=True, die=True):
+                    log=True, cwd=None, timeout=120, captureout=True, die=True,executor=None):
         rc_ = []
         out_ = ""
         for cmd in cmdstr.split("\n"):
             if cmd.strip() == "" or cmd[0] == "#":
                 continue
             cmd = cmd.strip()
-            rc, out, err = self.execute(cmd, showout, outputStderr, useShell, log, cwd, timeout, captureout, die)
+            rc, out, err = self.execute(cmd, showout, outputStderr, useShell, log, cwd, timeout, captureout, die,executor=executor)
             rc_.append(str(rc))
             out_ += out
 
@@ -1669,8 +1718,8 @@ class ExecutorMethods():
         else:
             return False
 
-    def loadScript(self, path):
-        print(("load jumpscript: %s" % path))
+    def loadScript(self, path,executor=None):
+        self.logger.info("ectr:%s: load jumpscript: %s" % (executor,path))
         source = self.readFile(path)
         out, tags = self._preprocess(source)
 
@@ -1830,8 +1879,10 @@ class ExecutorMethods():
         @param errors is array of statements if found then exit as error
         return rc,out
         """
-        # if executor:
-        #     return executor.execute(command, die=die, checkok=False, async=async,  showout=True, timeout=timeout)
+        if executor:
+            return executor.execute(command, die=die, checkok=False, showout=True, timeout=timeout)
+        else:
+            self.logger.debug("execute:%s"%command)
         os.environ["PYTHONUNBUFFERED"]="1"
         ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -1881,7 +1932,6 @@ class ExecutorMethods():
                         break
                 self.stream.close()
                 self.queue.put(('T', self.flag))
-
 
         import codecs
 
@@ -1979,14 +2029,14 @@ class ExecutorMethods():
     def killall(self, name):
         rc, out, err = self.execute("ps ax | grep %s" % name, showout=False)
         for line in out.split("\n"):
-            print("L:%s" % line)
+            # print("L:%s" % line)
             if line.strip() == "":
                 continue
             if "grep" in line:
                 continue
             line = line.strip()
             pid = line.split(" ")[0]
-            print("kill:%s (%s)" % (name, pid))
+            self.logger.info("kill:%s (%s)" % (name, pid))
             self.execute("kill -9 %s" % pid, showout=False)
         if self.psfind(name):
             raise RuntimeError("stop debug here")
@@ -2000,7 +2050,7 @@ class ExecutorMethods():
                 item = item.replace("~", os.environ["HOME"])
                 for item2 in self.listFilesInDir(item):
                     if name in item2:
-                        print("Remove autostart:%s" % item2)
+                        self.logger.info("Remove autostart:%s" % item2)
                         self.execute("sudo rm -f %s" % item2)
         else:
             raise RuntimeError("not implemented")
@@ -2046,7 +2096,7 @@ class Installer():
 
         PYTHONVERSION = "3.6"
 
-        print(("Install Jumpscale in %s" % os.environ["JSBASE"]))
+        self.logger.info(("Install Jumpscale in %s" % os.environ["JSBASE"]))
 
         # this means if env var's are set they get priority
         args2 = dict(map(lambda item: (item, ''), ["GITHUBUSER", "GITHUBPASSWD", "JSGIT", "JSBRANCH", "CFGDIR",
@@ -2072,7 +2122,7 @@ class Installer():
         self.do.executeInteractive("mkdir -p %s/.ssh/" % os.environ["HOME"])
         self.do.executeInteractive("ssh-keyscan github.com 2> /dev/null  >> {0}/.ssh/known_hosts; ssh-keyscan git.aydo.com 2> /dev/null >> {0}/.ssh/known_hosts".format(
             os.environ["HOME"]))
-        print("pull core")
+        self.logger.info("pull core")
         self.do.pullGitRepo(args2['JSGIT'], branch=args2['JSBRANCH'], ssh="first")
         src = "%s/github/jumpscale/jumpscale_core8/lib/JumpScale" % self.do.CODEDIR
         self.debug = False
@@ -2139,12 +2189,12 @@ class Installer():
 
         sys.path.insert(0, "%s/lib" % base)
 
-        print("Get atYourService metadata.")
+        self.logger.info("Get atYourService metadata.")
 
         self.do.pullGitRepo(args2['AYSGIT'], branch=args2['AYSBRANCH'], ssh="first")
 
-        print("install was successfull")
-        print("to use do 'js'")
+        self.logger.info("install was successfull")
+        self.logger.info("to use do 'js'")
 
     @property
     def readonly(self):
@@ -2160,7 +2210,7 @@ class Installer():
 
     def writeEnv(self):
 
-        print("WRITENV")
+        self.logger.info("WRITENV")
 
         self.do.initCreateDirs4System()
 
@@ -2315,13 +2365,13 @@ class Installer():
             self.do.delete("/usr/local/bin/jspython")
 
             if self.do.sandbox:
-                print("jspython in sandbox")
+                self.logger.info("jspython in sandbox")
                 dest = "%s/bin/jspython" % os.environ["JSBASE"]
                 C2 = C2.replace('$BASEDIR', os.environ["JSBASE"])
                 self.do.writeFile(dest, C2)
             else:
                 # in system
-                print("jspython in system")
+                self.logger.info("jspython in system")
                 dest = "/usr/local/bin/jspython"
                 C2_insystem = C2_insystem.replace('$BASEDIR', os.environ["JSBASE"])
                 self.do.writeFile(dest, C2_insystem)
@@ -2353,7 +2403,7 @@ class Installer():
         # TODO *2 no longer complete
         if self.do.TYPE.startswith("UBUNTU"):
             # pythonversion = os.environ.get('PYTHONVERSION', '')
-            print("clean platform")
+            self.logger.info("clean platform")
             CMDS = """
             pip uninstall JumpScale-core
             # killall tmux  #dangerous
@@ -2416,7 +2466,7 @@ class Installer():
     def prepare(self):
         self.do.initCreateDirs4System()
 
-        print("prepare")
+        self.logger.info("prepare")
 
         # self.checkPython()
 
@@ -2453,7 +2503,7 @@ class Installer():
             def do(path, dirname, names):
                 if path.find("sitecustomize") != -1:
                     self.symlink("%s/utils/sitecustomize.py" % self.BASE, path)
-            print("walk over /usr to find sitecustomize and link to new one")
+            self.logger.info("walk over /usr to find sitecustomize and link to new one")
             os.path.walk("/usr", do, "")
             os.path.walk("/etc", do, "")
 
@@ -2481,7 +2531,7 @@ class Installer():
             self.do.pullGitRepo("git@github.com:Jumpscale/%s.git" % item)
             path = self.do.joinPaths(do.CODEDIR, "github", "jumpscale", item)
             cmd = "cd %s;python3 jsinstall.py" % path
-            print(cmd)
+            self.logger.info(cmd)
             self.do.execute(cmd)
 
         self.do.pullGitRepo("https://github.com/vinta/awesome-python")
@@ -2490,7 +2540,7 @@ class Installer():
         #     dest = "%s/Library/Application Support/Sublime Text 3/Packages" % os.environ["HOME"]
         #     src = "%s/opt/code/github/jumpscale/jumpscale_core8/tools/sublimetext/" % os.environ["HOME"]
         # else:
-        #     print("implement develtools")
+        #     self.logger.info("implement develtools")
         #     import ipdb
         #     ipdb.set_trace()
         # if self.do.exists(src) and self.do.exists(dest):
@@ -2512,6 +2562,9 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         self.embed = False
 
         self.init()
+
+        self.logger = logger
+
 
     @property
     def env(self):
@@ -2781,12 +2834,9 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         items = [item for item in self.initEnv(env=os.environ, executor=None) if item.endswith("DIR")]
         for item in items:
             path = os.environ[item]
-            # print(path)
+            # self.logger.info(path)
             self.createDir(path)
 
-    def log(self, msg, level=None):
-        if self.debug:
-            print(msg)
 
     def getTimeEpoch(self):
         '''

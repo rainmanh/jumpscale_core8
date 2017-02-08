@@ -210,7 +210,7 @@ class CuisinePortal(base):
 
         destjslib = self.cuisine.core.dir_paths['JSLIBDIR']
 
-        # _, destjslib, _ = self.cuisine.core.run("js --quiet 'self.log(j.do.getPythonLibSystem(jumpscale=True))'",
+        # _, destjslib, _ = self.cuisine.core.run("js --quiet 'self.logger.info(j.do.getPythonLibSystem(jumpscale=True))'",
         #                                          showout=False)
         #
         # if "darwin" in self.cuisine.platformtype.osname:

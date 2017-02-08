@@ -39,7 +39,7 @@ class CuisineSystemd(ProcessManagerBase):
         for line in out.split("\n"):
             res = re.search(p, line)
             if res is not None:
-                # self.log(line)
+                # self.logger.info(line)
                 d = res.groupdict()
                 if d["name"].startswith(prefix):
                     result.append(d["name"])
@@ -69,11 +69,11 @@ class CuisineSystemd(ProcessManagerBase):
             self.stop(name)
 
             for item in self.cuisine.core.find("/etc/systemd", True, "*%s.service" % name):
-                self.log("remove:%s" % item)
+                self.logger.info("remove:%s" % item)
                 self.cuisine.core.file_unlink(item)
 
             for item in self.cuisine.core.find("/etc/init.d", True, "*%s" % name):
-                self.log("remove:%s" % item)
+                self.logger.info("remove:%s" % item)
                 self.cuisine.core.file_unlink(item)
 
             self.cuisine.core.run("systemctl daemon-reload")
@@ -271,13 +271,13 @@ class CuisineTmuxec(ProcessManagerBase):
         self.cuisine.tmux.executeInScreen("main", name, cmd,wait=wait)
 
     def stop(self, name):
-        print ("stop...")
+        self.logger.info("stop...")
         if name in self.list():
             pid = self.cuisine.tmux.getPid('main', name)
             self.cuisine.core.run("kill -9 %s" % pid)
             self.cuisine.tmux.killWindow("main", name)
         self.cuisine.process.kill(name, signal=9, exact=False)
-        print ("...ok")
+        self.logger.info("...ok")
 
     def remove(self, name):
         """removes service """

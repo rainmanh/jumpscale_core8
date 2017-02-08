@@ -187,4 +187,4 @@ if __name__ == '__main__':
     node1 = cluster.add_node('127.0.0.1')
     node2 = cluster.add_node('172.20.0.55')
     cfg = cluster.get_config()
-    self.log(cfg)
+    self.logger.info(cfg)

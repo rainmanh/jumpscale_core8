@@ -17,7 +17,7 @@ class CuisineAydoStor(app):
         @input backend, directory where to save the data push to the store
         """
         if self.isInstalled() and not reset:
-            self.log('Aydostor is already installed, pass reinstall=True parameter to reinstall')
+            self.logger.info('Aydostor is already installed, pass reinstall=True parameter to reinstall')
             return
 
         self.cuisine.package.mdupdate()

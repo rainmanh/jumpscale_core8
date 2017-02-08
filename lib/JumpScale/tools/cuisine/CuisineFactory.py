@@ -9,11 +9,10 @@ class CuisineBase:
         self._classname = ""
         self._cache = None
         self.executor = executor
-        self.log = self.executor.log
         self.cuisine = cuisine
         self._cuisine = cuisine
         self._executor = executor
-        self.logger = executor.logger
+        self._logger = None
         self.CURDIR = executor.CURDIR
         self.env = executor.env
         if self.classname != 'CuisineCore':
@@ -184,7 +183,7 @@ class CuisineBaseLoader:
             exec("from JumpScale.tools.cuisine.%s.Cuisine%s import *" % (myClassName, className))
             # attach the class to this class
             do = "self.%s=Cuisine%s(self.executor,self.cuisine)" % (className.lower(), className)
-            # self.log(do)
+            # self.logger.info(do)
             exec(do)
 
 
@@ -360,7 +359,7 @@ class JSCuisineFactory:
         assert {'CuisineAlba': {'done': {'test': True}}} == e.config
 
         # if this takes long & writes long then not ok, need to measure time
-        self.log("perf test")
+        self.logger.info("perf test")
         for i in range(100):
             c.doneGet("test")
 

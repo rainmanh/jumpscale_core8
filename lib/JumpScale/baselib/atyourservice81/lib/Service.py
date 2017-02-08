@@ -740,7 +740,7 @@ class Service:
     #             # well.
     #             consumer.disable()
     #
-    #     self.log("disable instance")
+    #     self.logger.info("disable instance")
     #     self.model.hrd.set('disabled', True)
     #
     # def _canBeEnabled(self):
@@ -754,12 +754,12 @@ class Service:
     #     # Check that all dependencies are enabled
     #
     #     if not self._canBeEnabled():
-    #         self.log(
+    #         self.logger.info(
     #             "%s cannot be enabled because one or more of its producers is disabled" % self)
     #         return
     #
     #     self.model.hrd.set('disabled', False)
-    #     self.log("Enable instance")
+    #     self.logger.info("Enable instance")
     #     for consumer in self._getConsumers(include_disabled=True):
     #         consumer.enable()
     #         consumer.start()

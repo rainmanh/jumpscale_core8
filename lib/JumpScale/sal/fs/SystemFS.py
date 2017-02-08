@@ -353,7 +353,7 @@ class SystemFS:
             raise j.exceptions.RuntimeError(
                 "Failed to create an empty file with the specified filename: %s" % filename)
 
-    def createDir(self, newdir):
+    def createDir(self, newdir,unlink=True):
         """Create new Directory
         @param newdir: string (Directory path/name)
         if newdir was only given as a directory name, the new directory will be created on the default path,
@@ -368,7 +368,7 @@ class SystemFS:
             raise TypeError(
                 'The newdir-parameter of system.fs.createDir() is None or an empty string.')
 
-        if self.isLink(newdir):
+        if self.isLink(newdir) and unlink:
             self.unlink(newdir)
 
         if self.isDir(newdir):
@@ -377,7 +377,7 @@ class SystemFS:
         else:
             head, tail = os.path.split(newdir)
             if head and not j.sal.fs.isDir(head):
-                self.createDir(head)
+                self.createDir(head,unlink=False)
             if tail:
                 try:
                     os.mkdir(newdir)

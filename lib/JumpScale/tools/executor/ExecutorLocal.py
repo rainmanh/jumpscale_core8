@@ -11,6 +11,7 @@ class ExecutorLocal(ExecutorBase):
 
         self.type = "local"
         self._id = 'localhost'
+        self._logger = None
 
     @property
     def logger(self):

@@ -40,7 +40,7 @@ def hashPath(root, hash):
 for key in keys:
     data[key] = os.path.isfile(hashPath(root, key))
 
-self.log(json.dumps(data))
+self.logger.info(json.dumps(data))
 
         """ % (root, j.data.serializer.json.dumps(keys))
 
@@ -122,7 +122,7 @@ self.log(json.dumps(data))
                 path = os.path.join(key[:2], key[2:4], key)
                 data[key] = checkFile(root, path)
 
-        self.log(json.dumps(data))
+        self.logger.info(json.dumps(data))
 
         """ % (root, j.data.serializer.json.dumps(keys))
 
@@ -162,7 +162,7 @@ self.log(json.dumps(data))
         with open(tmpfile, 'w+b') as f:
             f.write(content)
 
-        self.log(tmpfile)
+        self.logger.info(tmpfile)
 
         """ % (root, j.data.serializer.json.dumps(keys))
 
@@ -191,7 +191,7 @@ self.log(json.dumps(data))
             path = os.path.join(key[:2], key[2:4], key)
             setMetadata(root, path, key, meta)
 
-        self.log(json.dumps(data))
+        self.logger.info(json.dumps(data))
 
         """ % (root, j.data.serializer.json.dumps(keys), j.data.serializer.json.dumps(metadata))
 
@@ -218,7 +218,7 @@ with open(item, 'w') as f:
 subprocess.call(['tar', '-cT', item, '-f', targ])
 os.unlink(item)
 
-self.log(targ)
+self.logger.info(targ)
 
         """ % (root, j.data.serializer.json.dumps(keys), target)
 
@@ -247,7 +247,7 @@ class CuisineStor(base):
         #upload the list
         sp.upload(fl)
         """
-        self.log(C)
+        self.logger.info(C)
 
     @property
     def config(self):
@@ -549,7 +549,7 @@ class StorSpace(object):
             return True
 
         hashpath = self.hashPath(checksum)
-        self.log(hashpath)
+        self.logger.info(hashpath)
 
         # uploading file, if success, return the hash
         if self.file_upload(source, hashpath, expiration, tags):
@@ -781,7 +781,7 @@ class StorSpace(object):
                 j.sal.fs.chmod(final, int(flist.getMode(key), 8))
 
             else:
-                self.log("FIXME, NOT REGULAR")
+                self.logger.info("FIXME, NOT REGULAR")
 
     def tarball(self, keys, target):
         script = self.stor.scripts.tarball(self.spacepath, keys, target)

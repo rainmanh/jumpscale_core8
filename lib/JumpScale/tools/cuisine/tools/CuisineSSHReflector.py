@@ -42,7 +42,7 @@ class CuisineSSHReflector(base):
         path = "/home/sshreflector/.ssh/reflector"
         ftp = self.cuisine.core.executor.sshclient.getSFTP()
         if j.sal.fs.exists(lpath) and j.sal.fs.exists(lpath + ".pub"):
-            self.log("UPLOAD EXISTING SSH KEYS")
+            self.logger.info("UPLOAD EXISTING SSH KEYS")
             ftp.put(lpath, path)
             ftp.put(lpath + ".pub", path + ".pub")
         else:
@@ -109,7 +109,7 @@ class CuisineSSHReflector(base):
             lpath = os.environ["HOME"] + "/.ssh/reflector"
 
             if reset or not j.sal.fs.exists(lpath) or not j.sal.fs.exists(lpath_pub):
-                self.log("DOWNLOAD SSH KEYS")
+                self.logger.info("DOWNLOAD SSH KEYS")
                 # get private key from reflector
                 ftp = remotecuisine.core.executor.sshclient.getSFTP()
                 path = "/home/sshreflector/.ssh/reflector"
@@ -144,7 +144,7 @@ class CuisineSSHReflector(base):
             self.cuisine.ns.hostfile_set(rname, addr)
 
             if remotecuisine.core.file_exists("/home/sshreflector/reflectorclients") is False:
-                self.log("reflectorclientsfile does not exist")
+                self.logger.info("reflectorclientsfile does not exist")
                 remotecuisine.core.file_write("/home/sshreflector/reflectorclients", "%s:%s\n" %
                                               (self.cuisine.platformtype.hostname, 9800))
                 newport = 9800
@@ -174,17 +174,17 @@ class CuisineSSHReflector(base):
 
             reflport = "9222"
 
-            self.log("check ssh connection to reflector")
+            self.logger.info("check ssh connection to reflector")
             self.cuisine.core.run(
                 "ssh -i /root/.ssh/reflector -o StrictHostKeyChecking=no sshreflector@%s -p %s 'ls /'" % (rname, reflport))
-            self.log("OK")
+            self.logger.info("OK")
 
             _, cpath, _ = self.cuisine.core.run("which autossh")
             cmd = "%s -M 0 -N -o ExitOnForwardFailure=yes -o \"ServerAliveInterval 60\" -o \"ServerAliveCountMax 3\" -R %s:localhost:22 sshreflector@%s -p %s -i /root/.ssh/reflector" % (
                 cpath, newport, rname, reflport)
             self.cuisine.processmanager.ensure("autossh_%s" % rname_short, cmd, descr='')
 
-            self.log("On %s:%s remote SSH port:%s" % (remotecuisine.core.executor.addr, port, newport))
+            self.logger.info("On %s:%s remote SSH port:%s" % (remotecuisine.core.executor.addr, port, newport))
 
     def createconnection(self, remoteids):
         """
@@ -228,9 +228,9 @@ class CuisineSSHReflector(base):
                 port, port, addr, keypath)
             self.cuisine.core.run(cmd)
 
-        self.log("\n\n\n")
-        self.log("Reflector:%s" % addr)
-        self.log(out)
+        self.logger.info("\n\n\n")
+        self.logger.info("Reflector:%s" % addr)
+        self.logger.info(out)
 
     def __str__(self):
         return "cuisine.reflector:%s:%s" % (getattr(self.executor, 'addr', 'local'),

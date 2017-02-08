@@ -18,7 +18,7 @@ class MyHandler(http.server.BaseHTTPRequestHandler):
             self.updateRepo()
 
     def updateRepo(self):
-        print("Now Updating repo")
+        self.logger.info("Now Updating repo")
         import subprocess
         subprocess.Popen(
             "cd %s && git config remote.origin.url  git@git.aydo.com:ovs/www-ovs.git && git reset --hard && git pull && hugo" % PROJECT_PATH, shell=True)
@@ -27,10 +27,10 @@ if __name__ == '__main__':
     PROJECT_PATH = sys.argv[1]
     server_class = http.server.HTTPServer
     httpd = server_class((HOST_NAME, PORT_NUMBER), MyHandler)
-    print(time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER))
+    self.logger.info(time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER))
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
     httpd.server_close()
-    print(time.asctime(), "Server Stops - %s:%s" % (HOST_NAME, PORT_NUMBER))
+    self.logger.info(time.asctime(), "Server Stops - %s:%s" % (HOST_NAME, PORT_NUMBER))

@@ -16,7 +16,7 @@ import os
 
 
 FILE_FORMAT = '%(asctime)s - %(pathname)s:%(lineno)d - %(levelname)-8s - %(message)s'
-CONSOLE_FORMAT = '%(cyan)s[%(asctime)s]%(reset)s - %(pathname)30s:%(lineno)-4d - %(log_color)s%(levelname)-8s%(reset)s - %(message)s'
+CONSOLE_FORMAT = '%(cyan)s[%(asctime)s]%(reset)s - %(filename)-20s:%(lineno)-4d:%(name)-30s - %(log_color)s%(levelname)-8s%(reset)s - %(message)s'
 
 # Modes
 PRODUCTION = 0  # use NullHander, let the application configure the logging
@@ -145,6 +145,13 @@ class LoggerFactory:
             self.logging = j.logger.get(__name__)
         in library module always pass __name__ as argument.
         """
+
+        name=name.strip()
+        name=name.lower()
+
+        # if len(name)>22:
+        #     name=name[0:22]
+
         if not name:
             path, ln, name, info = logging.root.findCaller()
             if path.startswith(j.dirs.LIBDIR):
@@ -177,6 +184,10 @@ class LoggerFactory:
             self._enable_dev_mode()
 
     def set_level(self, level):
+        """
+        level 0 to 10
+        10 being most verbose (need to verify this)
+        """
         for handler in self.handlers._all:
             handler.setLevel(level)
 

@@ -94,8 +94,8 @@ class CuisinePython(base):
                 make install
                 """.format(builddir=self.BUILDDIRL, codedir=self.CODEDIRL, openssldir=self.cuisine.development.openssl.BUILDDIRL)
 
-            self.log("compile python3")
-            self.log(C)
+            self.logger.info("compile python3")
+            self.logger.info(C)
             self.cuisine.core.run(C)
 
         self.doneSet("compile")
@@ -187,7 +187,7 @@ class CuisinePython(base):
 
         msg = "\n\nto test do:\ncd $BUILDDIRL;source env.sh;python3"
         msg = self.replace(msg)
-        self.log(msg)
+        self.logger.info(msg)
         self.doneSet("build")
 
     def sandbox(self, reset=False, deps=True):

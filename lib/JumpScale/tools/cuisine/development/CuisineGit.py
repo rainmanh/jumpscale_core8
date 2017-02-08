@@ -7,6 +7,12 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisineGit(base):
 
+    @property
+    def logger(self):
+        if self._logger is None:
+            self._logger = j.logger.get("cuisine.git")
+        return self._logger
+
     def build(self):
         """
         pull repo of git code & build git command line, goal is to have smallest possible git binary
@@ -41,7 +47,7 @@ class CuisineGit(base):
         self.cuisine.core.file_append("$HOMEDIR/.ssh/known_hosts", keys)
         self.cuisine.core.file_attribs("$HOMEDIR/.ssh/known_hosts", mode=600)
 
-        self.log("pull %s with depth:%s" % (url, depth))
+        self.logger.info("pull %s with depth:%s" % (url, depth))
 
         return j.do.pullGitRepo(url=url, dest=dest, login=login, passwd=passwd, depth=depth,
                                 ignorelocalchanges=ignorelocalchanges, reset=reset, branch=branch, revision=revision,

@@ -104,7 +104,7 @@ class CuisineApache2(app):
         # MAKE VHOSTS DIRECTORY
         self._cuisine.core.dir_ensure("$JSAPPSDIR/apache2/sites-available")
         self._cuisine.core.dir_ensure("$JSAPPSDIR/apache2/sites-enabled")
-        #print("Config to be written = ", conffile)
+        #self.logger.info("Config to be written = ", conffile)
         self._cuisine.core.file_write("$JSAPPSDIR/apache2/conf/httpd.conf", conffile)
 
 

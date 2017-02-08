@@ -31,7 +31,7 @@ class CuisineMercurial(base):
 
         pdir = j.sal.fs.getParent(dest)
 
-        self.log("mercurial pull %s" % (url))
+        self.logger.info("mercurial pull %s" % (url))
 
         if self.cuisine.core.dir_exists(dest):
             cmd = "set -ex; cd %s;hg pull %s" % (dest, url)

@@ -18,7 +18,7 @@ class CuisineRedis(app):
 
         """Building and installing redis"""
         if reset is False and self.isInstalled():
-            self.log('Redis is already installed, pass reset=True to reinstall.')
+            self.logger.info('Redis is already installed, pass reset=True to reinstall.')
             return
 
         if self.cuisine.core.isUbuntu:
@@ -87,7 +87,7 @@ class CuisineRedis(app):
                                     unixsocket=unixsocket)
         # return if redis is already running
         if redis_cli.isRunning(ip_address=ip, port=port, path='$BINDIR', password=passwd, unixsocket=unixsocket):
-            self.log('Redis is already running!')
+            self.logger.info('Redis is already running!')
             return
 
         _, cpath = j.sal.redis._getPaths(name)

@@ -206,7 +206,7 @@ class Netconfig:
                 print("shutdown:%s" % nic)
                 self._executor.execute(cmd, die=False)
         else:
-            self.log("restart:%s" % dev)
+            self.logger.info("restart:%s" % dev)
             cmd = "ifdown %s" % dev
             self._executor.execute(cmd)
             cmd = "ifup %s" % dev

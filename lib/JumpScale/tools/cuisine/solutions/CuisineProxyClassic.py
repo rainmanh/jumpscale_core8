@@ -173,10 +173,10 @@ class CuisineProxyClassic(base):
 
         self.start()
 
-        self.log("http://config.privoxy.org/")
-        self.log("http://config.privoxy.org/show-status")
-        self.log("http://config.privoxy.org/show-request")
-        self.log("http://config.privoxy.org/show-url-info")
+        self.logger.info("http://config.privoxy.org/")
+        self.logger.info("http://config.privoxy.org/show-status")
+        self.logger.info("http://config.privoxy.org/show-request")
+        self.logger.info("http://config.privoxy.org/show-url-info")
 
     def start(self):
 
@@ -339,10 +339,10 @@ class CuisineProxyClassic(base):
 
         _, cmd, _ = self.cuisine.core.run("which polipo")
 
-        self.log("INSTALL OK")
-        self.log("to see status: point webbrowser to")
-        self.log("http://%s:%s/polipo/status?" % (self.cuisine.core.executor.addr, port))
-        self.log("configure your webproxy client to use %s on tcp port %s" % (self.cuisine.core.executor.addr, port))
+        self.logger.info("INSTALL OK")
+        self.logger.info("to see status: point webbrowser to")
+        self.logger.info("http://%s:%s/polipo/status?" % (self.cuisine.core.executor.addr, port))
+        self.logger.info("configure your webproxy client to use %s on tcp port %s" % (self.cuisine.core.executor.addr, port))
 
         self.removeFromSystemD(force=False)
 

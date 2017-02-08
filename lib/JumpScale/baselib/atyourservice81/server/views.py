@@ -33,7 +33,7 @@ def service_view(s):
 
     for event_filter in s.model.eventFilters:
         service['events'].append({
-            'action': event_filter.action,
+            'actions': event_filter.actions,
             'command': event_filter.command,
             'channel': event_filter.channel,
             'tags': event_filter.tags.split(',')

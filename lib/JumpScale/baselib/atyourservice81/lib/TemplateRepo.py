@@ -15,7 +15,7 @@ def searchActorTemplates(path):
     # check if this is already an actortemplate dir, if not no need to recurse
     def isValidTemplate(path):
         dirname = j.sal.fs.getBaseName(path)
-        tocheck = ['config.yaml', "schema.capnp"]
+        tocheck = ['config.yaml', "schema.capnp", 'actions.py']
         if dirname.startswith("_") or dirname.startswith("."):
             return False
         for aysfile in tocheck:
@@ -69,7 +69,7 @@ class TemplateRepoCollection:
         self.logger = j.logger.get('j.atyourservice')
         self._loop = asyncio.get_event_loop()
         self._template_repos = {}
-        self._loop.call_soon(self._load)
+        self._load()
 
     def _load(self):
         self.logger.info("reload actor templates repos")
@@ -195,7 +195,6 @@ class TemplateRepo():
         self.is_global = is_global
         self._templates = {}
         self._load()
-        self._loop.call_later(60, self._load)
 
     def _load(self):
         """

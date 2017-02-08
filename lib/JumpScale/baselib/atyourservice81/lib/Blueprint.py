@@ -114,18 +114,18 @@ class Blueprint:
                             channel0 = ""
                         else:
                             channel0 = obj["channel"]
-                        if 'cmd' not in obj:
+                        if 'command' not in obj:
                             cmd0 = ""
                         else:
-                            cmd0 = obj["cmd"]
+                            cmd0 = obj["command"]
                         if 'secret' not in obj:
                             secret0 = ""
                         else:
                             secret0 = obj["secret"]
-                        if 'action' not in obj:
-                            action0 = ""
+                        if 'actions' not in obj:
+                            action0 = []
                         else:
-                            action0 = obj["action"]
+                            action0 = obj["actions"]
 
                         servicesFound = self.aysrepo.servicesFind(name=service0, actor=actor0)
 
@@ -187,7 +187,7 @@ class Blueprint:
         for event_filter in self.eventFilters:
             service = self.aysrepo.serviceGetByKey(event_filter['service_key'])
             service.model.eventFilterSet(
-                channel=event_filter['channel'], action=event_filter['action_name'],
+                channel=event_filter['channel'], actions=event_filter['action_name'],
                 command=event_filter['command'], secrets=event_filter['secret'])
             service.saveAll()
 

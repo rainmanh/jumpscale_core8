@@ -2,7 +2,6 @@ from collections import OrderedDict
 
 import msgpack
 from JumpScale import j
-from JumpScale.data.capnp.ModelBase import emptyObject
 
 ModelBaseWithData = j.data.capnp.getModelBaseClassWithData()
 
@@ -56,15 +55,15 @@ class ActorServiceBaseModel(ModelBaseWithData):
             period = j.data.time.getDeltaTime(period)
 
         if action_obj is None:
-            msg = self._capnp_schema.Action.new_message(name=name, period=period, log=log, state='new', actionKey=key)
-            action_obj = emptyObject(msg.to_dict(verbose=True))
+            action_obj = j.data.capnp.getMemoryObj(
+                self._capnp_schema.Action,
+                name=name, period=period, log=log, state='new', actionKey=key
+            )
             self.changed = True
-            # action_obj.name = name
             if key == "":
                 raise j.exceptions.Input(message="key cannot be empty when adding action:%s to %s" %
                                          (name, self), level=1, source="", tags="", msgpub="")
             self.dbobj.actions.append(action_obj)
-            # self.addSubItem("actions", action_obj)
 
         if key != "":
             action_obj.actionKey = key

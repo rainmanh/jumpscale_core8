@@ -12,13 +12,21 @@ class emptyObject:
     """
     def __init__(self, u):
         d = self.__dict__
-        for k, v in u.items():
-            if isinstance(v, Mapping):
-                d[k] = emptyObject(v)
-            elif isinstance(v, list):
-                d[k] = [emptyObject(x) for x in v]
-            else:
-                d[k] = u[k]
+        if isinstance(u, Mapping):
+            for k, v in u.items():
+                if isinstance(v, Mapping):
+                    d[k] = emptyObject(v)
+                elif isinstance(v, list):
+                    d[k] = []
+                    for x in v:
+                        if isinstance(x, Mapping):
+                            d[k].append(emptyObject(x))
+                        else:
+                            d[k].append(x)
+                else:
+                    d[k] = u[k]
+        else:
+            import ipdb; ipdb.set_trace()
 
     def to_dict(self):
         out = {}
@@ -26,7 +34,12 @@ class emptyObject:
             if isinstance(v, emptyObject):
                 out[k] = v.to_dict()
             elif isinstance(v, list):
-                out[k] = [x.to_dict() for x in v]
+                out[k] = []
+                for x in v:
+                    if isinstance(x, emptyObject):
+                        out[k].append(x.to_dict())
+                    else:
+                        out[k].append(x)
             else:
                 out[k] = v
         return out
@@ -143,23 +156,6 @@ class ModelBase():
 
     def save(self):
         self._pre_save()
-        # toRemove = []
-        # for key, item in self._subobjects.items():
-        #     prop = self.__dict__[key]
-        #     dbobjprop = eval("self.dbobj.%s" % key)
-        #     if len(dbobjprop) != 0:
-        #         raise RuntimeError("bug, dbobj prop should be empty, means we didn't reserialize properly")
-        #     if len(prop) > 0:
-        #         # init the subobj, iterate over all the items we have & insert them
-        #         subobj = self.dbobj.init(key, len(prop))
-        #         for x in range(0, len(prop)):
-        #             subobj[x] = prop[x]
-        #     # capnp has been set remove the python props
-        #     self.__dict__.pop(key)
-        #     toRemove.append(key)
-        #
-        # for toRemoveItem in toRemove:
-        #     self._subobjects.pop(toRemoveItem)
 
         if self._db.inMem:
             # no need to store when in mem because we are the object which does not have to be serialized
@@ -168,8 +164,6 @@ class ModelBase():
             # so this one stores when not mem
             msg = self._capnp_schema.new_message(**self.dbobj.to_dict())
             buff = msg.to_bytes()
-            # if hasattr(self.dbobj, 'clear_write_flag'):
-            #     self.dbobj.clear_write_flag()
             self._db.set(self.key, buff)
         self.index()
 

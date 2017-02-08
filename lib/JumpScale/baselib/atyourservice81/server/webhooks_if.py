@@ -1,0 +1,17 @@
+from sanic import Blueprint
+from sanic.views import HTTPMethodView
+from sanic.response import text
+from JumpScale.baselib.atyourservice81.server import webhooks_api
+
+
+
+webhooks_if = Blueprint('webhooks_if')
+
+
+class webhooks_githubView(HTTPMethodView):
+
+    async def post(self, request):
+
+        return await webhooks_api.webhooks_github_post(request)
+
+webhooks_if.add_route(webhooks_githubView.as_view(), '/webhooks/github')

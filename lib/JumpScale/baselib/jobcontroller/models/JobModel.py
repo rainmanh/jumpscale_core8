@@ -1,7 +1,6 @@
 from JumpScale import j
 
 ModelBase = j.data.capnp.getModelBaseClass()
-from JumpScale.data.capnp.ModelBase import emptyObject
 
 import importlib
 # import inspect
@@ -37,19 +36,13 @@ class JobModel(ModelBase):
         if epoch is None:
             epoch = j.data.time.getTimeEpoch()
 
-        logitem = self._logObjNew()
+        logitem = j.data.capnp.getMemoryObj(self._capnp_schema.LogEntry)
         logitem.category = category
         logitem.level = int(level)
         logitem.epoch = epoch
         logitem.log = msg
         logitem.tags = tags
         return logitem
-
-    def _logObjNew(self):
-        msg = self._capnp_schema.LogEntry.new_message()
-        log = emptyObject(msg.to_dict(verbose=True))
-        self.dbobj.logs.append(log)
-        return log
 
     @property
     def state(self):

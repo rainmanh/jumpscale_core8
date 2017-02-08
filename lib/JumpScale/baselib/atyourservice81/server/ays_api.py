@@ -12,7 +12,7 @@ Blueprint_schema = JSON.load(open(j.sal.fs.joinPaths(j.sal.fs.getParent(__file__
 Repository_schema = JSON.load(open(j.sal.fs.joinPaths(j.sal.fs.getParent(__file__),'schema/Repository_schema.json')))
 TemplateRepo_schema = JSON.load(open(j.sal.fs.joinPaths(j.sal.fs.getParent(__file__),'schema/TemplateRepo_schema.json')))
 
-AYS_REPO_DIR = '/opt/code/cockpit_repos'
+AYS_REPO_DIR = '/optvar/cockpit_repos'
 
 async def addTemplateRepo(request):
     '''

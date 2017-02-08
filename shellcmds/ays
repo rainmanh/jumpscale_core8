@@ -186,10 +186,10 @@ def show(role, name):
         else:
             print('')
             for event_filter in service['events']:
-                print('- action: %s' % event_filter['action'])
+                print('- actions: %s' % ','.join(event_filter['actions']))
                 print('  command: %s' % event_filter['command'])
                 print('  channel: %s' % event_filter['channel'])
-                print('  tags: %s' % event_filter['tags'])
+                print('  tags: %s' % ','.join(event_filter['tags']))
 
 
 @service.command()

@@ -555,6 +555,34 @@ class Service:
             args = job.executeInProcess()
             job.model.save()
 
+    async def processEvent(self, channel=None, command=None, secret=None, tags={}, payload=None):
+        jobs = []
+        for event_filter in self.model.dbobj.eventFilters:
+            import ipdb; ipdb.set_trace()
+            if channel is not None and channel != 'all' and channel != event_filter.channel:
+                continue
+            if command is not None and command != event_filter.command:
+                continue
+            if secret is not None and secret != event_filter.secret:
+                continue
+            # TODO: tags ??
+
+            for action in event_filter.actions:
+                self.logger.info("create event job for {}:{}".format(self, action))
+                jobs.append(self.getJob(action, args=payload))
+
+        if len(jobs) <= 0:
+            return
+
+        self.logger.debug("wait for all event jobs to complete")
+        done, pending = await asyncio.wait([j.execute() for j in jobs])
+        if len(pending) != 0:
+            for future in pending:
+                future.cancel()
+            raise j.exceptions.RuntimeError('not all event jobs done')
+
+        return done
+
     async def input(self, args={}):
         job = self.getJob("input", args=args)
         job._service = self

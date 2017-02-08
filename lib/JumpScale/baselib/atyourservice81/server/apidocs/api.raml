@@ -1,10 +1,10 @@
 #%RAML 1.0
 title: AtYourService API
-baseUri: http://js8:5000
+baseUri: https://2d6037dd.ngrok.io
 version: v0.1
 mediaType:  application/json
 securitySchemes:
-  itsyouonline: 
+  itsyouonline:
                 description: |
                   OAuth2 is a protocol that lets external apps request authorization to private
                   details in a user's account without getting their password.
@@ -569,3 +569,13 @@ types:
                   body:
                     application/json:
                       type: Error
+
+/webhooks:
+  /github:
+    post:
+      description: Endpoint that receives the events from github
+      responses:
+        200:
+          description: event saved
+          body:
+            application/json:

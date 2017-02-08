@@ -4,7 +4,6 @@ import msgpack
 from JumpScale import j
 from JumpScale.baselib.atyourservice81.lib.models.ActorServiceBaseModel import ActorServiceBaseModel
 from JumpScale.baselib.atyourservice81.lib.Actor import Actor
-from JumpScale.data.capnp.ModelBase import emptyObject
 
 
 class ActorModel(ActorServiceBaseModel):
@@ -70,11 +69,12 @@ class ActorModel(ActorServiceBaseModel):
             argname @5 :Text; # key in the args that contains the instance name of the targets
           }
         """
-        msg = self._capnp_schema.ActorPointer.new_message(actorRole=role, minServices=int(min), maxServices=int(max),
-                                                          auto=bool(auto), optional=bool(optional), argname=argname)
-        o = emptyObject(msg.to_dict(verbose=True))
+        o = j.data.capnp.getMemoryStore(
+                self._capnp_schema.ActorPointer,
+                actorRole=role, minServices=int(min), maxServices=int(max),
+                auto=bool(auto), optional=bool(optional), argname=argname
+            )
         self.dbobj.producers.append(o)
-        # self.addSubItem("producers", msg)
 
     @property
     def dictFiltered(self):
@@ -113,8 +113,10 @@ class ActorModel(ActorServiceBaseModel):
             period = j.data.time.getDeltaTime(period)
 
         if action_obj is None:
-            msg = self._capnp_schema.Action.new_message(name=name, actionKey=key, period=period, log=log, state=state)
-            action_obj = emptyObject(msg.to_dict(verbose=True))
+            action_obj = j.data.capnp.getMemoryObj(
+                self._capnp_schema.Action,
+                name=name, actionKey=key, period=period, log=log, state=state
+            )
             self.dbobj.actions.append(action_obj)
             # action_obj = self.addSubItem("producers", msg)
 

@@ -1,7 +1,7 @@
 from JumpScale import j
 from JumpScale.baselib.atyourservice81.lib.models.ActorServiceBaseModel import ActorServiceBaseModel
 from JumpScale.baselib.atyourservice81.lib.Service import Service
-from JumpScale.data.capnp.ModelBase import emptyObject
+from JumpScale.baselib.atyourservice81.lib import model_capnp as ModelCapnp
 
 VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
@@ -270,28 +270,22 @@ class ServiceModel(ActorServiceBaseModel):
             if consumer.key == service.model.key:
                 self.dbobj.consumers.pop(i)
 
-    # def check(self):
-    #     """
-    #     walks over the recurring items and if too old will execute
-    #     """
-    #     # TODO: *1 need to check, probably differently implemented
-    #     j.application.break_into_jshell("DEBUG NOW check recurring")
-
 # events
 
-    def eventFilterSet(self, command, action, channel="", tags="", secrets=""):
+    def eventFilterSet(self, command, actions, channel="", tags="", secrets=""):
         self.logger.debug('set event filter on %s!%s' % (self.role, self.name))
         changed = False
 
         command = command.lower()
         channel = channel.lower()
-        action = action.lower()
+        # action = actions.lower()
         tags = tags.lower()
         tags = self._getSortedListInString(tags)
 
-        res = self.eventFiltersFind(command=command, channel=channel, action=action, tags=tags)
+        res = self.eventFiltersFind(command=command, channel=channel, actions=actions, tags=tags)
         if len(res) == 0:
-            eventsFilter = self._eventFiltersNewObj()
+            eventsFilter = j.data.capnp.getMemoryObj(ModelCapnp.EventFilter)
+            self.dbobj.eventFilters.append(eventsFilter)
         elif len(res) == 1:
             eventsFilter = res[0]
         else:
@@ -303,9 +297,18 @@ class ServiceModel(ActorServiceBaseModel):
         if channel != "":
             eventsFilter.channel = channel
             changed = True
-        if action != "":
-            eventsFilter.action = action
+
+        if j.data.types.string.check(actions):
+            actions = actions.split(',')
+
+        if not j.data.types.list.check(actions):
+            raise j.exceptions.Input('actions for eventFilter should be a list')
+
+        for action in actions:
+            eventsFilter.actions.append(action.lower())
+        if len(actions) > 0:
             changed = True
+
         if tags != "":
             eventsFilter.tags = tags
             changed = True
@@ -325,10 +328,10 @@ class ServiceModel(ActorServiceBaseModel):
         items = " ".join(items)
         return items
 
-    def eventFiltersFind(self, command='', channel="", action="", tags=""):
+    def eventFiltersFind(self, command='', channel="", actions=[], tags=""):
         command = command.lower()
         channel = channel.lower()
-        action = action.lower()
+        actions = [action.lower() for action in actions]
         tags = tags.lower()
         tags = self._getSortedListInString(tags)
 
@@ -339,21 +342,14 @@ class ServiceModel(ActorServiceBaseModel):
                 found = False
             if channel != "" and item.channel != channel:
                 found = False
-            if found and action != "" and item.action != action:
-                found = False
             if found and tags != "" and len(item.tags) > 5 and tags.find(item.tags) == -1:
                 found = False
+            for action in actions:
+                if found and action != "" and action not in item.actions:
+                    found = False
             if found:
                 res.append(item)
         return res
-
-    def _eventFiltersNewObj(self):
-        olditems = [item.to_dict() for item in self.dbobj.eventFilters]
-        newlist = self.dbobj.init("eventFilters", len(olditems) + 1)
-        for i, item in enumerate(olditems):
-            newlist[i] = item
-        action = newlist[-1]
-        return action
 # others
 
     @property

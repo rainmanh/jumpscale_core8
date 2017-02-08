@@ -10,11 +10,39 @@ class CuisineGolang(app):
 
     NAME = 'go'
 
+    def reset(self):
+        self.cuisine.bash.profileDefault.deletePathFromEnv("GOPATH")
+        self.cuisine.bash.profileDefault.deletePathFromEnv("GOROOT")
+        self.cuisine.bash.profileJS.deletePathFromEnv("GOROOT")
+
+        self.cuisine.bash.profileDefault.deleteAll("GOPATH")
+        self.cuisine.bash.profileJS.deleteAll("GOPATH")
+
+        self.cuisine.bash.profileDefault.deleteAll("GOROOT")
+        self.cuisine.bash.profileJS.deleteAll("GOROOT")
+
+        self.cuisine.bash.profileDefault.deleteAll("GOGITSDIR")
+        self.cuisine.bash.profileJS.deleteAll("GOGITSDIR")
+
+        self.cuisine.bash.profileDefault.pathDelete("/go/")
+        self.cuisine.bash.profileJS.pathDelete("/go/")
+
+        # ALWAYS SAVE THE DEFAULT FIRST !!!
+        self.cuisine.bash.profileDefault.save()
+        self.cuisine.bash.profileJS.save()
+
+        app.reset(self)
+        self._init()
+
+    def _init(self):
+        self.GOROOTDIR = self.cuisine.core.dir_paths['GOROOTDIR']
+        self.GOPATHDIR = self.cuisine.core.dir_paths['GOPATHDIR']
+
     def isInstalled(self):
         rc, out, err = self.cuisine.core.run("go version", die=False, showout=False, profile=True)
         if rc > 0 or "1.7.4" not in out:
             return False
-        if self.doneGet("install")==False:
+        if self.doneGet("install") == False:
             return False
         return True
 
@@ -27,24 +55,23 @@ class CuisineGolang(app):
             downl = "https://storage.googleapis.com/golang/go1.7.4.linux-amd64.tar.gz"
         else:
             raise j.exceptions.RuntimeError("platform not supported")
+        self.cuisine.core.dir_ensure(self.GOROOTDIR)
+        self.cuisine.core.dir_ensure(self.GOPATHDIR)
+        self.cuisine.core.run(cmd="rm -rf $self.GOROOTDIR", die=False)
 
-        GOROOTDIR = self.cuisine.core.dir_paths['GOROOTDIR']
-        GOPATHDIR = self.cuisine.core.dir_paths['GOPATHDIR']
-
-        self.cuisine.core.run(cmd="rm -rf $GOROOTDIR", die=False)
-
-        profile=self.cuisine.bash.profileJS
-        profile.envSet("GOROOT", GOROOTDIR)
-        profile.envSet("GOPATH", GOPATHDIR)
-        profile.addPath(self.cuisine.core.joinpaths(GOPATHDIR, 'bin'))
-        profile.addPath(self.cuisine.core.joinpaths(GOROOTDIR, 'bin'))
+        profile = self.cuisine.bash.profileDefault
+        profile.envSet("GOROOT", self.GOROOTDIR)
+        profile.envSet("GOPATH", self.GOPATHDIR)
+        profile.addPath(self.cuisine.core.joinpaths(self.GOPATHDIR, 'bin'))
+        profile.addPath(self.cuisine.core.joinpaths(self.GOROOTDIR, 'bin'))
         profile.save()
 
-        self.cuisine.core.file_download(downl, GOROOTDIR, overwrite=False, retry=3, timeout=0, expand=True,removeTopDir=True)
+        self.cuisine.core.file_download(downl, self.GOROOTDIR, overwrite=False, retry=3,
+                                        timeout=0, expand=True, removeTopDir=True)
 
-        self.cuisine.core.dir_ensure("%s/src" % GOPATHDIR)
-        self.cuisine.core.dir_ensure("%s/pkg" % GOPATHDIR)
-        self.cuisine.core.dir_ensure("%s/bin" % GOPATHDIR)
+        self.cuisine.core.dir_ensure("%s/src" % self.GOPATHDIR)
+        self.cuisine.core.dir_ensure("%s/pkg" % self.GOPATHDIR)
+        self.cuisine.core.dir_ensure("%s/bin" % self.GOPATHDIR)
 
         self.get("github.com/tools/godep")
         self.goraml()
@@ -62,12 +89,21 @@ class CuisineGolang(app):
         cd $GOPATH/src/github.com/Jumpscale/go-raml
         sh build.sh
         '''
-        self.cuisine.core.execute_bash(C, profile=True)
+        self.cuisine.core.run(C, profile=True)
 
+    def glide(self):
+        """
+        install glide
+        """
+        if self.doneGet('glide'):
+            return
+        self.cuisine.core.file_download('https://glide.sh/get', '$TMPDIR/installglide.sh', minsizekb=4)
+        self.cuisine.core.run('. $TMPDIR/installglide.sh', profile=True)
+        self.doneSet('glide')
 
     @property
     def GOPATH(self):
-        return self.cuisine.core.dir_paths["GOPATHDIR"]
+        return j.dirs.GOPATHDIR
 
     def clean_src_path(self):
         srcpath = self.cuisine.core.joinpaths(self.GOPATH, 'src')

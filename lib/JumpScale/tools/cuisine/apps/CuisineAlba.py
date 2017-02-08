@@ -68,7 +68,7 @@ class CuisineAlba(base):
         ppx_deriving_yojson core.114.05+21 redis.0.3.1 uri.1.9.2 result
         """
 
-        self.cuisine.core.execute_bash(
+        self.cuisine.core.run(
             'source $TMPDIR/opam.env && opam update && opam install -y %s' % opam_deps, profile=True)
 
     def _install_deps_intel_storage(self):
@@ -117,7 +117,7 @@ class CuisineAlba(base):
         libdir = 'ocamlfind printconf destdir'
         cmd = '%s && export PREFIX=%s && export OCAML_LIBDIR=$(%s) && make install' % (pfx, prefix, libdir)
 
-        self.cuisine.core.execute_bash(cmd, profile=True)
+        self.cuisine.core.run(cmd, profile=True)
         self.cuisine.core.file_copy(j.sal.fs.joinPaths(aradest, 'arakoon.native'), "$BINDIR/arakoon")
 
         """
@@ -265,7 +265,7 @@ class CuisineAlba(base):
 
         self.cuisine.core.run('cd %s && git checkout %s' % (repo, self.alba_version))
 
-        self.cuisine.core.execute_bash('source $TMPDIR/opam.env && cd %s; make' % repo, profile=True)
+        self.cuisine.core.run('source $TMPDIR/opam.env && cd %s; make' % repo, profile=True)
         self.cuisine.core.file_copy('%s/ocaml/alba.native' % repo, '$BINDIR/alba')
         self.cuisine.core.file_copy('%s/ocaml/albamgr_plugin.cmxs' % repo, '$BINDIR/albamgr_plugin.cmxs')
         self.cuisine.core.file_copy('%s/ocaml/nsm_host_plugin.cmxs' % repo, '$BINDIR/nsm_host_plugin.cmxs')

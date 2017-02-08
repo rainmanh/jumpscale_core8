@@ -271,21 +271,17 @@ class CuisinePortal(base):
             'JSAPPSDIR'], 'portals', 'main', 'base', actorname)
         self.cuisine.core.file_link(actorpath, dest_dir)
 
-    def start(self, reset=False, passwd=None):
+    def start(self, passwd=None):
         """
         Start the portal
         passwd : if not None, change the admin password to passwd after start
         """
         self.cuisine.apps.mongodb.start()
-        if not reset and self.doneGet("start"):
-            return
         cmd = "jspython portal_start.py"
         self.cuisine.processmanager.ensure('portal', cmd=cmd, path=j.sal.fs.joinPaths(self.portal_dir, 'main'))
 
         if passwd is not None:
             self.set_admin_password(passwd)
-
-        self.doneSet("start")
 
     def stop(self):
         self.cuisine.processmanager.stop('portal')

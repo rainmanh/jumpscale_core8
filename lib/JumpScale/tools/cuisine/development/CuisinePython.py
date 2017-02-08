@@ -27,7 +27,7 @@ class CuisinePython(base):
             return
 
         self.cuisine.development.openssl.build()
-
+        self.cuisine.package.install('zlib1g-dev')
         if self.cuisine.core.isMac:
             if not self.doneGet("xcode_install"):
                 self.cuisine.core.run("xcode-select --install", die=False, showout=True)
@@ -42,9 +42,9 @@ class CuisinePython(base):
             self.cuisine.development.mercurial.pullRepo("https://hg.python.org/cpython", reset=reset)
             self.cuisine.core.run("set -ex;cd %s;hg update 3.6" % self.CODEDIRL)
 
-            if self.core.isMac: #TODO: *2 cant we do something similar for linux?
+            if self.core.isMac:  # TODO: *2 cant we do something similar for linux?
 
-                C="""
+                C = """
                 set -ex
                 cd $CODEDIRL
 
@@ -66,14 +66,14 @@ class CuisinePython(base):
 
                 """
 
-                C=C.replace("$openssldir",self.cuisine.development.openssl.BUILDDIRL)
-                C=self.replace(C)
+                C = C.replace("$openssldir", self.cuisine.development.openssl.BUILDDIRL)
+                C = self.replace(C)
 
                 self.cuisine.core.file_write("%s/mycompile_all.sh" % self.CODEDIRL, C)
-            else: #TODO: *1 not working compile, see if we can do in line with osx, something wrong with openssl
+            else:  # TODO: *1 not working compile, see if we can do in line with osx, something wrong with openssl
                 # configure custom location for openssl
                 setup_path = '{}/Modules/Setup'.format(self.CODEDIRL)
-                self.cuisine.core.file_copy(setup_path+".dist", setup_path)
+                self.cuisine.core.file_copy(setup_path + ".dist", setup_path)
                 content = """
                     _socket socketmodule.c
                     SSL={openssldir}
@@ -109,7 +109,7 @@ class CuisinePython(base):
                                    overwriteFiles=True, recursive=True, rsyncdelete=False, createdir=True)
 
         # copy python libs (non compiled)
-        ignoredir = [ "tkinter", "turtledemo",
+        ignoredir = ["tkinter", "turtledemo",
                      "msilib", "pydoc*", "lib2to3", "idlelib"]
         lpath = self.replace("$CODEDIRL/Lib")
         ldest = self.replace("$BUILDDIRL/plib")
@@ -122,15 +122,15 @@ class CuisinePython(base):
         else:
             self.cuisine.core.file_copy("%s/python" % self.CODEDIRL, "%s/python3" % self.BUILDDIRL)
 
-
-        C="""
+        C = """
             cd $BUILDDIRL
-            mkdir bin
+            mkdir -p bin
+            rm -f bin/python3
             mv python3 bin/python3
+            rm -f python3
             ln -s bin/python3 python3
         """
         self.cuisine.core.run(self.replace(C))
-
 
         # copy includes
         lpath = j.sal.fs.joinPaths(self.CODEDIRL, "Include",)
@@ -146,7 +146,6 @@ class CuisinePython(base):
                                    recursive=True, rsyncdelete=False, createdir=True)
 
         self.cuisine.core.file_copy("%s/pyconfig.h" % self.CODEDIRL, "%s/include/python/pyconfig.h" % self.BUILDDIRL)
-
 
         C = """
 
@@ -191,7 +190,7 @@ class CuisinePython(base):
         self.log(msg)
         self.doneSet("build")
 
-    def sandbox(self, reset=False,deps=True):
+    def sandbox(self, reset=False, deps=True):
         if deps:
             self.build(reset=reset)
         if self.doneGet("sandbox") and not reset:
@@ -243,7 +242,7 @@ class CuisinePython(base):
 
         # self.doneSet("sandbox")
 
-    def pipAll(self,reset=False):
+    def pipAll(self, reset=False):
         # needs at least items from /JS8/code/github/jumpscale/jumpscale_core8/install/dependencies.py
         C = """
         uvloop

@@ -1088,7 +1088,7 @@ class CuisineCore(base):
         #     path += env.get("PATH", [])
         #     env = {"PATH": ":".join(path)}
 
-        rc, out, err = self.executor.execute(cmd, checkok=checkok, die=False, showout=showout, env=env, timeout=600)
+        rc, out, err = self.executor.execute(cmd, checkok=checkok, die=False, showout=showout, env=env, timeout=timeout)
 
         out = self._clean(out)
 
@@ -1162,7 +1162,7 @@ class CuisineCore(base):
         if interpreter == "bash":
             content += "\necho '**OK**'\n"
         elif interpreter.startswith("python") or interpreter.startswith("jspython"):
-            content += "\nself.log('**OK**\\n')\n"
+            content += "\nprint('**OK**\\n')\n"
 
         ext = "sh"
         if interpreter.startswith("python"):

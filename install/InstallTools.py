@@ -29,6 +29,7 @@ class TimeoutError(RuntimeError, TimeoutError):
     pass
 
 class FileLock():
+
     def __init__(self, fname):
         self._fname = fname
         self._f = None
@@ -328,7 +329,8 @@ class SSHMethods():
                 self.createDir(self.getParent(socketpath))
                 # ssh-agent not loaded
                 print("load ssh agent")
-                rc, result, err = self.execute("ssh-agent -a %s" % socketpath, die=False, showout=False, outputStderr=False)
+                rc, result, err = self.execute("ssh-agent -a %s" % socketpath, die=False,
+                                               showout=False, outputStderr=False)
 
                 if rc > 0:
                     # could not start ssh-agent
@@ -396,12 +398,12 @@ class GitMethods():
             (repository_host, repository_type, repository_account, repository_name, repository_url)
         """
 
-        if ssh == "auto" or ssh=="first":
+        if ssh == "auto" or ssh == "first":
             ssh = self.checkSSHAgentAvailable()
-        elif ssh==True or ssh==False:
+        elif ssh == True or ssh == False:
             pass
         else:
-            raise RuntimeError("ssh needs to be auto, first or True or False: here:'%s'"%ssh)
+            raise RuntimeError("ssh needs to be auto, first or True or False: here:'%s'" % ssh)
 
         url_pattern_ssh = re.compile('^(git@)(.*?):(.*?)/(.*?)/?$')
         sshmatch = url_pattern_ssh.match(url)
@@ -547,16 +549,16 @@ class GitMethods():
         @param ssh =="first" means will checkout sss first if that does not work will go to http
         """
 
-        if branch!=None and tag!=None:
+        if branch != None and tag != None:
             raise RuntimeError("only branch or tag can be set")
 
-        if ssh == "first" or ssh=="auto":
+        if ssh == "first" or ssh == "auto":
             try:
                 return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
-                                        reset, branch,tag=tag, revision=revision, ssh=True, executor=executor)
+                                        reset, branch, tag=tag, revision=revision, ssh=True, executor=executor)
             except Exception as e:
                 return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
-                                            reset, branch,tag=tag, revision=revision, ssh=False, executor=executor)
+                                        reset, branch, tag=tag, revision=revision, ssh=False, executor=executor)
 
         base, provider, account, repo, dest, url = self.getGitRepoArgs(
             url, dest, login, passwd, reset=reset, ssh=ssh, codeDir=codeDir, executor=executor)
@@ -567,7 +569,6 @@ class GitMethods():
 
         checkdir = "%s/.git" % (dest)
         existsGit = self.exists(checkdir) if not executor else executor.exists(checkdir)
-
 
         if existsGit:
             # if we don't specify the branch, try to find the currently checkedout branch
@@ -583,7 +584,6 @@ class GitMethods():
                 raise RuntimeError(
                     "Cannot pull repo, branch on filesystem is not same as branch asked for.\nBranch asked for:%s\nBranch found:%s\nTo choose other branch do e.g:\nexport JSBRANCH='%s'\n" % (branch, branchFound, branchFound))
 
-
             if ignorelocalchanges:
                 print(("git pull, ignore changes %s -> %s" % (url, dest)))
                 cmd = "cd %s;git fetch" % dest
@@ -597,7 +597,7 @@ class GitMethods():
 
             else:
 
-                if branch == None and tag==None:
+                if branch == None and tag == None:
                     branch = branchFound
 
                 # pull
@@ -632,11 +632,10 @@ class GitMethods():
 
             self.execute(cmd, timeout=600, executor=executor)
 
-        if tag!=None:
+        if tag != None:
             print("reset tag to:%s" % tag)
             self.execute("cd %s;git checkout tags/%s" %
                          (dest, tag), timeout=60, executor=executor)
-
 
         if revision is not None:
             cmd = "mkdir -p %s;cd %s;git checkout %s" % (dest, dest, revision)
@@ -772,12 +771,13 @@ class FSMethods():
         """
         if self.debug:
             print(("copy %s %s" % (source, dest)))
-        if not ssh and not self.exists(source,executor=executor):
+        if not ssh and not self.exists(source, executor=executor):
             raise RuntimeError("copytree:Cannot find source:%s" % source)
 
         if executor != None and rsync == False:
             raise RuntimeError("when executor used only rsync supported")
-        if rsync:
+        if rsync and not self.isMac():
+            executor.cuisine.package.ensure('rsync')
             excl = ""
             for item in ignoredir:
                 excl += "--exclude '*%s*/' " % item
@@ -1031,7 +1031,7 @@ class FSMethods():
         else:
             raise ValueError("Specified path: %s is not a Directory in self.listDir" % path)
 
-    def exists(self, path,executor=None):
+    def exists(self, path, executor=None):
         if executor:
             return executor.exists(path)
         else:
@@ -1609,7 +1609,7 @@ class ExecutorMethods():
         return False
 
     def executeBashScript(self, content="", path=None, die=True, remote=None,
-                          sshport=22, showout=True, outputStderr=True, sshkey=""):
+                          sshport=22, showout=True, outputStderr=True, sshkey="", timeout=600):
         """
         @param remote can be ip addr or hostname of remote, if given will execute cmds there
         """
@@ -1633,15 +1633,15 @@ class ExecutorMethods():
         if remote is not None:
             tmppathdest = "/tmp/do.sh"
             if sshkey:
-                if not self.getSSHKeyPathFromAgent(sshkey, die=False)==None:
+                if not self.getSSHKeyPathFromAgent(sshkey, die=False) is None:
                     self.execute('ssh-add %s' % sshkey)
                 sshkey = '-i %s ' % sshkey.replace('!', '\!')
             self.execute("scp %s -oStrictHostKeyChecking=no -P %s %s root@%s:%s " %
                          (sshkey, sshport, path2, remote, tmppathdest), die=die)
             rc, res, err = self.execute("ssh %s -oStrictHostKeyChecking=no -A -p %s root@%s 'bash %s'" %
-                                        (sshkey, sshport, remote, tmppathdest), die=die)
+                                        (sshkey, sshport, remote, tmppathdest), die=die, timeout=timeout)
         else:
-            rc, res, err = self.execute("bash %s" % path2, die=die, showout=showout, outputStderr=outputStderr)
+            rc, res, err = self.execute("bash %s" % path2, die=die, showout=showout, outputStderr=outputStderr, timeout=timeout)
         return rc, res, err
 
     def executeCmds(self, cmdstr, showout=True, outputStderr=True, useShell=True,
@@ -1893,7 +1893,7 @@ class ExecutorMethods():
             raise RuntimeError("Could not kill:%s, is still, there check if its not autorestarting." % name)
 
     def removeFromAutostart(self, name):
-        if self.isMac:
+        if self.isMac():
             items = ["~/Library/LaunchAgents", "/Library/LaunchAgents", "/Library/LaunchDaemons",
                      "/System/Library/LaunchAgents", "/System/Library/LaunchDaemons"]
             for item in items:
@@ -2094,8 +2094,8 @@ class Installer():
         for key, val in os.environ.items():
             if "DIR" in key:
                 config["dirs"][key] = val
-        configJSON=yaml.dump(config, default_flow_style=False)
-        do.writeFile("%s/jumpscale/system.yaml" % os.environ["CFGDIR"],configJSON)
+        configJSON = yaml.dump(config, default_flow_style=False)
+        do.writeFile("%s/jumpscale/system.yaml" % os.environ["CFGDIR"], configJSON)
 
         C = """
         # By default, AYS will use the JS redis. This is for quick testing
@@ -2323,7 +2323,7 @@ class Installer():
 
         print("prepare")
 
-        #self.checkPython()
+        # self.checkPython()
 
         # self.installpip()
 
@@ -2333,8 +2333,8 @@ class Installer():
             cmds = "tmux psutils libtiff libjpeg jpeg webp little-cms2"
             for item in cmds.split(" "):
                 if item.strip() != "":
-                    self.do.execute("brew unlink %s",die=False)
-                    cmd = "brew install %s;brew link --overwrite %s" % (item,item)
+                    self.do.execute("brew unlink %s", die=False)
+                    cmd = "brew install %s;brew link --overwrite %s" % (item, item)
                     self.do.execute(cmd)
 
         self.do.dependencies.all()
@@ -2575,7 +2575,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             if exists("%s/env.sh" % curdir) and exists("%s/js.sh" % (curdir)):
                 env["BASEDIR"] = os.getcwd()
             else:
-                if self.TYPE != "LINUX":
+                if not self.TYPE.startswith("LINUX"):
                     env["BASEDIR"] = "%s/opt" % env['HOME']
                 else:
                     env["BASEDIR"] = "/opt"
@@ -2584,7 +2584,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             env["JSBASE"] = "%s/jumpscale8" % env["BASEDIR"]
 
         if not "VARDIR" in env:
-            if self.TYPE != "LINUX":
+            if not self.TYPE.startswith("LINUX"):
                 env["VARDIR"] = "%s/optvar" % env['HOME']
             else:
                 env["VARDIR"] = "/optvar"
@@ -2595,7 +2595,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             env["CFGDIR"] = "%s/cfg" % env["VARDIR"]
 
         if exists("/tmp"):
-            if self.TYPE != "LINUX":
+            if not self.TYPE.startswith("LINUX"):
                 env["TMPDIR"] = "%s/tmp" % env['HOME']
             else:
                 env["TMPDIR"] = "/tmp"
@@ -2684,7 +2684,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         self.TYPE += platform.architecture()[0][:2]
 
     def initCreateDirs4System(self):
-        items=[item for item in self.initEnv( env=os.environ, executor=None) if item.endswith("DIR")]
+        items = [item for item in self.initEnv(env=os.environ, executor=None) if item.endswith("DIR")]
         for item in items:
             path = os.environ[item]
             # print(path)

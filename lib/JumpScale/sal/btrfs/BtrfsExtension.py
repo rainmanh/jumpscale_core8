@@ -1,56 +1,54 @@
 from JumpScale import j
 import re
 
-
 BASECMD = "btrfs"
 
-KB = 1024
-MB = KB * 1024
-GB = MB * 1024
-TB = GB * 1024
-Ki = 1024
-Mi = Ki * 1024
-Gi = Mi * 1024
-Ti = Gi * 1024
-
-FACTOR = {None: 1,
-          '': 1,
-          'KB': KB,
-          'MB': MB,
-          'GB': GB,
-          'TB': TB,
-          'KI': Ki,
-          'MI': Mi,
-          'GI': Gi,
-          'TI': Ti
-          }
-
-
-class BtrfsExtension:
-
+class BtrfsExtensionFactory(object):
     def __init__(self):
         self.__jslocation__ = "j.sal.btrfs"
-        self.__conspattern = re.compile(
-            "^(?P<key>[^:]+): total=(?P<total>[^,]+), used=(?P<used>.+)$", re.MULTILINE)
-        self.__listpattern = re.compile(
-            "^ID (?P<id>\d+).+?path (?P<name>.+)$", re.MULTILINE)
-        self._executor = j.tools.executor.getLocal()
+
+    def getBtrfs(self, executor=None):
+        ex = executor if executor is not None else j.tools.executor.getLocal()
+        return BtrfsExtension(ex)
+
+class BtrfsExtension:
+    def __init__(self, executor):
+        self.__conspattern = re.compile("^(?P<key>[^:]+): total=(?P<total>[^,]+), used=(?P<used>.+)$", re.MULTILINE)
+        self.__listpattern = re.compile("^ID (?P<id>\d+).+?path (?P<name>.+)$", re.MULTILINE)
+        self._executor = executor
 
     def __btrfs(self, command, action, *args):
-        cmd = "%s %s %s %s" % (BASECMD, command, action,
-                               " ".join(['"%s"' % a for a in args]))
-        code, out, err = self._executor.execute(cmd, die=False)
+        cmd = "%s %s %s %s" % (BASECMD, command, action, " ".join(['"%s"' % a for a in args]))
+        code, out, err = self._executor.execute(cmd, die=False, showout=False)
 
         if code > 0:
             raise j.exceptions.RuntimeError(err)
 
         return out
 
+    def _snapshotCreate(self, path, dest, readonly=True):
+        if readonly:
+            self.__btrfs("subvolume", "snapshot -r", path, dest)
+        else:
+            self.__btrfs("subvolume", "snapshot", path, dest)
+
     def snapshotReadOnlyCreate(self, path, dest):
         """
         Create a readonly snapshot
         """
-        self.__btrfs("subvolume", "snapshot -r", path, dest)
+        self._snapshotCreate(path, dest, readonly=True)
+
+    def snapshotRestore(self, path, dest, keep=True):
+        """
+        Restore snapshot located at path onto dest
+        @param path: path of the snapshot to restore
+        @param dest: location where to restore the snapshot
+        @param keep: keep restored snapshot or not
+        """
+        self.subvolumeDelete(dest)
+        self._snapshotCreate(path, dest, readonly=False)
+        if not keep:
+            self.subvolumeDelete(path)
 
     def subvolumeCreate(self, path):
         """
@@ -71,7 +69,7 @@ class BtrfsExtension:
             return False
 
         rc, res, err = self._executor.execute(
-            "btrfs subvolume list %s" % path, checkok=False, die=False)
+            "btrfs subvolume list %s" % path, checkok=False, die=False, showout=False)
 
         if rc > 0:
             if res.find("can't access") != -1:
@@ -133,47 +131,33 @@ class BtrfsExtension:
         """
         self.__btrfs("device", 'delete', dev, path)
 
-    def __consumption2kb(self, word):
-        m = re.match("(\d+.\d+)(\D{2})?", word)
-        if not m:
-            raise ValueError(
-                "Invalid input '%s' should be in the form of 0.00XX" % word)
-
-        if m.group(2) is None:
-            mm = ""
-        else:
-            mm = m.group(2).upper()
-
-        value = float(m.group(1)) * FACTOR[mm]
-        return value / 1024 / 1024
-
     def getSpaceUsage(self, path="/"):
         """
-        return in mbytes
+        return in MiB
         """
-        out = self.__btrfs("filesystem", "df", path)
+        out = self.__btrfs("filesystem", "df", path, "-b")
 
         result = {}
         for m in self.__conspattern.finditer(out):
             cons = m.groupdict()
             key = cons['key'].lower()
             key = key.replace(", ", "-")
-            values = {'total': self.__consumption2kb(cons['total']),
-                      'used': self.__consumption2kb(cons['used'])}
+            values = {'total': j.data.units.bytes.toSize(value=int(cons['total']), output='M'),
+                      'used': j.data.units.bytes.toSize(value=int(cons['used']), output='M')}
             result[key] = values
 
         return result
 
-    def getSpaceUsageData(self, path="/"):
+    def getSpaceFree(self, path="/", percent=False):
         """
-        @return total/used (mbytes)
+        @param percent: boolean, if true return percentage of free space, otherwise return free space in MiB
+        @return free space
         """
-        res = self.getSpaceUsage(path)
-        return (int(res["data-single"]["total"]), int(res["data-single"]["used"]))
+        if not j.data.types.bool.check(percent):
+            raise j.exceptions.Input('percent argument should be a boolean')
 
-    def getSpaceUsageDataFree(self, path="/"):
-        """
-        @return percent as int
-        """
         res = self.getSpaceUsage(path)
-        return int(res["data-single"]["used"] / res["data-single"]["total"] * 100)
+        free = res['data-single']['total'] - res['data-single']['used']
+        if percent:
+            return "%.2f" % ((free / res["data-single"]["total"]) * 100)
+        return free

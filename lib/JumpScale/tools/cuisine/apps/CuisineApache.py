@@ -24,7 +24,7 @@ class CuisineApache(app):
         cd  /opt/owncloudbox/httpd && ./configure --prefix /opt/owncloudbox/httpd --enable-so && make
         """
         C = self.replace(C)
-        self.cuisine.core.execute_bash(C)
+        self.cuisine.core.run(C)
 
     def install(self, start=False):
 
@@ -39,7 +39,7 @@ class CuisineApache(app):
         printf "\napplication/x-httpd-php phtml pwml php5 php4 php3 php2 php inc htm html" >> /opt/owncloudbox/httpd/conf/mime.types
         """
         C = self.replace(C)
-        self.cuisine.core.execute_bash(C)
+        self.cuisine.core.run(C)
 
         if start:
             self.start()

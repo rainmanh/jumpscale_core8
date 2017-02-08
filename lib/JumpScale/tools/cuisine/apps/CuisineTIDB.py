@@ -9,10 +9,14 @@ class CuisineTIDB(app):
     """
     Installs TIDB.
     """
-    NAME = 'tidb'
+    NAME = 'tidb-server'
 
     def _init(self):
         self.BUILDDIR = self.replace("$BUILDDIR/tidb/")
+
+    def reset(self):
+        app.reset(self)
+        self._init()
 
     def build(self, install=True, reset=False):
         """
@@ -26,11 +30,15 @@ class CuisineTIDB(app):
         self.cuisine.package.install('build-essential')
 
         self.cuisine.core.dir_ensure(self.BUILDDIR)
-        build_script = self.cuisine.core.file_download('https://raw.githubusercontent.com/pingcap/docs/master/scripts/build.sh', \
-            j.sal.fs.joinPaths(self.BUILDDIR, 'build.sh'),minsizekb=0)
-
-        self.cuisine.core.run('cd {builddir}; bash {build}'.format(builddir=self.BUILDDIR, build=build_script), profile=True)
-
+        tidb_url = 'http://download.pingcap.org/tidb-latest-linux-amd64.tar.gz'
+        dest = j.sal.fs.joinPaths("$BUILDDIR", 'tidb-latest-linux-amd64.tar.gz')
+        # build_script = self.cuisine.core.file_download('https://raw.githubusercontent.com/pingcap/docs/master/scripts/build.sh', \
+        #     j.sal.fs.joinPaths(self.BUILDDIR, 'build.sh'),minsizekb=0)
+        #
+        # self.cuisine.core.run('cd {builddir}; bash {build}'.format(builddir=self.BUILDDIR, build=build_script), profile=True, timeout=1000)
+        self.cuisine.core.file_download(tidb_url, dest)
+        self.cuisine.core.run(
+            'cd $BUILDDIR && tar xvf $BUILDDIR/tidb-latest-linux-amd64.tar.gz && mv $BUILDDIR/tidb-latest-linux-amd64/* {builddir}'.format(builddir=self.BUILDDIR))
         self.doneSet('build')
 
         if install:
@@ -43,8 +51,9 @@ class CuisineTIDB(app):
         if self.doneGet('install'):
             return
 
-        for path in self.cuisine.core.find(j.sal.fs.joinPaths(self.BUILDDIR, 'bin'), type='f'):
-            self.cuisine.core.file_copy(path, '$BINDIR')
+        self.cuisine.core.run("cp $BUILDDIR/tidb/bin/* $BINDIR/")
+        #for path in self.cuisine.core.find(j.sal.fs.joinPaths(self.BUILDDIR, 'bin'), type='f'):
+        #    self.cuisine.core.file_copy(path, '$BINDIR')
 
         self.doneSet('install')
 
@@ -99,6 +108,11 @@ class CuisineTIDB(app):
         self.start_tidb()
         if not self._check_running('tidb-server', timeout=30):
             raise j.exceptions.RuntimeError("tidb didn't start")
+
+    def stop(self):
+        self.cuisine.processmanager.stop("tidb-server")
+        self.cuisine.processmanager.stop("pd-server")
+        self.cuisine.processmanager.stop("tikv-server")
 
     def _check_running(self, name, timeout=30):
         """

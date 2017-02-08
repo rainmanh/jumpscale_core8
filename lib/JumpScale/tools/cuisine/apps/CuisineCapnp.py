@@ -18,6 +18,8 @@ class CuisineCapnp(app):
         self.cuisine.package.mdupdate()
         self.cuisine.package.multiInstall(['curl', 'make', 'g++', 'python-dev'])
 
+        #@TODO: *2 use git checkout on tag like we do for ARDB
+
         # c++ deps libs
         script = """
         cd $TMPDIR
@@ -28,6 +30,6 @@ class CuisineCapnp(app):
         make -j6 check
         sudo make install
         """
-        self.cuisine.core.execute_bash(script)
+        self.cuisine.core.run(script)
         # install python pacakge
         self.cuisine.development.pip.multiInstall(['cython', 'setuptools', 'pycapnp'], upgrade=True)

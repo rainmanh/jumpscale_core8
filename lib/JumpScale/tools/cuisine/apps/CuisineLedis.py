@@ -44,7 +44,7 @@ class CuisineLedis(app):
             self.cuisine.core.file_write("/tmp/ledisconfig.toml", configcontent)
 
             script = C.format(ledisdir=ledisdir)
-            out = self.cuisine.core.execute_bash(script, profile=True)
+            out = self.cuisine.core.run(script, profile=True)
 
             if install:
                 self.install(start=True)

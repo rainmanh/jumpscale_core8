@@ -19,6 +19,14 @@ class CuisineBase:
             self.core = cuisine.core
         self._init()
 
+
+    @property
+    def logger(self):
+        if self._logger is None:
+            self._logger = j.logger.get(self._classname)
+        return self._logger
+
+
     def _init(self):
         pass
 

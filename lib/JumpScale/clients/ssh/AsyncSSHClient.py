@@ -113,17 +113,16 @@ class AsyncSSHClient:
 
         return session.exit_status, session.stdout, session.stderr
 
-    def execute(self, cmd, showout=True, die=True):
+    async def execute(self, cmd, showout=True, die=True):
         try:
-            rc, out, err = asyncio.get_event_loop().run_until_complete(
-                self.run_command(
-                    cmd=cmd,
-                    showout=showout,
-                    die=die)
-            )
+            rc, out, err = await self.run_command(
+                cmd=cmd,
+                showout=showout,
+                die=die)
             return rc, out, err
         except (OSError, asyncssh.Error) as exc:
-            print('SSH connection failed: ' + str(exc), file=sys.stderr)
+            self.logger.error('SSH connection failed: ' + str(exc))
+            raise
 
     def close(self):
         """
@@ -134,6 +133,9 @@ class AsyncSSHClient:
             self.client = None
 
 if __name__ == '__main__':
-    client = AsyncSSHClient(addr='zaibon.be', port=22, login="zaibon", passwd=None)
+    client = AsyncSSHClient(addr='localhost', port=22, login="root", passwd='rooter')
+    loop = asyncio.get_event_loop()
+    rc, out, err = loop.run_until_complete(client.execute('ls /'))
     # rc, out, err = client.execute('ls /')
-    from IPython import embed;embed()
+    from IPython import embed
+    embed()

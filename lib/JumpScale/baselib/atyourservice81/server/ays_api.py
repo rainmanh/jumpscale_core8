@@ -205,8 +205,7 @@ async def executeRun(request, aysrun, repository):
     try:
         aysrun_model = repo.runGet(aysrun)
         aysrun = aysrun_model.objectGet()
-        await aysrun.execute()
-        # asyncio.ensure_future(aysrun.execute())
+        future = asyncio.ensure_future(aysrun.execute())
     except j.exceptions.NotFound as e:
         return json({'error':e.message}, 404)
     except Exception as e:

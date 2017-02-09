@@ -39,6 +39,10 @@ function osx_install {
     brew install curl
     brew link --overwrite curl
     brew install snappy
+    sudo mkdir -p /optvar
+    sudo chown -R $USER /optvar
+    sudo mkdir -p /opt
+    sudo chown -R $USER /opt    
 }
 
 function pip_install {

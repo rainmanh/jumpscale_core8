@@ -2,7 +2,7 @@ import re
 from JumpScale import j
 
 
-COMMAND = 'lsblk -bnP -o NAME,TYPE,UUID,FSTYPE,SIZE,MOUNTPOINT -e 7,1'
+COMMAND = 'lsblk -bnP -o NAME,TYPE,UUID,FSTYPE,SIZE,MOUNTPOINT,PARTLABEL -e 7,1'
 
 _extract_pattern = re.compile('\s*([^=]+)="([^"]*)"')
 
@@ -28,6 +28,7 @@ def _parse(output):
             continue
         blk = dict(_extract_pattern.findall(line))
         blk['NAME'] = '/dev/%s' % blk['NAME']
+        blk['SIZE'] = int(blk['SIZE'])
 
         blks.append(blk)
 
@@ -44,7 +45,7 @@ def lsblk(device=None, executor=None):
         command = COMMAND
         if device:
             command = '%s %s' % (COMMAND, device)
-        rc, output, err = executor.execute(command, checkok=False)
+        rc, output, err = executor.execute(command, checkok=False, showout=False)
     except Exception as e:
         raise LsblkError(e)
 

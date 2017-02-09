@@ -19,7 +19,7 @@ _hrd_validators = {
 
 
 def _default_formatter(name, fstype):
-    return 'mkfs.{fstype} {name}'.format(
+    return 'mkfs.{fstype} -f {name}'.format(
         fstype=fstype,
         name=name
     )
@@ -44,11 +44,7 @@ class BlkInfo:
         self.type = type
         self.size = int(size)
         self.hrd = None
-        if executor is None:
-            self._executor = j.tools.executor.getLocal()
-        else:
-            self._executor = executor
-        self._executor = j.sal.disklayout._executor
+        self._executor = executor or j.tools.executor.getLocal()
 
     def __str__(self):
         return '%s %s' % (self.name, self.size)
@@ -67,7 +63,7 @@ class BlkInfo:
             raise PartitionError('No HRD attached to disk')
 
         path = self.hrd.get('mountpath')
-        mnt = mount.Mount(self.name, path)
+        mnt = mount.Mount(self.name, path, executor=self._executor)
         mnt.mount()
         self.refresh()
 
@@ -78,11 +74,11 @@ class BlkInfo:
         if self.invalid:
             raise PartitionError('Partition is invalid')
 
-        if self.hrd is None:
-            raise PartitionError('No HRD attached to disk')
+        # if self.hrd is None:
+        #     raise PartitionError('No HRD attached to disk')
 
-        path = self.hrd.get('mountpath')
-        mnt = mount.Mount(self.name, path)
+        # path = self.hrd.get('mountpath')
+        mnt = mount.Mount(self.name, self.mountpoint, executor=self._executor)
         mnt.umount()
         self.refresh()
 
@@ -90,21 +86,19 @@ class BlkInfo:
         """
         remote partition from fstab
         """
-        fstabpath = j.tools.path.get('/etc/fstab')
-        fstab = fstabpath.text().splitlines()
+        fstab = self._executor.cuisine.core.file_read('/etc/fstab').splitlines()
         dirty = False
 
         for i in range(len(fstab) - 1, -1, -1):
             line = fstab[i]
-            if line.startswith('UUID=%s' % self.uuid):
+            if line.startswith('UUID=%s' % self.uuid) or (self.name != '' and line.startswith(self.name)):
                 del fstab[i]
                 dirty = True
 
         if not dirty:
             return
 
-        fstabpath.write_text('\n'.join(fstab))
-        fstabpath.chmod(644)
+        self._executor.cuisine.core.file_write('/etc/fstab', '\n'.join(fstab), mode='0644')
 
     def setAutoMount(self, options='defaults', _dump=0, _pass=0):
         """
@@ -115,13 +109,11 @@ class BlkInfo:
             path = self.mountpoint
             if path == "":
                 raise RuntimeError("path cannot be empty")
-            path = j.tools.path.get(path)
         else:
-            path = j.tools.path.get(self.hrd.get('mountpath'))
-        path.makedirs_p()
+            path = self.hrd.get('mountpath')
+        self._executor.cuisine.core.dir_ensure(path)
 
-        fstabpath = j.tools.path.get('/etc/fstab')
-        fstab = fstabpath.text().splitlines()
+        fstab = self._executor.cuisine.core.file_read('/etc/fstab').splitlines()
 
         for i in range(len(fstab) - 1, -1, -1):
             line = fstab[i]
@@ -145,8 +137,7 @@ class BlkInfo:
 
         fstab.append(entry)
 
-        fstabpath.write_text('\n'.join(fstab)),
-        fstabpath.chmod(644)
+        self._executor.cuisine.core.file_write('/etc/fstab', '\n'.join(fstab), mode='0644')
 
     def _validateHRD(self, hrd):
         for field in ['filesystem', 'mountpath', 'protected', 'type']:
@@ -191,43 +182,45 @@ class DiskInfo(BlkInfo):
                 self.mirror_devices = [
                     "/dev/%s" % item for item in devsfound if "/dev/%s" % item != name]
 
-    # def _getpart(self):
-    #     rc, ptable = self._executor.execute(
-    #         'parted -sm {name} unit B print'.format(name=self.name)
-    #     )
-    #     read_disk_next = False
-    #     disk = {}
-    #     partitions = []
-    #     for line in ptable.splitlines():
-    #         line = line.strip()
-    #         if line == 'BYT;':
-    #             read_disk_next = True
-    #             continue
+    def _getpart(self):
+        rc, ptable, err = self._executor.execute(
+            'parted -sm {name} unit B print'.format(name=self.name),
+            showout=False
+        )
+        read_disk_next = False
+        disk = {}
+        partitions = []
+        for line in ptable.splitlines():
+            line = line.strip()
+            if line == 'BYT;':
+                read_disk_next = True
+                continue
 
-    #         parts = line.split(':')
-    #         if read_disk_next:
-    #             # /dev/sdb:8589934592B:scsi:512:512:gpt:ATA VBOX HARDDISK;
-    #             size = int(parts[1][:-1])
-    #             table = parts[5]
+            parts = line.split(':')
+            if read_disk_next:
+                # /dev/sdb:8589934592B:scsi:512:512:gpt:ATA VBOX HARDDISK;
+                size = int(parts[1][:-1])
+                table = parts[5]
 
-    #             disk.update(
-    #                 size=size,
-    #                 table=table,
-    #             )
-    #             read_disk_next = False
-    #             continue
+                disk.update(
+                    size=size,
+                    table=table,
+                )
+                read_disk_next = False
+                continue
 
-    #         # 1:1048576B:2097151B:1048576B:btrfs:primary:;
-    #         partition = {
-    #             'number': int(parts[0]),
-    #             'start': int(parts[1][:-1]),
-    #             'end': int(parts[2][:-1]),
-    #         }
+            # 1:1048576B:2097151B:1048576B:btrfs:primary:;
+            partition = {
+                'number': int(parts[0]),
+                'start': int(parts[1][:-1]),
+                'end': int(parts[2][:-1]),
+                'flags': parts[6]
+            }
 
-    #         partitions.append(partition)
+            partitions.append(partition)
 
-    #     disk['partitions'] = partitions
-    #     return disk
+        disk['partitions'] = partitions
+        return disk
 
     def _findFreeSpot(self, parts, size):
         if size > parts['size']:
@@ -276,7 +269,7 @@ class DiskInfo(BlkInfo):
                     'mkpart primary {start} {end}').format(name=self.name,
                                                            start=start,
                                                            end=end)
-            )
+                , showout=False)
         except Exception as e:
             raise FormatError(e)
 
@@ -290,8 +283,10 @@ class DiskInfo(BlkInfo):
             size=size,
             uuid='',
             fstype='',
-            mount='',
-            device=self
+            mountpoint='',
+            label='',
+            device=self,
+            executor=self._executor
         )
 
         partition.hrd = hrd
@@ -303,7 +298,8 @@ class DiskInfo(BlkInfo):
     def _clearMBR(self):
         try:
             self._executor.execute(
-                'parted -s {name} mktable gpt'.format(name=self.name)
+                'parted -s {name} mktable gpt'.format(name=self.name),
+                showout=False
             )
         except Exception as e:
             raise DiskError(e)
@@ -323,19 +319,63 @@ class DiskInfo(BlkInfo):
             if not partition.protected:
                 partition.delete()
 
+    def unallocatedSpace(self, minimum_size=102400):
+        """
+        look into the disk for unallocated space.
+        return a list of tuple containing start,end of the space
+
+        :minimum_size: unallocated space smaller than this valid are skipt. in bytes
+        """
+        try:
+            rc, out, err = self._executor.execute(
+                'parted -m {name} unit B print free'.format(name=self.name),
+                showout=False
+            )
+        except Exception as e:
+            raise DiskError(e)
+
+        read_disk_next = False
+        free_spaces = []
+        for line in out.splitlines():
+            line = line.strip()
+            if line == 'BYT;':
+                read_disk_next = True
+                continue
+
+            if read_disk_next:
+                read_disk_next = False
+                continue
+
+            parts = line.split(':')
+            # 2:2097152B:20972568575B:20970471424B:ext4:primary:;
+            # 1:20972568576B:1999858827263B:1978886258688B:free;
+            if parts[4][:-1] != 'free':
+                continue
+
+            size = int(parts[3][:-1])
+            if size < minimum_size:
+                continue
+
+            free_space = (int(parts[1][:-1]), int(parts[2][:-1]))
+
+            free_spaces.append(free_space)
+
+        return free_spaces
+
 
 class PartitionInfo(BlkInfo):
 
-    def __init__(self, name, size, uuid, fstype, mount, device, executor=None):
+    def __init__(self, name, size, uuid, fstype, mountpoint, label, device, executor=None):
         super(PartitionInfo, self).__init__(name, 'part', size, executor=executor)
         self.uuid = uuid
         self.fstype = fstype
-        self.mountpoint = mount
+        self.mountpoint = mountpoint
+        self.label = label
         self.hrd = None
         self.device = device
         self._invalid = False
 
-        self.mount = device.mount
+        # self.mount = device.mount
 
     @property
     def invalid(self):
@@ -359,20 +399,22 @@ class PartitionInfo(BlkInfo):
         """
         try:
             info = lsblk.lsblk(self.name, executor=self._executor)[0]
+            info['label'] = info.pop('PARTLABEL')
         except lsblk.LsblkError:
             self._invalid = True
             info = {
                 'SIZE': 0,
                 'UUID': '',
                 'FSTYPE': '',
-                'MOUNTPOINT': ''
+                'MOUNTPOINT': '',
+                'PARTLABEL': '',
             }
 
         for key, val in info.items():
             setattr(self, key.lower(), val)
 
     def _dumpHRD(self):
-        with mount.Mount(self.name) as mnt:
+        with mount.Mount(self.name, executor=self._executor) as mnt:
             filepath = j.tools.path.get(mnt.path).joinpath('.disk.hrd')
             filepath.write_text(str(self.hrd))
             filepath.chmod(400)
@@ -395,7 +437,7 @@ class PartitionInfo(BlkInfo):
         fstype = self.hrd.get('filesystem')
         command = self._formatter(self.name, fstype)
         try:
-            self._executor.execute(command)
+            self._executor.execute(command, showout=False)
             self._dumpHRD()
         except Exception as e:
             raise FormatError(e)
@@ -428,10 +470,11 @@ class PartitionInfo(BlkInfo):
             number=number
         )
         try:
-            self._executor.execute(command)
+            self._executor.execute(command, showout=False)
         except Exception as e:
             raise PartitionError(e)
 
         self.unsetAutoMount()
 
         self._invalid = True
+        self.device.partitions.remove(self)

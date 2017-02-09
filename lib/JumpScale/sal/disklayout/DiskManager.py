@@ -36,10 +36,10 @@ class DiskManager:
 
         # find temp mounts & remove, they need to be gone, otherwise will get
         # unpredictable results further
-        for line in self._executor.execute("mount")[1].split("\n"):
+        for line in self._executor.execute("mount", showout=False)[1].split("\n"):
             if " on /tmp" in line:
                 mntpoint = line.split(" on ")[1].split(" type", 1)[0].strip()
-                self._executor.execute("umount %s" % mntpoint)
+                self._executor.execute("umount %s" % mntpoint, showout=False)
 
         devices = []
         disk = None
@@ -57,9 +57,14 @@ class DiskManager:
                             blk['NAME'])
                     )
                 part = disks.PartitionInfo(
-                    name, blk['SIZE'],
-                    blk['UUID'], blk['FSTYPE'],
-                    blk['MOUNTPOINT'], disk
+                    name=name,
+                    size=blk['SIZE'],
+                    uuid=blk['UUID'],
+                    fstype=blk['FSTYPE'],
+                    mountpoint=blk['MOUNTPOINT'],
+                    label=blk['PARTLABEL'],
+                    device=disk,
+                    executor=self._executor
                 )
                 disk.partitions.append(part)
             else:
@@ -85,12 +90,7 @@ class DiskManager:
                     # partition is already mounted, no need to remount it
                     hrd = self._loadhrd(partition.mountpoint)
                 elif partition.fstype:
-                    from IPython import embed
-                    print("DEBUG NOW getDisks no mounts")
-                    embed()
-                    p
-
-                    with mount.Mount(partition.name, options='ro') as mnt:
+                    with mount.Mount(partition.name, options='ro', executor=self._executor) as mnt:
                         hrd = self._loadhrd(mnt.path)
 
                 partition.hrd = hrd
@@ -128,7 +128,7 @@ class DiskManager:
         return None
 
     def filesystemStat(self, path):
-        data = self._executor.execute("df --output='source,size,used,avail' '%s' | tail -1" % path)
+        data = self._executor.execute("df --output='source,size,used,avail' '%s' | tail -1" % path, showout=False)
         out = ' '.join(data[1].replace('K', '').split())
 
         fields = out.split(' ')

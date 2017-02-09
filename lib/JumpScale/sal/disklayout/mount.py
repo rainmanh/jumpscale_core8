@@ -7,7 +7,7 @@ class MountError(Exception):
 
 class Mount:
 
-    def __init__(self, device, path=None, options=''):
+    def __init__(self, device, path=None, options='', executor=None):
         self._device = device
         self._path = path
         self._autoClean = False
@@ -16,8 +16,7 @@ class Mount:
                 '/tmp').joinpath(j.data.idgenerator.generateXCharID(8))
             self._autoClean = True
         self._options = options
-        import ipdb; ipdb.set_trace()
-        self._executor = j.sal.disklayout._executor
+        self._executor = executor or j.tools.executor.getLocal()
 
     @property
     def _mount(self):
@@ -46,8 +45,8 @@ class Mount:
         Mount partition
         """
         try:
-            j.tools.path.get(self.path).makedirs()
-            self._executor(self._mount)
+            self._executor.cuisine.core.dir_ensure(self.path)
+            self._executor.execute(self._mount, showout=False)
         except Exception as e:
             raise MountError(e)
         return self
@@ -57,9 +56,9 @@ class Mount:
         Umount partition
         """
         try:
-            self._executor(self._umount)
+            self._executor.execute(self._umount, showout=False)
             if self._autoClean:
-                j.tools.path.get(self.path).rmtree()
+                self._executor.cuisine.core.dir_remove(self.path)
         except Exception as e:
             raise MountError(e)
         return self

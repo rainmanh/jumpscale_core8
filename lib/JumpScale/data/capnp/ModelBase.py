@@ -10,23 +10,22 @@ class emptyObject:
     this is lighter then using the capnp object directly
     and it solve the problem of fixed sized list of canpn object
     """
-    def __init__(self, u):
+    def __init__(self, u, schema):
+        self._schema = schema
         d = self.__dict__
-        if isinstance(u, Mapping):
-            for k, v in u.items():
-                if isinstance(v, Mapping):
-                    d[k] = emptyObject(v)
-                elif isinstance(v, list):
-                    d[k] = []
-                    for x in v:
-                        if isinstance(x, Mapping):
-                            d[k].append(emptyObject(x))
-                        else:
-                            d[k].append(x)
-                else:
-                    d[k] = u[k]
-        else:
-            import ipdb; ipdb.set_trace()
+        for k, v in u.items():
+            if isinstance(v, Mapping):
+                d[k] = emptyObject(v, schema=schema)
+            elif isinstance(v, list):
+                d[k] = []
+                for x in v:
+                    if isinstance(x, Mapping):
+                        d[k].append(emptyObject(x, schema=schema))
+                    else:
+                        d[k].append(x)
+            else:
+                d[k] = u[k]
+
 
     def to_dict(self):
         out = {}
@@ -42,7 +41,16 @@ class emptyObject:
                         out[k].append(x)
             else:
                 out[k] = v
+        del out['_schema']
         return out
+
+    def to_bytes_packed(self):
+        msg = self._schema.new_message(**self.to_dict())
+        return msg.to_bytes_packed()
+
+    def to_bytes(self):
+        msg = self._schema.new_message(**self.to_dict())
+        return msg.to_bytes()
 
     def __repr__(self):
         return str(self.__dict__)
@@ -73,8 +81,7 @@ class ModelBase():
 
         if new:
             # create an empty object with the same properties as the capnpn msg
-            msg = self._capnp_schema.new_message()
-            self.dbobj = emptyObject(msg.to_dict(verbose=True))
+            self.dbobj = j.data.capnp.getMemoryObj(self._capnp_schema)
             self._post_init()
             if key != "":
                 self._key = key
@@ -123,7 +130,7 @@ class ModelBase():
 
         buff = self._db.get(key)
         msg = self._capnp_schema.from_bytes(buff)
-        self.dbobj = emptyObject(msg.to_dict(verbose=True))
+        self.dbobj = emptyObject(msg.to_dict(verbose=True), self._capnp_schema)
 
     def __getattr__(self, attr):
         # print("GETATTR:%s" % attr)
@@ -252,6 +259,7 @@ class ModelBaseWithData(ModelBase):
 
     def __init__(self, capnp_schema, category, db, index, key="", new=False):
         super().__init__(capnp_schema=capnp_schema, category=category, db=db, index=index, key=key, new=new)
+        self._data_schema = None
         self._data = None
 
     @property

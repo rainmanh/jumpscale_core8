@@ -132,6 +132,7 @@ class Capnp:
 
         if binaryData is not None and binaryData != b'':
             configdata = schema.from_bytes_packed(binaryData).as_builder()
+
         else:
             try:
                 configdata = schema.new_message(**args)
@@ -155,7 +156,8 @@ class Capnp:
                     print(msg)
                     raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
                 raise e
-        return configdata
+        return emptyObject(configdata.to_dict(verbose=True), schema=schema)
+        # return configdata
 
     def test(self):
         import time
@@ -271,5 +273,5 @@ class Capnp:
         It will be converted in capnp message when saved
         """
         msg = schema.new_message(**kwargs)
-        obj = emptyObject(msg.to_dict(verbose=True))
+        obj = emptyObject(msg.to_dict(verbose=True), schema=schema)
         return obj

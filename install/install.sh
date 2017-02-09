@@ -38,6 +38,7 @@ function osx_install {
     brew link --overwrite git
     brew install curl
     brew link --overwrite curl
+    brew install snappy
 }
 
 function pip_install {
@@ -49,6 +50,7 @@ function pip_install {
     # pip3 install --upgrade uvloop
     pip3 install --upgrade ipython
     pip3 install --upgrade python-snappy
+    pip3 install --upgrade colorlog
 }
 
 if [ "$(uname)" == "Darwin" ]; then

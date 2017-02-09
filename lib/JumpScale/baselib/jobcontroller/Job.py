@@ -193,7 +193,6 @@ class Job():
         return self._service
 
     def _processError(self, eco):
-        logObj = self.model._logObjNew()
 
         if j.data.types.string.check(eco):
             # case it comes from the result of the processmanager

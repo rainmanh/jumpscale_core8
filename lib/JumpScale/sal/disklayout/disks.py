@@ -236,7 +236,7 @@ class DiskInfo(BlkInfo):
 
         return start, start + size
 
-    def format(self, size, hrd):
+    def format(self, size, hrd, force=False):
         """
         Create new partition and format it as configured in hrd file
 
@@ -264,12 +264,22 @@ class DiskInfo(BlkInfo):
 
         start, end = spot
         try:
-            self._executor.execute(
-                ('parted -s {name} unit B ' +
+
+            rc , out ,err = self._executor.execute(
+                ('parted -s {name} -a optimal unit B ' +
                     'mkpart primary {start} {end}').format(name=self.name,
                                                            start=start,
                                                            end=end)
                 , showout=False)
+
+            if err != '' and err.find('The closest location we can manage is') != -1:
+                numbers = j.data.regex.findAll(r'(\d*B)', err)
+                rc , out ,err = self._executor.execute(
+                    ('parted -s {name} -a optimal unit B ' +
+                        'mkpart primary {start} {end}').format(name=self.name,
+                                                               start=start,
+                                                               end=numbers[3])
+                    , showout=False)
         except Exception as e:
             raise FormatError(e)
 
@@ -291,7 +301,7 @@ class DiskInfo(BlkInfo):
 
         partition.hrd = hrd
 
-        partition.format()
+        partition.format(force=force)
         self.partitions.append(partition)
         return partition
 
@@ -333,6 +343,11 @@ class DiskInfo(BlkInfo):
             )
         except Exception as e:
             raise DiskError(e)
+
+        if err!= '' and err.find('unrecognised disk label') != -1:
+            # not table set on the disk yet
+            self._clearMBR()
+            self.unallocatedSpace(minimum_size=minimum_size)
 
         read_disk_next = False
         free_spaces = []
@@ -419,17 +434,20 @@ class PartitionInfo(BlkInfo):
             filepath.write_text(str(self.hrd))
             filepath.chmod(400)
 
-    def format(self):
+    def format(self, force=False):
         """
         Reformat the partition according to hrd
         """
+        self.refresh()
+
         if self.invalid:
             raise PartitionError('Partition is invalid')
 
         if self.mountpoint:
-            raise PartitionError(
-                'Partition is mounted on %s' % self.mountpoint
-            )
+            if not force:
+                raise PartitionError('Partition is mounted on %s' % self.mountpoint)
+            else:
+                self.umount()
 
         if self.hrd is None:
             raise PartitionError('No HRD attached to disk')
@@ -437,7 +455,8 @@ class PartitionInfo(BlkInfo):
         fstype = self.hrd.get('filesystem')
         command = self._formatter(self.name, fstype)
         try:
-            self._executor.execute(command, showout=False)
+
+            rc, out, err = self._executor.execute(command, showout=False)
             self._dumpHRD()
         except Exception as e:
             raise FormatError(e)

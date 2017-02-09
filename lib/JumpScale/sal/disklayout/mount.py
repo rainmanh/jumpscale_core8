@@ -46,7 +46,9 @@ class Mount:
         """
         try:
             self._executor.cuisine.core.dir_ensure(self.path)
-            self._executor.execute(self._mount, showout=False)
+            rc, out, err = self._executor.execute(self._mount, showout=False)
+            if err!= '':
+                raise MountError(err)
         except Exception as e:
             raise MountError(e)
         return self
@@ -56,7 +58,9 @@ class Mount:
         Umount partition
         """
         try:
-            self._executor.execute(self._umount, showout=False)
+            rc, out, err = self._executor.execute(self._umount, showout=False)
+            if err!= '':
+                raise MountError(err)
             if self._autoClean:
                 self._executor.cuisine.core.dir_remove(self.path)
         except Exception as e:

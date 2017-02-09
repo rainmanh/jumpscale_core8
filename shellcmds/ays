@@ -3,8 +3,9 @@
 # Click library has some problems with python3 when it comes to unicode: http://click.pocoo.org/5/python3/#python3-surrogates
 # to fix this we need to set the environ variables to export the locales
 
-import os
 from JumpScale import j
+import os
+import time
 import click
 from http import HTTPStatus
 
@@ -360,7 +361,8 @@ def _print_run(run, logs=False):
 @click.option('--force', default=False, is_flag=True, help='force execution even if no change')
 @click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
 @click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
-def create(ask, force, debug, profile):
+@click.option('--follow', '-f', is_flag=True, help='follow run execution')
+def create(ask, force, debug, profile, follow):
     """
     Look for all action with a state 'schedule', 'changed' or 'error' and create a run.
     A run is an collection of actions that will be run on the repository.
@@ -384,11 +386,29 @@ def create(ask, force, debug, profile):
             return
 
     resp = ayscl.api.ays.executeRun(data=None, aysrun=run['key'], repository=_current_repo_name())
-    if resp.status_code == HTTPStatus.OK:
-        print("execution of the run started: {}".format(run['key']))
-    else:
+    if resp.status_code != HTTPStatus.OK:
         print("error during execution of the run: {}".format(_extract_error(resp)))
         return
+
+    print("execution of the run started: {}".format(run['key']))
+    if follow:
+        running = True
+        while running:
+            resp = ayscl.api.ays.getRun(aysrun=run['key'], repository=_current_repo_name())
+            if resp.status_code != HTTPStatus.OK:
+                print("Error during retreive of the run {}: {}".format(key, _extract_error(resp)))
+                return
+
+            run = resp.json()
+            j.tools.console.cls()
+            print("Current state of the run:\n")
+            _print_run(run)
+            running = False
+            for step in resp.json()['steps']:
+                for job in step['jobs']:
+                    if job['state'] == 'running':
+                        running = True
+            time.sleep(2)
 
 @run.command()
 def list():

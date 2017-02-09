@@ -23,6 +23,10 @@ class CuisineARDB(app):
         """
         if self.doneGet("build") and not reset:
             return
+
+        if self.cuisine.bash.cmdGetPath('ardb-server', die=False) and not reset:
+            return
+
         if reset:
             self.cuisine.core.run("rm -rf %s" % self.BUILDDIR)
 
@@ -30,6 +34,7 @@ class CuisineARDB(app):
         # self.buildForestDB(reset=reset)
 
         self.buildARDB(reset=reset)
+        self.doneSet("build")
 
     def buildForestDB(self, reset=False):
         if self.doneGet("buildforestdb") and not reset:
@@ -109,53 +114,57 @@ class CuisineARDB(app):
 
         self.doneSet("buildardb")
 
-    def install(self, reset=False, start=True):
+    def install(self, name='main', host='localhost', port=16379, datadir=None, reset=False, start=True):
         """
         as backend use ForestDB
         """
-        if self.doneGet("install") and not reset:
+        if self.doneGet("install-%s" % name) and not reset:
             return
         self.buildARDB()
         self.cuisine.core.dir_ensure("$BINDIR")
         self.cuisine.core.dir_ensure("$CFGDIR")
-        self.core.file_copy("$BUILDDIR/ardb/ardb-server", "$BINDIR/ardb-server")
-        self.core.file_copy("$BUILDDIR/ardb/ardb.conf", "$CFGDIR/ardb.conf")
+        if not self.cuisine.core.file_exists('$BINDIR/ardb-server'):
+            self.core.file_copy("$BUILDDIR/ardb/ardb-server", "$BINDIR/ardb-server")
 
-        config = self.core.file_read("$CFGDIR/ardb.conf")
-        datadir = self.replace("$VARDIR/data/ardb")
+        if datadir is None or datadir == '':
+            datadir = self.replace("$VARDIR/data/ardb/{}".format(name))
+        self.core.dir_ensure(datadir)
 
         # config = config.replace("redis-compatible-mode     no", "redis-compatible-mode     yes")
         # config = config.replace("redis-compatible-version  2.8.0", "redis-compatible-version  3.5.2")
+        config = self.core.file_read("$BUILDDIR/ardb/ardb.conf")
         config = config.replace("${ARDB_HOME}", datadir)
-        config = config.replace("localhost:16379", "0.0.0.0:16379")
+        config = config.replace("localhost:16379", '{host}:{port}'.format(host=host,port=port))
 
-        self.core.dir_ensure(datadir)
+        cfg_path = "$CFGDIR/ardb/{}/ardb.conf".format(name)
+        self.core.file_write(cfg_path, config)
 
-        self.core.file_write("$CFGDIR/ardb.conf", config)
-
-        self.doneSet("install")
+        self.doneSet("install-%s" % name)
 
         if start:
             self.start()
 
-    def start(self, reset=False):
-        if not reset and self.doneGet("start"):
+    def start(self, name='main', reset=False):
+        if not reset and self.doneGet("start-%s" % name):
             return
         if reset:
             self.stop()
-        cmd = "$BINDIR/ardb-server $CFGDIR/ardb.conf"
-        self.cuisine.process.kill("ardb-server")
-        self.cuisine.processmanager.ensure(name="ardb-server", cmd=cmd, env={}, path="")
-        self.test()
-        self.doneSet("start")
 
-    def stop(self):
-        self.cuisine.processmanager.stop("ardb-server")
+        cfg_path = "$CFGDIR/ardb/{}/ardb.conf".format(name)
+        cmd = "$BINDIR/ardb-server {}".format(cfg_path)
+        self.cuisine.process.kill("ardb-server")
+        self.cuisine.processmanager.ensure(name="ardb-server-{}".format(name), cmd=cmd, env={}, path="")
+        self.test(port=port)
+
+        self.doneSet("start-%s" % name)
+
+    def stop(self, name='main'):
+        self.cuisine.processmanager.stop("ardb-server-{}".format(name))
 
     def getClient(self):
         pass
 
-    def test(self):
+    def test(self, port):
         """
         do some test through normal redis client
         """
@@ -164,7 +173,7 @@ class CuisineARDB(app):
         else:
             addr = self.cuisine.executor.addr
 
-        r = j.clients.redis.get(ipaddr=addr, port=16379)
+        r = j.clients.redis.get(ipaddr=addr, port=port)
         r.set("test", "test")
         assert r.get("test") == b"test"
         r.delete("test")

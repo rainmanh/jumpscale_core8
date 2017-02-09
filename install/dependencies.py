@@ -31,6 +31,7 @@ class dependencies():
         pysodium
         ipfsapi
         curio
+        asyncssh
         """
         self.do.pip(C, executor=executor)
 

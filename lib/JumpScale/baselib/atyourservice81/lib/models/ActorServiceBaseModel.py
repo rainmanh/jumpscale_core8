@@ -152,6 +152,13 @@ class ActorServiceBaseModel(ModelBaseWithData):
     def eventFilters(self):
         return list(self.dbobj.eventFilters)
 
+    def actionDelete(self, name):
+        for i, action in enumerate(self.dbobj.actions):
+            if action.name == name:
+                self.dbobj.actions.pop(i)
+                self.changed = True
+                return
+
     def actionGet(self, name, die=True):
         for action in self.dbobj.actions:
             if action.name == name:

@@ -5,30 +5,42 @@ import re
 
 
 class RocksDBKeyValueStore(KeyValueStoreBase):
-    def __init__(self, name, namespace="db", dbpath='/tmp/default.db', serializers=[], masterdb=None, cache=None, changelog=None):
+    """
+    Warning: this rockdb implementation doesn't support anything except get/set
+    """
+    def __init__(self, name, namespace=None, dbpath='/tmp/default.db', serializers=[], masterdb=None, cache=None, changelog=None):
+        if namespace:
+            print("Warning: namespace is not supported with rockdb backend")
 
         self.rocksdb = rocksdb.DB(dbpath, rocksdb.Options(create_if_missing=True))
 
         KeyValueStoreBase.__init__(
             self,
-            namespace=namespace,
+            namespace=None,
             name=name,
-            serializers=serializers,
-            masterdb=masterdb,
-            cache=cache,
-            changelog=changelog
+            serializers=[],
+            masterdb=None,
+            cache=None,
+            changelog=None
         )
 
         self._indexkey = "index:%s" % namespace
 
     def _getKey(self, key):
-        return ('%s:%s' % (self.namespace, key)).encode('utf-8')
+        # return ('%s:%s' % (self.namespace, key)).encode('utf-8')
+        return key.encode('utf-8')
 
     def _get(self, key):
         return self.rocksdb.get(self._getKey(key))
 
+    def get(self, key, secret=None):
+        return self._get(key)
+
     def _set(self, key, val):
-        return self.rocksdb.put(self._getKey(key), val)
+        return self.rocksdb.put(self._getKey(key), val.encode('ascii'))
+
+    def set(self, key, value=None, expire=None, acl={}, secret=""):
+        return self._set(key, value)
 
     def _delete(self, key):
         return self.rocksdb.delete(self._getKey(key))
@@ -50,11 +62,14 @@ class RocksDBKeyValueStore(KeyValueStoreBase):
     """
 
     def index(self, items, secret=""):
+        return None
         """
         @param items is {indexitem:key}
             indexitem is e.g. $actorname:$state:$role (is a text which will be index to key)
             key links to the object in the db
         ':' is not allowed in indexitem
+        """
+
         """
         # if in non redis, implement as e.g. str index in 1 key and if gets too big then create multiple
         for key, val in items.items():
@@ -70,6 +85,7 @@ class RocksDBKeyValueStore(KeyValueStoreBase):
                 k = "%s:%s" % (self._indexkey, key)
                 self.rocksdb.put(k.encode('utf-8'), val.encode('utf-8'))
         return True
+        """
 
     '''
 
@@ -129,10 +145,14 @@ class RocksDBKeyValueStore(KeyValueStoreBase):
     '''
 
     def lookupSet(self, name, key, fkey):
+        return None
+
         k = '%slookup:%d' % (self._indexkey, key)
         self.rocksdb.put(k.encode('utf-8'), fkey.encode('utf-8'))
 
     def lookupGet(self, name, key):
+        return None
+
         k = '%slookup:%d' % (self._indexkey, key)
         self.rocksdb.get(k.encode('utf-8'))
 

@@ -12,7 +12,7 @@ class CuisineMongodb(app):
         """
         download, install, move files to appropriate places, and create relavent configs
         """
-        if not reset and self.doneGet("install"):
+        if (not reset and self.doneGet("install")) or self.isInstalled():
             return
         if self.cuisine.core.isMac:
             self.cuisine.core.run("brew uninstall mongodb", die=False)
@@ -25,7 +25,7 @@ class CuisineMongodb(app):
             url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-3.4.0.tgz'
         elif self.cuisine.core.isArch:
             self.cuisine.package.install("mongodb")
-        elif self.cuisine.core.isMac: 
+        elif self.cuisine.core.isMac:
             url = 'https://fastdl.mongodb.org/osx/mongodb-osx-ssl-x86_64-3.4.0.tgz'
         else:
             raise j.exceptions.RuntimeError("unsupported platform")
@@ -52,7 +52,7 @@ class CuisineMongodb(app):
         raise RuntimeError("not implemented")
 
     def start(self, reset=False):
-        if not reset and self.doneGet("start"):
+        if (not reset and self.doneGet("start")) or self.isStarted():
             return
         self.cuisine.core.dir_ensure('$VARDIR/data/mongodb')
         cmd = "$BINDIR/mongod --dbpath '$VARDIR/data/mongodb'"

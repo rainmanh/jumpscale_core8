@@ -133,7 +133,7 @@ class Actor():
                 min=int(consume_info['min']),
                 max=int(consume_info['max']),
                 auto=bool(consume_info['auto']),
-                argname=consume_info['argname']
+                argname=consume_info.get('argname', consume_info['role'])
             )
 
 

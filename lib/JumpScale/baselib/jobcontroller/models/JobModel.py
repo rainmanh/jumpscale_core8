@@ -42,6 +42,9 @@ class JobModel(ModelBase):
         logitem.epoch = epoch
         logitem.log = msg
         logitem.tags = tags
+
+        self.dbobj.logs.append(logitem)
+
         return logitem
 
     @property

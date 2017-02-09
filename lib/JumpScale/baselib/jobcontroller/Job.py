@@ -188,8 +188,6 @@ class Job():
                 except j.exceptions.NotFound:
                     self.logger.warning("job {} tried to access a non existing service {}".format(self,self.model.dbobj.serviceKey ))
                     return None
-                # serviceModel = repo.db.services.get(self.model.dbobj.serviceKey)
-                # self._service = serviceModel.objectGet(repo)
         return self._service
 
     def _processError(self, eco):
@@ -245,6 +243,11 @@ class Job():
 
     def save(self):
         self.model.save()
+        if self.saveService and self.service is not None:
+            if self.model.dbobj.actionName in self.service.model.actions:
+                service_action_obj = self.service.model.actions[self.model.dbobj.actionName]
+                service_action_obj.state = str(self.model.dbobj.state)
+            self.service.saveAll()
 
     def executeInProcess(self):
         """
@@ -270,6 +273,7 @@ class Job():
             self._future = loop.run_in_executor(None, reditect_stream_wraper, (self.method, self))
         else:
             # to debug we don't redirect stdout and stderr so ipdb can work
+            self.logger.info("job {} is exected in debug mode".format(self))
             self._future = loop.run_in_executor(None, self.method, self)
 
         # register callback to deal with logs and state of the job after execution

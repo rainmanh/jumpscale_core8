@@ -192,7 +192,6 @@ class Service:
         args: passed arguments in the blueprint (i.e {'ssh1':'main', 'sshlist':[]} )
 
         """
-
         # for every producer model in the producers, we get the user set services `argname` to be consumed in the blueprint itself.
         # calculate the difference of the available services and the user set
         # calculate the min required services and see if we should create new ones if auto is set
@@ -231,7 +230,7 @@ class Service:
 
             for idx, producer_obj in enumerate(usersetservices + available_services):
                 # if self.name == 'vdcname':
-                if idx >= len(usersetservices) and idx >= producer_model.minServices:
+                if producer_model.auto is False and idx >= len(usersetservices) and idx >= producer_model.minServices:
                     break
                 self.model.producerAdd(
                     actorName=producer_obj.model.dbobj.actorName,

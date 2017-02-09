@@ -60,8 +60,8 @@ struct Actor {
 
   struct ActorPointer {
     actorRole @0 :Text;
-    minServices @1 :UInt8;
-    maxServices @2 :UInt8;
+    minServices @1 :UInt16;
+    maxServices @2 :UInt16;
     auto @3 :Bool;
     optional @4 :Bool;
     argname @5 :Text; # key in the args that contains the instance name of the targets

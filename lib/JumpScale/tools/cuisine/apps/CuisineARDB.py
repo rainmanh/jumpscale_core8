@@ -159,7 +159,12 @@ class CuisineARDB(app):
         """
         do some test through normal redis client
         """
-        r = j.clients.redis.get(port=16379)
+        if self.cuisine.executor.type == 'local':
+            addr = 'localhost'
+        else:
+            addr = self.cuisine.executor.addr
+
+        r = j.clients.redis.get(ipaddr=addr, port=16379)
         r.set("test", "test")
         assert r.get("test") == b"test"
         r.delete("test")

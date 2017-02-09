@@ -81,7 +81,8 @@ class SSHClient:
         if self.client is None:
             raise j.exceptions.RuntimeError(
                 "Could not connect to %s:%s" % (self.addr, self.port))
-        return self.client.get_transport()
+        transport = self.client.get_transport()
+        return transport
 
     @property
     def client(self):
@@ -111,7 +112,7 @@ class SSHClient:
                 self.look_for_keys = True
                 # if not j.clients.ssh.checkSSHAgentAvailable():
                 #     j.clients.ssh._loadSSHAgent()
-                if j.clients.ssh.getSSHKeyPathFromAgent(self.key_filename, die=False)!=None and not self.passphrase:
+                if j.clients.ssh.getSSHKeyPathFromAgent(self.key_filename, die=False) is not None and not self.passphrase:
                     j.clients.ssh.loadSSHKeys(self.key_filename)
 
 
@@ -147,7 +148,6 @@ class SSHClient:
             if self._client is None:
                 raise j.exceptions.RuntimeError(
                     'Impossible to create SSH connection to %s:%s' % (self.addr, self.port))
-
         return self._client
 
     def reset(self):

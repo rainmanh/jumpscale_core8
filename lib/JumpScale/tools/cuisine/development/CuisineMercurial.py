@@ -8,10 +8,16 @@ base = j.tools.cuisine._getBaseClass()
 class CuisineMercurial(base):
 
     def install(self):
-        C = """
-        mercurial
-        """
-        self.cuisine.package.multiInstall(C)
+
+        # FIXME: python header files should be included inside /opt as well
+        self.cuisine.package.install("python2.7-dev")
+        self.cuisine.core.file_download('https://www.mercurial-scm.org/release/mercurial-4.1.tar.gz', '$TMPDIR/mercurial-4.1.tar.gz')
+
+        self.cuisine.core.run('cd $TMPDIR; tar -xf mercurial-4.1.tar.gz')
+        self.cuisine.core.run('cd $TMPDIR/mercurial-4.1; python setup.py build')
+        # TODO: if BINDIR doesn't end /bin theis won't work
+        self.cuisine.core.run('cd $TMPDIR/mercurial-4.1; python setup.py install --home="$BINDIR/.." --prefix="" --install-lib="$JSLIBEXTDIR" --force')
+        self.cuisine.core.run("sed -i '1s/python/python2/' $BINDIR/hg")
 
     def pullRepo(self, url, dest=None,
                  ignorelocalchanges=True, reset=False, branch=None, timeout=1200):

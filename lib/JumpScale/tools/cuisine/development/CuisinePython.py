@@ -117,6 +117,7 @@ class CuisinePython(base):
                                    overwriteFiles=True, ignoredir=ignoredir,
                                    recursive=True, rsyncdelete=True, createdir=True)
 
+        self.cuisine.core.file_unlink("%s/python3" % self.BUILDDIRL)
         if self.core.isMac:
             self.cuisine.core.file_copy("%s/python.exe" % self.CODEDIRL, "%s/python3" % self.BUILDDIRL)
         else:
@@ -127,7 +128,6 @@ class CuisinePython(base):
             mkdir -p bin
             rm -f bin/python3
             mv python3 bin/python3
-            rm -f python3
             ln -s bin/python3 python3
         """
         self.cuisine.core.run(self.replace(C))
@@ -178,11 +178,12 @@ class CuisinePython(base):
             source env.sh
             rm -rf get-pip.py
             curl https://bootstrap.pypa.io/get-pip.py > get-pip.py
-            python3 get-pip.py
+            $BUILDDIRL/bin/python3 get-pip.py
             """
             self.cuisine.core.run(self.replace(C))
         self.doneSet("pip3install")
 
+        self.cuisine.package.ensure("libcapnp-dev")
         self.pipAll()
 
         msg = "\n\nto test do:\ncd $BUILDDIRL;source env.sh;python3"
@@ -257,7 +258,7 @@ class CuisinePython(base):
         requests
         netaddr
         ipython
-        # cython
+        cython
         pycapnp
         path.py
         colored-traceback

@@ -6,10 +6,11 @@ import os
 class ExecutorSSH(ExecutorBase):
 
     def __init__(self, addr='', port=22, login="root",
-                 passwd=None,  allow_agent=True, debug=False,
-                 look_for_keys=True, checkok=True, timeout=5, key_filename=None, passphrase=None):
+                 passwd=None, allow_agent=True, debug=False,
+                 look_for_keys=True, checkok=True, timeout=5,
+                 key_filename=None, pubkey=None, passphrase=None):
 
-        ExecutorBase.__init__(self,  debug=debug, checkok=checkok)
+        ExecutorBase.__init__(self, debug=debug, checkok=checkok)
 
         self.addr = addr
         self.port = port
@@ -27,6 +28,7 @@ class ExecutorSSH(ExecutorBase):
         self.timeout = timeout
         self.proxycommand = None
         self.key_filename = key_filename
+        self.pubkey = pubkey
         self.passphrase = passphrase
         self._id = None
 
@@ -34,8 +36,13 @@ class ExecutorSSH(ExecutorBase):
     @property
     def logger(self):
         if self._logger is None:
-            self._logger = j.logger.get("excr.%s" % self.addr)
+            self._logger = j.logger.get("executor.%s" % self.addr)
         return self._logger
+
+    def pushkey(self, user='root'):
+        key = self.pubkey or j.do.getSSHKeyFromAgentPub(self.key_filename)
+        self.sshclient.ssh_authorize(user=self.login, key=key)
+        # pass
 
     def getMacAddr(self):
         print("Get maccaddr")

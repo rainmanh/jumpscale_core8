@@ -17,7 +17,8 @@ class ExecutorFactory:
         @param keyname is name of key (pub)
         @param pubkey is the content of the pub key
         """
-        ExecutorSSH(addr, port=port, login=login, passwd=passwd, pushkey=keyname, pubkey=pubkey)
+        executor = ExecutorSSH(addr, port=port, login=login, passwd=passwd, pubkey=pubkey, key_filename=keyname, look_for_keys=True, allow_agent=True)
+        executor.pushkey()
 
     def getSSHViaProxy(self, jumphost, jmphostuser, host, username, port, identityfile, proxycommand=None):
         """

@@ -23,8 +23,8 @@ class Service:
 
     @classmethod
     async def init_from_actor(cls, aysrepo, actor, args, name):
+        self = cls(aysrepo)
         try:
-            self = cls(aysrepo)
             await self._initFromActor(actor=actor, args=args, name=name)
             self._ensure_recurring()
             return self
@@ -633,7 +633,7 @@ class Service:
             self._ensure_recurring()
 
 
-        if not force and action_model.state == 'ok':
+        if not force and action_model.state == 'ok' and action not in ['start', 'stop']:
             self.logger.info("action %s already in ok state, don't schedule again" % action_model.name)
         else:
             self.logger.info('schedule action %s on %s' % (action, self))

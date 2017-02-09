@@ -118,9 +118,10 @@ class SSHClient:
             while start + self.timeout > j.data.time.getTimeEpoch():
                 # j.tools.console.hideOutput()
                 try:
-                    print("connect to:%s"%self.addr)
+                    print("connect to:%s " % self.addr)
                     self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,
-                        allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,timeout=2.0, banner_timeout=3.0)
+                                         allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,
+                                         pkey=self.pkey, timeout=2.0, banner_timeout=3.0)
                     print("connection ok")
                     return self._client
                 except (BadHostKeyException, AuthenticationException) as e:

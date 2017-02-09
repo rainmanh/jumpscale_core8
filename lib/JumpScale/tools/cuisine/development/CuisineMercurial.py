@@ -16,7 +16,8 @@ class CuisineMercurial(base):
         self.cuisine.core.run('cd $TMPDIR; tar -xf mercurial-4.1.tar.gz')
         self.cuisine.core.run('cd $TMPDIR/mercurial-4.1; python setup.py build')
         # TODO: if BINDIR doesn't end /bin theis won't work
-        self.cuisine.core.run('cd $TMPDIR/mercurial-4.1; python setup.py install --home="$BINDIR/.." --prefix="" --install-lib="$JSLIBEXTDIR" --force')
+        self.cuisine.core.run('cd $TMPDIR/mercurial-4.1; python setup.py install --force')
+        # self.cuisine.core.run('cd $TMPDIR/mercurial-4.1; python setup.py install --home="$BINDIR/.." --prefix="" --install-lib="$JSLIBEXTDIR" --force')
         self.cuisine.core.run("sed -i '1s/python/python2/' $BINDIR/hg")
 
     def pullRepo(self, url, dest=None,

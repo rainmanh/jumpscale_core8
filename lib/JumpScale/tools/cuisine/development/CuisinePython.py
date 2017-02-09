@@ -183,6 +183,7 @@ class CuisinePython(base):
             self.cuisine.core.run(self.replace(C))
         self.doneSet("pip3install")
 
+        self.cuisine.package.ensure("libssl-dev")
         self.cuisine.package.ensure("libcapnp-dev")
         self.pipAll()
 

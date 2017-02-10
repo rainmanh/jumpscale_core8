@@ -367,21 +367,21 @@ class Service:
     @property
     def producers(self):
         producers = {}
-        for prod_model in self.model.producers:
-            if prod_model.role not in producers:
-                producers[prod_model.role] = []
-            producers[prod_model.role].extend(self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName))
+        for prod in self.model.dbobj.producers:
+            role = prod.actorName.split(".")[0]
+            if role not in producers:
+                producers[role] = []
+            producers[role].extend(self.aysrepo.servicesFind(name=prod.serviceName, actor=prod.actorName))
         return producers
 
     @property
     def consumers(self):
         consumers = {}
-        for prod_model in self.model.consumers:
-            if prod_model.role not in consumers:
-                consumers[prod_model.role] = []
-            result = self.aysrepo.servicesFind(name=prod_model.dbobj.name, actor=prod_model.dbobj.actorName)
-            consumers[prod_model.role].extend(result)
-
+        for prod in self.model.dbobj.consumers:
+            role = prod.actorName.split(".")[0]
+            if role not in consumers:
+                consumers[role] = []
+            consumers[role].extend(self.aysrepo.servicesFind(name=prod.serviceName, actor=prod.actorName))
         return consumers
 
     def isConsumedBy(self, service):
@@ -452,7 +452,7 @@ class Service:
         """
         consume another service dynamicly
         """
-        if service in self.producers:
+        if service.model.role in self.producers and service in self.producers[service.model.role]:
             return
 
         self.model.producerAdd(

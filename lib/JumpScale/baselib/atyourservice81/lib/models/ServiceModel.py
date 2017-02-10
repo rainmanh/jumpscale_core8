@@ -78,14 +78,6 @@ class ServiceModel(ActorServiceBaseModel):
 
     @property
     def producers(self):
-        # producers = None
-        # if self._cache is True:
-        #     if self._producers != []:
-        #         return self._producers
-        #     else:
-        #         producers = self._producers
-        # else:
-        #     producers = []
         producers = []
 
         for prod in self.dbobj.producers:

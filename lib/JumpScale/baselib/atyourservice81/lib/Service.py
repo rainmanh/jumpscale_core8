@@ -26,6 +26,7 @@ class Service:
         self = cls(aysrepo)
         try:
             await self._initFromActor(actor=actor, args=args, name=name)
+            self.aysrepo._services[self.model.key] = self
             self._ensure_recurring()
             return self
         except Exception as e:

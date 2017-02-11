@@ -3,7 +3,7 @@ import os
 try:
     import cson
 except:
-    rc, out, err = j.sal.process.execute("pip3 install cson", die=True, showout=False)
+    rc, out, err = j.do.execute("pip3 install cson")
     import cson
 
 import inspect
@@ -49,6 +49,7 @@ class AtomEditor:
         self.installPackagesMarkdown()
         self.installPackagesRaml()
         self.installPackagesPython()
+        self.installPackagesNim()
 
     def installPackagesMarkdown(self):
         "Installs packages for markdown"
@@ -62,6 +63,14 @@ class AtomEditor:
         tidy-markdown
         markdown-preview
         language-gfm
+        """
+        for item in items.split("\n"):
+            self.installPackage(item)
+
+    def installPackagesNim(self):
+        "Installs main nim packages."
+        items = """
+        nim
         """
         for item in items.split("\n"):
             self.installPackage(item)

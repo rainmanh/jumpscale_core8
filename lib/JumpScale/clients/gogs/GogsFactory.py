@@ -18,7 +18,14 @@ class GogsFactory:
         self.getReposFromPSQL(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
         self.getOrgsFromPSQL(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
 
-    def getIssuesFromPSQL(self, ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs"):
+    def connectPSQL(self,ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs"):
+        """
+        connects to psql & connects resulting model to self.model
+        """
+        self.model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
+
+
+    def getIssuesFromPSQL(self, ):
         """
         Load issues from remote database into model.
 
@@ -29,7 +36,7 @@ class GogsFactory:
         @param dbname str,, database name.
         """
         IssueCollection = j.tools.issuemanager.getIssueCollectionFromDB()
-        model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
+
         queryString = """
         select i.id,
                i.name,

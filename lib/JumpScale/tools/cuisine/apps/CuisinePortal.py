@@ -13,7 +13,6 @@ class CuisinePortal(base):
         self._config = None
         self.portal_dir = j.sal.fs.joinPaths(self._cuisine.core.dir_paths["appDir"], "portals/")
         self.main_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'main')
-        self._cuisine.core.dir_ensure(self.main_portal_dir)
         self.cfg_path = j.sal.fs.joinPaths(self.main_portal_dir, 'config.hrd')
 
     def configure(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1",
@@ -45,6 +44,8 @@ class CuisinePortal(base):
         # set encoding to utf-8
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
         self._cuisine.bash.environSet("LANG", "C.UTF-8")
+
+        self._cuisine.core.dir_ensure(self.main_portal_dir)
 
         # install the dependencies if required
         if installdeps:

@@ -8,6 +8,25 @@ class OrgCollection(base):
     This class represent a collection of Issues
     """
 
+    def memberAdd(self, userKey,access):
+        """
+        """
+        obj = j.data.capnp.getMemoryObj(
+            schema=self._capnp_schema.Member,
+            userKey=userKey,
+            access=access)
+
+        self.dbobj.members.append(obj)
+        self.save()
+
+    # def consumerRemove(self, service):
+    #     """
+    #     Remove the service passed in argument from the producers list
+    #     """
+    #     for i, consumer in enumerate(self.dbobj.consumers):
+    #         if consumer.key == service.model.key:
+    #             self.dbobj.consumers.pop(i)
+
     def list(self, name='', id=0, source="", returnIndex=False):
         """
         List all keys of org model with specified params.

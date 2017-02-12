@@ -158,18 +158,45 @@ class SSHMethods():
         os.environ['SSH_AUTH_SOCK'] = socketpath
         return socketpath
 
-    def loadSSHKeys(self, path=None, duration=3600 * 24, die=False):
+    def SSHAgentCheck(self):
+        if "SSH_AUTH_SOCK" not in os.environ:
+            self._initSSH_ENV(True)
+            self._addSSHAgentToBashProfile()
+        if not self.SSHAgentAvailable():
+            self._loadSSHAgent()
+
+
+    def SSHKeyLoad(self, path,duration=3600 * 24):
+        """
+        @param path is name or full path
+        """
+        self.SSHAgentCheck()
+        if self.SSHAgentCheckKeyIsLoaded(path):
+            return
+        self.logger.info("load ssh key:%s"%path)
+        self.chmod(path,0o600)
+        cmd = "ssh-add -t %s %s " % (duration, path)
+        self.executeInteractive(cmd)
+
+    def SSHAgentCheckKeyIsLoaded(self,keyNamePath):
+        keysloaded = [self.getBaseName(item) for item in self.SSHKeysListFromAgent()]
+        if  self.getBaseName(keyNamePath) in keysloaded:
+            self.logger.info("ssh key:%s loaded"%keyNamePath)
+            return True
+        else:
+            self.logger.info("ssh key:%s NOT loaded"%keyNamePath)
+            return False
+
+
+
+    def SSHKeysLoad(self, path=None, duration=3600 * 24, die=False):
         """
         will see if ssh-agent has been started
         will check keys in home dir
         will ask which keys to load
         will adjust .profile file to make sure that env param is set to allow ssh-agent to find the keys
         """
-        # print "loadsshkeys"
-        # TODO *1 move ssh functionality all of it to right sal or tool in
-        # jumpscale, make sure wherever we use it we adjust
-
-        self._addSSHAgentToBashProfile()
+        self.SSHAgentCheck()
 
         if path is None:
             path = os.path.expanduser("~/.ssh")
@@ -180,7 +207,7 @@ class SSHMethods():
 
         self._loadSSHAgent()
 
-        keysloaded = [self.getBaseName(item) for item in self.listSSHKeyFromAgent()]
+        keysloaded = [self.getBaseName(item) for item in self.SSHKeysListFromAgent()]
 
         if self.isDir(path):
             keysinfs = [self.getBaseName(item).replace(".pub", "") for item in self.listFilesInDir(
@@ -200,7 +227,7 @@ class SSHMethods():
             cmd = "ssh-add -t %s %s " % (duration, pathkey)
             self.executeInteractive(cmd)
 
-    def getSSHKeyPathFromAgent(self, keyname, die=True):
+    def SSHKeyGetPathFromAgent(self, keyname, die=True):
         try:
             # TODO: why do we use subprocess here and not self.execute?
             out = subprocess.check_output(["ssh-add", "-L"])
@@ -224,7 +251,7 @@ class SSHMethods():
             raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l" % keyname)
         return None
 
-    def getSSHKeyFromAgentPub(self, keyname, die=True):
+    def SSHKeyGetFromAgentPub(self, keyname, die=True):
         try:
             # TODO: why do we use subprocess here and not self.execute?
             out = subprocess.check_output(["ssh-add", "-L"])
@@ -241,7 +268,7 @@ class SSHMethods():
             raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l" % keyname)
         return None
 
-    def listSSHKeyFromAgent(self, keyIncluded=False):
+    def SSHKeysListFromAgent(self, keyIncluded=False):
         """
         returns list of paths
         """
@@ -260,7 +287,7 @@ class SSHMethods():
         else:
             return list(map(lambda key: key[2], keys))
 
-    def ensure_keyname(self, keyname="", username="root"):
+    def SSHEnsureKeyname(self, keyname="", username="root"):
         if not self.exists(keyname):
             rootpath = "/root/.ssh/" if username == "root" else "/home/%s/.ssh/"
             fullpath = self.joinPaths(rootpath, keyname)
@@ -310,14 +337,14 @@ class SSHMethods():
             else:
                 self.logger.info("ssh key was already authorized")
 
-    def authorizeSSHKey(self, remoteipaddr, keyname, login="root", passwd=None, sshport=22, removeothers=False):
+    def SSHAuthorizeKey(self, remoteipaddr, keyname, login="root", passwd=None, sshport=22, removeothers=False):
         """
         this required ssh-agent to be loaded !!!
         the keyname is the name of the key as loaded in ssh-agent
 
         if remoteothers==True: then other keys will be removed
         """
-        keyname = self.ensure_keyname(keyname=keyname, username=login)
+        keyname = self.SSHEnsureKeyname(keyname=keyname, username=login)
         import paramiko
         paramiko.util.log_to_file("/tmp/paramiko.log")
         ssh = paramiko.SSHClient()
@@ -325,8 +352,8 @@ class SSHMethods():
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.logger.info("ssh connect:%s %s" % (remoteipaddr, login))
 
-        if not self.listSSHKeyFromAgent(self.getBaseName(keyname)):
-            self.loadSSHKeys(self.getParent(keyname))
+        if not self.SSHKeysListFromAgent(self.getBaseName(keyname)):
+            self.SSHKeysLoad(self.getParent(keyname))
         ssh.connect(remoteipaddr, username=login, password=passwd, allow_agent=True, look_for_keys=False)
         self.logger.info("ok")
 
@@ -411,7 +438,7 @@ class SSHMethods():
                 raise RuntimeError(
                     "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
 
-    def checkSSHAgentAvailable(self):
+    def SSHAgentAvailable(self):
         if not self.exists(self._getSSHSocketpath()):
             return False
         if "SSH_AUTH_SOCK" not in os.environ:
@@ -442,7 +469,7 @@ class GitMethods():
         """
 
         if ssh == "auto" or ssh == "first":
-            ssh = self.checkSSHAgentAvailable()
+            ssh = self.SSHAgentAvailable()
         elif ssh == True or ssh == False:
             pass
         else:
@@ -1677,7 +1704,7 @@ class ExecutorMethods():
         if remote is not None:
             tmppathdest = "/tmp/do.sh"
             if sshkey:
-                if not self.getSSHKeyPathFromAgent(sshkey, die=False) is None:
+                if not self.SSHKeyGetPathFromAgent(sshkey, die=False) is None:
                     self.execute('ssh-add %s' % sshkey)
                 sshkey = '-i %s ' % sshkey.replace('!', '\!')
             self.execute("scp %s -oStrictHostKeyChecking=no -P %s %s root@%s:%s " %

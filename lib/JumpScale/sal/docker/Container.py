@@ -193,13 +193,13 @@ class Container:
         if sshpubkey != "" and sshpubkey is not None:
             key = sshpubkey
         else:
-            if not j.do.checkSSHAgentAvailable():
+            if not j.do.SSHAgentAvailable():
                 j.do._loadSSHAgent()
 
             if keyname != "" and keyname is not None:
-                key = j.do.getSSHKeyFromAgentPub(keyname)
+                key = j.do.SSHKeyGetFromAgentPub(keyname)
             else:
-                key = j.do.getSSHKeyFromAgentPub("docker_default", die=False)
+                key = j.do.SSHKeyGetFromAgentPub("docker_default", die=False)
                 if key is None:
                     dir = j.tools.path.get('%s/.ssh' % home)
                     if dir.listdir("docker_default.pub") == []:

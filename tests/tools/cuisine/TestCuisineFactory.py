@@ -35,17 +35,17 @@ class TestCuisineFactory(unittest.TestCase):
     @mock.patch('JumpScale.j.sal.process')
     def test_generate_pubkey_loads_ssh_agent_if_none_found(self, mock_process, mock_do, mock_fs, mock_console):
         """
-        Happy Path. If checkSSHAgentAvailable returns False
+        Happy Path. If SSHAgentAvailable returns False
         """
         # Mocking
-        mock_do.checkSSHAgentAvailable.return_value = False
+        mock_do.SSHAgentAvailable.return_value = False
         mock_process.execute.return_value = self.ssh_add_l_output
         mock_console.askChoice.return_value = 'abdelrahman@abdelrahman-work'
         mock_fs.fileGetContents.return_value = 'random key'
         # Calling the method
         self.factory._generate_pubkey()
         # Assertions
-        mock_do.checkSSHAgentAvailable.assert_called_once_with()
+        mock_do.SSHAgentAvailable.assert_called_once_with()
         mock_do._loadSSHAgent.assert_called_once_with()
         mock_process.execute.assert_called_once_with('ssh-add -l')
         mock_console.askChoice.assert_called_once_with(['abdelrahman@abdelrahman-work'], 'please select key')
@@ -57,17 +57,17 @@ class TestCuisineFactory(unittest.TestCase):
     @mock.patch('JumpScale.j.sal.process')
     def test_generate_pubkey_loads_ssh_agent_is_found(self, mock_process, mock_do, mock_fs, mock_console):
         """
-        Happy Path. If checkSSHAgentAvailable returns True
+        Happy Path. If SSHAgentAvailable returns True
         """
         # Mocking
-        mock_do.checkSSHAgentAvailable.return_value = True
+        mock_do.SSHAgentAvailable.return_value = True
         mock_process.execute.return_value = self.ssh_add_l_output
         mock_console.askChoice.return_value = 'abdelrahman@abdelrahman-work'
         mock_fs.fileGetContents.return_value = 'random key'
         # Calling the method
         self.factory._generate_pubkey()
         # Assertions
-        mock_do.checkSSHAgentAvailable.assert_called_once_with()
+        mock_do.SSHAgentAvailable.assert_called_once_with()
         mock_do._loadSSHAgent.assert_not_called()
         mock_process.execute.assert_called_once_with('ssh-add -l')
         mock_console.askChoice.assert_called_once_with(['abdelrahman@abdelrahman-work'], 'please select key')

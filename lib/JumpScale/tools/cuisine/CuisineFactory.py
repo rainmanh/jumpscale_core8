@@ -227,7 +227,7 @@ class JSCuisineFactory:
         return self._local
 
     def _generate_pubkey(self):
-        if not j.do.checkSSHAgentAvailable():
+        if not j.do.SSHAgentAvailable():
             j.do._loadSSHAgent()
         rc, out, err = j.sal.process.execute("ssh-add -l")
         keys = []
@@ -247,7 +247,7 @@ class JSCuisineFactory:
         if keyname == '':
             return self._generate_pubkey()
 
-        key = j.do.getSSHKeyPathFromAgent(keyname)
+        key = j.do.SSHKeyGetPathFromAgent(keyname)
         return j.sal.fs.fileGetContents(key + '.pub')
 
     def _get_ssh_executor(self, addr, port, login, passphrase, passwd):

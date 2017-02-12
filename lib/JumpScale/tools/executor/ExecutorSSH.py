@@ -40,7 +40,7 @@ class ExecutorSSH(ExecutorBase):
         return self._logger
 
     def pushkey(self, user='root'):
-        key = self.pubkey or j.do.getSSHKeyFromAgentPub(self.key_filename)
+        key = self.pubkey or j.do.SSHKeyGetFromAgentPub(self.key_filename)
         self.sshclient.ssh_authorize(user=self.login, key=key)
         # pass
 

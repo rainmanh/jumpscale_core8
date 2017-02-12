@@ -32,16 +32,16 @@ class PeeweeFactory:
     #             ipaddr, port, login, passwd, dbname)
     #     return self.clients[key]
 
-    def getModelDoesntWorkYet(self, ipaddr="localhost", port=5432, login="postgres", passwd="rooter", dbname="template", dbtype="postgres", schema=None, cache=True):
-        key = "%s_%s_%s_%s_%s" % (ipaddr, port, login, dbname, dbtype)
-        if key not in self._cacheModel:
-            pw = Pwiz(host=ipaddr, port=port, user=login, passwd=passwd, dbtype=dbtype, schema=schema, dbname=dbname)
-            self._cacheModel[key] = pw.codeModel
-        code = self._cacheModel[key]
-        from IPython import embed
-        print("DEBUG NOW ooo")
-        embed()
-        raise RuntimeError("stop debug here")
+    # def getModelDoesntWorkYet(self, ipaddr="localhost", port=5432, login="postgres", passwd="rooter", dbname="template", dbtype="postgres", schema=None, cache=True):
+    #     key = "%s_%s_%s_%s_%s" % (ipaddr, port, login, dbname, dbtype)
+    #     if key not in self._cacheModel:
+    #         pw = Pwiz(host=ipaddr, port=port, user=login, passwd=passwd, dbtype=dbtype, schema=schema, dbname=dbname)
+    #         self._cacheModel[key] = pw.codeModel
+    #     code = self._cacheModel[key]
+    #     from IPython import embed
+    #     print("DEBUG NOW ooo")
+    #     embed()
+    #     raise RuntimeError("stop debug here")
 
     def resetCache(self):
         for item in j.core.db.keys("peewee.*"):
@@ -54,9 +54,10 @@ class PeeweeFactory:
             print([item.name for item in model.Issue.select()])
         """
         key = "%s_%s_%s_%s_%s" % (ipaddr, port, login, dbname, dbtype)
+
         if j.core.db.get("peewee.code.%s" % key) == None:
             cmd = 'pwiz.py -H %s  -p %s -u "%s" -P -i %s' % (ipaddr, port, login, dbname)
-            rc, out = j.sal.process.execute(cmd, useShell=True, die=True, showout=False)
+            rc, out,err = j.sal.process.execute(cmd, useShell=True, die=True, showout=False)
             j.core.db.set("peewee.code.%s" % key, out)
         code = j.core.db.get("peewee.code.%s" % key).decode()
 

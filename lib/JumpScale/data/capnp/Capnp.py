@@ -67,17 +67,10 @@ class Capnp:
             #if we use a modelBaseClass do something like
             ModelBaseWithData = j.data.capnp.getModelBaseClass()
             class MyModelBase(ModelBaseWithData):
-                def producerNewObj(self):
-                    olditems = [item.to_dict() for item in self.dbobj.producers]
-                    newlist = self.dbobj.init("producers", len(olditems) + 1)
-                    for i, item in enumerate(olditems):
-                        newlist[i] = item
-                    return newlist[-1]
-
-            def index(self):
-                # put indexes in db as specified
-                ind = "%s" % (self.dbobj.path)
-                self._index.index({ind: self.key})
+                def index(self):
+                    # put indexes in db as specified
+                    ind = "%s" % (self.dbobj.path)
+                    self._index.index({ind: self.key})
 
 
             import capnp
@@ -227,15 +220,39 @@ class Capnp:
           #name of actor e.g. node.ssh (role is the first part of it)
           name @1 :Text;
 
+          secrets @2 :List(Text);
+
         }
         '''
         # mydb = j.servers.kvs.getRedisStore("test")
         mydb = j.servers.kvs.getRedisStore(name="test", unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
         schema = self.getSchemaFromText(capnpschema, name="Issue")
+
+        # class SomeCollection(ModelBaseCollection):
+        #     """
+        #     This class represent a collection of AYS Actors contained in an AYS repository
+        #     It's used to list/find/create new Instance of Actor Model object
+        #     """
+        #
+        #     def __init__(self, repository,db):
+        #         self.repository = repository
+        #         namespace = "somecollection"
+        #         super().__init__(
+        #             schema=ModelCapnp.Actor,
+        #             category="Actor",
+        #             namespace=namespace,
+        #             modelBaseClass=ActorModel,
+        #             db=db,
+        #             indexDb=db
+        #         )
+
+
         collection = self.getModelCollection(schema, category="test", modelBaseClass=None, db=mydb, indexDb=mydb)
         for i in range(100):
             obj = collection.new()
             obj.dbobj.name = "test%s" % i
+            for i in range(10):
+                obj.dbobj.secrets.append("something")
             obj.save()
         print(collection.list())
 

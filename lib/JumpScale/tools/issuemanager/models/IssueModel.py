@@ -9,12 +9,6 @@ class IssueModel(base):
     Model Class for an Issue object
     """
 
-    @property
-    def key(self):
-        if self._key == "":
-            self._key = j.data.hash.md5_string(self.dictJson)
-        return self._key
-
     def index(self):
         # put indexes in db as specified
         if self.dbobj.isClosed:

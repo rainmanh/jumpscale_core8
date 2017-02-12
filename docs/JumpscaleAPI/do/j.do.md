@@ -15,7 +15,7 @@
 
 #### askItemsFromList(*items, msg=''*) 
 
-#### authorizeSSHKey(*remoteipaddr, keyname, login='root', passwd, sshport=22, removeothers*) 
+#### SSHAuthorizeKey(*remoteipaddr, keyname, login='root', passwd, sshport=22, removeothers*) 
 
 ```
 this required ssh-agent to be loaded !!!
@@ -61,7 +61,7 @@ check if path is dir or link to a dir
 
 ```
 
-#### checkSSHAgentAvailable() 
+#### SSHAgentAvailable() 
 
 #### chmod(*path, permissions*) 
 
@@ -232,9 +232,9 @@ TODO: why do we have 2 implementations which are almost the same see getParentDi
 
 #### getPythonSiteConfigPath() 
 
-#### getSSHKeyFromAgentPub(*keyname, die=True*) 
+#### SSHKeyGetFromAgentPub(*keyname, die=True*) 
 
-#### getSSHKeyPathFromAgent(*keyname, die=True*) 
+#### SSHKeyGetPathFromAgent(*keyname, die=True*) 
 
 #### getTimeEpoch() 
 
@@ -342,14 +342,14 @@ Retrieves list of files found in the specified directory
 
 ```
 
-#### listSSHKeyFromAgent(*keyIncluded*) 
+#### SSHKeysListFromAgent(*keyIncluded*) 
 
 ```
 returns list of paths
 
 ```
 
-#### loadSSHKeys(*path, duration=86400, die*) 
+#### SSHKeysLoad(*path, duration=86400, die*) 
 
 ```
 will see if ssh-agent has been started

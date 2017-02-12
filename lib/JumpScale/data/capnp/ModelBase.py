@@ -284,9 +284,11 @@ class ModelBaseCollection:
             import capnp
             # load the .capnp file
             import model_capnp as ModelCapnp
-            # pass this to the constructor.
+            # pass this to the constructor as schema.
+            ModelBaseCollection(schema=ModelCapnp)
+
             ModelCapnp.MyStruct
-        @param category str: category of the model. need to be the same as the category of the single model class
+        @param category str: category of the model. need to be the same as the category of the single model class, e.g. issue, actor, user, ...
         @param namespace: namespace used to store these object in key-value store
         @param modelBaseClass: important to pass the class not the object. Class used to create instance of this category.
                                Need to inherits from JumpScale.data.capnp.ModelBase.ModelBalse

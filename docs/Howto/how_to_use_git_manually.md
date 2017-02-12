@@ -11,7 +11,7 @@
 ## load ssh aggent
 
 ```
-js 'j.do.loadSSHKeys()'
+js 'j.do.SSHKeysLoad()'
 ```
 
 ## Set your Git private details

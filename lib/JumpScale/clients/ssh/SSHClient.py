@@ -106,10 +106,10 @@ class SSHClient:
             if self.key_filename:
                 self.allow_agent = True
                 self.look_for_keys = True
-                # if not j.clients.ssh.checkSSHAgentAvailable():
+                # if not j.clients.ssh.SSHAgentAvailable():
                 #     j.clients.ssh._loadSSHAgent()
-                if j.clients.ssh.getSSHKeyPathFromAgent(self.key_filename, die=False)!=None and not self.passphrase:
-                    j.clients.ssh.loadSSHKeys(self.key_filename)
+                if j.clients.ssh.SSHKeyGetPathFromAgent(self.key_filename, die=False)!=None and not self.passphrase:
+                    j.clients.ssh.SSHKeysLoad(self.key_filename)
 
 
             while start + self.timeout > j.data.time.getTimeEpoch():

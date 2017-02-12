@@ -20,20 +20,20 @@ class SSHClientFactory():
         self.cache = {}
 
         # to not have to duplicate information
-        self.loadSSHKeys = j.do.loadSSHKeys
+        self.SSHKeysLoad = j.do.SSHKeysLoad
         self._addSSHAgentToBashProfile = j.do._addSSHAgentToBashProfile
         self._initSSH_ENV = j.do._initSSH_ENV
         self._getSSHSocketpath = j.do._getSSHSocketpath
-        self.loadSSHKeys = j.do.loadSSHKeys
-        self.getSSHKeyPathFromAgent = j.do.getSSHKeyPathFromAgent
-        self.getSSHKeyFromAgentPub = j.do.getSSHKeyFromAgentPub
-        self.listSSHKeyFromAgent = j.do.listSSHKeyFromAgent
-        self.ensure_keyname = j.do.ensure_keyname
+        self.SSHKeysLoad = j.do.SSHKeysLoad
+        self.SSHKeyGetPathFromAgent = j.do.SSHKeyGetPathFromAgent
+        self.SSHKeyGetFromAgentPub = j.do.SSHKeyGetFromAgentPub
+        self.SSHKeysListFromAgent = j.do.SSHKeysListFromAgent
+        self.SSHEnsureKeyname = j.do.SSHEnsureKeyname
         self.authorize_user = j.do.authorize_user
         self.authorize_root = j.do.authorize_root
-        self.authorizeSSHKey = j.do.authorizeSSHKey
+        self.SSHAuthorizeKey = j.do.SSHAuthorizeKey
         self._loadSSHAgent = j.do._loadSSHAgent
-        self.checkSSHAgentAvailable = j.do.checkSSHAgentAvailable
+        self.SSHAgentAvailable = j.do.SSHAgentAvailable
 
     def reset(self):
         for key, client in self.cache.items():
@@ -104,7 +104,7 @@ class SSHClientFactory():
         if key in self.cache:
             self.cache.pop(key)
 
-    def getSSHKeyFromAgentPub(self, keyname="", die=True):
+    def SSHKeyGetFromAgentPub(self, keyname="", die=True):
         rc, out, err = j.tools.cuisine.local.core.run("ssh-add -L", die=False)
         if rc > 1:
             err = "Error looking for key in ssh-agent: %s", out

@@ -40,7 +40,7 @@ This will allow youme from yiur local server to login as root on the remote mach
 Using JumpScale:
 
 ```python
-j.do.authorizeSSHKey(remoteipaddr,login="root",passwd=None)
+j.do.SSHAuthorizeKey(remoteipaddr,login="root",passwd=None)
 ```
 
 If `psswd=None` you will be asked for the password.

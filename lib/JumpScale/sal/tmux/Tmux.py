@@ -1,7 +1,7 @@
 from JumpScale import j
 import time
 import libtmux as tmuxp
-
+import os
 
 class Session:
 
@@ -249,21 +249,19 @@ class Tmux:
     def __init__(self):
         self.__jslocation__ = "j.sal.tmux"
         self.sessions = {}
+        # tmuxpath=j.sal.fs.joinPaths(j.dirs.TMPDIR,"tmux")
+        # os.environ["TMUX_TMPDIR"]=tmuxpath
+        # j.sal.fs.createDir(tmuxpath)
 
-    def _getServer(self, name, firstWindow=""):
+    def _getServer(self, name, firstWindow="ignore"):
         try:
             s = tmuxp.Server()
             s.list_sessions()
         except Exception as e:
-            if firstWindow == "":
-                j.tools.cuisine.local.tmux.createSession(name, ["ignore"])
-            else:
-                j.tools.cuisine.local.tmux.createSession(name, [firstWindow])
-            s = tmuxp.Server()
-            s.list_sessions()
+            session1=s.new_session(firstWindow)
         return s
 
-    def getSession(self, name, reset=False, attach=False, firstWindow=""):
+    def getSession(self, name, reset=False, attach=False, firstWindow="ignore"):
         if reset and name in self.sessions:
             self.sessions[name].kill()
 
@@ -288,9 +286,13 @@ class Tmux:
         self.sessions[name] = Session(res)
         return self.sessions[name]
 
-    def execute(self, cmd):
-        cmd = "tmux %s" % cmd
-        j.sal.process.execute(cmd, showout=False)
+    def execute(self, cmd,session="main",window="main",pane="main"):
+        """
+        """
+        s=self.getSession(session)
+        w=s.getWindow(window)
+        p=w.getPane(pane)
+        p.execute(cmd)
 
     def createPanes4x4(self, sessionName="main", windowName="actions", reset=True):
         session = self.getSession(sessionName, firstWindow=windowName)

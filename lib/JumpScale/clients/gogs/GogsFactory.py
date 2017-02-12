@@ -8,24 +8,31 @@ class GogsFactory:
         self.__jslocation__ = "j.clients.gogs"
         self.logger = j.logger.get("j.clients.gogs")
         # self.db = ModelsFactory()
+        self.model=None
+        self.userCollection = j.tools.issuemanager.getUserCollectionFromDB()
+        self.orgCollection = j.tools.issuemanager.getOrgCollectionFromDB()
+        self.issueCollection = j.tools.issuemanager.getIssueCollectionFromDB()
+        self.repoCollection = j.tools.issuemanager.getRepoCollectionFromDB()
 
     def getRestClient(self, addr='https://127.0.0.1', port=3000, login='root', passwd='root'):
         return GogsClient(addr=addr, port=port, login=login, passwd=passwd)
 
-    def syncAllFromPSQL(self, ipaddr="127.0.0.1", port=5432, login='gogs', passwd='something', dbname="gogs"):
-        self.getIssuesFromPSQL(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
-        self.getUsersFromPSQL(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
-        self.getReposFromPSQL(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
-        self.getOrgsFromPSQL(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
+    def syncAllFromPSQL(self):
+        if self.model==None:
+            raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL", level=1, source="", tags="", msgpub="")
+        self.getIssuesFromPSQL()
+        self.getUsersFromPSQL()
+        self.getReposFromPSQL()
+        self.getOrgsFromPSQL()
 
     def connectPSQL(self,ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs"):
         """
         connects to psql & connects resulting model to self.model
         """
         self.model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
+        return self.model
 
-
-    def getIssuesFromPSQL(self, ):
+    def getIssuesFromPSQL(self):
         """
         Load issues from remote database into model.
 
@@ -35,6 +42,18 @@ class GogsFactory:
         @param passwd str,,database passwd.
         @param dbname str,, database name.
         """
+
+        if self.model==None:
+            raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL", level=1, source="", tags="", msgpub="")
+
+        collection = j.tools.issuemanager.getRepoCollectionFromDB()
+        res=collection.list()
+        if res==[]:
+            #need to download
+            self.getReposFromPSQL()
+
+        model=self.model
+
         IssueCollection = j.tools.issuemanager.getIssueCollectionFromDB()
 
         queryString = """
@@ -122,7 +141,7 @@ class GogsFactory:
         else:
             del issues
 
-    def getOrgsFromPSQL(self, ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs"):
+    def getOrgsFromPSQL(self):
         """
         Load organizations from remote database into model.
 
@@ -132,8 +151,18 @@ class GogsFactory:
         @param passwd str,,database passwd.
         @param dbname str,, database name.
         """
+
+        if self.model==None:
+            raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL", level=1, source="", tags="", msgpub="")
+
+        collection = j.tools.issuemanager.getUserCollectionFromDB()
+        res=collection.list()
+        if res==[]:
+            #need to download
+            self.getUsersFromPSQL()
+
         OrgCollection = j.tools.issuemanager.getOrgCollectionFromDB()
-        model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
+        model = self.model
         queryString = """
         select org.name,
            org.full_name,
@@ -175,14 +204,17 @@ class GogsFactory:
             pass
 
         for key, val in orgs.items():
+
             org_model = OrgCollection.new()
             if val['repos']:
-                org_model.dbobj.init('repos', val['num_repos'])
-                for count, repo in enumerate(val['repos']):
-                    org_model.dbobj.repos[count] = repo
+                for count, repoid in enumerate(val['repos']):
+                    from IPython import embed
+                    print ("DEBUG NOW add org")
+                    embed()
+                    raise RuntimeError("stop debug here")
+                    org_model.dbobj.repos.append(repoid)
 
             if val['members']:
-                org_model.dbobj.init('members', len(val['members']))
                 for count, (memberid, member) in enumerate(val['members'].items()):
                     member_scheme = org_model.dbobj.members[count]
                     member_scheme.userKey = memberid
@@ -201,8 +233,7 @@ class GogsFactory:
         else:
             del orgs
 
-    def getReposFromPSQL(self, ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs",
-                         model=None):
+    def getReposFromPSQL(self):
         """
         Load repos from remote database into model.
 
@@ -212,8 +243,12 @@ class GogsFactory:
         @param passwd str,,database passwd.
         @param dbname str,, database name.
         """
-        repoCollection = j.tools.issuemanager.getRepoCollectionFromDB()
-        model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
+        if self.model==None:
+            raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL", level=1, source="", tags="", msgpub="")
+
+        if self.orgCollection.list()==[]:
+            self.getOrgsFromPSQL()
+
         queryString = """
         select r.id,
                r.name,
@@ -237,34 +272,41 @@ class GogsFactory:
         left join label as l on l.repo_id=r.id
         left join milestone as m on m.repo_id=r.id
         """
-        query = model.User.raw(queryString)
-        repos = {}
-        try:
-            for repo in query:
-                if repo.id not in repos:
-                    repos[repo.id] = {'name': repo.name,
-                                      'owner': repo.owner_id,
-                                      'description': repo.description,
-                                      'num_issues': repo.num_issues,
-                                      'num_milestones': repo.num_milestones,
-                                      'members': dict(),
-                                      'milestones': dict(),
-                                      'labels': list()
-                                      }
-                repo_dict = repos[repo.id]
-                if repo.memberid:
-                    repo_dict['members'][repo.memberid] = repo.mode
-                if repo.label_name and repo.label_name not in repo_dict['labels']:
-                    repo_dict['labels'].append(repo.label_name)
-                if repo.milestone_id and repo.milestone_id not in repo_dict['milestones']:
-                    repo_dict['milestones'][repo.milestone_id] = {'name': repo.milestone_name,
-                                                                  'is_closed': repo.milestone_is_closed,
-                                                                  'num_issues': repo.milestone_num_issues,
-                                                                  'num_closed_issues': repo.milestone_num_closed_issues,
-                                                                  'completeness': repo.milestone_completeness,
-                                                                  'deadline': repo.milestone_deadline}
-        except model.User.DoesNotExist:
-            pass
+        query = self.model.User.raw(queryString)
+        # repos = {}
+        # try:
+        for repo in query:
+
+            res=repoCollection.find(repoid=repo.id)
+            from IPython import embed
+            print ("DEBUG NOW i876786")
+            embed()
+            raise RuntimeError("stop debug here")
+
+            if repo.id not in repos:
+                repos[repo.id] = {'name': repo.name,
+                                  'owner': repo.owner_id,
+                                  'description': repo.description,
+                                  'num_issues': repo.num_issues,
+                                  'num_milestones': repo.num_milestones,
+                                  'members': dict(),
+                                  'milestones': dict(),
+                                  'labels': list()
+                                  }
+            repo_dict = repos[repo.id]
+            if repo.memberid:
+                repo_dict['members'][repo.memberid] = repo.mode
+            if repo.label_name and repo.label_name not in repo_dict['labels']:
+                repo_dict['labels'].append(repo.label_name)
+            if repo.milestone_id and repo.milestone_id not in repo_dict['milestones']:
+                repo_dict['milestones'][repo.milestone_id] = {'name': repo.milestone_name,
+                                                              'is_closed': repo.milestone_is_closed,
+                                                              'num_issues': repo.milestone_num_issues,
+                                                              'num_closed_issues': repo.milestone_num_closed_issues,
+                                                              'completeness': repo.milestone_completeness,
+                                                              'deadline': repo.milestone_deadline}
+    # except model.User.DoesNotExist:
+        #     pass
 
         for key, val in repos.items():
             repo_model = repoCollection.new()
@@ -303,22 +345,17 @@ class GogsFactory:
         else:
             del repos
 
-    def getUsersFromPSQL(self, ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs",
-                         model=None):
+    def getUsersFromPSQL(self):
         """
         Load users from remote database into model.
-
-        @param ipaddr str,,ip address where remote database is on.
-        @param port int,, port number remote database is listening on.
-        @param login str,,database login.
-        @param passwd str,,database passwd.
-        @param dbname str,, database name.
         """
-        userCollection = j.tools.issuemanager.getUserCollectionFromDB()
-        model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
+        if self.model==None:
+            raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL", level=1, source="", tags="", msgpub="")
 
-        for user in model.User.select():
-            user_model = userCollection.new()
+        for user in self.model.User.select():
+
+            user_model=self.userCollection.getFromId(user.id,defaultNewMethod=self.userCollection.new)
+
             user_model.dbobj.name = user.name
             user_model.dbobj.fullname = user.full_name
             user_model.dbobj.email = user.email

@@ -50,6 +50,9 @@ class UserCollection(base):
             res.append(self.get(key))
         return res
 
-    def getFromId(self, id):
+    def getFromId(self, id,defaultNewMethod=None):
         key = self._index.lookupGet("issue_id", id)
-        return self.get(key)
+        if key==None:
+            return defaultNewMethod()
+        else:
+            return self.get(key)

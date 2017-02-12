@@ -477,7 +477,7 @@ j.clients.ssh.get?4([- addr = ''
 , - die = True
 , - usecache = True
 ])
-j.clients.ssh.getSSHKeyFromAgentPub?4([- keyname = ''
+j.clients.ssh.SSHKeyGetFromAgentPub?4([- keyname = ''
 , - die = True
 ])
 j.clients.ssh.logger?8
@@ -3017,7 +3017,7 @@ j.do.VARDIR?7
 j.do.askItemsFromList?4([- items
 , - msg = ''
 ])
-j.do.authorizeSSHKey?4([- remoteipaddr
+j.do.SSHAuthorizeKey?4([- remoteipaddr
 , - keyname
 , - login = 'root'
 , - passwd
@@ -3041,7 +3041,7 @@ j.do.checkDirOrLinkToDir?4([- fullpath
 ])
 j.do.checkInstalled?4([- cmdname
 ])
-j.do.checkSSHAgentAvailable?4([])
+j.do.SSHAgentAvailable?4([])
 j.do.chmod?4([- path
 , - permissions
 ])
@@ -3169,10 +3169,10 @@ j.do.getParent?4([- path
 j.do.getPythonLibSystem?4([- jumpscale = False
 ])
 j.do.getPythonSiteConfigPath?4([])
-j.do.getSSHKeyFromAgentPub?4([- keyname
+j.do.SSHKeyGetFromAgentPub?4([- keyname
 , - die = True
 ])
-j.do.getSSHKeyPathFromAgent?4([- keyname
+j.do.SSHKeyGetPathFromAgent?4([- keyname
 , - die = True
 ])
 j.do.getTimeEpoch?4([])
@@ -3261,9 +3261,9 @@ j.do.listFilesInDir?4([- path
 , - followSymlinks = True
 , - listSymlinks = False
 ])
-j.do.listSSHKeyFromAgent?4([- keyIncluded = False
+j.do.SSHKeysListFromAgent?4([- keyIncluded = False
 ])
-j.do.loadSSHKeys?4([- path
+j.do.SSHKeysLoad?4([- path
 , - duration = 86400
 , - die = False
 ])
@@ -7453,7 +7453,7 @@ j.clients.ssh.get?4([- addr = ''
 , - die = True
 , - usecache = True
 ])
-j.clients.ssh.getSSHKeyFromAgentPub?4([- keyname = ''
+j.clients.ssh.SSHKeyGetFromAgentPub?4([- keyname = ''
 , - die = True
 ])
 j.clients.ssh.logger?8
@@ -9989,7 +9989,7 @@ j.do.VARDIR?7
 j.do.askItemsFromList?4([- items
 , - msg = ''
 ])
-j.do.authorizeSSHKey?4([- remoteipaddr
+j.do.SSHAuthorizeKey?4([- remoteipaddr
 , - keyname
 , - login = 'root'
 , - passwd
@@ -10013,7 +10013,7 @@ j.do.checkDirOrLinkToDir?4([- fullpath
 ])
 j.do.checkInstalled?4([- cmdname
 ])
-j.do.checkSSHAgentAvailable?4([])
+j.do.SSHAgentAvailable?4([])
 j.do.chmod?4([- path
 , - permissions
 ])
@@ -10141,10 +10141,10 @@ j.do.getParent?4([- path
 j.do.getPythonLibSystem?4([- jumpscale = False
 ])
 j.do.getPythonSiteConfigPath?4([])
-j.do.getSSHKeyFromAgentPub?4([- keyname
+j.do.SSHKeyGetFromAgentPub?4([- keyname
 , - die = True
 ])
-j.do.getSSHKeyPathFromAgent?4([- keyname
+j.do.SSHKeyGetPathFromAgent?4([- keyname
 , - die = True
 ])
 j.do.getTimeEpoch?4([])
@@ -10233,9 +10233,9 @@ j.do.listFilesInDir?4([- path
 , - followSymlinks = True
 , - listSymlinks = False
 ])
-j.do.listSSHKeyFromAgent?4([- keyIncluded = False
+j.do.SSHKeysListFromAgent?4([- keyIncluded = False
 ])
-j.do.loadSSHKeys?4([- path
+j.do.SSHKeysLoad?4([- path
 , - duration = 86400
 , - die = False
 ])
@@ -14337,7 +14337,7 @@ j.clients.ssh.get?4([- addr = ''
 , - die = True
 , - usecache = True
 ])
-j.clients.ssh.getSSHKeyFromAgentPub?4([- keyname = ''
+j.clients.ssh.SSHKeyGetFromAgentPub?4([- keyname = ''
 , - die = True
 ])
 j.clients.ssh.logger?8
@@ -16890,7 +16890,7 @@ j.do.VARDIR?7
 j.do.askItemsFromList?4([- items
 , - msg = ''
 ])
-j.do.authorizeSSHKey?4([- remoteipaddr
+j.do.SSHAuthorizeKey?4([- remoteipaddr
 , - keyname
 , - login = 'root'
 , - passwd
@@ -16923,7 +16923,7 @@ j.do.checkDirOrLinkToDir?4([- fullpath
 ])
 j.do.checkInstalled?4([- cmdname
 ])
-j.do.checkSSHAgentAvailable?4([])
+j.do.SSHAgentAvailable?4([])
 j.do.chmod?4([- path
 , - permissions
 ])
@@ -16977,7 +16977,7 @@ j.do.downloadExpandTarGz?4([- url
 ])
 j.do.downloadJumpScaleCore?4([- dest
 ])
-j.do.ensure_keyname?4([- keyname = ''
+j.do.SSHEnsureKeyname?4([- keyname = ''
 , - username = 'root'
 ])
 j.do.execute?4([- command
@@ -17054,10 +17054,10 @@ j.do.getParent?4([- path
 j.do.getPythonLibSystem?4([- jumpscale = False
 ])
 j.do.getPythonSiteConfigPath?4([])
-j.do.getSSHKeyFromAgentPub?4([- keyname
+j.do.SSHKeyGetFromAgentPub?4([- keyname
 , - die = True
 ])
-j.do.getSSHKeyPathFromAgent?4([- keyname
+j.do.SSHKeyGetPathFromAgent?4([- keyname
 , - die = True
 ])
 j.do.getTimeEpoch?4([])
@@ -17146,9 +17146,9 @@ j.do.listFilesInDir?4([- path
 , - followSymlinks = True
 , - listSymlinks = False
 ])
-j.do.listSSHKeyFromAgent?4([- keyIncluded = False
+j.do.SSHKeysListFromAgent?4([- keyIncluded = False
 ])
-j.do.loadSSHKeys?4([- path
+j.do.SSHKeysLoad?4([- path
 , - duration = 86400
 , - die = False
 ])

@@ -35,7 +35,7 @@ If key_filename is passed, it will override look_for_keys and allow_agent and tr
 
 ```
 
-#### getSSHKeyFromAgentPub(*keyname='', die=True*) 
+#### SSHKeyGetFromAgentPub(*keyname='', die=True*) 
 
 #### removeFromCache(*client*) 
 

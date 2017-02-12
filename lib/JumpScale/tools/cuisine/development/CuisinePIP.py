@@ -18,19 +18,18 @@ class CuisinePIP(base):
         # self.cuisine.package.install('python3.5')
         # self.cuisine.package.install('python3-pip')
 
-        C = """
+        tmpdir = self.replace("$TMPDIR")
+        cmd1 = """
             #important remove olf pkg_resources, will conflict with new pip
             rm -rf /usr/lib/python3/dist-packages/pkg_resources
-            cd $TMPDIR/
+            cd %s/
             rm -rf get-pip.py
-            #wget --remote-encoding=utf-8 https://bootstrap.pypa.io/get-pip.py
-            curl https://bootstrap.pypa.io/get-pip.py >  get-pip.py
-            """
-        C = self.replace(C)
-        self.cuisine.core.run(C)
-        C = "python3 $TMPDIR/get-pip.py"
-        C = self.replace(C)
-        self.cuisine.core.run(C)
+            """ % tmpdir
+        self.cuisine.core.execute_bash(cmd1)
+        cmd2 = "cd %s/ && curl https://bootstrap.pypa.io/get-pip.py >  get-pip.py" % tmpdir
+        self.cuisine.core.run(cmd2)
+        cmd3 = "python3 %s/get-pip.py" % tmpdir
+        self.cuisine.core.run(cmd3)
 
     def packageUpgrade(self, package):
         '''

@@ -28,13 +28,13 @@ class CuisineZerotier(base):
             self.cuisine.package.ensure("g++")
             self.cuisine.package.ensure('make')
 
-        codedir = self.cuisine.development.git.pullRepo("https://github.com/zerotier/ZeroTierOne", reset=reset, depth=1, branch='master')
+        codedir = self.cuisine.development.git.pullRepo("https://github.com/zerotier/ZeroTierOne", reset=reset, depth=1, branch='1.1.14')
 
         cmd = "cd {code} && DESTDIR={build} make one".format(code=codedir, build=self.BUILDDIRL)
-        self.cuisine.core.run(cmd, profile=True)
+        self.cuisine.core.run(cmd)
         self.cuisine.core.dir_ensure(self.BUILDDIRL)
         cmd = "cd {code} && DESTDIR={build} make install".format(code=codedir, build=self.BUILDDIRL)
-        self.cuisine.core.run(cmd, profile=True)
+        self.cuisine.core.run(cmd)
 
 
         self.doneSet("build")
@@ -42,8 +42,10 @@ class CuisineZerotier(base):
             self.install()
 
     def install(self):
+        bindir = self.cuisine.core.dir_paths['BINDIR']
+        self.cuisine.core.dir_ensure(bindir)
         for item in self.cuisine.core.find(j.sal.fs.joinPaths(self.BUILDDIRL, 'usr/sbin')):
-            self.cuisine.core.file_copy(item, self.cuisine.core.dir_paths['BINDIR'])
+            self.cuisine.core.file_copy(item, bindir+'/')
 
     def start(self):
         self.cuisine.bash.profileDefault.addPath(self.cuisine.core.replace("$BINDIR"))

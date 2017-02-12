@@ -104,6 +104,7 @@ class SSHClient:
                 print("could not load pkey")
                 pass
 
+            paramiko.util.log_to_file("/tmp/paramiko.log")
             self._client = paramiko.SSHClient()
             self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 

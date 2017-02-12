@@ -68,7 +68,7 @@ class BtrfsExtension:
         if not self._executor.cuisine.core.dir_exists(path):
             return False
 
-        rc, res, err = self._executor.execute(
+        rc, res, err = self._executor.cuisine.core.run(
             "btrfs subvolume list %s" % path, checkok=False, die=False, showout=False)
 
         if rc > 0:

@@ -67,7 +67,7 @@ class CuisinePyFTPServer(base):
         self.cuisine.btrfs.subvolumeCreate(root)
 
         if config == "":
-            authorizer = "    pyftpdlib.authorizers.UnixAuthorizer"
+            authorizer = "    from pyftpdlib.authorizers import UnixAuthorizer"
         else:
             authorizer = ""
             configmodel = j.data.serializer.yaml.loads(config)

@@ -103,7 +103,7 @@ class ExecutorBase:
 
     @property
     def env(self):
-        if self._env == None:
+        if self._env is None:
             res = {}
             _, out, _ = self.execute("printenv", showout=False)
 

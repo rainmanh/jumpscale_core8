@@ -2647,7 +2647,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             if exists("%s/env.sh" % curdir) and exists("%s/js.sh" % (curdir)):
                 env["BASEDIR"] = os.getcwd()
             else:
-                if self.TYPE != "LINUX" and not self.TYPE.startswith("OSX"):  # ON OSX WE ALSO NEED TO SUPPORT /opt !!!
+                if not self.TYPE.startswith("LINUX") and not self.TYPE.startswith("OSX"):  # ON OSX WE ALSO NEED TO SUPPORT /opt !!!
                     env["BASEDIR"] = "%s/opt" % env['HOME']
                 else:
                     env["BASEDIR"] = "/opt"
@@ -2656,7 +2656,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             env["JSBASE"] = "%s/jumpscale8" % env["BASEDIR"]
 
         if not "VARDIR" in env:
-            if self.TYPE != "LINUX" and not self.TYPE.startswith("OSX"):  # ON OSX WE ALSO NEED TO SUPPORT /opt !!!
+            if not self.TYPE.startswith("LINUX") and not self.TYPE.startswith("OSX"):  # ON OSX WE ALSO NEED TO SUPPORT /opt !!!
                 env["VARDIR"] = "%s/optvar" % env['HOME']
             else:
                 env["VARDIR"] = "/optvar"
@@ -2667,7 +2667,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             env["CFGDIR"] = "%s/cfg" % env["VARDIR"]
 
         if exists("/tmp"):
-            if self.TYPE != "LINUX" and not self.TYPE.startswith("OSX"):
+            if self.TYPE.startswith("LINUX") and not self.TYPE.startswith("OSX"):
                 env["TMPDIR"] = "%s/tmp" % env['HOME']
             else:
                 env["TMPDIR"] = "/tmp"

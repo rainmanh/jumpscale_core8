@@ -34,7 +34,7 @@ class dependencies():
         asyncssh
         """
         self.do.pip(C, executor=executor)
-        self.do.execute("pip3 install https://github.com/tony/libtmux/archive/master.zip")
+        self.do.execute("pip3 install https://github.com/tony/libtmux/archive/master.zip --upgrade")
 
     def portal(self, executor=None):
         C = """

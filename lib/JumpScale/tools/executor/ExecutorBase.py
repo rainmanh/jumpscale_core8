@@ -138,13 +138,9 @@ class ExecutorBase:
 
         if die:
             if self.debug:
-                if separator == ";":
-                    pre += "set -x\n"
-                else:
-                    pre += "set -ex\n"
+                pre += "set -ex\n"
             else:
-                if separator != ";":
-                    pre += "set -e\n"
+                pre += "set -e\n"
 
         if self.CURDIR != "":
             pre += "cd %s\n" % (self.CURDIR)

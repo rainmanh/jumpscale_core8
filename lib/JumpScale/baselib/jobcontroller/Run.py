@@ -117,12 +117,18 @@ class RunStep:
 
             service_action_obj = job.service.model.actions[action_name]
 
-            if process.state != 'success':
+            if process.state == 'killed':
+                log_enable = j.core.jobcontroller.db.actions.get(service_action_obj.actionKey).dbobj.log
+                if log_enable:
+                    job.model.log(msg="Process killed %s " % process.name, level=5, category='err')
+
+            elif process.state != 'success':
                 self.state = 'error'
                 job.model.dbobj.state = 'error'
                 service_action_obj.state = 'error'
                 # processError creates the logs entry in job object
                 job._processError(process.error)
+
             else:
                 self.state = 'ok'
                 job.model.dbobj.state = 'ok'

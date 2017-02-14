@@ -37,7 +37,7 @@ baseurl = "{addr}/api/v1"
 
 class GogsClient:
 
-    def __init__(self, addr, login="root", passwd="root", port=3000):
+    def __init__(self, addr, login="root", passwd="root", port=3000, accesstoken=None):
         if not addr.startswith("http"):
             addr = "http://{addr}".format(addr=addr)
         self.addr = addr+":{port}".format(port=port)
@@ -46,7 +46,10 @@ class GogsClient:
         self.port = port
         self.baseurl = baseurl.format(addr=self.addr)
         self.session = requests.session()
-        self.session.auth = HTTPBasicAuth(login, passwd)
+        if not accesstoken:
+            self.session.auth = HTTPBasicAuth(login, passwd)
+        else:
+            self.session.headers['Authorization'] = 'token {}'.format(accesstoken)
 
 
     def test(self):

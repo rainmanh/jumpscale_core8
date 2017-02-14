@@ -14,8 +14,8 @@ class GogsFactory:
         self.issueCollection = j.tools.issuemanager.getIssueCollectionFromDB()
         self.repoCollection = j.tools.issuemanager.getRepoCollectionFromDB()
 
-    def getRestClient(self, addr='https://127.0.0.1', port=3000, login='root', passwd='root'):
-        return GogsClient(addr=addr, port=port, login=login, passwd=passwd)
+    def getRestClient(self, addr='https://127.0.0.1', port=3000, login='root', passwd='root', accesstoken=None):
+        return GogsClient(addr=addr, port=port, login=login, passwd=passwd, accesstoken=accesstoken)
 
     def syncAllFromPSQL(self):
         if self.model==None:

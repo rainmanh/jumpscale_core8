@@ -690,8 +690,11 @@ class GogsClient:
         else:
             raise NotFoundException("User or repo does not exist")
 
-    def labelsSet(self, reponame=None, owner=None):
-        """If owner or reponame == None then will walk over all."""
+    # def labelsSet(self, reponame=None, owner=None):
+    #     """If owner or reponame == None then will walk over all."""
+
+    def ownerDeleteLabels(self, owner):
+        """delete all lavels from the owner"""
 
     def ownerSetLabels(self, owner, labels=None):
         """
@@ -701,16 +704,21 @@ class GogsClient:
         @param labels  [(label_name, label_color)]: list of tuples with index 0 label name and index 1 label color.
         """
 
-        if not labels:
-            labels = [('priority_critical', '#b60205'), ('priority_major', '#f9d0c4'), ('priority_minor', '#f9d0c4'),
-                      ('process_duplicate', '#d4c5f9'), ('process_wontfix', '#d4c5f9'),
-                      ('state_documentation', '#c2e0c6'), ('state_inprogress', '#c2e0c6'), ('state_planned', '#c2e0c6'),
-                      ('state_question', '#c2e0c6'), ('state_verification', '#c2e0c6'), ('type_bug', '#fef2c0'),
-                      ('type_documentation', '#fef2c0'), ('type_feature', '#fef2c0'), ('type_question', '#fef2c0'),
-                      ('type_customercase', '#fef2c0'), ('type_task', '#fef2c0'), ('type_issue', '#fef2c0')]
+        states = ["new", "inprogress", "question", "wontfix", "resolved", "closed"]
+        state_color_code = '#c2e0c6'
+        types_proj = ["alert", "incident", "task", "question", "story", "request"]
+        types_code = ["documentation", "feature", "bug", "question"]
+        types_color_code = '#fef2c0'
+        priorities = ["critical", "major", "normal", "minor"]
+
+        # TODO: *1 needs to be reimplemented
+
         repos = self.reposList(owner=owner)
         result = list()
         for repo in repos:
+
+            if repo.startsWith("proj_") or repo.startsWith("env_"):
+
             for label in labels:
                 result.append(self.labelCreate(repo[1].split('/')[-1], label[0], label[1], owner))
             # self.labelDelete(repo[1].split('/')[-1], "type_ticket")

@@ -36,14 +36,14 @@ class CuisineTmux(base):
         if user is not None:
             cmd = "sudo -u %s -i %s" % (user, cmd)
         # j.sal.process.run(cmd, env=env)  #TODO: does not work in python3
-        self.executor.execute(cmd, showout=False)
+        self.executor.executeRaw(cmd, showout=False)
         # now add the other screens to it
         if len(screens) > 1:
             for screen in screens[1:]:
                 cmd = "tmux new-window -t '%s' -n '%s'" % (sessionname, screen)
                 if user is not None:
                     cmd = "sudo -u %s -i %s" % (user, cmd)
-                self.executor.execute(cmd, showout=False)
+                self.executor.executeRaw(cmd, showout=False)
 
     def executeInScreen(self, sessionname, screenname, cmd, wait=10, cwd=None, env=None, user="root",
                         tmuxuser=None, reset=False, replaceArgs=True, resetAfter=False, die=True, async=False):
@@ -191,7 +191,7 @@ class CuisineTmux(base):
         cmd = 'tmux list-sessions -F "#{session_name}"'
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        rc, out, err = self.executor.execute(cmd, die=False, showout=False)
+        rc, out, err = self.executor.executeRaw(cmd, die=False, showout=False)
         if err:
             out = ""
         return [name.strip() for name in out.split()]
@@ -200,7 +200,7 @@ class CuisineTmux(base):
         cmd = 'tmux list-panes -t "%s" -F "#{pane_pid};#{window_name}" -a' % session
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        rc, out, err = self.executor.execute(cmd, die=False, showout=False)
+        rc, out, err = self.executor.executeRaw(cmd, die=False, showout=False)
         if err:
             return None
         for line in out.split():
@@ -215,7 +215,7 @@ class CuisineTmux(base):
         cmd = 'tmux list-windows -F "#{window_index}:#{window_name}" -t "%s"' % session
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        rc, out, err = self.executor.execute(cmd, die=False, showout=False, checkok=False)
+        rc, out, err = self.executor.executeRaw(cmd, die=False, showout=False)
         if err:
             return result
         for line in out.split():
@@ -232,7 +232,7 @@ class CuisineTmux(base):
             if user:
                 cmd = "sudo -u %s -i %s" % (user, cmd)
             time.sleep(0.2)
-            self.executor.execute(cmd, showout=False)
+            self.executor.executeRaw(cmd, showout=False)
 
     def logWindow(self, session, name, filename, user=None):
         pane = self._getPane(session, name, user=user)
@@ -240,7 +240,7 @@ class CuisineTmux(base):
             cmd = "tmux pipe-pane -t '%s' 'cat >> \"%s\"'" % (pane, filename)
             if user:
                 cmd = "sudo -u %s -i %s" % (user, cmd)
-            self.executor.execute(cmd, showout=False)
+            self.executor.executeRaw(cmd, showout=False)
 
     def windowExists(self, session, name, user=None):
         if session in self.getSessions(user=user):
@@ -264,19 +264,19 @@ class CuisineTmux(base):
         cmd = "tmux kill-window -t '%s'" % pane
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        self.executor.execute(cmd, die=False, showout=False)
+        self.executor.executeRaw(cmd, die=False, showout=False)
 
     def killSessions(self, user=None):
         cmd = "tmux kill-server"
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        self.executor.execute(cmd, die=False, showout=False)  # todo checking
+        self.executor.executeRaw(cmd, die=False, showout=False)  # todo checking
 
     def killSession(self, sessionname, user=None):
         cmd = "tmux kill-session -t '%s'" % sessionname
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        self.executor.execute(cmd, die=False, showout=False)  # todo checking
+        self.executor.executeRaw(cmd, die=False, showout=False)  # todo checking
 
     def attachSession(self, sessionname, windowname=None, user=None):
         if windowname:
@@ -284,11 +284,11 @@ class CuisineTmux(base):
             cmd = "tmux select-window -t '%s'" % pane
             if user:
                 cmd = "sudo -u %s -i %s" % (user, cmd)
-            self.executor.execute(cmd, die=False)
+            self.executor.executeRaw(cmd, die=False)
         cmd = "tmux attach -t %s" % (sessionname)
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        self.executor.execute(cmd, showout=False)
+        self.executor.executeRaw(cmd, showout=False)
 
     def configure(self, restartTmux=False, xonsh=False):
         C = """

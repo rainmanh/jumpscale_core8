@@ -629,7 +629,7 @@ class SystemFS:
             else:
                 raise j.exceptions.RuntimeError(
                     "Cannot find part of dir %s levels up, path %s is not long enough" % (levelsUp, path))
-        return dname + os.sep
+        return dname + os.sep if dname else dname
 
     def getBaseName(self, path):
         """Return the base name of pathname path."""

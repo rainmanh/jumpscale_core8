@@ -19,8 +19,8 @@ class GogsFactory:
         self.logger = j.logger.get("j.clients.gogs")
         self.logger.info("gogs factory initted.")
 
-    def getRestClient(self, addr='https://127.0.0.1', port=3000, login='root', passwd='root'):
-        return GogsClient(addr=addr, port=port, login=login, passwd=passwd)
+    def getRestClient(self, addr='https://127.0.0.1', port=3000, login='root', passwd='root', accesstoken=None):
+        return GogsClient(addr=addr, port=port, login=login, passwd=passwd, accesstoken=accesstoken)
 
     def syncAllFromPSQL(self):
         if self.model==None:

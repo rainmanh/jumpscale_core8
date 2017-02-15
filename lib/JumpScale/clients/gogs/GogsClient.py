@@ -715,9 +715,8 @@ class GogsClient:
         for repo in repos:
             repoid, fullreponame, reposshurl = repo
             reponame = fullreponame.split('/')[-1]
-            if reponame.startswith("proj_") or reponame.startswith("env_"):
-                for label in self.labelList(reponame, owner=owner):
-                    self.labelDelete(reponame, label, owner=owner)
+            for label in self.labelList(reponame, owner=owner):
+                self.labelDelete(reponame, label, owner=owner)
 
     def ownerSetLabels(self, owner, labels=None):
         """
@@ -726,6 +725,17 @@ class GogsClient:
         @param owner string: organization name.
         @param labels  [(label_name, label_color)]: list of tuples with index 0 label name and index 1 label color.
         """
+
+        states = ["new", "inprogress", "question", "wontfix", "resolved", "closed"]  # prefix: state_
+        state_color_code = '#c2e0c6'
+        types_proj = ["alert", "incident", "task", "question", "story", "request"]  # prefix: type_
+        types_code = ["documentation", "feature", "bug", "question"]  # prefix: priority_
+        types_color_code = '#fef2c0'
+        priorities = ["critical", "major", "normal", "minor"]  # prefix: type
+        prio_color_code = '#f9d0c4'
+
+        # TODO: *1 needs to be reimplemented
+
         if not labels:
             # use our labels
             labels = [['priority_critical', '#b60205'],

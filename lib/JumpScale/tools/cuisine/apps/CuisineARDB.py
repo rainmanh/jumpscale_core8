@@ -1,6 +1,5 @@
 from JumpScale import j
 
-
 app = j.tools.cuisine._getBaseAppClass()
 
 
@@ -93,8 +92,8 @@ class CuisineARDB(app):
         self.cuisine.package.multiInstall(packages)
 
 
-        url = "git@github.com:yinqiwen/ardb.git"
-        cpath = self.cuisine.development.git.pullRepo(url, tag="v0.9.3", reset=reset)
+        url = "https://github.com/yinqiwen/ardb.git"
+        cpath = self.cuisine.development.git.pullRepo(url, tag="v0.9.3", reset=reset, ssh=False)
         self.logger.info(cpath)
 
         assert cpath.rstrip("/") == self.CODEDIRARDB.rstrip("/")
@@ -126,6 +125,8 @@ class CuisineARDB(app):
         if not self.cuisine.core.file_exists('$BINDIR/ardb-server'):
             self.core.file_copy("$BUILDDIR/ardb/ardb-server", "$BINDIR/ardb-server")
 
+        self.cuisine.bash.profileDefault.addPath('$BINDIR')
+
         if datadir is None or datadir == '':
             datadir = self.replace("$VARDIR/data/ardb/{}".format(name))
         self.core.dir_ensure(datadir)
@@ -134,7 +135,7 @@ class CuisineARDB(app):
         # config = config.replace("redis-compatible-version  2.8.0", "redis-compatible-version  3.5.2")
         config = self.core.file_read("$BUILDDIR/ardb/ardb.conf")
         config = config.replace("${ARDB_HOME}", datadir)
-        config = config.replace("localhost:16379", '{host}:{port}'.format(host=host,port=port))
+        config = config.replace("0.0.0.0:16379", '{host}:{port}'.format(host=host,port=port))
 
         cfg_path = "$CFGDIR/ardb/{}/ardb.conf".format(name)
         self.core.file_write(cfg_path, config)
@@ -142,19 +143,16 @@ class CuisineARDB(app):
         self.doneSet("install-%s" % name)
 
         if start:
-            self.start()
+            self.start(name=name, reset=reset)
 
     def start(self, name='main', reset=False):
         if not reset and self.doneGet("start-%s" % name):
             return
-        if reset:
-            self.stop()
 
         cfg_path = "$CFGDIR/ardb/{}/ardb.conf".format(name)
         cmd = "$BINDIR/ardb-server {}".format(cfg_path)
-        self.cuisine.process.kill("ardb-server")
         self.cuisine.processmanager.ensure(name="ardb-server-{}".format(name), cmd=cmd, env={}, path="")
-        self.test(port=port)
+        # self.test(port=port)
 
         self.doneSet("start-%s" % name)
 

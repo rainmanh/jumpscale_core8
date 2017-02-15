@@ -4,7 +4,7 @@ from collections import OrderedDict
 from collections import Mapping
 
 
-class emptyObject:
+class MemoryObject:
     """
     this object is used to keep capnp schema object in memory
     this is lighter then using the capnp object directly
@@ -15,12 +15,12 @@ class emptyObject:
         d = self.__dict__
         for k, v in u.items():
             if isinstance(v, Mapping):
-                d[k] = emptyObject(v, schema=schema)
+                d[k] = MemoryObject(v, schema=schema)
             elif isinstance(v, list):
                 d[k] = []
                 for x in v:
                     if isinstance(x, Mapping):
-                        d[k].append(emptyObject(x, schema=schema))
+                        d[k].append(MemoryObject(x, schema=schema))
                     else:
                         d[k].append(x)
             else:
@@ -30,12 +30,12 @@ class emptyObject:
     def to_dict(self):
         out = {}
         for k, v in self.__dict__.items():
-            if isinstance(v, emptyObject):
+            if isinstance(v, MemoryObject):
                 out[k] = v.to_dict()
             elif isinstance(v, list):
                 out[k] = []
                 for x in v:
-                    if isinstance(x, emptyObject):
+                    if isinstance(x, MemoryObject):
                         out[k].append(x.to_dict())
                     else:
                         out[k].append(x)
@@ -130,7 +130,7 @@ class ModelBase():
 
         buff = self._db.get(key)
         msg = self._capnp_schema.from_bytes(buff)
-        self.dbobj = emptyObject(msg.to_dict(verbose=True), self._capnp_schema)
+        self.dbobj = MemoryObject(msg.to_dict(verbose=True), self._capnp_schema)
 
     def __getattr__(self, attr):
         # print("GETATTR:%s" % attr)

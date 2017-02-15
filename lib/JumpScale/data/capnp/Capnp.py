@@ -156,7 +156,7 @@ class Capnp:
                     print(msg)
                     raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
                 raise e
-        return emptyObject(configdata.to_dict(verbose=True), schema=schema)
+        return MemoryObject(configdata.to_dict(verbose=True), schema=schema)
         # return configdata
 
     def test(self):
@@ -273,5 +273,5 @@ class Capnp:
         It will be converted in capnp message when saved
         """
         msg = schema.new_message(**kwargs)
-        obj = emptyObject(msg.to_dict(verbose=True), schema=schema)
+        obj = MemoryObject(msg.to_dict(verbose=True), schema=schema)
         return obj

@@ -68,6 +68,9 @@ class ModelBase():
         #     if len(key) != 16 and len(key) != 32 and len(key) != 64:
         #         raise j.exceptions.Input("Key needs to be length 16,32,64")
 
+        if j.data.types.bytes.check(key):
+            key=key.decode()
+
         if new:
             # create an empty object with the same properties as the capnpn msg
             msg = self._capnp_schema.new_message()
@@ -95,6 +98,8 @@ class ModelBase():
 
     @key.setter
     def key(self, value):
+        if j.data.types.bytes.check(key):
+            key=key.decode()
         self._key = value
 
     def _post_init(self):
@@ -389,10 +394,6 @@ class ModelBaseCollection:
         """
         @param fkey is foreign key
         """
-        from IPython import embed
-        print ("DEBUG NOW 97979")
-        embed()
-        raise RuntimeError("stop debug here")
         return self._index.lookupSet(name, key, fkey)
 
     def lookupDestroy(self, name):

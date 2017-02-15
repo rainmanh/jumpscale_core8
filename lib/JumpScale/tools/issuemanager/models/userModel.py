@@ -14,14 +14,10 @@ class UserModel(base):
         # put indexes in db as specified
         ind = "%s:%s:%s:%s:%s" % (self.dbobj.name.lower(), self.dbobj.fullname.lower(), self.dbobj.email,
                                   self.dbobj.id, self.dbobj.source.lower())
+
         self._index.index({ind: self.key})
         self._index.lookupSet("user_id", self.dbobj.id, self.key)
 
-
-        from IPython import embed
-        print ("DEBUG NOW UserModel index")
-        embed()
-        raise RuntimeError("stop debug here")
 
     def _pre_save(self):
         pass

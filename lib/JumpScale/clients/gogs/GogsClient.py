@@ -666,25 +666,41 @@ class GogsClient:
     def labelDelete(self, reponame, label_name, owner=None):
         if not owner:
             owner = self.login
-        response_create = self.session.delete(
-            self.build_url("repos", owner, reponame, "labels"), json=body)
 
-    def labelGet():
-        pass
+        try:
+            label = self.labelGetByName(reponame, label_name, owner)
+        except NotFoundException:
+            return True
 
-    def labelList(self, reponame, owner=None):
+        url = self.build_url("repos", owner, reponame, "labels", str(label['id']))
+        response = self.session.delete(url)
+        return response.status_code == 204
+
+    def labelGetByName(self, reponame, label_name, owner=None):
+        if not owner:
+            owner = self.login
+        for label in self.labelList(reponame, owner, details=True):
+            if label['name'] == label_name:
+                return label
+
+        raise NotFoundException("Label {} not found at {}/{}".format(label_name, owner, reponame))
+
+    def labelList(self, reponame, owner=None, details=False):
         if not owner:
             owner = self.login
 
         response_list = self.session.get(
             self.build_url("repos", owner, reponame, "labels"))
 
-        labellist = list()
-        for label in response_list.json():
-            labellist.append(label['name'])
-
         if response_list.status_code == 200:
-            return labellist
+            labellist = list()
+            labels = response_list.json()
+            if details is False:
+                for label in labels:
+                    labellist.append(label['name'])
+                return labellist
+            else:
+                return labels
         elif response_list.status_code == 403:
             raise AdminRequiredException("user does not have access to repo")
         else:

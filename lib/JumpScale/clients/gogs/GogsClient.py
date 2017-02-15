@@ -559,7 +559,7 @@ class GogsClient:
         else:
             raise NotFoundException("User or repo does not exist")
 
-    def issueCreate(self,  reponame, title, owner=None, description=None, assignee=None, milestone=None, labels=None, closed=None):
+    def issueCreate(self, reponame, title, owner=None, description=None, assignee=None, milestone=None, labels=None, closed=None):
         """
         create issue
         @milestone  = int
@@ -710,7 +710,14 @@ class GogsClient:
     #     """If owner or reponame == None then will walk over all."""
 
     def ownerDeleteLabels(self, owner):
-        """delete all lavels from the owner"""
+        """delete all labels from the owner"""
+        repos = self.reposList(owner=owner)
+        for repo in repos:
+            repoid, fullreponame, reposshurl = repo
+            reponame = fullreponame.split('/')[-1]
+            if reponame.startswith("proj_") or reponame.startswith("env_"):
+                for label in self.labelList(reponame, owner=owner):
+                    self.labelDelete(reponame, label, owner=owner)
 
     def ownerSetLabels(self, owner, labels=None):
         """
@@ -719,23 +726,34 @@ class GogsClient:
         @param owner string: organization name.
         @param labels  [(label_name, label_color)]: list of tuples with index 0 label name and index 1 label color.
         """
-
-        states = ["new", "inprogress", "question", "wontfix", "resolved", "closed"]
-        state_color_code = '#c2e0c6'
-        types_proj = ["alert", "incident", "task", "question", "story", "request"]
-        types_code = ["documentation", "feature", "bug", "question"]
-        types_color_code = '#fef2c0'
-        priorities = ["critical", "major", "normal", "minor"]
-
-        # TODO: *1 needs to be reimplemented
+        if not labels:
+            # use our labels
+            labels = [['priority_critical', '#b60205'],
+                      ['process_duplicate', '#d4c5f9'],
+                      ['process_wontfix', '#d4c5f9'],
+                      ['state_documentation', '#c2e0c6'],
+                      ['state_inprogress', '#c2e0c6'],
+                      ['state_planned', '#c2e0c6'],
+                      ['state_question', '#c2e0c6'],
+                      ['state_verification', '#c2e0c6'],
+                      ['type_bug', '#fef2c0'],
+                      ['priority_minor', '#f9d0c4'],
+                      ['type_customercase', '#fef2c0'],
+                      ['type_documentation', '#fef2c0'],
+                      ['priority_major', '#f9d0c4'],
+                      ['type_feature', '#fef2c0'],
+                      ['type_issue', '#fef2c0'],
+                      ['type_question', '#fef2c0'],
+                      ['type_task', '#fef2c0'],
+                      ['type_ticket', '#fef2c0']]
 
         repos = self.reposList(owner=owner)
         result = list()
         for repo in repos:
-
-            if repo.startsWith("proj_") or repo.startsWith("env_"):
-
-            for label in labels:
-                result.append(self.labelCreate(repo[1].split('/')[-1], label[0], label[1], owner))
-            # self.labelDelete(repo[1].split('/')[-1], "type_ticket")
+            repoid, fullreponame, reposshurl = repo
+            reponame = fullreponame.split('/')[-1]
+            if reponame.startswith("proj_") or reponame.startswith("env_"):
+                for label in labels:
+                    labelname, labelcolor = label
+                    result.append(self.labelCreate(reponame.split('/')[-1], labelname, labelcolor, owner))
         return result

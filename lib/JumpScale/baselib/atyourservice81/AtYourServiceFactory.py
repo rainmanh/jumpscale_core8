@@ -28,11 +28,13 @@ class AtYourServiceFactory:
         self.logger = j.logger.get('j.atyourservice')
 
         self.baseActions = {}
-        self.templateRepos = TemplateRepoCollection() # actor templates repositories
-        self.aysRepos = AtYourServiceRepoCollection() # ays repositories
+        self.templateRepos = None
+        self.aysRepos = None
 
     def start(self, loop=None):
         self.loop = loop or asyncio.get_event_loop()
+        self.templateRepos = TemplateRepoCollection() # actor templates repositories
+        self.aysRepos = AtYourServiceRepoCollection() # ays repositories
 
     @property
     def actorTemplates(self):

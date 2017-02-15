@@ -1051,7 +1051,7 @@ class SystemFS:
                                 if len(r) > 0:
                                     filesreturn.extend(r)
             # and followSymlinks==False and listSymlinks:
-            elif self.isLink(fullpath):
+            elif self.isLink(fullpath) and followSymlinks==False and listSymlinks:
                 filesreturn.append(fullpath)
 
         return filesreturn, depth

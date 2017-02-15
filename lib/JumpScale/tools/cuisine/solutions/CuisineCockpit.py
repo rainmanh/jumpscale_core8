@@ -50,7 +50,7 @@ class CuisineCockpit(base):
         Make sure that you don't have uncommitted code in any code repository cause this method will discard them !!!
         """
         # install mongodb, required for portal
-        self._cuisine.apps.mongodb.build(install=False, start=start, reset=reset)
+        self._cuisine.apps.mongodb.install(start=start, reset=reset)
         self._cuisine.apps.mongodb.install(start=start)
 
         # install portal

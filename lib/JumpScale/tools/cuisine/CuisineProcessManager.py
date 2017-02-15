@@ -241,7 +241,7 @@ class CuisineTmuxec(ProcessManagerBase):
             self.cuisine.package.install('tmux')
 
     def list(self, prefix=""):
-        rc, result, err = self.cuisine.core.run("tmux lsw 2> /dev/null || true", profile=True, die=False)
+        rc, result, err = self.cuisine.core.run("tmux lsw", profile=True, die=False, showout=False)
         if err:
             return []
         res = result.splitlines()
@@ -255,7 +255,6 @@ class CuisineTmuxec(ProcessManagerBase):
 
     def ensure(self, name, cmd, env={}, path="", descr="",wait=10):
         self.stop(name=name)
-
         cmd = self.replace(cmd)
         path = self.replace(path)
 

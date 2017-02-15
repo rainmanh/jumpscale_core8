@@ -34,6 +34,15 @@ class GogsServerErrorException(GogsBaseException):
 baseurl = "{addr}/api/v1"
 
 
+states = ["new", "inprogress", "question", "wontfix", "resolved", "closed"]  # prefix: state_
+state_color_code = '#c2e0c6'
+types_proj = ["alert", "incident", "task", "question", "story", "request"]  # prefix: type_
+types_code = ["documentation", "feature", "bug", "question"]  # prefix: priority_
+types_color_code = '#fef2c0'
+priorities = ["critical", "major", "normal", "minor"]  # prefix: type
+prio_color_code = '#f9d0c4'
+
+
 class GogsClient:
 
     def __init__(self, addr, login="root", passwd="root", port=3000, accesstoken=None):
@@ -559,7 +568,7 @@ class GogsClient:
         else:
             raise NotFoundException("User or repo does not exist")
 
-    def issueCreate(self,  reponame, title, owner=None, description=None, assignee=None, milestone=None, labels=None, closed=None):
+    def issueCreate(self, reponame, title, owner=None, description=None, assignee=None, milestone=None, labels=None, closed=None):
         """
         create issue
         @milestone  = int
@@ -663,51 +672,88 @@ class GogsClient:
     def labelUpdate():
         pass
 
-    def labelDelete():
-        pass
+    def labelDelete(self, reponame, label_name, owner=None):
+        if not owner:
+            owner = self.login
 
-    def labelGet():
-        pass
+        try:
+            label = self.labelGetByName(reponame, label_name, owner)
+        except NotFoundException:
+            return True
 
-    def labelList(self, reponame, owner=None):
+        url = self.build_url("repos", owner, reponame, "labels", str(label['id']))
+        response = self.session.delete(url)
+        return response.status_code == 204
+
+    def labelGetByName(self, reponame, label_name, owner=None):
+        if not owner:
+            owner = self.login
+        for label in self.labelList(reponame, owner, details=True):
+            if label['name'] == label_name:
+                return label
+
+        raise NotFoundException("Label {} not found at {}/{}".format(label_name, owner, reponame))
+
+    def labelList(self, reponame, owner=None, details=False):
         if not owner:
             owner = self.login
 
         response_list = self.session.get(
             self.build_url("repos", owner, reponame, "labels"))
 
-        labellist = list()
-        for label in response_list.json():
-            labellist.append(label['name'])
-
         if response_list.status_code == 200:
-            return labellist
+            labellist = list()
+            labels = response_list.json()
+            if details is False:
+                for label in labels:
+                    labellist.append(label['name'])
+                return labellist
+            else:
+                return labels
         elif response_list.status_code == 403:
             raise AdminRequiredException("user does not have access to repo")
         else:
             raise NotFoundException("User or repo does not exist")
 
-    def labelsSet(self, reponame=None, owner=None):
-        """If owner or reponame == None then will walk over all."""
+    # def labelsSet(self, reponame=None, owner=None):
+    #     """If owner or reponame == None then will walk over all."""
 
-    def ownerSetLabels(self, owner, labels=None):
+    def ownerDeleteLabels(self, owner):
+        """delete all labels from the owner"""
+        repos = self.reposList(owner=owner)
+        alllabels = ['state_{}'.format(state) for state in states]
+        alllabels += ['type_{}'.format(type_) for type_ in types_proj]
+        alllabels += ['type_{}'.format(type_) for type_ in types_code]
+        alllabels += ['priority_{}'.format(prio) for prio in priorities]
+        for repo in repos:
+            repoid, fullreponame, reposshurl = repo
+            reponame = fullreponame.split('/')[-1]
+            for label in self.labelList(reponame, owner=owner):
+                if label not in alllabels:
+                    self.labelDelete(reponame, label, owner=owner)
+
+    def ownerSetLabels(self, owner):
         """
         Set labels for all repos in organization or user.
 
         @param owner string: organization name.
-        @param labels  [(label_name, label_color)]: list of tuples with index 0 label name and index 1 label color.
         """
-
-        if not labels:
-            labels = [('priority_critical', '#b60205'), ('priority_major', '#f9d0c4'), ('priority_minor', '#f9d0c4'),
-                      ('process_duplicate', '#d4c5f9'), ('process_wontfix', '#d4c5f9'),
-                      ('state_documentation', '#c2e0c6'), ('state_inprogress', '#c2e0c6'), ('state_planned', '#c2e0c6'),
-                      ('state_question', '#c2e0c6'), ('state_verification', '#c2e0c6'), ('type_bug', '#fef2c0'),
-                      ('type_documentation', '#fef2c0'), ('type_feature', '#fef2c0'), ('type_question', '#fef2c0'),
-                      ('type_ticket', '#fef2c0')]
         repos = self.reposList(owner=owner)
         result = list()
         for repo in repos:
-            for label in labels:
-                result.append(self.labelCreate(repo[1].split('/')[-1], label[0], label[1], owner))
+            repoid, fullreponame, reposshurl = repo
+            reponame = fullreponame.split('/')[-1]
+            if reponame.startswith("proj_") or reponame.startswith("env_"):
+                types = types_proj
+            else:
+                types = types_code
+            for state in states:
+                labelname, labelcolor = "state_{}".format(state), state_color_code
+                result.append(self.labelCreate(reponame, labelname, labelcolor, owner))
+            for type_ in types:
+                labelname, labelcolor = "type_{}".format(type_), types_color_code
+                result.append(self.labelCreate(reponame, labelname, labelcolor, owner))
+            for prio in priorities:
+                labelname, labelcolor = "priority_{}".format(prio), prio_color_code
+                result.append(self.labelCreate(reponame, labelname, labelcolor, owner))
         return result

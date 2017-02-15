@@ -27,16 +27,7 @@ class OrgCollection(base):
     #         if consumer.key == service.model.key:
     #             self.dbobj.consumers.pop(i)
 
-    def list(self, name='', id=0, source="", returnIndex=False):
-        """
-        List all keys of org model with specified params.
-
-        @param owner int,, id of org the issue belongs to.
-        @param name str,, title of issue.
-        @param id int,, org id in db.
-        @param source str,, source of remote database.
-        @param returnIndexalse bool,, return the index used.
-        """
+    def _get_keys(self, name='', id=0, source="", returnIndex=False):
         if name == "":
             name = ".*"
         if id == "" or id == 0:
@@ -46,6 +37,23 @@ class OrgCollection(base):
 
         regex = "%s:%s:%s" % (name, str(id), source)
         return self._index.list(regex, returnIndex=returnIndex)
+
+    def list(self, owner=0, name='', id=0, member=0, repo=0, source=""):
+        """
+        List all keys of org model with specified params.
+
+        @param owner int,, id of org the issue belongs to.
+        @param name str,, title of issue.
+        @param id int,, org id in db.
+        @param source str,, source of remote database.
+        @param returnIndexalse bool,, return the index used.
+        """
+        objcts = self.find(owner, name, id, member, repo, source)
+        keys = list()
+        for objct in objcts:
+            keys.append(objct.key)
+
+        return keys
 
     def find(self, owner=0, name='', id=0, member=0, repo=0, source=""):
         """
@@ -60,9 +68,12 @@ class OrgCollection(base):
         """
         res = []
         id = int(id)
-        for key in self.list(id=id, name=name, source=source):
+        for key in self._get_keys(id=id, name=name, source=source):
             res.append(self.get(key))
 
+        return self._filter(res, member, repo, owner)
+
+    def _filter(self, res, member, repo, owner):
         if member:
             users = j.tools.issuemanager.getUserCollectionFromDB()
             member_id = users.find(name=member)[0].dictFiltered.get('id')

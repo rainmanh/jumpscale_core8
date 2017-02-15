@@ -8,7 +8,7 @@ class RepoCollection(base):
     This class represent a collection of Issues
     """
 
-    def list(self, owner=0, name='', id=0, source="", returnIndex=False):
+    def _get_keys(self, owner=0, name='', id=0, source="", returnIndex=False):
         """
         List all keys of repo model with specified params.
 
@@ -30,6 +30,23 @@ class RepoCollection(base):
         regex = "%s:%s:%s:%s" % (owner, name, id, source)
         return self._index.list(regex, returnIndex=returnIndex)
 
+    def list(self, owner='', name='', id=0, milestone=0, member=0, label='', source=""):
+        """
+        List all keys of repo model with specified params.
+
+        @param owner int,, id of owner the repo belongs to.
+        @param name str,, name of repo.
+        @param id int,, repo id in db.
+        @param source str,, source of remote database.
+        @param)
+        """
+        objcts = self.find(owner, name, id, milestone, member, label, source)
+        keys = list()
+        for objct in objcts:
+            keys.append(objct.key)
+
+        return keys
+
     def find(self, owner='', name='', id=0, milestone=0, member=0, label='', source=""):
         """
         List all instances of repo model with specified params.
@@ -44,9 +61,12 @@ class RepoCollection(base):
         """
         res = []
         id = int(id)
-        for key in self.list(owner=owner, name=name, id=id, source=source):
+        for key in self._get_keys(owner=owner, name=name, id=id, source=source):
             res.append(self.get(key))
 
+        return self._filter(res, milestone, member, label)
+
+    def _filter(self, res, milestone, member, label):
         if milestone:
             for model in res[::-1]:
                 for milestone_model in model.dictFiltered.get('milestones', []):

@@ -8,8 +8,8 @@ class IssueCollection(base):
     This class represent a collection of Issues
     """
 
-    def list(self, repo=0, title='', milestone='', isClosed=None, id=0, creationTime=0, modTime=0, source="",
-             returnIndex=False,):
+    def _get_keys(self, repo=0, title='', milestone='', isClosed=None, id=0, creationTime=0, modTime=0, source="",
+                  returnIndex=False,):
         """
         List all keys of issue model with specified params.
 
@@ -47,6 +47,29 @@ class IssueCollection(base):
         regex = "%s:%s:%s:%s:%s:%s:%s:%s" % (id, milestone, creationTime, modTime, isClosed, repo, title, source)
         return self._index.list(regex, returnIndex=returnIndex)
 
+    def list(self, repo=0, title='', milestone=0, isClosed=None, id=0, creationTime=0, modTime=0, comment=0,
+             assignee=0, label='', source=""):
+        """
+        List all keys of issue model with specified params.
+
+        @param repo int,, id of repo the issue belongs to.
+        @param title str,, title of issue.
+        @param milestone int,, milestone id set to this issue.
+        @param isClosed bool,, issue is closed.
+        @param id int,, issue id in db.
+        @param creationTime int,, epoch of creation of issue.
+        @param modTime int,, epoch of modification of issue.
+        @param source str,, source of remote database.
+        @param returnIndexalse bool,, return the index used.
+        """
+        objcts = self.find(repo, title, milestone, isClosed, id, creationTime, modTime, comment, assignee, label,
+                           source)
+        keys = list()
+        for objct in objcts:
+            keys.append(objct.key)
+
+        return keys
+
     def find(self, repo=0, title='', milestone=0, isClosed=None, id=0, creationTime=0, modTime=0, comment=0,
              assignee=0, label='', source=""):
         """
@@ -66,9 +89,12 @@ class IssueCollection(base):
         res = []
         comment = int(comment)
         id = int(id)
-        for key in self.list(id=id, isClosed=isClosed, repo=repo, title=title, source=source):
+        for key in self._get_keys(id=id, isClosed=isClosed, repo=repo, title=title, source=source):
             res.append(self.get(key))
 
+        return self._filter(res, milestone, modTime, creationTime, comment, assignee, label)
+
+    def _filter(self, res, milestone, modTime, creationTime, comment, assignee, label):
         if milestone:
             milestoneids = list()
             repos = j.tools.issuemanager.getRepoCollectionFromDB()

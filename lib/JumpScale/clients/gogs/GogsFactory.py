@@ -17,6 +17,7 @@ class GogsFactory:
 
         self.logger = j.logger.get("j.clients.gogs")
         self.logger.info("gogs factory initted.")
+        self._labels = {}
 
     def getRestClient(self, addr='https://127.0.0.1', port=3000, login='root', passwd='root', accesstoken=None):
         """
@@ -218,7 +219,8 @@ class GogsFactory:
 
             org_model.dbobj.members = []
             for memberid, member in val['members'].items():
-                member_scheme = j.data.capnp.getMemoryObj(org_model._capnp_schema.Member, userKey=memberid, access=member)
+                member_scheme = j.data.capnp.getMemoryObj(
+                    org_model._capnp_schema.Member, userKey=memberid, access=member)
                 org_model.members.append(member_scheme)
 
             org_model.dbobj.owners = val.get('owners', [])
@@ -307,16 +309,15 @@ class GogsFactory:
             #     repo_model.dbobj.init('members', len(val['members']))
             repo_model.dbobj.members = []
             for memberid, member in val.get('members', {}).items():
-                member_scheme = j.data.capnp.getMemoryObj(repo_model._capnp_schema.Member, userKey=str(memberid), access=member)
+                member_scheme = j.data.capnp.getMemoryObj(
+                    repo_model._capnp_schema.Member, userKey=str(memberid), access=member)
                 repo_model.dbobj.members.append(member_scheme)
-
 
             repo_model.dbobj.milestones = []
             for milestoneid, milestone in val.get('milestones', {}).items():
                 milestone_scheme = j.data.capnp.getMemoryObj(repo_model._capnp_schema.Milestone, **milestone)
                 milestone_scheme.id = milestoneid
                 repo_model.dbobj.milestones.append(milestone_scheme)
-
 
             repo_model.dbobj.id = id
             repo_model.dbobj.name = val['name']
@@ -347,3 +348,12 @@ class GogsFactory:
             user_model.dbobj.id = user.id
             user_model.dbobj.source = ''
             user_model.save()
+
+    def _getLabels(self):
+        for id, name in [(item.id, item.name) for item in self.model.Label.select()]:
+            self._labels[id] = name
+
+    def getLabelFromID(self, id):
+        if self._labels == {}:
+            self._getLabels()
+        return self._labels[id]

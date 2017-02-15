@@ -53,7 +53,7 @@ class CuisinePortal(base):
             return
 
         self.cuisine.apps.mongodb.install()
-        self.cuisine.apps.nodejs.install() #will install nodejs & bower, used to build the libs
+        self.cuisine.apps.nodejs.install()  # will install nodejs & bower, used to build the libs
         self.cuisine.bash.profileDefault.addPath(self.cuisine.core.replace("$BINDIR"))
         self.cuisine.bash.profileDefault.save()
         self.installLibs()
@@ -72,10 +72,9 @@ class CuisinePortal(base):
 
     def installLibs(self):
         self.cuisine.apps.nodejs.bowerInstall(["jquery", "flatui", "bootstrap", "famous", "codemirror", "font-awesome", "jqplot",
-                                               "underscore", "spin", "moment", \
-                                               "http://DlhSoft.com/Packages/DlhSoft.KanbanLibrary.zip", \
-                                               "jqwidgets", "d3"])#, "angular-latest"])
-
+                                               "underscore", "spin", "moment",
+                                               "http://DlhSoft.com/Packages/DlhSoft.KanbanLibrary.zip",
+                                               "jqwidgets", "d3"])  # , "angular-latest"])
 
     def installDeps(self, reset=False):
         """

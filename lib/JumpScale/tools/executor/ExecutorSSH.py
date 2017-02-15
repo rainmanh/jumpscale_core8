@@ -32,6 +32,8 @@ class ExecutorSSH(ExecutorBase):
         self.passphrase = passphrase
         self._id = None
 
+        self._logger = j.logger.get("executorssh%s" % self.addr)
+        self.logger.info("initted.")
 
     @property
     def logger(self):
@@ -40,35 +42,62 @@ class ExecutorSSH(ExecutorBase):
         return self._logger
 
     def pushkey(self, user='root'):
+        self.logger.debug("pushkey from agent with name:%s" % self.key_filename)
         key = self.pubkey or j.do.SSHKeyGetFromAgentPub(self.key_filename)
         self.sshclient.ssh_authorize(user=self.login, key=key)
         # pass
 
     def getMacAddr(self):
         print("Get maccaddr")
-        rc, out, err = self.execute("ifconfig | grep HWaddr", showout=False)
-        res = {}
-        for line in out.split("\n"):
-            line = line.strip()
+        rc, out, err = self.execute("ifconfig", showout=False)
+
+        def checkOK(nic):
             excl = ["dummy", "docker", "lxc", "mie", "veth", "vir", "vnet", "zt", "vms", "weave", "ovs"]
-            if line == "":
-                continue
             check = True
             for item in excl:
-                if line.startswith(item):
+                if nic.startswith(item):
                     check = False
-            addr = line.split("HWaddr")[-1].strip()
-            name = line.split(" ")[0]
+            return check
 
-            if check:
-                res[name] = addr
+        if out.find("HWaddr") != -1:
+            # e.g. Ubuntu 16.04
+            out = "\n".join([item for item in out.split("\n") if item.find("HWaddr") != -1])
 
-        if "eth0" in res:
-            self.macaddr = res["eth0"]
+            res = {}
+            for line in out.split("\n"):
+                line = line.strip()
+
+                if line == "":
+                    continue
+
+                addr = line.split("HWaddr")[-1].strip()
+                name = line.split(" ")[0]
+
+                if checkOK(line):
+                    res[name] = addr
+
+            if "eth0" in res:
+                self.macaddr = res["eth0"]
+            else:
+                keys = [item for item in res.keys()]
+                keys.sort()
+                self.macaddr = res[keys[0]]
         else:
-            keys = [item for item in res.keys()]
-            keys.sort()
-            self.macaddr = res[keys[0]]
+            lastnic = ""
+            for line in out.split("\n"):
+                print(line)
+                if len(out) == 0:
+                    continue
+                if lastnic == "" and out[0] != " ":
+                    if checkOK(line):
+                        lastnic = line.split(":")[0]
+                        print("lastnic:%s" % lastnic)
+                if lastnic != "" and line.find("Ethernet") != -1:
+                    self.macaddr = line.split("ether")[1].strip().split(" ")[0].strip()
+                    break
+
+        if self.macaddr == "":
+            raise j.exceptions.Input(message="could not find macaddr", level=1, source="", tags="", msgpub="")
 
         return self.macaddr
 
@@ -198,6 +227,9 @@ class ExecutorSSH(ExecutorBase):
         # online command, we use cuisine
         if showout:
             self.logger.info("EXECUTE %s:%s: %s" % (self.addr, self.port, cmds))
+        else:
+            self.logger.debug("EXECUTE %s:%s: %s" % (self.addr, self.port, cmds))
+
         rc, out, err = self.sshclient.execute(cmds2, die=die, showout=showout)
 
         if checkok and die:
@@ -209,6 +241,12 @@ class ExecutorSSH(ExecutorBase):
         """
         @param remote can be ip addr or hostname of remote, if given will execute cmds there
         """
+
+        if showout:
+            self.logger.info("EXECUTESCRIPT %s:%s: %s" % (self.addr, self.port, content))
+        else:
+            self.logger.debug("EXECUTESCRIPT %s:%s: %s" % (self.addr, self.port, content))
+
         if content[-1] != "\n":
             content += "\n"
 
@@ -260,6 +298,6 @@ class ExecutorSSH(ExecutorBase):
                              ssh=True, sshport=self.port, recursive=recursive)
 
     def __repr__(self):
-        return ("Executor ssh: %s (%s)"%(self.addr,self.port))
+        return ("Executor ssh: %s (%s)" % (self.addr, self.port))
 
-    __str__=__repr__
+    __str__ = __repr__

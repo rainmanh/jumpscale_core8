@@ -663,8 +663,11 @@ class GogsClient:
     def labelUpdate():
         pass
 
-    def labelDelete():
-        pass
+    def labelDelete(self, reponame, label_name, owner=None):
+        if not owner:
+            owner = self.login
+        response_create = self.session.delete(
+            self.build_url("repos", owner, reponame, "labels"), json=body)
 
     def labelGet():
         pass
@@ -704,10 +707,11 @@ class GogsClient:
                       ('state_documentation', '#c2e0c6'), ('state_inprogress', '#c2e0c6'), ('state_planned', '#c2e0c6'),
                       ('state_question', '#c2e0c6'), ('state_verification', '#c2e0c6'), ('type_bug', '#fef2c0'),
                       ('type_documentation', '#fef2c0'), ('type_feature', '#fef2c0'), ('type_question', '#fef2c0'),
-                      ('type_ticket', '#fef2c0')]
+                      ('type_customercase', '#fef2c0'), ('type_task', '#fef2c0'), ('type_issue', '#fef2c0')]
         repos = self.reposList(owner=owner)
         result = list()
         for repo in repos:
             for label in labels:
                 result.append(self.labelCreate(repo[1].split('/')[-1], label[0], label[1], owner))
+            # self.labelDelete(repo[1].split('/')[-1], "type_ticket")
         return result

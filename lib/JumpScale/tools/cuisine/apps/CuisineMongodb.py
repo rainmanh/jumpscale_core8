@@ -25,7 +25,7 @@ class CuisineMongodb(app):
             url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-3.4.0.tgz'
         elif self.cuisine.core.isArch:
             self.cuisine.package.install("mongodb")
-        elif self.cuisine.core.isMac: 
+        elif self.cuisine.core.isMac:
             url = 'https://fastdl.mongodb.org/osx/mongodb-osx-ssl-x86_64-3.4.0.tgz'
         else:
             raise j.exceptions.RuntimeError("unsupported platform")
@@ -39,8 +39,8 @@ class CuisineMongodb(app):
                     url, self.replace("$TMPDIR")), level=1, source="", tags="", msgpub="")
             tarpath = tarpaths[0]
             self.cuisine.core.file_expand(tarpath, "$TMPDIR")
-            extracted = self.cuisine.core.find("$TMPDIR", recursive=True, pattern="*mongodb*", type='d')[0]
-            for file in self.cuisine.core.find('%s/bin/' % extracted, type='f'):
+            dest = "$TMPDIR/mongodb-osx-x86_64-3.4.0/bin/"
+            for file in self.cuisine.core.find(dest, type='f'):
                 self.cuisine.core.file_copy(file, appbase)
 
         self.cuisine.core.dir_ensure('$VARDIR/data/mongodb')

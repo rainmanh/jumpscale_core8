@@ -15,6 +15,7 @@ class OrgModel(base):
         ind = "%s:%s:%s" % (self.dbobj.name.lower(), str(self.dbobj.id),
                             self.dbobj.source.lower())
         self._index.index({ind: self.key})
+        self._index.lookupSet("org_id", self.dbobj.id, self.key)
 
     def _pre_save(self):
         pass

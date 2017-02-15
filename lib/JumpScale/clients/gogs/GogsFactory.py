@@ -7,7 +7,6 @@ class GogsFactory:
     def __init__(self):
         self.__jslocation__ = "j.clients.gogs"
         self.logger = j.logger.get("j.clients.gogs")
-        # self.db = ModelsFactory()
         self.model = None
 
         self.userCollection = j.tools.issuemanager.getUserCollectionFromDB()
@@ -45,13 +44,13 @@ class GogsFactory:
                                      level=1, source="", tags="", msgpub="")
         self.logger.info("syncAllFromPSQL")
         self.getUsersFromPSQL()
-        from IPython import embed
-        print("DEBUG NOW getUsersFromPSQL  done")
-        embed()
-        raise RuntimeError("stop debug here")
+        self.logger.info("User synced")
         self.getOrgsFromPSQL()
+        self.logger.info("Organizations synced")
         self.getReposFromPSQL()
+        self.logger.info("Repositories synced")
         self.getIssuesFromPSQL()
+        self.logger.info("Issues synced")
 
     def connectPSQL(self, ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs"):
         """
@@ -71,20 +70,15 @@ class GogsFactory:
         @param passwd str,,database passwd.
         @param dbname str,, database name.
         """
-
         if self.model == None:
             raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
                                      level=1, source="", tags="", msgpub="")
 
-        collection = j.tools.issuemanager.getRepoCollectionFromDB()
-        res = collection.list()
-        if res == []:
+        if self.repoCollection.list() == []:
             # need to download
             self.getReposFromPSQL()
 
         model = self.model
-
-        IssueCollection = j.tools.issuemanager.getIssueCollectionFromDB()
 
         queryString = """
         select i.id,
@@ -108,56 +102,43 @@ class GogsFactory:
         """
         query = model.User.raw(queryString)
         issues = {}
-        try:
-            for issue in query:
-                if issue.id not in issues:
-                    issues[issue.id] = {'title': issue.name,
-                                        'content': issue.content,
-                                        'milestone': issue.milestone_id,
-                                        'is_closed': issue.is_closed,
-                                        'repo': issue.repo_id,
-                                        'time_created': issue.created_unix,
-                                        'time_updated': issue.updated_unix,
-                                        'comments': dict(),
-                                        'assignees': list(),
-                                        'labels': list()
-                                        }
-                issue_dict = issues[issue.id]
-                if issue.assignee_id and issue.assignee_id not in issue_dict['assignees']:
-                    issue_dict['assignees'].append(issue.assignee_id)
-                if issue.label_name and issue.label_name not in issue_dict['labels']:
-                    issue_dict['labels'].append(issue.label_name)
-                if issue.comment_id:
-                    issue_dict['comments'][issue.comment_id] = {'owner': issue.poster_id,
-                                                                'content': issue.comment_content
-                                                                }
-        except model.User.DoesNotExist:
-            from IPython import embed
-            print("DEBUG NOW does not exist exception")
-            embed()
-            raise RuntimeError("stop debug here")
 
-        for key, val in issues.items():
-            issue_model = IssueCollection.new()
-            if val['assignees']:
-                issue_model.dbobj.init('assignees', len(val['assignees']))
-                for count, user in enumerate(val['assignees']):
-                    issue_model.dbobj.assignees[count] = user
+        for issue in query:
+            if issue.id not in issues:
+                issues[issue.id] = {'title': issue.name,
+                                    'content': issue.content,
+                                    'milestone': issue.milestone_id,
+                                    'is_closed': issue.is_closed,
+                                    'repo': issue.repo_id,
+                                    'time_created': issue.created_unix,
+                                    'time_updated': issue.updated_unix,
+                                    'comments': dict(),
+                                    'assignees': list(),
+                                    'labels': list()
+                                    }
+            issue_dict = issues[issue.id]
+            if issue.assignee_id and issue.assignee_id not in issue_dict['assignees']:
+                issue_dict['assignees'].append(issue.assignee_id)
+            if issue.label_name and issue.label_name not in issue_dict['labels']:
+                issue_dict['labels'].append(issue.label_name)
+            if issue.comment_id:
+                issue_dict['comments'][issue.comment_id] = {'owner': issue.poster_id,
+                                                            'content': issue.comment_content,
+                                                            'id': issue.comment_id
+                                                            }
 
-            if val['comments']:
-                issue_model.dbobj.init('comments', len(val['comments']))
-                for count, (commentid, comment) in enumerate(val['comments'].items()):
-                    member_scheme = issue_model.dbobj.comments[count]
-                    member_scheme.owner = comment['owner']
-                    member_scheme.content = comment['content']
-                    member_scheme.id = commentid
+        for id, val in issues.items():
+            issue_model = self.issueCollection.getFromId(id)
 
-            if val['labels']:
-                issue_model.dbobj.init('labels', len(val['labels']))
-                for count, label in enumerate(val['labels']):
-                    issue_model.dbobj.labels[count] = label
+            issue_model.dbobj.assignees = [user for user in val.get('assignees', [])]
 
-            issue_model.dbobj.id = key
+            for commentid, comment in val.get('comments', {}).items():
+                comment_scheme = j.data.capnp.getMemoryObj(issue_model._capnp_schema.Comment, **comment)
+                issue_model.dbobj.comments.append(comment_scheme)
+
+            issue_model.dbobj.labels = [label for label in val.get('labels', [])]
+
+            issue_model.dbobj.id = id
             issue_model.dbobj.title = val['title']
             issue_model.dbobj.content = val['content']
             issue_model.dbobj.content = val['content']
@@ -186,13 +167,10 @@ class GogsFactory:
             raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
                                      level=1, source="", tags="", msgpub="")
 
-        collection = j.tools.issuemanager.getUserCollectionFromDB()
-        res = collection.list()
-        if res == []:
+        if self.userCollection.list() == []:
             # need to download
             self.getUsersFromPSQL()
 
-        OrgCollection = j.tools.issuemanager.getOrgCollectionFromDB()
         model = self.model
         queryString = """
         select org.name,
@@ -234,29 +212,18 @@ class GogsFactory:
         except model.User.DoesNotExist:
             pass
 
-        for key, val in orgs.items():
+        for id, val in orgs.items():
+            org_model = self.orgCollection.getFromId(id)
+            org_model.dbobj.repos = val.get('repos', [])
 
-            org_model = OrgCollection.new()
-            if val['repos']:
-                for count, repoid in enumerate(val['repos']):
-                    from IPython import embed
-                    print("DEBUG NOW add org")
-                    embed()
-                    raise RuntimeError("stop debug here")
-                    org_model.dbobj.repos.append(repoid)
+            org_model.dbobj.members = []
+            for memberid, member in val['members'].items():
+                member_scheme = j.data.capnp.getMemoryObj(org_model._capnp_schema.Member, userKey=memberid, access=member)
+                org_model.members.append(member_scheme)
 
-            if val['members']:
-                for count, (memberid, member) in enumerate(val['members'].items()):
-                    member_scheme = org_model.dbobj.members[count]
-                    member_scheme.userKey = memberid
-                    member_scheme.access = member
+            org_model.dbobj.owners = val.get('owners', [])
 
-            if val['owners']:
-                org_model.dbobj.init('owners', len(val['owners']))
-                for count, memberid in enumerate(val['owners']):
-                    org_model.dbobj.owners[count] = memberid
-
-            org_model.dbobj.id = key
+            org_model.dbobj.id = id
             org_model.dbobj.name = val['name']
             org_model.dbobj.description = val['description']
             org_model.dbobj.source = ''
@@ -305,16 +272,8 @@ class GogsFactory:
         left join milestone as m on m.repo_id=r.id
         """
         query = self.model.User.raw(queryString)
-        # repos = {}
-        # try:
+        repos = {}
         for repo in query:
-
-            res = repoCollection.find(repoid=repo.id)
-            from IPython import embed
-            print("DEBUG NOW i876786")
-            embed()
-            raise RuntimeError("stop debug here")
-
             if repo.id not in repos:
                 repos[repo.id] = {'name': repo.name,
                                   'owner': repo.owner_id,
@@ -332,41 +291,34 @@ class GogsFactory:
                 repo_dict['labels'].append(repo.label_name)
             if repo.milestone_id and repo.milestone_id not in repo_dict['milestones']:
                 repo_dict['milestones'][repo.milestone_id] = {'name': repo.milestone_name,
-                                                              'is_closed': repo.milestone_is_closed,
-                                                              'num_issues': repo.milestone_num_issues,
-                                                              'num_closed_issues': repo.milestone_num_closed_issues,
+                                                              'isClosed': repo.milestone_is_closed,
+                                                              'nrIssues': repo.milestone_num_issues,
+                                                              'nrClosedIssues': repo.milestone_num_closed_issues,
                                                               'completeness': repo.milestone_completeness,
-                                                              'deadline': repo.milestone_deadline}
-    # except model.User.DoesNotExist:
-        #     pass
+                                                              'deadline': repo.milestone_deadline,
+                                                              'id': repo.milestone_id}
 
-        for key, val in repos.items():
-            repo_model = repoCollection.new()
-            if val['labels']:
-                repo_model.dbobj.init('labels', len(val['labels']))
-                for count, repo in enumerate(val['labels']):
-                    repo_model.dbobj.labels[count] = str(repo)
+        for id, val in repos.items():
+            repo_model = self.repoCollection.getFromId(id)
 
-            if val['members']:
-                repo_model.dbobj.init('members', len(val['members']))
-                for count, (memberid, member) in enumerate(val['members'].items()):
-                    member_scheme = repo_model.dbobj.members[count]
-                    member_scheme.userKey = str(memberid)
-                    member_scheme.access = member
+            repo_model.dbobj.labels = [str(name) for name in val.get('labels', [])]
 
-            if val['milestones']:
-                repo_model.dbobj.init('milestones', val['num_milestones'])
-                for count, (milestoneid, milestone) in enumerate(val['milestones'].items()):
-                    milestone_scheme = repo_model.dbobj.milestones[count]
-                    milestone_scheme.name = milestone['name']
-                    milestone_scheme.isClosed = milestone['is_closed']
-                    milestone_scheme.nrIssues = milestone['num_issues']
-                    milestone_scheme.nrClosedIssues = milestone['num_closed_issues']
-                    milestone_scheme.completeness = milestone['completeness']
-                    milestone_scheme.deadline = milestone['deadline']
-                    milestone_scheme.id = milestoneid
+            # if val['members']:
+            #     repo_model.dbobj.init('members', len(val['members']))
+            repo_model.dbobj.members = []
+            for memberid, member in val.get('members', {}).items():
+                member_scheme = j.data.capnp.getMemoryObj(repo_model._capnp_schema.Member, userKey=str(memberid), access=member)
+                repo_model.dbobj.members.append(member_scheme)
 
-            repo_model.dbobj.id = key
+
+            repo_model.dbobj.milestones = []
+            for milestoneid, milestone in val.get('milestones', {}).items():
+                milestone_scheme = j.data.capnp.getMemoryObj(repo_model._capnp_schema.Milestone, **milestone)
+                milestone_scheme.id = milestoneid
+                repo_model.dbobj.milestones.append(milestone_scheme)
+
+
+            repo_model.dbobj.id = id
             repo_model.dbobj.name = val['name']
             repo_model.dbobj.description = val['description']
             repo_model.dbobj.owner = str(val['owner'])
@@ -388,10 +340,7 @@ class GogsFactory:
                                      level=1, source="", tags="", msgpub="")
 
         for user in self.model.User.select():
-            self.logger.info("load user:%s" % user.name)
             user_model = self.userCollection.getFromId(user.id)
-            # self.logger.info("user_model:%s"%user_model)
-
             user_model.dbobj.name = user.name
             user_model.dbobj.fullname = user.full_name
             user_model.dbobj.email = user.email

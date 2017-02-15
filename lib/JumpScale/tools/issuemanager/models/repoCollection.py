@@ -18,7 +18,7 @@ class RepoCollection(base):
         @param source str,, source of remote database.
         @param returnIndexalse bool,, return the index used.
         """
-        if owner == "":
+        if owner == "" or owner == 0:
             owner = ".*"
         if name == "":
             name = ".*"
@@ -73,5 +73,8 @@ class RepoCollection(base):
         return res
 
     def getFromId(self, id):
-        key = self._index.lookupGet("issue_id", id)
-        return self.get(key)
+        key = self._index.lookupGet("repo_id", id)
+        repo_model =  self.get(key, autoCreate=True)
+        if key is None:
+            repo_model.dbobj.id = id
+        return repo_model

@@ -83,7 +83,7 @@ class ModelBase():
             # create an empty object with the same properties as the capnpn msg
             self.dbobj = j.data.capnp.getMemoryObj(self._capnp_schema)
             self._post_init()
-            if key != "":
+            if key is not None and key != "":
                 self._key = key
         elif key != "":
             # will get from db
@@ -99,14 +99,14 @@ class ModelBase():
 
     @property
     def key(self):
-        if self._key == "":
+        if self._key is None or self._key == "":
             self._key = self._generate_key()
         return self._key
 
     @key.setter
     def key(self, value):
-        if j.data.types.bytes.check(key):
-            key=key.decode()
+        if j.data.types.bytes.check(value):
+            value=value.decode()
         self._key = value
 
     def _post_init(self):

@@ -15,6 +15,7 @@ class RepoModel(base):
         ind = "%s:%s:%s:%s" % (self.dbobj.owner.lower(), self.dbobj.name.lower(), self.dbobj.id,
                                self.dbobj.source.lower())
         self._index.index({ind: self.key})
+        self._index.lookupSet("repo_id", self.dbobj.id, self.key)
 
     def _pre_save(self):
         pass

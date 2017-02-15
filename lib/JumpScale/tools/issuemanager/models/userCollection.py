@@ -50,9 +50,9 @@ class UserCollection(base):
             res.append(self.get(key))
         return res
 
-    def getFromId(self, id,defaultNewMethod=None):
+    def getFromId(self, id):
         key = self._index.lookupGet("issue_id", id)
-        if key==None:
-            return self.new()
-        else:
-            return self.get(key,autoCreate=True)
+        user_model =  self.get(key, autoCreate=True)
+        if key is None:
+            user_model.dbobj.id = id
+        return user_model

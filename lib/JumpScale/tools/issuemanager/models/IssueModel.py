@@ -19,7 +19,7 @@ class IssueModel(base):
                                            self.dbobj.modTime, closed, self.dbobj.repo,
                                            self.dbobj.title.lower(), self.dbobj.source)
         self._index.index({ind: self.key})
-        self.lookupSet("issue_id",self.dbobj.id,self.dbobj.key)
+        self._index.lookupSet("issue_id", self.dbobj.id, self.key)
 
     def _pre_save(self):
         pass

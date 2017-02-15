@@ -123,4 +123,7 @@ class IssueCollection(base):
 
     def getFromId(self, id):
         key = self._index.lookupGet("issue_id", id)
-        return self.get(key)
+        issue_model =  self.get(key, autoCreate=True)
+        if key is None:
+            issue_model.dbobj.id = id
+        return issue_model

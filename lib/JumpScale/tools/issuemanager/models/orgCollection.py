@@ -88,5 +88,12 @@ class OrgCollection(base):
         return res
 
     def getFromId(self, id):
+        """
+        Search the organization based on it's id.
+        id the organization doesnt exsits, creates a new one and return it
+        """
         key = self._index.lookupGet("org_id", id)
-        return self.get(key)
+        org_model =  self.get(key, autoCreate=True)
+        if key is None:
+            org_model.dbobj.id = id
+        return org_model

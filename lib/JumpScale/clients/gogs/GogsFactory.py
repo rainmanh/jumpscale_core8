@@ -8,7 +8,7 @@ class GogsFactory:
         self.__jslocation__ = "j.clients.gogs"
         self.logger = j.logger.get("j.clients.gogs")
         # self.db = ModelsFactory()
-        self.model=None
+        self.model = None
 
         self.userCollection = j.tools.issuemanager.getUserCollectionFromDB()
 
@@ -40,22 +40,20 @@ class GogsFactory:
         return GogsClient(addr=addr, port=port, login=login, passwd=passwd, accesstoken=accesstoken)
 
     def syncAllFromPSQL(self):
-        if self.model==None:
-            raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL", level=1, source="", tags="", msgpub="")
+        if self.model == None:
+            raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
+                                     level=1, source="", tags="", msgpub="")
         self.logger.info("syncAllFromPSQL")
         self.getUsersFromPSQL()
         from IPython import embed
-        print ("DEBUG NOW getUsersFromPSQL  done")
+        print("DEBUG NOW getUsersFromPSQL  done")
         embed()
         raise RuntimeError("stop debug here")
         self.getOrgsFromPSQL()
         self.getReposFromPSQL()
         self.getIssuesFromPSQL()
 
-
-
-
-    def connectPSQL(self,ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs"):
+    def connectPSQL(self, ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs"):
         """
         connects to psql & connects resulting model to self.model
         is a peewee orm enabled orm
@@ -74,16 +72,17 @@ class GogsFactory:
         @param dbname str,, database name.
         """
 
-        if self.model==None:
-            raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL", level=1, source="", tags="", msgpub="")
+        if self.model == None:
+            raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
+                                     level=1, source="", tags="", msgpub="")
 
         collection = j.tools.issuemanager.getRepoCollectionFromDB()
-        res=collection.list()
-        if res==[]:
-            #need to download
+        res = collection.list()
+        if res == []:
+            # need to download
             self.getReposFromPSQL()
 
-        model=self.model
+        model = self.model
 
         IssueCollection = j.tools.issuemanager.getIssueCollectionFromDB()
 
@@ -183,13 +182,14 @@ class GogsFactory:
         @param dbname str,, database name.
         """
 
-        if self.model==None:
-            raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL", level=1, source="", tags="", msgpub="")
+        if self.model == None:
+            raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
+                                     level=1, source="", tags="", msgpub="")
 
         collection = j.tools.issuemanager.getUserCollectionFromDB()
-        res=collection.list()
-        if res==[]:
-            #need to download
+        res = collection.list()
+        if res == []:
+            # need to download
             self.getUsersFromPSQL()
 
         OrgCollection = j.tools.issuemanager.getOrgCollectionFromDB()
@@ -240,7 +240,7 @@ class GogsFactory:
             if val['repos']:
                 for count, repoid in enumerate(val['repos']):
                     from IPython import embed
-                    print ("DEBUG NOW add org")
+                    print("DEBUG NOW add org")
                     embed()
                     raise RuntimeError("stop debug here")
                     org_model.dbobj.repos.append(repoid)
@@ -274,10 +274,11 @@ class GogsFactory:
         @param passwd str,,database passwd.
         @param dbname str,, database name.
         """
-        if self.model==None:
-            raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL", level=1, source="", tags="", msgpub="")
+        if self.model == None:
+            raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
+                                     level=1, source="", tags="", msgpub="")
 
-        if self.orgCollection.list()==[]:
+        if self.orgCollection.list() == []:
             self.getOrgsFromPSQL()
 
         queryString = """
@@ -308,9 +309,9 @@ class GogsFactory:
         # try:
         for repo in query:
 
-            res=repoCollection.find(repoid=repo.id)
+            res = repoCollection.find(repoid=repo.id)
             from IPython import embed
-            print ("DEBUG NOW i876786")
+            print("DEBUG NOW i876786")
             embed()
             raise RuntimeError("stop debug here")
 
@@ -382,12 +383,13 @@ class GogsFactory:
         """
         self.logger.info("syncAllFromPSQL")
 
-        if self.model==None:
-            raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL", level=1, source="", tags="", msgpub="")
+        if self.model == None:
+            raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
+                                     level=1, source="", tags="", msgpub="")
 
         for user in self.model.User.select():
-            self.logger.info("load user:%s"%user.name)
-            user_model=self.userCollection.getFromId(user.id)
+            self.logger.info("load user:%s" % user.name)
+            user_model = self.userCollection.getFromId(user.id)
             # self.logger.info("user_model:%s"%user_model)
 
             user_model.dbobj.name = user.name

@@ -34,13 +34,12 @@ class GogsServerErrorException(GogsBaseException):
 baseurl = "{addr}/api/v1"
 
 
-
 class GogsClient:
 
     def __init__(self, addr, login="root", passwd="root", port=3000, accesstoken=None):
         if not addr.startswith("http"):
             addr = "http://{addr}".format(addr=addr)
-        self.addr = addr+":{port}".format(port=port)
+        self.addr = addr + ":{port}".format(port=port)
         self.login = login
         self.password = passwd
         self.port = port
@@ -51,17 +50,19 @@ class GogsClient:
         else:
             self.session.headers['Authorization'] = 'token {}'.format(accesstoken)
 
+        self.logger = j.logger.get("j.clients.gogs")
+        self.logger.info("gogs client initted:%s for user %s" % (self.addr, self.login))
 
     def test(self):
 
-        #TODO:
+        # TODO:
         # BUILD GO
         # GO GET OUR GIGFORK/GOGS and BUILD IT
 
-        ## set login credentials.
+        # set login credentials.
         addr = "http://localhost"
         port = 3000
-        self.addr = addr+":{port}".format(port=port)
+        self.addr = addr + ":{port}".format(port=port)
         self.login = "root"
         self.password = "root"
         self.port = port
@@ -94,7 +95,7 @@ class GogsClient:
         dump_all()
 
         print(self.userGet("root"))
-        ## CREATE TEST repo
+        # CREATE TEST repo
         print(self.repoGet(testrep))
 
         self.repoAddCollaborator(testrep, testuser, "root")
@@ -107,16 +108,17 @@ class GogsClient:
         self.issueCreate(testrep, "really doesnt work2", "root", "it doesnt build")
         print(self.issuesList(testrep))
         print(self.issueGet(testrep, 1, "root"))
-        #dump_all()
+        # dump_all()
         self.issueClose(testrep, 1)
         print(self.issuesList(testrep))
 
         dump_all()
 
-
-
     def build_url(self, *args):
-        return j.sal.fs.joinPaths(self.baseurl, *args)
+
+        res = j.sal.fs.joinPaths(self.baseurl, *args)
+        self.logger.debug("gogsurl:%s" % res)
+        return res
 
     def reposList(self, owner=None):
         """
@@ -126,7 +128,7 @@ class GogsClient:
         """
         if not owner:
             owner = self.login
-
+        self.logger.debug("repos list for owner:%s" % owner)
         respone_user = self.userGet(owner)
         response_repos = self.session.get(self.build_url("repos", "search"), params={'uid': respone_user['id']})
         repos = list()
@@ -175,7 +177,6 @@ class GogsClient:
         elif response_set.status_code == 403:
             raise AdminRequiredException('Admin access Required')
 
-
     def repoGet(self, reponame, owner=None):
         """
         Get repo (reponame) owned by owner (or the current logged in user.)
@@ -215,7 +216,6 @@ class GogsClient:
         else:
             raise NotFoundException()
 
-
     def repoAddCollaborator(self, reponame, username, owner=None, access="RW"):
         """
         Add collaborator (username) to  repository (reponame)
@@ -243,7 +243,6 @@ class GogsClient:
         else:
             raise DataErrorException()
 
-
     def repoRemoveCollaborator(self, reponame, username, owner=None):
         """
         Remove user `username` from collaborators of reposiotry reponame
@@ -270,7 +269,6 @@ class GogsClient:
             return True
         else:
             raise DataErrorException()
-
 
     def usersList(self):
         """
@@ -418,7 +416,6 @@ class GogsClient:
         elif response_org.status_code == 500:
             raise GogsServerErrorException('gogs server error')
 
-
     def organizationCreate(self, orgname, full_name=None, username=None,
                            description=None, website=None, location=None):
         """
@@ -463,7 +460,7 @@ class GogsClient:
 
         @param orgname string: organization name.
         """
-        #Oranization is a user of type organization.
+        # Oranization is a user of type organization.
         return self.userDelete(orgname)
 
     def organizationAddUser(self, orgname, username=None):
@@ -506,28 +503,6 @@ class GogsClient:
             return True
         return False
 
-    def ownerSetLabels(self, owner, labels=None):
-        """
-        Set labels for all repos in organization or user.
-
-        @param owner string: organization name.
-        @param labels  [(label_name, label_color)]: list of tuples with index 0 label name and index 1 label color.
-        """
-
-        if not labels:
-            labels = [('priority_critical', '#b60205'), ('priority_major', '#f9d0c4'), ('priority_minor', '#f9d0c4'),
-                      ('process_duplicate', '#d4c5f9'), ('process_wontfix', '#d4c5f9'),
-                      ('state_documentation', '#c2e0c6'), ('state_inprogress', '#c2e0c6'), ('state_planned', '#c2e0c6'),
-                      ('state_question', '#c2e0c6'), ('state_verification', '#c2e0c6'), ('type_bug', '#fef2c0'),
-                      ('type_documentation', '#fef2c0'), ('type_feature', '#fef2c0'), ('type_question', '#fef2c0'),
-                      ('type_ticket', '#fef2c0')]
-        repos = self.reposList(owner=owner)
-        result = list()
-        for repo in repos:
-            for label in labels:
-                result.append(self.labelCreate(repo[1].split('/')[-1], label[0], label[1], owner))
-        return result
-
     def setAllRepoLabels(self, labels=None):
         """
         Set labels to all repos in Gogs.
@@ -539,7 +514,6 @@ class GogsClient:
 
         for owner in owners:
             self.ownerSetLabels(owner['username'], labels)
-
 
     def issuesList(self, reponame, owner=None):
         """
@@ -560,7 +534,6 @@ class GogsClient:
             raise AdminRequiredException("user does not have access to repo")
         else:
             raise NotFoundException("User or repo does not exist")
-
 
     def issueGet(self, reponame, index, owner=None):
         """
@@ -587,33 +560,33 @@ class GogsClient:
             raise NotFoundException("User or repo does not exist")
 
     def issueCreate(self,  reponame, title, owner=None, description=None, assignee=None, milestone=None, labels=None, closed=None):
-            """
-            create issue
-            @milestone  = int
-            @id = int
-            owner can be user or organization
-            """
+        """
+        create issue
+        @milestone  = int
+        @id = int
+        owner can be user or organization
+        """
 
-            body = {
-                "title": title,
-                "body": description,
-                "assignee": assignee,
-                "milestone": milestone,
-                "labels": labels,
-                "closed": closed
-            }
-            if owner is None:
-                owner = self.login
+        body = {
+            "title": title,
+            "body": description,
+            "assignee": assignee,
+            "milestone": milestone,
+            "labels": labels,
+            "closed": closed
+        }
+        if owner is None:
+            owner = self.login
 
-            response_create = self.session.post(
-                self.build_url("repos", owner, reponame, "issues"), json=body)
+        response_create = self.session.post(
+            self.build_url("repos", owner, reponame, "issues"), json=body)
 
-            if response_create.status_code == 201:
-                return response_create.json()
-            elif response_create.status_code == 403:
-                raise AdminRequiredException("user does not have access to repo")
-            else:
-                raise NotFoundException("User or repo does not exist")
+        if response_create.status_code == 201:
+            return response_create.json()
+        elif response_create.status_code == 403:
+            raise AdminRequiredException("user does not have access to repo")
+        else:
+            raise NotFoundException("User or repo does not exist")
 
     def issueAddLabels(self, repo, issue_index, labels, owner=None):
         if not owner:
@@ -639,7 +612,6 @@ class GogsClient:
     #  ISSUE DELETE
     def issueDelete(self):
         raise NotImplementedError
-
 
     def issueClose(self, reponame, index, owner=None):
         """
@@ -714,3 +686,28 @@ class GogsClient:
             raise AdminRequiredException("user does not have access to repo")
         else:
             raise NotFoundException("User or repo does not exist")
+
+    def labelsSet(self, reponame=None, owner=None):
+        """If owner or reponame == None then will walk over all."""
+
+    def ownerSetLabels(self, owner, labels=None):
+        """
+        Set labels for all repos in organization or user.
+
+        @param owner string: organization name.
+        @param labels  [(label_name, label_color)]: list of tuples with index 0 label name and index 1 label color.
+        """
+
+        if not labels:
+            labels = [('priority_critical', '#b60205'), ('priority_major', '#f9d0c4'), ('priority_minor', '#f9d0c4'),
+                      ('process_duplicate', '#d4c5f9'), ('process_wontfix', '#d4c5f9'),
+                      ('state_documentation', '#c2e0c6'), ('state_inprogress', '#c2e0c6'), ('state_planned', '#c2e0c6'),
+                      ('state_question', '#c2e0c6'), ('state_verification', '#c2e0c6'), ('type_bug', '#fef2c0'),
+                      ('type_documentation', '#fef2c0'), ('type_feature', '#fef2c0'), ('type_question', '#fef2c0'),
+                      ('type_ticket', '#fef2c0')]
+        repos = self.reposList(owner=owner)
+        result = list()
+        for repo in repos:
+            for label in labels:
+                result.append(self.labelCreate(repo[1].split('/')[-1], label[0], label[1], owner))
+        return result

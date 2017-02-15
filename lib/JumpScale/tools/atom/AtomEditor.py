@@ -89,6 +89,7 @@ class AtomEditor:
         linter-python-pep8
         # linter-python-pyflakes
         # linter-pep8
+        python-autopep8
         """
         for item in items.split("\n"):
             self.installPackage(item)

@@ -1,5 +1,5 @@
 from JumpScale import j
-
+import threading
 import inspect
 
 
@@ -197,10 +197,12 @@ class CuisineBaseLoader:
 
 class JSCuisineFactory:
 
+    _lock = threading.Lock()
+    cuisines_instance = {}
+    _local = None
+
     def __init__(self):
         self.__jslocation__ = "j.tools.cuisine"
-        self._local = None
-        self.cuisines_instance = {}
         self.logger = j.logger.get("j.tools.cuisine")
 
     def _getBaseClass(self):
@@ -216,15 +218,17 @@ class JSCuisineFactory:
         """
         reset remove the cuisine instance passed in argument from the cache.
         """
-        if cuisine.executor.id in self.cuisines_instance:
-            del self.cuisines_instance[cuisine.executor.id]
+        with self._lock:
+            if cuisine.executor.id in self.cuisines_instance:
+                del self.cuisines_instance[cuisine.executor.id]
 
     @property
     def local(self):
-        if self._local is None:
-            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
-            self._local = JSCuisine(j.tools.executor.getLocal())
-        return self._local
+        with self._lock:
+            if self._local is None:
+                from JumpScale.tools.cuisine.JSCuisine import JSCuisine
+                self._local = JSCuisine(j.tools.executor.getLocal())
+            return self._local
 
     def _generate_pubkey(self):
         if not j.do.SSHAgentAvailable():
@@ -277,12 +281,13 @@ class JSCuisineFactory:
         from JumpScale.tools.cuisine.JSCuisine import JSCuisine
         executor = j.tools.executor.get(executor)
 
-        if usecache and executor.id in self.cuisines_instance:
-            return self.cuisines_instance[executor.id]
+        with self._lock:
+            if usecache and executor.id in self.cuisines_instance:
+                return self.cuisines_instance[executor.id]
 
-        cuisine = JSCuisine(executor)
-        self.cuisines_instance[executor.id] = cuisine
-        return self.cuisines_instance[executor.id]
+            cuisine = JSCuisine(executor)
+            self.cuisines_instance[executor.id] = cuisine
+            return self.cuisines_instance[executor.id]
 
     def getFromId(self, id):
         executor = j.tools.executor.get(id)

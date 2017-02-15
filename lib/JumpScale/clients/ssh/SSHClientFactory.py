@@ -12,33 +12,37 @@ from SSHClient import SSHClient
 from AsyncSSHClient import AsyncSSHClient
 
 
-class SSHClientFactory():
+class SSHClientFactory:
+
+    _lock = threading.Lock()
+    cache = {}
+
+    logger = j.logger.get("j.clients.ssh")
+
+    # to not have to duplicate information
+    SSHKeysLoad = j.do.SSHKeysLoad
+    _addSSHAgentToBashProfile = j.do._addSSHAgentToBashProfile
+    _initSSH_ENV = j.do._initSSH_ENV
+    _getSSHSocketpath = j.do._getSSHSocketpath
+    SSHKeysLoad = j.do.SSHKeysLoad
+    SSHKeyGetPathFromAgent = j.do.SSHKeyGetPathFromAgent
+    SSHKeyGetFromAgentPub = j.do.SSHKeyGetFromAgentPub
+    SSHKeysListFromAgent = j.do.SSHKeysListFromAgent
+    SSHEnsureKeyname = j.do.SSHEnsureKeyname
+    authorize_user = j.do.authorize_user
+    authorize_root = j.do.authorize_root
+    SSHAuthorizeKey = j.do.SSHAuthorizeKey
+    _loadSSHAgent = j.do._loadSSHAgent
+    SSHAgentAvailable = j.do.SSHAgentAvailable
 
     def __init__(self):
         self.__jslocation__ = "j.clients.ssh"
-        self.logger = j.logger.get("j.clients.ssh")
-        self.cache = {}
-
-        # to not have to duplicate information
-        self.SSHKeysLoad = j.do.SSHKeysLoad
-        self._addSSHAgentToBashProfile = j.do._addSSHAgentToBashProfile
-        self._initSSH_ENV = j.do._initSSH_ENV
-        self._getSSHSocketpath = j.do._getSSHSocketpath
-        self.SSHKeysLoad = j.do.SSHKeysLoad
-        self.SSHKeyGetPathFromAgent = j.do.SSHKeyGetPathFromAgent
-        self.SSHKeyGetFromAgentPub = j.do.SSHKeyGetFromAgentPub
-        self.SSHKeysListFromAgent = j.do.SSHKeysListFromAgent
-        self.SSHEnsureKeyname = j.do.SSHEnsureKeyname
-        self.authorize_user = j.do.authorize_user
-        self.authorize_root = j.do.authorize_root
-        self.SSHAuthorizeKey = j.do.SSHAuthorizeKey
-        self._loadSSHAgent = j.do._loadSSHAgent
-        self.SSHAgentAvailable = j.do.SSHAgentAvailable
 
     def reset(self):
-        for key, client in self.cache.items():
-            client.close()
-        self.cache = {}
+        with self._lock:
+            for key, client in self.cache.items():
+                client.close()
+            self.cache = {}
 
     def get(self, addr='', port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True,
             look_for_keys=True, timeout=5, key_filename=None, passphrase=None, die=True, usecache=True):
@@ -61,21 +65,21 @@ class SSHClientFactory():
         If password is passed, sshclient will try to authenticated with login/passwd.
         If key_filename is passed, it will override look_for_keys and allow_agent and try to connect with this key.
         """
+        with self._lock:
+            key = "%s_%s_%s_%s_sync" % (
+                addr, port, login, j.data.hash.md5_string(str(passwd)))
 
-        key = "%s_%s_%s_%s_sync" % (
-            addr, port, login, j.data.hash.md5_string(str(passwd)))
-
-        if key in self.cache and usecache:
-            try:
-                if not self.cache[key].transport.is_active():
+            if key in self.cache and usecache:
+                try:
+                    if not self.cache[key].transport.is_active():
+                        usecache = False
+                except Exception:
                     usecache = False
-            except Exception:
-                usecache = False
-        if key not in self.cache or usecache is False:
-            self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent, allow_agent=allow_agent,
-                                        look_for_keys=look_for_keys, key_filename=key_filename, passphrase=passphrase, timeout=timeout)
+            if key not in self.cache or usecache is False:
+                self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent, allow_agent=allow_agent,
+                                            look_for_keys=look_for_keys, key_filename=key_filename, passphrase=passphrase, timeout=timeout)
 
-        return self.cache[key]
+            return self.cache[key]
 
     def getAsync(self, addr='', port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True,
                  look_for_keys=True, timeout=5, key_filename=(), passphrase=None, die=True, usecache=True):
@@ -99,10 +103,11 @@ class SSHClientFactory():
         return self.cache[key]
 
     def removeFromCache(self, client):
-        key = "%s_%s_%s_%s" % (
-            client.addr, client.port, client.login, j.data.hash.md5_string(str(client.passwd)))
-        if key in self.cache:
-            self.cache.pop(key)
+        with self._lock:
+            key = "%s_%s_%s_%s" % (
+                client.addr, client.port, client.login, j.data.hash.md5_string(str(client.passwd)))
+            if key in self.cache:
+                self.cache.pop(key)
 
     def SSHKeyGetFromAgentPub(self, keyname="", die=True):
         rc, out, err = j.tools.cuisine.local.core.run("ssh-add -L", die=False)
@@ -141,5 +146,6 @@ class SSHClientFactory():
         return None
 
     def close(self):
-        for key, client in self.cache.items():
-            client.close()
+        with self._lock:
+            for key, client in self.cache.items():
+                client.close()

@@ -19,7 +19,7 @@ class AtYourServiceRepoCollection:
         self.logger = j.logger.get('j.atyourservice')
         self._loop = asyncio.get_event_loop()
         self._repos = {}
-        self._loop.call_soon(self._load)
+        self._load()
 
     def _load(self):
         self.logger.info("reload AYS repos")
@@ -34,6 +34,8 @@ class AtYourServiceRepoCollection:
                         self._repos[repo.path] = repo
                     except Exception as e:
                         self.logger.error("can't load repo at {}: {}".format(path, str(e)))
+                        if j.atyourservice.debug:
+                            raise
 
         # make sure all loaded repo still exists
         for repo in list(self._repos.values()):
@@ -293,13 +295,13 @@ class AtYourServiceRepo():
         if role.strip() == "" or instance.strip() == "":
             raise j.exceptions.Input("role and instance cannot be empty.")
 
-        objs = [s for s in self._services.values() if s.model.role == role and s.name == instance]
-        if len(objs) == 0:
-            if die:
-                raise j.exceptions.NotFound(message="Cannot find service %s:%s" %
-                                            (role, instance), level=1, source="", tags="", msgpub="")
-            return None
-        return objs[0]
+        for s in self._services.values():
+            if s.model.role == role and s.name == instance:
+                return s
+        if die:
+            raise j.exceptions.NotFound(message="Cannot find service %s:%s" %
+                                        (role, instance), level=1, source="", tags="", msgpub="")
+        return None
 
     def serviceGetByKey(self, key):
         objs = [s for s in self._services.values() if s.model.key == key]

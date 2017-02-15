@@ -43,7 +43,7 @@ class CuisineAppscale(app):
             cd $HOME/appscale-tools
             git fetch && git checkout master && git pull
         fi
-        #./debian/appscale_build.sh
+        ./debian/appscale_build.sh
         """.format(APPSCALE_TOOLS_URL=APPSCALE_TOOLS_URL, tag=tag)
 
         self._cuisine.core.run(buildscript)

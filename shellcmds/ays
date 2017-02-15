@@ -5,6 +5,7 @@
 
 from JumpScale import j
 import os
+import io
 import time
 import click
 from http import HTTPStatus
@@ -119,7 +120,7 @@ def list(role, name):
         services = resp.json()
         print("Installed services:")
         print("-------------------")
-        for s in sorted(services, key=lambda service: service['role']):
+        for s in sorted(services, key=lambda service: '{role}!{name}'.format(**service)):
             print("%s!%s" % (s['role'], s['name']))
     else:
         print("Error while listing services: {}".format(_extract_error(resp)))
@@ -341,20 +342,27 @@ def _print_run(run, logs=False):
     def format_log(log):
         return " {datetime} {category}: {log}\n".format(**log, datetime=print_date(log['epoch']))
 
-    out = "RUN:{}\n".format(run['key'])
-    out += "-------\n"
+    out = io.StringIO()
+    out.write(click.style("RUN:{}\n".format(run['key']), fg='green' , underline=True))
+    # out.write(click.style("-------\n", fg='green'))
     for step in run['steps']:
-        out += "## step:{}\n\n".format(step['number'])
-        out += "step:{number} ({state})\n".format(**step)
+        # out.write(click.style("## step:{}\n\n".format(step['number']), fg='green'))
+        out.write(click.style("step:{number} ({state})\n".format(**step), fg='green', underline=True))
         for job in step['jobs']:
-            out += "- {actor_name:25} {service_name:30} | {action_name:15} ({state})\n".format(**job)
+            out.write("- {actor_name:25} {service_name:30} | {action_name:15} ({state})\n".format(**job))
             if logs:
-                out += "logs:\n"
+                out.write(click.style("\tlogs:", fg='blue'))
+                if len(job['logs']) <= 0:
+                    out.write("  none\n")
+                else:
+                    out.write("\n")
+
+
                 # import ipdb; ipdb.set_trace()
                 for log in job['logs']:
                     if log['log']:
-                        out += format_log(log) + '\n'
-    print(out)
+                        out.write(j.data.text.indent(format_log(log) + '\n', nspaces=8))
+    print(out.getvalue())
 
 @run.command()
 @click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')

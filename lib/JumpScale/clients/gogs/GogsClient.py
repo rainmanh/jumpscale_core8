@@ -34,6 +34,15 @@ class GogsServerErrorException(GogsBaseException):
 baseurl = "{addr}/api/v1"
 
 
+states = ["new", "inprogress", "question", "wontfix", "resolved", "closed"]  # prefix: state_
+state_color_code = '#c2e0c6'
+types_proj = ["alert", "incident", "task", "question", "story", "request"]  # prefix: type_
+types_code = ["documentation", "feature", "bug", "question"]  # prefix: priority_
+types_color_code = '#fef2c0'
+priorities = ["critical", "major", "normal", "minor"]  # prefix: type
+prio_color_code = '#f9d0c4'
+
+
 class GogsClient:
 
     def __init__(self, addr, login="root", passwd="root", port=3000, accesstoken=None):
@@ -712,58 +721,39 @@ class GogsClient:
     def ownerDeleteLabels(self, owner):
         """delete all labels from the owner"""
         repos = self.reposList(owner=owner)
+        alllabels = ['state_{}'.format(state) for state in states]
+        alllabels += ['type_{}'.format(type_) for type_ in types_proj]
+        alllabels += ['type_{}'.format(type_) for type_ in types_code]
+        alllabels += ['priority_{}'.format(prio) for prio in priorities]
         for repo in repos:
             repoid, fullreponame, reposshurl = repo
             reponame = fullreponame.split('/')[-1]
             for label in self.labelList(reponame, owner=owner):
-                self.labelDelete(reponame, label, owner=owner)
+                if label not in alllabels:
+                    self.labelDelete(reponame, label, owner=owner)
 
-    def ownerSetLabels(self, owner, labels=None):
+    def ownerSetLabels(self, owner):
         """
         Set labels for all repos in organization or user.
 
         @param owner string: organization name.
-        @param labels  [(label_name, label_color)]: list of tuples with index 0 label name and index 1 label color.
         """
-
-        states = ["new", "inprogress", "question", "wontfix", "resolved", "closed"]  # prefix: state_
-        state_color_code = '#c2e0c6'
-        types_proj = ["alert", "incident", "task", "question", "story", "request"]  # prefix: type_
-        types_code = ["documentation", "feature", "bug", "question"]  # prefix: priority_
-        types_color_code = '#fef2c0'
-        priorities = ["critical", "major", "normal", "minor"]  # prefix: type
-        prio_color_code = '#f9d0c4'
-
-        # TODO: *1 needs to be reimplemented
-
-        if not labels:
-            # use our labels
-            labels = [['priority_critical', '#b60205'],
-                      ['process_duplicate', '#d4c5f9'],
-                      ['process_wontfix', '#d4c5f9'],
-                      ['state_documentation', '#c2e0c6'],
-                      ['state_inprogress', '#c2e0c6'],
-                      ['state_planned', '#c2e0c6'],
-                      ['state_question', '#c2e0c6'],
-                      ['state_verification', '#c2e0c6'],
-                      ['type_bug', '#fef2c0'],
-                      ['priority_minor', '#f9d0c4'],
-                      ['type_customercase', '#fef2c0'],
-                      ['type_documentation', '#fef2c0'],
-                      ['priority_major', '#f9d0c4'],
-                      ['type_feature', '#fef2c0'],
-                      ['type_issue', '#fef2c0'],
-                      ['type_question', '#fef2c0'],
-                      ['type_task', '#fef2c0'],
-                      ['type_ticket', '#fef2c0']]
-
         repos = self.reposList(owner=owner)
         result = list()
         for repo in repos:
             repoid, fullreponame, reposshurl = repo
             reponame = fullreponame.split('/')[-1]
             if reponame.startswith("proj_") or reponame.startswith("env_"):
-                for label in labels:
-                    labelname, labelcolor = label
-                    result.append(self.labelCreate(reponame.split('/')[-1], labelname, labelcolor, owner))
+                types = types_proj
+            else:
+                types = types_code
+            for state in states:
+                labelname, labelcolor = "state_{}".format(state), state_color_code
+                result.append(self.labelCreate(reponame, labelname, labelcolor, owner))
+            for type_ in types:
+                labelname, labelcolor = "type_{}".format(type_), types_color_code
+                result.append(self.labelCreate(reponame, labelname, labelcolor, owner))
+            for prio in priorities:
+                labelname, labelcolor = "priority_{}".format(prio), prio_color_code
+                result.append(self.labelCreate(reponame, labelname, labelcolor, owner))
         return result

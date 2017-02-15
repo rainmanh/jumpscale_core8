@@ -9,10 +9,15 @@ class GogsFactory:
         self.logger = j.logger.get("j.clients.gogs")
         # self.db = ModelsFactory()
         self.model=None
+
         self.userCollection = j.tools.issuemanager.getUserCollectionFromDB()
+
         self.orgCollection = j.tools.issuemanager.getOrgCollectionFromDB()
         self.issueCollection = j.tools.issuemanager.getIssueCollectionFromDB()
         self.repoCollection = j.tools.issuemanager.getRepoCollectionFromDB()
+
+        self.logger = j.logger.get("j.clients.gogs")
+        self.logger.info("gogs factory initted.")
 
     def getRestClient(self, addr='https://127.0.0.1', port=3000, login='root', passwd='root'):
         return GogsClient(addr=addr, port=port, login=login, passwd=passwd)
@@ -20,14 +25,23 @@ class GogsFactory:
     def syncAllFromPSQL(self):
         if self.model==None:
             raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL", level=1, source="", tags="", msgpub="")
-        self.getIssuesFromPSQL()
+        self.logger.info("syncAllFromPSQL")
         self.getUsersFromPSQL()
-        self.getReposFromPSQL()
+        from IPython import embed
+        print ("DEBUG NOW getUsersFromPSQL  done")
+        embed()
+        raise RuntimeError("stop debug here")
         self.getOrgsFromPSQL()
+        self.getReposFromPSQL()
+        self.getIssuesFromPSQL()
+
+
+
 
     def connectPSQL(self,ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs"):
         """
         connects to psql & connects resulting model to self.model
+        is a peewee orm enabled orm
         """
         self.model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
         return self.model
@@ -349,12 +363,15 @@ class GogsFactory:
         """
         Load users from remote database into model.
         """
+        self.logger.info("syncAllFromPSQL")
+
         if self.model==None:
             raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL", level=1, source="", tags="", msgpub="")
 
         for user in self.model.User.select():
-
-            user_model=self.userCollection.getFromId(user.id,defaultNewMethod=self.userCollection.new)
+            self.logger.info("load user:%s"%user.name)
+            user_model=self.userCollection.getFromId(user.id)
+            # self.logger.info("user_model:%s"%user_model)
 
             user_model.dbobj.name = user.name
             user_model.dbobj.fullname = user.full_name

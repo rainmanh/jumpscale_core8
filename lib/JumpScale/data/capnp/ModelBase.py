@@ -122,11 +122,9 @@ class ModelBase():
 
     def __getattr__(self, attr):
         # print("GETATTR:%s" % attr)
-        if attr in self._subobjects:
-            return self.__dict__[attr]
-        else:
-            obj = eval("self.dbobj.%s" % attr)
-            return obj
+        if not attr in self._subobjects:
+            self.__dict__[attr] = eval("self.dbobj.%s" % attr)
+        return self.__dict__[attr]
 
     # TODO: *2 would be nice that this works, but can't get it to work, something recursive
     # def __setattr__(self, attr, val):
@@ -391,6 +389,10 @@ class ModelBaseCollection:
         """
         @param fkey is foreign key
         """
+        from IPython import embed
+        print ("DEBUG NOW 97979")
+        embed()
+        raise RuntimeError("stop debug here")
         return self._index.lookupSet(name, key, fkey)
 
     def lookupDestroy(self, name):

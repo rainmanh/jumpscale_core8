@@ -16,7 +16,7 @@ struct Issue {
     content @7 :Text;
     id @8 :UInt32;
     source @9 :Text;
-    #organization @10 :Text;  #key to organization , not sure?? 
+    #organization @10 :Text;  #key to organization , not sure??
     modTime @10 :UInt32;
     creationTime @11 :UInt32;
 }
@@ -24,8 +24,8 @@ struct Issue {
 struct Organization{
     owners @0 :List(UInt32);
     name @1 :Text;
-    description @2 :Text; # deos not exist will place in it full name 
-    nrIssues @3 :UInt16; 
+    description @2 :Text; # deos not exist will place in it full name
+    nrIssues @3 :UInt16;
     nrMilestones @4 :UInt16;
     id @5 :UInt32;
     source @6 :Text;

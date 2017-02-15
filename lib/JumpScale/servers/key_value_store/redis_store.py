@@ -25,6 +25,8 @@ class RedisKeyValueStore(KeyValueStoreBase):
         self.inMem = False
         self.type="redis"
 
+        self.logger = j.logger.get("j.servers.kvs.redis")
+
     def _getKey(self, key):
         return '%s:%s' % (self.namespace, key)
 
@@ -124,10 +126,13 @@ class RedisKeyValueStore(KeyValueStoreBase):
         return item
 
     def lookupSet(self, name, key, fkey):
+        # self.logger.info("lookupset:%s,%s,%s"%(name,key,fkey))
         self.redisclient.hset(self._indexkey + "lookup", key, fkey)
 
     def lookupGet(self, name, key):
-        self.redisclient.hget(self._indexkey + "lookup", key)
+        res=self.redisclient.hget(self._indexkey + "lookup", key)
+        # self.logger.info("lookupset:%s,%s,%s"%(name,key,fkey))
+        return res
 
     def lookupDestroy(self, name):
         self.redisclient.delete(self._indexkey + "lookup")

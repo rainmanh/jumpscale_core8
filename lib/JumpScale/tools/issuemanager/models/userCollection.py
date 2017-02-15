@@ -53,6 +53,6 @@ class UserCollection(base):
     def getFromId(self, id,defaultNewMethod=None):
         key = self._index.lookupGet("issue_id", id)
         if key==None:
-            return defaultNewMethod()
+            return self.new()
         else:
-            return self.get(key)
+            return self.get(key,autoCreate=True)

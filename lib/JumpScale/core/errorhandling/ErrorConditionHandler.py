@@ -306,12 +306,15 @@ class ErrorConditionHandler:
 
         eco = self.parsePythonExceptionObject(exceptionObject, tb=tb)
 
-        self.inException = False
         eco.process()
+
+        self.inException = False
+
         if eco.traceback != "":
             print("\n**** TRACEBACK ***")
             eco.printTraceback()
-        # print(eco)
+        print(eco)
+        sys.exit(1)
 
     def checkErrorIgnore(self, eco):
         if j.application.debug:

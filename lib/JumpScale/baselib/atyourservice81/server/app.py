@@ -12,4 +12,4 @@ app.static('/apidocs', 'apidocs')
 app.static('/', 'index.html')
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5000, workers=1, loop=loop)
+    app.run(debug=True, host='0.0.0.0', port=5000, workers=1)

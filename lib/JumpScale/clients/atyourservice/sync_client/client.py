@@ -1,16 +1,16 @@
 import requests
 
-from .ays_service import  AysService 
+from .ays_service import  AysService
 
 
 class Client:
-    def __init__(self, base_uri = "http://js8:5000"):
+    def __init__(self, base_uri = "http://localhost:5000"):
         self.base_url = base_uri
         self.session = requests.Session()
         self.session.headers.update({"Content-Type": "application/json"})
-        
+
         self.ays = AysService(self)
-    
+
     def set_auth_header(self, val):
         ''' set authorization header value'''
         self.session.headers.update({"Authorization":val})

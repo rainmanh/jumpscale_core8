@@ -1,109 +1,47 @@
 from JumpScale import j
 
 from collections import OrderedDict
-from collections import Mapping
-
-
-class MemoryObject:
-    """
-    this object is used to keep capnp schema object in memory
-    this is lighter then using the capnp object directly
-    and it solve the problem of fixed sized list of canpn object
-    """
-
-    def __init__(self, u, schema):
-        self._schema = schema
-        d = self.__dict__
-        for k, v in u.items():
-            if isinstance(v, Mapping):
-                d[k] = MemoryObject(v, schema=schema)
-            elif isinstance(v, list):
-                d[k] = []
-                for x in v:
-                    if isinstance(x, Mapping):
-                        d[k].append(MemoryObject(x, schema=schema))
-                    else:
-                        d[k].append(x)
-            else:
-                d[k] = u[k]
-
-    def to_dict(self):
-        out = {}
-        for k, v in self.__dict__.items():
-            if isinstance(v, MemoryObject):
-                out[k] = v.to_dict()
-            elif isinstance(v, list):
-                out[k] = []
-                for x in v:
-                    if isinstance(x, MemoryObject):
-                        out[k].append(x.to_dict())
-                    else:
-                        out[k].append(x)
-            else:
-                out[k] = v
-        del out['_schema']
-        return out
-
-    def to_bytes_packed(self):
-        msg = self._schema.new_message(**self.to_dict())
-        return msg.to_bytes_packed()
-
-    def to_bytes(self):
-        msg = self._schema.new_message(**self.to_dict())
-        return msg.to_bytes()
-
-    def __repr__(self):
-        return str(self.__dict__)
 
 
 class ModelBase():
 
-    def __init__(self, capnp_schema, category, db, index, key="", new=False, collection=None):
+    def __init__(self, key="", new=False, collection=None):
 
         self._propnames = []
-        self._capnp_schema = capnp_schema
-        self._propnames = [item for item in self._capnp_schema.schema.fields.keys()]
+        self.collection = collection
+        self.logger = collection.logger
 
-        self.logger = j.logger.get(self.objType)  # TODO find something better than this
-        self._category = category
-        self._db = db
-        self._index = index
         self._key = ""
+
         self.dbobj = None
         self.changed = False
         self._subobjects = {}
-        self.collection = collection
+
+        if j.data.types.bytes.check(key):
+            key = key.decode()
 
         # if key != "":
         #     if len(key) != 16 and len(key) != 32 and len(key) != 64:
         #         raise j.exceptions.Input("Key needs to be length 16,32,64")
 
-        if j.data.types.bytes.check(key):
-            key = key.decode()
-
         if new:
-            # create an empty object with the same properties as the capnpn msg
             self.collection.logger.debug("new:%s" % key)
-            self.dbobj = j.data.capnp.getMemoryObj(self._capnp_schema)
+            self.dbobj = self.collection.capnp_schema.new_message()
             self._post_init()
-            if key is not None and key != "":
+            if key != "":
                 self._key = key
         elif key != "":
             # will get from db
-            if self._db.exists(key):
+            if self.collection_db.exists(key):
                 self.collection.logger.debug("exists:%s" % key)
                 self.load(key=key)
                 self._key = key
             else:
-                raise j.exceptions.NotFound(message="Cannot find object:%s!%s" % (
+                raise j.exceptions.Input(message="Cannot find object:%s!%s" % (
                     self._category, key), level=1, source="", tags="", msgpub="")
         else:
             raise j.exceptions.Input(message="key cannot be empty when no new obj is asked for.",
                                      level=1, source="", tags="", msgpub="")
-
-    @property
-    def objType(self):
-        return self._capnp_schema.schema.node.displayName
 
     @property
     def key(self):
@@ -130,21 +68,26 @@ class ModelBase():
 
     def index(self):
         # put indexes in db as specified
-        self._index.index({self.dbobj.name: self.key})
+        self.collection._index.index({self.dbobj.name: self.key})
 
     def load(self, key):
-        # if self._db.inMem:
-        #     raise RuntimeError("when using in memory store it should not try to load")
+        if self.collection._db.inMem:
+            raise RuntimeError("when using in memory store it should not try to load")
 
-        buff = self._db.get(key)
-        msg = self._capnp_schema.from_bytes(buff)
-        self.dbobj = MemoryObject(msg.to_dict(verbose=True), self._capnp_schema)
+        buff = self.collection._db.get(key)
+        self.dbobj = self.collection.capnp_schema.from_bytes(buff, builder=True)
 
-    def __getattr__(self, attr):
-        # print("GETATTR:%s" % attr)
-        if not attr in self._subobjects:
-            self.__dict__[attr] = eval("self.dbobj.%s" % attr)
-        return self.__dict__[attr]
+    # def __getattr__(self, attr):
+    #     if not attr in self.__dict__:
+    #         try:
+    #             print("GETATTR:%s" % attr)
+    #             self.__dict__[attr] = eval("self.dbobj.%s" % attr)
+    #         except Exception as e:
+    #             if "has no such member" in str(e):
+    #                 raise j.exceptions.Input(message="attr '%s' does not exist on %s" %
+    #                                          (attr, self._capnp_schema), level=1, source="", tags="", msgpub="")
+    #             raise e
+    #     return self.__dict__[attr]
 
     # TODO: *2 would be nice that this works, but can't get it to work, something recursive
     # def __setattr__(self, attr, val):
@@ -166,62 +109,66 @@ class ModelBase():
     #         raise j.exceptions.Input(message="Cannot set attr:%s in %s" %
     #                                  (attr, self), level=1, source="", tags="", msgpub="")
 
-    def __dir__(self):
-        propnames = ["key", "index", "load", "_post_init", "_pre_save", "_generate_key", "save",
-                     "dictFiltered", "reSerialize", "dictJson", "raiseError", "addSubItem", "_listAddRemoveItem",
-                     "logger", "_capnp_schema", "_category", "_db", "_index", "_key", "dbobj", "changed", "_subobjects"]
-        return propnames + self._propnames
+    # def __dir__(self):
+    #     propnames = ["key", "index", "load", "_post_init", "_pre_save", "_generate_key", "save", "logger",
+    #                  "dictFiltered", "reSerialize", "dictJson", "raiseError", "addSubItem", "_listAddRemoveItem",
+    #                  "logger", "_capnp_schema", "_category", "_db", "_index", "_key", "dbobj", "changed", "_subobjects"]
+    #     return propnames + self._propnames
+
+    def reSerialize(self):
+        toRemove = []
+        for key, item in self._subobjects.items():
+            prop = self.__dict__["list_%s" % key]
+            dbobjprop = eval("self.dbobj.%s" % key)
+            if len(dbobjprop) != 0:
+                raise RuntimeError("bug, dbobj prop should be empty, means we didn't reserialize properly")
+            if len(prop) > 0:
+                # init the subobj, iterate over all the items we have & insert them
+                subobj = self.dbobj.init(key, len(prop))
+                for x in range(0, len(prop)):
+                    subobj[x] = prop[x]
+            toRemove.append(key)
+
+        # cannot do above because still iterating
+        for key in toRemove:
+            self._subobjects.pop(key)
+            self.__dict__.pop("list_%s" % key)
 
     def save(self):
         self._pre_save()
-
-        if self._db.inMem:
-            # no need to store when in mem because we are the object which does not have to be serialized
-            self._db.db[self.key] = self
+        self.reSerialize()
+        if self.collection._db.inMem:
+            self.collection._db.db[self.key] = self
         else:
+            # no need to store when in mem because we are the object which does not have to be serialized
             # so this one stores when not mem
-            # print(self)
-            msg = self._capnp_schema.new_message(**self.dbobj.to_dict())
-            buff = msg.to_bytes()
-            self._db.set(self.key, buff)
+            buff = self.dbobj.to_bytes()
+            if hasattr(self.dbobj, 'clear_write_flag'):
+                self.dbobj.clear_write_flag()
+            self.collection._db.set(self.key, buff)
         self.index()
+
+    def to_dict(self):
+        self.reSerialize()
+        d = self.dbobj.to_dict()
+        d['key'] = self.key
+        return d
 
     @property
     def dictFiltered(self):
         """
         remove items from obj which cannot be serialized to json or not relevant in dict
         """
-        d = self.dbobj.to_dict()
-        d['key'] = self.key
-        return d
+        # made to be overruled
+        return self.to_dict()
 
     @dictFiltered.setter
     def dictFiltered(self, ddict):
         """
         """
-        self.dbobj__.dict__.update(ddict)
-
-    # def reSerialize(self, propertyName=None):
-    #     """
-    #     will create an empty object & copy all from existing one into the new one to make sure its as dense as possible
-    #     """
-    #     # print("RESERIALIZE")
-    #     if propertyName in self._subobjects:
-    #         # means we are already prepared
-    #         return
-    #     ddict = self.dbobj.to_dict()
-    #     if propertyName in ddict:
-    #         if propertyName in self.__dict__ and len(self.__dict__[propertyName]) != 0:
-    #             raise RuntimeError("bug in reSerialize, this needs to be empty")
-    #         self.__dict__[propertyName] = []
-    #         prop = eval("self.dbobj.%s" % propertyName)
-    #         for item in prop:
-    #             self.__dict__[propertyName].append(item)
-    #             self._subobjects[propertyName] = True
-    #
-    #         ddict.pop(propertyName)
-    #         # is now a clean obj without the property
-    #     self.dbobj = self._capnp_schema.new_message(**ddict)
+        if "key" in ddict:
+            self.key = ddict[key]
+        self.dbobj = self.collection.capnp_schema.new_message(**ddict)
 
     @property
     def dictJson(self):
@@ -232,29 +179,42 @@ class ModelBase():
         msg = "Error in dbobj:%s (%s)\n%s" % (self._category, self.key, msg)
         raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
 
-        # def addSubItem(self, name, capnpmsg):
-        #     self._listAddRemoveItem(name)
-        #     self.__dict__[name].append(capnpmsg)
-        #     return capnpmsg
-        #
-        # def _listAddRemoveItem(self, name):
-        #     """
-        #     if you want to change size of a list on obj use this method
-        #     capnp doesn't allow modification of lists, so when we want to change size of a list then we need to reSerialize
-        #     and put content of a list in a python list of dicts
-        #     we then re-serialize and leave the subobject empty untill we know that we are at point we need to save the object
-        #     when we save we populate the subobject so we get a nicely created capnp message
-        #     """
-        #     if name in self._subobjects:
-        #         # means we are already prepared
-        #         return
-        #     prop = eval("self.dbobj.%s" % name)
-        #     if len(prop) == 0:
-        #         self._subobjects[name] = True
-        #         self.__dict__[name] = []
-        #     else:
-        #         self.reSerialize(propertyName=name)
-        #     self.changed = True
+    def addSubItem(self, name, data):
+        """
+        @param data is string or object first retrieved by self.collection.list_$name_constructor(**args)
+        can also directly add them to self.list_$name.append(self.collection.list_$name_constructor(**args)) if it already exists
+        """
+        self._listAddRemoveItem(name=name)
+        self.__dict__["list_%s" % name].append(data)
+
+    def initSubItem(self, name):
+        self._listAddRemoveItem(name=name)
+
+    def deleteSubItem(self, name, pos):
+        """
+        @param pos is the position in the list
+        """
+        self._listAddRemoveItem(name=name)
+        self.__dict__["list_%s" % name].pop(pos)
+
+    def _listAddRemoveItem(self, name):
+        """
+        if you want to change size of a list on obj use this method
+        capnp doesn't allow modification of lists, so when we want to change size of a list then we need to reSerialize
+        and put content of a list in a python list of dicts
+        we then re-serialize and leave the subobject empty untill we know that we are at point we need to save the object
+        when we save we populate the subobject so we get a nicely created capnp message
+        """
+        if name in self._subobjects:
+            # means we are already prepared
+            return
+        prop = eval("self.dbobj.%s" % name)
+        if len(prop) == 0:
+            self._subobjects[name] = True
+            self.__dict__["list_%s" % name] = []
+        else:
+            self.__dict__["list_%s" % name] = [item for item in prop]
+        self.changed = True
 
     def __repr__(self):
         out = "key:%s\n" % self.key
@@ -290,6 +250,14 @@ class ModelBaseWithData(ModelBase):
         return j.data.capnp.getBinaryData(self.data)
 
 
+def getText(text):
+    return str(object=text)
+
+
+def getInt(nr):
+    return int(nr)
+
+
 class ModelBaseCollection:
     """
     This class represent a collection
@@ -304,11 +272,9 @@ class ModelBaseCollection:
             import capnp
             # load the .capnp file
             import model_capnp as ModelCapnp
-            # pass this to the constructor as schema.
-            ModelBaseCollection(schema=ModelCapnp)
-
+            # pass this to the constructor.
             ModelCapnp.MyStruct
-        @param category str: category of the model. need to be the same as the category of the single model class, e.g. issue, actor, user, ...
+        @param category str: category of the model. need to be the same as the category of the single model class
         @param namespace: namespace used to store these object in key-value store
         @param modelBaseClass: important to pass the class not the object. Class used to create instance of this category.
                                Need to inherits from JumpScale.data.capnp.ModelBase.ModelBalse
@@ -319,6 +285,30 @@ class ModelBaseCollection:
         self.category = category
         self.namespace = namespace if namespace else category
         self.capnp_schema = schema
+
+        self.propnames = [item for item in self.capnp_schema.schema.fields.keys()]
+
+        self._listConstructors = {}
+
+        for field in self.capnp_schema.schema.fields_list:
+            try:
+                str(field.schema)
+            except:
+                continue
+
+            if "List" in str(field.schema):
+                slottype = str(field.proto.slot.type).split("(")[-1]
+                if slottype.startswith("text"):
+                    # is text
+                    self._listConstructors[field.proto.name] = getText
+                elif slottype.startswith("int"):
+                    # is text
+                    self._listConstructors[field.proto.name] = getInt
+                else:
+                    subTypeName = str(field.schema.elementType).split(".")[-1].split(">")[0]
+                    self._listConstructors[field.proto.name] = eval("self.capnp_schema.%s.new_message" % subTypeName)
+
+                self.__dict__["list_%s_constructor" % field.proto.name] = self._listConstructors[field.proto.name]
 
         self._db = db if db else j.servers.kvs.getMemoryStore(name=self.namespace, namespace=self.namespace)
         # for now we do index same as database
@@ -334,13 +324,7 @@ class ModelBaseCollection:
         return self.capnp_schema.schema.node.displayName
 
     def new(self, key=""):
-        model = self.modelBaseClass(
-            capnp_schema=self.capnp_schema,
-            category=self.category,
-            db=self._db,
-            index=self._index,
-            key=key,
-            new=True, collection=self)
+        model = self.modelBaseClass(key=key, new=True, collection=self)
         return model
 
     def exists(self, key):
@@ -358,6 +342,7 @@ class ModelBaseCollection:
                     raise j.exceptions.Input(message="Could not find key:%s for model:%s" %
                                              (key, self.category), level=1, source="", tags="", msgpub="")
         else:
+
             model = self.modelBaseClass(
                 capnp_schema=self.capnp_schema,
                 category=self.category,
@@ -368,7 +353,7 @@ class ModelBaseCollection:
                 collection=self)
         return model
 
-    def list(self, name="", state=None):
+    def list(self, name="", returnIndex=False):
         """
         @param name can be the full name e.g. node.ssh or a rule but then use e.g. node.*  (are regexes, so need to use .* at end)
         @param state
@@ -379,20 +364,11 @@ class ModelBaseCollection:
         """
         if name == "":
             name = ".*"
-        if state == "":
-            state = ".*"
-        if state != None and name != None:
-            regex = "%s:%s" % (name, state)
-        elif name != None:
-            regex = "%s" % (name)
-        elif state != None:
-            regex = "%s" % (state)
-        else:
-            regex = ".*"
-        res = self._index.list(regex, returnIndex=True)
+        regex = name
+        res = self._index.list(regex, returnIndex=returnIndex)
         return res
 
-    def find(self, name="", state=None):
+    def find(self, name=""):
         """
         @param name can be the full name e.g. node.ssh or a rule but then use e.g. node.*  (are regexes, so need to use .* at end)
         @param state
@@ -402,7 +378,7 @@ class ModelBaseCollection:
             disabled
         """
         res = []
-        for key in self.list(name=name, state=state):
+        for key in self.list(name=name):
             res.append(self.get(key))
         return res
 

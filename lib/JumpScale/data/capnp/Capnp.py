@@ -135,7 +135,7 @@ class Capnp:
 
         else:
             try:
-                configdata = schema.new_message(**args)
+                obj = schema.new_message(**args)
             except Exception as e:
                 if str(e).find("has no such member") != -1:
                     msg = "cannot create data for schema from arguments, property missing\n"
@@ -156,8 +156,8 @@ class Capnp:
                     print(msg)
                     raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
                 raise e
-        return MemoryObject(configdata.to_dict(verbose=True), schema=schema)
-        # return configdata
+
+        return obj
 
     def test(self):
         import time
@@ -193,6 +193,7 @@ class Capnp:
         collection = self.getModelCollection(schema, category="test", modelBaseClass=None, db=mydb, indexDb=mydb)
         start = time.time()
         print("start populate 100.000 records")
+        collection.logger.disabled = True
         for i in range(100000):
             obj = collection.new()
             obj.dbobj.name = "test%s" % i
@@ -200,7 +201,9 @@ class Capnp:
 
         print("population done")
         end_populate = time.time()
-        print(collection.find(name="test8639"))
+        collection.logger.disabled = False
+
+        print(collection.find(name="test839"))
         end_find = time.time()
         print("population in %.2fs" % (end_populate - start))
         print("find in %.2fs" % (end_find - end_populate))
@@ -208,9 +211,7 @@ class Capnp:
     def testWithRedis(self):
         capnpschema = '''
         @0x93c1ac9f09464fc9;
-
         struct Issue {
-
           state @0 :State;
           enum State {
             new @0;
@@ -218,45 +219,40 @@ class Capnp:
             error @2;
             disabled @3;
           }
-
           #name of actor e.g. node.ssh (role is the first part of it)
           name @1 :Text;
-
-          secrets @2 :List(Text);
-
+          tlist @2: List(Text);
+          olist @3: List(Issue2);
+          struct Issue2 {
+              state @0 :State;
+              enum State {
+                new @0;
+                ok @1;
+                error @2;
+                disabled @3;
+              }
+              text @1: Text;
+          }
         }
         '''
         # mydb = j.servers.kvs.getRedisStore("test")
         mydb = j.servers.kvs.getRedisStore(name="test", unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
         schema = self.getSchemaFromText(capnpschema, name="Issue")
-
-        # class SomeCollection(ModelBaseCollection):
-        #     """
-        #     This class represent a collection of AYS Actors contained in an AYS repository
-        #     It's used to list/find/create new Instance of Actor Model object
-        #     """
-        #
-        #     def __init__(self, repository,db):
-        #         self.repository = repository
-        #         namespace = "somecollection"
-        #         super().__init__(
-        #             schema=ModelCapnp.Actor,
-        #             category="Actor",
-        #             namespace=namespace,
-        #             modelBaseClass=ActorModel,
-        #             db=db,
-        #             indexDb=db
-        #         )
-
-
         collection = self.getModelCollection(schema, category="test", modelBaseClass=None, db=mydb, indexDb=mydb)
         for i in range(100):
             obj = collection.new()
             obj.dbobj.name = "test%s" % i
-            for i in range(10):
-                obj.dbobj.secrets.append("something")
             obj.save()
         print(collection.list())
+
+        subobj = collection.list_olist_constructor(state="new", text="something")
+        obj.addSubItem("olist", subobj)
+
+        subobj = collection.list_tlist_constructor("sometext")
+        obj.addSubItem(name="tlist", data=subobj)
+        obj.addSubItem(name="tlist", data="sometext2")
+
+        obj.reSerialize()
 
     def getJSON(self, obj):
         configdata2 = obj.to_dict()

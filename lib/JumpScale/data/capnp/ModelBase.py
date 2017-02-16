@@ -210,10 +210,14 @@ class ModelBase():
             return
         prop = eval("self.dbobj.%s" % name)
         if len(prop) == 0:
-            self._subobjects[name] = True
             self.__dict__["list_%s" % name] = []
         else:
             self.__dict__["list_%s" % name] = [item for item in prop]
+
+        # empty the dbobj list
+        exec("self.dbobj.%s=[]" % name)
+
+        self._subobjects[name] = True
         self.changed = True
 
     def __repr__(self):

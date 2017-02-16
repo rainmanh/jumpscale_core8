@@ -252,6 +252,14 @@ class Capnp:
         obj.addSubItem(name="tlist", data=subobj)
         obj.addSubItem(name="tlist", data="sometext2")
 
+        print(obj)
+
+        obj.initSubItem("tlist")
+        assert len(obj.list_tlist) == 2
+
+        obj.addSubItem(name="tlist", data="sometext3")
+        assert len(obj.list_tlist) == 3
+
         obj.reSerialize()
 
     def getJSON(self, obj):

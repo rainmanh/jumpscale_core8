@@ -10,6 +10,7 @@ class emptyObject:
     this is lighter then using the capnp object directly
     and it solve the problem of fixed sized list of canpn object
     """
+
     def __init__(self, u, schema):
         self._schema = schema
         d = self.__dict__
@@ -25,7 +26,6 @@ class emptyObject:
                         d[k].append(x)
             else:
                 d[k] = u[k]
-
 
     def to_dict(self):
         out = {}
@@ -55,6 +55,7 @@ class emptyObject:
     def __repr__(self):
         return str(self.__dict__)
 
+
 class ModelBase():
 
     def __init__(self, capnp_schema, category, db, index, key="", new=False):
@@ -77,7 +78,7 @@ class ModelBase():
         #         raise j.exceptions.Input("Key needs to be length 16,32,64")
 
         if j.data.types.bytes.check(key):
-            key=key.decode()
+            key = key.decode()
 
         if new:
             # create an empty object with the same properties as the capnpn msg
@@ -106,7 +107,7 @@ class ModelBase():
     @key.setter
     def key(self, value):
         if j.data.types.bytes.check(value):
-            value=value.decode()
+            value = value.decode()
         self._key = value
 
     def _post_init(self):

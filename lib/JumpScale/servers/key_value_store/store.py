@@ -31,7 +31,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         self.masterdb = masterdb
         self._schema = b""
         # self.owner = j.application.owner
-        self.owner="" #std empty
+        self.owner = ""  # std empty
         self.inMem = False
 
     def __new__(cls, *args, **kwargs):
@@ -59,7 +59,9 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
     def destroy(self):
         # delete data
         for key in self.keys:
+            self.logger.debug("delete:%s" % key)
             self.delete(key)
+        self.index_destroy()
 
     @property
     def schema(self):
@@ -84,14 +86,14 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         """
         to define who owns this object, normally when you open a store, you set the owner if not the default
         """
-        if self._owner=="":
+        if self._owner == "":
             return ""
         return j.data.hash.bin2hex(self._owner).decode()
 
     @owner.setter
     def owner(self, val):
-        if val=="":
-            self._owner=""
+        if val == "":
+            self._owner = ""
             return
 
         if len(val) == 32:
@@ -130,12 +132,12 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         else:
             expireb = b""
 
-        if self._owner!="":
+        if self._owner != "":
             ttype += 0b0001000
 
         # data should be binary if not lets msgpack or leave as string
         if j.data.types.string.check(val):
-            val=val.encode()
+            val = val.encode()
             ttype += 0b0000100
         elif j.data.types.bytes.check(val) == False:
             val = j.data.serializer.msgpack.dumps(val)
@@ -147,7 +149,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
         val = snappy.compress(val)
 
-        if self._owner=="":
+        if self._owner == "":
             serialized = typeb + self._schema + expireb + aclb + val
         else:
             serialized = typeb + self._owner + self._schema + expireb + aclb + val
@@ -176,11 +178,11 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
         counter = 1
 
-        if header & 0b0001000:#means there is an owner defined, get it
+        if header & 0b0001000:  # means there is an owner defined, get it
             owner = j.data.hash.bin2hex(data[counter:counter + 16]).decode()
             counter += 16
         else:
-            owner=""
+            owner = ""
 
         if header & 0b1000000:
             # schema defined
@@ -205,12 +207,11 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
         val = data[counter:-4]
 
-
         val = snappy.decompress(val)
 
         if header & 0b0000100:
-            #is string
-            val=val.decode()
+            # is string
+            val = val.decode()
         elif header & 0b0010000:
             val = j.data.serializer.msgpack.loads(val)
 
@@ -224,7 +225,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
         """
         # print("Expire0:%s"%expire)
-        if acl!={} or secret!="":
+        if acl != {} or secret != "":
             res = self.getraw(key, secret=secret, die=False, modecheck="w")
 
             if res != None:
@@ -244,7 +245,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         value2 = self.serialize(value)
 
         data = self._encode(value2, expire, acl)
-        self._set(key, data,expire=expire)
+        self._set(key, data, expire=expire)
 
         # if self.cache != None:
         #     self.cache._set(key=key, category=category, value=value1)
@@ -264,7 +265,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
             raise e
         return res != None
 
-    def get(self, key, secret="",die=False):
+    def get(self, key, secret="", die=False):
         '''
         Gets a key value pair from the store
 
@@ -275,7 +276,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
         '''
         (val, owner, schema, expire, acl) = self.getraw(key, secret, die=die)
-        if expire!=0 and expire < j.data.time.getTimeEpoch():
+        if expire != 0 and expire < j.data.time.getTimeEpoch():
             return None
         return val
 
@@ -303,7 +304,7 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
             if die:
                 raise j.exceptions.Input(message="Cannot find object: %s" % key, level=1, source="", tags="", msgpub="")
             else:
-                return (None,"","",0,{})
+                return (None, "", "", 0, {})
 
         if secret == "":
             secret = self.owner
@@ -341,7 +342,6 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
 
         return value
 
-
     def index(self, items, secret=""):
         """
         @param items is {indexitem:key}
@@ -364,8 +364,11 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         data2 = msgpack.dumps(ddict)
         self.set("index", data2, secret=secret)
 
-    def index_remove(self, keys, secret=""):
-        self.delete("index")
+    def index_remove(self, key, secret=""):
+        raise RuntimeError("not implemented")
+
+    def index_destroy(self):
+        raise RuntimeError("not implemented")
 
     def index_list(self, regex=".*", returnIndex=False, secret=""):
         """

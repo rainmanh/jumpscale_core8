@@ -10,7 +10,6 @@ class GogsFactory:
         self.model = None
 
         self.userCollection = j.tools.issuemanager.getUserCollectionFromDB()
-
         self.orgCollection = j.tools.issuemanager.getOrgCollectionFromDB()
         self.issueCollection = j.tools.issuemanager.getIssueCollectionFromDB()
         self.repoCollection = j.tools.issuemanager.getRepoCollectionFromDB()
@@ -18,6 +17,12 @@ class GogsFactory:
         self.logger = j.logger.get("j.clients.gogs")
         self.logger.info("gogs factory initted.")
         self._labels = {}
+
+    def destroyData(self):
+        self.userCollection.destroy()
+        self.orgCollection.destroy()
+        self.issueCollection.destroy()
+        self.repoCollection.destroy()
 
     def getRestClient(self, addr='https://127.0.0.1', port=3000, login='root', passwd='root', accesstoken=None):
         """

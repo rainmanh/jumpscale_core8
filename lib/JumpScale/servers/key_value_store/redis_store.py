@@ -23,7 +23,7 @@ class RedisKeyValueStore(KeyValueStoreBase):
         self._indexkey = "index:%s" % namespace
 
         self.inMem = False
-        self.type="redis"
+        self.type = "redis"
 
         self.logger = j.logger.get("j.servers.kvs.redis")
 
@@ -44,8 +44,8 @@ class RedisKeyValueStore(KeyValueStoreBase):
 
     @property
     def keys(self):
-        l=len(self.namespace)+1
-        res=[item.decode()[l:] for item in self.redisclient.keys(self.namespace+":*")]
+        l = len(self.namespace) + 1
+        res = [item.decode()[l:] for item in self.redisclient.keys(self.namespace + ":*")]
         return res
 
     def increment(self, key):
@@ -71,12 +71,19 @@ class RedisKeyValueStore(KeyValueStoreBase):
                 self.redisclient.hset(self._indexkey, key, val)
         return True
 
+    def index_destroy(self):
+        self.redisclient.delete(self._indexkey)
+        self.redisclient.delete(self._indexkey + "lookup")
+
     def index_remove(self, key, secret=""):
         """
         @param keys is the key to remove from index
         """
         if self.redisclient.hexists(self._indexkey, key):
+            self.logger.debug("delete:%s" % key)
             self.redisclient.hdel(self._indexkey, key)
+        else:
+            self.logger.debug("no need to delete index, was not found:%s" % key)
 
     def list(self, regex=".*", returnIndex=False, secret=""):
         """
@@ -130,7 +137,7 @@ class RedisKeyValueStore(KeyValueStoreBase):
         self.redisclient.hset(self._indexkey + "lookup", key, fkey)
 
     def lookupGet(self, name, key):
-        res=self.redisclient.hget(self._indexkey + "lookup", key)
+        res = self.redisclient.hget(self._indexkey + "lookup", key)
         # self.logger.info("lookupset:%s,%s,%s"%(name,key,fkey))
         return res
 

@@ -64,9 +64,11 @@ struct Repo{
 }
 
 struct User{
-    name @0 :Text;
+    name @0 :Text; #as to be used to represent in UI
     fullname @1 :Text;
-    email @2 :Text;
-    id @3 :UInt32;
-    source @4 :Text;
+    email @2 :Text; #will be used for escalation
+    gogsId @3 :UInt32;
+    githubID @4 :Text; #e.g. despiegk
+    telegramId @5: Text;#e.g. despiegk
+    IYOID @6: Text;#e.g. despiegk
 }

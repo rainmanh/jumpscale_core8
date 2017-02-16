@@ -9,6 +9,7 @@ from JumpScale import j
 import requests
 from requests.auth import HTTPBasicAuth
 from random import randint
+import sys
 
 
 class GogsBaseException(Exception):
@@ -139,7 +140,7 @@ class GogsClient:
             owner = self.login
         self.logger.debug("repos list for owner:%s" % owner)
         respone_user = self.userGet(owner)
-        response_repos = self.session.get(self.build_url("repos", "search"), params={'uid': respone_user['id']})
+        response_repos = self.session.get(self.build_url("repos", "search"), params={'uid': respone_user['id'], 'limit': sys.maxsize})
         repos = list()
         if response_repos.status_code == 200:
             for repo in response_repos.json()['data']:

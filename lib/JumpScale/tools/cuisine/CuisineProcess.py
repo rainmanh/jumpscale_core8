@@ -102,13 +102,15 @@ class CuisineProcess(base):
         """Returns the pids of processes with the given name. If exact is `False`
         it will return the list of all processes that start with the given
         `name`."""
-        is_string = isinstance(name, str) or isinstance(name, unicode)
+        if isinstance(name, bytes):
+            name = name.decode()
+        is_string = isinstance(name, str)
         # NOTE: ps -A seems to be the only way to not have the grep appearing
         # as well
         RE_SPACES = re.compile("[\s\t]+")
 
         cmd = "ps -A | grep {0} ; true".format(name) if is_string else "ps -A"
-        processes = self.cuisine.core.run(cmd, replaceArgs=False, die=False)[1]
+        rc, processes, err = self.cuisine.core.run(cmd, replaceArgs=False, die=False)
 
         res = []
         for line in processes.split("\n"):

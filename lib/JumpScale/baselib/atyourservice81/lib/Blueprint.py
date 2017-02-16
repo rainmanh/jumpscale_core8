@@ -82,8 +82,8 @@ class Blueprint:
                         servicesFound = self.aysrepo.servicesFind(name=service0, actor=actor0)
 
                         if len(servicesFound) == 0:
-                            raise j.exceptions.Input(message="found action to execute but could not find required service:%s!%s" % (
-                                actor0, service0), level=1, source="", tags="", msgpub="")
+                            self.logger.error("found action to execute but could not find required service:%s!%s" % (actor0, service0))
+                            continue
 
                         if "action" not in actionModel:
                             raise j.exceptions.Input(message="need to specify action.",

@@ -14,7 +14,6 @@ class Service:
         self.model = None
         self._schema = None
         self._path = ""
-        self._schema = None
         self._loop = loop or asyncio.get_event_loop()
         self._recurring_tasks = {} # for recurring jobs
 

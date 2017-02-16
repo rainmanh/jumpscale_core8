@@ -78,12 +78,20 @@ class ServiceModel(ActorServiceBaseModel):
 
     @property
     def producers(self):
-        producers = []
+        producers = None
+        if self._cache is True:
+            if self._producers != []:
+                return self._producers
+            else:
+                producers = self._producers
+        else:
+            producers = []
+
 
         for prod in self.dbobj.producers:
-            producers.extend(self._aysrepo.servicesFind(name=prod.serviceName, actor=prod.actorName))
-            # producers.extend(self._aysrepo.db.services.find(name=prod.serviceName, actor=prod.actorName))
-        return [p.model for p in producers]
+            s = self._aysrepo.serviceGet(instance=prod.serviceName, role=prod.actorName.split('.')[0])
+            producers.append(s.model)
+        return producers
 
     def getProducersRecursive(self, producers=set(), action="", producerRoles="*"):
         for producer_model in self.producers:
@@ -106,9 +114,9 @@ class ServiceModel(ActorServiceBaseModel):
             consumers = []
 
         for cons in self.dbobj.consumers:
-            consumers.extend(self._aysrepo.servicesFind(name=cons.serviceName, actor=cons.actorName))
-            # producers.extend(self._aysrepo.db.services.find(name=prod.serviceName, actor=prod.actorName))
-        return [c.model for c in consumers]
+            s = self._aysrepo.serviceGet(instance=cons.serviceName, role=cons.actorName.split('.')[0])
+            consumers.append(s.model)
+        return consumers
 
 
     def getConsumersRecursive(self, consumers=set(), action="", consumersRoles="*"):

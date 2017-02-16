@@ -265,21 +265,18 @@ class DiskInfo(BlkInfo):
         start, end = spot
         try:
 
-            rc , out ,err = self._executor.execute(
+            rc, out, err = self._executor.execute(
                 ('parted -s {name} -a optimal unit B ' +
                     'mkpart primary {start} {end}').format(name=self.name,
                                                            start=start,
-                                                           end=end)
-                , showout=False)
-
+                                                           end=end), showout=False, die=False)
             if err != '' and err.find('The closest location we can manage is') != -1:
-                numbers = j.data.regex.findAll(r'(\d*B)', err)
-                rc , out ,err = self._executor.execute(
-                    ('parted -s {name} -a optimal unit B ' +
-                        'mkpart primary {start} {end}').format(name=self.name,
-                                                               start=start,
-                                                               end=numbers[3])
-                    , showout=False)
+               numbers = j.data.regex.findAll(r'(\d*B)', err)
+               rc, out, err = self._executor.execute(
+               ('parted -s {name} -a optimal unit B ' +
+               'mkpart primary {start} {end}').format(name=self.name,
+               start=start,
+               end=numbers[3]), showout=False)
         except Exception as e:
             raise FormatError(e)
 
@@ -344,7 +341,7 @@ class DiskInfo(BlkInfo):
         except Exception as e:
             raise DiskError(e)
 
-        if err!= '' and err.find('unrecognised disk label') != -1:
+        if err != '' and err.find('unrecognised disk label') != -1:
             # not table set on the disk yet
             self._clearMBR()
             self.unallocatedSpace(minimum_size=minimum_size)

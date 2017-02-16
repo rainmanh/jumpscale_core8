@@ -305,7 +305,7 @@ class ModelBaseCollection:
                 if slottype.startswith("text"):
                     # is text
                     self._listConstructors[field.proto.name] = getText
-                elif slottype.startswith("int"):
+                elif slottype.startswith("uint"):
                     # is text
                     self._listConstructors[field.proto.name] = getInt
                 else:

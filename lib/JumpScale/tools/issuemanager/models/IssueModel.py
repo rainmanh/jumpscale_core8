@@ -10,6 +10,11 @@ class IssueModel(base):
     """
 
     def index(self):
+        gogsRefs = ",".join(["%s_%s" % (item.name.lower(), item.id) for item in self.dbobj.gogsRefs])
+        for item in self.dbobj.gogsRefs:
+            # there can be multiple gogs sources
+            self._index.lookupSet("gogs_%s" % item.name, item.id, self.key)
+
         # put indexes in db as specified
         if self.dbobj.isClosed:
             closed = 1
@@ -23,3 +28,9 @@ class IssueModel(base):
 
     def _pre_save(self):
         pass
+
+    def gogsRefSet(self, name, id):
+        return j.clients.gogs._gogsRefSet(self, name, id)
+
+    def gogsRefExist(self, name):
+        return j.clients.gogs._gogsRefExist(self, name)

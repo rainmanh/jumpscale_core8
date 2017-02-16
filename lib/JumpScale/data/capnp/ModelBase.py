@@ -58,13 +58,13 @@ class MemoryObject:
 
 class ModelBase():
 
-    def __init__(self, capnp_schema, category, db, index, key="", new=False):
+    def __init__(self, capnp_schema, category, db, index, key="", new=False, collection=None):
 
         self._propnames = []
         self._capnp_schema = capnp_schema
         self._propnames = [item for item in self._capnp_schema.schema.fields.keys()]
 
-        self.logger = j.logger.get(capnp_schema.schema.node.displayName)  # TODO find something better than this
+        self.logger = j.logger.get(self.objType)  # TODO find something better than this
         self._category = category
         self._db = db
         self._index = index
@@ -72,6 +72,7 @@ class ModelBase():
         self.dbobj = None
         self.changed = False
         self._subobjects = {}
+        self.collection = collection
 
         # if key != "":
         #     if len(key) != 16 and len(key) != 32 and len(key) != 64:
@@ -82,6 +83,7 @@ class ModelBase():
 
         if new:
             # create an empty object with the same properties as the capnpn msg
+            self.collection.logger.debug("new:%s" % key)
             self.dbobj = j.data.capnp.getMemoryObj(self._capnp_schema)
             self._post_init()
             if key is not None and key != "":
@@ -89,6 +91,7 @@ class ModelBase():
         elif key != "":
             # will get from db
             if self._db.exists(key):
+                self.collection.logger.debug("exists:%s" % key)
                 self.load(key=key)
                 self._key = key
             else:
@@ -97,6 +100,10 @@ class ModelBase():
         else:
             raise j.exceptions.Input(message="key cannot be empty when no new obj is asked for.",
                                      level=1, source="", tags="", msgpub="")
+
+    @property
+    def objType(self):
+        return self._capnp_schema.schema.node.displayName
 
     @property
     def key(self):
@@ -173,6 +180,7 @@ class ModelBase():
             self._db.db[self.key] = self
         else:
             # so this one stores when not mem
+            # print(self)
             msg = self._capnp_schema.new_message(**self.dbobj.to_dict())
             buff = msg.to_bytes()
             self._db.set(self.key, buff)
@@ -258,8 +266,8 @@ class ModelBase():
 
 class ModelBaseWithData(ModelBase):
 
-    def __init__(self, capnp_schema, category, db, index, key="", new=False):
-        super().__init__(capnp_schema=capnp_schema, category=category, db=db, index=index, key=key, new=new)
+    def __init__(self, capnp_schema, category, db, index, key="", new=False, collection=None):
+        super().__init__(capnp_schema=capnp_schema, category=category, db=db, index=index, key=key, new=new, collection=collection)
         self._data_schema = None
         self._data = None
 
@@ -318,6 +326,9 @@ class ModelBaseCollection:
 
         self.modelBaseClass = modelBaseClass if modelBaseClass else ModelBase
 
+        self.logger = j.logger.get("modelBase_%s" % category)
+        self.logger.debug("initted.")
+
     def new(self, key=""):
         model = self.modelBaseClass(
             capnp_schema=self.capnp_schema,
@@ -325,8 +336,7 @@ class ModelBaseCollection:
             db=self._db,
             index=self._index,
             key=key,
-            new=True)
-
+            new=True, collection=self)
         return model
 
     def exists(self, key):
@@ -344,14 +354,14 @@ class ModelBaseCollection:
                     raise j.exceptions.Input(message="Could not find key:%s for model:%s" %
                                              (key, self.category), level=1, source="", tags="", msgpub="")
         else:
-
             model = self.modelBaseClass(
                 capnp_schema=self.capnp_schema,
                 category=self.category,
                 db=self._db,
                 index=self._index,
                 key=key,
-                new=autoCreate)
+                new=autoCreate,
+                collection=self)
         return model
 
     def list(self, name="", state=None):

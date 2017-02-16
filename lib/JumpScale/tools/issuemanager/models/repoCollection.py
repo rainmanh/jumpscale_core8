@@ -53,9 +53,5 @@ class RepoCollection(base):
 
         return self._filter(res, milestone, member, label)
 
-    def getFromId(self, id):
-        key = self._index.lookupGet("repo_id", id)
-        repo_model = self.get(key, autoCreate=True)
-        if key is None:
-            repo_model.dbobj.id = id
-        return repo_model
+    def getFromGogsId(self, gogsName, gogsId, createNew=True):
+        return j.clients.gogs._getFromGogsId(self, gogsName=gogsName, gogsId=gogsId, createNew=createNew)

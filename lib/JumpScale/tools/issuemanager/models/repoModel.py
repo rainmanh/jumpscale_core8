@@ -10,6 +10,10 @@ class RepoModel(base):
     """
 
     def index(self):
+        gogsRefs = ",".join(["%s_%s" % (item.name.lower(), item.id) for item in self.dbobj.gogsRefs])
+        for item in self.dbobj.gogsRefs:
+            # there can be multiple gogs sources
+            self._index.lookupSet("gogs_%s" % item.name, item.id, self.key)
         # put indexes in db as specified
         milestones = ",".join([item.name for item in self.dbobj.milestones])
         if self.dbobj.members != []:
@@ -21,7 +25,16 @@ class RepoModel(base):
         ind = "%s:%s:%s:%s:%s:%s" % (self.dbobj.owner.lower(), self.dbobj.name.lower(), self.dbobj.id,
                                      self.dbobj.source.lower(), milestones, members)
         self._index.index({ind: self.key})
-        self._index.lookupSet("repo_id", self.dbobj.id, self.key)
+
+        for item in self.dbobj.gogsRefs:
+            # there can be multiple gogs sources
+            self._index.lookupSet("gogs_%s" % item.name, item.id, self.key)
 
     def _pre_save(self):
         pass
+
+    def gogsRefSet(self, name, id):
+        return j.clients.gogs._gogsRefSet(self, name, id)
+
+    def gogsRefExist(self, name):
+        return j.clients.gogs._gogsRefExist(self, name)

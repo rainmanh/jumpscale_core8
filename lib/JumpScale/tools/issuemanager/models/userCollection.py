@@ -8,7 +8,7 @@ class UserCollection(base):
     This class represent a collection of Issues
     """
 
-    def list(self, name='', fullname='', email='', id=0, source="", returnIndex=False):
+    def list(self, name='', fullname='', email='', githubId=0, gogsId=0, iyoId="", telegramId="", returnIndex=False):
         """
         List all keys of repo model with specified params.
 
@@ -19,21 +19,27 @@ class UserCollection(base):
         @param source str,, source of remote database.
         @param returnIndexalse bool,, return the index used.
         """
+
         if name == "":
             name = ".*"
         if fullname == "":
             fullname = ".*"
-        if id == "" or id == 0:
-            id = ".*"
-        if source == "":
-            source = ".*"
         if email == "":
             email = ".*"
+        if githubId == 0 or githubId == "":
+            githubId = ".*"
+        gogsId = int(gogsId)
+        if gogsId == 0:
+            gogsId = ".*"
+        if iyoId == "":
+            iyoId = ".*"
+        if telegramId == "":
+            telegramId = ".*"
 
-        regex = "%s:%s:%s:%s:%s" % (name, fullname, email, str(id), source)
+        regex = "%s:%s:%s:%s:%s:%s:%s" % (name, fullname, email, githubId, gogsId, iyoId, telegramId)
         return self._index.list(regex, returnIndex=returnIndex)
 
-    def find(self, name='', fullname='', email='', id=0, source=""):
+    def find(self, name='', fullname='', email='', githubId=0, gogsId=0, iyoId="", telegramId=""):
         """
         List all instances of repo model with specified params.
 
@@ -42,17 +48,12 @@ class UserCollection(base):
         @param email str,, email of the user.
         @param id int,, repo id in db.
         @param source str,, source of remote database.
-        @param returnIndexalse bool,, return the index used.
         """
         res = []
-        id = int(id)
-        for key in self.list(name=name, fullname=fullname, email=email, id=id, source=source):
+        for key in self.list(name=name, fullname=fullname, email=email, githubId=githubId, gogsId=gogsId,
+                             iyoId=iyoId, telegramId=telegramId):
             res.append(self.get(key))
         return res
 
-    def getFromId(self, id):
-        key = self._index.lookupGet("issue_id", id)
-        user_model =  self.get(key, autoCreate=True)
-        if key is None:
-            user_model.dbobj.id = id
-        return user_model
+    def getFromGogsId(self, gogsName, gogsId, createNew=True):
+        return j.clients.gogs._getFromGogsId(self, gogsName=gogsName, gogsId=gogsId, createNew=createNew)

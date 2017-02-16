@@ -19,7 +19,7 @@ class GogsFactory:
         self._labels = {}
 
     def destroyData(self):
-        self.userCollection.destroy()
+        # self.userCollection.destroy()
         self.orgCollection.destroy()
         self.issueCollection.destroy()
         self.repoCollection.destroy()
@@ -44,18 +44,18 @@ class GogsFactory:
         """
         return GogsClient(addr=addr, port=port, login=login, passwd=passwd, accesstoken=accesstoken)
 
-    def syncAllFromPSQL(self):
+    def syncAllFromPSQL(self, gogsName):
         if self.model == None:
             raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
                                      level=1, source="", tags="", msgpub="")
         self.logger.info("syncAllFromPSQL")
-        self.getUsersFromPSQL()
+        # self.getUsersFromPSQL(gogsName=gogsName)
         self.logger.info("User synced")
-        self.getOrgsFromPSQL()
+        self.getOrgsFromPSQL(gogsName=gogsName)
         self.logger.info("Organizations synced")
-        self.getReposFromPSQL()
+        self.getReposFromPSQL(gogsName=gogsName)
         self.logger.info("Repositories synced")
-        self.getIssuesFromPSQL()
+        self.getIssuesFromPSQL(gogsName=gogsName)
         self.logger.info("Issues synced")
 
     def connectPSQL(self, ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs"):
@@ -66,7 +66,7 @@ class GogsFactory:
         self.model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
         return self.model
 
-    def getIssuesFromPSQL(self):
+    def getIssuesFromPSQL(self, gogsName):
         """
         Load issues from remote database into model.
 
@@ -76,6 +76,7 @@ class GogsFactory:
         @param passwd str,,database passwd.
         @param dbname str,, database name.
         """
+        self.logger.info("getIssuesFromPSQL")
         if self.model == None:
             raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
                                      level=1, source="", tags="", msgpub="")
@@ -158,7 +159,7 @@ class GogsFactory:
         else:
             del issues
 
-    def getOrgsFromPSQL(self):
+    def getOrgsFromPSQL(self, gogsName):
         """
         Load organizations from remote database into model.
 
@@ -168,6 +169,7 @@ class GogsFactory:
         @param passwd str,,database passwd.
         @param dbname str,, database name.
         """
+        self.logger.info("getOrgsFromPSQL")
 
         if self.model == None:
             raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
@@ -186,8 +188,8 @@ class GogsFactory:
            r.name as repo_name,
            r.id as repo_id,
            ou.is_owner,
-           member.id as memberid,
-           access.mode
+           member.id as member_id,
+           access.mode as member_access
         from "user" as org
         left join repository as r on org.id=r.owner_id
         left join org_user as ou on org.id=ou.org_id
@@ -196,49 +198,19 @@ class GogsFactory:
         where org.type=1;
         """
         query = model.User.raw(queryString)
-        orgs = {}
-        try:
-            for org in query:
-                if org.name not in orgs:
-                    orgs[org.id] = {'name': org.name,
-                                    'description': org.full_name,
-                                    'num_repos': org.num_repos,
-                                    'num_members': org.num_members,
-                                    'members': dict(),
-                                    'repos': list(),
-                                    'owners': list()
-                                    }
-                org_dict = orgs[org.id]
-                if org.memberid:
-                    org_dict['members'][org.memberid] = org.mode
-                if org.is_owner and org.memberid not in org_dict['owners']:
-                    org_dict['owners'].append(org.memberid)
-                if org.repo_id and org.repo_id not in org_dict['repos']:
-                    org_dict['repos'].append(org.repo_id)
-        except model.User.DoesNotExist:
-            pass
+        for org in query:
+            org_model = self.orgCollection.getFromGogsId(gogsName=gogsName, gogsId=org.id, createNew=False)
 
-        for id, val in orgs.items():
-            org_model = self.orgCollection.getFromId(id)
-            org_model.dbobj.repos = val.get('repos', [])
+            member = self.userCollection.getFromGogsId(gogsName=gogsName, gogsId=org.memberid)
+            org_model.memberSet(member.key, org.member_access)
 
-            org_model.dbobj.members = []
-            for memberid, member in val['members'].items():
-                member_scheme = j.data.capnp.getMemoryObj(
-                    org_model._capnp_schema.Member, userKey=memberid, access=member)
-                org_model.members.append(member_scheme)
-
-            org_model.dbobj.owners = val.get('owners', [])
-
-            org_model.dbobj.id = id
-            org_model.dbobj.name = val['name']
-            org_model.dbobj.description = val['description']
-            org_model.dbobj.source = ''
+            from IPython import embed
+            print("DEBUG NOW 999")
+            embed()
+            raise RuntimeError("stop debug here")
             org_model.save()
-        else:
-            del orgs
 
-    def getReposFromPSQL(self):
+    def getReposFromPSQL(self, gogsName):
         """
         Load repos from remote database into model.
 
@@ -335,24 +307,38 @@ class GogsFactory:
         else:
             del repos
 
-    def getUsersFromPSQL(self):
+    def getUsersFromPSQL(self, gogsName):
         """
         Load users from remote database into model.
         """
-        self.logger.info("syncAllFromPSQL")
+        self.logger.info("getUsersFromPSQL")
 
         if self.model == None:
             raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
                                      level=1, source="", tags="", msgpub="")
 
         for user in self.model.User.select():
-            user_model = self.userCollection.getFromId(user.id)
+            user_model = self.userCollection.getFromGogsId(gogsName=gogsName, gogsId=user.id)
             user_model.dbobj.name = user.name
             user_model.dbobj.fullname = user.full_name
             user_model.dbobj.email = user.email
-            user_model.dbobj.id = user.id
-            user_model.dbobj.source = ''
+            user_model.gogsRefSet(name=gogsName, id=user.id)
+            user_model.dbobj.iyoId = user.name
             user_model.save()
+
+        self.setUsersYaml(gogsName=gogsName)
+
+    def setUsersYaml(self, gogsName):
+        return
+        # TODO
+        res = {}
+        for item in self.userCollection.find():
+            res[item.key] = item.dbobj.to_dict()
+            res[item.key].pop('gogsRefs')
+            from IPython import embed
+            print("DEBUG NOW setUsersYaml")
+            embed()
+            raise RuntimeError("stop debug here")
 
     def _getLabels(self):
         for id, name in [(item.id, item.name) for item in self.model.Label.select()]:
@@ -362,3 +348,41 @@ class GogsFactory:
         if self._labels == {}:
             self._getLabels()
         return self._labels[id]
+
+    def _gogsRefSet(self, model, name, id):
+        """
+        @param name is name of gogs instance
+        @id is id in gogs
+        """
+        gogsrefs = {}
+        for item in model.dbobj.gogsRefs:
+            gogsrefs[item.name] = item.id
+        if name not in gogsrefs:
+            model.dbobj.gogsRefs.append(
+                model._capnp_schema.GogsRef.new_message(id=id, name=name))
+            model.changed = True
+        else:
+            if str(gogsrefs[name]) != str(id):
+                raise j.exceptions.Input(
+                    message="gogs id has been changed over time, this should not be possible", level=1, source="", tags="", msgpub="")
+
+    def _gogsRefExist(self, model, name):
+        gogsrefs = {}
+        for item in model.dbobj.gogsRefs:
+            gogsrefs[item.name] = item.id
+        return name in gogsrefs
+
+    def _getFromGogsId(self, model, gogsName, gogsId, createNew=True):
+        """
+        @param gogsName is the name of the gogs instance
+        """
+        key = model._index.lookupGet("gogs_%s" % gogsName, gogsId)
+        if key == None:
+            if createNew:
+                user_model = model.new()
+            else:
+                raise j.exceptions.Input(message="cannot find object  %s from gogsid:%s" %
+                                         (model.objType, gogsId), level=1, source="", tags="", msgpub="")
+        else:
+            user_model = model.get(key.decode())
+        return user_model

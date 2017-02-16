@@ -149,7 +149,10 @@ class IssueCollection(base):
 
     def getFromId(self, id):
         key = self._index.lookupGet("issue_id", id)
-        issue_model =  self.get(key, autoCreate=True)
+        issue_model = self.get(key, autoCreate=True)
         if key is None:
             issue_model.dbobj.id = id
         return issue_model
+
+    def getFromGogsId(self, gogsName, gogsId, createNew=True):
+        return j.clients.gogs._getFromGogsId(self, gogsName=gogsName, gogsId=gogsId, createNew=createNew)

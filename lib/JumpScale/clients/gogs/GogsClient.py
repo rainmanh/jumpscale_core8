@@ -720,6 +720,7 @@ class GogsClient:
 
     def ownerDeleteLabels(self, owner):
         """delete all labels from the owner"""
+        self.logger.debug("delete unneeded labels for:%s" % owner)
         repos = self.reposList(owner=owner)
         alllabels = ['state_{}'.format(state) for state in states]
         alllabels += ['type_{}'.format(type_) for type_ in types_proj]
@@ -730,20 +731,27 @@ class GogsClient:
             reponame = fullreponame.split('/')[-1]
             for label in self.labelList(reponame, owner=owner):
                 if label not in alllabels:
+                    self.logger.debug("remove label:%s:%s" % (owner, label))
                     self.labelDelete(reponame, label, owner=owner)
 
-    def ownerSetLabels(self, owner):
+    def ownerSetLabels(self, owner, reset=False):
         """
         Set labels for all repos in organization or user.
 
         @param owner string: organization name.
         """
+        if reset:
+            self.ownerDeleteLabels(owner)
         repos = self.reposList(owner=owner)
+        from IPython import embed
+        print("DEBUG NOW 98")
+        embed()
+        raise RuntimeError("stop debug here")
         result = list()
         for repo in repos:
             repoid, fullreponame, reposshurl = repo
             reponame = fullreponame.split('/')[-1]
-            if reponame.startswith("proj_") or reponame.startswith("env_"):
+            if reponame.startswith("proj_") or reponame.startswith("env_") or reponame.startswith("org_")or reponame.startswith("cockpit_"):
                 types = types_proj
             else:
                 types = types_code

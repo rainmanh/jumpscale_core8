@@ -22,19 +22,22 @@ struct Issue {
 }
 
 struct Organization{
-    owners @0 :List(UInt32);
+    owners @0 :List(Text);
     name @1 :Text;
     description @2 :Text; # deos not exist will place in it full name
     nrIssues @3 :UInt16;
     nrMilestones @4 :UInt16;
-    id @5 :UInt32;
-    source @6 :Text;
-    members @7 :List(Member);
+    gogsRefs @5 :List(GogsRef);
+    struct GogsRef{
+        name @0 :Text;
+        id @1 :UInt32;
+    }
+    members @6 :List(Member);
     struct Member{
-        userKey @0 :UInt32;
+        key @0 :Text;
         access @1:UInt16;
     }
-    repos @8 :List(UInt32); #references to the repo's
+    repos @7 :List(Text); #references to the repo's
 }
 
 struct Repo{
@@ -67,8 +70,12 @@ struct User{
     name @0 :Text; #as to be used to represent in UI
     fullname @1 :Text;
     email @2 :Text; #will be used for escalation
-    gogsId @3 :UInt32;
-    githubID @4 :Text; #e.g. despiegk
+    gogsRefs @3 :List(GogsRef);
+    struct GogsRef{
+        name @0 :Text;
+        id @1 :UInt32;
+    }
+    githubId @4 :Text; #e.g. despiegk
     telegramId @5: Text;#e.g. despiegk
-    IYOID @6: Text;#e.g. despiegk
+    iyoId@6: Text;#e.g. despiegk
 }

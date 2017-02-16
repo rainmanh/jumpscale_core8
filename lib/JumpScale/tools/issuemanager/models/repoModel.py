@@ -14,16 +14,13 @@ class RepoModel(base):
         for item in self.dbobj.gogsRefs:
             # there can be multiple gogs sources
             self._index.lookupSet("gogs_%s" % item.name, item.id, self.key)
+ 
+        milestones = ",".join([str(item.name) for item in self.dbobj.milestones])
+        members = ",".join([str(item.userKey) for item in self.dbobj.members])
+        labels = ",".join([str(item) for item in self.dbobj.labels])
         # put indexes in db as specified
-        milestones = ",".join([item.name for item in self.dbobj.milestones])
-        if self.dbobj.members != []:
-            from IPython import embed
-            print("DEBUG NOW 97")
-            embed()
-            raise RuntimeError("stop debug here")
-        members = ",".join([item.name for item in self.dbobj.members])
-        ind = "%s:%s:%s:%s:%s:%s" % (self.dbobj.owner.lower(), self.dbobj.name.lower(), self.dbobj.id,
-                                     self.dbobj.source.lower(), milestones, members)
+        ind = "%s:%s:%s:%s:%s:%s:%s" % (self.dbobj.owner.lower(), self.dbobj.name.lower(), self.dbobj.id,
+                                        self.dbobj.source.lower(), milestones, members, labels)
         self._index.index({ind: self.key})
 
         for item in self.dbobj.gogsRefs:

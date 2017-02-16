@@ -20,9 +20,13 @@ class IssueModel(base):
             closed = 1
         else:
             closed = 0
-        ind = "%d:%d:%d:%d:%d:%d:%s:%s" % (self.dbobj.id, self.dbobj.milestone, self.dbobj.creationTime,
-                                           self.dbobj.modTime, closed, self.dbobj.repo,
-                                           self.dbobj.title.lower(), self.dbobj.source)
+
+        comments = ",".join([str(item.id) for item in self.dbobj.comments])
+        assignees = ",".join([str(item) for item in self.dbobj.assignees])
+        labels = ",".join([str(item) for item in self.dbobj.labels])
+        ind = "%d:%d:%d:%d:%d:%d:%s:%s:%s:%s:%s" % (self.dbobj.id, self.dbobj.milestone, self.dbobj.creationTime,
+                                                    self.dbobj.modTime, closed, self.dbobj.repo, self.dbobj.title.lower(),
+                                                    self.dbobj.source, comments, assignees, labels)
         self._index.index({ind: self.key})
         self._index.lookupSet("issue_id", self.dbobj.id, self.key)
 

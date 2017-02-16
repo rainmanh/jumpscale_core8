@@ -53,7 +53,7 @@ class IssueManager:
         schema = self.getIssueSchema()
         if not kvs:
             kvs = j.servers.kvs.getRedisStore(name="gogs", namespace="gogs:issue",
-                                              unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
+                                              unixsocket="/tmp/redis.sock")
 
         collection = j.data.capnp.getModelCollection(
             schema, namespace="gogs:issue", category="issues", modelBaseClass=IssueModel,
@@ -64,7 +64,7 @@ class IssueManager:
         schema = self.getUserSchema()
         if not kvs:
             kvs = j.servers.kvs.getRedisStore(name="gogs", namespace="gogs:user",
-                                              unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
+                                              unixsocket="/tmp/redis.sock")
 
         collection = j.data.capnp.getModelCollection(
             schema, namespace="gogs:user", category="user", modelBaseClass=UserModel,
@@ -75,7 +75,7 @@ class IssueManager:
         schema = self.getRepoSchema()
         if not kvs:
             kvs = j.servers.kvs.getRedisStore(name="gogs", namespace="gogs:repo",
-                                              unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
+                                              unixsocket="/tmp/redis.sock")
 
         collection = j.data.capnp.getModelCollection(
             schema, namespace="gogs:repo", category="repo", modelBaseClass=RepoModel,
@@ -86,7 +86,7 @@ class IssueManager:
         schema = self.getOrgSchema()
         if not kvs:
             kvs = j.servers.kvs.getRedisStore(name="gogs", namespace="gogs:org",
-                                              unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
+                                              unixsocket="/tmp/redis.sock")
 
         collection = j.data.capnp.getModelCollection(
             schema, namespace="gogs:org", category="orgs", modelBaseClass=OrgModel,

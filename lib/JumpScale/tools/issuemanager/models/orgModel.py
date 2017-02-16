@@ -16,11 +16,11 @@ class OrgModel(base):
             # there can be multiple gogs sources
             self._index.lookupSet("gogs_%s" % item.name, item.id, self.key)
 
-        members = ",".join([item.key for item in self.dbobj.members])
-        owners = ",".join(self.dbobj.owners)
-        repos = ",".join([item.key for item in self.dbobj.repos])
-
-        ind = "%s:%s:%s:%s:%s" % (self.dbobj.name.lower(), repos, members, owners, gogsRefs)
+        owners = ",".join([str(item) for item in self.dbobj.owners])
+        members = ",".join([str(item.userKey) for item in self.dbobj.members])
+        repos = ",".join([str(item) for item in self.dbobj.repos])
+        ind = "%s:%s:%s:%s:%s:%s" % (self.dbobj.name.lower(), str(self.dbobj.id),
+                                     self.dbobj.source.lower(), owners, members, repos)
         self._index.index({ind: self.key})
 
     def memberSet(self, key, access):

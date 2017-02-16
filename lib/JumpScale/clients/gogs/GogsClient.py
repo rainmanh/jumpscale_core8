@@ -140,7 +140,8 @@ class GogsClient:
             owner = self.login
         self.logger.debug("repos list for owner:%s" % owner)
         respone_user = self.userGet(owner)
-        response_repos = self.session.get(self.build_url("repos", "search"), params={'uid': respone_user['id'], 'limit': sys.maxsize})
+        response_repos = self.session.get(self.build_url("repos", "search"), params={
+                                          'uid': respone_user['id'], 'limit': sys.maxsize})
         repos = list()
         if response_repos.status_code == 200:
             for repo in response_repos.json()['data']:
@@ -744,10 +745,6 @@ class GogsClient:
         if reset:
             self.ownerDeleteLabels(owner)
         repos = self.reposList(owner=owner)
-        from IPython import embed
-        print("DEBUG NOW 98")
-        embed()
-        raise RuntimeError("stop debug here")
         result = list()
         for repo in repos:
             repoid, fullreponame, reposshurl = repo

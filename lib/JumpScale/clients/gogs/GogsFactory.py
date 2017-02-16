@@ -19,25 +19,25 @@ class GogsFactory:
         self._labels = {}
 
     def destroyData(self):
-        # self.userCollection.destroy()
+        self.userCollection.destroy()
         self.orgCollection.destroy()
         self.issueCollection.destroy()
         self.repoCollection.destroy()
 
     def getRestClient(self, addr='https://127.0.0.1', port=3000, login='root', passwd='root', accesstoken=None):
         """
-        ## Getting client via accesstoken
+        # Getting client via accesstoken
 
-        ### Create access token in gogs
+        # Create access token in gogs
 
         Under user profile click your settings.
         Click Applications, from there use generate new token to create your token.
 
-        #### User Access token
+        # User Access token
         rest = j.clients.gogs.getRestClient('https://docs.greenitglobe.com', 443,
                                             accesstoken='myaccesstoken')
 
-        ## Getting client via username, password
+        # Getting client via username, password
         rest = j.clients.gogs.getRestClient('https://docs.greenitglobe.com', 443,
                                             'myusername', 'mypassword')
 
@@ -49,7 +49,7 @@ class GogsFactory:
             raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
                                      level=1, source="", tags="", msgpub="")
         self.logger.info("syncAllFromPSQL")
-        # self.getUsersFromPSQL(gogsName=gogsName)
+        self.getUsersFromPSQL(gogsName=gogsName)
         self.logger.info("User synced")
         self.getOrgsFromPSQL(gogsName=gogsName)
         self.logger.info("Organizations synced")
@@ -199,15 +199,40 @@ class GogsFactory:
         """
         query = model.User.raw(queryString)
         for org in query:
-            org_model = self.orgCollection.getFromGogsId(gogsName=gogsName, gogsId=org.id, createNew=False)
+            org_model = self.orgCollection.getFromGogsId(gogsName=gogsName, gogsId=org.id)
 
-            member = self.userCollection.getFromGogsId(gogsName=gogsName, gogsId=org.memberid)
+            member = self.userCollection.getFromGogsId(
+                gogsName=gogsName, gogsId=org.member_id, createNew=False)  # member needs to exists
             org_model.memberSet(member.key, org.member_access)
 
-            from IPython import embed
-            print("DEBUG NOW 999")
-            embed()
-            raise RuntimeError("stop debug here")
+            if org_model.name != org.name:
+                org_model.name = org.name
+                org_model.changed = True
+
+            description = org.description
+            if org.full_name != "":
+                description = "fullname:%s\n%s" % (org.full_name, description)
+            if org_model.description != description:
+                org_model.description = org.description
+                org_model.changed = True
+
+            org_model.gogsRefSet(name=gogsName, id=org.id)
+
+            # process the repoobj
+            repo_model = self.repoCollection.getFromGogsId(gogsName=gogsName, gogsId=org.repo_id)
+            if repo_model.dbobj.name != org.repo_name:
+                repo_model.dbobj.name = org.repo_name
+                repo_model.changed = True
+
+            repo_model.gogsRefSet(name=gogsName, id=int(org.repo_id))  # mark info comes from gogs
+            repo_model.save()
+
+            org_model.save()
+
+            # org_model.ownerSet() #TODO:*1
+
+            org_model.repoSet(repo_model.key)
+
             org_model.save()
 
     def getReposFromPSQL(self, gogsName):

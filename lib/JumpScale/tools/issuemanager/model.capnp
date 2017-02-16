@@ -19,6 +19,12 @@ struct Issue {
     #organization @10 :Text;  #key to organization , not sure??
     modTime @10 :UInt32;
     creationTime @11 :UInt32;
+    gogsRefs @12 :List(GogsRef);
+    struct GogsRef{
+        name @0 :Text;
+        id @1 :UInt32;
+    }
+
 }
 
 struct Organization{
@@ -36,8 +42,14 @@ struct Organization{
     struct Member{
         key @0 :Text;
         access @1:UInt16;
+        name @2: Text;
     }
-    repos @7 :List(Text); #references to the repo's
+    repos @7 :List(Repo);
+    struct Repo{
+        key @0 :Text;
+        name @1: Text;
+    }
+
 }
 
 struct Repo{
@@ -64,6 +76,11 @@ struct Repo{
         access @1 :UInt16;
     }
     labels @9 :List(Text);
+    gogsRefs @10 :List(GogsRef);
+    struct GogsRef{
+        name @0 :Text;
+        id @1 :UInt32;
+    }
 }
 
 struct User{

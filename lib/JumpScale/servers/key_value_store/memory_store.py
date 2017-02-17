@@ -85,8 +85,9 @@ class MemoryKeyValueStore(KeyValueStoreBase):
         """
         self.dbindex.update(items)
 
-    def index_remove(self, keys, secret=""):
-        self.dbindex = {}
+    def index_remove(self, key, secret=""):
+        if key in self.dbindex:
+            del self.dbindex[key]
 
     def list(self, regex=".*", returnIndex=False, secret=""):
         """

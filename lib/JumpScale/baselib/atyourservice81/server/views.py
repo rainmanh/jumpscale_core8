@@ -5,8 +5,6 @@ def service_view(s):
     """
     generate a dict that represent a service from a service object
     """
-    producers = [{'role': v.role, 'name':v.name} for v in s.model.producers]
-    children = [{'role': c.model.role, 'name':c.model.name}  for c in s.children]
     service = {
         'key': s.model.key,
         'role': s.model.role,
@@ -14,9 +12,9 @@ def service_view(s):
         'data': j.data.serializer.json.loads(s.model.dataJSON),
         'recurring': [],
         'events': [],
-        'producers': producers,
+        'producers': [{'role': v.role, 'name':v.name} for v in s.model.producers],
         'parent': {'role': s.parent.model.role, 'name':s.parent.model.name} if s.parent else None,
-        'children': children,
+        'children': [{'role': c.model.role, 'name':c.model.name}  for c in s.children],
         'path': s.path,
         'repository': s.aysrepo.name,
         'state': s.model.dbobj.state.__str__(),

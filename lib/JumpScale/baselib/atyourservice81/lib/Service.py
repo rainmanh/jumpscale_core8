@@ -62,6 +62,7 @@ class Service:
         return self._path
 
     async def _initFromActor(self, actor, name, args={}):
+
         self.logger.info("init service %s from %s" % (name, actor.model.name))
         if j.data.types.string.check(actor):
             raise j.exceptions.RuntimeError("no longer supported, pass actor")
@@ -89,6 +90,7 @@ class Service:
                 period=action.period,
                 log=action.log
             )
+        self.model.reSerialize()
 
         # set default value for argument not specified in blueprint
         template = self.aysrepo.templateGet(actor.model.name)
@@ -255,6 +257,8 @@ class Service:
                 serviceName=self.model.dbobj.name,
                 key=self.model.key)
 
+        self.model.reSerialize()
+
     def _check_args(self, actor, args):
         """ Checks whether if args are the same as in instance model """
         data = j.data.serializer.json.loads(self.model.dataJSON)
@@ -275,7 +279,8 @@ class Service:
 
         model_json = j.data.serializer.json.load(j.sal.fs.joinPaths(path, "service.json"))
         self.model.key = model_json.pop('key')
-        self.model.dbobj = j.data.capnp.getMemoryObj(self.aysrepo.db.services.capnp_schema, **model_json)
+
+        self.model.dbobj = self.model.collection.capnp_schema.new_message(**model_json)
 
         data_json = j.data.serializer.json.load(j.sal.fs.joinPaths(path, "data.json"))
         self.model.dbobj.data = j.data.capnp.getBinaryData(
@@ -328,11 +333,13 @@ class Service:
             await self._recurring_tasks[k].stop()
             del self._recurring_tasks[k]
 
-        for prod_model in self.model.producers:
-            prod_model.consumerRemove(self)
+        for producers in self.producers.values():
+            for producer in producers:
+                producer.model.consumerRemove(self)
 
-        for cons_model in self.model.consumers:
-            cons_model.producerRemove(self)
+        for consumers in self.consumers.values():
+            for consumer in consumers:
+                consumer.model.producerRemove(self)
 
         self.model.delete()
         j.sal.fs.removeDirTree(self.path)
@@ -369,17 +376,17 @@ class Service:
             role = prod.actorName.split(".")[0]
             if role not in producers:
                 producers[role] = []
-            producers[role].extend(self.aysrepo.servicesFind(name=prod.serviceName, actor=prod.actorName))
+            producers[role].append(self.aysrepo.db.services.services[prod.key])
         return producers
 
     @property
     def consumers(self):
         consumers = {}
-        for prod in self.model.dbobj.consumers:
-            role = prod.actorName.split(".")[0]
+        for cons in self.model.dbobj.consumers:
+            role = cons.actorName.split(".")[0]
             if role not in consumers:
                 consumers[role] = []
-            consumers[role].extend(self.aysrepo.servicesFind(name=prod.serviceName, actor=prod.actorName))
+            consumers[role].append(self.aysrepo.db.services.services[cons.key])
         return consumers
 
     def isConsumedBy(self, service):

@@ -3,44 +3,36 @@ from JumpScale.baselib.jobcontroller.models.JobModel import JobModel
 
 import capnp
 from JumpScale.baselib.jobcontroller import model_job_capnp as ModelCapnp
+from JumpScale.data.capnp.ModelBase import ModelBaseCollection
 
 
 
-class JobsCollection:
+class JobsCollection(ModelBaseCollection):
     """
     This class represent a collection of Jobs
     It's used to list/find/create new Instance of Job Model object
     """
 
     def __init__(self):
-        # connection to the key-value store index repository namespace
-        self.category = "Job"
+        self.logger = j.logger.get('j.jobcontroller.job-collection')
         self.namespace_prefix = 'jobs'
-        namespace = "%s:%s" % (self.namespace_prefix, self.category.lower())
-        self._db = j.servers.kvs.getARDBStore(namespace, namespace, **j.atyourservice.config['redis'])
-        # self._db = j.servers.kvs.getMemoryStore(namespace, namespace)
-        # for now we do index same as database
-        self._index = j.servers.kvs.getARDBStore(namespace, namespace, **j.atyourservice.config['redis'])
-        # self._index = j.servers.kvs.getMemoryStore(namespace, namespace)
+        category = 'Job'
+        namespace = "%s:%s" % (self.namespace_prefix, category.lower())
+        db = j.servers.kvs.getRedisStore(namespace, namespace, **j.atyourservice.config['redis'])
+        super().__init__(ModelCapnp.Job, category=category, namespace=namespace, modelBaseClass=JobModel, db=db, indexDb=db)
 
     def new(self):
         model = JobModel(
-            capnp_schema=ModelCapnp.Job,
-            category=self.category,
-            db=self._db,
-            index=self._index,
             key='',
-            new=True)
+            new=True,
+            collection=self)
         return model
 
     def get(self, key):
         return JobModel(
-            capnp_schema=ModelCapnp.Job,
-            category=self.category,
-            db=self._db,
-            index=self._index,
             key=key,
-            new=False)
+            new=False,
+            collection=self)
 
     def exists(self, key):
         return self._db.exists(key)

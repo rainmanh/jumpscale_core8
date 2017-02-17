@@ -197,6 +197,12 @@ async def executeRun(request, aysrun, repository):
     """
     Execute a specific run
     """
+    def cb(future):
+        exception = future.exception()
+        if exception is not None:
+            print("error during execution of the run")
+            print(exception)
+
     try:
         repo = get_repo(repository)
     except j.exceptions.NotFound as e:
@@ -206,6 +212,8 @@ async def executeRun(request, aysrun, repository):
         aysrun_model = repo.runGet(aysrun)
         aysrun = aysrun_model.objectGet()
         future = asyncio.ensure_future(aysrun.execute())
+        future.add_done_callback(cb)
+
     except j.exceptions.NotFound as e:
         return json({'error':e.message}, 404)
     except Exception as e:
@@ -479,11 +487,11 @@ async def deleteServiceByName(request, name, role, repository):
     delete a service and all its children
     It is handler for DELETE /ays/repository/<repository>/service/<role>/<name>
     '''
-
     try:
         repo = get_repo(repository)
     except j.exceptions.NotFound as e:
         return json({'error':e.message}, 404)
+
 
     service = repo.serviceGet(role=role, instance=name, die=False)
     if service is None:

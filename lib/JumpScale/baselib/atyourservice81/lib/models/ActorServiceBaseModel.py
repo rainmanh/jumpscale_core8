@@ -12,8 +12,8 @@ class ActorServiceBaseModel(ModelBaseWithData):
     You should not instanciate this class directly but one of its children instead
     """
 
-    def __init__(self, aysrepo, capnp_schema, category, db, index, key="", new=False):
-        super().__init__(capnp_schema=capnp_schema, category=category, db=db, index=index, key=key, new=new)
+    def __init__(self, aysrepo, collection, key="", new=False):
+        super().__init__(key=key, new=new, collection=collection)
         self._aysrepo = aysrepo
 
     @property
@@ -55,15 +55,17 @@ class ActorServiceBaseModel(ModelBaseWithData):
             period = j.data.time.getDeltaTime(period)
 
         if action_obj is None:
-            action_obj = j.data.capnp.getMemoryObj(
-                self._capnp_schema.Action,
-                name=name, period=period, log=log, state='new', actionKey=key
-            )
-            self.changed = True
             if key == "":
                 raise j.exceptions.Input(message="key cannot be empty when adding action:%s to %s" %
                                          (name, self), level=1, source="", tags="", msgpub="")
-            self.dbobj.actions.append(action_obj)
+            action_obj = self.collection.capnp_schema.Action.new_message(
+                name=name,
+                actionKey=key,
+                state='new',
+                period=period,
+                log=log)
+            self.changed = True
+            self.addSubItem('actions', action_obj)
 
         if key != "":
             action_obj.actionKey = key

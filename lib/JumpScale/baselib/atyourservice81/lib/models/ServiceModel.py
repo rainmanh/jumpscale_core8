@@ -8,9 +8,10 @@ VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 class ServiceModel(ActorServiceBaseModel):
 
-    def __init__(self, aysrepo, capnp_schema, category, db, index, key="", new=False):
-        super().__init__(aysrepo=aysrepo, capnp_schema=capnp_schema, category=category, db=db, index=index, key=key, new=new)
+    def __init__(self, aysrepo, collection, key="", new=False):
+        super().__init__(aysrepo=aysrepo, key=key, new=new, collection=collection)
         self._aysrepo = aysrepo
+        self.logger = j.logger.get('j.atyourservice.service-model')
 
     @property
     def role(self):
@@ -25,7 +26,8 @@ class ServiceModel(ActorServiceBaseModel):
         if len(parents) <= 0:
             return None
         elif len(parents) > 1:
-            raise j.exceptions.RuntimeError("More then one parent model found for model %s:%s :%s\n" % (self.dbobj.actorName, self.dbobj.name, parents))
+            raise j.exceptions.RuntimeError("More then one parent model found for model %s:%s :%s\n" % (
+                self.dbobj.actorName, self.dbobj.name, parents))
 
         return parents[0]
 
@@ -38,7 +40,7 @@ class ServiceModel(ActorServiceBaseModel):
 
         if len(self.dbobj.producers) == 0:
             ind = "%s:%s:%s:%s:%s" % (self.dbobj.name, self.dbobj.actorName, self.dbobj.state, parent, "")
-            self._index.index({ind: self.key})
+            self.collection._index.index({ind: self.key})
         else:
             # now batch all producers as more than 1 index
             #@TODO: *1 test
@@ -47,7 +49,7 @@ class ServiceModel(ActorServiceBaseModel):
                 producer2 = "%s!%s" % (producer.actorName, producer.serviceName)
                 ind = "%s:%s:%s:%s:%s" % (self.dbobj.name, self.dbobj.actorName, self.dbobj.state, parent, producer2)
                 index[ind] = self.key
-            self._index.index(index)
+            self.collection._index.index(index)
 
     def delete(self):
         # delete indexes from db
@@ -58,17 +60,17 @@ class ServiceModel(ActorServiceBaseModel):
 
         if len(self.dbobj.producers) == 0:
             key = "%s:%s:%s:%s:%s" % (self.dbobj.name, self.dbobj.actorName, self.dbobj.state, parent, "")
-            self._index.index_remove(key)
+            self.collection._index.index_remove(key)
         else:
             # now batch all producers as more than 1 index
             for producer in self.dbobj.producers:
                 producer2 = "%s!%s" % (producer.actorName, producer.serviceName)
                 key = "%s:%s:%s:%s:%s" % (self.dbobj.name, self.dbobj.actorName, self.dbobj.state, parent, producer2)
-                self._index.index_remove(key)
+                self.collection._index.index_remove(key)
 
         # delete actual model object
-        if self._db.exists(self.key):
-            self._db.delete(self.key)
+        if self.collection._db.exists(self.key):
+            self.collection._db.delete(self.key)
 
         # delete in memory service object if it exists
         if self.key in self._aysrepo.db.services.services:
@@ -86,14 +88,10 @@ class ServiceModel(ActorServiceBaseModel):
         """
         Add another service to the producers list
         """
-        obj = j.data.capnp.getMemoryObj(
-            schema=self._capnp_schema.ServicePointer,
-            actorName=actorName,
-            serviceName=serviceName,
-            key=key)
-
-        self.dbobj.producers.append(obj)
-        self.save()
+        obj = self.collection.capnp_schema.ServicePointer.new_message(actorName=actorName,
+                                                                      serviceName=serviceName,
+                                                                      key=key)
+        self.addSubItem('producers', obj)
 
     def producerRemove(self, service):
         """
@@ -101,20 +99,16 @@ class ServiceModel(ActorServiceBaseModel):
         """
         for i, prod in enumerate(self.dbobj.producers):
             if prod.key == service.model.key:
-                self.dbobj.producers.pop(i)
+                self.deleteSubItem('producers', i)
 
     def consumerAdd(self, actorName, serviceName, key):
         """
         Add another service to the consumers list
         """
-        obj = j.data.capnp.getMemoryObj(
-            schema=self._capnp_schema.ServicePointer,
-            actorName=actorName,
-            serviceName=serviceName,
-            key=key)
-
-        self.dbobj.consumers.append(obj)
-        self.save()
+        obj = self.collection.capnp_schema.ServicePointer.new_message(actorName=actorName,
+                                                                      serviceName=serviceName,
+                                                                      key=key)
+        self.addSubItem('consumers', obj)
 
     def consumerRemove(self, service):
         """
@@ -122,7 +116,7 @@ class ServiceModel(ActorServiceBaseModel):
         """
         for i, consumer in enumerate(self.dbobj.consumers):
             if consumer.key == service.model.key:
-                self.dbobj.consumers.pop(i)
+                self.deleteSubItem('consumers', i)
 
 # events
 
@@ -138,8 +132,8 @@ class ServiceModel(ActorServiceBaseModel):
 
         res = self.eventFiltersFind(command=command, channel=channel, actions=actions, tags=tags)
         if len(res) == 0:
-            eventsFilter = j.data.capnp.getMemoryObj(ModelCapnp.EventFilter)
-            self.dbobj.eventFilters.append(eventsFilter)
+            eventsFilter = ModelCapnp.EventFilter.new_message()
+            self.addSubItem('eventFilters', eventsFilter)
         elif len(res) == 1:
             eventsFilter = res[0]
         else:

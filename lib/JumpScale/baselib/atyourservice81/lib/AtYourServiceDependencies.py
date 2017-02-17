@@ -50,26 +50,28 @@ def addEdges(node, action, all_nodes, nodes):
     """
     recursivlely add edged to a node
     """
-    for prod in node.service.model.producers:
-        name = "%s-%s" % (prod.key, action)
-        edge = all_nodes.get(name)
-        if edge:
-            addEdges(edge, action, all_nodes, nodes)
-            node.addEdge(edge)
-            nodes.add(edge)
+    for producers in node.service.producers.values():
+        for prod in producers:
+            name = "%s-%s" % (prod.model.key, action)
+            edge = all_nodes.get(name)
+            if edge:
+                addEdges(edge, action, all_nodes, nodes)
+                node.addEdge(edge)
+                nodes.add(edge)
 
 
 def addConsumerEdges(node, action, all_nodes, nodes):
     """
     recursivlely add edged to a node
     """
-    for prod in node.service.model.consumers:
-        name = "%s-%s" % (prod.key, action)
-        edge = all_nodes.get(name)
-        if edge:
-            addConsumerEdges(edge, action, all_nodes, nodes)
-            node.addEdge(edge)
-            nodes.add(edge)
+    for consumers in node.service.consumers.values():
+        for prod in consumers:
+            name = "%s-%s" % (prod.model.key, action)
+            edge = all_nodes.get(name)
+            if edge:
+                addConsumerEdges(edge, action, all_nodes, nodes)
+                node.addEdge(edge)
+                nodes.add(edge)
 
 def get_task_batches(nodes):
 

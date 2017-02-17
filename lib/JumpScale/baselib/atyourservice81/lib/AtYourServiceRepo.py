@@ -533,6 +533,8 @@ class AtYourServiceRepo():
 
         for bundle in get_task_batches(nodes):
             to_add = []
+            jobs = None
+            step = None
 
             for node in bundle:
                 if node.service.model.actionsState[node.action] != 'ok':
@@ -540,6 +542,7 @@ class AtYourServiceRepo():
 
             if len(to_add) > 0:
                 step = run.newStep()
+                jobs = step.dbobj.init_resizable_list('jobs')
 
             for node in to_add:
                 job = create_job(self, node.service.model, node.action)
@@ -547,7 +550,19 @@ class AtYourServiceRepo():
                 job.model.dbobj.profile = profile
                 job.model.dbobj.debug = profile if profile is True else debug
 
-                step.addJob(job)
+                job.save()
+
+                job_cache = jobs.add()
+                job_cache.actionName = job.model.dbobj.actionName
+                job_cache.actorName = job.model.dbobj.actorName
+                job_cache.serviceName = job.model.dbobj.serviceName
+                job_cache.serviceKey = job.model.dbobj.serviceKey
+                job_cache.key = job.model.key
+
+            if jobs:
+                jobs.finish()
+
+        run.model.reSerialize()
 
         return run
 

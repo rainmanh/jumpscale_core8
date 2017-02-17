@@ -11,10 +11,14 @@ class ActorModel(ActorServiceBaseModel):
     Model Class for an Actor object
     """
 
+    def __init__(self, aysrepo, collection, key="", new=False):
+        super().__init__(aysrepo=aysrepo, key=key, new=new, collection=collection)
+        self.logger = j.logger.get('j.atyourservice.actor-model')
+
     def index(self):
         # put indexes in db as specified
         ind = "%s:%s" % (self.dbobj.name, self.dbobj.state)
-        self._index.index({ind: self.key})
+        self.collection._index.index({ind: self.key})
 
     @property
     def role(self):
@@ -25,7 +29,7 @@ class ActorModel(ActorServiceBaseModel):
         returns an Actor object created from this model
         """
         if self.key not in self._aysrepo.db.actors.actors:
-            self._aysrepo.db.actors.actors[self.key] =  Actor(aysrepo=aysrepo, model=self)
+            self._aysrepo.db.actors.actors[self.key] = Actor(aysrepo=aysrepo, model=self)
         return self._aysrepo.db.actors.actors[self.key]
 
     def updateEventDict(self, ddict):
@@ -70,12 +74,10 @@ class ActorModel(ActorServiceBaseModel):
             argname @5 :Text; # key in the args that contains the instance name of the targets
           }
         """
-        o = j.data.capnp.getMemoryObj(
-                self._capnp_schema.ActorPointer,
-                actorRole=role, minServices=int(min), maxServices=int(max),
-                auto=bool(auto), optional=bool(optional), argname=argname
-            )
-        self.dbobj.producers.append(o)
+
+        o = self.collection.capnp_schema.ActorPointer.new_message(actorRole=role, minServices=int(min), maxServices=int(max),
+                                                        auto=bool(auto), optional=bool(optional), argname=argname)
+        self.addSubItem('producers', o)
 
     @property
     def dictFiltered(self):

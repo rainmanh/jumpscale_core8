@@ -18,7 +18,7 @@ class JobModel(ModelBase):
         # put indexes in db as specified
         ind = "%s:%s:%s:%s:%s:%s" % (self.dbobj.actorName, self.dbobj.serviceName,
                                      self.dbobj.actionName, self.dbobj.state, self.dbobj.serviceKey, self.dbobj.lastModDate)
-        self._index.index({ind: self.key})
+        self.collection._index.index({ind: self.key})
 
     def log(self, msg, level=5, category="msg", epoch=None, tags=''):
         """
@@ -36,14 +36,14 @@ class JobModel(ModelBase):
         if epoch is None:
             epoch = j.data.time.getTimeEpoch()
 
-        logitem = j.data.capnp.getMemoryObj(self._capnp_schema.LogEntry)
+        logitem = self.collection.capnp_schema.LogEntry.new_message()
         logitem.category = category
         logitem.level = int(level)
         logitem.epoch = epoch
         logitem.log = msg
         logitem.tags = tags
 
-        self.dbobj.logs.append(logitem)
+        self.addSubItem('logs', logitem)
 
         return logitem
 

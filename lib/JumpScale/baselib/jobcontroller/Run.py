@@ -28,21 +28,18 @@ class RunStep:
 
     @property
     def services(self):
-        res = []
-        for job in self.jobs:
-            res.append(job.service)
-        return res
+        return [job.service for job in self.jobs]
 
-    def addJob(self, job):
-        job.model.dbobj.runKey = self.run.model.key
-        job.save()
+    # def addJob(self, job):
+    #     job.model.dbobj.runKey = self.run.model.key
+    #     job.save()
 
-        jobobj = self.run.model.jobNew(step=self.dbobj)
-        jobobj.actionName = job.model.dbobj.actionName
-        jobobj.actorName = job.model.dbobj.actorName
-        jobobj.key = job.model.key
-        jobobj.serviceName = job.model.dbobj.serviceName
-        jobobj.serviceKey = job.model.dbobj.serviceKey
+        # jobobj = self.run.model.jobNew(xstep=self.dbobj)
+        # jobobj.actionName = job.model.dbobj.actionName
+        # jobobj.actorName = job.model.dbobj.actorName
+        # jobobj.key = job.model.key
+        # jobobj.serviceName = job.model.dbobj.serviceName
+        # jobobj.serviceKey = job.model.dbobj.serviceKey
 
     @property
     def jobs(self):

@@ -57,7 +57,7 @@ class ActionModel(ModelBase):
     def index(self):
         # put indexes in db as specified
         ind = "%s:%s" % (self.dbobj.origin, self.dbobj.name)
-        self._index.index({ind: self.key})
+        self.collection._index.index({ind: self.key})
 
     def _post_init(self):
         self.dbobj.logStdout = True

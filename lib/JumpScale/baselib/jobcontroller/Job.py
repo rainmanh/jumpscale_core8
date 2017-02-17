@@ -9,6 +9,7 @@ from io import StringIO
 import sys
 import asyncio
 import functools
+import logging
 
 colored_traceback.add_hook(always=True)
 
@@ -52,28 +53,28 @@ def _execute_cb(job, epoch, future):
         if log_enable and job.model.dbobj.debug is False:
             # don't generate log when debug is enable, cause streams are not redirect in debug mode
             _, stdout, stderr = future.result()
-            if stdout:
-                job.model.log(msg=stdout, level=5, category='out')
+            for line in stdout.splitlines():
+                job.model.log(msg=line, level=5, category='out')
             if stderr:
                 job.model.log(msg=stderr, level=5, category='err')
         job.logger.info("job {} done sucessfuly".format(str(job)))
 
     job.save()
 
-@contextmanager
-def stdstreams_redirector(stdout, stderr):
-    """
-    redirect std and stderr to the buffers passed in arguments
-    """
-    old_stdout = sys.stdout
-    sys.stdout = stdout
-    old_stderr = sys.stderr
-    sys.stderr = stderr
-    try:
-        yield
-    finally:
-        sys.stdout = old_stdout
-        sys.stderr = old_stderr
+# @contextmanager
+# def stdstreams_redirector(stdout, stderr):
+#     """
+#     redirect std and stderr to the buffers passed in arguments
+#     """
+#     old_stdout = sys.stdout
+#     sys.stdout = stdout
+#     old_stderr = sys.stderr
+#     sys.stderr = stderr
+#     try:
+#         yield
+#     finally:
+#         sys.stdout = old_stdout
+#         sys.stderr = old_stderr
 
 @contextmanager
 def generate_profile(job):
@@ -96,17 +97,33 @@ def generate_profile(job):
             j.sal.fs.remove(stat_file)
 
 def reditect_stream_wraper(args):
-    stdout = StringIO()
-    stderr = StringIO()
-    func = args[0]
-    with stdstreams_redirector(stdout, stderr):
+    try:
+        result = None
+        stream = StringIO()
+        handler = logging.StreamHandler(stream)
+        func = args[0]
         if len(args) >= 2:
             job = args[1]
+            job.logger.addHandler(handler)
+            if job.service:
+                job.service.logger.addHandler(handler)
+        else:
+            job = None
+
+
+        if job:
             with generate_profile(job):
                 result = func(*args[1:])
         else:
             result = func()
-    return (result, stdout.getvalue(), stderr.getvalue())
+
+    finally:
+        if job:
+            job.logger.removeHandler(handler)
+            if job.service:
+                job.service.logger.removeHandler(handler)
+
+    return (result, stream.getvalue(), '')
 
 
 class Job():
@@ -115,8 +132,8 @@ class Job():
     """
 
     def __init__(self, model):
-        self.logger = j.atyourservice.logger
         self.model = model
+        self.logger = j.logger.get('j.jobcontroller.job.{}'.format(self.model.key))
         self._cancelled = False
         self._action = None
         self._service = None
@@ -188,6 +205,8 @@ class Job():
                 except j.exceptions.NotFound:
                     self.logger.warning("job {} tried to access a non existing service {}".format(self,self.model.dbobj.serviceKey ))
                     return None
+                # serviceModel = repo.db.services.get(self.model.dbobj.serviceKey)
+                # self._service = serviceModel.objectGet(repo)
         return self._service
 
     def _processError(self, eco):

@@ -12,23 +12,26 @@ class RunModel(ModelBase):
     def index(self):
         # put indexes in db as specified
         ind = "%s:%s" % (self.dbobj.state, self.dbobj.lastModDate)
-        idx_list = self._index.list(returnIndex=True)
+        idx_list = self.collection._index.list(returnIndex=True)
         matched_idx = [item for item in idx_list if item[1] == self.key]
         if matched_idx:
             #  if the key exists first pop it and add the correct one
             item = matched_idx[0]
-            self._index.redisclient.hdel(self._index._indexkey, item[0])
-        self._index.index({ind: self.key})
+            self.collection._index.redisclient.hdel(self.collection._index._indexkey, item[0])
+        self.collection._index.index({ind: self.key})
 
     def stepNew(self):
-        step = j.data.capnp.getMemoryObj(self._capnp_schema.RunStep)
-        self.dbobj.steps.append(step)
+        step = self.collection.capnp_schema.RunStep.new_message()
+        self.addSubItem('steps', step)
         return step
 
-    def jobNew(self, step):
-        job = j.data.capnp.getMemoryObj(self._capnp_schema.RunStep.Job)
-        step.jobs.append(job)
-        return job
+    def jobNew(self, xstep):
+        import ipdb; ipdb.set_trace()
+        if len(xstep.jobs) == 0:
+            xstep.jobs = xstep.init_resizable_list('jobs')
+        # job = self.collection.capnp_schema.RunStep.Job.new_message()
+        # self.addSubItem('jobs', job)
+        # return job
 
     @property
     def logs(self):
@@ -44,7 +47,7 @@ class RunModel(ModelBase):
 
     def delete(self):
         ind = "%s:%s" % (self.dbobj.state, self.dbobj.lastModDate)
-        self._index.index_remove(ind)
+        self.collection._index.index_remove(ind)
         # delete actual model object
         if self._db.exists(self.key):
             self._db.delete(self.key)

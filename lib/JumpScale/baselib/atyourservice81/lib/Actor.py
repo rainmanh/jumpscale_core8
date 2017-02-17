@@ -48,8 +48,7 @@ class Actor():
         # for now we don't reload the actions codes.
         # when using distributed DB, the actions code could still be available
         del json['actions']
-        self.model.dbobj = j.data.capnp.getMemoryObj(schema=ModelCapnp.Actor, **json)
-        # self.model.dbobj = ModelCapnp.Actor.new_message(**json)
+        self.model.dbobj = ModelCapnp.Actor.new_message(**json)
 
         # need to save already here cause processActionFile is doing a find
         # and it need to be able to find this new actor model we are creating
@@ -258,14 +257,20 @@ class Actor():
         # check for removed actions in the actor
         self._checkRemovedActions(parsedActorMethods)
 
+        if hasattr(self.model, 'list_actions'):
+            actions_installed_names = [a.name for a in self.model.list_actions]
+        else:
+            actions_installed_names = [a.name for a in self.model.dbobj.actions]
+
         for actionname in actionmethodsRequired:
-            if actionname not in self.model.actionsSortedList:
+
+            if actionname not in actions_installed_names:
                 # not found
 
                 # check if we find the action in our default actions, if yes use that one
                 if actionname in j.atyourservice.baseActions:
                     actionobj, actionmethod = j.atyourservice.baseActions[actionname]
-                    self._addAction2(actionname, actionobj)
+                    self.model.actionAdd(name=actionname, key=actionobj.key)
                 else:
                     if actionname == "input":
                         amSource = "return None"
@@ -274,6 +279,14 @@ class Actor():
                     else:
                         self._addAction(actionName=actionname, amSource="",
                                         amDecorator="service", amMethodArgs="job", amDoc="")
+
+        # mode list from memory into capnp struct
+        self.model.reSerialize()
+
+        # change if  we need to fire processChange jobs
+        for action in self.model.dbobj.actions:
+            self._check_change(action)
+
 
     def _checkRemovedActions(self, parsedMethods):
         for action in self.model.actionsSortedList:
@@ -305,18 +318,17 @@ class Actor():
         else:
             ac = j.core.jobcontroller.db.actions.get(key=ac.key)
 
-        self._addAction2(actionName, ac)
+        self.model.actionAdd(name=actionName, key=ac.key)
 
-    def _addAction2(self, actionName, action):
+    def _check_change(self, actionObj):
         """
         @param actionName = actionName
         @param action is the action object
         """
-        actionObj = self.model.actionAdd(name=actionName, key=action.key)
         if actionObj.state == "new":
-            self.processChange("action_new_%s" % actionName)
+            self.processChange("action_new_%s" % actionObj.name)
         else:
-            self.processChange("action_mod_%s" % actionName)
+            self.processChange("action_mod_%s" % actionObj.name)
 
     def processChange(self, changeCategory):
         """

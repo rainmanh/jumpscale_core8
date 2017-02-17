@@ -6,7 +6,6 @@ import capnp
 from collections import OrderedDict
 import capnp
 from ModelBase import *
-from ModelBase1 import MemoryObject
 
 
 class Tools():
@@ -132,8 +131,7 @@ class Capnp:
         schema = self.getSchemaFromText(schemaInText, name=name)
 
         if binaryData is not None and binaryData != b'':
-            configdata = schema.from_bytes_packed(binaryData).as_builder()
-
+            obj = schema.from_bytes_packed(binaryData).as_builder()
         else:
             try:
                 obj = schema.new_message(**args)

@@ -11,33 +11,6 @@ enum ActionState {
   running @6;
 }
 
-struct EventFilter {
-    # channel e.g. telegram, leave empty if all
-    channel @0 :EventChannel;
-    enum EventChannel {
-      all @0;
-      telegram @1;
-      email @2;
-      webservice @3;
-      blueprint @4;
-    }
-    # the command that will trigger the execution of the action.
-    command @1 :Text;
-    # action e.g. start, can be left empty
-    actions @2 :List(Text);
-    # tags which define sort of filtering e.g. importance:urgent state:down
-    tags @3 :Text;
-    # secrets
-    secrets @4 :List(Text);
-    role @5 :Text;
-    #if you want to specify a specific service instance
-    service @6 :Text;
-    #when there is no service but only instances of objects on which actor can work
-    instance @7 :Text;
-    log @8 :Bool;
-}
-
-
 struct Actor {
 
   state @0 :State;
@@ -78,6 +51,31 @@ struct Actor {
   }
 
   eventFilters @6 :List(EventFilter);
+  struct EventFilter {
+      # channel e.g. telegram, leave empty if all
+      channel @0 :EventChannel;
+      enum EventChannel {
+        all @0;
+        telegram @1;
+        email @2;
+        webservice @3;
+        blueprint @4;
+      }
+      # the command that will trigger the execution of the action.
+      command @1 :Text;
+      # action e.g. start, can be left empty
+      actions @2 :List(Text);
+      # tags which define sort of filtering e.g. importance:urgent state:down
+      tags @3 :Text;
+      # secrets
+      secrets @4 :List(Text);
+      role @5 :Text;
+      #if you want to specify a specific service instance
+      service @6 :Text;
+      #when there is no service but only instances of objects on which actor can work
+      instance @7 :Text;
+      log @8 :Bool;
+  }
 
   #where does the template come from
   origin @7 :Origin;
@@ -162,6 +160,31 @@ struct Service {
 
   #list of filter statements, when match call service.executeActionService("processEvent",event)
   eventFilters @6 :List(EventFilter);
+  struct EventFilter {
+      # channel e.g. telegram, leave empty if all
+      channel @0 :EventChannel;
+      enum EventChannel {
+        all @0;
+        telegram @1;
+        email @2;
+        webservice @3;
+        blueprint @4;
+      }
+      # the command that will trigger the execution of the action.
+      command @1 :Text;
+      # action e.g. start, can be left empty
+      actions @2 :List(Text);
+      # tags which define sort of filtering e.g. importance:urgent state:down
+      tags @3 :Text;
+      # secrets
+      secrets @4 :List(Text);
+      role @5 :Text;
+      #if you want to specify a specific service instance
+      service @6 :Text;
+      #when there is no service but only instances of objects on which actor can work
+      instance @7 :Text;
+      log @8 :Bool;
+  }
 
   actorKey @7 :Text;
 

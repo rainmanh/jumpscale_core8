@@ -15,6 +15,7 @@ class ActorsCollection(ModelBaseCollection):
         self.repository = repository
         namespace = "ays:%s:actor" % repository.name
         db = j.servers.kvs.getMemoryStore(namespace, namespace)
+        self.logger = j.logger.get('j.atyourservice.actor-collection')
         # cache for the actors objects
         self.actors = {}
         super().__init__(
@@ -29,23 +30,17 @@ class ActorsCollection(ModelBaseCollection):
     def new(self):
         model = ActorModel(
             aysrepo=self.repository,
-            capnp_schema=ModelCapnp.Actor,
-            category=self.category,
-            db=self._db,
-            index=self._index,
             key='',
-            new=True)
+            new=True,
+            collection=self)
         return model
 
     def get(self, key):
         model = ActorModel(
             aysrepo=self.repository,
-            capnp_schema=ModelCapnp.Actor,
-            category=self.category,
-            db=self._db,
-            index=self._index,
             key=key,
-            new=False)
+            new=False,
+            collection=self)
         return model
 
     def _list_keys(self, name="", state="", returnIndex=False):

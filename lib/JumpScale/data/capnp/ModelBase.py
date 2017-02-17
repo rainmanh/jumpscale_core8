@@ -32,13 +32,13 @@ class ModelBase():
                 self._key = key
         elif key != "":
             # will get from db
-            if self.collection_db.exists(key):
+            if self.collection._db.exists(key):
                 self.collection.logger.debug("exists:%s" % key)
                 self.load(key=key)
                 self._key = key
             else:
                 raise j.exceptions.Input(message="Cannot find object:%s!%s" % (
-                    self._category, key), level=1, source="", tags="", msgpub="")
+                    self.collection.category, key), level=1, source="", tags="", msgpub="")
         else:
             raise j.exceptions.Input(message="key cannot be empty when no new obj is asked for.",
                                      level=1, source="", tags="", msgpub="")
@@ -72,10 +72,10 @@ class ModelBase():
 
     def load(self, key):
         if self.collection._db.inMem:
-            raise RuntimeError("when using in memory store it should not try to load")
-
-        buff = self.collection._db.get(key)
-        self.dbobj = self.collection.capnp_schema.from_bytes(buff, builder=True)
+            self.dbobj = self.collection._db.get(key)
+        else:
+            buff = self.collection._db.get(key)
+            self.dbobj = self.collection.capnp_schema.from_bytes(buff, builder=True)
 
     # TODO: *2 would be nice that this works, but can't get it to work, something recursive
     # def __setattr__(self, attr, val):
@@ -105,7 +105,8 @@ class ModelBase():
 
     def reSerialize(self):
         toRemove = []
-        for key, item in self._subobjects.items():
+        for key in list(self._subobjects.keys()):
+            item = self._subobjects[key]
             prop = self.__dict__["list_%s" % key]
             dbobjprop = eval("self.dbobj.%s" % key)
             if len(dbobjprop) != 0:
@@ -115,18 +116,16 @@ class ModelBase():
                 subobj = self.dbobj.init(key, len(prop))
                 for x in range(0, len(prop)):
                     subobj[x] = prop[x]
-            toRemove.append(key)
 
-        # cannot do above because still iterating
-        for key in toRemove:
             self._subobjects.pop(key)
             self.__dict__.pop("list_%s" % key)
+
 
     def save(self):
         self._pre_save()
         self.reSerialize()
         if self.collection._db.inMem:
-            self.collection._db.db[self.key] = self
+            self.collection._db.db[self.key] = self.dbobj
         else:
             # no need to store when in mem because we are the object which does not have to be serialized
             # so this one stores when not mem
@@ -217,9 +216,8 @@ class ModelBase():
 
 
 class ModelBaseWithData(ModelBase):
-
-    def __init__(self, capnp_schema, category, db, index, key="", new=False, collection=None):
-        super().__init__(capnp_schema=capnp_schema, category=category, db=db, index=index, key=key, new=new, collection=collection)
+    def __init__(self, key="", new=False, collection=None):
+        super().__init__(key=key, new=new, collection=collection)
         self._data_schema = None
         self._data = None
 
@@ -288,19 +286,24 @@ class ModelBaseCollection:
             except:
                 continue
 
-            if "List" in str(field.schema):
-                slottype = str(field.proto.slot.type).split("(")[-1]
-                if slottype.startswith("text"):
-                    # is text
-                    self._listConstructors[field.proto.name] = getText
-                elif slottype.startswith("uint"):
-                    # is text
-                    self._listConstructors[field.proto.name] = getInt
-                else:
-                    subTypeName = str(field.schema.elementType).split(".")[-1].split(">")[0]
-                    self._listConstructors[field.proto.name] = eval("self.capnp_schema.%s.new_message" % subTypeName)
+            try:
+                if "List" in str(field.schema):
+                    slottype = str(field.proto.slot.type).split("(")[-1]
+                    if slottype.startswith("text"):
+                        # is text
+                        self._listConstructors[field.proto.name] = getText
+                    elif slottype.startswith("uint"):
+                        # is text
+                        self._listConstructors[field.proto.name] = getInt
+                    else:
+                        subTypeName = str(field.schema.elementType).split(':')[-1][:-1].split('.')[-1]
+                        # subTypeName = str(field.schema.elementType).split(".")[-1].split(">")[0]
+                        self._listConstructors[field.proto.name] = eval("self.capnp_schema.%s.new_message" % subTypeName)
 
-                self.__dict__["list_%s_constructor" % field.proto.name] = self._listConstructors[field.proto.name]
+                    self.__dict__["list_%s_constructor" % field.proto.name] = self._listConstructors[field.proto.name]
+            except Exception as err:
+                print(err)
+                import ipdb; ipdb.set_trace()
 
         self._db = db if db else j.servers.kvs.getMemoryStore(name=self.namespace, namespace=self.namespace)
         # for now we do index same as database

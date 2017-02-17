@@ -16,6 +16,7 @@ class ServicesCollection(ModelBaseCollection):
         namespace = "ays:%s:service" % repository.name
         db = j.servers.kvs.getMemoryStore(namespace, namespace)
         self.services = {}
+        self.logger = j.logger.get('j.atyourservice.service-collection')
 
         super().__init__(
             schema=ModelCapnp.Service,
@@ -29,23 +30,17 @@ class ServicesCollection(ModelBaseCollection):
     def new(self):
         model = ServiceModel(
             aysrepo=self.repository,
-            capnp_schema=ModelCapnp.Service,
-            category=self.category,
-            db=self._db,
-            index=self._index,
             key='',
-            new=True)
+            new=True,
+            collection=self)
         return model
 
     def get(self, key):
         model = ServiceModel(
             aysrepo=self.repository,
-            capnp_schema=ModelCapnp.Service,
-            category=self.category,
-            db=self._db,
-            index=self._index,
             key=key,
-            new=False)
+            new=False,
+            collection=self)
         return model
 
     def list(self, name="", actor="", state="", parent="", producer="", returnIndex=False):

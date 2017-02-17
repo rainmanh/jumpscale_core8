@@ -134,7 +134,6 @@ class AtYourServiceRepo():
         self.no_exec = False
         j.atyourservice._loadActionBase()
 
-        self._services = {}
         self._load_services()
 
     @property
@@ -154,7 +153,6 @@ class AtYourServiceRepo():
         if j.sal.fs.exists(services_dir) and len(self.services) <= 0:
             for service_path in j.sal.fs.listDirsInDir(services_dir, recursive=True):
                 s = Service.init_from_fs(aysrepo=self, path=service_path)
-                self._services[s.model.key] = s
 
     def destroy(self):
         self.db.actors.destroy()
@@ -282,36 +280,42 @@ class AtYourServiceRepo():
     @property
     def services(self):
         services = []
-        for service in self._services.values():
-            if service.model.dbobj.state != "disabled":
-                services.append(service)
+        for service_model in self.db.services.find():
+            if service_model.dbobj.state != "disabled":
+                services.append(service_model.objectGet(self))
         return services
 
-    def serviceGet(self, role, instance, key=None, die=True):
+    def serviceGet(self, role='', instance='', key=None, die=True):
         """
         Return service indentifier by role and instance or key
         throw error if service is not found or if more than one service is found
         """
-        if role.strip() == "" or instance.strip() == "":
+        if key is None and  (role.strip() == "" or instance.strip() == ""):
             raise j.exceptions.Input("role and instance cannot be empty.")
 
-        for s in self._services.values():
-            if s.model.role == role and s.name == instance:
-                return s
-        if die:
+        if key is not None:
+            return self.db.services.services[key]
+
+
+        models = self.db.services.find(actor="%s.*" % role, name=instance)
+        if len(models) == 1:
+            return models[0].objectGet(self)
+
+        if len(models) <=0 and die:
             raise j.exceptions.NotFound(message="Cannot find service %s:%s" %
                                         (role, instance), level=1, source="", tags="", msgpub="")
         return None
 
     def serviceGetByKey(self, key):
-        objs = [s for s in self._services.values() if s.model.key == key]
-        if len(objs) <= 0:
-            raise j.exceptions.NotFound(message="Cannot find service with key {}".format(key))
-        return objs[0]
+        """
+        don't use it, will be remove in future version
+        use serviceGet(key=) instead
+        """
+        return self.serviceGet(key=key)
 
     @property
     def serviceKeys(self):
-        return [s.model.key for s in self._services.values()]
+        return self.db.services.list()
 
     def serviceSetState(self, actions=[], role="", instance="", state="new"):
         """
@@ -363,36 +367,26 @@ class AtYourServiceRepo():
             changed
         """
         results = []
-        for service in self._services.values():
-            if name != '' and service.name != name:
+        if (actor == '' or actor is None) and (role != '' and role is not None):
+            actor = "%s.*" % role
+
+        for model in self.db.services.find(name=name, actor=actor, state=state, parent=parent, producer=producer):
+
+            if hasAction != "" and hasAction not in model.actions.keys():
                 continue
 
-            if actor != '' and service.model.dbobj.actorName != actor:
+            if includeDisabled is False and model.dbobj.state == "disabled":
                 continue
 
-            if role != '' and service.model.role != role:
-                continue
-
-            if state != '' and service.model.state != state:
-                continue
-
-            if parent != '' and "{}!{}".format(service.parent.role, service.parent.name) != parent:
-                continue
-
-            if includeDisabled is False and service.model.dbobj.state == "disabled":
-                continue
-
-            if hasAction != "" and hasAction not in service.model.actions.keys():
-                continue
-
-            results.append(service)
+            results.append(model)
 
         if first:
             if len(results) == 0:
                 raise j.exceptions.NotFound("cannot find service %s|%s:%s" %
                                             (self.name, actor, name), "ays.servicesFind")
-            return results[0]
-        return results
+            return results[0].objectGet(self)
+
+        return [m.objectGet(self) for m in results]
 
 # BLUEPRINTS
 
@@ -519,15 +513,14 @@ class AtYourServiceRepo():
         """
         result = {}
         for service in self.services:
-            service_model = service.model
-            for action, state in service_model.actionsState.items():
+            for action, state in service.model.actionsState.items():
                 if state in ['scheduled', 'changed', 'error']:
-                    if service_model not in result:
-                        result[service_model] = list()
+                    if service not in result:
+                        result[service] = list()
                     action_chain = list()
-                    service_model._build_actions_chain(action, ds=action_chain)
+                    service._build_actions_chain(action, ds=action_chain)
                     action_chain.reverse()
-                    result[service_model].append(action_chain)
+                    result[service].append(action_chain)
         return result
 
     def runCreate(self, debug=False, profile=False):
@@ -542,14 +535,14 @@ class AtYourServiceRepo():
             to_add = []
 
             for node in bundle:
-                if node.model.actionsState[node.action] != 'ok':
+                if node.service.model.actionsState[node.action] != 'ok':
                     to_add.append(node)
 
             if len(to_add) > 0:
                 step = run.newStep()
 
             for node in to_add:
-                job = create_job(self, node.model, node.action)
+                job = create_job(self, node.service.model, node.action)
 
                 job.model.dbobj.profile = profile
                 job.model.dbobj.debug = profile if profile is True else debug

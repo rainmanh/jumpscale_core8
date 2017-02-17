@@ -14,8 +14,9 @@ class ServicesCollection(ModelBaseCollection):
     def __init__(self, repository):
         self.repository = repository
         namespace = "ays:%s:service" % repository.name
-        db = j.servers.kvs.getARDBStore(namespace, namespace, **j.atyourservice.config['redis'])
-        # db = j.servers.kvs.getMemoryStore(namespace, namespace)
+        db = j.servers.kvs.getMemoryStore(namespace, namespace)
+        self.services = {}
+
         super().__init__(
             schema=ModelCapnp.Service,
             category="Service",
@@ -47,7 +48,7 @@ class ServicesCollection(ModelBaseCollection):
             new=False)
         return model
 
-    def _list_keys(self, name="", actor="", state="", parent="", producer="", returnIndex=False):
+    def list(self, name="", actor="", state="", parent="", producer="", returnIndex=False):
         """
         @param name can be the full name e.g. myappserver or a prefix but then use e.g. myapp.*
         @param actor can be the full name e.g. node.ssh or role e.g. node.* (but then need to use the .* extension, which will match roles)
@@ -100,6 +101,6 @@ class ServicesCollection(ModelBaseCollection):
 
         """
         res = []
-        for key in self._list_keys(name, actor, state, producer=producer, parent=parent):
+        for key in self.list(name, actor, state, producer=producer, parent=parent):
             res.append(self.get(key))
         return res

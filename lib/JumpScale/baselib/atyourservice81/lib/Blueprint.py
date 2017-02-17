@@ -180,12 +180,12 @@ class Blueprint:
 
         # first we had to make sure all services do exist, then we can add these properties
         for action_info in self.actions:
-            service = self.aysrepo.serviceGetByKey(action_info['service_key'])
+            service = self.aysrepo.serviceGet(key=action_info['service_key'])
             service.scheduleAction(action_info['action_name'], period=action_info['recurring_period'])
             service.saveAll()
 
         for event_filter in self.eventFilters:
-            service = self.aysrepo.serviceGetByKey(event_filter['service_key'])
+            service = self.aysrepo.serviceGet(key=event_filter['service_key'])
             service.model.eventFilterSet(
                 channel=event_filter['channel'], actions=event_filter['action_name'],
                 command=event_filter['command'], secrets=event_filter['secret'])

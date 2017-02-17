@@ -10,10 +10,8 @@ def build_nodes(repo):
     """
     all_nodes = {}
     for service in repo.services:
-        model = service.model
-    # for model in repo.db.services.find():
-        for action in model.actions.keys():
-            node = Node(model, action)
+        for action in service.model.actions.keys():
+            node = Node(service, action)
             all_nodes[node.id] = node
     return all_nodes
 
@@ -24,12 +22,12 @@ def create_graphs(repo, all_nodes):
     """
     nodes = set()
 
-    for model, actions_chain_list in repo.findScheduledActions().items():
+    for service, actions_chain_list in repo.findScheduledActions().items():
         for actions in actions_chain_list:
             actions.reverse()
 
             for i, action in enumerate(actions):
-                name = "%s-%s" % (model.key, action)
+                name = "%s-%s" % (service.model.key, action)
                 node = all_nodes[name]
                 nodes.add(node)
 
@@ -40,7 +38,7 @@ def create_graphs(repo, all_nodes):
 
                 if i + 1 < len(actions):
                     action = actions[i + 1]
-                    name = "%s-%s" % (model.key, action)
+                    name = "%s-%s" % (service.model.key, action)
                     edge = all_nodes[name]
                     node.addEdge(edge)
                     nodes.add(edge)
@@ -52,11 +50,8 @@ def addEdges(node, action, all_nodes, nodes):
     """
     recursivlely add edged to a node
     """
-    for prod in node.model.producers:
-        try:
-            name = "%s-%s" % (prod.key, action)
-        except:
-            import ipdb; ipdb.set_trace()
+    for prod in node.service.model.producers:
+        name = "%s-%s" % (prod.key, action)
         edge = all_nodes.get(name)
         if edge:
             addEdges(edge, action, all_nodes, nodes)
@@ -68,7 +63,7 @@ def addConsumerEdges(node, action, all_nodes, nodes):
     """
     recursivlely add edged to a node
     """
-    for prod in node.model.consumers:
+    for prod in node.service.model.consumers:
         name = "%s-%s" % (prod.key, action)
         edge = all_nodes.get(name)
         if edge:
@@ -148,13 +143,12 @@ def create_job(repo, model, action):
 
 class Node():
 
-    def __init__(self, model, action):
-        self.model = model
-        self.model.enable_cache()
+    def __init__(self, service, action):
+        self.service = service
         self.edges = []
         self.action = action
-        self.id = "%s-%s" % (model.key, action)
-        self.name = "%s!%s-%s" % (model.dbobj.actorName, model.name, action)
+        self.id = "%s-%s" % (self.service.model.key, action)
+        self.name = "%s!%s-%s" % (self.service.model.dbobj.actorName, self.service.model.name, action)
 
     def addEdge(self, node):
         self.edges.append(node)
@@ -163,7 +157,7 @@ class Node():
         return hash(self.id)
 
     def __str__(self):
-        return '%s-%s' % (str(self.model), self.action)
+        return '%s-%s' % (str(self.service.model), self.action)
 
     def __repr__(self):
         return str(self)
@@ -172,10 +166,3 @@ class Node():
         if isinstance(other, str):
             return self.id == other
         return self.id == other.name
-
-    def __del__(self):
-        """
-        Make sure we empty the cache when we this object is not referenced anywhere
-        so baicly once the computaion on the dependecy graphs is done.
-        """
-        self.model.disable_cache()

@@ -14,8 +14,9 @@ class ActorsCollection(ModelBaseCollection):
     def __init__(self, repository):
         self.repository = repository
         namespace = "ays:%s:actor" % repository.name
-        db = j.servers.kvs.getARDBStore(namespace, namespace, **j.atyourservice.config['redis'])
-        # db = j.servers.kvs.getMemoryStore(namespace, namespace)
+        db = j.servers.kvs.getMemoryStore(namespace, namespace)
+        # cache for the actors objects
+        self.actors = {}
         super().__init__(
             schema=ModelCapnp.Actor,
             category="Actor",

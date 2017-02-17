@@ -27,6 +27,9 @@ class Actor():
             raise j.exceptions.Input(
                 message="template or model or name needs to be specified when creating an actor", level=1, source="", tags="", msgpub="")
 
+        # save this object in memory for fast access
+        self.aysrepo.db.actors.actors[self.model.key] = self
+
     @property
     def path(self):
         return j.sal.fs.joinPaths(self.aysrepo.path, "actors", self.model.name)
@@ -51,6 +54,7 @@ class Actor():
         # need to save already here cause processActionFile is doing a find
         # and it need to be able to find this new actor model we are creating
         self.model.save()
+        self.aysrepo.db.actors.actors[self.model.key] = self
 
         # recreate the actions code from the action.py file from the file system
         self._processActionsFile(j.sal.fs.joinPaths(actor_path, "actions.py"))

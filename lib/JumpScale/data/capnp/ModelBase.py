@@ -77,18 +77,6 @@ class ModelBase():
         buff = self.collection._db.get(key)
         self.dbobj = self.collection.capnp_schema.from_bytes(buff, builder=True)
 
-    # def __getattr__(self, attr):
-    #     if not attr in self.__dict__:
-    #         try:
-    #             print("GETATTR:%s" % attr)
-    #             self.__dict__[attr] = eval("self.dbobj.%s" % attr)
-    #         except Exception as e:
-    #             if "has no such member" in str(e):
-    #                 raise j.exceptions.Input(message="attr '%s' does not exist on %s" %
-    #                                          (attr, self._capnp_schema), level=1, source="", tags="", msgpub="")
-    #             raise e
-    #     return self.__dict__[attr]
-
     # TODO: *2 would be nice that this works, but can't get it to work, something recursive
     # def __setattr__(self, attr, val):
     #     if attr in ["_propnames", "_subobjects", "dbobj", "_capnp_schema"]:

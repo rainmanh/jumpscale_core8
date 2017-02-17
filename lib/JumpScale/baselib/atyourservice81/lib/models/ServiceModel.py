@@ -11,17 +11,6 @@ class ServiceModel(ActorServiceBaseModel):
     def __init__(self, aysrepo, capnp_schema, category, db, index, key="", new=False):
         super().__init__(aysrepo=aysrepo, capnp_schema=capnp_schema, category=category, db=db, index=index, key=key, new=new)
         self._aysrepo = aysrepo
-        self._cache = False
-        self._producers = []
-        self._consumers = []
-
-    def enable_cache(self):
-        self._cache = True
-
-    def disable_cache(self):
-        self._cache = False
-        self._producers = []
-        self._consumers = []
 
     @property
     def role(self):
@@ -32,101 +21,13 @@ class ServiceModel(ActorServiceBaseModel):
         if self.dbobj.parent.serviceName == '' or self.dbobj.parent.actorName == '':
             return None
 
-        parents = self._aysrepo.servicesFind(name=self.dbobj.parent.serviceName, actor=self.dbobj.parent.actorName)
-        # parentModels = self._aysrepo.db.services.find(
-        #     name=self.dbobj.parent.serviceName, actor=self.dbobj.parent.actorName)
+        parents = self._aysrepo.db.services.find(name=self.dbobj.parent.serviceName, actor=self.dbobj.parent.actorName)
         if len(parents) <= 0:
             return None
         elif len(parents) > 1:
-            raise j.exceptions.RuntimeError("More then one parent model found for model %s:%s" %
-                                            (self.dbobj.actorName, self.dbobj.name))
+            raise j.exceptions.RuntimeError("More then one parent model found for model %s:%s :%s\n" % (self.dbobj.actorName, self.dbobj.name, parents))
 
-        return parents[0].model
-
-    def _executeActionService(self, action, args={}):
-        # execute an action in process without creating a job
-        # usefull for methods called very often.
-        action_id = self.actions[action].actionKey
-        action_model = j.core.jobcontroller.db.actions.get(action_id)
-        action_with_lines = ("\n%s \n" % action_model.code)
-        indented_action = '\n    '.join(action_with_lines.splitlines())
-        complete_action = "def %s(%s): %s" % (action, action_model.argsText, indented_action)
-        exec(complete_action)
-        res = eval(action)(service=self, args=args)
-        return res
-
-    def _build_actions_chain(self, action, ds=list(), parents=list(), dc=None):
-        """
-        this method returns a list of action that need to happens before the action passed in argument
-        can start
-        """
-        if dc is None:
-            dependency_chain = self._executeActionService('init_actions_', args={'action': action})
-        if action in parents:
-            raise RuntimeError('cyclic dep: %s' % parents)
-        if action in ds:
-            return
-        ds.append(action)
-        newkeys = dependency_chain.get(action)
-        if not newkeys:
-            return
-        parents.append(action)
-        for key in newkeys:
-            self._build_actions_chain(key, ds, parents, dc)
-        parents.pop()
-        return
-
-    @property
-    def producers(self):
-        producers = None
-        if self._cache is True:
-            if self._producers != []:
-                return self._producers
-            else:
-                producers = self._producers
-        else:
-            producers = []
-
-
-        for prod in self.dbobj.producers:
-            s = self._aysrepo.serviceGet(instance=prod.serviceName, role=prod.actorName.split('.')[0])
-            producers.append(s.model)
-        return producers
-
-    def getProducersRecursive(self, producers=set(), action="", producerRoles="*"):
-        for producer_model in self.producers:
-            if action == "" or action in producer_model.actions.keys():
-                if producerRoles == "*" or producer_model.role in producerRoles:
-                    producers.add(producer_model)
-            producers = producer_model.getProducersRecursive(
-                producers=producers, action=action, producerRoles=producerRoles)
-        return producers
-
-    @property
-    def consumers(self):
-        consumers = None
-        if self._cache is True:
-            if self._consumers != []:
-                return self._consumers
-            else:
-                consumers = self._consumers
-        else:
-            consumers = []
-
-        for cons in self.dbobj.consumers:
-            s = self._aysrepo.serviceGet(instance=cons.serviceName, role=cons.actorName.split('.')[0])
-            consumers.append(s.model)
-        return consumers
-
-
-    def getConsumersRecursive(self, consumers=set(), action="", consumersRoles="*"):
-        for consumer_model in self.consumers:
-            if action == "" or action in consumer_model.actions.keys():
-                if consumersRoles == "*" or consumer_model.role in consumersRoles:
-                    consumers.add(consumer_model)
-            consumers = consumer_model.getProducersRecursive(
-                consumers=consumers, action=action, consumersRoles=producerRoles)
-        return consumers
+        return parents[0]
 
     def index(self):
         # put indexes in db as specified
@@ -169,64 +70,17 @@ class ServiceModel(ActorServiceBaseModel):
         if self._db.exists(self.key):
             self._db.delete(self.key)
 
+        # delete in memory service object if it exists
+        if self.key in self._aysrepo.db.services.services:
+            del self._aysrepo.db.services.services[self.key]
+
     def objectGet(self, aysrepo):
         """
         returns an Service object created from this model
         """
-        if self.key not in self._aysrepo._services:
-            self._aysrepo._services[self.key] = Service.init_from_model(aysrepo=aysrepo, model=self)
-        return self._aysrepo._services[self.key]
-        # service = Service(name=self.dbobj.name, aysrepo=aysrepo, model=self)
-        # return service
-
-    @property
-    def wiki(self):
-        # TODO: *3
-        raise NotImplemented
-        out = "## service:%s state" % self.service.key
-
-        if self.parent != "":
-            out += "\n- parent:%s\n\n" % self.parent
-
-        if self.producers != {}:
-            out = "### producers\n\n"
-            out += "| %-20s | %-30s |\n" % ("role", "producer")
-            out += "| %-20s | %-30s |\n" % ("---", "---")
-            for role, producers in self.producers.items():
-                for producer in producers:
-                    out += "| %-20s | %-30s |\n" % (role, producer)
-            out += "\n"
-
-        if self.recurring != {} or self.methods != {}:
-            methods = OrderedDict()
-            for actionname, actionstate in self.methods.items():
-                methods[actionname] = [actionstate, "", 0]
-            for actionname, obj in self.recurring.items():
-                period, last = obj
-                actionstate, _, _ = methods[actionname]
-                methods[actionname] = [actionstate, period, int(last)]
-
-            out = "### actions\n\n"
-            out += "| %-20s | %-10s | %-10s | %-30s |\n" % (
-                "name", "state", "period", "last")
-            out += "| %-20s | %-10s | %-10s | %-30s |\n" % (
-                "---", "---", "---", "---")
-            for actionname, obj in methods.items():
-                actionstate, period, last = obj
-                out += "| %-20s | %-10s | %-10s | %-30s |\n" % (
-                    actionname, actionstate, period, last)
-            out += "\n"
-
-        return out
-
-    def actionCheckExecuted(self, action):
-        """
-        check if it needs to be executed or not
-        """
-        from IPython import embed
-        print("DEBUG NOW actionCheckExecuted")
-        embed()
-        raise RuntimeError("stop debug here")
+        if self.key not in self._aysrepo.db.services.services:
+            self._aysrepo.db.services.services[self.key] = Service.init_from_model(aysrepo=aysrepo, model=self)
+        return self._aysrepo.db.services.services[self.key]
 
     def producerAdd(self, actorName, serviceName, key):
         """
@@ -367,15 +221,6 @@ class ServiceModel(ActorServiceBaseModel):
             self.dbobj.data = binary
 
     def __repr__(self):
-        # TODO: *1 to put back on self.wiki
-        # out = self.dictJson + "\n"
-        # if self.dbobj.dataSchema not in ["", b""]:
-        #     out += "SCHEMA:\n"
-        #     out += self.dbobj.dataSchema
-        # if self.dbobj.data not in ["", b""]:
-        #     out += "DATA:\n"
-        #     out += self.dataJSON
-        # return out
         return "%s!%s" % (self.role, self.dbobj.name)
 
     def __eq__(self, other):

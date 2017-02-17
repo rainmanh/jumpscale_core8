@@ -25,7 +25,7 @@ class Service:
         self = cls(aysrepo)
         try:
             await self._initFromActor(actor=actor, args=args, name=name)
-            self.aysrepo._services[self.model.key] = self
+            self.aysrepo.db.services.services[self.model.key] = self
             self._ensure_recurring()
             return self
         except Exception as e:
@@ -37,7 +37,7 @@ class Service:
     def init_from_model(cls, aysrepo, model):
         self = cls(aysrepo=aysrepo)
         self.model = model
-        self.aysrepo._services[self.model.key] = self
+        self.aysrepo.db.services.services[self.model.key] = self
         self._ensure_recurring()
         return self
 
@@ -45,7 +45,7 @@ class Service:
     def init_from_fs(cls, aysrepo, path):
         self = cls(aysrepo=aysrepo)
         self.loadFromFS(path)
-        self.aysrepo._services[self.model.key] = self
+        self.aysrepo.db.services.services[self.model.key] = self
         self._ensure_recurring()
         return self
 
@@ -123,7 +123,7 @@ class Service:
         await self._initProducers(actor, args)
 
         self.save()
-        self.aysrepo._services[self.model.key] = self
+        self.aysrepo.db.services.services[self.model.key] = self
 
         await self.init()
 
@@ -283,12 +283,11 @@ class Service:
 
         # relink actions from the actor to be sure we have good keys
         actor = self.aysrepo.actorGet(name=self.model.dbobj.actorName)
+
         for actor_action in actor.model.dbobj.actions:
             # search correct action in actor model
-            for service_action in self.model.dbobj.actions:
-                if actor_action.name == service_action.name:
-                    service_action.actionKey = actor_action.actionKey
-                    break
+            if actor_action.name in self.model.actions:
+                self.model.actions[actor_action.name].actionKey = actor_action.actionKey
 
         self.saveAll()
 
@@ -337,8 +336,8 @@ class Service:
 
         self.model.delete()
         j.sal.fs.removeDirTree(self.path)
-        if self.model.key in self.aysrepo._services:
-            del self.aysrepo._services[self.model.key]
+        if self.model.key in self.aysrepo.db.services.services:
+            del self.aysrepo.db.services.services[self.model.key]
 
     @property
     def parent(self):
@@ -557,7 +556,7 @@ class Service:
     async def processEvent(self, channel=None, command=None, secret=None, tags={}, payload=None):
         jobs = []
         for event_filter in self.model.dbobj.eventFilters:
-            import ipdb; ipdb.set_trace()
+
             if channel is not None and channel != 'all' and channel != event_filter.channel:
                 continue
             if command is not None and command != event_filter.command:
@@ -651,7 +650,7 @@ class Service:
         # usefull for methods called very often.
         action_id = self.model.actions[action].actionKey
         action_model = j.core.jobcontroller.db.actions.get(action_id)
-        action_with_lines = ("\n %s \n" % action_model.code)
+        action_with_lines = ("\n%s \n" % action_model.code)
         indented_action = '\n    '.join(action_with_lines.splitlines())
         complete_action = "def %s(%s): %s" % (action, action_model.argsText, indented_action)
         exec(complete_action)
@@ -690,15 +689,26 @@ class Service:
         job = j.core.jobcontroller.newJobFromModel(jobobj)
         return job
 
-    def _build_actions_chain(self, action):
+    def _build_actions_chain(self, action, ds=list(), parents=list(), dc=None):
         """
         this method returns a list of action that need to happens before the action passed in argument
         can start
         """
-        ds = list()
-        self.model._build_actions_chain(action=action, ds=ds)
-        ds.reverse()
-        return ds
+        if dc is None:
+            dependency_chain = self.executeActionService('init_actions_', args={'action': action})
+        if action in parents:
+            raise RuntimeError('cyclic dep: %s' % parents)
+        if action in ds:
+            return
+        ds.append(action)
+        newkeys = dependency_chain.get(action)
+        if not newkeys:
+            return
+        parents.append(action)
+        for key in newkeys:
+            self._build_actions_chain(key, ds, parents, dc)
+        parents.pop()
+        return
 
     def _ensure_recurring(self):
         """

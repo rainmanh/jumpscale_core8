@@ -24,8 +24,9 @@ class ActorModel(ActorServiceBaseModel):
         """
         returns an Actor object created from this model
         """
-        actor = Actor(aysrepo=aysrepo, model=self)
-        return actor
+        if self.key not in self._aysrepo.db.actors.actors:
+            self._aysrepo.db.actors.actors[self.key] =  Actor(aysrepo=aysrepo, model=self)
+        return self._aysrepo.db.actors.actors[self.key]
 
     def updateEventDict(self, ddict):
         ddict = j.data.capnp.tools.listInDictCreation(ddict, "events")

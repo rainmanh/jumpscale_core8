@@ -22,6 +22,7 @@ def main(host, port, debug=False):
     async def init_ays(sanic, loop):
         if debug:
             loop.set_debug(True)
+        j.atyourservice.debug = debug
         j.atyourservice.start(loop=loop)
 
     # start server

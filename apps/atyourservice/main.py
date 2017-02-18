@@ -4,6 +4,8 @@ import logging
 from JumpScale import j
 from JumpScale.baselib.atyourservice81.server.app import app as sanic_app
 
+print("needs:\npip3 install sanic==0.3.0")
+print("to see api:http://localhost:5000/")
 
 # configure asyncio logger
 asyncio_logger = logging.getLogger('asyncio')
@@ -12,9 +14,10 @@ asyncio_logger.addHandler(j.logger.handlers.consoleHandler)
 asyncio_logger.addHandler(j.logger.handlers.fileRotateHandler)
 asyncio_logger.setLevel(logging.DEBUG)
 
+
 @click.command()
-@click.option('--host','-h',default='127.0.0.1', help='listening address')
-@click.option('--port','-p',default=5000, help='listening port')
+@click.option('--host', '-h', default='127.0.0.1', help='listening address')
+@click.option('--port', '-p', default=5000, help='listening port')
 @click.option('--debug', default=False, is_flag=True, help='enable debug logging')
 def main(host, port, debug=False):
 

@@ -36,7 +36,11 @@ class CuisineOca(app):
         echo -e "SHOP_OAUTH_CLIENT_ID = u'{client_id}'\nSHOP_OAUTH_CLIENT_SECRET = u'{client_secret}'" > $OCA_REPO/src/solution_server_settings/consts.py
         rm -rf $OCA_REPO/build
         python2 $OCA_REPO/build.py
-        cp -R $OCA_REPO/build/ {build_path}/oca
-        """.format(rogerthat_url=ROGERTHAT_URL, oca_url=OCA_URL, client_id=client_id, client_secret=client_id, build_path=build_path)
+        cd $OCA_REPO/build && tar -czf {build_path}/oca.tar.gz .
+        """.format(rogerthat_url=ROGERTHAT_URL,
+                   oca_url=OCA_URL,
+                   client_id=client_id,
+                   client_secret=client_id,
+                   build_path=build_path)
         self._cuisine.core.run(buildscript, die=True)
-        return "%s/oca" % build_path
+        return "%s/oca.tar.gz" % build_path

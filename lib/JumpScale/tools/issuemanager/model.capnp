@@ -48,6 +48,7 @@ struct Organization{
     struct Repo{
         key @0 :Text;
         name @1: Text;
+        access @2:UInt16;
     }
 
 }

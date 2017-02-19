@@ -75,3 +75,6 @@ class RepoCollection(base):
         if key is None:
             repo_model.dbobj.id = id
         return repo_model
+
+    def getFromGogsId(self, gogsName, gogsId, createNew=True):
+        return j.clients.gogs._getFromGogsId(self, gogsName=gogsName, gogsId=gogsId, createNew=createNew)

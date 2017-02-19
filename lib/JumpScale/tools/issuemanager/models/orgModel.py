@@ -17,10 +17,9 @@ class OrgModel(base):
             self._index.lookupSet("gogs_%s" % item.name, item.id, self.key)
 
         owners = ",".join([str(item) for item in self.dbobj.owners])
-        members = ",".join([str(item.userKey) for item in self.dbobj.members])
+        members = ",".join([str(item.key) for item in self.dbobj.members])
         repos = ",".join([str(item) for item in self.dbobj.repos])
-        ind = "%s:%s:%s:%s:%s:%s" % (self.dbobj.name.lower(), str(self.dbobj.id),
-                                     self.dbobj.source.lower(), owners, members, repos)
+        ind = "%s:%s:%s:%s" % (self.dbobj.name.lower(), owners, members, repos)
         self._index.index({ind: self.key})
 
     def memberSet(self, key, access):
@@ -36,7 +35,7 @@ class OrgModel(base):
                     item.access = access
                     item.name = member.name
                 found = True
-        if found == False:
+        if found is False:
             self.dbobj.members.append(
                 self._capnp_schema.Member.new_message(key=key, access=access, name=member.name))
             self.changed = True
@@ -64,9 +63,9 @@ class OrgModel(base):
                     item.name = repo.name
                     self.changed = True
                 found = True
-        if found == False:
+        if found is False:
             self.dbobj.repos.append(
-                self._capnp_schema.Member.new_message(key=key, name=repo.name))
+                self._capnp_schema.Repo.new_message(key=key, name=repo.name))
             self.changed = True
 
     def gogsRefSet(self, name, id):

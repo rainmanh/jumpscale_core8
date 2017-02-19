@@ -49,9 +49,8 @@ class IssueCollection(base):
         if assignee == "":
             assignee = ".*"
         else:
-            import ipdb; ipdb.set_trace()
             users = j.tools.issuemanager.getUserCollectionFromDB()
-            assignee_id = users.find(name=assignee)[0].dictFiltered.get('id')
+            assignee_id = users.find(name='despiegk')[0].gogsRefs[0].id
             assignee = ".*%s.*" % assignee_id
 
         if comment == "":

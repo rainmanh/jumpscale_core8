@@ -58,13 +58,8 @@ class IssueManager:
         """
         schema = self.getIssueSchema()
         if not kvs:
-<<<<<<< 6ac9adc6763cc4927fe733bc7174ec6aec84fd4c
-            kvs = j.servers.kvs.getRedisStore(name="gogs", namespace="gogs:issue",
-                                              unixsocket="/tmp/redis.sock")
-=======
             kvs = j.servers.kvs.getRedisStore(name=self.store, namespace=self.namespace+":issue",
                                               unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
->>>>>>> make issue manager support github and make gogs the default
 
         collection = j.data.capnp.getModelCollection(
             schema, namespace=self.namespace+":issue", category="issues", modelBaseClass=IssueModel,
@@ -74,13 +69,8 @@ class IssueManager:
     def getUserCollectionFromDB(self, kvs=None):
         schema = self.getUserSchema()
         if not kvs:
-<<<<<<< 6ac9adc6763cc4927fe733bc7174ec6aec84fd4c
-            kvs = j.servers.kvs.getRedisStore(name="gogs", namespace="gogs:user",
-                                              unixsocket="/tmp/redis.sock")
-=======
             kvs = j.servers.kvs.getRedisStore(name=self.store, namespace=self.namespace+":user",
                                               unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
->>>>>>> make issue manager support github and make gogs the default
 
         collection = j.data.capnp.getModelCollection(
             schema, namespace=self.namespace+":user", category="user", modelBaseClass=UserModel,
@@ -90,13 +80,8 @@ class IssueManager:
     def getRepoCollectionFromDB(self, kvs=None):
         schema = self.getRepoSchema()
         if not kvs:
-<<<<<<< 6ac9adc6763cc4927fe733bc7174ec6aec84fd4c
-            kvs = j.servers.kvs.getRedisStore(name="gogs", namespace="gogs:repo",
-                                              unixsocket="/tmp/redis.sock")
-=======
             kvs = j.servers.kvs.getRedisStore(name=self.store, namespace=self.namespace+":repo",
                                               unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
->>>>>>> make issue manager support github and make gogs the default
 
         collection = j.data.capnp.getModelCollection(
             schema, namespace=self.namespace+":repo", category="repo", modelBaseClass=RepoModel,
@@ -106,13 +91,8 @@ class IssueManager:
     def getOrgCollectionFromDB(self, kvs=None):
         schema = self.getOrgSchema()
         if not kvs:
-<<<<<<< 6ac9adc6763cc4927fe733bc7174ec6aec84fd4c
-            kvs = j.servers.kvs.getRedisStore(name="gogs", namespace="gogs:org",
-                                              unixsocket="/tmp/redis.sock")
-=======
             kvs = j.servers.kvs.getRedisStore(name=self.store, namespace=self.namespace+":org",
                                               unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
->>>>>>> make issue manager support github and make gogs the default
 
         collection = j.data.capnp.getModelCollection(
             schema, namespace=self.namespace+":org", category="orgs", modelBaseClass=OrgModel,

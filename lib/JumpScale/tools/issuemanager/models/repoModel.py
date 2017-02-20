@@ -13,7 +13,7 @@ class RepoModel(base):
         gogsRefs = ",".join(["%s_%s" % (item.name.lower(), item.id) for item in self.dbobj.gogsRefs])
         for item in self.dbobj.gogsRefs:
             # there can be multiple gogs sources
-            self._index.lookupSet("gogs_%s" % item.name, item.id, self.key)
+            self.collection._index.lookupSet("gogs_%s" % item.name, item.id, self.key)
  
         milestones = ",".join([str(item.name) for item in self.dbobj.milestones])
         members = ",".join([str(item.userKey) for item in self.dbobj.members])
@@ -21,11 +21,11 @@ class RepoModel(base):
         # put indexes in db as specified
         ind = "%s:%s:%s:%s:%s:%s:%s" % (self.dbobj.owner.lower(), self.dbobj.name.lower(), self.dbobj.id,
                                         self.dbobj.source.lower(), milestones, members, labels)
-        self._index.index({ind: self.key})
+        self.collection._index.index({ind: self.key})
 
         for item in self.dbobj.gogsRefs:
             # there can be multiple gogs sources
-            self._index.lookupSet("gogs_%s" % item.name, item.id, self.key)
+            self.collection._index.lookupSet("gogs_%s" % item.name, item.id, self.key)
 
     def _pre_save(self):
         pass

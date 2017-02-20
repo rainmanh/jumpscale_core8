@@ -24,6 +24,50 @@ class GogsFactory:
         self.issueCollection.destroy()
         self.repoCollection.destroy()
 
+    def createViews(self):
+
+        C = """
+        -- create view to see all labels
+        CREATE OR REPLACE VIEW issue_labels AS
+        select i.id,
+               i.name,
+               l.name as label_name
+        from issue as i
+        left join issue_label as il on il.issue_id=i.id
+        left join label as l on l.id=il.label_id ;
+
+        -- create aggregated view
+        CREATE OR REPLACE VIEW issue_labels_grouped AS
+        SELECT
+          id,
+          array_to_string(array_agg(label_name), ',')
+        FROM
+          public.issue_labels
+        GROUP BY id
+        ORDER BY id;
+
+        -- view of comments
+        CREATE OR REPLACE VIEW issue_comments AS
+        SELECT
+          issue.id,
+          '{' || comment.id || ',' || comment.poster_id || '}' || comment.content as comment
+        FROM issue
+        left join comment on issue.id=comment.issue_id
+        ORDER by issue.id;
+
+        -- create aggregated view for comments (returns {$commentid,$committerid}||,...)
+        CREATE OR REPLACE VIEW issue_comments_grouped AS
+        SELECT
+          id,
+          array_to_string(array_agg(comment), '||')
+        FROM
+          public.issue_comments
+        GROUP BY id
+        ORDER BY id;
+
+
+        """
+
     def getRestClient(self, addr='https://127.0.0.1', port=3000, login='root', passwd='root', accesstoken=None):
         """
         # Getting client via accesstoken
@@ -198,22 +242,32 @@ class GogsFactory:
         where org.type=1;
         """
         query = model.User.raw(queryString)
+
         for org in query:
+
+            self.logger.debug(org.__dict__)
+
+            # get organization from gogsid
             org_model = self.orgCollection.getFromGogsId(gogsName=gogsName, gogsId=org.id)
 
-            member = self.userCollection.getFromGogsId(
+            # get member (user) from gogs id
+            member_model = self.userCollection.getFromGogsId(
                 gogsName=gogsName, gogsId=org.member_id, createNew=False)  # member needs to exists
-            org_model.memberSet(member.key, org.member_access)
 
-            if org_model.name != org.name:
-                org_model.name = org.name
+            # set member on the org model
+            org_model.memberSet(member_model.key, org.member_access)
+
+            if org_model.dbobj.name != org.name:
+                org_model.dbobj.name = org.name
                 org_model.changed = True
 
-            description = org.description
+            if org.description == None:
+                org.description = ""
             if org.full_name != "":
-                description = "fullname:%s\n%s" % (org.full_name, description)
-            if org_model.description != description:
-                org_model.description = org.description
+                org.description = "fullname:%s\n%s" % (org.full_name, org.description)
+
+            if org_model.dbobj.description != org.description:
+                org_model.dbobj.description = org.description
                 org_model.changed = True
 
             org_model.gogsRefSet(name=gogsName, id=org.id)
@@ -227,9 +281,11 @@ class GogsFactory:
             repo_model.gogsRefSet(name=gogsName, id=int(org.repo_id))  # mark info comes from gogs
             repo_model.save()
 
-            org_model.save()
+            if org_model.dbobj.nrRepos != org.num_repos:
+                org_model.dbobj.nrRepos = org.num_repos
 
-            # org_model.ownerSet() #TODO:*1
+            if org.is_owner:
+                org_model.ownerSet(member_model.key)
 
             org_model.repoSet(repo_model.key)
 
@@ -379,23 +435,22 @@ class GogsFactory:
         @param name is name of gogs instance
         @id is id in gogs
         """
-        gogsrefs = {}
-        for item in model.dbobj.gogsRefs:
-            gogsrefs[item.name] = item.id
-        if name not in gogsrefs:
-            model.dbobj.gogsRefs.append(
-                model._capnp_schema.GogsRef.new_message(id=id, name=name))
-            model.changed = True
+        ref = self._gogsRefGet(model, name)
+        if ref == None:
+            model.addSubItem("gogsRefs", data=model.collection.list_gogsRefs_constructor(id=id, name=name))
         else:
-            if str(gogsrefs[name]) != str(id):
+            if str(ref.id) != str(id):
                 raise j.exceptions.Input(
                     message="gogs id has been changed over time, this should not be possible", level=1, source="", tags="", msgpub="")
 
     def _gogsRefExist(self, model, name):
-        gogsrefs = {}
+        return not self._gogsRefGet(model, name) == None
+
+    def _gogsRefGet(self, model, name):
         for item in model.dbobj.gogsRefs:
-            gogsrefs[item.name] = item.id
-        return name in gogsrefs
+            if item.name == name:
+                return item
+        return None
 
     def _getFromGogsId(self, model, gogsName, gogsId, createNew=True):
         """

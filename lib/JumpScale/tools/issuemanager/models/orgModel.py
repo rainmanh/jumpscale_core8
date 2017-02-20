@@ -14,60 +14,52 @@ class OrgModel(base):
         gogsRefs = ",".join(["%s_%s" % (item.name.lower(), item.id) for item in self.dbobj.gogsRefs])
         for item in self.dbobj.gogsRefs:
             # there can be multiple gogs sources
-            self._index.lookupSet("gogs_%s" % item.name, item.id, self.key)
+            self.collection._index.lookupSet("gogs_%s" % item.name, item.id, self.key)
 
         owners = ",".join([str(item) for item in self.dbobj.owners])
-        members = ",".join([str(item.userKey) for item in self.dbobj.members])
+        members = ",".join([str(item.key) for item in self.dbobj.members])
         repos = ",".join([str(item) for item in self.dbobj.repos])
-        ind = "%s:%s:%s:%s:%s:%s" % (self.dbobj.name.lower(), str(self.dbobj.id),
-                                     self.dbobj.source.lower(), owners, members, repos)
-        self._index.index({ind: self.key})
+        ind = "%s:%s:%s:%s" % (self.dbobj.name.lower(), owners, members, repos)
+        self.collection._index.index({ind: self.key})
 
     def memberSet(self, key, access):
         """
+        @param key is the unique key of the member
         """
         member = j.clients.gogs.userCollection.get(key)
 
-        found = False
-        for item in self.members:
+        for item in self.dbobj.members:
             if item.key == key:
                 if item.access != access:
                     self.changed = True
                     item.access = access
-                    item.name = member.name
-                found = True
-        if found == False:
-            self.dbobj.members.append(
-                self._capnp_schema.Member.new_message(key=key, access=access, name=member.name))
-            self.changed = True
+                    item.name = member.dbobj.name
+                return
+        obj = self.collection.list_members_constructor(access=access, key=key, name=member.dbobj.name)
+        self.addSubItem("members", obj)
+        self.changed = True
 
     def ownerSet(self, key):
         """
         """
         if key not in self.dbobj.owners:
-            # check owner exist
-            from IPython import embed
-            print("DEBUG NOW check owner")
-            embed()
-            raise RuntimeError("stop debug here")
-            self.dbobj.owners.append(key)
+            self.addSubItem("owners", key)
             self.changed = True
 
     def repoSet(self, key):
         """
+        @param key, is the unique key of the repo
         """
         repo = j.clients.gogs.repoCollection.get(key)
-        found = False
-        for item in self.repos:
+        for item in self.dbobj.repos:
             if item.key == key:
-                if item.name != repo.name:
-                    item.name = repo.name
+                if item.name != repo.dbobj.name:
+                    item.name = repo.dbobj.name
                     self.changed = True
-                found = True
-        if found == False:
-            self.dbobj.repos.append(
-                self._capnp_schema.Member.new_message(key=key, name=repo.name))
-            self.changed = True
+                return
+        obj = self.collection.list_repos_constructor(key=key, name=repo.dbobj.name)
+        self.addSubItem("repos", obj)
+        self.changed = True
 
     def gogsRefSet(self, name, id):
         return j.clients.gogs._gogsRefSet(self, name, id)

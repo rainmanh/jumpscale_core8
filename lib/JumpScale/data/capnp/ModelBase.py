@@ -120,7 +120,6 @@ class ModelBase():
             self._subobjects.pop(key)
             self.__dict__.pop("list_%s" % key)
 
-
     def save(self):
         self._pre_save()
         self.reSerialize()
@@ -216,6 +215,7 @@ class ModelBase():
 
 
 class ModelBaseWithData(ModelBase):
+
     def __init__(self, key="", new=False, collection=None):
         super().__init__(key=key, new=new, collection=collection)
         self._data_schema = None
@@ -298,12 +298,14 @@ class ModelBaseCollection:
                     else:
                         subTypeName = str(field.schema.elementType).split(':')[-1][:-1].split('.')[-1]
                         # subTypeName = str(field.schema.elementType).split(".")[-1].split(">")[0]
-                        self._listConstructors[field.proto.name] = eval("self.capnp_schema.%s.new_message" % subTypeName)
+                        self._listConstructors[field.proto.name] = eval(
+                            "self.capnp_schema.%s.new_message" % subTypeName)
 
                     self.__dict__["list_%s_constructor" % field.proto.name] = self._listConstructors[field.proto.name]
             except Exception as err:
                 print(err)
-                import ipdb; ipdb.set_trace()
+                import ipdb
+                ipdb.set_trace()
 
         self._db = db if db else j.servers.kvs.getMemoryStore(name=self.namespace, namespace=self.namespace)
         # for now we do index same as database
@@ -339,10 +341,6 @@ class ModelBaseCollection:
         else:
 
             model = self.modelBaseClass(
-                capnp_schema=self.capnp_schema,
-                category=self.category,
-                db=self._db,
-                index=self._index,
                 key=key,
                 new=autoCreate,
                 collection=self)

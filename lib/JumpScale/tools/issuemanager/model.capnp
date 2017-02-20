@@ -30,9 +30,9 @@ struct Issue {
 struct Organization{
     owners @0 :List(Text);
     name @1 :Text;
-    description @2 :Text; # deos not exist will place in it full name
+    description @2 :Text;
     nrIssues @3 :UInt16;
-    nrMilestones @4 :UInt16;
+    nrRepos @4 :UInt16;
     gogsRefs @5 :List(GogsRef);
     struct GogsRef{
         name @0 :Text;

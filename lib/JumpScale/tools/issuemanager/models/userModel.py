@@ -16,11 +16,11 @@ class UserModel(base):
         ind = "%s:%s:%s:%s:%s:%s:%s" % (self.dbobj.name.lower(), self.dbobj.fullname.lower(), self.dbobj.email.lower(),
                                         self.dbobj.githubId, gogsRefs, self.dbobj.iyoId, self.dbobj.telegramId)
 
-        self._index.index({ind: self.key})
+        self.collection._index.index({ind: self.key})
 
         for item in self.dbobj.gogsRefs:
             # there can be multiple gogs sources
-            self._index.lookupSet("gogs_%s" % item.name, item.id, self.key)
+            self.collection._index.lookupSet("gogs_%s" % item.name, item.id, self.key)
 
     def gogsRefSet(self, name, id):
         return j.clients.gogs._gogsRefSet(self, name, id)

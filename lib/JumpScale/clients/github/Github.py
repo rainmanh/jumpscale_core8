@@ -6,6 +6,8 @@ from User import User
 from Issue import Issue
 from datetime import datetime
 
+
+## please note you need to use ModelBase1 for now.
 def githubtimetoint(t):
     #parsed = datetime.strptime(t, "%Y-%m-%d %I:%M:%S")
     return j.data.time.any2epoch(t)

@@ -2,7 +2,7 @@
 
 struct Issue {
     title @0 :Text;
-    repo @1 :UInt16;
+    repo @1 :UInt32;
     milestone @2 :UInt32; #reference to key of Milestone
     assignees @3 :List(UInt32); #keys of user
     isClosed @4 :Bool;
@@ -48,6 +48,7 @@ struct Organization{
     struct Repo{
         key @0 :Text;
         name @1: Text;
+        access @2:UInt16;
     }
 
 }

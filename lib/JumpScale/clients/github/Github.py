@@ -310,7 +310,7 @@ class GitHubClient:
             nropenissues = milestone.open_issues
             nrallissues = nropenissues + nrclosedissues
             ncomplete = 100
-            if nrall>0:
+            if nrallissues>0:
                 ncomplete = int(100*nrclosedissues/nrallissues)
             md = {
                 "name": milestone.title,

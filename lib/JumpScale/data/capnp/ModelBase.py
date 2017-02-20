@@ -25,7 +25,6 @@ class ModelBase():
         #         raise j.exceptions.Input("Key needs to be length 16,32,64")
 
         if new:
-            self.collection.logger.debug("new:%s" % key)
             self.dbobj = self.collection.capnp_schema.new_message()
             self._post_init()
             if key != "":
@@ -33,7 +32,6 @@ class ModelBase():
         elif key != "":
             # will get from db
             if self.collection._db.exists(key):
-                self.collection.logger.debug("exists:%s" % key)
                 self.load(key=key)
                 self._key = key
             else:
@@ -106,7 +104,6 @@ class ModelBase():
     def reSerialize(self):
         toRemove = []
         for key in list(self._subobjects.keys()):
-            item = self._subobjects[key]
             prop = self.__dict__["list_%s" % key]
             dbobjprop = eval("self.dbobj.%s" % key)
             if len(dbobjprop) != 0:

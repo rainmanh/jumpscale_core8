@@ -16,7 +16,7 @@ class MemoryKeyValueStore(KeyValueStoreBase):
     def destroy(self):
         self.db = dict()
         self.dbindex = dict()
-        # self.lookup = dict()
+        self.lookup = dict()
         self.inMem = True
         self.expire={}
         self.type="mem"

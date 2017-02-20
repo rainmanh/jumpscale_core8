@@ -52,6 +52,7 @@ class Issue(Base):
                     obj["url"] = comment.url
                     obj["id"] = comment.id
                     obj["body"] = comment.body
+                    obj['user_id'] = comment.user.id
                     obj["time"] = j.data.time.any2HRDateTime(
                         [comment.last_modified, comment.created_at])
                     self._comments.append(obj)

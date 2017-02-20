@@ -198,7 +198,7 @@ class ModelBase():
         if len(prop) == 0:
             self.__dict__["list_%s" % name] = []
         else:
-            self.__dict__["list_%s" % name] = [item for item in prop]
+            self.__dict__["list_%s" % name] = [item.copy() for item in prop]
 
         # empty the dbobj list
         exec("self.dbobj.%s=[]" % name)

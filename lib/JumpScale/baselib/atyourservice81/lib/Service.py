@@ -325,6 +325,7 @@ class Service:
         all the children of this service are going to be deleted too
         """
         # TODO should probably warn user relation may be broken
+
         for service in self.children:
             await service.delete()
 
@@ -336,10 +337,12 @@ class Service:
         for producers in self.producers.values():
             for producer in producers:
                 producer.model.consumerRemove(self)
+                producer.model.reSerialize()
 
         for consumers in self.consumers.values():
             for consumer in consumers:
                 consumer.model.producerRemove(self)
+                consumer.model.reSerialize()
 
         self.model.delete()
         j.sal.fs.removeDirTree(self.path)
@@ -376,7 +379,7 @@ class Service:
             role = prod.actorName.split(".")[0]
             if role not in producers:
                 producers[role] = []
-            producers[role].append(self.aysrepo.db.services.services[prod.key])
+            producers[role].append(self.aysrepo.serviceGet(key=prod.key))
         return producers
 
     @property
@@ -386,7 +389,7 @@ class Service:
             role = cons.actorName.split(".")[0]
             if role not in consumers:
                 consumers[role] = []
-            consumers[role].append(self.aysrepo.db.services.services[cons.key])
+            consumers[role].append(self.aysrepo.serviceGet(key=cons.key))
         return consumers
 
     def isConsumedBy(self, service):

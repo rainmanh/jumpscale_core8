@@ -306,9 +306,12 @@ class GitHubClient:
 
         repo_model.dbobj.milestones = []
         for milestone in milestones:
-            nrIssuesForThisMilestone=0
             nrclosedissues = milestone.closed_issues
             nropenissues = milestone.open_issues
+            nrallissues = nropenissues + nrclosedissues
+            ncomplete = 100
+            if nrall>0:
+                ncomplete = int(100*nrclosedissues/nrallissues)
             md = {
                 "name": milestone.title,
                 "id": milestone.id,
@@ -316,7 +319,7 @@ class GitHubClient:
                 "isClosed": milestone.state!="open",
                 "nrIssues": nropenissues + nrclosedissues,
                 "nrClosedIssues": nrclosedissues,
-                "completeness" : 0#ceil(nrClosedIssuesForThisMilestone/); #in integer (0-100)
+                "completeness" : ncomplete #ceil(nrClosedIssuesForThisMilestone/); #in integer (0-100)
             }
             milestone_scheme = j.data.capnp.getMemoryObj(repo_model._capnp_schema.Milestone, **md)
             milestone_scheme.id = milestone.id

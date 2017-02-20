@@ -21,6 +21,12 @@ class IssueManager:
 
     def __init__(self):
         self.__jslocation__ = "j.tools.issuemanager"
+        self.namespace = "gogs"
+        self.store = "gogs"
+
+    def set_namespaceandstore(self, namespace="gogs", store="gogs"):
+        self.namespace = namespace
+        self.store = store
 
     def getIssueSchema(self):
         """
@@ -52,43 +58,63 @@ class IssueManager:
         """
         schema = self.getIssueSchema()
         if not kvs:
+<<<<<<< 6ac9adc6763cc4927fe733bc7174ec6aec84fd4c
             kvs = j.servers.kvs.getRedisStore(name="gogs", namespace="gogs:issue",
                                               unixsocket="/tmp/redis.sock")
+=======
+            kvs = j.servers.kvs.getRedisStore(name=self.store, namespace=self.namespace+":issue",
+                                              unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
+>>>>>>> make issue manager support github and make gogs the default
 
         collection = j.data.capnp.getModelCollection(
-            schema, namespace="gogs:issue", category="issues", modelBaseClass=IssueModel,
+            schema, namespace=self.namespace+":issue", category="issues", modelBaseClass=IssueModel,
             modelBaseCollectionClass=IssueCollection, db=kvs, indexDb=kvs)
         return collection
 
     def getUserCollectionFromDB(self, kvs=None):
         schema = self.getUserSchema()
         if not kvs:
+<<<<<<< 6ac9adc6763cc4927fe733bc7174ec6aec84fd4c
             kvs = j.servers.kvs.getRedisStore(name="gogs", namespace="gogs:user",
                                               unixsocket="/tmp/redis.sock")
+=======
+            kvs = j.servers.kvs.getRedisStore(name=self.store, namespace=self.namespace+":user",
+                                              unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
+>>>>>>> make issue manager support github and make gogs the default
 
         collection = j.data.capnp.getModelCollection(
-            schema, namespace="gogs:user", category="user", modelBaseClass=UserModel,
+            schema, namespace=self.namespace+":user", category="user", modelBaseClass=UserModel,
             modelBaseCollectionClass=UserCollection, db=kvs, indexDb=kvs)
         return collection
 
     def getRepoCollectionFromDB(self, kvs=None):
         schema = self.getRepoSchema()
         if not kvs:
+<<<<<<< 6ac9adc6763cc4927fe733bc7174ec6aec84fd4c
             kvs = j.servers.kvs.getRedisStore(name="gogs", namespace="gogs:repo",
                                               unixsocket="/tmp/redis.sock")
+=======
+            kvs = j.servers.kvs.getRedisStore(name=self.store, namespace=self.namespace+":repo",
+                                              unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
+>>>>>>> make issue manager support github and make gogs the default
 
         collection = j.data.capnp.getModelCollection(
-            schema, namespace="gogs:repo", category="repo", modelBaseClass=RepoModel,
+            schema, namespace=self.namespace+":repo", category="repo", modelBaseClass=RepoModel,
             modelBaseCollectionClass=RepoCollection, db=kvs, indexDb=kvs)
         return collection
 
     def getOrgCollectionFromDB(self, kvs=None):
         schema = self.getOrgSchema()
         if not kvs:
+<<<<<<< 6ac9adc6763cc4927fe733bc7174ec6aec84fd4c
             kvs = j.servers.kvs.getRedisStore(name="gogs", namespace="gogs:org",
                                               unixsocket="/tmp/redis.sock")
+=======
+            kvs = j.servers.kvs.getRedisStore(name=self.store, namespace=self.namespace+":org",
+                                              unixsocket="%s/redis.sock" % j.dirs.TMPDIR)
+>>>>>>> make issue manager support github and make gogs the default
 
         collection = j.data.capnp.getModelCollection(
-            schema, namespace="gogs:org", category="orgs", modelBaseClass=OrgModel,
+            schema, namespace=self.namespace+":org", category="orgs", modelBaseClass=OrgModel,
             modelBaseCollectionClass=OrgCollection, db=kvs, indexDb=kvs)
         return collection

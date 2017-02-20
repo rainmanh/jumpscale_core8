@@ -10,7 +10,7 @@ class CuisineApache2(app):
 
     def build(self, reset=True):
 
-        pkgs = "wget curl gcc libaprutil1-dev libapr1-dev libpcre3-dev libxml2-dev build-essential unzip".split()
+        pkgs = "wget curl gcc libssl-dev zlib1g-dev libaprutil1-dev libapr1-dev libpcre3-dev libxml2-dev build-essential unzip".split()
         self._cuisine.package.multiInstall(pkgs)
 
         httpdir = "/optvar/build/httpd"
@@ -32,8 +32,7 @@ class CuisineApache2(app):
         self._cuisine.core.dir_ensure("$appDir/apache2/bin")
         self._cuisine.core.dir_ensure("$appDir/apache2/lib")
 
-        buildscript = """
-
+        buildscript = """\
         cd {httpdir} &&  ./configure --prefix=$appDir/apache2 --bindir=$appDir/apache2/bin --sbindir=$appDir/apache2/bin \
               --libdir=$appDir/apache2/lib \
               --enable-mpms-shared=all \
@@ -46,8 +45,7 @@ class CuisineApache2(app):
               --enable-proxy --enable-proxy-connect \
               --enable-proxy-http --enable-proxy-ftp \
               --enable-dbd --enable-imagemap --enable-ident --enable-cern-meta \
-              --enable-xml2enc && make && make test
-
+              --enable-xml2enc && make && make test\
         """.format(httpdir=httpdir)
 
         self._cuisine.core.run(buildscript)
@@ -56,9 +54,7 @@ class CuisineApache2(app):
 
     def install(self):
         httpdir = j.sal.fs.joinPaths("/optvar/build", 'httpd')
-        installscript = """
-        cd {httpdir} &&  make install
-        """.format(httpdir=httpdir)
+        installscript = """cd {httpdir} &&  make install""".format(httpdir=httpdir)
         self._cuisine.core.run(installscript)
 
         #COPY APACHE BINARIES to /opt/jumpscale8/bin

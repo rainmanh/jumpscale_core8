@@ -46,8 +46,6 @@ class RunModel(ModelBase):
         return logs
 
     def delete(self):
-        ind = "%s:%s" % (self.dbobj.state, self.dbobj.lastModDate)
-        self.collection._index.index_remove(ind)
         # delete actual model object
         if self._db.exists(self.key):
             self._db.delete(self.key)

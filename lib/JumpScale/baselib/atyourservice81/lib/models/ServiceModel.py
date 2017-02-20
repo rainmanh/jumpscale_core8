@@ -52,22 +52,6 @@ class ServiceModel(ActorServiceBaseModel):
             self.collection._index.index(index)
 
     def delete(self):
-        # delete indexes from db
-        if self.dbobj.parent.actorName != "":
-            parent = "%s!%s" % (self.dbobj.parent.actorName, self.dbobj.parent.serviceName)
-        else:
-            parent = ""
-
-        if len(self.dbobj.producers) == 0:
-            key = "%s:%s:%s:%s:%s" % (self.dbobj.name, self.dbobj.actorName, self.dbobj.state, parent, "")
-            self.collection._index.index_remove(key)
-        else:
-            # now batch all producers as more than 1 index
-            for producer in self.dbobj.producers:
-                producer2 = "%s!%s" % (producer.actorName, producer.serviceName)
-                key = "%s:%s:%s:%s:%s" % (self.dbobj.name, self.dbobj.actorName, self.dbobj.state, parent, producer2)
-                self.collection._index.index_remove(key)
-
         # delete actual model object
         if self.collection._db.exists(self.key):
             self.collection._db.delete(self.key)

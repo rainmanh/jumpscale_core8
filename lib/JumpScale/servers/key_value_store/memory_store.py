@@ -67,6 +67,9 @@ class MemoryKeyValueStore(KeyValueStoreBase):
             self.expire.pop(key)
         if self.exists(key):
             del(self.db[key])
+        # clear all reference of this key from the index
+        self.index_remove(key)
+
 
     def exists(self, key, secret=""):
         key = str(key)
@@ -86,8 +89,12 @@ class MemoryKeyValueStore(KeyValueStoreBase):
         self.dbindex.update(items)
 
     def index_remove(self, key, secret=""):
-        if key in self.dbindex:
-            del self.dbindex[key]
+        """
+        remove all index entry that points to key
+        """
+        for k, v in list(self.dbindex.items()):
+            if v == key:
+                del self.dbindex[k]
 
     def list(self, regex=".*", returnIndex=False, secret=""):
         """

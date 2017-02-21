@@ -186,10 +186,8 @@ class FList(object):
                          for item in dirs if self._valid(os.path.join(dirRelPath, item), _excludes)]
 
                 # initialize right amount of objects in capnp
-                ddir.initNewSubObj("contents", len(ffiles) + len(llinks) + len(sspecials) + len(dirs2))
-                # ddir.initNewSubObj("files", len(ffiles))
-                # ddir.initNewSubObj("links", len(llinks))
-                # ddir.initNewSubObj("specials", len(sspecials))
+
+                ddir.dbobj.init("contents", len(ffiles) + len(llinks) + len(sspecials) + len(dirs2))
                 print(ddir.dbobj.contents)
 
                 # process files
@@ -248,7 +246,6 @@ class FList(object):
 
                     counter += 1
 
-                # ddir.initNewSubObj("dirs", len(dirs2))
 
                 # counter = 0
                 for dirRelPathFull in dirs2:

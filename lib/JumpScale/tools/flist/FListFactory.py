@@ -20,6 +20,7 @@ from JumpScale.tools.flist.models import ACICollection
 
 from JumpScale.tools.flist.FList import FList
 from JumpScale.tools.flist.FListMetadata import FListMetadata
+from JumpScale.tools.flist.FlistMerger import FlistMerger
 # from JumpScale.tools.flist.FuseExample import FuseExample
 
 
@@ -121,6 +122,9 @@ class FListFactory(object):
         This is used to push flist to IPFS
         """
         return FListArchiver()
+
+    def get_merger(self):
+        return FlistMerger()
 
     def test_fuse(self):
         TEST_DIR = "/tmp/mleegy"

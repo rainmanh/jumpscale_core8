@@ -10,8 +10,7 @@ class DirModel(base):
     """
 
     def index(self):
-        ind = "%s" % (self.dbobj.location)
-        self._index.index({ind: self.key})
+        pass
 
     def fileExists(self, name):
         return not self.fileGet(name, False) is None
@@ -23,9 +22,12 @@ class DirModel(base):
         return not self.fileSpecialGet(name, False) is None
 
     def fileGet(self, name):
-        for obj in self.dbobj.files:
-            if name == obj.name:
-                return obj
+        for item in self.dbobj.contents:
+            which = item.attributes.which()
+            if which != 'file':
+                continue
+            if name == item.name:
+                return item
         return None
 
     def filesNew(self, nr):

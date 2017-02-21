@@ -22,9 +22,7 @@ class ACIModel(base):
         return self.dbobj.id
 
     def index(self):
-        # ind = "%s" % (self.id)
-        # self._index.index({ind: self.key})
-        self._index.lookupSet("id", self.id, self.key)
+        pass
 
     def getAsText(self, withUserNames=False):
         out = "user:%s\ngroup:%s\n" % (self.dbobj.uname, self.dbobj.gname)

@@ -34,6 +34,10 @@ async def listRepositories(request):
     list all repositorys
     It is handler for GET /ays/repository
     '''
+    if j.atyourservice.aysRepos is None:
+        j.atyourservice.start()
+    if not j.atyourservice.aysRepos:
+        return json([])
     repos = [repository_view(repo) for repo in j.atyourservice.aysRepos.list()]
     return json(repos)
 
@@ -561,6 +565,8 @@ def get_repo(name):
     name is prepend with AYS_REPO_DIR to create the full path to the repo
     raise j.exceptions.NotFound if repo doesn't exists
     """
+    if j.atyourservice.aysRepos is None:
+        j.atyourservice.start()
     for repo in j.atyourservice.aysRepos.list():
         if name == repo.name:
             return repo

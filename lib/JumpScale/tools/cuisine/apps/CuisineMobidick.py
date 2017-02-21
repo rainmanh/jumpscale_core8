@@ -4,7 +4,7 @@ app = j.tools.cuisine._getBaseAppClass()
 
 
 class CuisineMobidick(app):
-    def build(self, client_id, client_secret, build_path="/root/rogerthat/builds"):
+    def build(self, build_path="/root/rogerthat/builds"):
         self._cuisine.package.update()
         self._cuisine.package.multiInstall(["git-core"])
         self._cuisine.core.dir_ensure(build_path)

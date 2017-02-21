@@ -331,8 +331,10 @@ class Service:
 
         # cancel all recurring tasks
         for k in list(self._recurring_tasks.keys()):
-            await self._recurring_tasks[k].stop()
-            del self._recurring_tasks[k]
+            try:
+                await self._recurring_tasks[k].stop()
+            except asyncio.CancelledError:
+                del self._recurring_tasks[k]
 
         for producers in self.producers.values():
             for producer in producers:

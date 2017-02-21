@@ -253,6 +253,33 @@ class StoreFactory:
 
         return res
 
+    def getRocksDBStore(self, name, namespace='db', dbpath="/tmp/kvs.db",
+                        serializers=None, masterdb=None, cache=None, changelog=None):
+        '''
+        Gets a RocksDB key value store.
+
+        @param name: name of the store
+        @type name: String
+
+        @param namespace: namespace of the store, defaults to 'db'
+        @type namespace: String
+
+        @return: key value store
+        @rtype: RocksDBKeyValueStore
+        '''
+        from servers.key_value_store.rocksdb_store import RocksDBKeyValueStore
+        res = RocksDBKeyValueStore(
+            name=name,
+            namespace=namespace,
+            dbpath=dbpath,
+            serializers=serializers,
+            masterdb=masterdb,
+            changelog=changelog,
+            cache=cache
+        )
+
+        return res
+
     def _aclSerialze(self, acl={}):
         """
         access list

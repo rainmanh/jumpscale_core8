@@ -1,109 +1,93 @@
 @0xae9223e76351538a;
 
-struct Dir {
-
-  #name of dir
-  name @0 :Text;
-
-  #location in filesystem = namespace
-  location @1 :Text;
-
-
-  files @2 :List(File);
-  struct File{
-      name @0 : Text;
-      #blocksize in bytes = blocksize * 4 KB, blocksize is same for all parts of file
-      #max blocksize = 128 MB
-      blocksize @1 : UInt8;
-      blocks @2 :List(Data); #list of the hashes of the blocks
-      size @3 : UInt64; #in bytes
-      aclkey @4: Text; #is pointer to ACL
-      modificationTime @5: UInt32;
-      creationTime @6: UInt32;
-      state @7: Text;
-  }
-
-  dirs @3 :List(SubDir);
-  struct SubDir{
-      name @0 : Text;
-      key @1: Text;
-  }
-
-  links @4 :List(Link); #only for non dirs
-  struct Link{
-      name @0 : Text;
-      # aclkey @1: Text; #is pointer to ACL
-      # destDirKey @2: Text; #key of dir in which destination is
-      # destName @3: Text;
-      target @1: Text;
-      modificationTime @2: UInt32;
-      creationTime @3: UInt32;
-      size @4: UInt32;  # Remove me
-      aclkey @5: Text;  # Remove me
-      destname @6: Text;
-      state @7: Text;
-  }
-
-  specials @5 :List(Special);
-  struct Special{
-      name @0 : Text;
-      type @1 :State;
-      # - 0: socket       (S_IFSOCK)
-      # - 1: block device (S_IFBLK)
-      # - 2: char. device (S_IFCHR)
-      # - 3: fifo pipe    (S_IFIFO)
-      enum State {
-        socket @0;
-        block @1;
-        chardev @2;
-        fifopipe @3;
-        unknown @4;
-      }
-      #data relevant for type of item
-      data @2 :Data;
-      modificationTime @3: UInt32;
-      creationTime @4: UInt32;
-      size @5: UInt32;
-      aclkey @6: Text; #is pointer to ACL
-      state @7: Text;
-  }
-
-  parent @6 :Text; #dir key of parent
-
-  #metadata for dir
-  size @7 : UInt64; #in bytes
-  aclkey @8: Text; #is pointer to ACL
-  isLink @9: Bool; #if is link and not physically on disk
-  modificationTime @10: UInt32;
-  creationTime @11: UInt32;
-  state @12: Text;
-
+struct FileBlock {
+    hash @0: Data;  # File hash stored as key on the backend
+    key  @1: Data;  # Encryption key
 }
 
+struct File {
+    blockSize   @0: UInt16;             # size of each raw chunk * 4KB, max 256M per chunk
+    blocks      @1: List(FileBlock);    # list of the hashes of the blocks
+}
 
-struct UserGroup{
-    name @0 : Text;
-    #itsyouonline id
-    iyoId @1 : Text;
-    #itsyouonline unique id per user or group, is globally unique
-    iyoInt @2 : UInt64;
+struct Link {
+    target @0: Text;  # Path to target
+}
+
+struct Special {
+    type @0: Type;
+
+    # 0 => socket       (S_IFSOCK)
+    # 1 => block device (S_IFBLK)
+    # 2 => char. device (S_IFCHR)
+    # 3 => fifo pipe    (S_IFIFO)
+    enum Type {
+        socket   @0;
+        block    @1;
+        chardev  @2;
+        fifopipe @3;
+        unknown  @4;
+    }
+
+    data @1: Data;     # data relevant for type of item
+}
+
+struct SubDir {
+    key  @0: Text;    # Key ID of the subdirectory
+}
+
+struct Inode {
+    name    @0: Text;
+    size    @1: UInt64;           # in bytes
+
+    attributes: union {
+        dir     @2: SubDir;
+        file    @3: File;
+        link    @4: Link;
+        special @5: Special;
+    }
+
+    aclkey           @6: Text;    # is pointer to ACL # FIXME: need to be int
+    modificationTime @7: UInt32;
+    creationTime     @8: UInt32;
+}
+
+struct Dir {
+    name     @0: Text;            # name of dir
+
+    location @1: Text;            # location in filesystem = namespace
+    contents @2: List(Inode);     # list of the contents (files, links, specials)
+    parent   @3: Text;            # directory key of parent
+
+    # directory's metadata
+
+    size             @4: UInt64;  # in bytes
+    aclkey           @5: Text;    # is pointer to ACL # FIXME: need to be int
+    modificationTime @6: UInt32;
+    creationTime     @7: UInt32;
+}
+
+struct UserGroup {
+    name   @0: Text;
+    iyoId  @1: Text;    # itsyou.online id
+    iyoInt @2: UInt64;  # itsyouonline unique id per user or group, is globally unique
 }
 
 
 struct ACI {
-    #for backwards compatibility with posix
-    uname @0 :Text;
-    gname @1 :Text;
-    mode @2 : UInt16;
+    # for backwards compatibility with posix
+    uname @0: Text;
+    gname @1: Text;
+    mode  @2: UInt16;
 
     rights @3 :List(Right);
     struct Right {
-      #text e.g. rwdl- (admin read write delete list -), freely to be chosen
-      #admin means all rights (e.g. on / = namespace or filesystem level all rights for everything)
-      #- means remove all previous ones (is to stop recursion), if usergroupid=0 then is for all users & all groups
-      right @0 :Text;
-      usergroupid @1 : UInt16;
+        # text e.g. rwdl- (admin read write delete list -), freely to be chosen
+        # admin means all rights (e.g. on / = namespace or filesystem level all rights for everything)
+        # - means remove all previous ones (is to stop recursion), if usergroupid=0 then is for all users & all groups
+        right       @0: Text;
+        usergroupid @1: UInt16;
     }
 
-    id @4 :UInt32;
+    id @4: UInt32;
 }

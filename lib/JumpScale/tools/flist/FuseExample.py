@@ -6,7 +6,7 @@ import os
 import stat
 import llfuse
 from time import time
-import g8os_stor
+import g8os_stor  # nim module to talk to ardb
 from llfuse import FUSEError
 
 from JumpScale import j
@@ -164,7 +164,7 @@ class FuseOperations(llfuse.Operations):
         with open(ppath, 'rb') as f:
             data = f.read()
         j.sal.fs.remove(ppath)
-        return data[offset:offset+length]
+        return data[offset:offset + length]
 
     def create(self, inode_parent, name, mode, flags, ctx):
         self.max_inode_count += 1
@@ -188,7 +188,7 @@ class FuseOperations(llfuse.Operations):
         if data is None:
             data = b''
         data = data
-        data = data[:offset] + buf + data[offset+len(buf):]
+        data = data[:offset] + buf + data[offset + len(buf):]
         self.inode_buffer[fh] = data
         return len(buf)
 
@@ -212,6 +212,7 @@ class FuseOperations(llfuse.Operations):
 
 
 class FuseExample(llfuse.Operations):
+
     def __init__(self, rootpath):
         MOUNT_POINT = '/tmp/mountpoint'
         ops = FuseOperations(rootpath)

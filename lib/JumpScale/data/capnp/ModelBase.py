@@ -1,5 +1,4 @@
 from JumpScale import j
-
 from collections import OrderedDict
 
 
@@ -283,26 +282,24 @@ class ModelBaseCollection:
             except:
                 continue
 
-            try:
-                if "List" in str(field.schema):
-                    slottype = str(field.proto.slot.type).split("(")[-1]
-                    if slottype.startswith("text"):
-                        # is text
-                        self._listConstructors[field.proto.name] = getText
-                    elif slottype.startswith("uint"):
-                        # is text
-                        self._listConstructors[field.proto.name] = getInt
-                    else:
-                        subTypeName = str(field.schema.elementType).split(':')[-1][:-1].split('.')[-1]
-                        # subTypeName = str(field.schema.elementType).split(".")[-1].split(">")[0]
+            if "List" in str(field.schema):
+                slottype = str(field.proto.slot.type).split("(")[-1]
+                if slottype.startswith("text"):
+                    # is text
+                    self._listConstructors[field.proto.name] = getText
+                elif slottype.startswith("uint"):
+                    # is text
+                    self._listConstructors[field.proto.name] = getInt
+                else:
+                    subTypeName = str(field.schema.elementType).split(':')[-1][:-1].split('.')[-1]
+                    # subTypeName = str(field.schema.elementType).split(".")[-1].split(">")[0]
+                    try:
                         self._listConstructors[field.proto.name] = eval(
                             "self.capnp_schema.%s.new_message" % subTypeName)
+                    except:
+                        continue
 
-                    self.__dict__["list_%s_constructor" % field.proto.name] = self._listConstructors[field.proto.name]
-            except Exception as err:
-                print(err)
-                import ipdb
-                ipdb.set_trace()
+                self.__dict__["list_%s_constructor" % field.proto.name] = self._listConstructors[field.proto.name]
 
         self._db = db if db else j.servers.kvs.getMemoryStore(name=self.namespace, namespace=self.namespace)
         # for now we do index same as database

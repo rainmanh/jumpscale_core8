@@ -710,7 +710,7 @@ class CuisineCore(base):
             else:
                 content_base64 = base64.b64encode(content2).decode()
                 # if sig != self.file_md5(location):
-                cmd = 'echo "%s" | openssl base64 -A -d > %s' % (content_base64, location)
+                cmd = 'echo "%s" | base64 -d > %s' % (content_base64, location)
                 res = self.run(cmd, showout=False)
             if check:
                 file_sig = self.file_md5(location)
@@ -801,7 +801,7 @@ class CuisineCore(base):
         location = self.replace(location)
         content2 = content.encode('utf-8')
         content_base64 = base64.b64encode(content2).decode()
-        self.run('echo "%s" | openssl base64 -A -d >> %s' % (content_base64, location), showout=False)
+        self.run('echo "%s" | base64  -d >> %s' % (content_base64, location), showout=False)
         self.file_attribs(location, mode=mode, owner=owner, group=group)
 
     def file_unlink(self, path):
@@ -1188,6 +1188,8 @@ class CuisineCore(base):
         else:
             self.file_write(location=path, content=content, mode=0o770, owner="root", group="root", showout=False)
 
+        if interpreter == 'bash' and die:
+            interpreter = 'bash -e'
         cmd = "%s %s" % (interpreter, path)
 
         if self.sudomode:

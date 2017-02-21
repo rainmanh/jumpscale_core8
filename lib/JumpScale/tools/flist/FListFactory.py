@@ -20,6 +20,7 @@ from JumpScale.tools.flist.models import ACICollection
 
 from JumpScale.tools.flist.FList import FList
 from JumpScale.tools.flist.FListMetadata import FListMetadata
+from JumpScale.tools.flist.FlistMerger import FlistMerger
 # from JumpScale.tools.flist.FuseExample import FuseExample
 
 
@@ -86,7 +87,7 @@ class FListFactory(object):
             modelBaseCollectionClass=ACICollection.ACICollection, db=kvs, indexDb=kvs)
         return collection
 
-    def getFlist(self, rootpath="/", namespace="main", kvs=None):
+    def getFlist(self, rootpath="/", namespace="", kvs=None):
         """
         @param namespace, this normally is some name you cannot guess, important otherwise no security
         Return a Flist object
@@ -121,6 +122,9 @@ class FListFactory(object):
         This is used to push flist to IPFS
         """
         return FListArchiver()
+
+    def get_merger(self):
+        return FlistMerger()
 
     def test_fuse(self):
         TEST_DIR = "/tmp/mleegy"

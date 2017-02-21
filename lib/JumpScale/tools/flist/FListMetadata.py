@@ -219,7 +219,7 @@ class FListMetadata:
                     stat["modificationTime"] = entity.modificationTime
                     stat["size"] = entity.size
                     stat["creationTime"] = entity.creationTime
-                    stat["blocksize"] = entity.blocksize
+                    # stat["blocksize"] = entity.blocksize # FIXME
         return stat
 
     def move(self, old_path, new_parent_path, fname=""):
@@ -385,8 +385,10 @@ class FListMetadata:
                                      (fpath, self.rootpath), level=1, source="", tags="", msgpub="")
         relPath = fpath[len(self.rootpath):].strip("/")
         toHash = self.namespace + relPath
+        print("> %s" % toHash)
         bl = pyblake2.blake2b(toHash.encode(), 32)
         binhash = bl.digest()
+        print(binascii.hexlify(binhash).decode())
         return relPath, binascii.hexlify(binhash).decode()
 
     def _initialize_aci(self, mode, fileType):

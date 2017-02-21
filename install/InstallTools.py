@@ -2667,7 +2667,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             env["CFGDIR"] = "%s/cfg" % env["VARDIR"]
 
         if exists("/tmp"):
-            if self.TYPE.startswith("LINUX") and not self.TYPE.startswith("OSX"):
+            if not self.TYPE.startswith("LINUX") and not self.TYPE.startswith("OSX"):
                 env["TMPDIR"] = "%s/tmp" % env['HOME']
             else:
                 env["TMPDIR"] = "/tmp"

@@ -126,6 +126,8 @@ def template_view(template):
         'action': actions_file or '',
         'schema': template.schemaCapnpText,
         'config': template.configDict,
+        'path': template.path,
+        'role': template.role
     }
 
 def repository_view(repo):

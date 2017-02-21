@@ -20,7 +20,6 @@ from JumpScale.tools.flist.models import DirCollection
 
 from path import Path
 
-
 class FList(object):
     """
     FList (sometime "plist") files contains a plain/text representation of
@@ -72,7 +71,7 @@ class FList(object):
 
     """
 
-    def __init__(self, namespace="main", rootpath="", dirCollection=None, aciCollection=None, userGroupCollection=None):
+    def __init__(self, namespace="", rootpath="", dirCollection=None, aciCollection=None, userGroupCollection=None):
         self.namespace = namespace
         self.dirCollection = dirCollection
         self.aciCollection = aciCollection
@@ -94,12 +93,14 @@ class FList(object):
         @param fpath is full path
         """
         if not fpath.startswith(self.rootpath):
-            raise j.exceptions.Input(message="fpath:%s needs to start with rootpath:%s" %
-                                     (fpath, self.rootpath), level=1, source="", tags="", msgpub="")
+            m = "fpath:%s needs to start with rootpath:%s" % (fpath, self.rootpath)
+            raise j.exceptions.Input(message=m, level=1, source="", tags="", msgpub="")
+
         relPath = fpath[len(self.rootpath):].strip("/")
         toHash = self.namespace + relPath
         bl = pyblake2.blake2b(toHash.encode(), 32)
         binhash = bl.digest()
+
         return relPath, binascii.hexlify(binhash).decode()
 
     def getDir(self, key):
@@ -112,8 +113,8 @@ class FList(object):
         """
 
         if not j.sal.fs.exists(self.rootpath, followlinks=True):
-            raise j.exceptions.Input(message="Rootpath: '%s' needs to exist" %
-                                     self.rootpath, level=1, source="", tags="", msgpub="")
+            m = "Rootpath: '%s' needs to exist" % self.rootpath
+            raise j.exceptions.Input(message=m, level=1, source="", tags="", msgpub="")
 
         # compiling regex for exclusion
         _excludes = []
@@ -125,7 +126,8 @@ class FList(object):
                 path = j.sal.fs.joinPaths(self.rootpath, path)
 
         if not j.sal.fs.exists(path, followlinks=True):
-            raise j.exceptions.Input(message="Could not find path:%s" % path, level=1, source="", tags="", msgpub="")
+            m = "Could not find path:%s"
+            raise j.exceptions.Input(message=m % path, level=1, source="", tags="", msgpub="")
 
         # topdown=False means we do the lowest level dirs first
         for dirpathAbsolute, dirs, files in os.walk(path, followlinks=True, topdown=False):
@@ -179,72 +181,90 @@ class FList(object):
                             else:
                                 sspecials.append((fname, stat))
 
-                # initialize right amount of objects in capnp
-                ddir.initNewSubObj("files", len(ffiles))
-                ddir.initNewSubObj("links", len(llinks))
-                ddir.initNewSubObj("specials", len(sspecials))
-
-                # process files
-                counter = 0
-                for fname, stat in ffiles:
-                    dbobj = ddir.dbobj.files[counter]
-                    self._setMetadata(dbobj, stat, fname)
-                    counter += 1
-
-                # process links
-                counter = 0
-                for fname, stat, destlink in llinks:
-                    obj = ddir.dbobj.links[counter]
-                    # FIXME
-                    # relPath, dirkey = self.path2key(destlink)
-                    # obj.destDirKey = dirkey  # link to other directory
-                    # obj.destname = j.sal.fs.getBaseName(destlink)
-                    obj.destname = destlink
-                    self._setMetadata(obj, stat, fname)
-                    counter += 1
-
-                # process special files
-                counter = 0
-                for fname, stat in sspecials:
-                    obj = ddir.dbobj.specials[counter]
-                    # testing special files type
-                    if S_ISSOCK(stat.st_mode):
-                        obj.type = "socket"
-                    elif S_ISBLK(stat.st_mode):
-                        obj.type = "block"
-                    elif S_ISCHR(stat.st_mode):
-                        obj.type = "chardev"
-                    elif S_ISFIFO(stat.st_mode):
-                        obj.type = "fifopipe"
-                    else:
-                        obj.type = "unknown"
-                    if S_ISBLK(stat.st_mode) or S_ISCHR(stat.st_mode):
-                        id = '%d,%d' % (os.major(stat.st_rdev), os.minor(stat.st_rdev))
-                        obj.data = id
-                    self._setMetadata(obj, stat, fname)
-                    counter += 1
-
                 # filter the dirs based on the exclusions (starting from the relative paths)
                 dirs2 = [os.path.join(dirRelPath, item)
                          for item in dirs if self._valid(os.path.join(dirRelPath, item), _excludes)]
 
-                ddir.initNewSubObj("dirs", len(dirs2))
+                # initialize right amount of objects in capnp
 
+                ddir.dbobj.init("contents", len(ffiles) + len(llinks) + len(sspecials) + len(dirs2))
+                print(ddir.dbobj.contents)
+
+                # process files
                 counter = 0
+                for fname, stat in ffiles:
+                    dbobj = ddir.dbobj.contents[counter]
+                    self._setMetadata(dbobj, stat, fname)
+
+                    dbobj.attributes.file = dbobj.attributes.init('file')
+                    dbobj.attributes.file.blockSize = 128 # FIXME ?
+
+                    counter += 1
+
+                # process links
+                # counter = 0
+                for fname, stat, destlink in llinks:
+                    dbobj = ddir.dbobj.contents[counter]
+                    # FIXME
+                    # relPath, dirkey = self.path2key(destlink)
+                    # obj.destDirKey = dirkey  # link to other directory
+                    # obj.destname = j.sal.fs.getBaseName(destlink)
+                    self._setMetadata(dbobj, stat, fname)
+
+                    dbobj.attributes.link = dbobj.attributes.init('link')
+                    dbobj.attributes.link.target = destlink
+
+                    counter += 1
+
+                # process special files
+                # counter = 0
+                for fname, stat in sspecials:
+                    dbobj = ddir.dbobj.contents[counter]
+                    dbobj.attributes.special = dbobj.attributes.init('special')
+
+                    # testing special files type
+                    if S_ISSOCK(stat.st_mode):
+                        dbobj.attributes.special.type = "socket"
+
+                    elif S_ISBLK(stat.st_mode):
+                        dbobj.attributes.special.type = "block"
+
+                    elif S_ISCHR(stat.st_mode):
+                        dbobj.attributes.special.type = "chardev"
+
+                    elif S_ISFIFO(stat.st_mode):
+                        dbobj.attributes.special.type = "fifopipe"
+
+                    else:
+                        dbobj.attributes.special.type = "unknown"
+
+                    if S_ISBLK(stat.st_mode) or S_ISCHR(stat.st_mode):
+                        id = '%d,%d' % (os.major(stat.st_rdev), os.minor(stat.st_rdev))
+                        dbobj.attributes.special.data = id
+
+                    self._setMetadata(dbobj, stat, fname)
+
+                    counter += 1
+
+
+                # counter = 0
                 for dirRelPathFull in dirs2:
                     absDirPathFull = os.path.join(self.rootpath, dirRelPathFull)
-                    dir_sub_obj = ddir.dbobj.dirs[counter]
+                    dbobj = ddir.dbobj.contents[counter]
+                    dbobj.attributes.dir = dbobj.attributes.init('dir')
                     counter += 1
 
                     dir_sub_relpath, dir_sub_key = self.path2key(absDirPathFull)
                     print("%s|%s" % (absDirPathFull, dir_sub_key))
-                    dir_sub_obj.key = dir_sub_key  # link to directory
-                    dir_sub_obj.name = j.sal.fs.getBaseName(dirRelPathFull)
+                    dbobj.attributes.dir.key = dir_sub_key  # link to directory
+                    dbobj.name = j.sal.fs.getBaseName(dirRelPathFull)
 
                     # needs to exist because of way how we walk (lowest to upper)
                     dir_obj = self.dirCollection.get(dir_sub_key, autoCreate=False)
                     dir_obj.setParent(ddir)
                     dir_obj.save()
+
+                print(ddir.dbobj.contents)
 
                 # print("#################################")
                 # print(ddir)
@@ -374,34 +394,52 @@ class FList(object):
 
         ddir = self.dirCollection.get(currentDirKey)
 
-        for item in ddir.dbobj.dirs:
+        for item in ddir.dbobj.contents:
+            type = item.attributes.which()
+            if type != "dir":
+                continue
+
+            key = item.attributes.dir.key
+
             if valid(j.sal.fs.joinPaths(ddir.dbobj.location, item.name), dirRegex) and "D" in types:
-                recurse = dirFunction(dirobj=ddir, type="D", name=item.name, args=args,
-                                      key=item.key)
+                recurse = dirFunction(dirobj=ddir, type="D", name=item.name, args=args, key=key)
+
             else:
                 recurse = True
+
             if not recurse == False:
-                if item.key == "":
-                    raise RuntimeError("key cannot be empty in a subdir of: ddir\n%s" % ddir)
-                self.walk(dirFunction=dirFunction, fileFunction=fileFunction, specialFunction=specialFunction,
-                          linkFunction=linkFunction,  args=args, currentDirKey=item.key, dirRegex=dirRegex, fileRegex=fileRegex, types=types)
+                if key == "":
+                    raise RuntimeError("Key cannot be empty in a subdir of ddir: %s" % ddir)
+
+                self.walk(
+                    dirFunction=dirFunction,
+                    fileFunction=fileFunction,
+                    specialFunction=specialFunction,
+                    linkFunction=linkFunction,
+                    args=args,
+                    currentDirKey=key,
+                    dirRegex=dirRegex,
+                    fileRegex=fileRegex,
+                    types=types
+                )
 
         if not valid(ddir.dbobj.location, dirRegex):
             return
 
-        for item in ddir.dbobj.files:
-            if valid(j.sal.fs.joinPaths(ddir.dbobj.location, item.name), fileRegex) and "F" in types:
-                fileFunction(dirobj=ddir, type="F", name=item.name, subobj=item, args=args)
+        for item in ddir.dbobj.contents:
+            which = item.attributes.which()
 
-        for item in ddir.dbobj.links:
-            # print(item)
-            if valid(j.sal.fs.joinPaths(ddir.dbobj.location, item.name), fileRegex) and "L" in types:
-                linkFunction(dirobj=ddir, type="L", name=item.name, subobj=item, args=args)
+            if which == "file" and "F" in types:
+                if valid(j.sal.fs.joinPaths(ddir.dbobj.location, item.name), fileRegex):
+                    fileFunction(dirobj=ddir, type="F", name=item.name, subobj=item, args=args)
 
-        for item in ddir.dbobj.specials:
-            # print(item)
-            if valid(j.sal.fs.joinPaths(ddir.dbobj.location, item.name), fileRegex and "S" in types):
-                specialFunction(dirobj=ddir, type="S", name=item.name, subobj=item, args=args)
+            if which == "link" and "L" in types:
+                if valid(j.sal.fs.joinPaths(ddir.dbobj.location, item.name), fileRegex):
+                    linkFunction(dirobj=ddir, type="L", name=item.name, subobj=item, args=args)
+
+            if which == "special" and "S" in types:
+                if valid(j.sal.fs.joinPaths(ddir.dbobj.location, item.name), fileRegex):
+                    specialFunction(dirobj=ddir, type="S", name=item.name, subobj=item, args=args)
 
     def count(self, dirRegex=[], fileRegex=[], types="DFLS"):
         """
@@ -442,7 +480,6 @@ class FList(object):
         return (result["size"], result["nrfiles"], result["nrdirs"], result["nrlinks"], result["nrspecial"])
 
     def pprint(self, dirRegex=[], fileRegex=[], types="DFLS"):
-
         def procDir(dirobj, type, name, args, key):
             print("%s/%s (%s)" % (dirobj.dbobj.location, name, type))
 
@@ -478,7 +515,7 @@ class FList(object):
             x = self.aciCollection.get(subobj.aclkey)
             item = [
                 "%s/%s" % (dirobj.dbobj.location, name), # Path
-                "", # To be filled lated                 # Hash
+                "", # To be filled later                 # Hash
                 "%d" % subobj.size,                      # Size
                 x.dbobj.uname,                           # User (permissions)
                 x.dbobj.gname,                           # Group (permissions)
@@ -514,27 +551,28 @@ class FList(object):
 
             # Set filetype
             item[6] = "1"
-            item[9] = subobj.destname
+            item[9] = subobj.attributes.link.target
 
             args.append("|".join(item))
 
         def procSpecial(dirobj, type, name, subobj, args):
             item = setDefault(dirobj, name, subobj)
+            objtype = subobj.attributes.special.type
 
-            if subobj.type == "socket":
+            if objtype == "socket":
                 item[6] = "0"
 
-            if subobj.type == "block" or subobj.type == "chardev":
-                if subobj.type == "block":
+            if objtype == "block" or objtype == "chardev":
+                if objtype == "block":
                     item[6] = "3"
 
-                if subobj.type == "chardev":
+                if objtype == "chardev":
                     item[6] = "5"
 
                 stat = os.stat("%s/%s" % (self.rootpath, item[0]), follow_symlinks=False)
                 item[9] = '%d,%d' % (os.major(stat.st_rdev), os.minor(stat.st_rdev))
 
-            if subobj.type == "fifopipe":
+            if objtype == "fifopipe":
                 item[6] = "6"
 
             args.append("|".join(item))
@@ -553,24 +591,63 @@ class FList(object):
         # print(result)
         return "\n".join(result) + "\n"
 
-        """
-        from IPython import embed
-        print("DEBUG NOW in dumps")
-        embed()
-        raise RuntimeError("stop debug here")
+    def upload(self, host="127.0.0.1", port=16379):
+        import g8storclient
+        # g8sc = g8storclient.g8storclient
+        g8sc = g8storclient
+        # g8client = g8sc.getClientId0(host, port)
+        g8client = g8sc.connect(host, port)
 
-        for f in rawdata:
-            p = f[0]
-            if p.startswith(trim):
-                p = p[len(trim):]
+        def procDir(dirobj, type, name, args, key):
+            print("Dir: Ignore")
 
-            line = "%s|%s|%d|%s|%s|%s|%d|%d|%d|%s" % (
-                p, f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]
-            )
-            data.append(line)
+        def procFile(dirobj, type, name, subobj, args):
+            fullpath = "%s/%s/%s" % (self.rootpath, dirobj.dbobj.location, name)
+            print(fullpath)
+            # hash = g8sc.uploadFile0(g8client, fullpath, 1)
+            hashs = g8sc.upload(g8client, fullpath)
+            print(hashs)
+            if hashs == None:
+                return
 
-        return "\n".join(data) + "\n"
-        """
+            subobj.attributes.file.blocks = hashs
+            dirobj.save()
+
+            # print(dirobj, name, subobj)
+
+        def procLink(dirobj, type, name, subobj, args):
+            print("Link: Ignore")
+
+        def procSpecial(dirobj, type, name, subobj, args):
+            print("Special: Ignore")
+
+
+        print("Uploading")
+        result = []
+        self.walk(
+            dirFunction=procDir,
+            fileFunction=procFile,
+            specialFunction=procSpecial,
+            linkFunction=procLink,
+            args=result
+        )
+
+    def destroy(self):
+        self.aciCollection.destroy()
+        self.userGroupCollection.destroy()
+        self.dirCollection.destroy()
+        print("Special: Ignore")
+
+
+        print("Uploading")
+        result = []
+        self.walk(
+            dirFunction=procDir,
+            fileFunction=procFile,
+            specialFunction=procSpecial,
+            linkFunction=procLink,
+            args=result
+        )
 
     def destroy(self):
         self.aciCollection.destroy()

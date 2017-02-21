@@ -340,7 +340,7 @@ class Space(Authorizables):
         else:
             raise j.exceptions.RuntimeError("Cloudspace has been deleted")
 
-    def machine_create(self, name, memsize=2, vcpus=1, disksize=10, datadisks=[], image="Ubuntu 15.10 x64", sizeId=None):
+    def machine_create(self, name, memsize=2, vcpus=1, disksize=10, datadisks=[], image="Ubuntu 15.10 x64", sizeId=None, stackId=None):
         """
         @param memsize in MB or GB
         for now vcpu's is ignored (waiting for openvcloud)
@@ -354,8 +354,12 @@ class Space(Authorizables):
                 "Name is not unique, already exists in %s" % self)
         print("cloudspaceid:%s name:%s size:%s image:%s disksize:%s" %
               (self.id, name, sizeId, imageId, disksize))
-        self.client.api.cloudapi.machines.create(
-            cloudspaceId=self.id, name=name, sizeId=sizeId, imageId=imageId, disksize=disksize, datadisks=datadisks)
+        if stackId:
+            self.client.api.cloudbroker.machine.createOnStack(cloudspaceId=self.id, name=name,
+                sizeId=sizeId, imageId=imageId, disksize=disksize, datadisks=datadisks, stackid=stackId)
+        else:
+            self.client.api.cloudapi.machines.create(
+                cloudspaceId=self.id, name=name, sizeId=sizeId, imageId=imageId, disksize=disksize, datadisks=datadisks)
         return self.machines[name]
 
     @property

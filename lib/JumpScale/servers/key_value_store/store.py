@@ -374,6 +374,9 @@ class KeyValueStoreBase:  # , metaclass=ABCMeta):
         """
         regex is regex on the index, will return matched keys
         e.g. .*:new:.* would match e.g. all obj with state new
+
+        when returnIndex:
+            return [(indexitem,key),...]
         """
 
         indexobj = self.getraw("index", die=False, secret=secret)

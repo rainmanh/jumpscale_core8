@@ -2,24 +2,21 @@
 
 struct Issue {
     title @0 :Text;
-    repo @1 :UInt32;
-    milestone @2 :UInt32; #reference to key of Milestone
-    assignees @3 :List(UInt32); #keys of user
+    repo @1 :Text;
+    milestone @2 :Text; #reference to key of Milestone
+    assignees @3 :List(Text); #keys of user
     isClosed @4 :Bool;
     comments @5 :List(Comment);
     struct Comment{
-        owner @0 :UInt32;
-        content @1 :Text;
-        id @2 :UInt32;
+        owner @0 :Text;
+        comment @1 :Text;
     }
     labels @6 :List(Text);
     content @7 :Text;
-    id @8 :UInt32;
-    source @9 :Text;
-    #organization @10 :Text;  #key to organization , not sure??
-    modTime @10 :UInt32;
-    creationTime @11 :UInt32;
-    gogsRefs @12 :List(GogsRef);
+    organization @8 :Text; 
+    modTime @9 :UInt32;
+    creationTime @10 :UInt32;
+    gogsRefs @11 :List(GogsRef);
     struct GogsRef{
         name @0 :Text;
         id @1 :UInt32;

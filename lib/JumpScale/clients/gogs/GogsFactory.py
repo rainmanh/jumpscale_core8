@@ -17,13 +17,17 @@ class GogsFactory:
 
         self.logger = j.logger.get("j.clients.gogs")
         self.logger.info("gogs factory initted.")
+        self.dbconn = None
+        self.reset()
+
+    def reset(self):
         self._labels = {}
         self._issue_user_table = {}
         self._users_table = {}
         self._milestones_table = {}
         self._repos_table = {}
-
-        self.dbconn = None
+        self.userId2userKey = {}
+        self.repoId2repoKey = {}
 
     def destroyData(self):
         self.userCollection.destroy()
@@ -32,6 +36,7 @@ class GogsFactory:
         self.repoCollection.destroy()
 
     def createViews(self):
+        self.logger.info("createviews")
 
         C = """
         -- create view to see all labels
@@ -47,7 +52,7 @@ class GogsFactory:
         CREATE OR REPLACE VIEW issue_labels_grouped AS
         SELECT
           id,
-          array_to_string(array_agg(label_name), ',')
+          array_to_string(array_agg(label_name), ',') as labels
         FROM
           public.issue_labels
         GROUP BY id
@@ -60,13 +65,13 @@ class GogsFactory:
           '{' || comment.id || ',' || comment.poster_id || '}' || comment.content as comment
         FROM issue
         left join comment on issue.id=comment.issue_id
-        ORDER by issue.id;
+        ORDER by comment.id;
 
         -- create aggregated view for comments (returns {$commentid,$committerid}||,...)
         CREATE OR REPLACE VIEW issue_comments_grouped AS
         SELECT
           id,
-          array_to_string(array_agg(comment), '||')
+          array_to_string(array_agg(comment), '||') as comments
         FROM
           public.issue_comments
         GROUP BY id
@@ -76,14 +81,46 @@ class GogsFactory:
         -- create aggregated view for orgs
         CREATE OR REPLACE VIEW org_users_grouped AS
         SELECT
-          org_id,
-          array_to_string(array_agg(uid), ',')
+          org_id as org_userid,
+          array_to_string(array_agg(uid), ',') as org_member_userids
         FROM
           public.org_user
-        GROUP BY org_id
-        ORDER BY org_id;
+        GROUP BY org_userid
+        ORDER BY org_userid;
+
+        -- create aggregated view for issues
+        CREATE OR REPLACE VIEW issues_view AS
+        SELECT
+          issue_labels_grouped.labels,
+          encode(convert_to(issue_comments_grouped.comments,'UTF8'),'base64') AS comments,
+          issue.id,
+          issue.repo_id,
+          issue.poster_id,
+          encode(convert_to(issue.name,'UTF8'),'base64') AS name,
+          encode(convert_to(issue.content,'UTF8'),'base64') AS content,
+          issue.milestone_id,
+          issue.priority,
+          issue.assignee_id,
+          issue.is_closed,
+          issue.is_pull,
+          issue.num_comments,
+          issue.deadline_unix,
+          issue.created_unix,
+          issue.updated_unix
+        FROM
+          public.issue,
+          public.issue_comments_grouped,
+          public.issue_labels_grouped
+        WHERE
+          issue.id = issue_comments_grouped.id AND
+          issue.id = issue_labels_grouped.id;
+
+
 
         """
+
+        query = self.model.User.raw(C)
+        query.execute()
 
     def getRestClient(self, addr='https://127.0.0.1', port=3000, login='root', passwd='root', accesstoken=None):
         """
@@ -112,21 +149,24 @@ class GogsFactory:
         self.logger.info("syncAllFromPSQL")
         self.logger.info("CreateViews")
         self.createViews()
-        self.logger.info("Users Table")
-        self.users_table
-        self.logger.info("Issue User Table")
-        self.issue_user_table
-        self.logger.info("Milestones")
-        self.milestones_table
-        self.logger.info("Users")
+
+        # will also create user_table & self.userId2userKey
         self.getUsersFromPSQL(gogsName=gogsName)
-        self.logger.info("User synced")
+        self.logger.info("Users Synced")
+
+        self.milestones_table
+        self.logger.info("Milestones Done")
+
         self.getOrgsFromPSQL(gogsName=gogsName)
         self.logger.info("Organizations synced")
+
         self.getReposFromPSQL(gogsName=gogsName)
         self.logger.info("Repositories synced")
+
         self.getIssuesFromPSQL(gogsName=gogsName)
         self.logger.info("Issues synced")
+
+        self.reset()
 
     @property
     def users_table(self):
@@ -145,7 +185,9 @@ class GogsFactory:
         """
         if self._issue_user_table == {}:
             for item in self.model.IssueUser:
-                self._issue_user_table[item.id] = item
+                if item.issue not in self._issue_user_table:
+                    self._issue_user_table[item.issue] = []
+                self._issue_user_table[item.issue].append(item)
         return self._issue_user_table
 
     @property
@@ -193,128 +235,117 @@ class GogsFactory:
             raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
                                      level=1, source="", tags="", msgpub="")
 
-        if self.repoCollection.list() == []:
-            # need to download
-            self.getReposFromPSQL()
+        query = self.model.User.raw("SET CLIENT_ENCODING TO 'UTF8';select * from issues_view order by id;")
 
-        model = self.model
+        # cur = self.dbconn.cursor()
+        # cur.execute("select * from issues_view order by id;"")
+        # rows = cur.fetchall()
 
-        queryString = """
-        select i.id,
-               i.name,
-               i.repo_id,
-               i.content,
-               i.milestone_id,
-               i.assignee_id,
-               i.num_comments,
-               i.created_unix,
-               i.updated_unix,
-               i.is_closed,
-               c.id as comment_id,
-               c.content as comment_content,
-               c.poster_id,
-               l.name as label_name
-        from issue as i
-        left join comment as c on c.issue_id=i.id
-        left join issue_label as il on il.issue_id=i.id
-        left join label as l on l.id=il.label_id
-        """
-        query = model.User.raw(queryString)
-        issues = {}
+        for issue in query:  # TODO: *1 sometimes there is an asci decode error, need to fix !!!
 
-        for issue in query:
-            if issue.id not in issues:
-                issues[issue.id] = {'title': issue.name,
-                                    'content': issue.content,
-                                    'milestone': issue.milestone_id,
-                                    'is_closed': issue.is_closed,
-                                    'repo': issue.repo_id,
-                                    'time_created': issue.created_unix,
-                                    'time_updated': issue.updated_unix,
-                                    'comments': dict(),
-                                    'assignees': list(),
-                                    'labels': list()
-                                    }
-            issue_dict = issues[issue.id]
-            if issue.assignee_id and issue.assignee_id not in issue_dict['assignees']:
-                issue_dict['assignees'].append(issue.assignee_id)
-            if issue.label_name and issue.label_name not in issue_dict['labels']:
-                issue_dict['labels'].append(issue.label_name)
-            if issue.comment_id:
-                issue_dict['comments'][issue.comment_id] = {'owner': issue.poster_id,
-                                                            'content': issue.comment_content,
-                                                            'id': issue.comment_id
-                                                            }
+            repo = self.repos_table[2]
+            repoName = repo.name
+            orgName = self.users_table[repo.owner].name
 
-        for id, val in issues.items():
-            issue_model = self.issueCollection.getFromId(id)
+            name = j.data.serializer.base64.loads(issue.name)
 
-            issue_model.dbobj.assignees = [user for user in val.get('assignees', [])]
+            self.logger.debug("process issue: org:%s %s/%s %s" % (orgName, repoName, issue.id, name))
+            issue_model = self.issueCollection.getFromGogsId(gogsName, issue.id, createNew=True)
 
-            for commentid, comment in val.get('comments', {}).items():
-                comment_scheme = j.data.capnp.getMemoryObj(issue_model._capnp_schema.Comment, **comment)
-                issue_model.dbobj.comments.append(comment_scheme)
+            # assignees
+            if issue.id in self.issue_user_table:
+                assignees = [self.userId2userKey[item.uid] for item in self.issue_user_table[issue.id]]
+                for assignee in assignees:
+                    issue_model.assigneeSet(assignee)
 
-            issue_model.dbobj.labels = [label for label in val.get('labels', [])]
+            # our view has pre-aggregrated the comments, need to do some minimal parsing now
+            comments = j.data.serializer.base64.loads(issue.comments)
+            comments = [item.strip() for item in comments.split("||") if item.strip() != ""]
+            comments.sort()  # will make sure its sorted on comment_id (prob required for right order of comments)
+            if comments != []:
 
-            issue_model.dbobj.id = id
-            issue_model.dbobj.title = val['title']
-            issue_model.dbobj.content = val['content']
-            issue_model.dbobj.content = val['content']
-            issue_model.dbobj.milestone = val['milestone']
-            issue_model.dbobj.isClosed = val['is_closed']
-            issue_model.dbobj.repo = val['repo']
-            issue_model.dbobj.creationTime = val['time_created']
-            issue_model.dbobj.modTime = val['time_updated']
-            issue_model.dbobj.source = ''
+                for comment in comments:
+                    res = comment.split("}")
+                    if len(res) == 2:
+                        meta, comment = res
+                        ownerId = int(meta.split(",")[1])
+                        # owner = self.userId2userKey[ownerId]
+                        owner = ""  # TODO: *1 for later
+                    else:
+                        comment = res[0]
+                        owner = ""
+                    issue_model.commentSet(comment, owner=owner)
+
+            if issue.milestone_id != 0:
+                milestone = self.milestones_table[issue.milestone_id].name
+                if issue_model.dbobj.milestone != milestone:
+                    self.logger.debug("milestone changed")
+                    issue_model.dbobj.milestone = milestone
+
+            if issue_model.dbobj.title != name:
+                self.logger.debug("title changed")
+                issue_model.dbobj.title = name
+                issue_model.changed = True
+
+            if issue.labels != '':
+                labels = [item.strip() for item in issue.labels.split(",") if item.strip() != ""]
+                labels.sort()
+                issue_model.initSubItem("labels")
+                if not ",".join(issue_model.list_labels) == ",".join(labels):
+                    self.logger.debug("labels changed")
+                    issue_model.list_labels = []
+                    for label in labels:
+                        issue_model.list_labels.append(label)
+                    issue_model.changed = True
+
+            issue_model.dbobj.creationTime = issue.created_unix
+
+            if issue_model.dbobj.modTime != issue.updated_unix:
+                issue_model.dbobj.modTime = issue.updated_unix
+                issue_model.changed = True
+
+            content = j.data.serializer.base64.loads(issue.content)
+            if issue_model.dbobj.content != content:
+                issue_model.dbobj.content = content
+                issue_model.changed = True
+
+            if issue_model.dbobj.isClosed != issue.is_closed:
+                issue_model.dbobj.isClosed = issue.is_closed
+                issue_model.changed = True
+
+            issue_model.dbobj.repo = self.repoId2repoKey[issue.repo_id]
+
             issue_model.save()
-        else:
-            del issues
 
     def getOrgsFromPSQL(self, gogsName):
         self.logger.info("getOrgsFromPSQL")
 
-        cur = self.dbconn.cursor()
-        cur.execute("select * from org_users_grouped;")
-        rows = cur.fetchall()
+        query = self.model.User.raw("select * from org_users_grouped;")
 
-        for orgIdAsUser, userIds in rows:
-            orgName = self.users_table[orgIdAsUser].name
-            self.logger.debug(row.__dict__)
+        if self.userId2userKey == {}:
+            self.getUsersFromPSQL()
+
+        for org in query:
+
+            orgName = self.users_table[org.org_userid].name
 
             # get organization from gogsid
-            org_model = self.orgCollection.getFromGogsId(gogsName=gogsName, gogsId=orgIdAsUser)
-            # org_model.gogsRefSet(name=gogsName, id=orgIdAsUser)
+            org_model = self.orgCollection.getFromGogsId(gogsName=gogsName, gogsId=org.org_userid)
 
-            # # get member (user) from gogs id
-            # member_model = self.userCollection.getFromGogsId(
-            #     gogsName=gogsName, gogsId=org.member_id, createNew=False)  # member needs to exists
+            members = [self.userId2userKey[int(item.strip())]
+                       for item in org.org_member_userids.split(",")]
+            members = members.sort()
 
-            # # set member on the org model
-            # org_model.memberSet(member_model.key, org.member_access)
-
-            if org_model.dbobj.name != orgName:
-                org_model.dbobj.name = orgName
+            if org_model.dbobj.members != members:
+                self.logger.debug("org members changed :%s" % orgName)
+                org_model.initSubItem("members")
+                org_model.list_members = members
                 org_model.changed = True
 
-            org_model.gogsRefSet(name=gogsName, id=org.id)
-
-            # # process the repoobj
-            # repo_model = self.repoCollection.getFromGogsId(gogsName=gogsName, gogsId=org.repo_id)
-            # if repo_model.dbobj.name != org.repo_name:
-            #     repo_model.dbobj.name = org.repo_name
-            #     repo_model.changed = True
-            #
-            # repo_model.gogsRefSet(name=gogsName, id=int(org.repo_id))  # mark info comes from gogs
-            # repo_model.save()
-
-            # if org_model.dbobj.nrRepos != org.num_repos:
-            #     org_model.dbobj.nrRepos = org.num_repos
-            #
-            # if org.is_owner:
-            #     org_model.ownerSet(member_model.key)
-            #
-            # org_model.repoSet(repo_model.key)
+            if org_model.dbobj.name != orgName:
+                self.logger.debug("org name changed:%s" % orgName)
+                org_model.dbobj.name = orgName
+                org_model.changed = True
 
             org_model.save()
 
@@ -332,22 +363,24 @@ class GogsFactory:
             raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
                                      level=1, source="", tags="", msgpub="")
 
+        if self.userId2userKey == {}:
+            self.getUsersFromPSQL()
+
         for id, repo in self.repos_table.items():
-            repo_model = self.repoCollection.getFromId(id)
+
+            repo_model = self.repoCollection.getFromGogsId(gogsName=gogsName, gogsId=id)
 
             repo_model.dbobj.id = id
-            repo_model.dbobj.name = repo_model.name
-            repo_model.dbobj.description = repo_model.description
-            repo_model.dbobj.owner = repo_model.owner
-            repo_model.dbobj.nrIssues = repo_model.num_issues
-            repo_model.dbobj.nrMilestones = repo_model.num_milestones
-            # source TODO
-            repo_model.save()
+            repo_model.dbobj.name = repo.name
+            repo_model.dbobj.description = repo.description
+            repo_model.dbobj.owner = self.userId2userKey[repo.owner]
+            repo_model.dbobj.nrIssues = repo.num_issues
+            repo_model.dbobj.nrMilestones = repo.num_milestones
+            repo_model.changed = True
 
-        from IPython import embed
-        print("DEBUG NOW getReposFromPSQL")
-        embed()
-        raise RuntimeError("stop debug here")
+            self.repoId2repoKey[id] = repo_model.key
+
+            repo_model.save()
 
     def getUsersFromPSQL(self, gogsName):
         """
@@ -361,18 +394,29 @@ class GogsFactory:
 
         for id, user in self.users_table.items():
             user_model = self.userCollection.getFromGogsId(gogsName=gogsName, gogsId=user.id)
-            user_model.dbobj.name = user.name
-            user_model.dbobj.fullname = user.full_name
-            user_model.dbobj.email = user.email
-            user_model.gogsRefSet(name=gogsName, id=user.id)
-            user_model.dbobj.iyoId = user.name
+            if user_model.dbobj.name != user.name:
+                user_model.dbobj.name = user.name
+                user_model.changed = True
+            if user_model.dbobj.fullname != user.full_name:
+                user_model.dbobj.fullname = user.full_name
+                user_model.changed = True
+            if user_model.dbobj.email != user.email:
+                user_model.dbobj.email = user.email
+                user_model.changed = True
+            # user_model.gogsRefSet(name=gogsName, id=user.id)
+            if user_model.dbobj.iyoId != user.name:
+                user_model.dbobj.iyoId = user.name
+                user_model.changed = True
+
             user_model.save()
+
+            self.userId2userKey[id] = user_model.key
 
         self.setUsersYaml(gogsName=gogsName)
 
     def setUsersYaml(self, gogsName):
         return
-        # TODO
+        # TODO is to allow to put additional info to users
         res = {}
         for item in self.userCollection.find():
             res[item.key] = item.dbobj.to_dict()
@@ -382,48 +426,46 @@ class GogsFactory:
             embed()
             raise RuntimeError("stop debug here")
 
-    # def _getLabels(self):
-    #     for id, name in [(item.id, item.name) for item in self.model.Label.select()]:
-    #         self._labels[id] = name
-    #
-    # def getLabelFromID(self, id):
-    #     if self._labels == {}:
-    #         self._getLabels()
-    #     return self._labels[id]
-
-    def _gogsRefSet(self, model, name, id):
+    def _gogsRefSet(self, model, gogsName, gogsId):
         """
         @param name is name of gogs instance
         @id is id in gogs
         """
-        ref = self._gogsRefGet(model, name)
+        model.logger.debug("gogsRefSet: gogsname='%s' gogsid='%s' " % (gogsName, gogsId))
+        ref = self._gogsRefGet(model, gogsName)
         if ref == None:
-            model.addSubItem("gogsRefs", data=model.collection.list_gogsRefs_constructor(id=id, name=name))
+            model.logger.debug("add subitem")
+            model.addSubItem("gogsRefs", data=model.collection.list_gogsRefs_constructor(id=gogsId, name=gogsName))
+            key = model.collection._index.lookupSet("gogs_%s" % gogsName, gogsId, model.key)
+            model.save()
         else:
             if str(ref.id) != str(id):
                 raise j.exceptions.Input(
                     message="gogs id has been changed over time, this should not be possible", level=1, source="", tags="", msgpub="")
 
-    def _gogsRefExist(self, model, name):
-        return not self._gogsRefGet(model, name) == None
+    def _gogsRefExist(self, model, gogsName):
+        return not self._gogsRefGet(model, gogsName) == None
 
-    def _gogsRefGet(self, model, name):
+    def _gogsRefGet(self, model, gogsName):
         for item in model.dbobj.gogsRefs:
-            if item.name == name:
+            if item.name == gogsName:
                 return item
         return None
 
-    def _getFromGogsId(self, model, gogsName, gogsId, createNew=True):
+    def _getFromGogsId(self, modelCollection, gogsName, gogsId, createNew=True):
         """
         @param gogsName is the name of the gogs instance
         """
-        key = model._index.lookupGet("gogs_%s" % gogsName, gogsId)
+        modelCollection.logger.debug("getfromGogsId: gogsname='%s' gogsid='%s' " % (gogsName, gogsId))
+        key = modelCollection._index.lookupGet("gogs_%s" % gogsName, gogsId)
         if key == None:
+            modelCollection.logger.debug("gogs id not found, create new")
             if createNew:
-                user_model = model.new()
+                modelActive = modelCollection.new()
+                self._gogsRefSet(model=modelActive, gogsName=gogsName, gogsId=gogsId)
             else:
                 raise j.exceptions.Input(message="cannot find object  %s from gogsid:%s" %
-                                         (model.objType, gogsId), level=1, source="", tags="", msgpub="")
+                                         (modelCollection.objType, gogsId), level=1, source="", tags="", msgpub="")
         else:
-            user_model = model.get(key.decode())
-        return user_model
+            modelActive = modelCollection.get(key.decode())
+        return modelActive

@@ -108,7 +108,7 @@ class ModelBase():
             dbobjprop = eval("self.dbobj.%s" % key)
             if len(dbobjprop) != 0:
                 raise RuntimeError("bug, dbobj prop should be empty, means we didn't reserialize properly")
-            if len(prop) > 0:
+            if prop != None and len(prop) > 0:
                 # init the subobj, iterate over all the items we have & insert them
                 subobj = self.dbobj.init(key, len(prop))
                 for x in range(0, len(prop)):

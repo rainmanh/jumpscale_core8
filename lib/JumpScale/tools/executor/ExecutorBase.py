@@ -3,7 +3,7 @@ from JumpScale import j
 
 class ExecutorBase:
 
-    def __init__(self, dest_prefixes={}, debug=False, checkok=False):
+    def __init__(self, debug=False, checkok=False):
 
         self.type = None
         self._id = None
@@ -174,3 +174,11 @@ class ExecutorBase:
     def exists(self, path):
         cuisine = self._cuisine or self.cuisine
         return self._cuisine.core.exists(path)
+
+
+    ## interface to implement by child classes
+    def execute(self, cmds, die=True, checkok=None, showout=True, timeout=0, env={}):
+        raise NotImplementedError()
+
+    def executeRaw(self, cmd, die=True, showout=False):
+        raise NotImplementedError()

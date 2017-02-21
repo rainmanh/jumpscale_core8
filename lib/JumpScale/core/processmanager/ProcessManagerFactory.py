@@ -10,7 +10,7 @@ from io import StringIO
 # don't do logging, slows down
 
 import multiprocessing
-
+import datetime
 """
 Process Manager
 ---------------
@@ -69,7 +69,7 @@ class StdDuplicate(object):
 
 class Process():
 
-    def __init__(self, name="", method=None, args={}):
+    def __init__(self, name="", method=None, timeout=0, args={}):
         self.name = name
         self.method = method
         self.args = args
@@ -83,6 +83,8 @@ class Process():
 
         self.new_stdout = ""
         self.new_stderr = ""
+        self.started_at = datetime.datetime.now()
+        self.timeout = timeout
 
         self._stdout = {'read': None, 'write': None, 'fd': None}
         self._stderr = {'read': None, 'write': None, 'fd': None}
@@ -139,6 +141,7 @@ class Process():
 
         try:
             self._state = "running"
+            self.started_at = datetime.datetime.now()
             res = self.method(**self.args)
             self._setSuccess(res)
 
@@ -170,7 +173,7 @@ class Process():
         if self.method is None:
             msg = "Cannot start process, method not set."
             raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
-
+        self.started_at = datetime.datetime.now()
         rpipe, wpipe = os.pipe()
         self._stdout['read'], self._stdout['write'] = os.pipe()
         self._stderr['read'], self._stderr['write'] = os.pipe()
@@ -210,7 +213,7 @@ class Process():
             self._setPanic()
             os._exit(1)
 
-        else:
+        else: ## parent
             os.close(wpipe)
             os.close(self._stdout['write'])
             os.close(self._stderr['write'])
@@ -331,6 +334,9 @@ class ProcessManagerFactory:
         self.__jslocation__ = "j.core.processmanager"
         self._lastnr = 0
         self.processes = {}
+        self.timeout = 5400
+        self.log = j.logger.get('processmanager')
+        self.log.addHandler(j.logger._LoggerFactory__fileRotateHandler('processmanager'))
 
     def clearCaches(self):
         """
@@ -349,7 +355,7 @@ class ProcessManagerFactory:
         """
         return multiprocessing.Queue(size)
 
-    def getProcess(self, method=None, args={}, name="", autoclear=True, autowait=True):
+    def getProcess(self, method=None, args={}, name="", autoclear=True, autowait=True, timeout=0):
         if name == "":
             name = "process_%s" % self._lastnr
             self._lastnr += 1
@@ -375,12 +381,12 @@ class ProcessManagerFactory:
                 raise j.exceptions.Input(message="cannot launch more than 100 sub processes",
                                          level=1, source="", tags="", msgpub="")
 
-        p = Process(name, method, args)
+        p = Process(name, method, timeout, args)
         self.processes[p.name] = p
         return p
 
-    def startProcess(self, method, args={}, name="", autoclear=True, autowait=True, sync=False):
-        p = self.getProcess(method=method, args=args, name=name, autoclear=autoclear, autowait=autowait)
+    def startProcess(self, method, args={}, name="", autoclear=True, autowait=True, sync=False, timeout=0):
+        p = self.getProcess(method=method, args=args, name=name, autoclear=autoclear, autowait=autowait, timeout=timeout)
 
         if sync:
             p.startSync()
@@ -390,7 +396,7 @@ class ProcessManagerFactory:
 
         return p
 
-    def clear(self, error=False):
+    def clear(self, error=True):
         # print("clearing process list")
         keys = [item for item in self.processes.keys()]
         cleared = 0
@@ -405,6 +411,31 @@ class ProcessManagerFactory:
                 self.processes.pop(p.name)
                 cleared += 1
 
+            else:
+                # check for timedout processes and clean.
+                now = datetime.datetime.now()
+                time_diff = now - p.started_at
+                # check if the process has a specific time out.
+                if p.timeout:
+                    if time_diff.total_seconds() > p.timeout:
+                        self.log.warning("closing process %s, process timeout exceeded")
+                        p.close()
+                        self.processes.pop(p.name)
+                        cleared += 1
+                else:
+                    # check if the process exceeded the default timeout.
+                    if time_diff.total_seconds() > self.timeout:
+                        self.log.warning("closing process %s, default timeout exceeded")
+                        p.close()
+                        self.processes.pop(p.name)
+                        cleared += 1
+
+        remaining = [item for item in self.processes.keys()]
+        if remaining:
+            self.log.info('Remaining processes after clear')
+        for key in remaining:
+            status = self.processes[key].sync()
+            self.log.info('Remaining: process %s : %s' % (key, status))
         return cleared
 
 

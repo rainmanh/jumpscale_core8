@@ -1,0 +1,2 @@
+description = type:str
+datacenter = type:str parent:datacenter

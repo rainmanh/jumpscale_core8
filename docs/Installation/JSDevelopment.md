@@ -31,12 +31,13 @@ If you are using an image of Ubuntu prepared for [OpenvCloud](https://gig.gitboo
 grep $(hostname) /etc/hosts || sed -i "s/.1 localhost/.1 localhost $(hostname)/g" /etc/hosts
 ```
 
-Then you can run the following command:
+Then you can run the following command, in this case for installing the 8.1.1 branch:
 
 ```shell
 cd /tmp
 rm -f install.sh
-curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh
+export JSBRANCH="8.1.1"
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/${JSBRANCH}/install/install.sh > install.sh
 bash install.sh
 ```
 

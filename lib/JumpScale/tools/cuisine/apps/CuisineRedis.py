@@ -88,7 +88,7 @@ class CuisineRedis(app):
         _, cpath = j.sal.redis._getPaths(name)
 
         cmd = "$binDir/redis-server %s" % cpath
-        self._cuisine.processmanager.ensure(name="redis_%s" % name, cmd=cmd, env={}, path='$binDir')
+        self._cuisine.processmanager.ensure(name="redis_%s" % name, cmd=cmd, env={}, path='$binDir', autostart=True)
 
         # Checking if redis is started correctly with port specified
         if not redis_cli.isRunning(ip_address=ip, port=port, path='$binDir', unixsocket=unixsocket):

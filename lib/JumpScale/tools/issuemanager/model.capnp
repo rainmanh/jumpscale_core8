@@ -56,13 +56,12 @@ struct Repo{
     description @2 :Text;
     nrIssues @3 :UInt16;
     nrMilestones @4 :UInt16;
-    id @5 :UInt32;
-    members @6 :List(Member);
+    members @5 :List(Member);
     struct Member{
         userKey @0 :Text;
         access @1 :UInt16;
     }
-    gogsRefs @7 :List(GogsRef);
+    gogsRefs @6 :List(GogsRef);
     struct GogsRef{
         name @0 :Text;
         id @1 :UInt32;

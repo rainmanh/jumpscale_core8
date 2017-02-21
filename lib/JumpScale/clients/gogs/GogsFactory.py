@@ -370,7 +370,6 @@ class GogsFactory:
 
             repo_model = self.repoCollection.getFromGogsId(gogsName=gogsName, gogsId=id)
 
-            repo_model.dbobj.id = id
             repo_model.dbobj.name = repo.name
             repo_model.dbobj.description = repo.description
             repo_model.dbobj.owner = self.userId2userKey[repo.owner]

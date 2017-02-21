@@ -13,7 +13,7 @@ struct Issue {
     }
     labels @6 :List(Text);
     content @7 :Text;
-    organization @8 :Text; 
+    organization @8 :Text;
     modTime @9 :UInt32;
     creationTime @10 :UInt32;
     gogsRefs @11 :List(GogsRef);
@@ -57,24 +57,12 @@ struct Repo{
     nrIssues @3 :UInt16;
     nrMilestones @4 :UInt16;
     id @5 :UInt32;
-    source @6 :Text;
-    milestones @7 :List(Milestone);
-    struct Milestone{
-        name @0 :Text;
-        isClosed @1 :Bool;
-        nrIssues @2 :UInt16;
-        nrClosedIssues @3 :UInt16;
-        completeness @4 :UInt16; #in integer (0-100)
-        deadline @5 :UInt64;
-        id @6 :UInt32;
-    }
-    members @8 :List(Member);
+    members @6 :List(Member);
     struct Member{
         userKey @0 :Text;
         access @1 :UInt16;
     }
-    labels @9 :List(Text);
-    gogsRefs @10 :List(GogsRef);
+    gogsRefs @7 :List(GogsRef);
     struct GogsRef{
         name @0 :Text;
         id @1 :UInt32;

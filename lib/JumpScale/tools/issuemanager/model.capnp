@@ -21,6 +21,7 @@ struct Issue {
         name @0 :Text;
         id @1 :UInt32;
     }
+    url  @12 :Text;
 
 }
 

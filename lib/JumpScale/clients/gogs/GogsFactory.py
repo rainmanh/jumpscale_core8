@@ -315,6 +315,11 @@ class GogsFactory:
 
             issue_model.dbobj.repo = self.repoId2repoKey[issue.repo_id]
 
+            # TODO: *1 THIS IS NOT CORRECT, need to find which id is local to the repo (is much smaller id)
+            issueIdLocal = issue.id
+            url = "https://docs.greenitglobe.com/%s/%s/issues/%s" % (orgName, repoName, issueIdLocal)
+            issue_model.dbobj.url = url
+
             issue_model.save()
 
     def getOrgsFromPSQL(self, gogsName):

@@ -86,7 +86,7 @@ class FListFactory(object):
             modelBaseCollectionClass=ACICollection.ACICollection, db=kvs, indexDb=kvs)
         return collection
 
-    def getFlist(self, rootpath="/", namespace="main", kvs=None):
+    def getFlist(self, rootpath="/", namespace="", kvs=None):
         """
         @param namespace, this normally is some name you cannot guess, important otherwise no security
         Return a Flist object

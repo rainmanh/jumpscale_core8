@@ -37,7 +37,7 @@ class RocksDBKeyValueStore(KeyValueStoreBase):
         return self._get(key)
 
     def _set(self, key, val):
-        return self.rocksdb.put(self._getKey(key), val.encode('ascii'))
+        return self.rocksdb.put(self._getKey(key), val)
 
     def set(self, key, value=None, expire=None, acl={}, secret=""):
         return self._set(key, value)

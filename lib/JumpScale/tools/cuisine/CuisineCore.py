@@ -1188,8 +1188,6 @@ class CuisineCore(base):
         else:
             self.file_write(location=path, content=content, mode=0o770, owner="root", group="root", showout=False)
 
-        if interpreter == 'bash' and die:
-            interpreter = 'bash -e'
         cmd = "%s %s" % (interpreter, path)
 
         if self.sudomode:

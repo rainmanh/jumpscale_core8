@@ -1,5 +1,6 @@
 from GogsClient import GogsClient
 from JumpScale import j
+import psycopg2
 
 
 class GogsFactory:
@@ -17,6 +18,12 @@ class GogsFactory:
         self.logger = j.logger.get("j.clients.gogs")
         self.logger.info("gogs factory initted.")
         self._labels = {}
+        self._issue_user_table = {}
+        self._users_table = {}
+        self._milestones_table = {}
+        self._repos_table = {}
+
+        self.dbconn = None
 
     def destroyData(self):
         self.userCollection.destroy()
@@ -66,6 +73,16 @@ class GogsFactory:
         ORDER BY id;
 
 
+        -- create aggregated view for orgs
+        CREATE OR REPLACE VIEW org_users_grouped AS
+        SELECT
+          org_id,
+          array_to_string(array_agg(uid), ',')
+        FROM
+          public.org_user
+        GROUP BY org_id
+        ORDER BY org_id;
+
         """
 
     def getRestClient(self, addr='https://127.0.0.1', port=3000, login='root', passwd='root', accesstoken=None):
@@ -93,6 +110,15 @@ class GogsFactory:
             raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
                                      level=1, source="", tags="", msgpub="")
         self.logger.info("syncAllFromPSQL")
+        self.logger.info("CreateViews")
+        self.createViews()
+        self.logger.info("Users Table")
+        self.users_table
+        self.logger.info("Issue User Table")
+        self.issue_user_table
+        self.logger.info("Milestones")
+        self.milestones_table
+        self.logger.info("Users")
         self.getUsersFromPSQL(gogsName=gogsName)
         self.logger.info("User synced")
         self.getOrgsFromPSQL(gogsName=gogsName)
@@ -102,12 +128,54 @@ class GogsFactory:
         self.getIssuesFromPSQL(gogsName=gogsName)
         self.logger.info("Issues synced")
 
+    @property
+    def users_table(self):
+        """
+        is dict, key is $userid data is ()
+        """
+        if self._users_table == {}:
+            for user in self.model.User:
+                self._users_table[user.id] = user
+        return self._users_table
+
+    @property
+    def issue_user_table(self):
+        """
+        is dict, key is $issueid_userid data is (repoid,milestoneid,is_read,is_assigned,is_mentioned,is_poster,is_closed)
+        """
+        if self._issue_user_table == {}:
+            for item in self.model.IssueUser:
+                self._issue_user_table[item.id] = item
+        return self._issue_user_table
+
+    @property
+    def repos_table(self):
+        """
+        is dict, key is $issueid_userid data is (repoid,milestoneid,is_read,is_assigned,is_mentioned,is_poster,is_closed)
+        """
+        if self._repos_table == {}:
+            for item in self.model.Repository:
+                self._repos_table[item.id] = item
+        return self._repos_table
+
+    @property
+    def milestones_table(self):
+        """
+        is dict, key is $issueid_userid data is (repoid,milestoneid,is_read,is_assigned,is_mentioned,is_poster,is_closed)
+        """
+        if self._milestones_table == {}:
+            for item in self.model.Milestone:
+                self._milestones_table[item.id] = item
+        return self._milestones_table
+
     def connectPSQL(self, ipaddr="127.0.0.1", port=5432, login="gogs", passwd="something", dbname="gogs"):
         """
         connects to psql & connects resulting model to self.model
         is a peewee orm enabled orm
         """
         self.model = j.clients.peewee.getModel(ipaddr=ipaddr, port=port, login=login, passwd=passwd, dbname=dbname)
+        self.dbconn = psycopg2.connect(
+            "dbname='%s' user='%s' host='localhost' password='%s' port='%s'" % (dbname, login, passwd, port))
         return self.model
 
     def getIssuesFromPSQL(self, gogsName):
@@ -204,90 +272,49 @@ class GogsFactory:
             del issues
 
     def getOrgsFromPSQL(self, gogsName):
-        """
-        Load organizations from remote database into model.
-
-        @param ipaddr str,,ip address where remote database is on.
-        @param port int,, port number remote database is listening on.
-        @param login str,,database login.
-        @param passwd str,,database passwd.
-        @param dbname str,, database name.
-        """
         self.logger.info("getOrgsFromPSQL")
 
-        if self.model == None:
-            raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
-                                     level=1, source="", tags="", msgpub="")
+        cur = self.dbconn.cursor()
+        cur.execute("select * from org_users_grouped;")
+        rows = cur.fetchall()
 
-        if self.userCollection.list() == []:
-            # need to download
-            self.getUsersFromPSQL()
-
-        model = self.model
-        queryString = """
-        select org.name,
-           org.full_name,
-           org.id,
-           org.num_repos,
-           r.name as repo_name,
-           r.id as repo_id,
-           ou.is_owner,
-           member.id as member_id,
-           access.mode as member_access
-        from "user" as org
-        left join repository as r on org.id=r.owner_id
-        left join org_user as ou on org.id=ou.org_id
-        left join "user" as member on ou.uid=member.id
-        left join access on member.id=access.user_id
-        where org.type=1;
-        """
-        query = model.User.raw(queryString)
-
-        for org in query:
-
-            self.logger.debug(org.__dict__)
+        for orgIdAsUser, userIds in rows:
+            orgName = self.users_table[orgIdAsUser].name
+            self.logger.debug(row.__dict__)
 
             # get organization from gogsid
-            org_model = self.orgCollection.getFromGogsId(gogsName=gogsName, gogsId=org.id)
+            org_model = self.orgCollection.getFromGogsId(gogsName=gogsName, gogsId=orgIdAsUser)
+            # org_model.gogsRefSet(name=gogsName, id=orgIdAsUser)
 
-            # get member (user) from gogs id
-            member_model = self.userCollection.getFromGogsId(
-                gogsName=gogsName, gogsId=org.member_id, createNew=False)  # member needs to exists
+            # # get member (user) from gogs id
+            # member_model = self.userCollection.getFromGogsId(
+            #     gogsName=gogsName, gogsId=org.member_id, createNew=False)  # member needs to exists
 
-            # set member on the org model
-            org_model.memberSet(member_model.key, org.member_access)
+            # # set member on the org model
+            # org_model.memberSet(member_model.key, org.member_access)
 
-            if org_model.dbobj.name != org.name:
-                org_model.dbobj.name = org.name
-                org_model.changed = True
-
-            if org.description == None:
-                org.description = ""
-            if org.full_name != "":
-                org.description = "fullname:%s\n%s" % (org.full_name, org.description)
-
-            if org_model.dbobj.description != org.description:
-                org_model.dbobj.description = org.description
+            if org_model.dbobj.name != orgName:
+                org_model.dbobj.name = orgName
                 org_model.changed = True
 
             org_model.gogsRefSet(name=gogsName, id=org.id)
 
-            # process the repoobj
-            repo_model = self.repoCollection.getFromGogsId(gogsName=gogsName, gogsId=org.repo_id)
-            if repo_model.dbobj.name != org.repo_name:
-                repo_model.dbobj.name = org.repo_name
-                repo_model.changed = True
+            # # process the repoobj
+            # repo_model = self.repoCollection.getFromGogsId(gogsName=gogsName, gogsId=org.repo_id)
+            # if repo_model.dbobj.name != org.repo_name:
+            #     repo_model.dbobj.name = org.repo_name
+            #     repo_model.changed = True
+            #
+            # repo_model.gogsRefSet(name=gogsName, id=int(org.repo_id))  # mark info comes from gogs
+            # repo_model.save()
 
-            repo_model.gogsRefSet(name=gogsName, id=int(org.repo_id))  # mark info comes from gogs
-            repo_model.save()
-
-            if org_model.dbobj.nrRepos != org.num_repos:
-                org_model.dbobj.nrRepos = org.num_repos
-
-            if org.is_owner:
-                org_model.ownerSet(member_model.key)
-
-            org_model.repoSet(repo_model.key)
+            # if org_model.dbobj.nrRepos != org.num_repos:
+            #     org_model.dbobj.nrRepos = org.num_repos
+            #
+            # if org.is_owner:
+            #     org_model.ownerSet(member_model.key)
+            #
+            # org_model.repoSet(repo_model.key)
 
             org_model.save()
 
@@ -305,88 +332,22 @@ class GogsFactory:
             raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
                                      level=1, source="", tags="", msgpub="")
 
-        if self.orgCollection.list() == []:
-            self.getOrgsFromPSQL()
-
-        queryString = """
-        select r.id,
-               r.name,
-               r.owner_id,
-               r.description,
-               r.num_issues,
-               r.num_milestones,
-               member.user_id as memberid,
-               a.mode,
-               l.name as label_name,
-               m.name as milestone_name,
-               m.id as milestone_id,
-               m.is_closed as milestone_is_closed,
-               m.num_issues as milestone_num_issues,
-               m.num_closed_issues  as milestone_num_closed_issues,
-               m.deadline_unix as milestone_deadline,
-               m.completeness as milestone_completeness
-        from repository as r
-        left join collaboration as member on r.id=member.repo_id
-        left join access as a on member.user_id=a.user_id
-        left join label as l on l.repo_id=r.id
-        left join milestone as m on m.repo_id=r.id
-        """
-        query = self.model.User.raw(queryString)
-        repos = {}
-        for repo in query:
-            if repo.id not in repos:
-                repos[repo.id] = {'name': repo.name,
-                                  'owner': repo.owner_id,
-                                  'description': repo.description,
-                                  'num_issues': repo.num_issues,
-                                  'num_milestones': repo.num_milestones,
-                                  'members': dict(),
-                                  'milestones': dict(),
-                                  'labels': list()
-                                  }
-            repo_dict = repos[repo.id]
-            if repo.memberid:
-                repo_dict['members'][repo.memberid] = repo.mode
-            if repo.label_name and repo.label_name not in repo_dict['labels']:
-                repo_dict['labels'].append(repo.label_name)
-            if repo.milestone_id and repo.milestone_id not in repo_dict['milestones']:
-                repo_dict['milestones'][repo.milestone_id] = {'name': repo.milestone_name,
-                                                              'isClosed': repo.milestone_is_closed,
-                                                              'nrIssues': repo.milestone_num_issues,
-                                                              'nrClosedIssues': repo.milestone_num_closed_issues,
-                                                              'completeness': repo.milestone_completeness,
-                                                              'deadline': repo.milestone_deadline,
-                                                              'id': repo.milestone_id}
-
-        for id, val in repos.items():
+        for id, repo in self.repos_table.items():
             repo_model = self.repoCollection.getFromId(id)
 
-            repo_model.dbobj.labels = [str(name) for name in val.get('labels', [])]
-
-            # if val['members']:
-            #     repo_model.dbobj.init('members', len(val['members']))
-            repo_model.dbobj.members = []
-            for memberid, member in val.get('members', {}).items():
-                member_scheme = j.data.capnp.getMemoryObj(
-                    repo_model._capnp_schema.Member, userKey=str(memberid), access=member)
-                repo_model.dbobj.members.append(member_scheme)
-
-            repo_model.dbobj.milestones = []
-            for milestoneid, milestone in val.get('milestones', {}).items():
-                milestone_scheme = j.data.capnp.getMemoryObj(repo_model._capnp_schema.Milestone, **milestone)
-                milestone_scheme.id = milestoneid
-                repo_model.dbobj.milestones.append(milestone_scheme)
-
             repo_model.dbobj.id = id
-            repo_model.dbobj.name = val['name']
-            repo_model.dbobj.description = val['description']
-            repo_model.dbobj.owner = str(val['owner'])
-            repo_model.dbobj.nrIssues = val['num_issues']
-            repo_model.dbobj.nrMilestones = val['num_milestones']
-            repo_model.dbobj.source = ''
+            repo_model.dbobj.name = repo_model.name
+            repo_model.dbobj.description = repo_model.description
+            repo_model.dbobj.owner = repo_model.owner
+            repo_model.dbobj.nrIssues = repo_model.num_issues
+            repo_model.dbobj.nrMilestones = repo_model.num_milestones
+            # source TODO
             repo_model.save()
-        else:
-            del repos
+
+        from IPython import embed
+        print("DEBUG NOW getReposFromPSQL")
+        embed()
+        raise RuntimeError("stop debug here")
 
     def getUsersFromPSQL(self, gogsName):
         """
@@ -398,7 +359,7 @@ class GogsFactory:
             raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
                                      level=1, source="", tags="", msgpub="")
 
-        for user in self.model.User.select():
+        for id, user in self.users_table.items():
             user_model = self.userCollection.getFromGogsId(gogsName=gogsName, gogsId=user.id)
             user_model.dbobj.name = user.name
             user_model.dbobj.fullname = user.full_name
@@ -421,14 +382,14 @@ class GogsFactory:
             embed()
             raise RuntimeError("stop debug here")
 
-    def _getLabels(self):
-        for id, name in [(item.id, item.name) for item in self.model.Label.select()]:
-            self._labels[id] = name
-
-    def getLabelFromID(self, id):
-        if self._labels == {}:
-            self._getLabels()
-        return self._labels[id]
+    # def _getLabels(self):
+    #     for id, name in [(item.id, item.name) for item in self.model.Label.select()]:
+    #         self._labels[id] = name
+    #
+    # def getLabelFromID(self, id):
+    #     if self._labels == {}:
+    #         self._getLabels()
+    #     return self._labels[id]
 
     def _gogsRefSet(self, model, name, id):
         """

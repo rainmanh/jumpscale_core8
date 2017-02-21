@@ -106,7 +106,8 @@ class GogsFactory:
           issue.num_comments,
           issue.deadline_unix,
           issue.created_unix,
-          issue.updated_unix
+          issue.updated_unix,
+          issue.index
         FROM
           public.issue,
           public.issue_comments_grouped,
@@ -243,8 +244,9 @@ class GogsFactory:
 
         for issue in query:  # TODO: *1 sometimes there is an asci decode error, need to fix !!!
 
-            repo = self.repos_table[2]
+            repo = self.repos_table[issue.repo_id]
             repoName = repo.name
+
             orgName = self.users_table[repo.owner].name
 
             name = j.data.serializer.base64.loads(issue.name)
@@ -315,8 +317,7 @@ class GogsFactory:
 
             issue_model.dbobj.repo = self.repoId2repoKey[issue.repo_id]
 
-            # TODO: *1 THIS IS NOT CORRECT, need to find which id is local to the repo (is much smaller id)
-            issueIdLocal = issue.id
+            issueIdLocal = issue.index
             url = "https://docs.greenitglobe.com/%s/%s/issues/%s" % (orgName, repoName, issueIdLocal)
             issue_model.dbobj.url = url
 

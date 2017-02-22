@@ -1,0 +1,35 @@
+g8client__uk:
+    url: 'gig.demo.greenitglobe.com'
+    login: 'husseina'
+    password: 'AZxdf34wsASA'
+
+g8client__uk2:
+    url: 'gig.demo.greenitglobe.com'
+    login: 'husseina'
+    password: 'AZxdf34wsASA'
+
+# create the vdc that will contain the vm of the cockpit
+vdc__cockpit:
+    description: 'cockpit vdc'
+    g8client: 'uk'
+    account: 'husseina'
+    location: 'be-scale-2'
+
+sshkey__main:
+
+test_dependency_tree__parent:
+   vdc: cockpit
+   g8clients: 
+      - 'uk'
+      - 'uk2'
+
+test_dependency_tree__consumers:
+   vdc: cockpit
+   g8clients: 
+      - 'uk'
+      - 'uk2'
+
+actions:
+   - action: 'install'
+   - action: 'test'
+     actor: "test_dependency_tree"

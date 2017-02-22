@@ -14,7 +14,7 @@ import psutil
 import os
 import subprocess
 from JumpScale.tools import cmdutils
-from JumpScale.core.redis import RedisQueue
+from JumpScale.clients.redis.RedisQueue import RedisQueue
 import socket
 
 processes = list()
@@ -125,9 +125,13 @@ class ProcessManager():
         self.redis_queues["process"] = RedisQueue(self.redis_mem, "workers:work:process")
 
         j.processmanager = self
-
-        hrd = j.data.hrd.get(j.sal.fs.joinPaths(j.dirs.hrd, 'grid.hrd'))
-        hrd.set('id', opts.gid)
+        agent_cfg = j.sal.fs.joinPaths(j.dirs.cfgDir, 'jsagent')
+        j.sal.fs.createDir(agent_cfg)
+        config = j.data.serializer.yaml.load(j.sal.fs.joinPaths(j.dirs.cfgDir, 'jumpscale', 'system.yaml'))
+        config['grid'] = config.get('grid', {})
+        config['grid']['id'] = opts.gid
+        config['grid']['node.roles'] = []
+        j.data.serializer.yaml.dump(j.sal.fs.joinPaths(j.dirs.cfgDir, 'jumpscale', 'system.yaml'), config)
         j.application._initWhoAmI(reload=True)
         # self.hrd = j.application.instanceconfig
         if opts.ip != "":
@@ -137,12 +141,13 @@ class ProcessManager():
 
             # now register to agentcontroller
             self.acclient = j.legacy.agentcontroller.get(
-                opts.ip, port=opts.port, login='root', passwd=opts.password, new=True)
+                opts.ip, port=opts.port, login=opts.login, passwd=opts.password, new=True)
             res = self.acclient.registerNode(hostname=socket.gethostname(),
                                              machineguid=j.application.getUniqueMachineId())
 
             nid = res["node"]["id"]
-            hrd.set('node.id', nid)
+            config['grid']['node.id'] = nid
+            j.data.serializer.yaml.dump(j.sal.fs.joinPaths(j.dirs.cfgDir, 'jumpscale', 'system.yaml'), config)
             j.application._initWhoAmI(reload=True)
 
             self.acclient = j.legacy.agentcontroller.get(opts.ip, port=opts.port, login="node", new=True)
@@ -209,8 +214,8 @@ parser.add_argument('--services', help='list of services to run e.g heka, agentc
 
 parser.add_argument('--controller-ip', dest='ip', default='localhost', help='Agent controller address')
 parser.add_argument('--controller-port', dest='port', type=int, default=4444, help='Agent controller port')
-parser.add_argument('--controller-login', dest='login', default='node', help='Agent controller login')
-parser.add_argument('--controller-password', dest='password', default='', help='Agent controller password')
+parser.add_argument('--controller-login', dest='login', default='root', help='Agent controller login')
+parser.add_argument('--controller-password', dest='password', default='rooter', help='Agent controller password')
 
 opts = parser.parse_args()
 

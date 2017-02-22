@@ -8,6 +8,10 @@ base = j.tools.cuisine._getBaseClass()
 
 class ProcessManagerBase(base):
 
+    def __init__(self):
+        self.logger = j.logger.get('j.tools.cuisine.processmanager')
+        self.startupfile = '/etc/startup.sh'
+
     def exists(self, name):
         return name in self.list()
 
@@ -78,11 +82,13 @@ class CuisineSystemd(ProcessManagerBase):
 
             self.cuisine.core.run("systemctl daemon-reload")
 
-    def ensure(self, name, cmd, env={}, path="", descr="", systemdunit="", **kwargs):
+    def ensure(self, name, cmd, env={}, path="", descr="", systemdunit="", autostart=False, wait=0, **kwargs):
         """
         Ensures that the given systemd service is self.cuisine.core.running, starting
         it if necessary and also create it
         @param systemdunit is the content of the file, will still try to replace the cmd
+        @param autostart if true this means if the machine is halted it will try to start this again when the machine turned on again
+        @param wait this is used with autostart if you want to wait for some time before executing the next startup command
         """
 
         if not path:
@@ -99,7 +105,7 @@ class CuisineSystemd(ProcessManagerBase):
         env.update(self.cuisine.bash.env)
         for name0, value in list(env.items()):
             if value:
-                envstr += "Environment=%s=%s\n" % (name0, self.replace(value))
+                envstr += "Environment=%s=%s\n" % (name0, self.cuisine.core.replace(value))
 
         cmd = self.cuisine.core._clean(cmd)
 
@@ -132,6 +138,19 @@ WantedBy=multi-user.target
 
         self.cuisine.core.run("systemctl daemon-reload;systemctl restart %s" % name)
         self.cuisine.core.run("systemctl enable %s" % name, die=False, showout=False)
+        if autostart:
+            command_template = """
+            systemctl daemon-reload;systemctl restart {name}
+            systemctl enable {name}
+            """
+            start_command = command_template.format(name=name)
+            self.cuisine.core.file_ensure(self.startupfile)
+            content = self.cuisine.core.file_read(self.startupfile)
+            if 'systemctl enable {name}'.format(name=name) not in content:
+                self.cuisine.core.file_write(self.startupfile, start_command, append=True)
+                if wait:
+                    self.cuisine.core.file_write(self.startupfile, 'sleep %s' % wait, append=True)
+
         self.start(name)
 
     def __str__(self):
@@ -155,17 +174,21 @@ class CuisineRunit(ProcessManagerBase):
             result.append(service)
         return result
 
-    def ensure(self, name, cmd, env={}, path="", descr=""):
-        """Ensures that the given upstart service is self.running, starting
-        it if necessary."""
+    def ensure(self, name, cmd, env={}, path="", descr="", autostart=False, wait=0):
+        """
+        Ensures that the given upstart service is self.running, starting
+        it if necessary.
+        @param autostart if true this means if the machine is halted it will try to start this again when the machine turned on again
+        @param wait this is used with autostart if you want to wait for some time before executing the next startup command
+        """
 
-        cmd = self.replace(cmd)
-        path = self.replace(path)
+        cmd = self.cuisine.core.replace(cmd)
+        path = self.cuisine.core.replace(path)
 
         envstr = ""
         env.update(self.cuisine.bash.env)
         for name0, value in list(env.items()):
-            envstr += "export %s=\"%s\"\n" % (name0, self.replace(value))
+            envstr += "export %s=\"%s\"\n" % (name0, self.cuisine.core.replace(value))
 
         sv_text = """#!/bin/sh
         set -e
@@ -253,7 +276,17 @@ class CuisineTmuxec(ProcessManagerBase):
         res = [item.strip().rstrip("*-").strip() for item in res]
         return res
 
+<<<<<<< HEAD
     def ensure(self, name, cmd, env={}, path="", descr="",wait=10):
+=======
+    def ensure(self, name, cmd, env={}, path="", descr="", autostart=False, wait=0):
+        """
+        Ensures that the given upstart service is self.running, starting it if necessary.
+        auto
+        @param autostart if true this means if the machine is halted it will try to start this again when the machine turned on again
+        @param wait this is used with autostart if you want to wait for some time before executing the next startup command
+        """
+>>>>>>> 8.1.1
         self.stop(name=name)
         cmd = self.replace(cmd)
         path = self.replace(path)
@@ -266,8 +299,26 @@ class CuisineTmuxec(ProcessManagerBase):
             cmd = "%s %s" % (cwd, cmd)
         if envstr != "":
             cmd = "%s%s" % (envstr, cmd)
+<<<<<<< HEAD
 
         self.cuisine.tmux.executeInScreen("main", name, cmd,wait=wait)
+=======
+        if autostart:
+            command_template = """
+            tmux new-session -d -s {session}
+            tmux new-window -t {session} -n {window}
+            tmux send-keys '{command}' c-m
+            tmux detach -s {session}
+            """
+            start_command = command_template.format(session='main', window=name, command=cmd)
+            self._cuisine.core.file_ensure(self.startupfile)
+            content = self._cuisine.core.file_read(self.startupfile)
+            if "tmux send-keys '{command}' c-m".format(command=cmd) not in content:
+                self._cuisine.core.file_write(self.startupfile, start_command, append=True)
+                if wait:
+                    self._cuisine.core.file_write(self.startupfile, 'sleep %s' % wait, append=True)
+        self._cuisine.tmux.executeInScreen("main", name, cmd)
+>>>>>>> 8.1.1
 
     def stop(self, name):
         self.logger.info("stop...")

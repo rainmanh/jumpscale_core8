@@ -162,6 +162,19 @@ class AtYourServiceRepo():
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "actors"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "services"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "recipes"))  # for old time sake
+
+        # removing the related jobs
+        # jobs = set()
+        # services = self.db.services.list()
+        # jc = JobsCollection()
+        # for service in services:
+        #     job_keys = jc._list_keys(serviceKey=service)
+        #     for job_key in job_keys:
+        #         jobs.add(jc.getIndexFromKey(job_key))
+        # jc._db.index_remove(list(jobs))
+
+        # removing related actors, services , and the repo model itslef.
+        # self.model.delete()
         j.atyourservice.aysRepos.delete(self)
 
     def enable_noexec(self):

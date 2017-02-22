@@ -14,11 +14,12 @@ the following commands show you the typical order in which you need to execute a
 - [simulate](simulate.md) allows you to see what will happen when executing an action, without actually having te execute it
 - [destroy](destroy.md) destroys all service instances, from here you need to execute the blueprints again
 
+## Advanced
 - [noexec](noexec.md) : Enable/Disable noexec mode
 - [delete](delete.md) : Delete a service and all its children
 - [discover](discover.md) : Discover AYS repository on the filesystem
 - [restore](restore.md)  : Load service from the filesystem
-- [run_info](run_info.md) : Print info about run
+- [run_info](run_info.md) : Display info about run
 - [do](do.md) : Helper method to easily schedule action from the command line
 - [list](list.md) : List all services from a repository
 - [repo_list](repo_list.md) : List all known repositories

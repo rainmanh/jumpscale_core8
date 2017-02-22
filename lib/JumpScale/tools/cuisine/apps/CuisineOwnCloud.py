@@ -1,13 +1,19 @@
 from JumpScale import j
 import textwrap
+import re
 app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
+class CuisineOwnCloud(app):
 
     NAME = 'owncloud'
 
-    def installAll(self, start=True, storagepath='/data/', sitename="owncloudy.com"):
+    def installAll(self):
+        """
+        install all deps (check if e.g. php, apache is installed otherwise not)
+        then install this sw
+        configure
+        """
         """
         install all deps (check if e.g. php, apache is installed otherwise not)
         then install this sw
@@ -15,28 +21,24 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         """
         # SQL client
         self.cuisine.package.install("mysql-client-core-5.7")
-        if not self.cuisine.apps.nginx.isInstalled():
-            self.cuisine.apps.nginx.build()
-            #self.cuisine.apps.nginx.start()
-        # if not self.cuisine.development.php.isInstalled():
-        #     self.cuisine.development.php.build()
-        #     self.cuisine.development.php.install()
-
-        # NO NEED TO INSTALL GO/RUST BECAUSE WE USE THE BINARIES OF TIDB.
-        # if not self.cuisine.development.golang.isInstalled():
-        #     self.cuisine.development.golang.install()
-        # if not self.cuisine.development.rust.isInstalled():
-        #     self.cuisine.development.rust.install()
+        if not self.cuisine.apps.apache2.isInstalled():
+            self.cuisine.apps.apache2.build()
+            self.cuisine.apps.apache2.install()
+            self.cuisine.apps.apache2.start()
         if not self.cuisine.development.php.isInstalled():
             self.cuisine.development.php.install()
         if not self.cuisine.apps.tidb.isInstalled():
             self.cuisine.apps.tidb.build()
             self.cuisine.apps.tidb.install()
 
-        self.install(start=start, storagepath=storagepath, sitename=sitename)
-        # TODO: *2 create a method which does all and is sort of guideline for a customer to understand this, call deps, use the doneSet/Get...
+        self.install()
+        self.start(localinstall=True)
 
-    def install(self, start=True, storagepath="/data", sitename="owncloudy.com"):
+
+
+        # TODO: *2 create 1 method which does all and is sort of guideline for a customer to understand this
+
+    def install(self, start=True, storagepath="/data", sitename="owncloudy.com", nginx=False):
         """
         install owncloud 9.1 on top of nginx/php/tidb
         tidb is the mysql alternative which is ultra reliable & distributed
@@ -45,11 +47,13 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         """
         self.cuisine.package.mdupdate()
         self.cuisine.package.install('bzip2')
+        self.cuisine.package.install("mysql-client-core-5.7")
         C = """
-        set -xe #FIXME
-        rm -rf /tmp/ownc* &&  cd $TMPDIR && [ ! -d $TMPDIR/ays_owncloud ] && git clone https://github.com/0-complexity/ays_owncloud
-        cd $TMPDIR && [ ! -f $TMPDIR/owncloud-9.1.3.tar.bz2 ] && wget https://download.owncloud.org/community/owncloud-9.1.3.tar.bz2 && tar jxf owncloud-9.1.3.tar.bz2 && rm owncloud-9.1.3.tar.bz2
-        #cd $TMPDIR && [ ! -d {storagepath} ] && mkdir -p {storagepath}
+        set -xe
+        #TODO: *1 need to use primitives in cuisine
+        cd $TMPDIR && [ ! -d $TMPDIR/ays_owncloud ] && git clone https://github.com/0-complexity/ays_owncloud
+        cd $TMPDIR && [ ! -f $TMPDIR/owncloud-9.1.3.tar.bz2 ] && wget https://download.owncloud.org/community/owncloud-9.1.3.tar.bz2 && cd $tmpDir && tar jxf owncloud-9.1.3.tar.bz2 && rm owncloud-9.1.3.tar.bz2
+        [ ! -d {storagepath} ] && mkdir -p {storagepath}
         """.format(storagepath=storagepath)
 
         self.cuisine.core.run(C)
@@ -63,7 +67,7 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         mv $TMPDIR/owncloud $JSAPPSDIR/owncloud
 
         # copy config.php to new owncloud home httpd/docs
-        /bin/cp -Rf $TMPDIR/ays_owncloud/owncloud/config.php $JSAPPSDIR/owncloud/config/
+        /bin/cp -Rf $TMPDIR/ays_owncloud/owncloud/config.php $appDir/owncloud/config/
         # copy gig theme
         /bin/cp -Rf $TMPDIR/ays_owncloud/owncloud/gig $JSAPPSDIR/owncloud/themes/
 
@@ -76,9 +80,9 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         self.cuisine.core.file_write("$JSAPPSDIR/owncloud/config/config.php", content=gigconf)
 
         if start:
-            self.start(sitename)
+            self.start(sitename, nginx=nginx)
         # look at which owncloud plugins to enable(pdf, ...)
-        # TODO: *3 storage path
+        # TODO: *1 storage path
 
     def _get_default_conf_owncloud(self):
         return """\
@@ -228,18 +232,21 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
         }
         """
         conf = textwrap.dedent(conf)
-        conf = self.replace(conf)
+        conf = self.cuisine.core.replace(conf)
         return conf
 
-    def start(self, sitename='owncloudy.com', dbhost="127.0.0.1", dbuser="root", dbpass=""):
-        if dbpass != "":
-            dbpass = '-p "{dbpass}"'.format(dbpass=dbpass) # DBPASS ARGUMENT.
+    def start(self, sitename='owncloudy.com', dbhost="127.0.0.1", dbuser="root", dbpass="", nginx=False, localinstall=False):
+
         owncloudsiterules = self._get_default_conf_nginx_site()
         owncloudsiterules = owncloudsiterules % {"sitename": sitename}
         self.cuisine.core.file_write(
-            "$BUILDDIR/nginx/conf/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
+            "$JSCFGDIR/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
 
-        privateIp = self.cuisine.net.getInfo(self.cuisine.net.nics[0])['ip'][0]
+        dbpass = "" if dbpass == "" else ' -p "{dbpass}"'.format(dbpass=dbpass)
+        if localinstall:
+            privateIp = dbhost
+        else:
+            privateIp = self.cuisine.net.getInfo(self.cuisine.net.nics[0])['ip'][0]
 
         C = r"""\
         mysql -h {dbhost} -u {dbuser} {dbpass} --port 3306 --execute "CREATE DATABASE owncloud"
@@ -249,7 +256,7 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
 
         self.cuisine.core.run(C)
 
-        # TODO: *3 if not installed
+        # TODO: if not installed
         cmd = """
         $JSAPPSDIR/php/bin/php $JSAPPSDIR/owncloud/occ maintenance:install  --database="mysql" --database-name="owncloud"\
         --database-host="{dbhost}" --database-user="owncloud" --database-pass="owncloud" --admin-user="admin" --admin-pass="admin"\
@@ -260,31 +267,69 @@ class CuisineOwnCloud(app):#TODO: *2 test on ovh4 over cuisine, use doneGet/Set
 
         self.cuisine.core.run(cmd)
 
-        basicnginxconf = self.cuisine.apps.nginx.get_basic_nginx_conf()
-        basicnginxconf = basicnginxconf.replace(
-            "include $BUILDDIR/nginx/conf/sites-enabled/*;", "include $BUILDDIR/nginx/conf/sites-enabled/*;")
-        basicnginxconf = self.replace(basicnginxconf)
-        C = """
-        chown -R www-data:www-data $JSAPPSDIR/owncloud $JSCFGDIR/nginx
-        chmod 777 -R $JSAPPSDIR/owncloud/config
-        chown -R www-data:www-data /data
-        """
-        self.cuisine.core.run(C)
-        self.cuisine.core.file_write("$BUILDDIR/nginx/conf/nginx.conf", content=basicnginxconf)
-        self.cuisine.apps.nginx.stop()
-        self.cuisine.apps.nginx.start()
-        self.cuisine.development.php.start()
+        if nginx:
+            basicnginxconf = self.cuisine.apps.nginx.get_basic_nginx_conf()
+            basicnginxconf = basicnginxconf.replace(
+                "include $JSAPPSDIR/nginx/etc/sites-enabled/*;", "include $JSCFGDIR/nginx/etc/sites-enabled/*;")
+            basicnginxconf = self.cuisine.core.args_replace(basicnginxconf)
+            C = """
+            chown -R www-data:www-data $JSAPPSDIR/owncloud $cfgDir/nginx
+            chmod 777 -R $JSAPPSDIR/owncloud/config
+            chown -R www-data:www-data /data
+            """
+            self.cuisine.core.execute_bash(C)
+            self.cuisine.core.file_write("$JSCFGDIR/nginx/etc/nginx.conf", content=basicnginxconf)
+            self.cuisine.processmanager.stop("nginx")
+            self.cuisine.apps.nginx.start()
+            self.cuisine.development.php.start()
+        else:
+            # APACHE CONF.
+            apachesiteconf = self.cuisine.core.replace(self._get_apache_siteconf())
+            apachesiteconf = apachesiteconf.format(ServerName=sitename)
+            self.cuisine.apps.apache2.stop()
+            self.cuisine.core.file_write("$JSAPPSDIR/apache2/sites-available/owncloud.conf", apachesiteconf)
+            #self.cuisine.core.file_link("$JSAPPSDIR/apache2/sites-available/owncloud.conf", "$JSAPPSDIR/apache2/sites-enabled/owncloud.conf")
+            C = """
+            chown -R www-data:www-data $appDir/owncloud
+            chmod 777 -R $JSAPPSDIR/owncloud/config
+            chown -R www-data:www-data /data
+            """
+            self.cuisine.core.execute_bash(C)
+            self.cuisine.development.php.start()
+            self.cuisine.apps.apache2.start()
+
+    def _get_apache_siteconf(self):
+        conf = textwrap.dedent("""\
+
+        Alias / "$JSAPPSDIR/owncloud/"
+
+        <Directory $JSAPPSDIR/owncloud/>
+          Options +FollowSymlinks
+          AllowOverride All
+          Require all granted
+         <IfModule mod_dav.c>
+          Dav off
+         </IfModule>
+
+         SetEnv HOME $JSAPPSDIR/owncloud/
+             SetEnv HTTP_HOME $JSAPPSDIR/owncloud/
+        </Directory>
+        <VirtualHost *:80>
+            ServerAdmin admin@there.com
+            ServerName {ServerName}
+            DocumentRoot $JSAPPSDIR/owncloud
+            PHPINIDIR $JSAPPSDIR/php/lib/php.ini
+        </VirtualHost>
+
+
+        """)
+        conf = re.sub(r"//", "/", conf)  #remove // in paths
+        return conf
 
     def restart(self):
-        """
-        Restart owncloud.
-        """
-        self.cuisine.apps.nginx.stop()
-        self.cuisine.apps.nginx.start()
-        self.cuisine.development.php.stop()
-        self.cuisine.development.php.start()
+        pass
 
     def test(self):
-        # TODO: test owncloud api, simple test *2
+        # TODO: *2
         # call the api up/download a file
         pass

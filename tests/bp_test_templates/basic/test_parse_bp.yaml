@@ -1,0 +1,30 @@
+g8client__uk:
+    url: 'gig.demo.greenitglobe.com'
+    login: 'husseina'
+    password: 'AZxdf34wsASA'
+
+# create the vdc that will contain the vm of the cockpit
+vdc__cockpit:
+    description: 'cockpit vdc'
+    g8client: 'uk'
+    account: 'husseina'
+    location: 'be-scale-2'
+
+sshkey__main:
+
+test_parse_bp__with_defaultvalue:
+   vdc: cockpit
+
+test_parse_bp__without_defaultvalue:
+  vdc: cockpit
+  description: 'another description'
+
+test_parse_bp__with_special_characters:
+  vdc: cockpit
+  description: 'Können Sie mir behilflich sein?'
+
+actions:
+   - action: 'install'
+   - action: 'test'
+     actor: "test_parse_bp"
+

@@ -57,7 +57,7 @@ class CuisineMongodb(app):
         self.cuisine.core.dir_ensure('$VARDIR/data/mongodb')
         cmd = "$BINDIR/mongod --dbpath '$VARDIR/data/mongodb'"
         self.cuisine.process.kill("mongod")
-        self.cuisine.processmanager.ensure(name="mongod", cmd=cmd, env={}, path="")
+        self.cuisine.processmanager.ensure(name="mongod", cmd=cmd, env={}, path="", autostart=True)
         self.doneSet("start")
 
     def stop(self):

@@ -52,7 +52,7 @@ class SSHClient:
         self.stdout = stdout
         self.timeout = timeout
         self.allow_agent = allow_agent
-        if passwd is not None:
+        if passwd:
             self.forward_agent = False
             self.look_for_keys = False
             self.key_filename = None

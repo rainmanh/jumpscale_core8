@@ -194,9 +194,9 @@ class Application:
         if reload:
             self._config = None
 
-        if self.config.jumpscale is not None:
-            nodeid = self.config.jumpscale['system'].get("grid.node.id", 0)
-            gridid = self.config.jumpscale['system'].get("grid.id", 0)
+        if self.config.jumpscale is not None and self.config.jumpscale['system'].get('grid', False):
+            nodeid = int(self.config.jumpscale['system']['grid'].get("node.id", 0))
+            gridid = int(self.config.jumpscale['system']['grid'].get("id", 0))
             self.logger.debug("gridid:%s,nodeid:%s" % (gridid, nodeid))
         else:
             gridid = 0
@@ -411,9 +411,9 @@ class Application:
         will look for network interface and return a hash calculated from lowest mac address from all physical nics
         """
         # if unique machine id is set in grid.hrd, then return it
-        uniquekey = 'grid.node.machineguid'
-        if j.application.config.exists(uniquekey):
-            machineguid = j.application.config.get(uniquekey)
+        uniquekey = 'node.machineguid'
+        if j.application.config.jumpscale['system']['grid'].get(uniquekey, False):
+            machineguid = j.application.config.jumpscale['system']['grid'].get(uniquekey)
             if machineguid.strip():
                 return machineguid
 
@@ -434,8 +434,8 @@ class Application:
             raise j.exceptions.RuntimeError(
                 "Cannot find macaddress of nics in machine.")
 
-        if j.application.config.exists(uniquekey):
-            j.application.config.set(uniquekey, macaddr[0])
+        if j.application.config.jumpscale['system']['grid'].get(uniquekey, False):
+            j.application.config.jumpscale['system']['grid'][uniquekey] = macaddr[0]
         return macaddr[0]
 
     def _setWriteExitcodeOnExit(self, value):

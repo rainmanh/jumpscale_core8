@@ -10,34 +10,7 @@ class IssueModel(base):
     """
 
     def index(self):
-
         i = self.collection.add2index(**self.to_dict())
-
-        # a = self.collection.add2index(title="this is a title", assignees='kristof,jan ,pol,oo')
-        # b = self.collection.add2index(title="this is a title", assignees=['kristof', 'jan'])
-        # c = self.collection.add2index(title="this is a2 title", assignees='kristof')
-
-        # self.collection._index.get_or_create(title="this is a title")
-
-        # source = ""
-        # gogsRefs = ",".join(["%s_%s" % (item.name.lower(), item.id) for item in self.dbobj.gogsRefs])
-        # # for item in self.dbobj.gogsRefs:
-        # # there can be multiple gogs sources
-        # # self.collection._index.lookupSet("gogs_%s" % item.name, item.id, self.key)
-        #
-        # # put indexes in db as specified
-        # if self.dbobj.isClosed:
-        #     closed = 1
-        # else:
-        #     closed = 0
-        #
-        # assignees = ",".join([str(item) for item in self.dbobj.assignees])
-        # labels = ",".join([str(item).replace(":", ";") for item in self.dbobj.labels])
-        #
-        # ind = "%s:%s:%s:%s:%s:%s:%s:%s:%s" % (self.dbobj.milestone, self.dbobj.creationTime,
-        #                                       self.dbobj.modTime, closed, self.dbobj.repo, self.dbobj.title.lower().replace(":", ";"),
-        #                                       assignees, labels, gogsRefs)
-        # self.collection._index.index({ind: self.key})
 
     def _pre_save(self):
         # process the labels to our proper structure

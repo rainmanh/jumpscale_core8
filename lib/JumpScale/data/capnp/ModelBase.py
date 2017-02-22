@@ -373,32 +373,34 @@ class ModelBaseCollection:
                 collection=self)
         return model
 
-    def list(self, name="", returnIndex=False):
+    def list(self,  query=None):
         """
-        @param name can be the full name e.g. node.ssh or a rule but then use e.g. node.*  (are regexes, so need to use .* at end)
-        @param state
-            new
-            ok
-            error
-            disabled
+        List all keys of a index
+
+        @param if query not none then will use the index to do a query and ignore other elements
+
+        e.g
+          -  self.index.select().order_by(self.index.modTime.desc())
+          -  self.index.select().where((self.index.priority=="normal") | (self.index.priority=="critical"))
+
+         info how to use see:
+            http://docs.peewee-orm.com/en/latest/peewee/querying.html
+            the query is the statement in the where
+
         """
-        if name == "":
-            name = ".*"
-        regex = name
-        res = self._index.list(regex, returnIndex=returnIndex)
+
+        if query != None:
+            res = [item.key for item in query]
+        else:
+            res = [item.key for item in self.index.select().order_by(self.index.modTime.desc())]
+
         return res
 
-    def find(self, name=""):
+    def find(self, query=None):
         """
-        @param name can be the full name e.g. node.ssh or a rule but then use e.g. node.*  (are regexes, so need to use .* at end)
-        @param state
-            new
-            ok
-            error
-            disabled
         """
         res = []
-        for key in self.list(name=name):
+        for key in self.list(query=query):
             res.append(self.get(key))
         return res
 

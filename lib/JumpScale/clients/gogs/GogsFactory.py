@@ -38,6 +38,13 @@ class GogsFactory:
     def createViews(self):
         self.logger.info("createviews")
 
+        self.model.User.raw("DROP VIEW IF EXISTS issue_labels CASCADE; ").execute()
+        self.model.User.raw("DROP VIEW IF EXISTS issue_labels_grouped CASCADE ;").execute()
+        self.model.User.raw("DROP VIEW IF EXISTS issue_comments CASCADE ;").execute()
+        self.model.User.raw("DROP VIEW IF EXISTS issue_comments_grouped CASCADE ;").execute()
+        self.model.User.raw("DROP VIEW IF EXISTS org_users_grouped CASCADE ;").execute()
+        self.model.User.raw("DROP VIEW IF EXISTS issues_view CASCADE ;").execute()
+
         C = """
         -- create view to see all labels
         CREATE OR REPLACE VIEW issue_labels AS
@@ -115,7 +122,6 @@ class GogsFactory:
         WHERE
           issue.id = issue_comments_grouped.id AND
           issue.id = issue_labels_grouped.id;
-
 
 
         """
@@ -238,11 +244,7 @@ class GogsFactory:
 
         query = self.model.User.raw("SET CLIENT_ENCODING TO 'UTF8';select * from issues_view order by id;")
 
-        # cur = self.dbconn.cursor()
-        # cur.execute("select * from issues_view order by id;"")
-        # rows = cur.fetchall()
-
-        for issue in query:  # TODO: *1 sometimes there is an asci decode error, need to fix !!!
+        for issue in query:
 
             repo = self.repos_table[issue.repo_id]
             repoName = repo.name
@@ -272,7 +274,7 @@ class GogsFactory:
                         meta, comment = res
                         ownerId = int(meta.split(",")[1])
                         # owner = self.userId2userKey[ownerId]
-                        owner = ""  # TODO: *1 for later
+                        owner = ""  # TODO: *1 for later, we need to add modification date to comments
                     else:
                         comment = res[0]
                         owner = ""
@@ -319,7 +321,7 @@ class GogsFactory:
 
             issueIdLocal = issue.index
             url = "https://docs.greenitglobe.com/%s/%s/issues/%s" % (orgName, repoName, issueIdLocal)
-            gogsRef = issue_model.gogsRefGet(gogsName)
+            gogsRef = self._gogsRefGet(issue_model, gogsName=gogsName)
             gogsRef.url = url
 
             issue_model.save()

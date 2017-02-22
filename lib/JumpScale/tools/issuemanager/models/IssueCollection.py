@@ -36,10 +36,6 @@ class IssueCollection(base):
                 database = j.tools.issuemanager.indexDB
                 # order_by = ["id"]
 
-        # class Assignee(Model):
-        #     issue = ForeignKeyField(Issue, related_name='assignees')
-        #     name = CharField(index=True)
-
         self.index = Issue
 
         db.connect()
@@ -73,7 +69,7 @@ class IssueCollection(base):
         if "gogsRefs" in args:
             args["gogsRefs"] = ["%s_%s" % (item["name"], item["id"]) for item in args["gogsRefs"]]
 
-        args = self._toArray(["assignees", "labels", "gogsRefs"], args)
+        args = self._arraysFromArgsToString(["assignees", "labels", "gogsRefs"], args)
 
         # this will try to find the right index obj, if not create
         obj, isnew = self.index.get_or_create(key=args["key"])
@@ -84,54 +80,6 @@ class IssueCollection(base):
                 obj._data[key] = item
 
         obj.save()
-
-    def list(self,  query=None, repos=[], title='', content="", isClosed=None, comment='.*',
-             assignees=[], milestones=[], labels=[], gogsId="", gogsName="", github=False,
-             fromTime=None, toTime=None, fromCreationTime=None, toCreationTime=None, returnIndex=False):
-        """
-        List all keys of issue model with specified params.
-
-        @param repo int,, id of repo the issue belongs to.
-        @param title str,, title of issue.
-        @param milestone int,, milestone id set to this issue.
-        @param isClosed bool,, issue is closed.
-
-        @param if query not none then will use the index to do a query and ignore other elements
-
-        e.g
-          -  self.index.select().order_by(self.index.modTime.desc())
-          -  self.index.select().where((self.index.priority=="normal") | (self.index.priority=="critical"))
-
-         info how to use see:
-            http://docs.peewee-orm.com/en/latest/peewee/querying.html
-            the query is the statement in the where
-
-        """
-
-        #[item._data for item in self.index.select().where((self.index.priority=="normal"))]
-
-        # TODO: use query functionality in peewee to implement above
-
-        if query != None:
-            res = [item.key for item in query]
-        else:
-            res = [item.key for item in self.index.select().order_by(self.index.modTime.desc())]
-            # raise NotImplemented()
-
-        return res
-
-    def find(self, query=None, repos=[], title='', content="", isClosed=None, comment='.*',
-             assignees=[], milestones=[], labels=[], gogsName="", gogsId="", github=False,
-             fromTime=None, toTime=None, fromCreationTime=None, toCreationTime=None):
-        """
-        """
-        res = []
-        for key in self.list(query=query, repos=repos, title=title, content=content, isClosed=isClosed, comment=comment, assignees=assignees, milestones=milestones,
-                             labels=labels, gogsName=gogsName, gogsId=gogsId, github=github, fromTime=fromTime,
-                             toTime=toTime, fromCreationTime=fromCreationTime, toCreationTime=toCreationTime):
-            res.append(self.get(key))
-
-        return res
 
     def getFromGogsId(self, gogsName, gogsId, createNew=True):
         return j.clients.gogs._getFromGogsId(self, gogsName=gogsName, gogsId=gogsId, createNew=createNew)

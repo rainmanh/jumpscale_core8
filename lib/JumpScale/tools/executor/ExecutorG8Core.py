@@ -1,6 +1,10 @@
 from JumpScale import j
 from ExecutorBase import ExecutorBase
-import g8core
+try:
+    import g8core
+except:
+    print("cannot find g8core")
+
 
 class ExecutorG8Core(ExecutorBase):
     """Executor that talks with a g8os/core0 node"""

@@ -25,7 +25,7 @@ class CuisinePHP(app):
     NAME = 'php'
 
     def build(self, **config):
-        pkgs = "libxml2-dev libpng-dev libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev re2c bison"
+        pkgs = "libxml2-dev libpng-dev libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev re2c bison bzip2 build-essential"
         list(map(self._cuisine.package.ensure, pkgs.split(sep=" ")))
 
         compileconfig['with_apxs2'] = self._cuisine.core.args_replace("$appDir/apache2/bin/apxs")
@@ -45,19 +45,21 @@ class CuisinePHP(app):
             else:
                 args_string += " --{k}={v}".format(k=k, v=v)
         C = """
-        cd $TMPDIR && [ ! -f $TMPDIR/php-7.0.11.tar.bz2 ] && wget http://be2.php.net/distributions/php-7.0.11.tar.bz2
-        cd $TMPDIR && tar xvjf $TMPDIR/php-7.0.11.tar.bz2
-        mv $TMPDIR/php-7.0.11/ $TMPDIR/php
+        set -x
+        rm -f $tmpdir/php-7.0.11.tar.bz*
+        cd $tmpdir && [ ! -f $tmpdir/php-7.0.11.tar.bz2 ] && wget http://be2.php.net/distributions/php-7.0.11.tar.bz2
+        cd $tmpdir && tar xvjf $tmpdir/php-7.0.11.tar.bz2
+        mv $tmpdir/php-7.0.11/ $tmpdir/php
 
         """
 
         C = self.cuisine.core.args_replace(C)
         self.cuisine.core.run(C)
 
-        C = """cd $TMPDIR/php && ./configure {args_string}""".format(args_string=args_string)
+        C = """cd $tmpdir/php && ./configure {args_string}""".format(args_string=args_string)
         self.cuisine.core.run(C, die=False)
 
-        C = """cd $TMPDIR/php && make"""
+        C = """cd $tmpdir/php && make"""
         self.cuisine.core.run(C, die=False)
 
 
@@ -102,6 +104,7 @@ class CuisinePHP(app):
         self._cuisine.bash.addPath(self._cuisine.core.args_replace('$appDir/php/bin'))
 
         # FOR APACHE
+        self._cuisine.core.dir_ensure('$appDir/php/lib/')
         self._cuisine.core.file_copy("$tmpDir/php/php.ini-development", "$appDir/php/lib/php.ini")
         if start:
             self.start()

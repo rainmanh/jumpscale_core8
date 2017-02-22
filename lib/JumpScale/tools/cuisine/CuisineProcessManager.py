@@ -276,9 +276,7 @@ class CuisineTmuxec(ProcessManagerBase):
         res = [item.strip().rstrip("*-").strip() for item in res]
         return res
 
-<<<<<<< HEAD
-    def ensure(self, name, cmd, env={}, path="", descr="",wait=10):
-=======
+
     def ensure(self, name, cmd, env={}, path="", descr="", autostart=False, wait=0):
         """
         Ensures that the given upstart service is self.running, starting it if necessary.
@@ -286,7 +284,6 @@ class CuisineTmuxec(ProcessManagerBase):
         @param autostart if true this means if the machine is halted it will try to start this again when the machine turned on again
         @param wait this is used with autostart if you want to wait for some time before executing the next startup command
         """
->>>>>>> 8.1.1
         self.stop(name=name)
         cmd = self.replace(cmd)
         path = self.replace(path)
@@ -299,10 +296,7 @@ class CuisineTmuxec(ProcessManagerBase):
             cmd = "%s %s" % (cwd, cmd)
         if envstr != "":
             cmd = "%s%s" % (envstr, cmd)
-<<<<<<< HEAD
 
-        self.cuisine.tmux.executeInScreen("main", name, cmd,wait=wait)
-=======
         if autostart:
             command_template = """
             tmux new-session -d -s {session}
@@ -311,14 +305,13 @@ class CuisineTmuxec(ProcessManagerBase):
             tmux detach -s {session}
             """
             start_command = command_template.format(session='main', window=name, command=cmd)
-            self._cuisine.core.file_ensure(self.startupfile)
-            content = self._cuisine.core.file_read(self.startupfile)
+            self.cuisine.core.file_ensure(self.startupfile)
+            content = self.cuisine.core.file_read(self.startupfile)
             if "tmux send-keys '{command}' c-m".format(command=cmd) not in content:
-                self._cuisine.core.file_write(self.startupfile, start_command, append=True)
+                self.cuisine.core.file_write(self.startupfile, start_command, append=True)
                 if wait:
-                    self._cuisine.core.file_write(self.startupfile, 'sleep %s' % wait, append=True)
-        self._cuisine.tmux.executeInScreen("main", name, cmd)
->>>>>>> 8.1.1
+                    self.cuisine.core.file_write(self.startupfile, 'sleep %s' % wait, append=True)
+        self.cuisine.tmux.executeInScreen("main", name, cmd)
 
     def stop(self, name):
         self.logger.info("stop...")

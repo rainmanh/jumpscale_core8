@@ -72,7 +72,7 @@ class RunsCollection(ModelBaseCollection):
                 if model.dbobj.repo != repo.model.key:
                     continue
                 idx = str(model.dbobj.state) + ':' + str(model.dbobj.lastModDate)
-                self._index.index_remove(key=idx)
+                self._index.index_remove(keys=idx)
                 self._db.delete(key=key)
                 # for job in model.jobs .. job. remove job
                 for step in model.dbobj.steps:

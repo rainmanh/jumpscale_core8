@@ -795,13 +795,26 @@ class CuisineCore(base):
 
         return True
 
-    def file_append(self, location, content, mode=None, owner=None, group=None):
+    def check_exist(self, location, content):
+        """check if the file in location contain the content"""
+        location = self.replace(location)
+        content2 = content.encode('utf-8')
+        content_base64 = base64.b64encode(content2).decode()
+        rc, _, _ = self.run('grep -F "$(echo "%s" | openssl base64 -A -d)" %s' % (content_base64, location), die=False)
+        return not rc
+
+    def file_append(self, location, content, mode=None, owner=None, group=None, check_exist=False):
         """Appends the given content to the remote file at the given
         location, optionally updating its mode / owner / group."""
         location = self.replace(location)
         content2 = content.encode('utf-8')
         content_base64 = base64.b64encode(content2).decode()
-        self.run('echo "%s" | base64  -d >> %s' % (content_base64, location), showout=False)
+        if check_exist:
+            command = 'grep -F "$(echo "%s" | openssl base64 -A -d)" %s' % (content_base64, location)
+            rc, _, _ = self.run(command, die=False)
+            if rc == 0:
+                return False
+        self.run('echo "%s" | openssl base64 -A -d >> %s' % (content_base64, location), showout=False)
         self.file_attribs(location, mode=mode, owner=owner, group=group)
 
     def file_unlink(self, path):

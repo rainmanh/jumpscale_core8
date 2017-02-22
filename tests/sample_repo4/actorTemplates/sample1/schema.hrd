@@ -1,0 +1,3 @@
+field = type:str
+field.with.dot = type:str
+field_with_underscore = type:str

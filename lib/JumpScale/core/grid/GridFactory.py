@@ -40,7 +40,7 @@ class GridFactory:
         self._loadConfig(test=False)
 
         roles = list()
-        if self.config.exists("grid.node.roles"):
+        if self.config.jumpscale['system']['grid'].get("grid.node.roles", False):
             roles = j.application.config.getList('grid.node.roles')
         roles = [role.lower() for role in roles]
         self.roles = roles

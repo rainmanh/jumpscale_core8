@@ -136,12 +136,8 @@ class RedisFactory:
                 url = "https://stor.jumpscale.org/public/redis-server"
                 j.tools.cuisine.local.core.file_download(url, to=redis_bin, overwrite=False, retry=3)
             # import subprocess
-            sync_cmd = 'sync'
-            cmd1 = "chmod 550 %s 2>&1" % redis_bin
-            cmd2 = "%s  --port 0 --unixsocket %s/redis.sock --maxmemory 100000000 --daemonize yes" % (redis_bin, tmpdir)
+            os.sync()
+            j.sal.fs.chmod(redis_bin, 0o550)
+            cmd = "%s  --port 0 --unixsocket %s/redis.sock --maxmemory 100000000" % (redis_bin, tmpdir)
             print("start redis in background (linux)")
-            os.system(cmd1)
-            os.system(sync_cmd)
-            os.system(cmd2)
-        else:
-            raise RuntimeError("platform not supported")
+            j.tools.cuisine.local.processmanager.ensure('redis_js', cmd)

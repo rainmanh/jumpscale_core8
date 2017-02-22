@@ -19,7 +19,6 @@ class CuisinePostgresql(app):
         cd $TMPDIR/postgresql-9.6.1
         ./configure --prefix=$JSAPPSDIR/pgsql --bindir=$BINDIR --sysconfdir=$CFGDIR --libdir=$LIBDIR/postgres --datarootdir=$JSAPPSDIR/pgsql/share
         make
-
         """
         self.cuisine.core.execute_bash(cmd, profile=True)
 

@@ -10,6 +10,7 @@ compileconfig['with_gd'] = True
 compileconfig['with_curl'] = True  # apt-get install libcurl4-openssl-dev libzip-dev
 compileconfig['with_libzip'] = True
 compileconfig['with_zlib'] = True
+compileconfig['with_openssl'] = True
 compileconfig['enable_fpm'] = True
 compileconfig['prefix'] = "$JSAPPSDIR/php"
 compileconfig['exec_prefix'] = "$JSAPPSDIR/php"
@@ -19,16 +20,22 @@ compileconfig['with_mysql_sock'] = "/var/run/mysqld/mysqld.sock"
 
 
 
-class CuisinePHP(app): #TEST on ovh4 *3
+class CuisinePHP(app):
 
     NAME = 'php'
 
     def build(self, **config):
-        pkgs = "libxml2-dev libpng-dev libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev file"
-        list(map(self.cuisine.package.ensure, pkgs.split(sep=" ")))
+        pkgs = "libxml2-dev libpng-dev libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev re2c bison bzip2 build-essential file"
+        list(map(self._cuisine.package.ensure, pkgs.split(sep=" ")))
 
+        compileconfig['with_apxs2'] = self._cuisine.core.args_replace("$appDir/apache2/bin/apxs")
         buildconfig = deepcopy(compileconfig)
         buildconfig.update(config)  # should be defaultconfig.update(config) instead of overriding the explicit ones.
+
+        # check for apxs2 binary if it's valid.
+        apxs = buildconfig['with_apxs2']
+        if not self._cuisine.core.file_exists(apxs):
+            buildconfig.pop('with_apxs2')
 
         args_string = ""
         for k, v in buildconfig.items():
@@ -38,21 +45,22 @@ class CuisinePHP(app): #TEST on ovh4 *3
             else:
                 args_string += " --{k}={v}".format(k=k, v=v)
         C = """
-        rm -rf $TMPDIR/php
-        rm -rf $JSAPPSDIR/php
-        set -xe
-        rm -rf $TMPDIR/php-7.0.11
-        cd $TMPDIR && [ ! -f $TMPDIR/php-7.0.11.tar.bz2 ] && cd $TMPDIR && wget http://be2.php.net/distributions/php-7.0.11.tar.bz2 && tar xvjf $TMPDIR/php-7.0.11.tar.bz2
+        set -x
+        rm -f $TMPDIR/php-7.0.11.tar.bz*
+        cd $TMPDIR && [ ! -f $TMPDIR/php-7.0.11.tar.bz2 ] && wget http://be2.php.net/distributions/php-7.0.11.tar.bz2
         cd $TMPDIR && tar xvjf $TMPDIR/php-7.0.11.tar.bz2
         mv $TMPDIR/php-7.0.11/ $TMPDIR/php
 
-        #build
-        cd $TMPDIR/php && ./configure {args_string} && make
-
         """.format(args_string=args_string)
 
-        C = self.replace(C)
-        self.cuisine.core.run(C, timeout=3000)
+        self.cuisine.core.run(C)
+
+        C = """cd $TMPDIR/php && ./configure {args_string}""".format(args_string=args_string)
+        self.cuisine.core.run(C, die=False)
+
+        C = """cd $TMPDIR/php && make"""
+        self.cuisine.core.run(C, die=False)
+
 
         # check if we need an php accelerator: https://en.wikipedia.org/wiki/List_of_PHP_accelerators
 
@@ -95,6 +103,9 @@ class CuisinePHP(app): #TEST on ovh4 *3
         self.cuisine.bash.profileJS.addPath(self.replace('$JSAPPSDIR/php/bin'))
         self.cuisine.bash.profileJS.save()
 
+        # FOR APACHE
+        self.cuisine.core.dir_ensure('$JSAPPSDIR/php/lib/')
+        self.cuisine.core.file_copy("$TMPDIR/php/php.ini-development", "$JSAPPSDIR/php/lib/php.ini")
         if start:
             self.start()
 

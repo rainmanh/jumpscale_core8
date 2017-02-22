@@ -207,7 +207,8 @@ class Account(Authorizables):
 
     def space_get(self, name, location="", create=True,
                   maxMemoryCapacity=-1, maxVDiskCapacity=-1, maxCPUCapacity=-1, maxNASCapacity=-1,
-                  maxNetworkOptTransfer=-1, maxNetworkPeerTransfer=-1, maxNumPublicIP=-1):
+                  maxNetworkOptTransfer=-1, maxNetworkPeerTransfer=-1, maxNumPublicIP=-1,
+                  externalnetworkId=None):
         """
         will get space if it exists,if not will create it
         to retrieve existing one location does not have to be specified
@@ -232,7 +233,8 @@ class Account(Authorizables):
                                                             maxNASCapacity=maxNASCapacity,
                                                             maxNetworkOptTransfer=maxNetworkOptTransfer,
                                                             maxNetworkPeerTransfer=maxNetworkPeerTransfer,
-                                                            maxNumPublicIP=maxNumPublicIP)
+                                                            maxNumPublicIP=maxNumPublicIP,
+                                                            externalnetworkId=externalnetworkId)
                 return self.space_get(name, location, False)
             else:
                 raise j.exceptions.RuntimeError(
@@ -338,7 +340,7 @@ class Space(Authorizables):
         else:
             raise j.exceptions.RuntimeError("Cloudspace has been deleted")
 
-    def machine_create(self, name, memsize=2, vcpus=1, disksize=10, datadisks=[], image="Ubuntu 15.10 x64", sizeId=None):
+    def machine_create(self, name, memsize=2, vcpus=1, disksize=10, datadisks=[], image="Ubuntu 15.10 x64", sizeId=None, stackId=None):
         """
         @param memsize in MB or GB
         for now vcpu's is ignored (waiting for openvcloud)
@@ -352,8 +354,12 @@ class Space(Authorizables):
                 "Name is not unique, already exists in %s" % self)
         print("cloudspaceid:%s name:%s size:%s image:%s disksize:%s" %
               (self.id, name, sizeId, imageId, disksize))
-        self.client.api.cloudapi.machines.create(
-            cloudspaceId=self.id, name=name, sizeId=sizeId, imageId=imageId, disksize=disksize, datadisks=datadisks)
+        if stackId:
+            self.client.api.cloudbroker.machine.createOnStack(cloudspaceId=self.id, name=name,
+                sizeId=sizeId, imageId=imageId, disksize=disksize, datadisks=datadisks, stackid=stackId)
+        else:
+            self.client.api.cloudapi.machines.create(
+                cloudspaceId=self.id, name=name, sizeId=sizeId, imageId=imageId, disksize=disksize, datadisks=datadisks)
         return self.machines[name]
 
     @property

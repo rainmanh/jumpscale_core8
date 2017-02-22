@@ -23,7 +23,9 @@ class CuisineRogerthatMfr(app):
         REPOS_PATH="/tmp/rogerthat"
         ROGERTHAT_MFR_REPO=$REPOS_PATH/rogerthat-mfr
         GAEDIR="/opt"
-        cd $GAEDIR  && wget {java_gae_url} && unzip appengine-java-sdk-1.8.4.zip
+        if [ ! -d "$GAEDIR/appengine-java-sdk-1.8.4" ]; then
+            cd $GAEDIR  && wget {java_gae_url} && unzip appengine-java-sdk-1.8.4.zip
+        fi
         if [ ! -d "$ROGERTHAT_MFR_REPO" ]; then
             cd $REPOS_PATH
             git clone {rogerthat_mfr_url}
@@ -35,8 +37,10 @@ class CuisineRogerthatMfr(app):
         mv war.zip {build_path}
         cd {build_path} && unzip war.zip -d war
         cd war && tar -czf {build_path}/mfr.tar.gz .
+        cd .. && rm -rf war war.zip
         """.format(rogerthat_mfr_url=ROGERTHAT_MFR_URL,
                    build_path=build_path,
                    java_gae_url=JAVA_GAE_URL)
-        self._cuisine.core.run(buildscript, die=True)
+        self._cuisine.core.file_write(location="/root/mfr.sh", content=buildscript)
+        self._cuisine.core.run("cd /root && bash mfr.sh", die=True)
         return "%s/mfr.tar.gz" % build_path

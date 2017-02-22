@@ -4,8 +4,8 @@ base = j.data.capnp.getModelBaseClassCollection()
 
 from peewee import *
 from playhouse.sqlite_ext import Model
-# from playhouse.sqlcipher_ext import *
 
+# from playhouse.sqlcipher_ext import *
 # db = Database(':memory:')
 
 

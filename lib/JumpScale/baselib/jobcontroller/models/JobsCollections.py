@@ -78,9 +78,10 @@ class JobsCollection:
 
     def getIndexFromKey(self, key):
         job = self.get(key)
-        ind = "%s:%s:%s:%s:%s:%s" % (job.dbobj.actorName, job.dbobj.serviceName,
+        if job:
+            ind = "%s:%s:%s:%s:%s:%s" % (job.dbobj.actorName, job.dbobj.serviceName,
                                      job.dbobj.actionName, job.dbobj.state, job.dbobj.serviceKey, job.dbobj.lastModDate)
-        return ind
+            return ind
 
     def destroy(self):
         self._db.destroy()

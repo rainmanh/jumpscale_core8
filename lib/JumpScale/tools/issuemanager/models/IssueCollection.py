@@ -2,14 +2,91 @@ from JumpScale import j
 
 base = j.data.capnp.getModelBaseClassCollection()
 
+from peewee import *
+from playhouse.sqlite_ext import Model
+# from playhouse.sqlcipher_ext import *
+
+# db = Database(':memory:')
+
 
 class IssueCollection(base):
     """
     This class represent a collection of Issues
     """
 
-    def list(self,  repos=[], title='', content="", isClosed=None, comment='.*',
-             assignees=[], milestones=[], labels=[], gogsName="", gogsId="", github=False,
+    def _init(self):
+        # init the index
+        db = j.tools.issuemanager.indexDB
+
+        class Issue(Model):
+            key = CharField(index=True, default="")
+            gogsRefs = CharField(index=True, default="")
+            title = CharField(index=True, default="")
+            creationTime = TimestampField(index=True, default=j.data.time.epoch)
+            modTime = TimestampField(index=True, default=j.data.time.epoch)
+            inGithub = BooleanField(index=True, default=False)
+            labels = CharField(index=True, default="")
+            assignees = CharField(index=True, default="")
+            milestone = CharField(index=True, default="")
+            priority = CharField(index=True, default="minor")
+            type = CharField(index=True, default="unknown")
+            state = CharField(index=True, default="new")
+
+            class Meta:
+                database = j.tools.issuemanager.indexDB
+                # order_by = ["id"]
+
+        # class Assignee(Model):
+        #     issue = ForeignKeyField(Issue, related_name='assignees')
+        #     name = CharField(index=True)
+
+        self.index = Issue
+
+        db.connect()
+        db.create_tables([Issue], True)
+
+    def add2index(self, **args):
+        """
+        key = CharField(index=True, default="")
+        gogsRefs = CharField(index=True, default="")
+        title = CharField(index=True, default="")
+        creationTime = TimestampField(index=True, default=j.data.time.epoch)
+        modTime = TimestampField(index=True, default=j.data.time.epoch)
+        inGithub = BooleanField(index=True, default=False)
+        labels = CharField(index=True, default="")
+        assignees = CharField(index=True, default="")
+        milestone = CharField(index=True, default="")
+        priority = CharField(index=True, default="minor")
+        type = CharField(index=True, default="unknown")
+        state = CharField(index=True, default="new")
+
+        @param args is any of the above
+
+        assignees & labels can be given as:
+            can be "a,b,c"
+            can be "'a','b','c'"
+            can be ["a","b","c"]
+            can be "a"
+
+        """
+
+        if "gogsRefs" in args:
+            args["gogsRefs"] = ["%s_%s" % (item["name"], item["id"]) for item in args["gogsRefs"]]
+
+        args = self._toArray(["assignees", "labels", "gogsRefs"], args)
+
+        # this will try to find the right index obj, if not create
+        obj, isnew = self.index.get_or_create(key=args["key"])
+
+        for key, item in args.items():
+            if key in obj._data:
+                # print("%s:%s" % (key, item))
+                obj._data[key] = item
+
+        obj.save()
+
+    def list(self,  query=None, repos=[], title='', content="", isClosed=None, comment='.*',
+             assignees=[], milestones=[], labels=[], gogsId="", gogsName="", github=False,
              fromTime=None, toTime=None, fromCreationTime=None, toCreationTime=None, returnIndex=False):
         """
         List all keys of issue model with specified params.
@@ -18,103 +95,38 @@ class IssueCollection(base):
         @param title str,, title of issue.
         @param milestone int,, milestone id set to this issue.
         @param isClosed bool,, issue is closed.
-        @param id int,, issue id in db.
-        @param creationTime int,, epoch of creation of issue.
-        @param modTime int,, epoch of modification of issue.
-        @param source str,, s
-        ource of remote database.
-        @param returnIndexalse bool,, return the index used.
+
+        @param if query not none then will use the index to do a query and ignore other elements
+
+        e.g
+          -  self.index.select().order_by(self.index.modTime.desc())
+          -  self.index.select().where((self.index.priority=="normal") | (self.index.priority=="critical"))
+
+         info how to use see:
+            http://docs.peewee-orm.com/en/latest/peewee/querying.html
+            the query is the statement in the where
+
         """
 
-        # TODO: *1 needs to be seriously checked
+        #[item._data for item in self.index.select().where((self.index.priority=="normal"))]
 
-        # ind = "%d:%d:%d:%d:%d:%d:%s:%s:%s" % (self.dbobj.milestone, self.dbobj.creationTime,
-        # self.dbobj.modTime, closed, self.dbobj.repo, self.dbobj.title.lower(),
-        # assignees, labels, gogsRefs)
+        # TODO: use query functionality in peewee to implement above
 
-        if title == "":
-            title0 = ".*"
-
-        if isClosed is None:
-            isClosed0 = ".*"
-        elif isClosed is True:
-            isClosed = '1'
-        elif isClosed is False:
-            isClosed = '0'
-
-        regex = ".*:.*:.*:%s:.*:%s:.*:.*:.*" % (isClosed0, title0,)
-        keys = self._index.list(regex, returnIndex=True)
-        res = []
-        for indexItem, key in keys:
-            # print(indexItem)
-            milestone1, creationTime1, modTime1, closed1, repo1, title1, assignees1, labels1, gogsrefs1 = indexItem.split(
-                ":")
-            modTime1 = int(modTime1)
-            creationTime1 = int(creationTime1)
-            if closed1 == "1":
-                closed1 = True
-            else:
-                closed1 = False
-            gogsName1, gogsId1 = gogsrefs1.split("_")
-
-            if gogsName != "" and gogsName1 != gogsName:
-                continue
-
-            if gogsId != "" and gogsId1 != gogsId:
-                continue
-
-            if fromTime != None and fromTime > modTime1 - 1:
-                continue
-
-            if toTime != None and modTime1 + 1 > toTime:
-                continue
-
-            if fromCreationTime != None and fromCreationTime > creationTime1 - 1:
-                continue
-
-            if toCreationTime != None and creationTime1 + 1 > toCreationTime:
-                continue
-
-            if isClosed != None and isClosed != closed1:
-                continue
-
-            # milestone
-            if milestones != []:
-                found = False
-                for milestone in milestones:
-                    if milestone == milestone1:
-                        found = True
-                if found == False:
-                    continue
-
-            # labels
-            if labels != []:
-                found = False
-                for label in labels:
-                    if label == label1:
-                        found = True
-                if found == False:
-                    continue
-
-            # did not continue so now only to check description & content
-            if content != '' or title != '':
-                obj = self.get(key)
-                if content != "" and obj.dbobj.content != content:
-                    continue
-                if title != "" and obj.dbobj.title != title:
-                    continue
-
-            res.append(key)
+        if query != None:
+            res = [item.key for item in query]
+        else:
+            res = [item.key for item in self.index.select().order_by(self.index.modTime.desc())]
+            # raise NotImplemented()
 
         return res
 
-    def find(self, repos=[], title='', content="", isClosed=None, comment='.*',
+    def find(self, query=None, repos=[], title='', content="", isClosed=None, comment='.*',
              assignees=[], milestones=[], labels=[], gogsName="", gogsId="", github=False,
              fromTime=None, toTime=None, fromCreationTime=None, toCreationTime=None):
         """
         """
         res = []
-        for key in self.list(repos=repos, title=title, content=content, isClosed=isClosed, comment=comment, assignees=assignees, milestones=milestones,
+        for key in self.list(query=query, repos=repos, title=title, content=content, isClosed=isClosed, comment=comment, assignees=assignees, milestones=milestones,
                              labels=labels, gogsName=gogsName, gogsId=gogsId, github=github, fromTime=fromTime,
                              toTime=toTime, fromCreationTime=fromCreationTime, toCreationTime=toCreationTime):
             res.append(self.get(key))

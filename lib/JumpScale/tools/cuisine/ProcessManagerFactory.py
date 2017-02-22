@@ -7,7 +7,7 @@ class ProcessManagerFactory:
 
     def __init__(self, cuisine):
         self.pms = {}
-        self.cuisine = cuisine
+        self._cuisine = cuisine
         self._logger = None
 
     @property
@@ -18,12 +18,12 @@ class ProcessManagerFactory:
 
 
     def systemdOK(self):
-        res = not self.cuisine.core.isDocker and self.cuisine.core.command_check("systemctl")
+        res = not self._cuisine.core.isDocker and self._cuisine.core.command_check("systemctl")
         self.logger.info("systemd:%s" % res)
         return res
 
     def svOK(self):
-        res = self.cuisine.core.command_check("sv")
+        res = self._cuisine.core.command_check("sv")
         self.logger.info("systemd:%s" % res)
         return res
 
@@ -55,11 +55,11 @@ class ProcessManagerFactory:
 
         if pm not in self.pms:
             if pm == "systemd":
-                inst = CuisineSystemd(self.cuisine.core.executor, self.cuisine)
+                inst = CuisineSystemd(self._cuisine.core.executor, self._cuisine)
             elif pm == "sv":
-                inst = CuisineRunit(self.cuisine.core.executor, self.cuisine)
+                inst = CuisineRunit(self._cuisine.core.executor, self._cuisine)
             elif pm == "tmux":
-                inst = CuisineTmuxec(self.cuisine.core.executor, self.cuisine)
+                inst = CuisineTmuxec(self._cuisine.core.executor, self._cuisine)
             self.pms[pm] = inst
 
         return self.pms[pm]

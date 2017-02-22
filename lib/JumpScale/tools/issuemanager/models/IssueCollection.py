@@ -36,10 +36,6 @@ class IssueCollection(base):
                 database = j.tools.issuemanager.indexDB
                 # order_by = ["id"]
 
-        # class Assignee(Model):
-        #     issue = ForeignKeyField(Issue, related_name='assignees')
-        #     name = CharField(index=True)
-
         self.index = Issue
 
         db.connect()
@@ -73,7 +69,7 @@ class IssueCollection(base):
         if "gogsRefs" in args:
             args["gogsRefs"] = ["%s_%s" % (item["name"], item["id"]) for item in args["gogsRefs"]]
 
-        args = self._toArray(["assignees", "labels", "gogsRefs"], args)
+        args = self._arraysFromArgsToString(["assignees", "labels", "gogsRefs"], args)
 
         # this will try to find the right index obj, if not create
         obj, isnew = self.index.get_or_create(key=args["key"])

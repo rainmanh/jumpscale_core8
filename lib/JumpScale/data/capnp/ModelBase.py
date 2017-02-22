@@ -324,13 +324,18 @@ class ModelBaseCollection:
     def indexDB(self):
         return self._index
 
-    def _toArray(self, names, args):
+    def _arraysFromArgsToString(self, names, args):
         """
-        will translate arrays or non arrays to '$name1','$name2'
-        can be "a,b,c"
-        can be "'a','b','c'"
-        can be ["a","b","c"]
-        can be "a"
+        will translate arrays or non arrays to string in format
+            '$name1','$name2'
+
+        @param names tells us which items from the args which needs to be processed
+
+        items to process in args are:
+            can be "a,b,c"
+            can be "'a','b','c'"
+            can be ["a","b","c"]
+            can be "a"
 
         @param args is dict with arguments to check
         """

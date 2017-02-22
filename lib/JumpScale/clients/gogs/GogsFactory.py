@@ -10,11 +10,6 @@ class GogsFactory:
         self.logger = j.logger.get("j.clients.gogs")
         self.model = None
 
-        self.userCollection = j.tools.issuemanager.getUserCollectionFromDB()
-        self.orgCollection = j.tools.issuemanager.getOrgCollectionFromDB()
-        self.issueCollection = j.tools.issuemanager.getIssueCollectionFromDB()
-        self.repoCollection = j.tools.issuemanager.getRepoCollectionFromDB()
-
         self.logger = j.logger.get("j.clients.gogs")
         self.logger.info("gogs factory initted.")
         self.dbconn = None
@@ -28,12 +23,17 @@ class GogsFactory:
         self._repos_table = {}
         self.userId2userKey = {}
         self.repoId2repoKey = {}
+        self.userCollection = j.tools.issuemanager.getUserCollectionFromDB()
+        self.orgCollection = j.tools.issuemanager.getOrgCollectionFromDB()
+        self.issueCollection = j.tools.issuemanager.getIssueCollectionFromDB()
+        self.repoCollection = j.tools.issuemanager.getRepoCollectionFromDB()
 
     def destroyData(self):
         self.userCollection.destroy()
         self.orgCollection.destroy()
         self.issueCollection.destroy()
         self.repoCollection.destroy()
+        self.reset()
 
     def createViews(self):
         self.logger.info("createviews")
@@ -319,7 +319,8 @@ class GogsFactory:
 
             issueIdLocal = issue.index
             url = "https://docs.greenitglobe.com/%s/%s/issues/%s" % (orgName, repoName, issueIdLocal)
-            issue_model.dbobj.url = url
+            gogsRef = issue_model.gogsRefGet(gogsName)
+            gogsRef.url = url
 
             issue_model.save()
 

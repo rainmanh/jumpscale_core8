@@ -117,8 +117,8 @@ class ModelBase():
             self.__dict__.pop("list_%s" % key)
 
     def save(self):
-        self._pre_save()
         self.reSerialize()
+        self._pre_save()
         if self.collection._db.inMem:
             self.collection._db.db[self.key] = self.dbobj
         else:
@@ -194,7 +194,11 @@ class ModelBase():
         if len(prop) == 0:
             self.__dict__["list_%s" % name] = []
         else:
-            self.__dict__["list_%s" % name] = [item.copy() for item in prop]
+            try:
+                self.__dict__["list_%s" % name] = [item.copy() for item in prop]
+            except:
+                # means is not an object can be e.g. a string
+                self.__dict__["list_%s" % name] = [item for item in prop]
 
         # empty the dbobj list
         exec("self.dbobj.%s=[]" % name)
@@ -308,7 +312,36 @@ class ModelBaseCollection:
         self.modelBaseClass = modelBaseClass if modelBaseClass else ModelBase
 
         self.logger = j.logger.get("modelBase_%s" % category)
+
+        self._init()
+
         self.logger.debug("initted.")
+
+    def _init(self):
+        pass
+
+    @property
+    def indexDB(self):
+        return self._index
+
+    def _toArray(self, names, args):
+        """
+        will translate arrays or non arrays to '$name1','$name2'
+        can be "a,b,c"
+        can be "'a','b','c'"
+        can be ["a","b","c"]
+        can be "a"
+
+        @param args is dict with arguments to check
+        """
+        for name in names:
+            if name in args:
+                if j.data.types.string.check(args[name]) and "," in args[name]:
+                    args[name] = [item.strip().strip("'").strip() for item in args[name].split(",")]
+                elif not j.data.types.list.check(args[name]):
+                    args[name] = [args[name]]
+                args[name] = ",".join(["'%s'" % item for item in args[name]])
+        return args
 
     @property
     def objType(self):

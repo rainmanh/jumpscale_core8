@@ -3,13 +3,14 @@
 struct Issue {
     title @0 :Text;
     repo @1 :Text;
-    milestone @2 :Text; #reference to key of Milestone
+    milestone @2 :Text; #is name of milestone
     assignees @3 :List(Text); #keys of user
     isClosed @4 :Bool;
     comments @5 :List(Comment);
     struct Comment{
         owner @0 :Text;
         comment @1 :Text;
+        modTime @2 :UInt32;
     }
     labels @6 :List(Text);
     content @7 :Text;
@@ -20,8 +21,41 @@ struct Issue {
     struct GogsRef{
         name @0 :Text;
         id @1 :UInt32;
+        url @2 :Text;
     }
-    url  @12 :Text;
+    state @12: State;
+    enum State {
+        new   @0;
+        inprogress    @1;
+        resolved  @2;
+        wontfix @3;
+        question  @4;
+        closed  @5;
+    }
+
+    priority @13: Priority;
+    enum Priority {
+        minor   @0;
+        normal    @1;
+        major  @2;
+        critical @3;
+    }
+
+    type @14: Type;
+    enum Type {
+        unknown   @0;
+        alert   @1;
+        bug    @2;
+        doc  @3;
+        feature @4;
+        incident   @5;
+        question    @6;
+        request  @7;
+        story @8;
+        task   @9;
+    }
+    inGithub @15: Bool;
+
 
 }
 

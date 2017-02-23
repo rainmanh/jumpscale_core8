@@ -150,6 +150,9 @@ def show(role, name):
         print('\n')
         print('---------------------------------------------------')
         print("Service: %s - Role: %s" % (service['name'], service['role']))
+        color = 'red' if service['state'] == 'error' else 'green'
+        print(click.style("state : {}".format(service['state']), fg=color))
+        print("state")
         print("\nInstance data:", end='')
         instance_data = service['data']
         if not instance_data:

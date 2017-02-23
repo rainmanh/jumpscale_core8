@@ -2,58 +2,74 @@ from JumpScale import j
 
 base = j.data.capnp.getModelBaseClassCollection()
 
+from peewee import *
+from playhouse.sqlite_ext import Model
+
+# from playhouse.sqlcipher_ext import *
+# db = Database(':memory:')
+
 
 class UserCollection(base):
     """
-    This class represent a collection of Issues
+    This class represent a collection of users
     """
 
-    def list(self, name='', fullname='', email='', githubId=0, gogsId=0, iyoId="", telegramId="", returnIndex=False):
+    def _init(self):
+        # init the index
+        db = j.tools.issuemanager.indexDB
+
+        class User(Model):
+            key = CharField(index=True, default="")
+            gogsRefs = CharField(index=True, default="")
+            name = CharField(index=True, default="")
+            fullname = CharField(index=True, default="")
+            email = CharField(index=True, default="")
+            inGithub = BooleanField(index=True, default=False)
+            githubId = CharField(index=True, default="")
+            telegramId = CharField(index=True, default="")
+            iyoId = CharField(index=True, default="")
+
+            class Meta:
+                database = j.tools.issuemanager.indexDB
+                # order_by = ["id"]
+
+        self.index = User
+
+        if db.is_closed():
+            db.connect()
+        db.create_tables([User], True)
+
+    def add2index(self, **args):
         """
-        List all keys of repo model with specified params.
+        key = CharField(index=True, default="")
+        gogsRefs = CharField(index=True, default="")
+        name = CharField(index=True, default="")
+        fullname = CharField(index=True, default="")
+        email = CharField(index=True, default="")
+        inGithub = BooleanField(index=True, default=False)
+        githubId = CharField(index=True, default="")
+        telegramId = CharField(index=True, default="")
+        iyoId = CharField(index=True, default="")
 
-        @param name str,, name of user.
-        @param fullname str,, full name of the user.
-        @param email str,, email of the user.
-        @param id int,, repo id in db.
-        @param source str,, source of remote database.
-        @param returnIndexalse bool,, return the index used.
+
+        @param args is any of the above
         """
 
-        if name == "":
-            name = ".*"
-        if fullname == "":
-            fullname = ".*"
-        if email == "":
-            email = ".*"
-        if githubId == 0 or githubId == "":
-            githubId = ".*"
-        gogsId = int(gogsId)
-        if gogsId == 0:
-            gogsId = ".*"
-        if iyoId == "":
-            iyoId = ".*"
-        if telegramId == "":
-            telegramId = ".*"
+        if "gogsRefs" in args:
+            args["gogsRefs"] = ["%s_%s_%s" % (item["name"], item["id"], item['url']) for item in args["gogsRefs"]]
 
-        regex = "%s:%s:%s:%s:%s:%s:%s" % (name, fullname, email, githubId, gogsId, iyoId, telegramId)
-        return self._index.list(regex, returnIndex=returnIndex)
+        args = self._arraysFromArgsToString(["gogsRefs"], args)
 
-    def find(self, name='', fullname='', email='', githubId=0, gogsId=0, iyoId="", telegramId=""):
-        """
-        List all instances of repo model with specified params.
+        # this will try to find the right index obj, if not create
 
-        @param name str,, name of user.
-        @param fullname str,, full name of the user.
-        @param email str,, email of the user.
-        @param id int,, repo id in db.
-        @param source str,, source of remote database.
-        """
-        res = []
-        for key in self.list(name=name, fullname=fullname, email=email, githubId=githubId, gogsId=gogsId,
-                             iyoId=iyoId, telegramId=telegramId):
-            res.append(self.get(key))
-        return res
+        obj, isnew = self.index.get_or_create(key=args["key"])
 
-    def getFromGogsId(self, gogsName, gogsId, createNew=True):
-        return j.clients.gogs._getFromGogsId(self, gogsName=gogsName, gogsId=gogsId, createNew=createNew)
+        for key, item in args.items():
+            if key in obj._data:
+                # print("%s:%s" % (key, item))
+                obj._data[key] = item
+
+        obj.save()
+
+    def getFromGogsId(self, gogsName, gogsId, gogsUrl, createNew=True):
+        return j.clients.gogs._getFromGogsId(self, gogsName=gogsName, gogsId=gogsId, gogsUrl=gogsUrl, createNew=createNew)

@@ -56,7 +56,6 @@ struct Issue {
     }
     inGithub @15: Bool;
 
-
 }
 
 struct Organization{
@@ -69,6 +68,7 @@ struct Organization{
     struct GogsRef{
         name @0 :Text;
         id @1 :UInt32;
+        url @2: Text;
     }
     members @6 :List(Member);
     struct Member{
@@ -82,6 +82,7 @@ struct Organization{
         name @1: Text;
         access @2:UInt16;
     }
+    inGithub @8: Bool;
 
 }
 
@@ -100,7 +101,9 @@ struct Repo{
     struct GogsRef{
         name @0 :Text;
         id @1 :UInt32;
+        url @2: Text;
     }
+    inGithub @7: Bool;
 }
 
 struct User{
@@ -111,8 +114,10 @@ struct User{
     struct GogsRef{
         name @0 :Text;
         id @1 :UInt32;
+        url @2: Text;
     }
     githubId @4 :Text; #e.g. despiegk
     telegramId @5: Text;#e.g. despiegk
     iyoId@6: Text;#e.g. despiegk
+    inGithub @7: Bool;
 }

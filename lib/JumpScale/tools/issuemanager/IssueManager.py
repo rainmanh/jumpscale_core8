@@ -25,7 +25,7 @@ class IssueManager:
         self.__jslocation__ = "j.tools.issuemanager"
         self.namespace = "gogs"
         self.store = "gogs"
-        self.indexDBPath = "index.db"
+        self.indexDBPath = ":memory:"
         self._indexDB = None
 
     def set_namespaceandstore(self, namespace="gogs", store="gogs"):

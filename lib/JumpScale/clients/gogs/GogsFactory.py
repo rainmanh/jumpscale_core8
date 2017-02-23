@@ -242,7 +242,7 @@ class GogsFactory:
             raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
                                      level=1, source="", tags="", msgpub="")
 
-        query = self.model.User.raw("SET CLIENT_ENCODING TO 'UTF8';select * from issues_view order by id;")
+        query = self.model.Issue.raw("SET CLIENT_ENCODING TO 'UTF8';select * from issues_view order by id;")
 
         for issue in query:
 
@@ -254,11 +254,14 @@ class GogsFactory:
             name = j.data.serializer.base64.loads(issue.name)
 
             self.logger.debug("process issue: org:%s %s/%s %s" % (orgName, repoName, issue.id, name))
-            issue_model = self.issueCollection.getFromGogsId(gogsName, issue.id, createNew=True)
+
+            issueIdLocal = issue.index
+            url = "https://docs.greenitglobe.com/%s/%s/issues/%s" % (orgName, repoName, issueIdLocal)
+            issue_model = self.issueCollection.getFromGogsId(gogsName, issue.id, url, createNew=True)
 
             # assignees
             if issue.id in self.issue_user_table:
-                assignees = [self.userId2userKey[item.uid] for item in self.issue_user_table[issue.id]]
+                assignees = [self.userId2userKey.get(item.uid, "") for item in self.issue_user_table[issue.id]]
                 for assignee in assignees:
                     issue_model.assigneeSet(assignee)
 
@@ -274,7 +277,7 @@ class GogsFactory:
                         meta, comment = res
                         ownerId = int(meta.split(",")[1])
                         # owner = self.userId2userKey[ownerId]
-                        owner = ""  # TODO: *1 for later, we need to add modification date to comments
+                        owner = ""  # TODO: *1 for later
                     else:
                         comment = res[0]
                         owner = ""
@@ -317,29 +320,25 @@ class GogsFactory:
                 issue_model.dbobj.isClosed = issue.is_closed
                 issue_model.changed = True
 
-            issue_model.dbobj.repo = self.repoId2repoKey[issue.repo_id]
-
-            issueIdLocal = issue.index
-            url = "https://docs.greenitglobe.com/%s/%s/issues/%s" % (orgName, repoName, issueIdLocal)
-            gogsRef = self._gogsRefGet(issue_model, gogsName=gogsName)
-            gogsRef.url = url
+            issue_model.dbobj.repo = repo.name
 
             issue_model.save()
 
     def getOrgsFromPSQL(self, gogsName):
         self.logger.info("getOrgsFromPSQL")
 
-        query = self.model.User.raw("select * from org_users_grouped;")
+        query = self.model.OrgUser.raw("select * from org_users_grouped;")
 
         if self.userId2userKey == {}:
-            self.getUsersFromPSQL()
+            self.getUsersFromPSQL(gogsName=gogsName)
 
         for org in query:
 
             orgName = self.users_table[org.org_userid].name
 
             # get organization from gogsid
-            org_model = self.orgCollection.getFromGogsId(gogsName=gogsName, gogsId=org.org_userid)
+            url = "https://docs.greenitglobe.com/%s" % orgName
+            org_model = self.orgCollection.getFromGogsId(gogsName=gogsName, gogsId=org.org_userid, gogsUrl=url)
 
             members = [self.userId2userKey[int(item.strip())]
                        for item in org.org_member_userids.split(",")]
@@ -373,11 +372,12 @@ class GogsFactory:
                                      level=1, source="", tags="", msgpub="")
 
         if self.userId2userKey == {}:
-            self.getUsersFromPSQL()
+            self.getUsersFromPSQL(gogsName=gogsName)
 
         for id, repo in self.repos_table.items():
 
-            repo_model = self.repoCollection.getFromGogsId(gogsName=gogsName, gogsId=id)
+            url = "https://docs.greenitglobe.com/%s/%s" % (self.userId2userKey[repo.owner], repo.name)
+            repo_model = self.repoCollection.getFromGogsId(gogsName=gogsName, gogsId=id, gogsUrl=url)
 
             repo_model.dbobj.name = repo.name
             repo_model.dbobj.description = repo.description
@@ -401,7 +401,8 @@ class GogsFactory:
                                      level=1, source="", tags="", msgpub="")
 
         for id, user in self.users_table.items():
-            user_model = self.userCollection.getFromGogsId(gogsName=gogsName, gogsId=user.id)
+            url = "https://docs.greenitglobe.com/%s" % user.name
+            user_model = self.userCollection.getFromGogsId(gogsName=gogsName, gogsId=user.id, gogsUrl=url)
             if user_model.dbobj.name != user.name:
                 user_model.dbobj.name = user.name
                 user_model.changed = True
@@ -434,16 +435,16 @@ class GogsFactory:
             embed()
             raise RuntimeError("stop debug here")
 
-    def _gogsRefSet(self, model, gogsName, gogsId):
+    def _gogsRefSet(self, model, gogsName, gogsId, gogsUrl):
         """
         @param name is name of gogs instance
         @id is id in gogs
         """
-        model.logger.debug("gogsRefSet: gogsname='%s' gogsid='%s' " % (gogsName, gogsId))
-        ref = self._gogsRefGet(model, gogsName)
+        model.logger.debug("gogsRefSet: gogsname='%s' gogsid='%s' gogsUrl='%s'" % (gogsName, gogsId, gogsUrl))
+        ref = self._gogsRefGet(model, gogsName, gogsUrl)
         if ref == None:
             model.logger.debug("add subitem")
-            model.addSubItem("gogsRefs", data=model.collection.list_gogsRefs_constructor(id=gogsId, name=gogsName))
+            model.addSubItem("gogsRefs", data=model.collection.list_gogsRefs_constructor(id=gogsId, name=gogsName, url=gogsUrl))
             key = model.collection._index.lookupSet("gogs_%s" % gogsName, gogsId, model.key)
             model.save()
         else:
@@ -454,23 +455,23 @@ class GogsFactory:
     def _gogsRefExist(self, model, gogsName):
         return not self._gogsRefGet(model, gogsName) == None
 
-    def _gogsRefGet(self, model, gogsName):
+    def _gogsRefGet(self, model, gogsName, gogsUrl):
         for item in model.dbobj.gogsRefs:
             if item.name == gogsName:
                 return item
         return None
 
-    def _getFromGogsId(self, modelCollection, gogsName, gogsId, createNew=True):
+    def _getFromGogsId(self, modelCollection, gogsName, gogsId, gogsUrl, createNew=True):
         """
         @param gogsName is the name of the gogs instance
         """
-        modelCollection.logger.debug("getfromGogsId: gogsname='%s' gogsid='%s' " % (gogsName, gogsId))
+        modelCollection.logger.debug("gogsRefSet: gogsname='%s' gogsid='%s' gogsUrl='%s'" % (gogsName, gogsId, gogsUrl))
         key = modelCollection._index.lookupGet("gogs_%s" % gogsName, gogsId)
         if key == None:
             modelCollection.logger.debug("gogs id not found, create new")
             if createNew:
                 modelActive = modelCollection.new()
-                self._gogsRefSet(model=modelActive, gogsName=gogsName, gogsId=gogsId)
+                self._gogsRefSet(model=modelActive, gogsName=gogsName, gogsId=gogsId, gogsUrl=gogsUrl)
             else:
                 raise j.exceptions.Input(message="cannot find object  %s from gogsid:%s" %
                                          (modelCollection.objType, gogsId), level=1, source="", tags="", msgpub="")

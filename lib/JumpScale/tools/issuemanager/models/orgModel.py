@@ -6,21 +6,11 @@ base = j.data.capnp.getModelBaseClass()
 
 class OrgModel(base):
     """
-    Model Class for an Issue object
+    Model Class for an org object
     """
 
     def index(self):
-        # put indexes in db as specified
-        gogsRefs = ",".join(["%s_%s" % (item.name.lower(), item.id) for item in self.dbobj.gogsRefs])
-        for item in self.dbobj.gogsRefs:
-            # there can be multiple gogs sources
-            self.collection._index.lookupSet("gogs_%s" % item.name, item.id, self.key)
-
-        owners = ",".join([str(item) for item in self.dbobj.owners])
-        members = ",".join([str(item.key) for item in self.dbobj.members])
-        repos = ",".join([str(item) for item in self.dbobj.repos])
-        ind = "%s:%s:%s:%s" % (self.dbobj.name.lower(), owners, members, repos)
-        self.collection._index.index({ind: self.key})
+        self.collection.add2index(**self.to_dict())
 
     def memberSet(self, key, access):
         """
@@ -38,6 +28,17 @@ class OrgModel(base):
         obj = self.collection.list_members_constructor(access=access, key=key, name=member.dbobj.name)
         self.addSubItem("members", obj)
         self.changed = True
+
+    def memberAdd(self, userKey,access):
+        """
+        """
+        obj = j.data.capnp.getMemoryObj(
+            schema=self._capnp_schema.Member,
+            userKey=userKey,
+            access=access)
+
+        self.dbobj.members.append(obj)
+        self.save()
 
     def ownerSet(self, key):
         """

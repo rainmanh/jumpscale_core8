@@ -6,25 +6,14 @@ base = j.data.capnp.getModelBaseClass()
 
 class RepoModel(base):
     """
-    Model Class for an Issue object
+    Model Class for a repo object
     """
 
     def index(self):
-        gogsRefs = ",".join(["%s_%s" % (item.name.lower(), item.id) for item in self.dbobj.gogsRefs])
-        for item in self.dbobj.gogsRefs:
-            # there can be multiple gogs sources
-            self.collection._index.lookupSet("gogs_%s" % item.name, item.id, self.key)
+        self.collection.add2index(**self.to_dict())
 
-        members = ",".join([str(item.userKey) for item in self.dbobj.members])
-        # put indexes in db as specified
-        ind = "%s:%s:%s" % (self.dbobj.owner.lower(), self.dbobj.name.lower(), gogsRefs)
-        self.collection._index.index({ind: self.key})
+    def gogsRefSet(self, name, id, url):
+        return j.clients.gogs._gogsRefSet(self, name, id, url)
 
-    def _pre_save(self):
-        pass
-
-    def gogsRefSet(self, name, id):
-        return j.clients.gogs._gogsRefSet(self, name, id)
-
-    def gogsRefExist(self, name):
-        return j.clients.gogs._gogsRefExist(self, name)
+    def gogsRefExist(self, name, url):
+        return j.clients.gogs._gogsRefExist(self, name, url)

@@ -2,72 +2,80 @@ from JumpScale import j
 
 base = j.data.capnp.getModelBaseClassCollection()
 
+from peewee import *
+from playhouse.sqlite_ext import Model
+
+# from playhouse.sqlcipher_ext import *
+# db = Database(':memory:')
+
 
 class RepoCollection(base):
     """
-    This class represent a collection of Issues
+    This class represent a collection of Repos
     """
 
-    def list(self, owner='', name='', id='', milestone='', member='', label='', source="", returnIndex=False):
+    def _init(self):
+        # init the index
+        db = j.tools.issuemanager.indexDB
+
+        class Repo(Model):
+            key = CharField(index=True, default="")
+            gogsRefs = CharField(index=True, default="")
+            name = CharField(index=True, default="")
+            inGithub = BooleanField(index=True, default=False)
+            members = CharField(index=True, default="")
+            nrIssues = IntegerField(index=True, default=0)
+            nrMilestones = IntegerField(index=True, default=0)
+            owner = CharField(index=True, default="")
+            description = CharField(index=True, default="")
+
+            class Meta:
+                database = j.tools.issuemanager.indexDB
+                # order_by = ["id"]
+
+        self.index = Repo
+
+        if db.is_closed():
+            db.connect()
+        db.create_tables([Repo], True)
+
+    def add2index(self, **args):
         """
-        List all keys of repo model with specified params.
+        key = CharField(index=True, default="")
+        gogsRefs = CharField(index=True, default="")
+        name = CharField(index=True, default="")
+        inGithub = BooleanField(index=True, default=False)
+        members = CharField(index=True, default="")
+        nrIssues = IntegerField(index=True, default=0)
+        nrMilestones = IntegerField(index=True, default=0)
+        owner = CharField(index=True, default="")
+        description = CharField(index=True, default="")
 
-        @param owner int,, id of owner the repo belongs to.
-        @param name str,, name of repo.
-        @param id int,, repo id in db.
-        @param source str,, source of remote database.
-        @param returnIndexalse bool,, return the index used.
+        @param args is any of the above
+
+        members can be given as:
+            can be "a,b,c"
+            can be "'a','b','c'"
+            can be ["a","b","c"]
+            can be "a"
+
         """
-        if milestone == "":
-            milestone = ".*"
-        else:
-            milestone = ".*%s.*" % milestone
 
-        if label == "":
-            label = ".*"
-        else:
-            label = ".*%s.*" % label
+        if "gogsRefs" in args:
+            args["gogsRefs"] = ["%s_%s_%s" % (item["name"], item["id"], item['url']) for item in args["gogsRefs"]]
 
-        if member == "":
-            member = ".*"
-        else:
-            users = j.tools.issuemanager.getUserCollectionFromDB()
-            member_id = users.find(name=member)[0].dictFiltered.get('id')
-            member = ".*%s.*" % member_id
+        args = self._arraysFromArgsToString(["members", "gogsRefs"], args)
 
-        if owner == "" or owner == 0:
-            owner = ".*"
-        if name == "":
-            name = ".*"
-        if id == "" or id == 0:
-            id = ".*"
-        if source == "":
-            source = ".*"
-        if milestone == "":
-            milestone = ".*"
-        if member == "":
-            member = ".*"
+        # this will try to find the right index obj, if not create
 
-        regex = "%s:%s:%s:%s:%s:%s:%s" % (owner, name, id, source, milestone, member, label)
-        return self._index.list(regex, returnIndex=returnIndex)
+        obj, isnew = self.index.get_or_create(key=args["key"])
 
-    def find(self, owner='', name='', id='', milestone='', member='', label='', source=""):
-        """
-        List all instances of repo model with specified params.
+        for key, item in args.items():
+            if key in obj._data:
+                # print("%s:%s" % (key, item))
+                obj._data[key] = item
 
-        @param owner str,, name of owner the repo belongs to.
-        @param name str,, name of repo.
-        @param id int,, repo id in db.
-        @param milestone name,, name of milestone in repo.
-        @param member str,, name of member in repo.
-        @param source str,, source of remote database.
-        @param returnIndexalse bool,, return the index used.
-        """
-        res = []
-        for key in self.list(owner=owner, name=name, id=id, source=source, milestone=milestone, member=member):
-            res.append(self.get(key))
+        obj.save()
 
-        return res
-
-    def getFromGogsId(self, gogsName, gogsId, createNew=True):
-        return j.clients.gogs._getFromGogsId(self, gogsName=gogsName, gogsId=gogsId, createNew=createNew)
+    def getFromGogsId(self, gogsName, gogsId, gogsUrl, createNew=True):
+        return j.clients.gogs._getFromGogsId(self, gogsName=gogsName, gogsId=gogsId, gogsUrl=gogsUrl, createNew=createNew)

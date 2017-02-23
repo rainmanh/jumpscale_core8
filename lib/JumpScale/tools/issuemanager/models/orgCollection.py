@@ -2,88 +2,82 @@ from JumpScale import j
 
 base = j.data.capnp.getModelBaseClassCollection()
 
+from peewee import *
+from playhouse.sqlite_ext import Model
+
+# from playhouse.sqlcipher_ext import *
+# db = Database(':memory:')
+
 
 class OrgCollection(base):
     """
-    This class represent a collection of Issues
+    This class represent a collection of Orgs
     """
 
-    def memberAdd(self, userKey,access):
+    def _init(self):
+        # init the index
+        db = j.tools.issuemanager.indexDB
+
+        class Org(Model):
+            key = CharField(index=True, default="")
+            gogsRefs = CharField(index=True, default="")
+            name = CharField(index=True, default="")
+            description = CharField(index=True, default="")
+            inGithub = BooleanField(index=True, default=False)
+            members = CharField(index=True, default="")
+            owners = CharField(index=True, default="")
+            nrIssues = IntegerField(index=True, default=0)
+            nrRepos = IntegerField(index=True, default=0)
+            repos = CharField(index=True, default="")
+
+            class Meta:
+                database = j.tools.issuemanager.indexDB
+                # order_by = ["id"]
+
+        self.index = Org
+
+        if db.is_closed():
+            db.connect()
+        db.create_tables([Org], True)
+
+    def add2index(self, **args):
         """
+        key = CharField(index=True, default="")
+        gogsRefs = CharField(index=True, default="")
+        name = CharField(index=True, default="")
+        description = CharField(index=True, default="")
+        inGithub = BooleanField(index=True, default=False)
+        members = CharField(index=True, default="")
+        owners = CharField(index=True, default="")
+        nrIssues = IntegerField(index=True, default=0)
+        nrRepos = IntegerField(index=True, default=0)
+        repos = CharField(index=True, default="")
+
+        @param args is any of the above
+
+        members, owners and repos can be given as:
+            can be "a,b,c"
+            can be "'a','b','c'"
+            can be ["a","b","c"]
+            can be "a"
+
         """
-        obj = j.data.capnp.getMemoryObj(
-            schema=self._capnp_schema.Member,
-            userKey=userKey,
-            access=access)
 
-        self.dbobj.members.append(obj)
-        self.save()
+        if "gogsRefs" in args:
+            args["gogsRefs"] = ["%s_%s_%s" % (item["name"], item["id"], item['url']) for item in args["gogsRefs"]]
 
-    # def consumerRemove(self, service):
-    #     """
-    #     Remove the service passed in argument from the producers list
-    #     """
-    #     for i, consumer in enumerate(self.dbobj.consumers):
-    #         if consumer.key == service.model.key:
-    #             self.dbobj.consumers.pop(i)
+        args = self._arraysFromArgsToString(["members", "owners", "repos", "gogsRefs"], args)
 
-    def list(self, owner='', name='', id='', member='', repo='', source="", returnIndex=False):
-        """
-        List all keys of org model with specified params.
+        # this will try to find the right index obj, if not create
 
-        @param owner int,, id of org the issue belongs to.
-        @param name str,, title of issue.
-        @param id int,, org id in db.
-        @param source str,, source of remote database.
-        @param returnIndexalse bool,, return the index used.
-        """
-        if owner == "":
-            owner = ".*"
-        else:
-            users = j.tools.issuemanager.getUserCollectionFromDB()
-            owner_id = users.find(name=owner)[0].dictFiltered.get('id')
-            owner = ".*%s.*" % owner_id
+        obj, isnew = self.index.get_or_create(key=args["key"])
 
-        if repo == "":
-            repo = ".*"
-        else:
-            repo = j.tools.issuemanager.getRepoCollectionFromDB()
-            repo_id = users.find(name=repo)[0].dictFiltered.get('id')
-            repo = ".*%s.*" % repo_id
+        for key, item in args.items():
+            if key in obj._data:
+                # print("%s:%s" % (key, item))
+                obj._data[key] = item
 
-        if member == "":
-            member = ".*"
-        else:
-            users = j.tools.issuemanager.getUserCollectionFromDB()
-            member_id = users.find(name=member)[0].dictFiltered.get('id')
-            member = ".*%s.*" % member_id
+        obj.save()
 
-        if name == "":
-            name = ".*"
-        if id == "" or id == 0:
-            id = ".*"
-        if source == "":
-            source = ".*"
-
-        regex = "%s:%s:%s:%s:%s:%s" % (name, str(id), source, owner, member, repo)
-        return self._index.list(regex, returnIndex=returnIndex)
-
-    def find(self, owner='', name='', id='', member='', repo='', source=""):
-        """
-        List all instances of org model with specified params.
-
-        @param owner int,, id of org the issue belongs to.
-        @param name str,, title of issue.
-        @param id int,, org id in db.
-        @param repo int,, member id in db.
-        @param member int,, repo id in db.
-        @param source str,, source of remote database.
-        """
-        res = []
-        for key in self.list(owner, name, id, member, repo, source):
-            res.append(self.get(key))
-
-        return res
-
-    def getFromGogsId(self, gogsName, gogsId, createNew=True):
-        return j.clients.gogs._getFromGogsId(self, gogsName=gogsName, gogsId=gogsId, createNew=createNew)
+    def getFromGogsId(self, gogsName, gogsId, gogsUrl, createNew=True):
+        return j.clients.gogs._getFromGogsId(self, gogsName=gogsName, gogsId=gogsId, gogsUrl=gogsUrl, createNew=createNew)

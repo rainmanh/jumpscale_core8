@@ -38,7 +38,8 @@ class IssueCollection(base):
 
         self.index = Issue
 
-        db.connect()
+        if db.is_closed():
+            db.connect()
         db.create_tables([Issue], True)
 
     def add2index(self, **args):
@@ -67,7 +68,7 @@ class IssueCollection(base):
         """
 
         if "gogsRefs" in args:
-            args["gogsRefs"] = ["%s_%s" % (item["name"], item["id"]) for item in args["gogsRefs"]]
+            args["gogsRefs"] = ["%s_%s_%s" % (item["name"], item["id"], item['url']) for item in args["gogsRefs"]]
 
         args = self._arraysFromArgsToString(["assignees", "labels", "gogsRefs"], args)
 
@@ -81,5 +82,5 @@ class IssueCollection(base):
 
         obj.save()
 
-    def getFromGogsId(self, gogsName, gogsId, createNew=True):
-        return j.clients.gogs._getFromGogsId(self, gogsName=gogsName, gogsId=gogsId, createNew=createNew)
+    def getFromGogsId(self, gogsName, gogsId, gogsUrl, createNew=True):
+        return j.clients.gogs._getFromGogsId(self, gogsName=gogsName, gogsId=gogsId, gogsUrl=gogsUrl, createNew=createNew)

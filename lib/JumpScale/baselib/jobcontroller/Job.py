@@ -39,6 +39,8 @@ def _execute_cb(job, epoch, future):
         job.model.dbobj.state = 'error'
         if service_action_obj:
             service_action_obj.state = 'error'
+        if job.service:
+            job.service.model.dbobj.state = 'error'
         eco = j.errorconditionhandler.processPythonExceptionObject(exception)
         job._processError(eco)
     else:
@@ -46,6 +48,8 @@ def _execute_cb(job, epoch, future):
         job.model.dbobj.state = 'ok'
         if service_action_obj:
             service_action_obj.state = 'ok'
+        if job.service:
+            job.service.model.dbobj.state = 'ok'
 
         log_enable = True
         if service_action_obj:

@@ -28,6 +28,7 @@ class RepoCollection(base):
             nrMilestones = IntegerField(index=True, default=0)
             owner = CharField(index=True, default="")
             description = CharField(index=True, default="")
+            modTime = TimestampField(index=True, default=j.data.time.epoch)
 
             class Meta:
                 database = j.tools.issuemanager.indexDB
@@ -50,6 +51,7 @@ class RepoCollection(base):
         nrMilestones = IntegerField(index=True, default=0)
         owner = CharField(index=True, default="")
         description = CharField(index=True, default="")
+        modTime = TimestampField(index=True, default=j.data.time.epoch)
 
         @param args is any of the above
 

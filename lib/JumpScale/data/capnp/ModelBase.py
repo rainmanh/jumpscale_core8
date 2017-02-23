@@ -1,6 +1,9 @@
 from JumpScale import j
 from collections import OrderedDict
 
+import operator
+import peewee
+
 
 class ModelBase():
 
@@ -378,34 +381,38 @@ class ModelBaseCollection:
                 collection=self)
         return model
 
-    def list(self,  query=None):
+    def list(self, **kwargs):
         """
         List all keys of a index
 
-        @param if query not none then will use the index to do a query and ignore other elements
 
-        e.g
-          -  self.index.select().order_by(self.index.modTime.desc())
-          -  self.index.select().where((self.index.priority=="normal") | (self.index.priority=="critical"))
+        list all entries matching kwargs. If none are specified, lists all
 
-         info how to use see:
-            http://docs.peewee-orm.com/en/latest/peewee/querying.html
-            the query is the statement in the where
+        e.g.
+        email="reem@greenitglobe.com", name="reem"
 
         """
-
-        if query != None:
-            res = [item.key for item in query]
+        if kwargs:
+            clauses = []
+            for key, val in kwargs.items():
+                if not hasattr(self.index, key):
+                    raise RuntimeError('%s model has no field "%s"' % (self.index._meta.name, key))
+                clauses.append((getattr(self.index, key) == val))
+            res = [item.key for item in self.index.select().where(peewee.reduce(operator.and_, clauses)).order_by(self.index.modTime.desc())]
         else:
             res = [item.key for item in self.index.select().order_by(self.index.modTime.desc())]
 
         return res
 
-    def find(self, query=None):
+    def find(self, **kwargs):
         """
+        finds all entries matching kwargs
+
+        e.g.
+        email="reem@greenitglobe.com", name="reem"
         """
         res = []
-        for key in self.list(query=query):
+        for key in self.list(**kwargs):
             res.append(self.get(key))
         return res
 

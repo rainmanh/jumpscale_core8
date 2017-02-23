@@ -29,6 +29,7 @@ class OrgCollection(base):
             nrIssues = IntegerField(index=True, default=0)
             nrRepos = IntegerField(index=True, default=0)
             repos = CharField(index=True, default="")
+            modTime = TimestampField(index=True, default=j.data.time.epoch)
 
             class Meta:
                 database = j.tools.issuemanager.indexDB
@@ -52,6 +53,7 @@ class OrgCollection(base):
         nrIssues = IntegerField(index=True, default=0)
         nrRepos = IntegerField(index=True, default=0)
         repos = CharField(index=True, default="")
+        modTime = TimestampField(index=True, default=j.data.time.epoch)
 
         @param args is any of the above
 

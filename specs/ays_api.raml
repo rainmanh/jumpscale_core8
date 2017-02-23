@@ -1,0 +1,581 @@
+#%RAML 1.0
+title: AtYourService API
+baseUri: https://localhost:5000
+version: v0.1
+mediaType:  application/json
+securitySchemes:
+  itsyouonline:
+                description: |
+                  OAuth2 is a protocol that lets external apps request authorization to private
+                  details in a user's account without getting their password.
+                type: OAuth 2.0
+                describedBy:
+                  headers:
+                    Authorization:
+                      description: |
+                        Used to send a valid OAuth 2 access token. Do not use together with
+                        the "access_token" query string parameter.
+                  queryParameters:
+                    access_token:
+                      description: |
+                        Used to send a valid OAuth 2 access token. Do not use together with
+                        the "Authorization" header
+                  responses:
+                    404:
+                      description: Unauthorized
+                settings:
+                  authorizationUri: https://itsyou.online/v1/oauth/authorize
+                  accessTokenUri: https://itsyou.online/v1/oauth/access_token?response_type=id_token
+                  authorizationGrants: [ authorization_code, client_credentials ]
+                  scopes:
+                    - "user:admin"
+                    - "user:info"
+                    - "organization:owner"
+                    - "organization:member"
+                    - "organization:info"
+                    - "organization:contracts:read"
+                    - "company:admin"
+                    - "company:read"
+                    - "company:info"
+                    - "company:contracts:read"
+                    - "contract:read"
+                    - "contract:participant"
+
+types:
+  Repository:
+    properties:
+      path:
+          type: string
+          required: false
+      name:
+          type: string
+          required: true
+      git_url:
+        type: string
+        required: true
+    example:
+        path: "/opt/code/github/jumscpale/cockpit"
+        name: "cockpit"
+        git_url: "https://github.com/user/reponame"
+
+  Blueprint:
+    properties:
+      name:
+          type: string
+          required: true
+      content:
+          type: string
+          required: true
+      archived:
+        type: boolean
+        required: false
+      hash:
+        type: string
+        required: false
+      path:
+        type: string
+        required: false
+    example:
+        name: "cockpit.yaml"
+        content: |
+            service__main:
+                description: "a service"
+        path: "/opt/code/cockpit/repo/blueprints/my_blueprints.ayml"
+        hash: '45d4dbd44a0a3c3c8cf62acdab8e0850'
+        archived: true
+
+  Service:
+    properties:
+        key:
+           type: string
+           required: true
+        name:
+           type: string
+           required: true
+        role:
+           type: string
+           required: true
+        actions_py:
+           type: string
+           required: false
+        state:
+           type: string
+           required: true
+        data:
+           type: object
+           required: false
+        parent:
+           type: string
+           required: false
+        producers:
+           type: string[]
+           required: false
+    example:
+        key: "6b756dc89h9efe5187f2dddcf74b3e80"
+        name: "main"
+        role: "github_repo"
+        actions_py: |
+            def install(job):
+                print('do something')
+        state: "new"
+        data:
+            github.client: "main"
+            github.url: "https://github.com/JumpScale"
+        parent: "ae7eb66f57b24cg707e2d27da878d4ec"
+        producers:
+            - "9b0cef2d229534aac25daf7c04754aa1"
+            - "1effd1e1e42bdfdce55733d4e9aa94e0"
+
+  Actor:
+    properties:
+        name:
+            type: string
+            required: true
+        actions_py:
+            type: string
+            required: false
+        schema:
+            type: string
+            required: true
+        config:
+            type: object
+            required: true
+
+  Template:
+    properties:
+        name:
+            type: string
+            required: true
+        actions_py:
+            type: string
+            required: false
+        schema:
+            type: string
+            required: true
+        config:
+            type: object
+            required: true
+
+  TemplateRepo:
+      properties:
+          url:
+            type: string
+            required: true
+          branch:
+              type: string
+              required: true
+              default: 'master'
+
+  Log:
+    properties:
+        category:
+            type: string
+            required: false
+        epoch:
+            type: string
+            required: false
+        level:
+            type: string
+            required: false
+        log:
+            type: string
+            required: false
+        tags:
+            type: string
+            required: false
+  Job:
+    properties:
+        key:
+            type: string
+            required: true
+        action_name:
+            type: string
+            required: true
+        actor_name:
+            type: string
+            required: true
+        service_key:
+            type: string
+            required: true
+        service_name:
+            type: string
+            required: true
+        state:
+            type: string
+            required: true
+        logs:
+            type: Log[]
+
+
+  AYSStep:
+     properties:
+        number:
+           type: integer
+           required: true
+        jobs:
+            type: Job[]
+  AYSRun:
+     properties:
+        state:
+            type: string
+            required: true
+        steps:
+           type: AYSStep[]
+           required: true
+        key:
+            type: string
+            required: true
+
+  Error:
+    properties:
+        code: integer
+        error: string
+    example:
+        code: 404
+        error: "repository not found"
+
+
+/ays:
+  # securedBy: [ itsyouonline ]
+  /template_repo:
+    post:
+      displayName: addTemplateRepo
+      description: add a new actor template repository
+      body:
+        application/json:
+          type: TemplateRepo
+      responses:
+        201:
+          description: "Repository added"
+          body:
+            application/json:
+              type: TemplateRepo
+  /repository:
+    get:
+      displayName: listRepositories
+      description: list all repositorys
+      responses:
+        200:
+          body:
+            application/json:
+              type: Repository[]
+    post:
+      displayName: createRepository
+      description: create a new repository
+      body:
+        application/json:
+          type: Repository
+      responses:
+        201:
+          description: repository created
+          body:
+            application/json:
+              type: Repository
+        409:
+          description: Repository with this name already exists.
+          body:
+            application/json:
+              type: Error
+    /{repository}:
+      uriParameters:
+        repository:
+          type: string
+      get:
+        displayName: getRepository
+        description: Get information of a repository
+        responses:
+          200:
+            description: Detail of  a repository
+            body:
+              application/json:
+                type: Repository
+          404:
+            description: Repository not found
+            body:
+              application/json:
+                type: Error
+      delete:
+        displayName: deleteRepository
+        description: Delete a repository
+        responses:
+          204:
+            description: Repository removed
+          404:
+            description: Repository not found
+            body:
+              application/json:
+                type: Error
+      /blueprint:
+        get:
+          displayName: listBlueprints
+          description: List all blueprint
+          queryParameters:
+            archived:
+              type: boolean
+              default: true
+              description: include archive blueprint or not
+          responses:
+            200:
+              body:
+                application/json:
+                  type: Blueprint[]
+        post:
+          displayName: createBlueprint
+          description: Create a new blueprint
+          body:
+            application/json:
+                type: Blueprint
+          responses:
+            201:
+              body:
+                application/json:
+                  type: Blueprint
+            409:
+              description: Blueprint with this name already exists
+              body:
+                application/json:
+                  type: Error
+        /{blueprint}:
+          uriParameters:
+            blueprint:
+              type: string
+          get:
+            displayName: getBlueprint
+            description: Get a blueprint
+            responses:
+              200:
+                body:
+                  application/json:
+                    type: Blueprint
+              404:
+                description: Blueprint not found
+                body:
+                  application/json:
+                    type: Error
+          post:
+            displayName: executeBlueprint
+            description: Execute the blueprint
+            responses:
+              200:
+                description: blueprint executed
+              404:
+                description: blueprint not found
+                body:
+                  application/json:
+                    type: Error
+          put:
+            displayName: updateBlueprint
+            description: Update existing blueprint
+            body:
+              application/json:
+                  type: Blueprint
+            responses:
+              200:
+                description: blueprint updated
+              404:
+                description: blueprint not found
+                body:
+                  application/json:
+                    type: Error
+          delete:
+            displayName: deleteBlueprint
+            description: delete blueprint
+            responses:
+              204:
+                description: blueprint removed
+              404:
+                description: blueprint not found
+                body:
+                  application/json:
+                    type: Error
+          /archive:
+            put:
+              displayName: archiveBlueprint
+              description: archive the blueprint
+              responses:
+                200:
+                  description: blueprint archived
+                404:
+                  description: blueprint not found
+                  body:
+                    application/json:
+                      type: Error
+          /restore:
+            put:
+              displayName: restoreBlueprint
+              description: restore the blueprint
+              responses:
+                200:
+                  description: blueprint restored
+                404:
+                  description: blueprint not found
+                  body:
+                    application/json:
+                      type: Error
+      /service:
+        get:
+            displayName: listServices
+            description: List all services in the repository
+            responses:
+              200:
+                body:
+                  application/json:
+                    type: Service[]
+        /{role}:
+          uriParameters:
+            role:
+              type: string
+          get:
+            displayName: listServicesByRole
+            description: List all services of role 'role' in the repository
+            responses:
+              200:
+                body:
+                  application/json:
+                    type: Service[]
+          /{name}:
+            uriParameters:
+              name:
+                type: string
+            get:
+              displayName: getServiceByName
+              description: Get a service name
+              responses:
+                200:
+                  body:
+                    application/json:
+                      type: Service
+                404:
+                  description: Service name not found
+                  body:
+                    application/json:
+                      type: Error
+            delete:
+              displayName: deleteServiceByName
+              description: delete a service and all its children
+              responses:
+                204:
+                  description: service deleted
+                404:
+                  description: Service name not found
+                  body:
+                    application/json:
+                      type: Error
+      /actor:
+          get:
+            displayName: listActors
+            description: list all actors in the repository
+            responses:
+              200:
+                body:
+                  application/json:
+                    type: Actor[]
+          /{name}:
+            uriParameters:
+                name:
+                  type: string
+            get:
+                displayName: getActorByName
+                description: Get an actor by name
+                responses:
+                  200:
+                    body:
+                      application/json:
+                        type: Actor
+                  404:
+                    description: Actor not found
+                    body:
+                      application/json:
+                        type: Error
+            put:
+              displayName: updateActor
+              description: update an actor from a template to the last version
+              responses:
+                200:
+                  body:
+                    application/json:
+                      type: Actor
+                404:
+                  description: Actor not found
+                  body:
+                    application/json:
+                      type: Error
+      /template:
+        get:
+              displayName: listTemplates
+              description: list all templates
+              responses:
+                200:
+                  body:
+                    application/json:
+                      type: string[]
+        /{template}:
+          uriParameters:
+            template:
+              type: string
+          get:
+                displayName: getTemplate
+                description: Get a template
+                responses:
+                  200:
+                    body:
+                      application/json:
+                        type: Template
+                  404:
+                    body:
+                      application/json:
+                        type: Error
+      /aysrun:
+        get:
+            displayName: listRuns
+            description: list all runs of the repository
+            responses:
+              200:
+                body:
+                  application/json:
+                    type: AYSRun[]
+        post:
+            displayName: CreateRun
+            description: |
+              Create a run based on all the action scheduled. This call returns an AYSRun object describing what is going to hapen on the repository.
+              This is an asyncronous call. To be notify of the status of the run when then execution is finised or when an error occurs, you need to specify a callback url.
+              A post request will be send to this callback url with the status of the run and the key of the run. Using this key you can inspect in detail the result of the run
+              using the 'GET /ays/repository/{repository}/aysrun/{aysrun_key}' endpoint
+            queryParameters:
+              simulate:
+                description: Only create the run but don't execute it
+                type: boolean
+              callback_url:
+                description: URL where to send the result of the run once executed
+                type: string
+            responses:
+              200:
+                body:
+                  application/json:
+                    type: AYSRun
+        /{aysrun}:
+          uriParameters:
+              aysrun:
+                type: string
+          get:
+              displayName: getRun
+              description: Get an aysrun
+              responses:
+                200:
+                  body:
+                    application/json:
+                      type: AYSRun
+                404:
+                  body:
+                    application/json:
+                      type: Error
+
+/webhooks:
+  /github:
+    post:
+      description: Endpoint that receives the events from github
+      responses:
+        200:
+          description: event saved
+          body:
+            application/json:

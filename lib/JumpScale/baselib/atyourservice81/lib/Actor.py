@@ -47,7 +47,7 @@ class Actor():
 
         # for now we don't reload the actions codes.
         # when using distributed DB, the actions code could still be available
-        del json['actions']
+        actions = json.pop('actions')
         self.model.dbobj = ModelCapnp.Actor.new_message(**json)
 
         # need to save already here cause processActionFile is doing a find
@@ -57,6 +57,11 @@ class Actor():
 
         # recreate the actions code from the action.py file from the file system
         self._processActionsFile(j.sal.fs.joinPaths(actor_path, "actions.py"))
+        # set recurring period
+        for action in actions:
+            self.model.actions[action['name']].period = action['period']
+            self.model.actions[action['name']].state = action['state']
+            self.model.actions[action['name']].log = action['log']
 
         self.saveAll()
 
@@ -142,6 +147,7 @@ class Actor():
 
     def _initRecurringActions(self, template):
         for reccuring_info in template.recurringConfig:
+            print("############ recurring ############")
             action_model = self.model.actions[reccuring_info['action']]
             action_model.period = j.data.types.duration.convertToSeconds(reccuring_info['period'])
             action_model.log = j.data.types.bool.fromString(reccuring_info['log'])

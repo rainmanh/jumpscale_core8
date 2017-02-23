@@ -67,9 +67,9 @@ class ActorTemplate():
         path = j.sal.fs.joinPaths(self.path, "config.yaml")
         path2 = j.sal.fs.joinPaths(self.path, "config.json")
         if j.sal.fs.exists(path, followlinks=True):
-            ddict = j.data.serializer.yaml.load(path)
+            ddict = j.data.serializer.yaml.load(path) or {}
         elif j.sal.fs.exists(path2, followlinks=True):
-            ddict = j.data.serializer.json.load(path)
+            ddict = j.data.serializer.json.load(path) or {}
         else:
             ddict = {}
 

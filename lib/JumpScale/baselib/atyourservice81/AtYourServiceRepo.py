@@ -65,7 +65,11 @@ class AtYourServiceRepo():
         for service in services:
             job_keys = jc._list_keys(serviceKey=service)
             for job_key in job_keys:
-                jobs.add(jc.getIndexFromKey(job_key))
+                index = jc.getIndexFromKey(job_key)
+                if index:
+                    jobs.add(index)
+                else:
+                    self.logger.warn('No index found job with key [%s]' % job_key)
         jc._db.index_remove(list(jobs))
 
         # removing related actors, services , and the repo model itslef.

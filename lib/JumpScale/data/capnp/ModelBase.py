@@ -397,7 +397,9 @@ class ModelBaseCollection:
             for key, val in kwargs.items():
                 if not hasattr(self.index, key):
                     raise RuntimeError('%s model has no field "%s"' % (self.index._meta.name, key))
-                clauses.append((getattr(self.index, key) == val))
+                field = (getattr(self.index, key))
+                clauses.append(field.contains(val))
+
             res = [item.key for item in self.index.select().where(peewee.reduce(operator.and_, clauses)).order_by(self.index.modTime.desc())]
         else:
             res = [item.key for item in self.index.select().order_by(self.index.modTime.desc())]

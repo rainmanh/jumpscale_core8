@@ -31,6 +31,8 @@ class IssueCollection(base):
             priority = CharField(index=True, default="minor")
             type = CharField(index=True, default="unknown")
             state = CharField(index=True, default="new")
+            content = TextField(index=False, default="")
+            repo = TextField(index=True, default="")
 
             class Meta:
                 database = j.tools.issuemanager.indexDB
@@ -56,6 +58,8 @@ class IssueCollection(base):
         priority = CharField(index=True, default="minor")
         type = CharField(index=True, default="unknown")
         state = CharField(index=True, default="new")
+        content = TextField(index=False, default="")
+        repo = TextField(index=True, default="")
 
         @param args is any of the above
 

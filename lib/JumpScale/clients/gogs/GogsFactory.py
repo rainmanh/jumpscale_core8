@@ -259,6 +259,7 @@ class GogsFactory:
             url = "https://docs.greenitglobe.com/%s/%s/issues/%s" % (orgName, repoName, issueIdLocal)
             issue_model = self.issueCollection.getFromGogsId(gogsName, issue.id, url, createNew=True)
 
+            issue.repo = issue.repo_id
             # assignees
             if issue.id in self.issue_user_table:
                 assignees = [self.userId2userKey.get(item.uid, "") for item in self.issue_user_table[issue.id]]

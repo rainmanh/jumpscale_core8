@@ -295,7 +295,7 @@ class CuisineOwnCloud(app):
             chown -R www-data:www-data /data
             """
             self._cuisine.core.execute_bash(C)
-            self._cuisine.development.php.start()
+            #self._cuisine.development.php.start()
             self._cuisine.apps.apache2.start()
 
     def _get_apache_siteconf(self):

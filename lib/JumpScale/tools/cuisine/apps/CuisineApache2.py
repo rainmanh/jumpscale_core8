@@ -106,12 +106,12 @@ class CuisineApache2(app):
 
     def start(self):
         """start Apache."""
-        self._cuisine.core.run("apachectl start")
+        self._cuisine.core.run("apachectl start", profile=True)
 
     def stop(self):
         """stop Apache."""
-        self._cuisine.core.run("apachectl stop")
+        self._cuisine.core.run("apachectl stop", profile=True)
 
     def restart(self):
         """restart Apache."""
-        self._cuisine.core.run("apachectl restart")
+        self._cuisine.core.run("apachectl restart", profile=True)

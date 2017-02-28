@@ -28,7 +28,7 @@ class CuisineApache2(app):
             self._cuisine.core.file_download(DOWNLOADLINK, dest)
 
         # EXTRACT SROURCE CODE
-        self._cuisine.core.run("cd /optvar/build && tar xjf {dest} && mv /optvar/build/httpd-2.4.25 /optvar/build/httpd".format(**locals()))
+        self._cuisine.core.run("cd /optvar/build && tar xjf {dest} && cp -r /optvar/build/httpd-2.4.25 /optvar/build/httpd".format(**locals()))
         self._cuisine.core.dir_ensure("$appDir/apache2/bin")
         self._cuisine.core.dir_ensure("$appDir/apache2/lib")
 
@@ -94,7 +94,8 @@ class CuisineApache2(app):
             if line:
                 mod = "#"+line
                 conffile = conffile.replace(line, mod)
-        conffile += "\nInclude sites-enabled/*"
+        sitesdirconf = self._cuisine.core.args_replace("\nInclude $cfgDir/apache2/sites-enabled/*")
+        conffile += sitesdirconf
         conffile += "\nAddType application/x-httpd-php .php"
 
         # MAKE VHOSTS DIRECTORY

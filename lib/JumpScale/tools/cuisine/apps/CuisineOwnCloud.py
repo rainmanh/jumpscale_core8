@@ -236,12 +236,6 @@ class CuisineOwnCloud(app):
         return conf
 
     def start(self, sitename='owncloudy.com', dbhost="127.0.0.1", dbuser="root", dbpass="", nginx=False, localinstall=False):
-
-        owncloudsiterules = self._get_default_conf_nginx_site()
-        owncloudsiterules = owncloudsiterules % {"sitename": sitename}
-        self._cuisine.core.file_write(
-            "$cfgDir/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
-
         dbpass = "" if dbpass == "" else ' -p "{dbpass}"'.format(dbpass=dbpass)
         if localinstall:
             privateIp = dbhost
@@ -268,6 +262,9 @@ class CuisineOwnCloud(app):
         self._cuisine.core.execute_bash(cmd)
 
         if nginx:
+            owncloudsiterules = self._get_default_conf_nginx_site()
+            owncloudsiterules = owncloudsiterules % {"sitename": sitename}
+            self._cuisine.core.file_write("$cfgDir/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
             basicnginxconf = self._cuisine.apps.nginx.get_basic_nginx_conf()
             basicnginxconf = basicnginxconf.replace(
                 "include $appDir/nginx/etc/sites-enabled/*;", "include $cfgDir/nginx/etc/sites-enabled/*;")
@@ -286,9 +283,9 @@ class CuisineOwnCloud(app):
             # APACHE CONF.
             apachesiteconf = self.cuisine.core.args_replace(self._get_apache_siteconf())
             apachesiteconf = apachesiteconf.format(ServerName=sitename)
+            self._cuisine.core.dir_ensure("$cfgDir/apache2/sites-enabled")
+            self._cuisine.core.file_write("$cfgDir/apache2/sites-enabled/owncloud.conf", apachesiteconf)
             self._cuisine.apps.apache2.stop()
-            self._cuisine.core.file_write("$appDir/apache2/sites-available/owncloud.conf", apachesiteconf)
-            #self._cuisine.core.file_link("$appDir/apache2/sites-available/owncloud.conf", "$appDir/apache2/sites-enabled/owncloud.conf")
             C = """
             chown -R www-data:www-data $appDir/owncloud
             chmod 777 -R $appDir/owncloud/config

@@ -51,6 +51,8 @@ def _execute_cb(job, epoch, future):
         if job.service:
             job.service.model.dbobj.state = 'ok'
 
+        job.logger.info("job {} done sucessfuly".format(str(job)))
+
         log_enable = True
         if service_action_obj:
             log_enable = j.core.jobcontroller.db.actions.get(service_action_obj.actionKey).dbobj.log
@@ -61,7 +63,6 @@ def _execute_cb(job, epoch, future):
                 job.model.log(msg=line, level=5, category='out')
             if stderr:
                 job.model.log(msg=stderr, level=5, category='err')
-        job.logger.info("job {} done sucessfuly".format(str(job)))
 
     job.save()
 

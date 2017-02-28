@@ -195,13 +195,15 @@ class Run:
                 if step.state == 'error':
                     self.logger.error("error during execution of step {} in run {}".format(step.dbobj.number, self.key))
                     self.state = 'error'
-
+                    err_msg = ''
                     for job in step.jobs:
                         if job.model.state == 'error':
-                            log = job.model.dbobj.logs[-1]
-                            print(job.str_error(log.log))
+                            if len(job.model.dbobj.logs) > 0:
+                                log = job.model.dbobj.logs[-1]
+                                print(job.str_error(log.log))
+                                err_msg = log.log
 
-                    raise j.exceptions.RuntimeError(log.log)
+                    raise j.exceptions.RuntimeError(err_msg)
 
             self.state = 'ok'
         except:

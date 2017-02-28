@@ -44,6 +44,7 @@ class JobModel(ModelBase):
         logitem.tags = tags
 
         self.addSubItem('logs', logitem)
+        self.reSerialize()
 
         return logitem
 
@@ -129,13 +130,18 @@ class JobModel(ModelBase):
 
     def save(self):
         self._pre_save()
-        if not self._db.inMem:
+        if not self.collection._db.inMem:
             # expiration of 172800 = 2 days  expire=172800
             buff = self.dbobj.to_bytes()
             if hasattr(self.dbobj, 'clear_write_flag'):
                 self.dbobj.clear_write_flag()
-            self._db.set(self.key, buff, expire=172800)
+            self.collection._db.set(self.key, buff, expire=172800)
         self.index()
+
+    def delete(self):
+        # delete actual model object
+        if self.collection._db.exists(self.key):
+            self.collection._db.delete(self.key)
 
 
     def __repr__(self):

@@ -62,7 +62,7 @@ class FlistMerger:
                         })
 
 
-def dest_current_dir(dest_fs, src_dirobj):
+def dest_parent_dir(dest_fs, src_dirobj):
     _, dest_parent_key = dest_fs.path2key(
         j.sal.fs.joinPaths(
             dest_fs.rootpath,
@@ -71,6 +71,14 @@ def dest_current_dir(dest_fs, src_dirobj):
     )
     return dest_fs.dirCollection.get(dest_parent_key)
 
+def dest_current_dir(dest_fs, src_dirobj):
+    _, dest_parent_key = dest_fs.path2key(
+        j.sal.fs.joinPaths(
+            dest_fs.rootpath,
+            src_dirobj.dbobj.location
+        )
+    )
+    return dest_fs.dirCollection.get(dest_parent_key)
 
 def dirFunction(dirobj, type, name, args, key):
     dest_fs = args['dest_fs']
@@ -79,7 +87,7 @@ def dirFunction(dirobj, type, name, args, key):
     # get current directory of source filesystem
     src_dir = src_fs.dirCollection.get(key)
     # get current directory of destination filesystem
-    dest_dir = dest_current_dir(dest_fs, src_dir)
+    dest_dir = dest_parent_dir(dest_fs, src_dir)
 
     # compute key of the path of the source filesystem
     _, key = dest_fs.path2key(j.sal.fs.joinPaths(dest_fs.rootpath, src_dir.dbobj.location))

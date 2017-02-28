@@ -88,18 +88,18 @@ struct Actor {
 
   flists @8 :List(Flist);
   struct Flist {
-      name @0 :Text;
-      namespace @1 :Text;
-      mountpoint @2 :Text;
-      mode @3 :Mode;
-      storeUrl @4:Text;
-      content @5 :Text;
+      path @0 :Text;
+    #   namespace @1 :Text;
+    #   mountpoint @2 :Text;
+    #   mode @3 :Mode;
+    #   storeUrl @4:Text;
+    #   content @5 :Text;
 
-      enum Mode {
-        ro @0;
-        rw @1;
-        ol @2;
-      }
+    #   enum Mode {
+    #     ro @0;
+    #     rw @1;
+    #     ol @2;
+    #   }
   }
 
   #python script which interactively asks for the information when not filled in

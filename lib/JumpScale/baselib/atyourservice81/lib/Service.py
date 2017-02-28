@@ -227,7 +227,7 @@ class Service:
                         auto_actor = self.aysrepo.actorGet(producer_role)
                         available_services.append(await auto_actor.serviceCreate(instance="auto_%s" % idx, args={}))
                 else:
-                    raise j.exceptions.Input(message="Minimum number of services required is %s and only %s are provided. [Hint: Maybe you want to set auto to auto create the missing services?]" % (producer_model.minServices, len(usersetservices)),
+                    raise j.exceptions.Input(message="Minimum number of services required of role %s is %s and only %s are provided. [Hint: Maybe you want to set auto to auto create the missing services?]" % (producer_role, producer_model.minServices, len(usersetservices)),
                                              level=1, source="", tags="", msgpub="")
 
             for idx, producer_obj in enumerate(usersetservices + available_services):
@@ -353,6 +353,7 @@ class Service:
 
     @property
     def parent(self):
+        self.model.reSerialize()
         if self.model.parent is not None:
             return self.model.parent.objectGet(self.aysrepo)
         return None
@@ -376,6 +377,7 @@ class Service:
 
     @property
     def producers(self):
+        self.model.reSerialize()
         producers = {}
         for prod in self.model.dbobj.producers:
             role = prod.actorName.split(".")[0]
@@ -386,6 +388,7 @@ class Service:
 
     @property
     def consumers(self):
+        self.model.reSerialize()
         consumers = {}
         for cons in self.model.dbobj.consumers:
             role = cons.actorName.split(".")[0]
@@ -475,6 +478,9 @@ class Service:
             actorName=self.model.dbobj.actorName,
             serviceName=self.model.dbobj.name,
             key=self.model.key)
+
+        self.model.reSerialize()
+        service.model.reSerialize()
 
         self.saveAll()
         service.saveAll()

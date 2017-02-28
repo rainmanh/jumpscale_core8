@@ -47,8 +47,8 @@ class RunModel(ModelBase):
 
     def delete(self):
         # delete actual model object
-        if self._db.exists(self.key):
-            self._db.delete(self.key)
+        if self.collection._db.exists(self.key):
+            self.collection._db.delete(self.key)
 
     def objectGet(self):
         return Run(model=self)

@@ -12,6 +12,8 @@ class SerializerBase64(SerializerBase):
     def dumps(self, s):
         if j.data.types.string.check(s):
             b = s.encode()
+        else:
+            b = s
         return base64.b64encode(b).decode()
 
     def loads(self, b):

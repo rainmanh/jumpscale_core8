@@ -157,7 +157,8 @@ class ActorServiceBaseModel(ModelBaseWithData):
     def actionDelete(self, name):
         for i, action in enumerate(self.dbobj.actions):
             if action.name == name:
-                self.dbobj.actions.pop(i)
+                self.deleteSubItem('actions', i)
+                self.reSerialize()
                 self.changed = True
                 return
 

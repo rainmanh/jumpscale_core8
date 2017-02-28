@@ -144,6 +144,14 @@ class RedisKeyValueStore(KeyValueStoreBase):
     def lookupDestroy(self, name):
         self.redisclient.delete(self._indexkey + "lookup")
 
+    def delete(self, key):
+        if self.exists(key):
+            self._delete(key)
+
+        for k, v in self.redisclient.hgetall(self._indexkey).items():
+            if v == key:
+                self.redisclient.hdel(self._indexkey, v)
+
         #
         #     def set(self, category, key, value, expire=0, secret=""):
         #         """

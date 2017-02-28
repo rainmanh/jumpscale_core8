@@ -63,6 +63,14 @@ class Actor():
             self.model.actions[action['name']].state = action['state']
             self.model.actions[action['name']].log = action['log']
 
+        flist_dir = j.sal.fs.joinPaths(self.path, 'flists')
+        if j.sal.fs.exists(flist_dir):
+            flists = self.model.dbobj.init_resizable_list('flists')
+            for flist_path in j.sal.fs.listFilesInDir(flist_dir, recursive=False):
+                flist = flists.add()
+                flist.path = flist_path
+            flists.finish()
+
         self.saveAll()
 
     def saveToFS(self):
@@ -104,7 +112,7 @@ class Actor():
 
         self._initParent(template)
         self._initProducers(template)
-        # self._initFlists(template)
+        self._initFlists(template)
 
         self._processActionsFile(j.sal.fs.joinPaths(template.path, "actions.py"))
         self._initRecurringActions(template)
@@ -144,13 +152,25 @@ class Actor():
                 argname=consume_info.get('argname', consume_info['role'])
             )
 
-
     def _initRecurringActions(self, template):
         for reccuring_info in template.recurringConfig:
             print("############ recurring ############")
             action_model = self.model.actions[reccuring_info['action']]
             action_model.period = j.data.types.duration.convertToSeconds(reccuring_info['period'])
             action_model.log = j.data.types.bool.fromString(reccuring_info['log'])
+
+    def _initFlists(self, template):
+        flists = self.model.dbobj.init_resizable_list('flists')
+        for path in template.flists.values():
+            dest = j.sal.fs.joinPaths(self.path, 'flists', j.sal.fs.getBaseName(path))
+            dest = dest.rstrip(".tar.gz").rstrip(".tgz")
+            j.sal.fs.createDir(dest)
+            tar = j.tools.tarfile.get(path)
+            tar.extract(dest)
+
+            flist = flists.add()
+            flist.path = dest
+        flists.finish()
 
     def _processActionsFile(self, path):
         def string_has_triple_quotes(s):
@@ -292,7 +312,6 @@ class Actor():
         # change if  we need to fire processChange jobs
         for action in self.model.dbobj.actions:
             self._check_change(action)
-
 
     def _checkRemovedActions(self, parsedMethods):
         for action in self.model.actionsSortedList:

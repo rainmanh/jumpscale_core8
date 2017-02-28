@@ -118,5 +118,14 @@ class ActorTemplate():
     def consumptionConfig(self):
         return self.configDict.get("links", {}).get("consume", {})
 
+    @property
+    def flists(self):
+        flists = {}
+        for flist_path in j.sal.fs.listFilesInDir(self.path, recursive=False, filter="flist-*.tar.gz"):
+            name = j.sal.fs.getBaseName(flist_path)
+            name = name.lstrip('flist-').rstrip('db.tar.gz')
+            flists[name] = flist_path
+        return flists
+
     def __repr__(self):
         return "actortemplate: %-25s:%s" % (self.path, self.name)

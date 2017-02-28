@@ -11,6 +11,8 @@ def build_nodes(repo):
     all_nodes = {}
     for service in repo.services:
         for action in service.model.actions.keys():
+            if action[-1] == '_':
+                continue
             node = Node(service, action)
             all_nodes[node.id] = node
     return all_nodes

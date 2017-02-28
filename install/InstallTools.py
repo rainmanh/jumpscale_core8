@@ -1799,7 +1799,7 @@ class ExecutorMethods():
             self.writeFile(path,command+"\n")
             command="bash %s"%path
         else:
-            self.logger.info("exec:%s" % command)
+            # self.logger.info("exec:%s" % command)
             path=None
 
         os.environ["PYTHONUNBUFFERED"]="1"

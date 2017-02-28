@@ -9,7 +9,10 @@ def service_view(s):
     for prods in s.producers.values():
         for producer in prods:
             producers.append({'role': producer.model.role, 'name':producer.name})
-
+    consumers = []
+    for cons in s.consumers.values():
+        for consumer in cons:
+            consumers.append({'role': consumer.model.role, 'name':consumer.name})
     service = {
         'key': s.model.key,
         'role': s.model.role,
@@ -18,6 +21,7 @@ def service_view(s):
         'recurring': [],
         'events': [],
         'producers': producers,
+        'consumers': consumers,
         'parent': {'role': s.parent.model.role, 'name':s.parent.model.name} if s.parent else None,
         'children': [{'role': c.model.role, 'name':c.model.name}  for c in s.children],
         'path': s.path,

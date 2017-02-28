@@ -39,7 +39,7 @@ class JobsCollection(ModelBaseCollection):
     def exists(self, key):
         return self._db.exists(key)
 
-    def _list_keys(self, actor="", service="", action="", state="", serviceKey="", fromEpoch=0, toEpoch=9999999999999, returnIndex=False):
+    def list(self, actor="", service="", action="", state="", serviceKey="", fromEpoch=0, toEpoch=9999999999999, returnIndex=False):
         if actor == "":
             actor = ".*"
         if service == "":
@@ -65,7 +65,7 @@ class JobsCollection(ModelBaseCollection):
 
     def find(self, actor="", service="", action="", state="", serviceKey="", fromEpoch=0, toEpoch=9999999999999):
         res = []
-        for key in self._list_keys(actor, service, action, state, serviceKey, fromEpoch, toEpoch):
+        for key in self.list(actor, service, action, state, serviceKey, fromEpoch, toEpoch):
             res.append(self.get(key))
         return res
 

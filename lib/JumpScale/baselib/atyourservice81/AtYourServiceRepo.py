@@ -53,9 +53,41 @@ class AtYourServiceRepo():
         return self._db
 
 
+    def _getsshconnections(self, service_path):
+        # get ssh connections from ays services path
+        c = j.tools.cuisine.local
+        if not j.sal.fs.exists(service_path):
+            return
+        _, out, _ = c.core.run("find %s -name 'data.json' -exec egrep -iH 'ippublic|sshPort' {} \;" % service_path)
+        connections = dict()
+        if out:
+            for item in out.splitlines():
+                # example line
+                # "'./services/node!tweakernode/os!tweakernode/data.json: "sshPort":2203,'"
+                results = item.replace('"', '').replace(',', '').split(':')
+                if results[0] not in connections:
+                    connections[results[0]] = dict()
+                if results[1].strip() == 'sshPort' and 'port' not in connections[results[0]]:
+                    connections[results[0]]['port'] = results[2]
+                elif results[1].strip() == 'ipPublic'and 'ip' not in connections[results[0]]:
+                    connections[results[0]]['ip'] = results[2]
+        return connections
+
     def destroy(self):
+        # remove ips from known hosts
+        c = j.tools.cuisine.local
+        service_path = j.sal.fs.joinPaths(self.path, "services")
+        connections = self._getsshconnections(service_path)
+        if connections:
+            for key, val in connections.items():
+                if 'ip' in val:
+                    if 'port' not in val:
+                        c.core.run('ssh-keygen -f "%s/.ssh/known_hosts" -R %s' % (j.dirs.homeDir, val['ip']))
+                    c.core.run('ssh-keygen -f "%s/.ssh/known_hosts" -R \'[%s]:%s\'' % (j.dirs.homeDir, val['ip'],
+                                                                                       val['port']))
+
+        j.sal.fs.removeDirTree(service_path)
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "actors"))
-        j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "services"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "recipes"))  # for old time sake
 
         # removing the related jobs

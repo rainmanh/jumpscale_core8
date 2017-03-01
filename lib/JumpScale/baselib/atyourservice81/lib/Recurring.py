@@ -5,7 +5,7 @@ class RecurringTask:
     """Execute a job periodicly"""
     def __init__(self, service, action, period, loop=None):
         self.logger = j.logger.get('j.atyourservice')
-        self._loop = None or asyncio.get_event_loop()
+        self._loop = loop or asyncio.get_event_loop()
         self._future = None
         self._job = None
         self.service = service

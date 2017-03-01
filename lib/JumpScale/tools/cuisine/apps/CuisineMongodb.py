@@ -12,7 +12,7 @@ class CuisineMongodb(app):
         """
         download, install, move files to appropriate places, and create relavent configs
         """
-        if not reset and self.doneGet("install"):
+        if (not reset and self.doneGet("install")) or self.isInstalled():
             return
         if self.cuisine.core.isMac:
             self.cuisine.core.run("brew uninstall mongodb", die=False)
@@ -54,7 +54,7 @@ class CuisineMongodb(app):
         raise RuntimeError("not implemented")
 
     def start(self, reset=False):
-        if not reset and self.doneGet("start"):
+        if (not reset and self.doneGet("start")) or self.isStarted():
             return
         self.cuisine.core.dir_ensure('$VARDIR/data/mongodb')
         cmd = "$BINDIR/mongod --dbpath '$VARDIR/data/mongodb'"

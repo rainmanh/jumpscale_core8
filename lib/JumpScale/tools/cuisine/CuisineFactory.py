@@ -222,6 +222,12 @@ class JSCuisineFactory:
             if cuisine.executor.id in self.cuisines_instance:
                 del self.cuisines_instance[cuisine.executor.id]
 
+    def resetAll(self):
+        """
+        reset cache of cuisine isntances 
+        """
+        self.cuisines_instance = {}
+
     @property
     def local(self):
         with self._lock:

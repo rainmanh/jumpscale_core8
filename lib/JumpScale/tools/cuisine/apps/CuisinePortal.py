@@ -10,8 +10,7 @@ class CuisinePortal(base):
     def _init(self):
         self.portal_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths["JSAPPSDIR"], "portals/")
         self.main_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'main')
-        self.cuisine.core.dir_ensure(self.main_portal_dir)
-        self.cfg_path = j.sal.fs.joinPaths(self.main_portal_dir, 'config.hrd')
+        self.cfg_path = j.sal.fs.joinPaths(self.main_portal_dir, 'config.hrd')                
 
     def configure(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1",
                   influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, production=True):
@@ -45,6 +44,7 @@ class CuisinePortal(base):
         Portal install will only install the portal and libs. No spaces but the system ones will be add by default.
         To add spaces and actors, please use addSpace and addactor
         """
+        self.cuisine.core.dir_ensure(self.main_portal_dir)        
         self.cuisine.bash.fixlocale()
         if not reset and self.doneGet("install"):
             self.linkCode()

@@ -2,6 +2,7 @@
 ## Active branches for our new development which is 8.2.0 & below
 
 - 8.1.1: get the jsagent ready to be used again (as in OVC) in 8.1.1
+- 8.1.2: development for ays_installer of ovc
 - 8.2.0
 - 8.2.0_cuisine: all changes to cuisine
 - 8.2.0_dev_flist: development of new flist approach based on key value stor

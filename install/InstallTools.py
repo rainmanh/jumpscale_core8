@@ -71,6 +71,10 @@ logger = logging.getLogger("installtools")
 logger.addHandler(ch)
 logger.setLevel(logging.DEBUG)
 
+# CustomTimeoutError from RuntimeError to keep execute interface consistent 
+class TimeoutError(RuntimeError, TimeoutError):
+    pass
+
 class FileLock():
 
     def __init__(self, fname):
@@ -1776,9 +1780,6 @@ class ExecutorMethods():
         for name, val in list(tags.items()):
             self.actions[name] = eval("self.module.%s" % name)
 
-
-
-
     def execute(self, command , showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], \
                         ok=[], captureout=True, die=True, async=False, executor=None):
         """
@@ -1930,6 +1931,10 @@ class ExecutorMethods():
             p.wait()
         if rc == 1000:
             rc = p.returncode
+
+        if rc == 999 and die:
+            raise TimeoutError("\nOUT:\n%s\nSTDERR:\n%s\nERROR: Cannot execute (TIMEOUT):'%s'\nreturncode (%s)" %
+                                   (out, err, command, rc))
 
         if rc > 0 and die:
             if err:

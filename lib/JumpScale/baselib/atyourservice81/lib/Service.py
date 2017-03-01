@@ -736,9 +736,14 @@ class Service:
         for action, info in self.model.actionsRecurring.items():
             if action not in self._recurring_tasks:
                 # creates new tasks
-                task = RecurringTask(service=self, action=action, period=info.period, loop=None)
+                task = RecurringTask(service=self, action=action, period=info.period, loop=self.aysrepo._loop)
                 task.start()
                 self._recurring_tasks[action] = task
+                # make sure that the loop used for recurring is the main loop.
+                # this is needed in case the service is create within another service
+                # in this case the service creation runs in a thread, thus we need to pass the correct loop
+                assert task._loop == self.aysrepo._loop
+
             else:
                 # task already exists, make sure the period is correct
                 # and the task is running

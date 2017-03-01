@@ -132,6 +132,7 @@ class AtYourServiceRepo():
         self.git = j.clients.git.get(self.path, check_path=False)
         self._db = None
         self.no_exec = False
+        self._loop = asyncio.get_event_loop()
         j.atyourservice._loadActionBase()
 
         self._load_services()

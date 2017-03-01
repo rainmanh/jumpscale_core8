@@ -287,9 +287,9 @@ class CuisineOwnCloud(app):
             self._cuisine.core.file_write("$cfgDir/apache2/sites-enabled/owncloud.conf", apachesiteconf)
             self._cuisine.apps.apache2.stop()
             C = """
-            chown -R www-data:www-data $appDir/owncloud
+            chown -R daemon:daemon $appDir/owncloud
             chmod 777 -R $appDir/owncloud/config
-            chown -R www-data:www-data /data
+            chown -R daemon:daemon /data
             """
             self._cuisine.core.execute_bash(C)
             #self._cuisine.development.php.start()

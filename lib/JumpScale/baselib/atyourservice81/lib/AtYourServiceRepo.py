@@ -306,7 +306,10 @@ class AtYourServiceRepo():
             raise j.exceptions.Input("role and instance cannot be empty.")
 
         if key is not None:
-            return self.db.services.services[key]
+            try:
+                return self.db.services.services[key]
+            except KeyError:
+                raise j.exceptions.NotFound('cant find service with key %s' % key)
 
 
         models = self.db.services.find(actor="%s.*" % role, name=instance)

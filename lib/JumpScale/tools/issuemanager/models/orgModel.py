@@ -62,8 +62,8 @@ class OrgModel(base):
         self.addSubItem("repos", obj)
         self.changed = True
 
-    def gogsRefSet(self, name, id):
-        return j.clients.gogs._gogsRefSet(self, name, id)
+    def gitHostRefSet(self, name, id):
+        return j.clients.gogs._gitHostRefSet(self, name, id)
 
-    def gogsRefExist(self, name):
-        return j.clients.gogs._gogsRefExist(self, name)
+    def gitHostRefExists(self, name):
+        return j.clients.gogs._gitHostRefExists(self, name)

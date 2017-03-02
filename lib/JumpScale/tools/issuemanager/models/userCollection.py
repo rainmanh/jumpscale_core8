@@ -73,5 +73,5 @@ class UserCollection(base):
 
         obj.save()
 
-    def getFromGogsId(self, gogsName, gogsId, gogsUrl, createNew=True):
-        return j.clients.gogs._getFromGogsId(self, gogsName=gogsName, gogsId=gogsId, gogsUrl=gogsUrl, createNew=createNew)
+    def getFromGitHostID(self, git_host_name, git_host_id, git_host_url, createNew=True):
+        return j.clients.gogs._getFromGitHostID(self, git_host_name=git_host_name, git_host_id=git_host_id, git_host_url=git_host_url, createNew=createNew)

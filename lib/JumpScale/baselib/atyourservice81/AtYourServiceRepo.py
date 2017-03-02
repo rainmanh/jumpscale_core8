@@ -58,6 +58,8 @@ class AtYourServiceRepo():
         c = j.tools.cuisine.local
         if not j.sal.fs.exists(service_path):
             return
+        if not j.sal.fs.exists("%s/.ssh/known_hosts" % j.dirs.homeDir):
+            return
         _, out, _ = c.core.run("find %s -name 'data.json' -exec egrep -iH 'ippublic|sshPort' {} \;" % service_path)
         connections = dict()
         if out:

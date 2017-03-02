@@ -711,6 +711,8 @@ class CuisineCore(base):
                 content_base64 = base64.b64encode(content2).decode()
                 # if sig != self.file_md5(location):
                 cmd = 'echo "%s" | base64 -d > %s' % (content_base64, location)
+                if self.isMac:
+                    cmd = 'echo "%s" | base64 -D > %s' % (content_base64, location)          
                 res = self.run(cmd, showout=False)
             if check:
                 file_sig = self.file_md5(location)

@@ -1,5 +1,7 @@
 from JumpScale import j
 import time
+import os
+
 
 
 base = j.tools.cuisine._getBaseClass()
@@ -201,7 +203,7 @@ class CuisinePortal(base):
 
     def getcode(self, branch=''):
         if branch == "":
-            branch = "8.2.0_portal_cleanup"
+            branch = os.environ.get('JSBRANCH')
         self.cuisine.development.git.pullRepo(
             "https://github.com/Jumpscale/jumpscale_portal8.git", branch=branch)
 

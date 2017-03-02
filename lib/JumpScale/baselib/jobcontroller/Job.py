@@ -13,74 +13,6 @@ import logging
 
 colored_traceback.add_hook(always=True)
 
-def _execute_cb(job, epoch, future):
-    """
-    callback call after a job has finished executing
-    job: is the job object
-    epoch: is the epoch when the job started
-    future: future that hold the result of the job execution
-    """
-    if job._cancelled is True:
-        return
-
-    service_action_obj = None
-
-    if job.service is not None:
-        action_name = job.model.dbobj.actionName
-        if action_name in job.service.model.actions:
-            service_action_obj = job.service.model.actions[action_name]
-        if action_name in job.service.model.actionsRecurring and service_action_obj:
-            # if the action is a reccuring action, save last execution time in model
-            service_action_obj.lastRun = epoch
-
-    exception = future.exception()
-    if exception is not None:
-        job.state = 'error'
-        job.model.dbobj.state = 'error'
-        if service_action_obj:
-            service_action_obj.state = 'error'
-        if job.service:
-            job.service.model.dbobj.state = 'error'
-        eco = j.errorconditionhandler.processPythonExceptionObject(exception)
-        job._processError(eco)
-    else:
-        job.state = 'ok'
-        job.model.dbobj.state = 'ok'
-        if service_action_obj:
-            service_action_obj.state = 'ok'
-        if job.service:
-            job.service.model.dbobj.state = 'ok'
-
-        job.logger.info("job {} done sucessfuly".format(str(job)))
-
-        log_enable = True
-        if service_action_obj:
-            log_enable = j.core.jobcontroller.db.actions.get(service_action_obj.actionKey).dbobj.log
-        if log_enable and job.model.dbobj.debug is False:
-            # don't generate log when debug is enable, cause streams are not redirect in debug mode
-            _, stdout, stderr = future.result()
-            for line in stdout.splitlines():
-                job.model.log(msg=line, level=5, category='out')
-            if stderr:
-                job.model.log(msg=stderr, level=5, category='err')
-
-    job.save()
-
-# @contextmanager
-# def stdstreams_redirector(stdout, stderr):
-#     """
-#     redirect std and stderr to the buffers passed in arguments
-#     """
-#     old_stdout = sys.stdout
-#     sys.stdout = stdout
-#     old_stderr = sys.stderr
-#     sys.stderr = stderr
-#     try:
-#         yield
-#     finally:
-#         sys.stdout = old_stdout
-#         sys.stderr = old_stderr
-
 @contextmanager
 def generate_profile(job):
     """
@@ -101,35 +33,19 @@ def generate_profile(job):
             job.model.dbobj.profileData = j.sal.fs.fileGetBinaryContents(stat_file)
             j.sal.fs.remove(stat_file)
 
-def reditect_stream_wraper(args):
-    try:
-        result = None
-        stream = StringIO()
-        handler = logging.StreamHandler(stream)
-        func = args[0]
-        if len(args) >= 2:
-            job = args[1]
-            job.logger.addHandler(handler)
-            if job.service:
-                job.service.logger.addHandler(handler)
+class JobHandler(logging.Handler):
+    def __init__(self, job, level=logging.NOTSET):
+        super().__init__(level=level)
+        self._job = job
+
+    def emit(self, record):
+        if record.levelno <= 20:
+            category = 'msg'
+        elif 20 < record.levelno <= 30:
+            category = 'alert'
         else:
-            job = None
-
-
-        if job:
-            with generate_profile(job):
-                result = func(*args[1:])
-        else:
-            result = func()
-
-    finally:
-        if job:
-            job.logger.removeHandler(handler)
-            if job.service:
-                job.service.logger.removeHandler(handler)
-
-    return (result, stream.getvalue(), '')
-
+            category = 'errormsg'
+        self._job.model.log(msg=record.getMessage(), level=record.levelno, category=category, epoch=int(record.created), tags='')
 
 class Job():
     """
@@ -138,13 +54,17 @@ class Job():
 
     def __init__(self, model):
         self.model = model
-        self.logger = j.logger.get('j.jobcontroller.job.{}'.format(self.model.key))
         self._cancelled = False
         self._action = None
         self._service = None
         self._source = None
         self._future = None
         self.saveService = True
+        self.logger = j.logger.get('j.jobcontroller.job.{}'.format(self.model.key))
+        logHandler = JobHandler(self)
+        self.logger.addHandler(logHandler)
+        if self.service:
+            self.service.logger.addHandler(logHandler)
 
     @property
     def action(self):
@@ -288,17 +208,54 @@ class Job():
 
         ex: result, stdout, stderr = await job.execute()
         """
+        def _execute_cb(job, epoch, future):
+            """
+            callback call after a job has finished executing
+            job: is the job object
+            epoch: is the epoch when the job started
+            future: future that hold the result of the job execution
+            """
+            if job._cancelled is True:
+                return
+
+            service_action_obj = None
+
+            if job.service is not None:
+                action_name = job.model.dbobj.actionName
+                if action_name in job.service.model.actions:
+                    service_action_obj = job.service.model.actions[action_name]
+                if action_name in job.service.model.actionsRecurring and service_action_obj:
+                    # if the action is a reccuring action, save last execution time in model
+                    service_action_obj.lastRun = epoch
+
+            exception = future.exception()
+            if exception is not None:
+                job.state = 'error'
+                job.model.dbobj.state = 'error'
+                if service_action_obj:
+                    service_action_obj.state = 'error'
+                if job.service:
+                    job.service.model.dbobj.state = 'error'
+                eco = j.errorconditionhandler.processPythonExceptionObject(exception)
+                job._processError(eco)
+            else:
+                job.state = 'ok'
+                job.model.dbobj.state = 'ok'
+                if service_action_obj:
+                    service_action_obj.state = 'ok'
+                if job.service:
+                    job.service.model.dbobj.state = 'ok'
+
+                job.logger.info("job {} done sucessfuly".format(str(job)))
+
+            job.save()
+
         # for now use default ThreadPoolExecutor
         loop = asyncio.get_event_loop()
         if self.model.dbobj.debug is False:
             self.model.dbobj.debug = self.sourceToExecute.find('ipdb') != -1 or self.sourceToExecute.find('IPython') != -1
 
-        if self.model.dbobj.debug is False:
-            self._future = loop.run_in_executor(None, reditect_stream_wraper, (self.method, self))
-        else:
-            # to debug we don't redirect stdout and stderr so ipdb can work
-            self.logger.info("job {} is exected in debug mode".format(self))
-            self._future = loop.run_in_executor(None, self.method, self)
+        self._future = loop.run_in_executor(None, self.method, self)
 
         # register callback to deal with logs and state of the job after execution
         now = j.data.time.epoch

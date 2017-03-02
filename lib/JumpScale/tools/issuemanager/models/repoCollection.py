@@ -20,7 +20,7 @@ class RepoCollection(base):
 
         class Repo(Model):
             key = CharField(index=True, default="")
-            gogsRefs = CharField(index=True, default="")
+            gitHostRefs = CharField(index=True, default="")
             name = CharField(index=True, default="")
             inGithub = BooleanField(index=True, default=False)
             members = CharField(index=True, default="")
@@ -43,7 +43,7 @@ class RepoCollection(base):
     def add2index(self, **args):
         """
         key = CharField(index=True, default="")
-        gogsRefs = CharField(index=True, default="")
+        gitHostRefs = CharField(index=True, default="")
         name = CharField(index=True, default="")
         inGithub = BooleanField(index=True, default=False)
         members = CharField(index=True, default="")
@@ -63,10 +63,10 @@ class RepoCollection(base):
 
         """
 
-        if "gogsRefs" in args:
-            args["gogsRefs"] = ["%s_%s_%s" % (item["name"], item["id"], item['url']) for item in args["gogsRefs"]]
+        if "gitHostRefs" in args:
+            args["gitHostRefs"] = ["%s_%s_%s" % (item["name"], item["id"], item['url']) for item in args["gitHostRefs"]]
 
-        args = self._arraysFromArgsToString(["members", "gogsRefs"], args)
+        args = self._arraysFromArgsToString(["members", "gitHostRefs"], args)
 
         # this will try to find the right index obj, if not create
 

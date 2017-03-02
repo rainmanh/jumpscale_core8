@@ -55,13 +55,14 @@ class GitHubFactory:
         self.__jslocation__ = "j.clients.github"
         self._clients = {}
 
+        #d970a3c77f1b96c3bbae065f9a24dec14aaa5ceb
     # def getRepoClient(self, account, reponame):
     #     return GitHubRepoClient(account, reponame)
 
-    def getClient(self, secret):
-        if secret not in self._clients:
-            self._clients[secret] = GitHubClient(secret)
-        return self._clients[secret]
+    def getClient(self, login_or_token, password=None):
+        if login_or_token not in self._clients:
+            self._clients[login_or_token] = GitHubClient(login_or_token, password)
+        return self._clients[login_or_token]
 
     def getIssueClass(self):
         return Issue
@@ -69,8 +70,8 @@ class GitHubFactory:
 
 class GitHubClient:
 
-    def __init__(self, secret):
-        self.api = github.Github(secret, per_page=100)
+    def __init__(self, login_or_token, password):
+        self.api = github.Github(login_or_token, password, per_page=100)
         self.users = {}
         self.repos = {}
         self.pool = Pool()
@@ -145,26 +146,40 @@ class GitHubClient:
         nrissues = len(allissues)
 
         orgid = org.id
-        #  nr of milestones => set of all milestones in all repos?
-        repos = fetchall_from_paginated_list(org.get_repos())
-        reposids = [repo.id for repo in repos]
 
-        milestones = set([m.title for m in fetchall_from_many_paginated_lists(*[rep.get_milestones() for rep in repos])])
-        nrmilestones = len(milestones)
-        description = orgname # FIXME: how to get a description of an org? orgname used instead.
-        members = fetchall_from_paginated_list(org.get_members())
-        nrmembers = len(members)
-
-        # FIXME: calculate owners ids list.
-        owners = []
+        # get organization from git_host_id
+        url = "https://docs.greenitglobe.com/%s" % orgname
+        org_model = self.orgCollection.getFromGitHostID(git_host_name=git_host_name, git_host_id=org.org_userid, git_host_url=url)
 
         org_model = self.orgCollection.getFromId(orgid)
         org_model.dbobj.repos = reposids
 
-        org_model.dbobj.members = []
-        for member in members:
-            member_scheme = j.data.capnp.getMemoryObj(org_model._capnp_schema.Member, userKey=member.id, access=0)
-            org_model.members.append(member_scheme)
+        repos = fetchall_from_paginated_list(org.get_repos())
+        if org_model.dbobj.repos != repos:
+            org_model.initSubItem("repos")
+            org_model.list_repos = repos
+            org_model.changed = True
+
+        # milestones = set([m.title for m in fetchall_from_many_paginated_lists(*[rep.get_milestones() for rep in repos])])
+        #  nr of milestones => set of all milestones in all repos?
+        # nrmilestones = len(milestones)
+
+        description = orgname # FIXME: how to get a description of an org? orgname used instead.
+
+        members = fetchall_from_paginated_list(org.get_members())
+        nrmembers = len(members)
+        members = [self.userId2userKey[int(item.strip())]
+                   for item in org.org_member_userids.split(",")]
+        members = members.sort()
+
+        # FIXME: calculate owners ids list.
+        owners = []
+
+        if org_model.dbobj.members != members:
+            self.logger.debug("org members changed :%s" % orgName)
+            org_model.initSubItem("members")
+            org_model.list_members = members
+            org_model.changed = True
 
         org_model.dbobj.owners = owners
         org_model.dbobj.id = orgid
@@ -335,3 +350,8 @@ class GitHubClient:
         repo_model.dbobj.nrMilestones = len(milestones)
         repo_model.dbobj.source = ''
         repo_model.save()
+
+    def getAllFromGithub(self, orgs):
+        orgs = self.getOrgsFromGithub(*orgs)
+        users = self.getReposFromGithubOrgs(*orgs)
+        issues = getIssuesFromGithubOrganizations(*orgs)

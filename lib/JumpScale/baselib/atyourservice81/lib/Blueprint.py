@@ -1,7 +1,20 @@
 from JumpScale import j
 import yaml
+from collections import OrderedDict
 
-CATEGORY = "ays:bp"
+def ordered_load(stream, Loader=yaml.Loader, object_pairs_hook=OrderedDict):
+    """
+    load a yaml stream and keep the order
+    """
+    class OrderedLoader(Loader):
+        pass
+    def construct_mapping(loader, node):
+        loader.flatten_mapping(node)
+        return object_pairs_hook(loader.construct_pairs(node))
+    OrderedLoader.add_constructor(
+        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+        construct_mapping)
+    return yaml.load(stream, OrderedLoader)
 
 
 class Blueprint:
@@ -32,30 +45,11 @@ class Blueprint:
         self.is_valid = self._validate_yaml(self.content)
 
         if self.is_valid:
-            content = ""
-            nr = 0
-            # we need to do all this work because the yaml parsing does not
-            # maintain order because its a dict
-            for line in self.content.split("\n"):
-                if len(line) > 0 and line[0] == "#":
-                    continue
-                if content == "" and line.strip() == "":
-                    continue
-
-                line = line.replace("\t", "    ")
-                nr += 1
-                if len(content) > 0 and (len(line) > 0 and line[0] != " "):
-                    self._add2models(content, nr)
-                    content = ""
-
-                content += "%s\n" % line
-
-            # to process the last one
-            self._add2models(content, nr)
-            self._contentblocks = []
+            decoded = ordered_load(self.content, yaml.SafeLoader)
+            for key, value in decoded.items():
+                self.models.append({key:value})
 
             self.hash = j.data.hash.md5_string(self.content)
-
             self.is_valid = self._validate_format(self.models)
 
     async def load(self, role="", instance=""):

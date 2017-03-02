@@ -60,6 +60,6 @@ class CuisineNodeJS(app):
 
         self.cuisine.bash.profileDefault.addPath(self.cuisine.core.replace("$BINDIR"))
         self.cuisine.bash.profileDefault.save()
-        self.cuisine.core.run("%s install -g bower" % self.npm, profile=True)
+        self.cuisine.core.run("%s install -g bower" % self.npm, profile=True, shell=True)
 
         self.doneSet("install")

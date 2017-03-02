@@ -297,6 +297,7 @@ class CuisineTmux(base):
         set-option -g status-bg colour235 #base02
         set-option -g status-fg colour136 #yellow
         set-option -g status-attr default
+        set-option -g default-shell $SHELL
 
         # set window split
         bind-key v split-window -h

@@ -2682,7 +2682,7 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
         change = {}
         change["JSAPPSDIR"] = lambda x: "%s/apps" % x["JSBASE"]
         change["JSBASEDIR"] = lambda x: x["JSBASE"]
-        change["BINDIR"] = lambda x: "%s/bin" % x["BASEDIR"]
+        change["BINDIR"] = lambda x: "%s/bin" % x["JSBASE"]
         change["DATADIR"] = lambda x: "%s/data" % x["VARDIR"]
         change["CODEDIR"] = lambda x: "%s/code" % x["BASEDIR"]
         change["BUILDDIR"] = lambda x: "%s/build" % x["VARDIR"]

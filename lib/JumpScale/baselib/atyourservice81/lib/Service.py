@@ -119,7 +119,7 @@ class Service:
             fullpath = j.sal.fs.joinPaths(parent.path, skey)
             newpath = j.sal.fs.pathRemoveDirPart(fullpath, self.aysrepo.path)
             if j.sal.fs.exists(dbobj.gitRepo.path):
-                j.sal.fs.moveDir(dbobj.gitRepo.path)
+                j.sal.fs.moveDir(dbobj.gitRepo.path, newpath)
             dbobj.gitRepo.path = newpath
 
         await self._initProducers(actor, args)

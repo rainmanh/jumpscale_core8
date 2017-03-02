@@ -20,7 +20,7 @@ class UserCollection(base):
 
         class User(Model):
             key = CharField(index=True, default="")
-            gitHostRefs = CharField(index=True, default="")
+            gogsRefs = CharField(index=True, default="")
             name = CharField(index=True, default="")
             fullname = CharField(index=True, default="")
             email = CharField(index=True, default="")
@@ -43,7 +43,7 @@ class UserCollection(base):
     def add2index(self, **args):
         """
         key = CharField(index=True, default="")
-        gitHostRefs = CharField(index=True, default="")
+        gogsRefs = CharField(index=True, default="")
         name = CharField(index=True, default="")
         fullname = CharField(index=True, default="")
         email = CharField(index=True, default="")
@@ -57,10 +57,10 @@ class UserCollection(base):
         @param args is any of the above
         """
 
-        if "gitHostRefs" in args:
-            args["gitHostRefs"] = ["%s_%s_%s" % (item["name"], item["id"], item['url']) for item in args["gitHostRefs"]]
+        if "gogsRefs" in args:
+            args["gogsRefs"] = ["%s_%s_%s" % (item["name"], item["id"], item['url']) for item in args["gogsRefs"]]
 
-        args = self._arraysFromArgsToString(["gitHostRefs"], args)
+        args = self._arraysFromArgsToString(["gogsRefs"], args)
 
         # this will try to find the right index obj, if not create
 

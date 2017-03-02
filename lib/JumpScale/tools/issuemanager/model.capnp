@@ -17,7 +17,7 @@ struct Issue {
     organization @8 :Text;
     modTime @9 :UInt32;
     creationTime @10 :UInt32;
-    gitHostRefs @11 :List(GogsRef);
+    gogsRefs @11 :List(GogsRef);
     struct GogsRef{
         name @0 :Text;
         id @1 :UInt32;
@@ -64,7 +64,7 @@ struct Organization{
     description @2 :Text;
     nrIssues @3 :UInt16;
     nrRepos @4 :UInt16;
-    gitHostRefs @5 :List(GogsRef);
+    gogsRefs @5 :List(GogsRef);
     struct GogsRef{
         name @0 :Text;
         id @1 :UInt32;
@@ -97,7 +97,7 @@ struct Repo{
         userKey @0 :Text;
         access @1 :UInt16;
     }
-    gitHostRefs @6 :List(GogsRef);
+    gogsRefs @6 :List(GogsRef);
     struct GogsRef{
         name @0 :Text;
         id @1 :UInt32;
@@ -110,7 +110,7 @@ struct User{
     name @0 :Text; #as to be used to represent in UI
     fullname @1 :Text;
     email @2 :Text; #will be used for escalation
-    gitHostRefs @3 :List(GogsRef);
+    gogsRefs @3 :List(GogsRef);
     struct GogsRef{
         name @0 :Text;
         id @1 :UInt32;

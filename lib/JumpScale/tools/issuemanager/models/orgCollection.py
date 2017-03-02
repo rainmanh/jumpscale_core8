@@ -20,7 +20,7 @@ class OrgCollection(base):
 
         class Org(Model):
             key = CharField(index=True, default="")
-            gogsRefs = CharField(index=True, default="")
+            gitHostRefs = CharField(index=True, default="")
             name = CharField(index=True, default="")
             description = CharField(index=True, default="")
             inGithub = BooleanField(index=True, default=False)
@@ -44,7 +44,7 @@ class OrgCollection(base):
     def add2index(self, **args):
         """
         key = CharField(index=True, default="")
-        gogsRefs = CharField(index=True, default="")
+        gitHostRefs = CharField(index=True, default="")
         name = CharField(index=True, default="")
         description = CharField(index=True, default="")
         inGithub = BooleanField(index=True, default=False)
@@ -65,10 +65,10 @@ class OrgCollection(base):
 
         """
 
-        if "gogsRefs" in args:
-            args["gogsRefs"] = ["%s_%s_%s" % (item["name"], item["id"], item['url']) for item in args["gogsRefs"]]
+        if "gitHostRefs" in args:
+            args["gitHostRefs"] = ["%s_%s_%s" % (item["name"], item["id"], item['url']) for item in args["gitHostRefs"]]
 
-        args = self._arraysFromArgsToString(["members", "owners", "repos", "gogsRefs"], args)
+        args = self._arraysFromArgsToString(["members", "owners", "repos", "gitHostRefs"], args)
 
         # this will try to find the right index obj, if not create
 

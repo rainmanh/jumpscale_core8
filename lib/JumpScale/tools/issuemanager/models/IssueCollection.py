@@ -20,7 +20,7 @@ class IssueCollection(base):
 
         class Issue(Model):
             key = CharField(index=True, default="")
-            gogsRefs = CharField(index=True, default="")
+            gitHostRefs = CharField(index=True, default="")
             title = CharField(index=True, default="")
             creationTime = TimestampField(index=True, default=j.data.time.epoch)
             modTime = TimestampField(index=True, default=j.data.time.epoch)
@@ -47,7 +47,7 @@ class IssueCollection(base):
     def add2index(self, **args):
         """
         key = CharField(index=True, default="")
-        gogsRefs = CharField(index=True, default="")
+        gitHostRefs = CharField(index=True, default="")
         title = CharField(index=True, default="")
         creationTime = TimestampField(index=True, default=j.data.time.epoch)
         modTime = TimestampField(index=True, default=j.data.time.epoch)
@@ -71,10 +71,10 @@ class IssueCollection(base):
 
         """
 
-        if "gogsRefs" in args:
-            args["gogsRefs"] = ["%s_%s_%s" % (item["name"], item["id"], item['url']) for item in args["gogsRefs"]]
+        if "gitHostRefs" in args:
+            args["gitHostRefs"] = ["%s_%s_%s" % (item["name"], item["id"], item['url']) for item in args["gitHostRefs"]]
 
-        args = self._arraysFromArgsToString(["assignees", "labels", "gogsRefs"], args)
+        args = self._arraysFromArgsToString(["assignees", "labels", "gitHostRefs"], args)
 
         # this will try to find the right index obj, if not create
         obj, isnew = self.index.get_or_create(key=args["key"])

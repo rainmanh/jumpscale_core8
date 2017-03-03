@@ -1,6 +1,7 @@
 from JumpScale import j
 import os
 
+
 def service_view(s):
     """
     generate a dict that represent a service from a service object
@@ -8,35 +9,27 @@ def service_view(s):
     producers = []
     for prods in s.producers.values():
         for producer in prods:
-            producers.append({'role': producer.model.role, 'name':producer.name})
+            producers.append({'role': producer.model.role, 'name': producer.name})
     consumers = []
     for cons in s.consumers.values():
         for consumer in cons:
-            consumers.append({'role': consumer.model.role, 'name':consumer.name})
+            consumers.append({'role': consumer.model.role, 'name': consumer.name})
+
     service = {
         'key': s.model.key,
-        'role': s.model.role,
         'name': s.name,
+        'role': s.model.role,
+        'repository': s.aysrepo.name,
         'data': j.data.serializer.json.loads(s.model.dataJSON),
-        'recurring': [],
-        'events': [],
+        'state': s.model.dbobj.state.__str__(),
+        'path': s.path,
+        'actions': [],
+        'parent': {'role': s.parent.model.role, 'name': s.parent.model.name} if s.parent else None,
         'producers': producers,
         'consumers': consumers,
-        'parent': {'role': s.parent.model.role, 'name':s.parent.model.name} if s.parent else None,
-        'children': [{'role': c.model.role, 'name':c.model.name}  for c in s.children],
-        'path': s.path,
-        'repository': s.aysrepo.name,
-        'state': s.model.dbobj.state.__str__(),
-        'actions': s.model.actionsCode,
-        'actions_state': [],
-        'model': s.model.__repr__()
+        'children': [{'role': c.model.role, 'name': c.model.name} for c in s.children],
+        'events': [],
     }
-    for name, model in s.model.actionsRecurring.items():
-        service['recurring'].append({
-            'name': name,
-            'period': model.period,
-            'last_run': model.lastRun
-        })
 
     for event_filter in s.model.eventFilters:
         service['events'].append({
@@ -48,10 +41,18 @@ def service_view(s):
 
     actionsNames = sorted(s.model.actionsState.keys())
     for actionName in actionsNames:
-        service['actions_state'].append({
-            'name':actionName,
-            'state':s.model.actionsState[actionName]
-        })
+        action = {
+            'name': actionName,
+            'code': s.model.actionsCode[actionName],
+            'state': s.model.actionsState[actionName],
+            'recurring': None,
+        }
+        if actionName in s.model.actionsRecurring:
+            action['recurring'] = {
+                'period': s.model.actionsRecurring[actionName].period,
+                'period': s.model.actionsRecurring[actionName].lastRun,
+            }
+        service['actions'].append(action)
 
     return service
 
@@ -98,16 +99,32 @@ def run_view(run):
     return obj
 
 
-def actor_view(t):
+def actor_view(a):
     """
     generate a dict that represent a service from a service object
     """
-    template = {
-        'name': t.model.name,
-        'schema_hrd': j.sal.fs.fileGetContents("{path}/schema.hrd".format(path=t.path)) if j.sal.fs.exists("{path}/schema.hrd".format(path=t.path)) else None,
-        'actions_py': j.sal.fs.fileGetContents("{path}/actions.py".format(path=t.path)) if j.sal.fs.exists("{path}/actions.py".format(path=t.path)) else None,
+    actor = {
+        'name': a.model.name,
+        'schema': a.schemaCapnpText,
+        'actions': []
     }
-    return template
+
+    actionsNames = sorted(a.model.actionsState.keys())
+    for actionName in actionsNames:
+        action = {
+            'name': actionName,
+            'code': a.model.actionsCode[actionName],
+            'state': a.model.actionsState[actionName],
+            'recurring': None,
+        }
+        if actionName in a.model.actionsRecurring:
+            action['recurring'] = {
+                'period': a.model.actionsRecurring[actionName].period,
+                'period': a.model.actionsRecurring[actionName].lastRun,
+            }
+        actor['actions'].append(action)
+
+    return actor
 
 
 def blueprint_view(bp):
@@ -119,6 +136,7 @@ def blueprint_view(bp):
         'archived': not bp.active,
     }
 
+
 def template_view(template):
     actions_path = j.sal.fs.joinPaths(template.path, 'actions.py')
     actions_file = None
@@ -127,12 +145,13 @@ def template_view(template):
 
     return {
         'name': template.name,
-        'action': actions_file or '',
+        'action': actions_file,
         'schema': template.schemaCapnpText,
         'config': template.configDict,
         'path': template.path,
         'role': template.role
     }
+
 
 def repository_view(repo):
     try:

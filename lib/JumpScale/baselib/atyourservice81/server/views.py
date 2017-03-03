@@ -50,7 +50,7 @@ def service_view(s):
         if actionName in s.model.actionsRecurring:
             action['recurring'] = {
                 'period': s.model.actionsRecurring[actionName].period,
-                'period': s.model.actionsRecurring[actionName].lastRun,
+                'last_run': s.model.actionsRecurring[actionName].lastRun,
             }
         service['actions'].append(action)
 

@@ -133,7 +133,12 @@ def show(role, name):
     '''
     show information about a service
     '''
-    # def get_service(key):
+    def get_service(role, name):
+        resp = ayscl.api.ays.getServiceByName(role=role, name=name, repository=_current_repo_name())
+        if resp.status_code != HTTPStatus.OK:
+            print("Error while getting service: {}".format(_extract_error(resp)))
+            return
+        return resp.json()
 
     resp = ayscl.api.ays.listServices(_current_repo_name())
     if resp.status_code != HTTPStatus.OK:
@@ -147,6 +152,7 @@ def show(role, name):
         if name and service['name'] != name:
             continue
 
+        service = get_service(role=service['role'], name=service['name'])
         print('\n')
         print('---------------------------------------------------')
         print("Service: %s - Role: %s" % (service['name'], service['role']))
@@ -169,6 +175,14 @@ def show(role, name):
             print('')
             print("{role}!{name}".format(**service['parent']))
 
+        print("\nChildren:", end='')
+        if len(service['children']) <= 0:
+            print(' None')
+        else:
+            print("")
+            for child in service['children']:
+                print("{role}!{name}".format(**child))
+
         print("\nProducers:", end='')
         if not service['producers']:
             print(' None')
@@ -186,12 +200,15 @@ def show(role, name):
                 print("{role}!{name}".format(**producer))
 
         print("\nRecurring actions:", end='')
-        if not service['recurring']:
-            print(' None')
-        else:
+        have_reccuring = False
+        for action in service['actions']:
+            if action['recurring'] is None:
+                continue
             print('')
-            for recurring in service['recurring']:
-                print("%s: period:%5s last run:%s " % (recurring['name'], j.data.time.getSecondsInHR(recurring['period']), print_date(recurring['last_run'])))
+            print("%s: period:%5s last run:%s " % (action['name'], j.data.time.getSecondsInHR(action['recurring']['period']), print_date(action['recurring']['last_run'])))
+            have_reccuring = True
+        if not have_reccuring:
+            print(" None")
 
         print("\nEvent filters:", end='')
         if not service['events']:
@@ -226,8 +243,8 @@ def state(role, name):
             continue
 
         print('State of service : %s!%s' % (service['role'], service['name']))
-        for state in service['actions_state']:
-            print("\t%-25s : %s" % (state['name'], state['state']))
+        for action in service['actions']:
+            print("\t%-25s : %s" % (action['name'], action['state']))
 
 
 
@@ -294,7 +311,6 @@ def list():
         print("Installed actors:")
         print("-------------------")
 
-        actors = resp.json()
         for actor in sorted(resp.json(), key=lambda x:x['name']):
             print("{name}".format(**actor))
     else:
@@ -341,8 +357,8 @@ def list():
         print("error during listing of templates: {}".format(_extract_error(resp)))
         return
 
-    for template in sorted(resp.json()):
-        print(template)
+    for template in sorted(resp.json(),  key=lambda x:x['name']):
+        print("{name}".format(**template))
 
 @cli.group()
 def run():

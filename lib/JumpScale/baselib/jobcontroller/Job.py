@@ -13,6 +13,48 @@ import logging
 
 colored_traceback.add_hook(always=True)
 
+def _execute_cb(job, epoch, future):
+    """
+    callback call after a job has finished executing
+    job: is the job object
+    epoch: is the epoch when the job started
+    future: future that hold the result of the job execution
+    """
+    if job._cancelled is True:
+        return
+
+    service_action_obj = None
+
+    if job.service is not None:
+        action_name = job.model.dbobj.actionName
+        if action_name in job.service.model.actions:
+            service_action_obj = job.service.model.actions[action_name]
+        if action_name in job.service.model.actionsRecurring and service_action_obj:
+            # if the action is a reccuring action, save last execution time in model
+            service_action_obj.lastRun = epoch
+
+    exception = future.exception()
+    if exception is not None:
+        job.state = 'error'
+        job.model.dbobj.state = 'error'
+        if service_action_obj:
+            service_action_obj.state = 'error'
+        if job.service:
+            job.service.model.dbobj.state = 'error'
+        eco = j.errorconditionhandler.processPythonExceptionObject(exception)
+        job._processError(eco)
+    else:
+        job.state = 'ok'
+        job.model.dbobj.state = 'ok'
+        if service_action_obj:
+            service_action_obj.state = 'ok'
+        if job.service:
+            job.service.model.dbobj.state = 'ok'
+
+        job.logger.info("job {} done sucessfuly".format(str(job)))
+
+    job.save()
+
 @contextmanager
 def generate_profile(job):
     """
@@ -208,48 +250,6 @@ class Job():
 
         ex: result, stdout, stderr = await job.execute()
         """
-        def _execute_cb(job, epoch, future):
-            """
-            callback call after a job has finished executing
-            job: is the job object
-            epoch: is the epoch when the job started
-            future: future that hold the result of the job execution
-            """
-            if job._cancelled is True:
-                return
-
-            service_action_obj = None
-
-            if job.service is not None:
-                action_name = job.model.dbobj.actionName
-                if action_name in job.service.model.actions:
-                    service_action_obj = job.service.model.actions[action_name]
-                if action_name in job.service.model.actionsRecurring and service_action_obj:
-                    # if the action is a reccuring action, save last execution time in model
-                    service_action_obj.lastRun = epoch
-
-            exception = future.exception()
-            if exception is not None:
-                job.state = 'error'
-                job.model.dbobj.state = 'error'
-                if service_action_obj:
-                    service_action_obj.state = 'error'
-                if job.service:
-                    job.service.model.dbobj.state = 'error'
-                eco = j.errorconditionhandler.processPythonExceptionObject(exception)
-                job._processError(eco)
-            else:
-                job.state = 'ok'
-                job.model.dbobj.state = 'ok'
-                if service_action_obj:
-                    service_action_obj.state = 'ok'
-                if job.service:
-                    job.service.model.dbobj.state = 'ok'
-
-                job.logger.info("job {} done sucessfuly".format(str(job)))
-
-            job.save()
-
         # for now use default ThreadPoolExecutor
         loop = asyncio.get_event_loop()
         if self.model.dbobj.debug is False:

@@ -4,6 +4,77 @@ from JumpScale.baselib.atyourservice81.lib.Recurring import RecurringTask
 import capnp
 import time
 import asyncio
+import importlib
+
+class ActionExec:
+    """
+    Class used by ActionsFake class. It holds the logic of building the code from action model
+    and executing it
+    """
+
+    def __init__(self, service, action_obj):
+        self._method = None
+        self._service = service
+        self._action_obj = action_obj
+        self._loop = asyncio.get_event_loop()
+
+    def _load(self):
+        action_model = j.core.jobcontroller.db.actions.get(self._action_obj.actionKey)
+        path = self._source_path(self._service, action_model)
+        loader = importlib.machinery.SourceFileLoader(action_model.key, path)
+        handle = loader.load_module(action_model.key)
+        self._method = eval("handle.{}".format(action_model.dbobj.name))
+
+    def _source(self, action_model):
+        """
+        rebuild source code
+        """
+        tmpl = """
+        {imports}
+        from JumpScale import j
+
+        def {name}({args}):
+        {code}
+        """
+        tmpl = j.data.text.strip(tmpl)
+        code = action_model.dbobj.code
+        code = j.data.text.indent(code, 4)
+        source = tmpl.format(
+            imports='\n'.join(action_model.imports),
+            name=action_model.dbobj.name,
+            args=action_model.argsText,
+            code=code
+        )
+        return source
+
+    def _source_path(self, service, action_model):
+        """
+        write code into a file
+        """
+        path = j.sal.fs.joinPaths(j.dirs.TMPDIR, "actions", service.model.dbobj.actorName, action_model.dbobj.name + ".py")
+        j.sal.fs.createDir(j.sal.fs.getParent(path))
+        j.sal.fs.writeFile(path, self._source(action_model))
+        return path
+
+    def __call__(self, *args, **kwargs):
+        if self._method is None:
+            self._load()
+        return self._method(*args, **kwargs)
+
+class ActionsFake:
+    """
+    this class expose all the actions from a service so user can do something like
+    service.actions.foo()
+
+    This allow to call action from another action easily. This to reduce
+    duplication and allow nicer organization of the code in actions files
+    """
+    def __init__(self, service):
+        exclude = j.atyourservice.baseActions.keys()
+        for name, action_obj in service.model.actions.items():
+            if name not in exclude and name[-1] == '_':
+                setattr(self, name, ActionExec(service, action_obj))
+
 
 class Service:
 
@@ -16,6 +87,7 @@ class Service:
         self._path = ""
         self._loop = loop or asyncio.get_event_loop()
         self._recurring_tasks = {} # for recurring jobs
+        self.actions = None
 
         self.aysrepo = aysrepo
         self.logger = j.logger.get('j.atyourservice.service')
@@ -38,13 +110,14 @@ class Service:
         self = cls(aysrepo=aysrepo)
         self.model = model
         self.aysrepo.db.services.services[self.model.key] = self
+        self.actions = ActionsFake(service)
         self._ensure_recurring()
         return self
 
     @classmethod
     def init_from_fs(cls, aysrepo, path):
         self = cls(aysrepo=aysrepo)
-        self.loadFromFS(path)
+        self._loadFromFS(path)
         self.aysrepo.db.services.services[self.model.key] = self
         self._ensure_recurring()
         return self
@@ -91,6 +164,7 @@ class Service:
                 log=action.log
             )
         self.model.reSerialize()
+        self.actions = ActionsFake(self)
 
         # set default value for argument not specified in blueprint
         template = self.aysrepo.templateGet(actor.model.name)
@@ -268,7 +342,7 @@ class Service:
                 self.processChange(actor=actor, changeCategory="dataschema", args=args)
                 break
 
-    def loadFromFS(self, path):
+    def _loadFromFS(self, path):
         """
         get content from fs and load in object
         only for DR purposes, std from key value stor
@@ -294,6 +368,7 @@ class Service:
             if actor_action.name in self.model.actions:
                 self.model.actions[actor_action.name].actionKey = actor_action.actionKey
 
+        self.actions = ActionsFake(self)
         self.saveAll()
 
     def saveToFS(self):
@@ -543,6 +618,8 @@ class Service:
             action_name = changeCategory.split('action_new_')[1]
             actor_action_pointer = actor.model.actions[action_name]
             self.model.actionAdd(key=actor_action_pointer.actionKey, name=action_name)
+            if action_name[-1] == '_':
+                setattr(self.actions, action_name, ActionExec(self, actor_action_pointer))
 
         elif changeCategory.find('action_mod') != -1:
             # update state and pointer of the action pointer in service model
@@ -552,6 +629,9 @@ class Service:
             service_action_pointer.state = 'changed'
             service_action_pointer.actionKey = action_actor_pointer.actionKey
 
+            if hasattr(self.actions, action_name):
+                setattr(self.actions, action_name, ActionExec(self, service_action_pointer))
+
             # update the lastModDate of the action object
             action = j.core.jobcontroller.db.actions.get(key=service_action_pointer.actionKey)
             action.dbobj.lastModDate = j.data.time.epoch
@@ -560,6 +640,8 @@ class Service:
         elif changeCategory.find('action_del') != -1:
             action_name = action_name = changeCategory.split('action_del_')[1]
             self.model.actionDelete(action_name)
+            if hasattr(self.actions, action_name):
+                delattr(self.actions, action_name)
 
         # save the change for the service
         self.saveAll()
@@ -603,7 +685,7 @@ class Service:
         job = self.getJob("input", args=args)
         job._service = self
         job.saveService = False  # this is done to make sure we don't save the service at this point !!!
-        args, _, _ = await job.executeInProcess()
+        args = await job.executeInProcess()
         job.model.actorName = self.model.dbobj.actorName
         job.model.save()
         return args

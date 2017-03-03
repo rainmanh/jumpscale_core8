@@ -337,12 +337,16 @@ types:
             200:
               body:
                 application/json:
-                  type: string[]
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name: string
                   description: list of blueprint name
                   example:
-                    - 1_credentials.yaml
-                    - 2_nodes.yaml
-                    - 3_application.yaml
+                    - name: 1_credentials.yaml
+                    - name: 2_nodes.yaml
+                    - name: 3_application.yaml
         post:
           displayName: createBlueprint
           description: Create a new blueprint
@@ -517,7 +521,9 @@ types:
               200:
                 body:
                   application/json:
-                    type: string[]
+                    type: object
+                    properties:
+                      name: string
                     description: list of actor name
                     example:
                       - node.ovc
@@ -560,11 +566,15 @@ types:
             200:
               body:
                 application/json:
-                  type: string[]
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name: string
                   description: list of template name
                   example:
-                    - node.ovc
-                    - node.g8os
+                    - name: node.ovc
+                    - name: node.g8os
         /{template_name}:
           uriParameters:
             template_name:
@@ -589,11 +599,15 @@ types:
               200:
                 body:
                   application/json:
-                    type: string[]
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        key: string
                     description: list of run ids
                     example:
-                      - f2e76f49dbf4b578062ce9cd7e4626dc
-                      - afd41db33cedd3258d0af342ebf68126
+                      - key: f2e76f49dbf4b578062ce9cd7e4626dc
+                      - key: afd41db33cedd3258d0af342ebf68126
         post:
             displayName: CreateRun
             description: |

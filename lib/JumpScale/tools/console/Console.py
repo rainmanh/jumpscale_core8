@@ -339,11 +339,13 @@ class Console:
         raise ValueError(
             "Console.askInteger() failed: tried %d times but user didn't fill out a value that matches '%s'." % (retry, response))
 
-    def askYesNo(self, message=""):
+    def askYesNo(self, message="", default=None):
         '''Display a yes/no question and loop until a valid answer is entered
 
         @param message: Question message
         @type message: string
+        @param default: Default action when nothing is entered. True for yes, False for no.
+        @type default: bool
 
         @return: Positive or negative answer
         @rtype: bool
@@ -352,15 +354,26 @@ class Console:
             raise j.exceptions.Input("Cannot ask a yes/no question in a non interactive mode.",
                                      "console.askyesno.notinteractive")
 
+        prompt = "[y/n]: "
+
+        if default == True:
+            prompt = "[Y/n]: "
+
+        if default == False:
+            prompt = "[y/N]: "
+
         while True:
-            if sys.version.startswith("2"):
-                result = input(str(message) + " (y/n):").rstrip(chr(13))
-            else:
-                result = input(str(message) + " (y/n):").rstrip(chr(13))
-            if result.lower() == 'y' or result.lower() == 'yes':
+            result = input(str(message) + " " + prompt).rstrip(chr(13))
+
+            if result == "" and default != None:
+                return default
+
+            if result and result.lower()[0] == 'y':
                 return True
-            if result.lower() == 'n' or result.lower() == 'no':
+
+            if result and result.lower()[0] == 'n':
                 return False
+
             self.echo("Illegal value. Press 'y' or 'n'.")
 
     def askIntegers(self, question, invalid_message="invalid input please try again.", min=None, max=None):

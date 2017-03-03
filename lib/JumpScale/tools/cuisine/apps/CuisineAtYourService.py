@@ -29,6 +29,11 @@ class CuisineAtYourService(base):
             j.sal.fs.joinPaths(base_dir,'index.html')
         )
 
+        self.cuisine.core.file_link(
+            j.sal.fs.joinPaths('$CODEDIR', 'github/jumpscale/jumpscale_core8/apps/atyourservice/main.py'),
+            j.sal.fs.joinPaths(base_dir,'main.py')
+        )
+
     def start(self, host='localhost', port=5000):
         cmd = 'jspython $JSAPPSDIR/atyourservice/main.py -h {host} -p {port}'.format(host=host, port=port)
         self.cuisine.processmanager.ensure(name='atyourservice', cmd=cmd)

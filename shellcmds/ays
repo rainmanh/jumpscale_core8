@@ -416,7 +416,7 @@ def create(ask, force, debug, profile, follow):
     _print_run(run)
 
     if ask:
-        resp = j.tools.console.askYesNo('Do you want to execute this run ?')
+        resp = j.tools.console.askYesNo('Do you want to execute this run ?', True)
         if resp is False:
             return
 

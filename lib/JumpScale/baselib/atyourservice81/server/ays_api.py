@@ -144,7 +144,7 @@ async def listRuns(request, repository):
         return json({'error':e.message}, 404)
 
     runs = repo.runsList()
-    runs = [{'key': run.model.key} for run in runs]
+    runs = [{'key': run.model.key, 'epoch': run.model.dbobj.lastModDate, 'state': str(run.state)} for run in runs]
 
     return json(runs, 200)
 

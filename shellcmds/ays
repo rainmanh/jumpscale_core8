@@ -257,6 +257,15 @@ def delete(role, name, ask):
     Delete a service and all its children
     Be carefull with this action, there is no come back once a service is deleted.
     """
+
+    def get_service(role, name):
+        resp = ayscl.api.ays.getServiceByName(role=role, name=name, repository=_current_repo_name())
+        if resp.status_code != HTTPStatus.OK:
+            print("Error while getting service: {}".format(_extract_error(resp)))
+            return
+        return resp.json()
+
+
     resp = ayscl.api.ays.listServices(_current_repo_name())
     if resp.status_code != HTTPStatus.OK:
         print("Error while listing services: {}".format(_extract_error(resp)))
@@ -274,6 +283,8 @@ def delete(role, name, ask):
 
     print("Services selected for deletion:")
     for service in services:
+        service = get_service(role=service['role'], name=service['name'])
+
         print("- {role}!{name}".format(**service))
         if service['children']:
             print('  child that will also be deleted:')

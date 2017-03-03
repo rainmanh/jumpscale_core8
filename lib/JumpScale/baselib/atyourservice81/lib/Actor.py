@@ -34,6 +34,16 @@ class Actor():
     def path(self):
         return j.sal.fs.joinPaths(self.aysrepo.path, "actors", self.model.name)
 
+    @property
+    def schemaCapnpText(self):
+        """
+        returns capnp schema as text
+        """
+        path = j.sal.fs.joinPaths(self.path, "schema.capnp")
+        if j.sal.fs.exists(path):
+            return j.sal.fs.fileGetContents(path)
+        return ""
+
     def loadFromFS(self, name):
         """
         get content from fs and load in object

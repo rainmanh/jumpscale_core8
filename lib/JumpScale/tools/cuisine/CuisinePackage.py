@@ -7,6 +7,7 @@ base = j.tools.cuisine._getBaseClass()
 LOCK_NAME = 'APT-LOCK'
 LOCK_TIMEOUT = 500
 
+
 class CuisinePackage(base):
 
     def _repository_ensure_apt(self, repository):
@@ -73,9 +74,11 @@ class CuisinePackage(base):
         else:
             raise j.exceptions.RuntimeError("could not upgrade, platform not supported")
 
-    def install(self, package, allow_unauthenticated=False,reset=False):
+    def install(self, package, allow_unauthenticated=False, reset=False):
 
-        if self.doneGet("install_%s"%package) and reset==False:
+        self.logger.info("try to install:%s" % package)
+
+        if self.doneGet("install_%s" % package) and reset == False:
             return
 
         if self.cuisine.core.isUbuntu:
@@ -107,6 +110,7 @@ class CuisinePackage(base):
 
             _, installed, _ = self.cuisine.core.run("brew list", showout=False)
             if package in installed:
+                self.logger.info("no need to install:%s" % package)
                 return  # means was installed
 
             # rc,out=self.cuisine.core.run("brew info --json=v1 %s"%package,showout=False,die=False)
@@ -145,12 +149,9 @@ class CuisinePackage(base):
                         mdupdate = True
                         continue
                     raise j.exceptions.RuntimeError("Could not install:%s %s" % (package, err))
-                if rc==0:
-                    self.doneSet("install_%s"%package)
+                if rc == 0:
+                    self.doneSet("install_%s" % package)
                     return out
-
-
-
 
     def multiInstall(self, packagelist, allow_unauthenticated=False):
         """
@@ -181,7 +182,9 @@ class CuisinePackage(base):
                     continue
                 to_install.append(dep)
 
-            self.install(' '.join(to_install), allow_unauthenticated=allow_unauthenticated)
+            for package in to_install:
+                self.install(package, allow_unauthenticated=allow_unauthenticated)
+
         finally:
             self.cuisine.core.sudomode = previous_sudo
 

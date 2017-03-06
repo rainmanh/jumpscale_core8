@@ -206,7 +206,6 @@ class CuisineCore(base):
             self._logger = j.logger.get("cuisine.core")
         return self._logger
 
-
     def shell_safe(self, path):
         SHELL_ESCAPE = " '\";`|"
         """Makes sure that the given path/string is escaped and safe for shell"""
@@ -360,9 +359,11 @@ class CuisineCore(base):
         @param removeTopDir : if True and there is only 1 dir in the destination then will move files away from the one dir to parent (often in tgz the top dir is not relevant)
         """
 
-        #DO NOT CHANGE minsizekb<40, is to protect us against file not found, if there is a specific need then change the argument only for that 1 usecase
+        # DO NOT CHANGE minsizekb<40, is to protect us against file not found, if
+        # there is a specific need then change the argument only for that 1
+        # usecase
 
-        if expand and to!="":
+        if expand and to != "":
             destination = to
             if overwrite:
                 self.dir_remove(destination)
@@ -416,11 +417,11 @@ class CuisineCore(base):
                 raise j.exceptions.RuntimeError("not implemented yet")
 
         if expand:
-            return self.file_expand(to, destination,removeTopDir=removeTopDir)
+            return self.file_expand(to, destination, removeTopDir=removeTopDir)
 
         return to
 
-    def file_expand(self, path, destination="",removeTopDir=False):
+    def file_expand(self, path, destination="", removeTopDir=False):
         path = self.replace(path)
         base = j.sal.fs.getBaseName(path)
         if base.endswith(".tgz"):
@@ -450,9 +451,9 @@ class CuisineCore(base):
             raise j.exceptions.RuntimeError("file_expand format not supported yet for %s" % path)
 
         if removeTopDir:
-            res=self.find(destination,recursive=False,type="d")
-            if len(res)==1:
-                self.copyTree(res[0],destination)
+            res = self.find(destination, recursive=False, type="d")
+            if len(res) == 1:
+                self.copyTree(res[0], destination)
                 self.dir_remove(res[0])
 
         if self.dir_exists(self.joinpaths(destination, base)):
@@ -712,7 +713,7 @@ class CuisineCore(base):
                 # if sig != self.file_md5(location):
                 cmd = 'echo "%s" | base64 -d > %s' % (content_base64, location)
                 if self.isMac:
-                    cmd = 'echo "%s" | base64 -D > %s' % (content_base64, location)          
+                    cmd = 'echo "%s" | base64 -D > %s' % (content_base64, location)
                 res = self.run(cmd, showout=False)
             if check:
                 file_sig = self.file_md5(location)
@@ -856,7 +857,7 @@ class CuisineCore(base):
 
         if self.isMac:
             cmd += '%s %s' % (source.rstrip("/"), dest)
-            cmd += " 2>&1 >/dev/null ;True"
+            # cmd += " 2>&1 >/dev/null ;True" #THIS IS REALLY BAD, AGAINST ALWAYS DIE !!!
         else:
             cmd += '%s %s' % (source, dest)
 
@@ -944,7 +945,7 @@ class CuisineCore(base):
     def dir_remove(self, location, recursive=True):
         """ Removes a directory """
         location = self.replace(location)
-        # self.logger.info("dir remove:%s"%location)
+        # self.logger.info("dir remove:%s" % location)
         self.logger.debug("dir remove:%s" % location)
         flag = ''
         if recursive:

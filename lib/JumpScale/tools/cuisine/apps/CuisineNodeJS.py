@@ -11,7 +11,11 @@ class CuisineNodeJS(app):
 
     @property
     def npm(self):
-        return self.replace('$BINDIR/npm')
+        return self.replace('$BASEDIR/node/bin/npm')
+
+    @property
+    def NODE_PATH(self):
+        return self.replace('$BASEDIR/node/lib/node_modules')
 
     def bowerInstall(self, name):
         """
@@ -33,7 +37,11 @@ class CuisineNodeJS(app):
         """
         if not reset and self.doneGet("install"):
             return
-        version = "7.3.0"
+
+        self.cuisine.core.file_unlink("$BINDIR/node")
+        self.cuisine.core.dir_remove("$JSAPPSDIR/npm")
+
+        version = "7.7.1"
         if reset == False and self.cuisine.core.file_exists('$BINDIR/npm'):
             return
 
@@ -48,18 +56,45 @@ class CuisineNodeJS(app):
         cdest = self.cuisine.core.file_download(url, expand=True, overwrite=False, to="$TMPDIR")
 
         # copy file to correct locations.
-        self.cuisine.core.dir_ensure('$BINDIR')
-        self.cuisine.core.dir_ensure('$JSAPPSDIR/npm')
+        self.cuisine.core.dir_ensure('$BASEDIR/node/npm')
+        self.cuisine.core.dir_ensure('$BASEDIR/node/bin')
+        self.cuisine.core.dir_ensure(self.NODE_PATH)
         src = '%s/bin/node' % cdest
-        self.cuisine.core.file_copy(src, '$BINDIR', recursive=True, overwrite=True)
+        self.cuisine.core.file_copy(src, '$BASEDIR/node/bin/', recursive=True, overwrite=True)
         src = '%s/lib/node_modules/npm/*' % cdest
-        self.cuisine.core.file_copy(src, '$JSAPPSDIR/npm', recursive=True, overwrite=True)
-        if self.cuisine.core.file_exists('$BINDIR/npm'):
-            self.cuisine.core.file_unlink('$BINDIR/npm')
-        self.cuisine.core.file_link('$JSAPPSDIR/npm/cli.js', '$BINDIR/npm')
+        self.cuisine.core.file_copy(src, '$BASEDIR/node/npm', recursive=True, overwrite=True)
+        if self.cuisine.core.file_exists('$BASEDIR/node/bin/npm'):
+            self.cuisine.core.file_unlink('$BASEDIR/node/bin/npm')
+        self.cuisine.core.file_link('$BASEDIR/node/npm/cli.js', '$BASEDIR/node/bin/npm')
 
-        self.cuisine.bash.profileDefault.addPath(self.cuisine.core.replace("$BINDIR"))
+        for item in self.cuisine.bash.profileDefault.paths:
+            if "node" in item or "npm" in item:
+                self.logger.info("remove %s from path in default profile." % item)
+                self.cuisine.bash.profileDefault.pathDelete(item)
+
+        for item in self.cuisine.bash.profileJS.paths:
+            if "node" in item or "npm" in item:
+                self.logger.info("remove %s from path in default profile." % item)
+                self.cuisine.bash.profileDefault.pathDelete(item)
+
+        self.cuisine.bash.profileDefault.envSet("NODE_PATH", self.NODE_PATH)
+        self.cuisine.bash.profileDefault.addPath(self.cuisine.core.replace("$BASEDIR/node/bin/"))
         self.cuisine.bash.profileDefault.save()
+
+        rc, out, err = self.cuisine.core.run("npm -v")
+
+        assert out == '4.1.2'  # needs to be this version because is part of the package which was downloaded
+
+        rc, initmodulepath, err = self.cuisine.core.run("%s config get init-module" % self.npm)
+        self.cuisine.core.file_unlink(initmodulepath)
+        self.cuisine.core.run("%s config set global true -g" % self.npm)
+        self.cuisine.core.run(self.replace("%s config set init-module $BASEDIR/node/.npm-init.js -g" % self.npm))
+        self.cuisine.core.run(self.replace("%s config set init-cache $BASEDIR/node/.npm -g" % self.npm))
+        self.cuisine.core.run("%s config set global true " % self.npm)
+        self.cuisine.core.run(self.replace("%s config set init-module $BASEDIR/node/.npm-init.js " % self.npm))
+        self.cuisine.core.run(self.replace("%s config set init-cache $BASEDIR/node/.npm " % self.npm))
         self.cuisine.core.run("%s install -g bower" % self.npm, profile=True, shell=True)
+
+        self.cuisine.core.run("%s install npm@latest -g" % self.npm)
 
         self.doneSet("install")

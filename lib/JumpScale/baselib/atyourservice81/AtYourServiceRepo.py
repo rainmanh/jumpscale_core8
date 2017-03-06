@@ -85,8 +85,8 @@ class AtYourServiceRepo():
                 if 'ip' in val:
                     if 'port' not in val:
                         c.core.run('ssh-keygen -f "%s/.ssh/known_hosts" -R %s' % (j.dirs.homeDir, val['ip']))
-                    c.core.run('ssh-keygen -f "%s/.ssh/known_hosts" -R \'[%s]:%s\'' % (j.dirs.homeDir, val['ip'],
-                                                                                       val['port']))
+                    else:
+                        c.core.run('ssh-keygen -f "%s/.ssh/known_hosts" -R \'[%s]:%s\'' % (j.dirs.homeDir, val['ip'], val['port']))
 
         j.sal.fs.removeDirTree(service_path)
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "actors"))

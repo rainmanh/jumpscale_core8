@@ -202,7 +202,7 @@ class FList(object):
                 dirs2.append(os.path.join(dirRelPath, item))
 
             # initialize right amount of objects in capnp
-            ddir.initNewSubObj("contents", len(ffiles) + len(llinks) + len(sspecials) + len(dirs2))
+            ddir.dbobj.init("contents", len(ffiles) + len(llinks) + len(sspecials) + len(dirs2))
             counter = 0
 
             # process files

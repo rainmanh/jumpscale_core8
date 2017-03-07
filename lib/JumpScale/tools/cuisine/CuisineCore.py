@@ -857,7 +857,6 @@ class CuisineCore(base):
 
         if self.isMac:
             cmd += '%s %s' % (source.rstrip("/"), dest)
-            # cmd += " 2>&1 >/dev/null ;True" #THIS IS REALLY BAD, AGAINST ALWAYS DIE !!!
         else:
             cmd += '%s %s' % (source, dest)
 

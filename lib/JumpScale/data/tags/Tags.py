@@ -16,7 +16,7 @@ class Tags:
     tag is with value attached e.g. customer:kristof
     """
 
-    def __init__(self, tagstring='', setFunction4Tagstring=None):
+    def __init__(self, tagstring='', setFunction4Tagstring=None, keepcase=False):
         """
         @param tagstring:  example "labelexample customer:newco"
         @type tagstring: string
@@ -26,10 +26,10 @@ class Tags:
         self.labels = set()
         self.tagstring = tagstring or ''
         if self.tagstring != "":
-            self.fromString(self.tagstring)
+            self.fromString(self.tagstring, keepcase=keepcase)
         self._setFunction4Tagstring = setFunction4Tagstring
 
-    def fromString(self, tagstring):
+    def fromString(self, tagstring, keepcase=False):
         """
         go from string to Tag class filled in
 
@@ -49,7 +49,8 @@ class Tags:
                 value = tag.split(':', 1)[1]
                 key = unquote(key)
                 value = unquote(str(j.data.text.machinetext2val(value)))
-                self.tags[key.lower()] = value
+                if not keepcase:
+                    self.tags[key.lower()] = value
                 self.tags[key] = value
             else:
                 self.labels.add(unquote(str(j.data.text.machinetext2val(tag))))

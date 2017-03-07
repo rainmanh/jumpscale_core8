@@ -1,9 +1,6 @@
 from JumpScale import j
 from collections import OrderedDict
 
-import operator
-import peewee
-
 
 class ModelBase():
 
@@ -363,7 +360,6 @@ class ModelBaseCollection:
         return self._db.exists(key)
 
     def get(self, key, autoCreate=False):
-
         if self._db.inMem:
             if key in self._db.db:
                 model = self._db.db[key]
@@ -381,30 +377,24 @@ class ModelBaseCollection:
                 collection=self)
         return model
 
-    def list(self, **kwargs):
-        """
-        List all keys of a index
+    def list(self,  query=None):
+            """
+            List all keys of a index
+            @param if query not none then will use the index to do a query and ignore other elements
+            e.g
+              -  self.index.select().order_by(self.index.modTime.desc())
+              -  self.index.select().where((self.index.priority=="normal") | (self.index.priority=="critical"))
+             info how to use see:
+                http://docs.peewee-orm.com/en/latest/peewee/querying.html
+                the query is the statement in the where
+            """
 
+            if query != None:
+                res = [item.key for item in query]
+            else:
+                res = [item.key for item in self.index.select().order_by(self.index.modTime.desc())]
 
-        list all entries matching kwargs. If none are specified, lists all
-
-        e.g.
-        email="reem@greenitglobe.com", name="reem"
-
-        """
-        if kwargs:
-            clauses = []
-            for key, val in kwargs.items():
-                if not hasattr(self.index, key):
-                    raise RuntimeError('%s model has no field "%s"' % (self.index._meta.name, key))
-                field = (getattr(self.index, key))
-                clauses.append(field.contains(val))
-
-            res = [item.key for item in self.index.select().where(peewee.reduce(operator.and_, clauses)).order_by(self.index.modTime.desc())]
-        else:
-            res = [item.key for item in self.index.select().order_by(self.index.modTime.desc())]
-
-        return res
+            return res
 
     def find(self, **kwargs):
         """

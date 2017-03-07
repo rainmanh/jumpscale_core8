@@ -1,5 +1,6 @@
 
 from JumpScale import j
+import html
 
 base = j.data.capnp.getModelBaseClass()
 
@@ -21,19 +22,30 @@ class IssueModel(base):
                 if label.startswith("type_"):
                     toremove.append(label)
                     label = label[5:]
+                    if label not in ['unknown', 'alert', 'bug', 'doc', 'feature', 'incident', 'question', 'request', 'story', 'task']:
+                        label = 'unknown'
+                        toremove.pop()
                     self.dbobj.type = label
                 elif label.startswith("priority_"):
                     toremove.append(label)
                     label = label[9:]
+                    if label not in ['minor', 'normal', 'major', 'critical']:
+                        label = 'normal'
+                        toremove.pop()
                     self.dbobj.priority = label
                 elif label.startswith("state_"):
                     toremove.append(label)
                     label = label[6:]
+                    if label not in ['new', 'inprogress', 'resolved', 'wontfix', 'question', 'closed']:
+                        label = 'new'
+                        toremove.pop()
                     self.dbobj.state = label
             self.initSubItem("labels")
             for item in toremove:
                 self.list_labels.pop(self.list_labels.index(item))
             self.reSerialize()
+            content = self.dbobj.content
+            content = html.escape(content)
 
     def gitHostRefSet(self, name, id):
         return j.clients.gogs._gitHostRefSet(self, name, id)

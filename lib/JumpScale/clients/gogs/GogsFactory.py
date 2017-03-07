@@ -28,13 +28,6 @@ class GogsFactory:
         self.issueCollection = j.tools.issuemanager.getIssueCollectionFromDB()
         self.repoCollection = j.tools.issuemanager.getRepoCollectionFromDB()
 
-    def destroyData(self):
-        self.userCollection.destroy()
-        self.orgCollection.destroy()
-        self.issueCollection.destroy()
-        self.repoCollection.destroy()
-        self.reset()
-
     def createViews(self):
         self.logger.info("createviews")
 
@@ -339,8 +332,7 @@ class GogsFactory:
 
             # get organization from git_host_id
             url = "https://docs.greenitglobe.com/%s" % orgName
-            org_model = self.orgCollection.getFromGitHostID(
-                git_host_name=git_host_name, git_host_id=org.org_userid, git_host_url=url)
+            org_model = self.orgCollection.getFromGitHostID(git_host_name=git_host_name, git_host_id=org.org_userid, git_host_url=url)
 
             members = [self.userId2userKey[int(item.strip())]
                        for item in org.org_member_userids.split(",")]
@@ -379,8 +371,7 @@ class GogsFactory:
         for id, repo in self.repos_table.items():
 
             url = "https://docs.greenitglobe.com/%s/%s" % (self.userId2userKey[repo.owner], repo.name)
-            repo_model = self.repoCollection.getFromGitHostID(
-                git_host_name=git_host_name, git_host_id=id, git_host_url=url)
+            repo_model = self.repoCollection.getFromGitHostID(git_host_name=git_host_name, git_host_id=id, git_host_url=url)
 
             repo_model.dbobj.name = repo.name
             repo_model.dbobj.description = repo.description
@@ -405,8 +396,7 @@ class GogsFactory:
 
         for id, user in self.users_table.items():
             url = "https://docs.greenitglobe.com/%s" % user.name
-            user_model = self.userCollection.getFromGitHostID(
-                git_host_name=git_host_name, git_host_id=user.id, git_host_url=url)
+            user_model = self.userCollection.getFromGitHostID(git_host_name=git_host_name, git_host_id=user.id, git_host_url=url)
             if user_model.dbobj.name != user.name:
                 user_model.dbobj.name = user.name
                 user_model.changed = True
@@ -433,7 +423,7 @@ class GogsFactory:
         res = {}
         for item in self.userCollection.find():
             res[item.key] = item.dbobj.to_dict()
-            res[item.key].pop('gogsRefs')
+            res[item.key].pop('gitHostRefs')
             from IPython import embed
             print("DEBUG NOW setUsersYaml")
             embed()
@@ -444,14 +434,11 @@ class GogsFactory:
         @param name is name of gogs instance
         @id is id in gogs
         """
-        model.logger.debug("gitHostRefSet: git_host_name='%s' git_host_id='%s' git_host_url='%s'" %
-                           (git_host_name, git_host_id, git_host_url))
+        model.logger.debug("gitHostRefSet: git_host_name='%s' git_host_id='%s' git_host_url='%s'" % (git_host_name, git_host_id, git_host_url))
         ref = self._gitHostRefGet(model, git_host_name, git_host_url)
         if ref == None:
-            model.logger.debug("add subitem")
-            model.addSubItem("gitHostRefs", data=model.collection.list_gitHostRefs_constructor(
-                id=git_host_id, name=git_host_name, url=git_host_url))
-            key = model.collection._index.lookupSet("gogs_%s" % git_host_name, git_host_id, model.key)
+            model.addSubItem("gitHostRefs", data=model.collection.list_gitHostRefs_constructor(id=git_host_id, name=git_host_name, url=git_host_url))
+            key = model.collection._index.lookupSet("githost_%s" % git_host_name, git_host_id, model.key)
             model.save()
         else:
             if str(ref.id) != str(id):
@@ -471,15 +458,13 @@ class GogsFactory:
         """
         @param git_host_name is the name of the gogs instance
         """
-        modelCollection.logger.debug("gitHostRefSet: git_host_name='%s' git_host_id='%s' git_host_url='%s'" % (
-            git_host_name, git_host_id, git_host_url))
-        key = modelCollection._index.lookupGet("gogs_%s" % git_host_name, git_host_id)
+        modelCollection.logger.debug("gitHostRefSet: git_host_name='%s' git_host_id='%s' git_host_url='%s'" % (git_host_name, git_host_id, git_host_url))
+        key = modelCollection._index.lookupGet("githost_%s" % git_host_name, git_host_id)
         if key == None:
             modelCollection.logger.debug("gogs id not found, create new")
             if createNew:
                 modelActive = modelCollection.new()
-                self._gitHostRefSet(model=modelActive, git_host_name=git_host_name,
-                                    git_host_id=git_host_id, git_host_url=git_host_url)
+                self._gitHostRefSet(model=modelActive, git_host_name=git_host_name, git_host_id=git_host_id, git_host_url=git_host_url)
             else:
                 raise j.exceptions.Input(message="cannot find object  %s from git_host_id:%s" %
                                          (modelCollection.objType, git_host_id), level=1, source="", tags="", msgpub="")

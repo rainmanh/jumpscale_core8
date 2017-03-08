@@ -115,7 +115,10 @@ class IssueCollection(base):
                 if not hasattr(self.index, key):
                     raise RuntimeError('%s model has no field "%s"' % (self.index._meta.name, key))
                 field = (getattr(self.index, key))
-                clauses.append(field.contains(val))
+                if isinstance(val, list): # get range in list
+                    clauses.append(field.between(val[0], val[1]))
+                else:
+                    clauses.append(field.contains(val))
 
             res = [item.key for item in self.index.select().where(peewee.reduce(operator.and_, clauses)).order_by(self.index.modTime.desc())]
         else:

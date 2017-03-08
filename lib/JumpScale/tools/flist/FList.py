@@ -596,9 +596,7 @@ class FList(object):
         return "\n".join(result) + "\n"
 
     def upload(self, host="127.0.0.1", port=16379):
-        import g8storclient
-        # g8sc = g8storclient.g8storclient
-        g8sc = g8storclient
+        from g8storclient import g8storclient as g8sc
         # g8client = g8sc.getClientId0(host, port)
         g8client = g8sc.connect(host, port)
 

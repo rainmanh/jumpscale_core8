@@ -259,6 +259,11 @@ class GogsFactory:
                 for assignee in assignees:
                     issue_model.assigneeSet(assignee)
 
+            if issue_model.dbobj.isClosed != issue.is_closed:
+                issue_model.dbobj.isClosed = issue.is_closed
+                issue_model.changed = True
+
+
             # our view has pre-aggregrated the comments, need to do some minimal parsing now
             comments = j.data.serializer.base64.loads(issue.comments)
             comments = [item.strip() for item in comments.split("||") if item.strip() != ""]

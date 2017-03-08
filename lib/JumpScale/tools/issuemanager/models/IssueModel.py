@@ -34,11 +34,14 @@ class IssueModel(base):
                         toremove.pop()
                     self.dbobj.priority = label
                 elif label.startswith("state_"):
-                    toremove.append(label)
-                    label = label[6:]
-                    if label not in ['new', 'inprogress', 'resolved', 'wontfix', 'question', 'closed']:
-                        label = 'new'
-                        toremove.pop()
+                    if self.dbobj.isClosed:
+                        label = 'closed'
+                    else:
+                        toremove.append(label)
+                        label = label[6:]
+                        if label not in ['new', 'inprogress', 'resolved', 'wontfix', 'question', 'closed']:
+                            label = 'new'
+                            toremove.pop()
                     self.dbobj.state = label
             self.initSubItem("labels")
             for item in toremove:

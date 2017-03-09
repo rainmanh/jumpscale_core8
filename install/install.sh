@@ -42,7 +42,7 @@ function osx_install {
     sudo mkdir -p /optvar
     sudo chown -R $USER /optvar
     sudo mkdir -p /opt
-    sudo chown -R $USER /opt    
+    sudo chown -R $USER /opt
 }
 
 function pip_install {
@@ -73,6 +73,7 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     if [ "$dist" == "Ubuntu" ]; then
         echo "found ubuntu"
         apt-get install mc curl git ssh python3.5 -y
+        apt-get install python3-pip
         apt-get install libssl-dev -y
         apt-get install python3-dev -y
         apt-get install build-essential -y

@@ -25,7 +25,8 @@ class CuisinePHP(app):
     NAME = 'php'
 
     def build(self, **config):
-        pkgs = "libxml2-dev libpng-dev libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev re2c bison bzip2 build-essential"
+
+        pkgs = "libxml2-dev libpng-dev libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev re2c bison bzip2 build-essential libaprutil1-dev libapr1-dev openssl pkg-config libssl-dev libsslcommon2-dev"
         list(map(self._cuisine.package.ensure, pkgs.split(sep=" ")))
 
         compileconfig['with_apxs2'] = self._cuisine.core.args_replace("$appDir/apache2/bin/apxs")

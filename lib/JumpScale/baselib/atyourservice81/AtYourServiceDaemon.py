@@ -27,9 +27,12 @@ def run_action(repo_path, service_key, action_name, args=None):
 def job_cleanup():
     jobs = set()
     jc = JobsCollection()
-    job_keys = jc._list_keys(fromEpoch=j.data.time.getEpochAgo('-2d'))
+    job_keys = jc._list_keys(toEpoch=j.data.time.getEpochAgo('-2d'))
     for job_key in job_keys:
-        jobs.add(jc.getIndexFromKey(job_key))
+        index = jc.getIndexFromKey(job_key)
+        items = index.split(':')
+        regex = "%s:%s:%s:.*:%s:%s" % (items[0], items[1], items[2], items[4], items[5])
+        jobs.add(regex)
     jc._db.index_remove(list(jobs))
     return
 

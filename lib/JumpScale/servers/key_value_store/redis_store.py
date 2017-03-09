@@ -73,8 +73,18 @@ class RedisKeyValueStore(KeyValueStoreBase):
         if not isinstance(keys, list):
             keys = [keys]
         for key in keys:
-            if self.redisclient.hexists(self._indexkey, key):
-                self.redisclient.hdel(self._indexkey, key)
+            instances = self._match_regex(key)
+            for item in instances:
+                if self.redisclient.hexists(self._indexkey, item):
+                    self.redisclient.hdel(self._indexkey, item)
+
+    def _match_regex(self, regex):
+        res = set()
+        for item in self.redisclient.hkeys(self._indexkey):
+            item = item.decode()
+            if re.match(regex, item) is not None:
+                res.add(item)
+        return res
 
     def list(self, regex=".*", returnIndex=False, secret=""):
         """
@@ -82,16 +92,14 @@ class RedisKeyValueStore(KeyValueStoreBase):
         e.g. .*:new:.* would match all actors with state new
         """
         res = set()
-        for item in self.redisclient.hkeys(self._indexkey):
-            item = item.decode()
-            if re.match(regex, item) is not None:
-                key = self.redisclient.hget(self._indexkey, item).decode()
-                if returnIndex is False:
-                    for key2 in key.split(","):
-                        res.add(key2)
-                else:
-                    for key2 in key.split(","):
-                        res.add((item, key2))
+        for item in self._match_regex(regex):
+            key = self.redisclient.hget(self._indexkey, item).decode()
+            if returnIndex is False:
+                for key2 in key.split(","):
+                    res.add(key2)
+            else:
+                for key2 in key.split(","):
+                    res.add((item, key2))
         return list(res)
 
     def _getQueueNameKey(self, name):

@@ -67,7 +67,7 @@ class IssueModel(base):
             self.addSubItem("assignees", key)
         self.changed = True
 
-    def commentSet(self, comment, owner=""):
+    def commentSet(self, comment, owner="", modTime=None):
         if owner == None:
             owner = ""
         for item in self.dbobj.comments:
@@ -77,6 +77,9 @@ class IssueModel(base):
             if item.owner != owner:
                 item.owner == owner
                 self.changed = True
+            if modTime and item.modTime != modTime:
+                item.modTime = modTime
+                self.changed
             return
         obj = self.collection.list_comments_constructor(comment=comment, owner=owner)
         self.addSubItem("comments", obj)

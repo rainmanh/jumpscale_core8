@@ -62,7 +62,7 @@ class GogsFactory:
         CREATE OR REPLACE VIEW issue_comments AS
         SELECT
           issue.id,
-          '{' || comment.id || ',' || comment.poster_id || '}' || comment.content as comment
+          '{' || comment.id || ',' || comment.poster_id || ',' || comment.created_unix || ',' || comment.updated_unix || '}' || comment.content as comment
         FROM issue
         left join comment on issue.id=comment.issue_id
         ORDER by comment.id;
@@ -263,24 +263,28 @@ class GogsFactory:
                 issue_model.dbobj.isClosed = issue.is_closed
                 issue_model.changed = True
 
+            mod_time = int(issue.updated_unix)
 
             # our view has pre-aggregrated the comments, need to do some minimal parsing now
             comments = j.data.serializer.base64.loads(issue.comments)
             comments = [item.strip() for item in comments.split("||") if item.strip() != ""]
             comments.sort()  # will make sure its sorted on comment_id (prob required for right order of comments)
-            if comments != []:
 
-                for comment in comments:
-                    res = comment.split("}")
-                    if len(res) == 2:
-                        meta, comment = res
-                        ownerId = int(meta.split(",")[1])
-                        # owner = self.userId2userKey[ownerId]
-                        owner = ""  # TODO: *1 for later
-                    else:
-                        comment = res[0]
-                        owner = ""
-                    issue_model.commentSet(comment, owner=owner)
+            for comment in comments:
+                res = comment.split("}")
+                if len(res) == 2:
+                    meta, comment = res
+                    _, owner_id, created, modified = meta.split(',')
+                    owner = self.userId2userKey.get(owner_id, '')
+                    modified = int(modified)
+                    if modified > mod_time:
+                        mod_time = modified
+                    # owner = self.users_table[ownerId].id
+                else:
+                    comment = res[0]
+                    owner = ""
+                    modified = None
+                issue_model.commentSet(comment, owner=owner, modTime=modified)
 
             if issue.milestone_id != 0:
                 milestone = self.milestones_table[issue.milestone_id].name
@@ -306,8 +310,8 @@ class GogsFactory:
 
             issue_model.dbobj.creationTime = issue.created_unix
 
-            if issue_model.dbobj.modTime != issue.updated_unix:
-                issue_model.dbobj.modTime = issue.updated_unix
+            if issue_model.dbobj.modTime != mod_time:
+                issue_model.dbobj.modTime = mod_time
                 issue_model.changed = True
 
             content = j.data.serializer.base64.loads(issue.content)

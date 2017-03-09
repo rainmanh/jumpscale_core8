@@ -401,6 +401,34 @@ class AtYourServiceRepo():
 
         self.init(role=role, instance=instance)
 
+        def to_camel_case(snake_str):
+            components = snake_str.split('_')
+            return components[0] + "".join(x.title() for x in components[1:])
+
+        templates = []
+
+        # update repo data
+        for sv in self.services:
+            actor_name, instance = sv.model.__str__().split('!')
+            service_name = "%s__%s" % (actor_name, instance)
+            service_data = j.data.serializer.json.loads(sv.model.dataJSON)
+            for model in bp.models:
+                model_data = model.get(service_name, None)
+                if not model_data:
+                    continue
+                for key, val in model_data.items():
+                    if '_' not in key:
+                        continue
+                    model_data[to_camel_case(key)] = model_data.pop(key)
+
+                if service_data != model_data:
+                    templates.append(actor_name)
+
+        for n in templates:
+            template = self.templateGet(name=n)
+            actor = self.actorGet(name=n)
+            actor._initFromTemplate(template)
+
         print("blueprint done")
 
     def blueprintGet(self, bname):

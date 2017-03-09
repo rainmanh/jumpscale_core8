@@ -46,7 +46,10 @@ class RunStep:
         res = []
         for obj in self.dbobj.jobs:
             job_model = j.core.jobcontroller.db.jobs.get(obj.key)
-            res.append(job_model.objectGet())
+            if job_model:
+                res.append(job_model.objectGet())
+            else:
+                j.logger.log('No job found with key [%s]' % obj.key)
         return res
 
     def _fake_exec(self, job):

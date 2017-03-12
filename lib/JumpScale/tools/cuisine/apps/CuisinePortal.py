@@ -255,9 +255,14 @@ class CuisinePortal(base):
                                     self.main_portal_dir)
         self.cuisine.core.file_copy("%s/jslib/old/images" % self.portal_dir,
                                     "%s/jslib/old/elfinder" % self.portal_dir, recursive=True)
-        # link for ays
-        self.cuisine.core.file_link(source='$CODEDIR/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81',
-                                    destination='$JSAPPSDIR/portals/main/base/AYS81')
+        # link spaces
+        spaces = j.tools.cuisine.local.core.find('$CODEDIR/github/jumpscale/jumpscale_portal8/apps/portalbase/', recursive=True, pattern='*.space', type='d')
+        to_link = [j.sal.fs.getParent(x) for x in spaces]
+        for space in to_link:
+            space_name = j.sal.fs.getBaseName(space)
+            if space_name.casefold() != 'home':
+                print (space_name)
+                self.cuisine.core.file_link(source=space, destination='$JSAPPSDIR/portals/main/base/%s' % space_name)
 
     def addSpace(self, spacepath):
         spacename = j.sal.fs.getBaseName(spacepath)

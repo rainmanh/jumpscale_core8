@@ -261,7 +261,6 @@ class CuisinePortal(base):
         for space in to_link:
             space_name = j.sal.fs.getBaseName(space)
             if space_name.casefold() != 'home':
-                print (space_name)
                 self.cuisine.core.file_link(source=space, destination='$JSAPPSDIR/portals/main/base/%s' % space_name)
 
     def addSpace(self, spacepath):

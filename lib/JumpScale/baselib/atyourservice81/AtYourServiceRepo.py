@@ -60,7 +60,8 @@ class AtYourServiceRepo():
             return
         if not j.sal.fs.exists("%s/.ssh/known_hosts" % j.dirs.homeDir):
             return
-        _, out, _ = c.core.run("find %s -name 'data.json' -exec egrep -iH 'ippublic|sshPort' {} \;" % service_path)
+        _, out, _ = c.core.run("find %s -name 'data.json' -exec egrep -iH 'ippublic|sshPort' {} \;" % service_path,
+                               showout=False)
         connections = dict()
         if out:
             for item in out.splitlines():

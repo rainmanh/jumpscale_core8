@@ -1,0 +1,7 @@
+# 'QA SERVICE' (THE TEMPLATE SHOULD HAS THIS LINE)
+test_cockpit_api__instance:
+
+actions:
+   - action: 'install'
+   - action: 'test_all'
+     actor: "test_cockpit_api"

@@ -89,7 +89,7 @@ class Service:
             raise j.exceptions.Input(message="result from input needs to be dict,service:%s" % self,
                                      level=1, source="", tags="", msgpub="")
 
-        self._valdidate_service_args(args)
+        self._validate_service_args(args)
 
         dbobj.data = j.data.capnp.getBinaryData(j.data.capnp.getObj(dbobj.dataSchema, args=args, name='Schema'))
 
@@ -116,7 +116,7 @@ class Service:
 
         self.saveAll()
 
-    def _valdidate_service_args(self, args):
+    def _validate_service_args(self, args):
         """
         validate the arguments passed to the service during initialization to be sure we don't pass not defined arguments.
         """

@@ -246,7 +246,7 @@ class Service:
                 else:
                     auto_actor = self.aysrepo.actorGet(parent_role)
                     instance = j.data.idgenerator.generateIncrID('parent_%s' % parent_role)
-                    res.append(await auto_actor.serviceCreate(instance="auto_%d" % instance, args={}))
+                    res.append(await auto_actor.asyncServiceCreate(instance="auto_%d" % instance, args={}))
             elif len(res) > 1:
                 raise j.exceptions.Input(message="could not find parent:%s for %s, found more than 1." %
                                          (parent_name, self), level=1, source="", tags="", msgpub="")
@@ -299,7 +299,7 @@ class Service:
                 if producer_model.auto:
                     for idx in range(tocreate):
                         auto_actor = self.aysrepo.actorGet(producer_role)
-                        available_services.append(await auto_actor.serviceCreate(instance="auto_%s" % idx, args={}))
+                        available_services.append(await auto_actor.asyncServiceCreate(instance="auto_%s" % idx, args={}))
                 else:
                     raise j.exceptions.Input(message="Minimum number of services required of role %s is %s and only %s are provided. [Hint: Maybe you want to set auto to auto create the missing services?]" % (producer_role, producer_model.minServices, len(usersetservices)),
                                              level=1, source="", tags="", msgpub="")

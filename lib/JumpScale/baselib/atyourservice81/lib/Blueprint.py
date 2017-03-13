@@ -160,7 +160,7 @@ class Blueprint:
 
                         actor = self.aysrepo.actorGet(actorname)
                         args = {} if item is None else item
-                        await actor.serviceCreate(instance=bpinstance, args=args)
+                        await actor.asyncServiceCreate(instance=bpinstance, args=args)
 
         # first we had to make sure all services do exist, then we can add these properties
         for action_info in self.actions:

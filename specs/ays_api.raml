@@ -5,234 +5,255 @@ version: v0.1
 mediaType:  application/json
 securitySchemes:
   itsyouonline:
-                description: |
-                  OAuth2 is a protocol that lets external apps request authorization to private
-                  details in a user's account without getting their password.
-                type: OAuth 2.0
-                describedBy:
-                  headers:
-                    Authorization:
-                      description: |
-                        Used to send a valid OAuth 2 access token. Do not use together with
-                        the "access_token" query string parameter.
-                  queryParameters:
-                    access_token:
-                      description: |
-                        Used to send a valid OAuth 2 access token. Do not use together with
-                        the "Authorization" header
-                  responses:
-                    404:
-                      description: Unauthorized
-                settings:
-                  authorizationUri: https://itsyou.online/v1/oauth/authorize
-                  accessTokenUri: https://itsyou.online/v1/oauth/access_token?response_type=id_token
-                  authorizationGrants: [ authorization_code, client_credentials ]
-                  scopes:
-                    - "user:admin"
-                    - "user:info"
-                    - "organization:owner"
-                    - "organization:member"
-                    - "organization:info"
-                    - "organization:contracts:read"
-                    - "company:admin"
-                    - "company:read"
-                    - "company:info"
-                    - "company:contracts:read"
-                    - "contract:read"
-                    - "contract:participant"
+    description: |
+      OAuth2 is a protocol that lets external apps request authorization to private
+      details in a user's account without getting their password.
+    type: OAuth 2.0
+    describedBy:
+      headers:
+        Authorization:
+          description: |
+            Used to send a valid OAuth 2 access token. Do not use together with
+            the "access_token" query string parameter.
+      queryParameters:
+        access_token:
+          description: |
+            Used to send a valid OAuth 2 access token. Do not use together with
+            the "Authorization" header
+      responses:
+        404:
+          description: Unauthorized
+    settings:
+      authorizationUri: https://itsyou.online/v1/oauth/authorize
+      accessTokenUri: https://itsyou.online/v1/oauth/access_token?response_type=id_token
+      authorizationGrants: [ authorization_code, client_credentials ]
+      scopes:
+        - "user:admin"
+        - "user:info"
+        - "organization:owner"
+        - "organization:member"
+        - "organization:info"
+        - "organization:contracts:read"
+        - "company:admin"
+        - "company:read"
+        - "company:info"
+        - "company:contracts:read"
+        - "contract:read"
+        - "contract:participant"
 
 types:
   Repository:
     properties:
-      path:
-          type: string
-          required: false
-      name:
-          type: string
-          required: true
-      git_url:
-        type: string
-        required: true
+      path: string
+      name: string
+      git_url: string
     example:
-        path: "/opt/code/github/jumscpale/cockpit"
-        name: "cockpit"
-        git_url: "https://github.com/user/reponame"
+      path: "/opt/code/github/jumscpale/cockpit"
+      name: "cockpit"
+      git_url: "https://github.com/user/reponame"
 
   Blueprint:
     properties:
-      name:
-          type: string
-          required: true
-      content:
-          type: string
-          required: true
-      archived:
-        type: boolean
-        required: false
-      hash:
-        type: string
-        required: false
-      path:
-        type: string
-        required: false
+      name: string
+      content: object
+      archived: boolean
+      hash: string
+      path: string
     example:
-        name: "cockpit.yaml"
-        content: |
-            service__main:
-                description: "a service"
-        path: "/opt/code/cockpit/repo/blueprints/my_blueprints.ayml"
-        hash: '45d4dbd44a0a3c3c8cf62acdab8e0850'
-        archived: true
+      name: "cockpit.yaml"
+      content:
+        service__main:
+          description: "a service"
+      path: "/opt/code/cockpit/repo/blueprints/my_blueprints.ayml"
+      hash: '45d4dbd44a0a3c3c8cf62acdab8e0850'
+      archived: true
+
+  BlueprintListing:
+    properties:
+      name: string
+
+  ServicePointer:
+    properties:
+      role: string
+      name: string
+
+  ActionRecurring:
+    properties:
+      period:
+        type: integer
+        description: recurring period in second
+      last_run:
+        type: integer
+        description: timestamp of last execution
+  Action:
+    properties:
+      name: string
+      code: string
+      state:
+        enum: [ new, changed, ok, scheduled, disabled, error,running ]
+      recurring: ActionRecurring
+
+  Event:
+    properties:
+      actions: string[]
+      command: string
+      channel: string
+      tags: string[]
 
   Service:
     properties:
-        key:
-           type: string
-           required: true
-        name:
-           type: string
-           required: true
-        role:
-           type: string
-           required: true
-        actions_py:
-           type: string
-           required: false
-        state:
-           type: string
-           required: true
-        data:
-           type: object
-           required: false
-        parent:
-           type: string
-           required: false
-        producers:
-           type: string[]
-           required: false
+      key: string
+      name: string
+      role: string
+      repository: string
+      data: object
+      state: string
+      path:
+        type: string
+        description: path on the filesystem
+      actions: Action[]
+      parent: ServicePointer
+      producers: ServicePointer[]
+      consumers: ServicePointer[]
+      children: ServicePointer[]
+      events: Event[]
     example:
         key: "6b756dc89h9efe5187f2dddcf74b3e80"
         name: "main"
-        role: "github_repo"
-        actions_py: |
-            def install(job):
-                print('do something')
-        state: "new"
+        role: "server"
+        repository: myrepo
         data:
-            github.client: "main"
-            github.url: "https://github.com/JumpScale"
-        parent: "ae7eb66f57b24cg707e2d27da878d4ec"
+          github.client: "main"
+          github.url: "https://github.com/JumpScale"
+        state: "new"
+        path: /opt/code/github/account/myrepo/services/server!main
+        actions:
+          - name: install
+            state: ok
+            code: |
+              def install(job):
+                print("install service")
+            recurring:
+              period: 300
+              last_run: 1488488143
+        parent:
+          role: node
+          name: main
         producers:
-            - "9b0cef2d229534aac25daf7c04754aa1"
-            - "1effd1e1e42bdfdce55733d4e9aa94e0"
+          - role: database
+            name: sqlite1
+        consumers:
+          - role: webservice
+            name: service1
+        children:
+          - role: child
+            name: child1
+        events:
+          - actions:
+              - event_callback
+            command: eventTrigger
+            channel: webhook
+            tags:
+              - "type:red"
+
 
   Actor:
     properties:
-        name:
-            type: string
-            required: true
-        actions_py:
-            type: string
-            required: false
-        schema:
-            type: string
-            required: true
-        config:
-            type: object
-            required: true
+      name: string
+      role: string
+      actions: Action[]
+      schema:
+        type: string
+        description: capnp schema
+
+  TemplateRecurringAction:
+    properties:
+      action: string
+      log: boolean
+      period: string
+
+  TemplateLink:
+    properties:
+      auto: boolean
+      min: integer
+      max: integer
+      role: string
+      argname: string
+
+  TemplateConfig:
+    properties:
+      links: TemplateLink[]
+      recurring: TemplateRecurringAction[]
 
   Template:
     properties:
-        name:
-            type: string
-            required: true
-        actions_py:
-            type: string
-            required: false
-        schema:
-            type: string
-            required: true
-        config:
-            type: object
-            required: true
+      name: string
+      role: string
+      actions: string
+      schema: string
+      path: string
+      config: TemplateConfig
+
+  TemplateListing:
+    properties:
+      name: string
 
   TemplateRepo:
-      properties:
-          url:
-            type: string
-            required: true
-          branch:
-              type: string
-              required: true
-              default: 'master'
+    properties:
+      url: string
+      branch:
+        type: string
+        default: 'master'
 
   Log:
     properties:
-        category:
-            type: string
-            required: false
-        epoch:
-            type: string
-            required: false
-        level:
-            type: string
-            required: false
-        log:
-            type: string
-            required: false
-        tags:
-            type: string
-            required: false
+      category: string
+      epoch: string
+      level: string
+      log: string
+      tags: string
+
   Job:
     properties:
-        key:
-            type: string
-            required: true
-        action_name:
-            type: string
-            required: true
-        actor_name:
-            type: string
-            required: true
-        service_key:
-            type: string
-            required: true
-        service_name:
-            type: string
-            required: true
-        state:
-            type: string
-            required: true
-        logs:
-            type: Log[]
-
+      key: string
+      action_name: string
+      actor_name: string
+      service_key: string
+      service_name: string
+      state: string
+      logs: Log[]
 
   AYSStep:
      properties:
-        number:
-           type: integer
-           required: true
-        jobs:
-            type: Job[]
+       number: integer
+       jobs: Job[]
+
   AYSRun:
      properties:
-        state:
-            type: string
-            required: true
-        steps:
-           type: AYSStep[]
-           required: true
-        key:
-            type: string
-            required: true
+       state: string
+       steps: AYSStep[]
+       key: string
+
+  AYSRunListing:
+    properties:
+      key:
+        type: string
+        description: list of run ids
+      epoch: integer
+      state:
+        enum: [new, running, ok, error ]
+
+  NameListing:
+    properties:
+      name: string
 
   Error:
     properties:
-        code: integer
-        error: string
+      code: integer
+      error: string
     example:
-        code: 404
-        error: "repository not found"
+      code: 404
+      error: "repository not found"
 
 
 /ays:
@@ -258,13 +279,19 @@ types:
         200:
           body:
             application/json:
-              type: Repository[]
+              type: string[]
     post:
       displayName: createRepository
       description: create a new repository
       body:
         application/json:
-          type: Repository
+          properties:
+            name:
+              type: string
+              required: true
+            git_url:
+              type: string
+              required: true
       responses:
         201:
           description: repository created
@@ -276,9 +303,9 @@ types:
           body:
             application/json:
               type: Error
-    /{repository}:
+    /{repository_name}:
       uriParameters:
-        repository:
+        repository_name:
           type: string
       get:
         displayName: getRepository
@@ -318,7 +345,12 @@ types:
             200:
               body:
                 application/json:
-                  type: Blueprint[]
+                  type: BlueprintListing[]
+                  description: list of blueprint name
+                  example:
+                    - name: 1_credentials.yaml
+                    - name: 2_nodes.yaml
+                    - name: 3_application.yaml
         post:
           displayName: createBlueprint
           description: Create a new blueprint
@@ -329,15 +361,22 @@ types:
             201:
               body:
                 application/json:
-                  type: Blueprint
+                  properties:
+                    name:
+                      type: string
+                      required: true
+                    content:
+                      type: object
+                      required: true
+                      description: json encoded version of the blueprint
             409:
               description: Blueprint with this name already exists
               body:
                 application/json:
                   type: Error
-        /{blueprint}:
+        /{blueprint_name}:
           uriParameters:
-            blueprint:
+            blueprint_name:
               type: string
           get:
             displayName: getBlueprint
@@ -368,7 +407,14 @@ types:
             description: Update existing blueprint
             body:
               application/json:
-                  type: Blueprint
+                properties:
+                  name:
+                    type: string
+                    required: true
+                  content:
+                    type: object
+                    required: true
+                    description: json encoded version of the blueprint
             responses:
               200:
                 description: blueprint updated
@@ -414,16 +460,21 @@ types:
                       type: Error
       /service:
         get:
-            displayName: listServices
-            description: List all services in the repository
-            responses:
-              200:
-                body:
-                  application/json:
-                    type: Service[]
-        /{role}:
+          displayName: listServices
+          description: List all services in the repository
+          responses:
+            200:
+              body:
+                application/json:
+                  type: ServicePointer[]
+                  example:
+                    - role: node
+                      name: storage1
+                    - role: node
+                      name: storage2
+        /{service_role}:
           uriParameters:
-            role:
+            service_role:
               type: string
           get:
             displayName: listServicesByRole
@@ -432,14 +483,19 @@ types:
               200:
                 body:
                   application/json:
-                    type: Service[]
-          /{name}:
+                    type: ServicePointer[]
+                    example:
+                      - role: node
+                        name: storage1
+                      - role: node
+                        name: storage2
+          /{service_name}:
             uriParameters:
-              name:
+              service_name:
                 type: string
             get:
               displayName: getServiceByName
-              description: Get a service name
+              description: Get a service by its name
               responses:
                 200:
                   body:
@@ -469,24 +525,27 @@ types:
               200:
                 body:
                   application/json:
-                    type: Actor[]
-          /{name}:
+                    type: NameListing[]
+                    example:
+                      - name: node.ovc
+                      - name: node.g8os
+          /{actor_name}:
             uriParameters:
-                name:
+                actor_name:
                   type: string
             get:
-                displayName: getActorByName
-                description: Get an actor by name
-                responses:
-                  200:
-                    body:
-                      application/json:
-                        type: Actor
-                  404:
-                    description: Actor not found
-                    body:
-                      application/json:
-                        type: Error
+              displayName: getActorByName
+              description: Get an actor by name
+              responses:
+                200:
+                  body:
+                    application/json:
+                      type: Actor
+                404:
+                  description: Actor not found
+                  body:
+                    application/json:
+                      type: Error
             put:
               displayName: updateActor
               description: update an actor from a template to the last version
@@ -502,16 +561,19 @@ types:
                       type: Error
       /template:
         get:
-              displayName: listTemplates
-              description: list all templates
-              responses:
-                200:
-                  body:
-                    application/json:
-                      type: string[]
-        /{template}:
+          displayName: listTemplates
+          description: list all templates
+          responses:
+            200:
+              body:
+                application/json:
+                  type: TemplateListing[]
+                  example:
+                    - name: node.ovc
+                    - name: node.g8os
+        /{template_name}:
           uriParameters:
-            template:
+            template_name:
               type: string
           get:
                 displayName: getTemplate
@@ -533,7 +595,14 @@ types:
               200:
                 body:
                   application/json:
-                    type: AYSRun[]
+                    type: AYSRunListing[]
+                    example:
+                      - key: f2e76f49dbf4b578062ce9cd7e4626dc
+                        epoch: 1489396563
+                        state: new
+                      - key: afd41db33cedd3258d0af342ebf68126
+                        epoch: 1489396553
+                        state: ok
         post:
             displayName: CreateRun
             description: |
@@ -553,22 +622,22 @@ types:
                 body:
                   application/json:
                     type: AYSRun
-        /{aysrun}:
+        /{runid}:
           uriParameters:
-              aysrun:
-                type: string
+            runid:
+              type: string
           get:
-              displayName: getRun
-              description: Get an aysrun
-              responses:
-                200:
-                  body:
-                    application/json:
-                      type: AYSRun
-                404:
-                  body:
-                    application/json:
-                      type: Error
+            displayName: getRun
+            description: Get an aysrun
+            responses:
+              200:
+                body:
+                  application/json:
+                    type: AYSRun
+              404:
+                body:
+                  application/json:
+                    type: Error
 
 /webhooks:
   /github:

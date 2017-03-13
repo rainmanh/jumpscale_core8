@@ -132,6 +132,7 @@ class AtYourServiceRepo():
         self.git = j.clients.git.get(self.path, check_path=False)
         self._db = None
         self.no_exec = False
+        self._loop = asyncio.get_event_loop()
         j.atyourservice._loadActionBase()
 
         self._load_services()
@@ -305,7 +306,10 @@ class AtYourServiceRepo():
             raise j.exceptions.Input("role and instance cannot be empty.")
 
         if key is not None:
-            return self.db.services.services[key]
+            try:
+                return self.db.services.services[key]
+            except KeyError:
+                raise j.exceptions.NotFound('cant find service with key %s' % key)
 
 
         models = self.db.services.find(actor="%s.*" % role, name=instance)

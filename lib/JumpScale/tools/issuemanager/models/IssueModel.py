@@ -1,5 +1,6 @@
 
 from JumpScale import j
+import html
 
 base = j.data.capnp.getModelBaseClass()
 
@@ -21,28 +22,42 @@ class IssueModel(base):
                 if label.startswith("type_"):
                     toremove.append(label)
                     label = label[5:]
+                    if label not in ['unknown', 'alert', 'bug', 'doc', 'feature', 'incident', 'question', 'request', 'story', 'task']:
+                        label = 'unknown'
+                        toremove.pop()
                     self.dbobj.type = label
                 elif label.startswith("priority_"):
                     toremove.append(label)
                     label = label[9:]
+                    if label not in ['minor', 'normal', 'major', 'critical']:
+                        label = 'normal'
+                        toremove.pop()
                     self.dbobj.priority = label
                 elif label.startswith("state_"):
-                    toremove.append(label)
-                    label = label[6:]
+                    if self.dbobj.isClosed:
+                        label = 'closed'
+                    else:
+                        toremove.append(label)
+                        label = label[6:]
+                        if label not in ['new', 'inprogress', 'resolved', 'wontfix', 'question', 'closed']:
+                            label = 'new'
+                            toremove.pop()
                     self.dbobj.state = label
             self.initSubItem("labels")
             for item in toremove:
                 self.list_labels.pop(self.list_labels.index(item))
             self.reSerialize()
+            content = self.dbobj.content
+            content = html.escape(content)
 
-    def gogsRefSet(self, name, id):
-        return j.clients.gogs._gogsRefSet(self, name, id)
+    def gitHostRefSet(self, name, id):
+        return j.clients.gogs._gitHostRefSet(self, name, id)
 
-    def gogsRefExist(self, name):
-        return j.clients.gogs._gogsRefExist(self, name)
+    def gitHostRefExists(self, name):
+        return j.clients.gogs._gitHostRefExists(self, name)
 
-    def gogsRefGet(self, name):
-        return j.clients.gogs._gogsRefGet(self, name)
+    def gitHostRefGet(self, name):
+        return j.clients.gogs._gitHostRefGet(self, name)
 
     def assigneeSet(self, key):
         """
@@ -52,7 +67,7 @@ class IssueModel(base):
             self.addSubItem("assignees", key)
         self.changed = True
 
-    def commentSet(self, comment, owner=""):
+    def commentSet(self, comment, owner="", modTime=None):
         if owner == None:
             owner = ""
         for item in self.dbobj.comments:
@@ -62,6 +77,9 @@ class IssueModel(base):
             if item.owner != owner:
                 item.owner == owner
                 self.changed = True
+            if modTime and item.modTime != modTime:
+                item.modTime = modTime
+                self.changed
             return
         obj = self.collection.list_comments_constructor(comment=comment, owner=owner)
         self.addSubItem("comments", obj)

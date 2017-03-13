@@ -40,6 +40,7 @@ class Dirs:
         self.HOMEDIR = os.environ["HOME"]
         self.CFGDIR = os.environ["CFGDIR"]
         self.TMPDIR = os.environ["TMPDIR"]
+        self.init()
 
     def normalize(self, path):
         """

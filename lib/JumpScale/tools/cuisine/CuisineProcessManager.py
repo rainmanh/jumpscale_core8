@@ -9,7 +9,7 @@ base = j.tools.cuisine._getBaseClass()
 class ProcessManagerBase(base):
 
     def __init__(self, executor, cuisine):
-        self.startupfile = '/etc/startup.sh'
+        self.startupfile = "%s/startup.sh" % j.dirs.BINDIR
         self.executor = executor
         self._cuisine = cuisine
         self._logger = j.logger.get('j.cuisine.processmanager')

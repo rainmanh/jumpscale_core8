@@ -1,5 +1,6 @@
 from JumpScale import j
 import time
+import os
 
 
 base = j.tools.cuisine._getBaseClass()
@@ -10,7 +11,7 @@ class CuisinePortal(base):
     def _init(self):
         self.portal_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths["JSAPPSDIR"], "portals/")
         self.main_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'main')
-        self.cfg_path = j.sal.fs.joinPaths(self.main_portal_dir, 'config.hrd')                
+        self.cfg_path = j.sal.fs.joinPaths(self.main_portal_dir, 'config.hrd')
 
     def configure(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1",
                   influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, production=True):
@@ -38,13 +39,14 @@ class CuisinePortal(base):
         return j.sal.fs.joinPaths(self.cuisine.core.dir_paths['VARDIR'],
                                   'cfg', "portals", "main", "config.hrd")
 
-    def install(self, start=True, branch='', reset=False):
+    def install(self, start=True, branch='8.2.0', reset=False):
         """
         grafanaip and port should be the external ip of the machine
         Portal install will only install the portal and libs. No spaces but the system ones will be add by default.
         To add spaces and actors, please use addSpace and addactor
         """
-        self.cuisine.core.dir_ensure(self.main_portal_dir)        
+        self.logger.info("Install cuisine portal on branch:'%s'" % branch)
+        self.cuisine.core.dir_ensure(self.main_portal_dir)
         self.cuisine.bash.fixlocale()
         if not reset and self.doneGet("install"):
             self.linkCode()
@@ -53,10 +55,8 @@ class CuisinePortal(base):
             return
 
         self.cuisine.apps.mongodb.install()
-        self.cuisine.apps.nodejs.install()  # will install nodejs & bower, used to build the libs
         self.cuisine.bash.profileDefault.addPath(self.cuisine.core.replace("$BINDIR"))
         self.cuisine.bash.profileDefault.save()
-        self.installLibs()
 
         # install the dependencies if required
         self.installDeps(reset=reset)
@@ -70,7 +70,8 @@ class CuisinePortal(base):
 
         self.doneSet("install")
 
-    def installLibs(self):
+    def installNodeJSLibs(self):
+        self.cuisine.apps.nodejs.install()  # will install nodejs & bower, used to build the libs if we need it
         self.cuisine.apps.nodejs.bowerInstall(["jquery", "flatui", "bootstrap", "famous", "codemirror", "font-awesome", "jqplot",
                                                "underscore", "spin", "moment",
                                                "http://DlhSoft.com/Packages/DlhSoft.KanbanLibrary.zip",
@@ -184,24 +185,23 @@ class CuisinePortal(base):
         self.cuisine.development.pip.multiInstall(deps)
 
         if "darwin" in self.cuisine.platformtype.osname:
-            self.cuisine.core.run("brew install libtiff libjpeg webp little-cms2")
-            self.cuisine.core.run("brew install snappy")
+            self.cuisine.package.multiInstall(['libtiff', 'libjpeg', 'webp', 'little-cms2', 'snappy'])
             self.cuisine.core.run('CPPFLAGS="-I/usr/local/include -L/usr/local/lib" pip3 install python-snappy')
         else:
             self.cuisine.package.multiInstall(['libjpeg-dev', 'libffi-dev', 'zlib1g-dev'])
+            self.cuisine.development.pip.install('python-snappy')
 
         # snappy install
         if not "darwin" in self.cuisine.platformtype.osname:
             self.cuisine.package.ensure('libsnappy-dev')
             self.cuisine.package.ensure('libsnappy1v5')
 
-        self.cuisine.development.pip.install('python-snappy')
-
         self.doneSet("installdeps")
 
-    def getcode(self, branch=''):
+    def getcode(self, branch='8.2.0'):
+        self.logger.info("Get portal code on branch:'%s'" % branch)
         if branch == "":
-            branch = "8.2.0_portal_cleanup"
+            branch = os.environ.get('JSBRANCH')
         self.cuisine.development.git.pullRepo(
             "https://github.com/Jumpscale/jumpscale_portal8.git", branch=branch)
 
@@ -255,9 +255,13 @@ class CuisinePortal(base):
                                     self.main_portal_dir)
         self.cuisine.core.file_copy("%s/jslib/old/images" % self.portal_dir,
                                     "%s/jslib/old/elfinder" % self.portal_dir, recursive=True)
-        # link for ays
-        self.cuisine.core.file_link(source='$CODEDIR/github/jumpscale/jumpscale_portal8/apps/portalbase/AYS81',
-                                    destination='$JSAPPSDIR/portals/main/base/AYS81')
+        # link spaces
+        spaces = j.tools.cuisine.local.core.find('$CODEDIR/github/jumpscale/jumpscale_portal8/apps/portalbase/', recursive=True, pattern='*.space', type='d')
+        to_link = [j.sal.fs.getParent(x) for x in spaces]
+        for space in to_link:
+            space_name = j.sal.fs.getBaseName(space)
+            if space_name.casefold() != 'home':
+                self.cuisine.core.file_link(source=space, destination='$JSAPPSDIR/portals/main/base/%s' % space_name)
 
     def addSpace(self, spacepath):
         spacename = j.sal.fs.getBaseName(spacepath)

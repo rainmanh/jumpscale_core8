@@ -127,7 +127,7 @@ class GogsClient:
     def build_url(self, *args):
 
         res = j.sal.fs.joinPaths(self.baseurl, *args)
-        self.logger.debug("gogsurl:%s" % res)
+        self.logger.debug("git_host_url:%s" % res)
         return res
 
     def reposList(self, owner=None):

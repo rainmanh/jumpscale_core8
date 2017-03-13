@@ -28,13 +28,6 @@ class GogsFactory:
         self.issueCollection = j.tools.issuemanager.getIssueCollectionFromDB()
         self.repoCollection = j.tools.issuemanager.getRepoCollectionFromDB()
 
-    def destroyData(self):
-        self.userCollection.destroy()
-        self.orgCollection.destroy()
-        self.issueCollection.destroy()
-        self.repoCollection.destroy()
-        self.reset()
-
     def createViews(self):
         self.logger.info("createviews")
 
@@ -69,7 +62,7 @@ class GogsFactory:
         CREATE OR REPLACE VIEW issue_comments AS
         SELECT
           issue.id,
-          '{' || comment.id || ',' || comment.poster_id || '}' || comment.content as comment
+          '{' || comment.id || ',' || comment.poster_id || ',' || comment.created_unix || ',' || comment.updated_unix || '}' || comment.content as comment
         FROM issue
         left join comment on issue.id=comment.issue_id
         ORDER by comment.id;
@@ -149,7 +142,7 @@ class GogsFactory:
         """
         return GogsClient(addr=addr, port=port, login=login, passwd=passwd, accesstoken=accesstoken)
 
-    def syncAllFromPSQL(self, gogsName):
+    def syncAllFromPSQL(self, git_host_name):
         if self.model == None:
             raise j.exceptions.Input(message="please connect to psql first, use self.connectPSQL",
                                      level=1, source="", tags="", msgpub="")
@@ -158,19 +151,19 @@ class GogsFactory:
         self.createViews()
 
         # will also create user_table & self.userId2userKey
-        self.getUsersFromPSQL(gogsName=gogsName)
+        self.getUsersFromPSQL(git_host_name=git_host_name)
         self.logger.info("Users Synced")
 
         self.milestones_table
         self.logger.info("Milestones Done")
 
-        self.getOrgsFromPSQL(gogsName=gogsName)
+        self.getOrgsFromPSQL(git_host_name=git_host_name)
         self.logger.info("Organizations synced")
 
-        self.getReposFromPSQL(gogsName=gogsName)
+        self.getReposFromPSQL(git_host_name=git_host_name)
         self.logger.info("Repositories synced")
 
-        self.getIssuesFromPSQL(gogsName=gogsName)
+        self.getIssuesFromPSQL(git_host_name=git_host_name)
         self.logger.info("Issues synced")
 
         self.reset()
@@ -227,7 +220,7 @@ class GogsFactory:
             "dbname='%s' user='%s' host='localhost' password='%s' port='%s'" % (dbname, login, passwd, port))
         return self.model
 
-    def getIssuesFromPSQL(self, gogsName):
+    def getIssuesFromPSQL(self, git_host_name):
         """
         Load issues from remote database into model.
 
@@ -257,7 +250,7 @@ class GogsFactory:
 
             issueIdLocal = issue.index
             url = "https://docs.greenitglobe.com/%s/%s/issues/%s" % (orgName, repoName, issueIdLocal)
-            issue_model = self.issueCollection.getFromGogsId(gogsName, issue.id, url, createNew=True)
+            issue_model = self.issueCollection.getFromGitHostID(git_host_name, issue.id, url, createNew=True)
 
             issue.repo = issue.repo_id
             # assignees
@@ -266,23 +259,32 @@ class GogsFactory:
                 for assignee in assignees:
                     issue_model.assigneeSet(assignee)
 
+            if issue_model.dbobj.isClosed != issue.is_closed:
+                issue_model.dbobj.isClosed = issue.is_closed
+                issue_model.changed = True
+
+            mod_time = int(issue.updated_unix)
+
             # our view has pre-aggregrated the comments, need to do some minimal parsing now
             comments = j.data.serializer.base64.loads(issue.comments)
             comments = [item.strip() for item in comments.split("||") if item.strip() != ""]
             comments.sort()  # will make sure its sorted on comment_id (prob required for right order of comments)
-            if comments != []:
 
-                for comment in comments:
-                    res = comment.split("}")
-                    if len(res) == 2:
-                        meta, comment = res
-                        ownerId = int(meta.split(",")[1])
-                        # owner = self.userId2userKey[ownerId]
-                        owner = ""  # TODO: *1 for later
-                    else:
-                        comment = res[0]
-                        owner = ""
-                    issue_model.commentSet(comment, owner=owner)
+            for comment in comments:
+                res = comment.split("}")
+                if len(res) == 2:
+                    meta, comment = res
+                    _, owner_id, created, modified = meta.split(',')
+                    owner = self.userId2userKey.get(owner_id, '')
+                    modified = int(modified)
+                    if modified > mod_time:
+                        mod_time = modified
+                    # owner = self.users_table[ownerId].id
+                else:
+                    comment = res[0]
+                    owner = ""
+                    modified = None
+                issue_model.commentSet(comment, owner=owner, modTime=modified)
 
             if issue.milestone_id != 0:
                 milestone = self.milestones_table[issue.milestone_id].name
@@ -308,8 +310,8 @@ class GogsFactory:
 
             issue_model.dbobj.creationTime = issue.created_unix
 
-            if issue_model.dbobj.modTime != issue.updated_unix:
-                issue_model.dbobj.modTime = issue.updated_unix
+            if issue_model.dbobj.modTime != mod_time:
+                issue_model.dbobj.modTime = mod_time
                 issue_model.changed = True
 
             content = j.data.serializer.base64.loads(issue.content)
@@ -325,21 +327,21 @@ class GogsFactory:
 
             issue_model.save()
 
-    def getOrgsFromPSQL(self, gogsName):
+    def getOrgsFromPSQL(self, git_host_name):
         self.logger.info("getOrgsFromPSQL")
 
         query = self.model.OrgUser.raw("select * from org_users_grouped;")
 
         if self.userId2userKey == {}:
-            self.getUsersFromPSQL(gogsName=gogsName)
+            self.getUsersFromPSQL(git_host_name=git_host_name)
 
         for org in query:
 
             orgName = self.users_table[org.org_userid].name
 
-            # get organization from gogsid
+            # get organization from git_host_id
             url = "https://docs.greenitglobe.com/%s" % orgName
-            org_model = self.orgCollection.getFromGogsId(gogsName=gogsName, gogsId=org.org_userid, gogsUrl=url)
+            org_model = self.orgCollection.getFromGitHostID(git_host_name=git_host_name, git_host_id=org.org_userid, git_host_url=url)
 
             members = [self.userId2userKey[int(item.strip())]
                        for item in org.org_member_userids.split(",")]
@@ -358,7 +360,7 @@ class GogsFactory:
 
             org_model.save()
 
-    def getReposFromPSQL(self, gogsName):
+    def getReposFromPSQL(self, git_host_name):
         """
         Load repos from remote database into model.
 
@@ -373,12 +375,12 @@ class GogsFactory:
                                      level=1, source="", tags="", msgpub="")
 
         if self.userId2userKey == {}:
-            self.getUsersFromPSQL(gogsName=gogsName)
+            self.getUsersFromPSQL(git_host_name=git_host_name)
 
         for id, repo in self.repos_table.items():
 
             url = "https://docs.greenitglobe.com/%s/%s" % (self.userId2userKey[repo.owner], repo.name)
-            repo_model = self.repoCollection.getFromGogsId(gogsName=gogsName, gogsId=id, gogsUrl=url)
+            repo_model = self.repoCollection.getFromGitHostID(git_host_name=git_host_name, git_host_id=id, git_host_url=url)
 
             repo_model.dbobj.name = repo.name
             repo_model.dbobj.description = repo.description
@@ -391,7 +393,7 @@ class GogsFactory:
 
             repo_model.save()
 
-    def getUsersFromPSQL(self, gogsName):
+    def getUsersFromPSQL(self, git_host_name):
         """
         Load users from remote database into model.
         """
@@ -403,7 +405,7 @@ class GogsFactory:
 
         for id, user in self.users_table.items():
             url = "https://docs.greenitglobe.com/%s" % user.name
-            user_model = self.userCollection.getFromGogsId(gogsName=gogsName, gogsId=user.id, gogsUrl=url)
+            user_model = self.userCollection.getFromGitHostID(git_host_name=git_host_name, git_host_id=user.id, git_host_url=url)
             if user_model.dbobj.name != user.name:
                 user_model.dbobj.name = user.name
                 user_model.changed = True
@@ -413,7 +415,7 @@ class GogsFactory:
             if user_model.dbobj.email != user.email:
                 user_model.dbobj.email = user.email
                 user_model.changed = True
-            # user_model.gogsRefSet(name=gogsName, id=user.id)
+            # user_model.gitHostRefSet(name=git_host_name, id=user.id)
             if user_model.dbobj.iyoId != user.name:
                 user_model.dbobj.iyoId = user.name
                 user_model.changed = True
@@ -422,60 +424,59 @@ class GogsFactory:
 
             self.userId2userKey[id] = user_model.key
 
-        self.setUsersYaml(gogsName=gogsName)
+        self.setUsersYaml(git_host_name=git_host_name)
 
-    def setUsersYaml(self, gogsName):
+    def setUsersYaml(self, git_host_name):
         return
         # TODO is to allow to put additional info to users
         res = {}
         for item in self.userCollection.find():
             res[item.key] = item.dbobj.to_dict()
-            res[item.key].pop('gogsRefs')
+            res[item.key].pop('gitHostRefs')
             from IPython import embed
             print("DEBUG NOW setUsersYaml")
             embed()
             raise RuntimeError("stop debug here")
 
-    def _gogsRefSet(self, model, gogsName, gogsId, gogsUrl):
+    def _gitHostRefSet(self, model, git_host_name, git_host_id, git_host_url):
         """
         @param name is name of gogs instance
         @id is id in gogs
         """
-        model.logger.debug("gogsRefSet: gogsname='%s' gogsid='%s' gogsUrl='%s'" % (gogsName, gogsId, gogsUrl))
-        ref = self._gogsRefGet(model, gogsName, gogsUrl)
+        model.logger.debug("gitHostRefSet: git_host_name='%s' git_host_id='%s' git_host_url='%s'" % (git_host_name, git_host_id, git_host_url))
+        ref = self._gitHostRefGet(model, git_host_name, git_host_url)
         if ref == None:
-            model.logger.debug("add subitem")
-            model.addSubItem("gogsRefs", data=model.collection.list_gogsRefs_constructor(id=gogsId, name=gogsName, url=gogsUrl))
-            key = model.collection._index.lookupSet("gogs_%s" % gogsName, gogsId, model.key)
+            model.addSubItem("gitHostRefs", data=model.collection.list_gitHostRefs_constructor(id=git_host_id, name=git_host_name, url=git_host_url))
+            key = model.collection._index.lookupSet("githost_%s" % git_host_name, git_host_id, model.key)
             model.save()
         else:
             if str(ref.id) != str(id):
                 raise j.exceptions.Input(
                     message="gogs id has been changed over time, this should not be possible", level=1, source="", tags="", msgpub="")
 
-    def _gogsRefExist(self, model, gogsName):
-        return not self._gogsRefGet(model, gogsName) == None
+    def _gitHostRefExists(self, model, git_host_name):
+        return not self._gitHostRefGet(model, git_host_name) == None
 
-    def _gogsRefGet(self, model, gogsName, gogsUrl):
-        for item in model.dbobj.gogsRefs:
-            if item.name == gogsName:
+    def _gitHostRefGet(self, model, git_host_name, git_host_url):
+        for item in model.dbobj.gitHostRefs:
+            if item.name == git_host_name:
                 return item
         return None
 
-    def _getFromGogsId(self, modelCollection, gogsName, gogsId, gogsUrl, createNew=True):
+    def _getFromGitHostID(self, modelCollection, git_host_name, git_host_id, git_host_url, createNew=True):
         """
-        @param gogsName is the name of the gogs instance
+        @param git_host_name is the name of the gogs instance
         """
-        modelCollection.logger.debug("gogsRefSet: gogsname='%s' gogsid='%s' gogsUrl='%s'" % (gogsName, gogsId, gogsUrl))
-        key = modelCollection._index.lookupGet("gogs_%s" % gogsName, gogsId)
+        modelCollection.logger.debug("gitHostRefSet: git_host_name='%s' git_host_id='%s' git_host_url='%s'" % (git_host_name, git_host_id, git_host_url))
+        key = modelCollection._index.lookupGet("githost_%s" % git_host_name, git_host_id)
         if key == None:
             modelCollection.logger.debug("gogs id not found, create new")
             if createNew:
                 modelActive = modelCollection.new()
-                self._gogsRefSet(model=modelActive, gogsName=gogsName, gogsId=gogsId, gogsUrl=gogsUrl)
+                self._gitHostRefSet(model=modelActive, git_host_name=git_host_name, git_host_id=git_host_id, git_host_url=git_host_url)
             else:
-                raise j.exceptions.Input(message="cannot find object  %s from gogsid:%s" %
-                                         (modelCollection.objType, gogsId), level=1, source="", tags="", msgpub="")
+                raise j.exceptions.Input(message="cannot find object  %s from git_host_id:%s" %
+                                         (modelCollection.objType, git_host_id), level=1, source="", tags="", msgpub="")
         else:
             modelActive = modelCollection.get(key.decode())
         return modelActive

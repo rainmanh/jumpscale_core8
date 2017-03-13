@@ -91,7 +91,7 @@ types:
       code: string
       state:
         enum: [ new, changed, ok, scheduled, disabled, error,running ]
-      recurring: ActionRecurring[]
+      recurring: ActionRecurring
 
   Event:
     properties:
@@ -117,7 +117,6 @@ types:
       consumers: ServicePointer[]
       children: ServicePointer[]
       events: Event[]
-
     example:
         key: "6b756dc89h9efe5187f2dddcf74b3e80"
         name: "main"
@@ -599,7 +598,11 @@ types:
                     type: AYSRunListing[]
                     example:
                       - key: f2e76f49dbf4b578062ce9cd7e4626dc
+                        epoch: 1489396563
+                        state: new
                       - key: afd41db33cedd3258d0af342ebf68126
+                        epoch: 1489396553
+                        state: ok
         post:
             displayName: CreateRun
             description: |

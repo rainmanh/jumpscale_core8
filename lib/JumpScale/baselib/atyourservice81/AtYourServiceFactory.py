@@ -48,6 +48,8 @@ class AtYourServiceFactory:
     def config(self):
         if self._config is None:
             cfg = j.application.config.jumpscale['ays']
+            if not cfg:
+                cfg = {}
             if 'redis' not in cfg:
                 cfg.update({'redis': j.core.db.config_get('unixsocket')})
             self._config = cfg

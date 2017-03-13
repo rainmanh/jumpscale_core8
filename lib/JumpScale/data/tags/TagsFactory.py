@@ -12,14 +12,14 @@ class TagsFactory:
     def __init__(self):
         self.__jslocation__ = "j.data.tags"
 
-    def getObject(self, tagstring="", setFunction4Tagstring=None):
+    def getObject(self, tagstring="", setFunction4Tagstring=None, keepcase=False):
         """
         check whether labelname exists in the labels
 
         @param tagstring:  example "important customer:kristof"
         @type tagstring: string
         """
-        return Tags(tagstring, setFunction4Tagstring)
+        return Tags(tagstring, setFunction4Tagstring, keepcase=keepcase)
 
     def getTagString(self, labels=None, tags=None):
         """

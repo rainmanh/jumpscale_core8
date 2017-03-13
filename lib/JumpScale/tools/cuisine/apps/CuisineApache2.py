@@ -28,7 +28,7 @@ class CuisineApache2(app):
             self._cuisine.core.file_download(DOWNLOADLINK, dest)
 
         # EXTRACT SROURCE CODE
-        self._cuisine.core.run("cd /optvar/build && tar xjf {dest} && mv /optvar/build/httpd-2.4.25 /optvar/build/httpd".format(**locals()))
+        self._cuisine.core.run("cd /optvar/build && tar xjf {dest} && cp -r /optvar/build/httpd-2.4.25 /optvar/build/httpd".format(**locals()))
         self._cuisine.core.dir_ensure("$JSAPPSDIR/apache2/bin")
         self._cuisine.core.dir_ensure("$JSAPPSDIR/apache2/lib")
 
@@ -55,9 +55,7 @@ class CuisineApache2(app):
 
     def install(self):
         httpdir = j.sal.fs.joinPaths("/optvar/build", 'httpd')
-        installscript = """
-        cd {httpdir} &&  make install
-        """.format(httpdir=httpdir)
+        installscript = """cd {httpdir} &&  make install""".format(httpdir=httpdir)
         self._cuisine.core.run(installscript)
 
         #COPY APACHE BINARIES to /opt/jumpscale8/bin
@@ -97,7 +95,8 @@ class CuisineApache2(app):
             if line:
                 mod = "#"+line
                 conffile = conffile.replace(line, mod)
-        conffile += "\nInclude sites-enabled/*"
+        sitesdirconf = self._cuisine.core.args_replace("\nInclude $JSCFGDIR/apache2/sites-enabled/*")
+        conffile += sitesdirconf
         conffile += "\nAddType application/x-httpd-php .php"
 
         # MAKE VHOSTS DIRECTORY
@@ -109,12 +108,12 @@ class CuisineApache2(app):
 
     def start(self):
         """start Apache."""
-        self._cuisine.core.run("apachectl start")
+        self._cuisine.core.run("apachectl start", profile=True)
 
     def stop(self):
         """stop Apache."""
-        self._cuisine.core.run("apachectl stop")
+        self._cuisine.core.run("apachectl stop", profile=True)
 
     def restart(self):
         """restart Apache."""
-        self._cuisine.core.run("apachectl restart")
+        self._cuisine.core.run("apachectl restart", profile=True)

@@ -34,6 +34,9 @@ class dependencies():
         asyncssh
         autopep8
         pytoml
+        sanic
+        jsonschema
+        peewee
         """
         self.do.pip(C, executor=executor)
         self.do.execute("pip3 install https://github.com/tony/libtmux/archive/master.zip --upgrade")

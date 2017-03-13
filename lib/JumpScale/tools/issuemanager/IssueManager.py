@@ -29,6 +29,33 @@ class IssueManager:
         self.indexDBPath = "/tmp/index.db"
         self._indexDB = None
 
+
+    def destroyData(self):
+        userCollection = self.getUserCollectionFromDB()
+        userCollection.destroy()
+
+        orgCollection = self.getOrgCollectionFromDB()
+        orgCollection.destroy()
+
+        issueCollection = self.getIssueCollectionFromDB()
+        issueCollection.destroy()
+
+        repoCollection = self.getRepoCollectionFromDB()
+        repoCollection.destroy()
+
+    def destroyTables(self):
+        userCollection = self.getUserCollectionFromDB()
+        userCollection.reset()
+
+        orgCollection = self.getOrgCollectionFromDB()
+        orgCollection.reset()
+
+        issueCollection = self.getIssueCollectionFromDB()
+        issueCollection.reset()
+
+        repoCollection = self.getRepoCollectionFromDB()
+        repoCollection.reset()
+
     def set_namespaceandstore(self, namespace="gogs", store="gogs"):
         self.namespace = namespace
         self.store = store

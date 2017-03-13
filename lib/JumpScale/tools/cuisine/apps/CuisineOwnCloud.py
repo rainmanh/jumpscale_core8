@@ -236,12 +236,6 @@ class CuisineOwnCloud(app):
         return conf
 
     def start(self, sitename='owncloudy.com', dbhost="127.0.0.1", dbuser="root", dbpass="", nginx=False, localinstall=False):
-
-        owncloudsiterules = self._get_default_conf_nginx_site()
-        owncloudsiterules = owncloudsiterules % {"sitename": sitename}
-        self.cuisine.core.file_write(
-            "$JSCFGDIR/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
-
         dbpass = "" if dbpass == "" else ' -p "{dbpass}"'.format(dbpass=dbpass)
         if localinstall:
             privateIp = dbhost
@@ -268,7 +262,10 @@ class CuisineOwnCloud(app):
         self.cuisine.core.run(cmd)
 
         if nginx:
-            basicnginxconf = self.cuisine.apps.nginx.get_basic_nginx_conf()
+            owncloudsiterules = self._get_default_conf_nginx_site()
+            owncloudsiterules = owncloudsiterules % {"sitename": sitename}
+            self._cuisine.core.file_write("$JSCFGDIR/nginx/etc/sites-enabled/{sitename}".format(sitename=sitename), content=owncloudsiterules)
+            basicnginxconf = self._cuisine.apps.nginx.get_basic_nginx_conf()
             basicnginxconf = basicnginxconf.replace(
                 "include $JSAPPSDIR/nginx/etc/sites-enabled/*;", "include $JSCFGDIR/nginx/etc/sites-enabled/*;")
             basicnginxconf = self.cuisine.core.args_replace(basicnginxconf)
@@ -286,16 +283,16 @@ class CuisineOwnCloud(app):
             # APACHE CONF.
             apachesiteconf = self.cuisine.core.replace(self._get_apache_siteconf())
             apachesiteconf = apachesiteconf.format(ServerName=sitename)
+            self.cuisine.core.dir_ensure("$JSCFGDIR/apache2/sites-enabled")
+            self.cuisine.core.file_write("$JSCFGDIR/apache2/sites-enabled/owncloud.conf", apachesiteconf)
             self.cuisine.apps.apache2.stop()
-            self.cuisine.core.file_write("$JSAPPSDIR/apache2/sites-available/owncloud.conf", apachesiteconf)
-            #self.cuisine.core.file_link("$JSAPPSDIR/apache2/sites-available/owncloud.conf", "$JSAPPSDIR/apache2/sites-enabled/owncloud.conf")
             C = """
-            chown -R www-data:www-data $appDir/owncloud
-            chmod 777 -R $JSAPPSDIR/owncloud/config
-            chown -R www-data:www-data /data
+            chown -R daemon:daemon $appDir/owncloud
+            chmod 777 -R $appDir/owncloud/config
+            chown -R daemon:daemon /data
             """
             self.cuisine.core.execute_bash(C)
-            self.cuisine.development.php.start()
+            #self.cuisine.development.php.start()
             self.cuisine.apps.apache2.start()
 
     def _get_apache_siteconf(self):

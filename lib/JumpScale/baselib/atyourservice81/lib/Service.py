@@ -5,6 +5,7 @@ import capnp
 import time
 import asyncio
 import importlib
+import types
 
 class ActionExec:
     """
@@ -22,8 +23,9 @@ class ActionExec:
         action_model = j.core.jobcontroller.db.actions.get(self._action_obj.actionKey)
         path = self._source_path(self._service, action_model)
         loader = importlib.machinery.SourceFileLoader(action_model.key, path)
-        handle = loader.load_module(action_model.key)
-        self._method = eval("handle.{}".format(action_model.dbobj.name))
+        mod = types.ModuleType(loader.name)
+        loader.exec_module(mod)
+        self._method = eval("mod.{}".format(action_model.dbobj.name))
 
     def _source(self, action_model):
         """

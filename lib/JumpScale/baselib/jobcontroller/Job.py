@@ -1,11 +1,11 @@
 from JumpScale import j
 from JumpScale.core.errorhandling.ErrorConditionObject import ErrorConditionObject
 import importlib
+import types
 import colored_traceback
 import pygments.lexers
 import cProfile
 from contextlib import contextmanager
-from io import StringIO
 import sys
 import asyncio
 import functools
@@ -76,9 +76,9 @@ def generate_profile(job):
             j.sal.fs.remove(stat_file)
 
 class JobHandler(logging.Handler):
-    def __init__(self, job, level=logging.NOTSET):
+    def __init__(self, job_model, level=logging.NOTSET):
         super().__init__(level=level)
-        self._job = job
+        self._job_model = job_model
 
     def emit(self, record):
         if record.levelno <= 20:
@@ -87,7 +87,7 @@ class JobHandler(logging.Handler):
             category = 'alert'
         else:
             category = 'errormsg'
-        self._job.model.log(msg=record.getMessage(), level=record.levelno, category=category, epoch=int(record.created), tags='')
+        self._job_model.log(msg=record.getMessage(), level=record.levelno, category=category, epoch=int(record.created), tags='')
 
 class Job():
     """
@@ -103,10 +103,19 @@ class Job():
         self._future = None
         self.saveService = True
         self.logger = j.logger.get('j.jobcontroller.job.{}'.format(self.model.key))
-        logHandler = JobHandler(self)
-        self.logger.addHandler(logHandler)
-        if self.service:
-            self.service.logger.addHandler(logHandler)
+        self._logHandler = JobHandler(self.model)
+        self.logger.addHandler(self._logHandler)
+
+    def __del__(self):
+        self.cleanup()
+
+    def cleanup(self):
+        """
+        clean the logger handler from the job object so it doesn't make the job stays in memory
+        """
+        self.logger.removeHandler(self._logHandler)
+        self._logHandler = None
+        self.logger = None
 
     @property
     def action(self):
@@ -153,14 +162,16 @@ class Job():
         print(logs)
         return logs
 
+
     @property
+
     def method(self):
-        if self.action.key not in j.core.jobcontroller._methods:
+        if self.action.key not in sys.modules:
             loader = importlib.machinery.SourceFileLoader(self.action.key, self.sourceToExecutePath)
-            handle = loader.load_module(self.action.key)
-            method = eval("handle.action")
-            j.core.jobcontroller._methods[self.action.key] = method
-        return j.core.jobcontroller._methods[self.action.key]
+            mod = types.ModuleType(loader.name)
+            loader.exec_module(mod)
+            sys.modules[self.action.key] = mod
+        return sys.modules[self.action.key].action
 
     @property
     def service(self):

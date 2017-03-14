@@ -26,7 +26,6 @@ class RunModel(ModelBase):
         return step
 
     def jobNew(self, xstep):
-        import ipdb; ipdb.set_trace()
         if len(xstep.jobs) == 0:
             xstep.jobs = xstep.init_resizable_list('jobs')
         # job = self.collection.capnp_schema.RunStep.Job.new_message()

@@ -523,8 +523,8 @@ class AtYourServiceRepo():
 
     def jobsList(self):
         jobs = set()
-        for service in self.db.services.list():
-            for job in j.core.jobcontroller.db.jobs.find(serviceKey=service.model.key):
+        for key in self.db.services.list():
+            for job in j.core.jobcontroller.db.jobs.find(serviceKey=key):
                 jobs.add(job)
         return list(jobs)
 

@@ -30,9 +30,10 @@ def job_cleanup():
     job_keys = jc._list_keys(toEpoch=j.data.time.getEpochAgo('-2d'))
     for job_key in job_keys:
         index = jc.getIndexFromKey(job_key)
-        items = index.split(':')
-        regex = "%s:%s:%s:.*:%s:%s" % (items[0], items[1], items[2], items[4], items[5])
-        jobs.add(regex)
+        if index:
+            items = index.split(':')
+            regex = "%s:%s:%s:.*:%s:%s" % (items[0], items[1], items[2], items[4], items[5])
+            jobs.add(regex)
     jc._db.index_remove(list(jobs))
     return
 

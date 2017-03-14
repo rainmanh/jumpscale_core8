@@ -145,6 +145,8 @@ class RunStep:
                         job.model.log(msg=process.stderr, level=5, category='err')
                 self.logger.info("job {} done sucessfuly".format(str(job)))
             job.save()
+        self.run.save()
+
 
     def __repr__(self):
         out = "step:%s (%s)\n" % (self.dbobj.number, self.state)
@@ -258,7 +260,6 @@ class Run:
             for step in self.steps:
 
                 step.execute()
-
                 if step.state == 'error':
                     self.state = 'error'
 

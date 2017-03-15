@@ -67,14 +67,14 @@ class TemplateRepoCollection:
 
     def __init__(self):
         self.logger = j.logger.get('j.atyourservice')
-        self._loop = asyncio.get_event_loop()
+        self._loop = asyncio.get_event_loop()  # TODO: question why do we need this
         self._template_repos = {}
         self._load()
 
     def _load(self):
         self.logger.info("reload actor templates repos")
         for path in searchActorTemplates(j.dirs.CODEDIR):
-            self.create(path=path)
+            self.load(path=path)
 
         for repo in list(self._template_repos.values()):
             if not j.sal.fs.exists(repo.path):
@@ -87,7 +87,7 @@ class TemplateRepoCollection:
         # todo protect with lock
         return list(self._template_repos.values())
 
-    def create(self, path, is_global=True):
+    def load(self, path, is_global=True):
         """
         path can be any path in a git repo
         will look for the directory with .git and create a TemplateRepo object if it doesn't exist yet
@@ -102,7 +102,7 @@ class TemplateRepoCollection:
                 # did not find a git parent
                 raise j.exceptions.NotFound("path '{}' and its parents is not a git repository".format(original_path))
 
-            self.logger.debug("New tempalte repos found at {}".format(path))
+            self.logger.debug("New template repos found at {}".format(path))
             self._template_repos[path] = TemplateRepo(path, is_global=is_global)
 
         return self._template_repos[path]

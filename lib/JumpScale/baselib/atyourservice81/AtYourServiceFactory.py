@@ -17,6 +17,7 @@ import asyncio
 
 colored_traceback.add_hook(always=True)
 
+
 class AtYourServiceFactory:
 
     def __init__(self):
@@ -28,13 +29,13 @@ class AtYourServiceFactory:
         self.logger = j.logger.get('j.atyourservice')
 
         self.baseActions = {}
-        self.templateRepos = None
-        self.aysRepos = None
+        # self.templateRepos = None
+        # self.aysRepos = None
+        self.templateRepos = TemplateRepoCollection()  # actor templates repositories
+        self.aysRepos = AtYourServiceRepoCollection()  # ays repositories
 
     def start(self, loop=None):
         self.loop = loop or asyncio.get_event_loop()
-        self.templateRepos = TemplateRepoCollection() # actor templates repositories
-        self.aysRepos = AtYourServiceRepoCollection() # ays repositories
 
     @property
     def actorTemplates(self):
@@ -110,7 +111,6 @@ class AtYourServiceFactory:
                 return True
             return False
 
-
         def sanitize_key(key):
             """
             make sure the key of an HRD schema has a valid format for Capnp Schema
@@ -130,7 +130,7 @@ class AtYourServiceFactory:
 
         if actors_paths == []:
             j.sal.fswalker.walkFunctional(path, callbackFunctionFile=None, callbackFunctionDir=callbackFunctionDir, arg=[path, actors_paths, "", ""],
-                callbackForMatchDir=callbackForMatchDir, callbackForMatchFile=lambda x,y: False)
+                                          callbackForMatchDir=callbackForMatchDir, callbackForMatchFile=lambda x, y: False)
 
         for ppath in actors_paths:
             print("upgrade:%s" % ppath)
@@ -147,12 +147,11 @@ class AtYourServiceFactory:
                 output['links'] = {}
 
             if schemaParent != None:
-                output['links'] = {'parent':{
+                output['links'] = {'parent': {
                     'role':  sanitize_key(schemaParent.parent),
                     'auto': bool(schemaParent.auto),
                     'optional': bool(schemaParent.optional)
                 }}
-
 
             if schemaConsume != []:
                 output['links']['consume'] = []
@@ -165,7 +164,6 @@ class AtYourServiceFactory:
                         'min': item.consume_nr_min,
                         'max': item.consume_nr_max
                     })
-
 
             docs = [(item[0], item[1].description) for item in schema.items.items()]
             if docs != []:
@@ -187,7 +185,6 @@ class AtYourServiceFactory:
             j.data.serializer.yaml.dump(j.sal.fs.joinPaths(ppath, 'config.yaml'), output)
             j.sal.fs.remove(ppath + "/schema.hrd")
             j.sal.fs.remove(ppath + "/actor.hrd")
-
 
     def reset(self):
         self._domains = []

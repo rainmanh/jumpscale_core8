@@ -1,7 +1,20 @@
 from JumpScale import j
 import yaml
+from collections import OrderedDict
 
-CATEGORY = "ays:bp"
+def ordered_load(stream, Loader=yaml.Loader, object_pairs_hook=OrderedDict):
+    """
+    load a yaml stream and keep the order
+    """
+    class OrderedLoader(Loader):
+        pass
+    def construct_mapping(loader, node):
+        loader.flatten_mapping(node)
+        return object_pairs_hook(loader.construct_pairs(node))
+    OrderedLoader.add_constructor(
+        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+        construct_mapping)
+    return yaml.load(stream, OrderedLoader)
 
 
 class Blueprint:
@@ -32,30 +45,11 @@ class Blueprint:
         self.is_valid = self._validate_yaml(self.content)
 
         if self.is_valid:
-            content = ""
-            nr = 0
-            # we need to do all this work because the yaml parsing does not
-            # maintain order because its a dict
-            for line in self.content.split("\n"):
-                if len(line) > 0 and line[0] == "#":
-                    continue
-                if content == "" and line.strip() == "":
-                    continue
-
-                line = line.replace("\t", "    ")
-                nr += 1
-                if len(content) > 0 and (len(line) > 0 and line[0] != " "):
-                    self._add2models(content, nr)
-                    content = ""
-
-                content += "%s\n" % line
-
-            # to process the last one
-            self._add2models(content, nr)
-            self._contentblocks = []
+            decoded = ordered_load(self.content, yaml.SafeLoader)
+            for key, value in decoded.items():
+                self.models.append({key:value})
 
             self.hash = j.data.hash.md5_string(self.content)
-
             self.is_valid = self._validate_format(self.models)
 
     async def load(self, role="", instance=""):
@@ -79,11 +73,6 @@ class Blueprint:
                             recurring0 = ""
                         else:
                             recurring0 = actionModel["recurring"]
-                        servicesFound = self.aysrepo.servicesFind(name=service0, actor=actor0)
-
-                        if len(servicesFound) == 0:
-                            self.logger.error("found action to execute but could not find required service:%s!%s" % (actor0, service0))
-                            continue
 
                         if "action" not in actionModel:
                             raise j.exceptions.Input(message="need to specify action.",
@@ -91,13 +80,14 @@ class Blueprint:
 
                         actions = [item.strip() for item in actionModel["action"].split(",") if item.strip() != ""]
 
-                        for serviceObj in servicesFound:
-                            for actionName in actions:
-                                self.actions.append({
-                                    'service_key': serviceObj.model.key,
-                                    'action_name': actionName,
-                                    'recurring_period': recurring0,
-                                })
+                        for actionName in actions:
+                            self.actions.append({
+                                # 'service_key': serviceObj.model.key,
+                                'service': service0,
+                                'actor': actor0,
+                                'action_name': actionName,
+                                'recurring_period': recurring0,
+                            })
 
                 elif "eventfilters" in model:
                         # found action need to add them to blueprint
@@ -127,20 +117,14 @@ class Blueprint:
                         else:
                             action0 = obj["actions"]
 
-                        servicesFound = self.aysrepo.servicesFind(name=service0, actor=actor0)
-
-                        if len(servicesFound) == 0:
-                            raise j.exceptions.Input(message="found action to execute but could not find required service:%s!%s" % (
-                                actor0, service0), level=1, source="", tags="", msgpub="")
-
-                        for serviceObj in servicesFound:
-                            self.eventFilters.append({
-                                'service_key': serviceObj.model.key,
-                                'channel': channel0,
-                                'command': cmd0,
-                                'secret': secret0,
-                                'action_name': action0,
-                            })
+                        self.eventFilters.append({
+                            'service': service0,
+                            'actor': actor0,
+                            'channel': channel0,
+                            'command': cmd0,
+                            'secret': secret0,
+                            'action_name': action0,
+                        })
 
                 else:
                     for key, item in model.items():
@@ -176,34 +160,21 @@ class Blueprint:
 
                         actor = self.aysrepo.actorGet(actorname)
                         args = {} if item is None else item
-                        await actor.serviceCreate(instance=bpinstance, args=args)
+                        await actor.asyncServiceCreate(instance=bpinstance, args=args)
 
         # first we had to make sure all services do exist, then we can add these properties
         for action_info in self.actions:
-            service = self.aysrepo.serviceGet(key=action_info['service_key'])
-            service.scheduleAction(action_info['action_name'], period=action_info['recurring_period'])
-            service.saveAll()
+            for service in self.aysrepo.servicesFind(name=action_info['service'],actor=action_info['actor']):
+                service.scheduleAction(action_info['action_name'], period=action_info['recurring_period'])
+                service.saveAll()
 
         for event_filter in self.eventFilters:
-            service = self.aysrepo.serviceGet(key=event_filter['service_key'])
-            service.model.eventFilterSet(
-                channel=event_filter['channel'], actions=event_filter['action_name'],
-                command=event_filter['command'], secrets=event_filter['secret'])
-            service.saveAll()
+            for service in self.aysrepo.servicesFind(name=action_info['service'],actor=action_info['actor']):
+                service.model.eventFilterSet(
+                    channel=event_filter['channel'], actions=event_filter['action_name'],
+                    command=event_filter['command'], secrets=event_filter['secret'])
+                service.saveAll()
 
-    def _add2models(self, content, nr):
-        # make sure we don't process double
-        if content in self._contentblocks:
-            return
-        self._contentblocks.append(content)
-        try:
-            model = j.data.serializer.yaml.loads(content)
-        except Exception as e:
-            msg = "Could not process blueprint (load from yaml):\npath:'%s',\nline: '%s', content:\n######\n\n%s\n######\nerror:%s" % (
-                self.path, nr, content, e)
-            raise j.exceptions.Input(msg)
-
-        self.models.append(model)
 
     @property
     def services(self):

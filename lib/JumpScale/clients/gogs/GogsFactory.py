@@ -184,10 +184,9 @@ class GogsFactory:
         is dict, key is $issueid_userid data is (repoid,milestoneid,is_read,is_assigned,is_mentioned,is_poster,is_closed)
         """
         if self._issue_user_table == {}:
-            for item in self.model.IssueUser:
-                if item.issue not in self._issue_user_table:
-                    self._issue_user_table[item.issue] = []
-                self._issue_user_table[item.issue].append(item)
+            for item in self.model.Issue:
+                self._issue_user_table.setdefault(item.id, [])
+                self._issue_user_table[item.id].append(item)
         return self._issue_user_table
 
     @property
@@ -255,7 +254,7 @@ class GogsFactory:
             issue.repo = issue.repo_id
             # assignees
             if issue.id in self.issue_user_table:
-                assignees = [self.userId2userKey.get(item.uid, "") for item in self.issue_user_table[issue.id]]
+                assignees = [self.userId2userKey.get(item.assignee, "") for item in self.issue_user_table[issue.id]]
                 for assignee in assignees:
                     issue_model.assigneeSet(assignee)
 

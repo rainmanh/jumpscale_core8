@@ -3,7 +3,6 @@ from JumpScale import j
 ModelBase = j.data.capnp.getModelBaseClass()
 
 import importlib
-# import inspect
 import msgpack
 from collections import OrderedDict
 
@@ -40,7 +39,7 @@ class JobModel(ModelBase):
         logitem.category = category
         logitem.level = int(level)
         logitem.epoch = epoch
-        logitem.log = msg
+        logitem.log = msg.strip()
         logitem.tags = tags
 
         self.addSubItem('logs', logitem)

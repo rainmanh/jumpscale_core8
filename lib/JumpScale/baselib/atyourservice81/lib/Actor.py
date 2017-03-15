@@ -34,6 +34,16 @@ class Actor():
     def path(self):
         return j.sal.fs.joinPaths(self.aysrepo.path, "actors", self.model.name)
 
+    @property
+    def schemaCapnpText(self):
+        """
+        returns capnp schema as text
+        """
+        path = j.sal.fs.joinPaths(self.path, "schema.capnp")
+        if j.sal.fs.exists(path):
+            return j.sal.fs.fileGetContents(path)
+        return ""
+
     def loadFromFS(self, name):
         """
         get content from fs and load in object
@@ -396,7 +406,7 @@ class Actor():
 
 # SERVICE
 
-    async def serviceCreate(self, instance="main", args={}):
+    async def asyncServiceCreate(self, instance="main", args={}):
         instance = instance
         service = self.aysrepo.serviceGet(role=self.model.role, instance=instance, die=False)
         if service is not None:
@@ -415,6 +425,12 @@ class Actor():
             service = await Service.init_from_actor(aysrepo=self.aysrepo, actor=self, name=instance, args=args)
 
         return service
+
+    def serviceCreate(self, instance='main', args={}):
+        """
+        same call as asyncServiceCreate but synchronous. we expose this so user can use this method in service actions.
+        """
+        return j.tools.async.wrappers.sync(self.asyncServiceCreate(instance=instance, args=args))
 
     @property
     def services(self):

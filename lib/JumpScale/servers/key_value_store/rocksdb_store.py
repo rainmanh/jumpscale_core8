@@ -26,6 +26,13 @@ class RocksDBKeyValueStore(KeyValueStoreBase):
 
         self._indexkey = "index:%s" % namespace
 
+    def close(self):
+        """
+        close database
+        """
+        del self.rocksdb
+        self.rocksdb = None
+
     def _getKey(self, key):
         # return ('%s:%s' % (self.namespace, key)).encode('utf-8')
         return key.encode('utf-8')
@@ -160,4 +167,3 @@ class RocksDBKeyValueStore(KeyValueStoreBase):
     def lookupDestroy(self, name):
         self.rocksdb.delete(self._indexkey + "lookup")
     """
-

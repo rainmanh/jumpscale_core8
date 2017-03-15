@@ -1,11 +1,11 @@
 from JumpScale import j
 from JumpScale.core.errorhandling.ErrorConditionObject import ErrorConditionObject
 import importlib
+import types
 import colored_traceback
 import pygments.lexers
 import cProfile
 from contextlib import contextmanager
-from io import StringIO
 import sys
 import asyncio
 import functools
@@ -53,33 +53,7 @@ def _execute_cb(job, epoch, future):
 
         job.logger.info("job {} done sucessfuly".format(str(job)))
 
-        log_enable = True
-        if service_action_obj:
-            log_enable = j.core.jobcontroller.db.actions.get(service_action_obj.actionKey).dbobj.log
-        if log_enable and job.model.dbobj.debug is False:
-            # don't generate log when debug is enable, cause streams are not redirect in debug mode
-            _, stdout, stderr = future.result()
-            for line in stdout.splitlines():
-                job.model.log(msg=line, level=5, category='out')
-            if stderr:
-                job.model.log(msg=stderr, level=5, category='err')
-
     job.save()
-
-# @contextmanager
-# def stdstreams_redirector(stdout, stderr):
-#     """
-#     redirect std and stderr to the buffers passed in arguments
-#     """
-#     old_stdout = sys.stdout
-#     sys.stdout = stdout
-#     old_stderr = sys.stderr
-#     sys.stderr = stderr
-#     try:
-#         yield
-#     finally:
-#         sys.stdout = old_stdout
-#         sys.stderr = old_stderr
 
 @contextmanager
 def generate_profile(job):
@@ -101,35 +75,19 @@ def generate_profile(job):
             job.model.dbobj.profileData = j.sal.fs.fileGetBinaryContents(stat_file)
             j.sal.fs.remove(stat_file)
 
-def reditect_stream_wraper(args):
-    try:
-        result = None
-        stream = StringIO()
-        handler = logging.StreamHandler(stream)
-        func = args[0]
-        if len(args) >= 2:
-            job = args[1]
-            job.logger.addHandler(handler)
-            if job.service:
-                job.service.logger.addHandler(handler)
+class JobHandler(logging.Handler):
+    def __init__(self, job_model, level=logging.NOTSET):
+        super().__init__(level=level)
+        self._job_model = job_model
+
+    def emit(self, record):
+        if record.levelno <= 20:
+            category = 'msg'
+        elif 20 < record.levelno <= 30:
+            category = 'alert'
         else:
-            job = None
-
-
-        if job:
-            with generate_profile(job):
-                result = func(*args[1:])
-        else:
-            result = func()
-
-    finally:
-        if job:
-            job.logger.removeHandler(handler)
-            if job.service:
-                job.service.logger.removeHandler(handler)
-
-    return (result, stream.getvalue(), '')
-
+            category = 'errormsg'
+        self._job_model.log(msg=record.getMessage(), level=record.levelno, category=category, epoch=int(record.created), tags='')
 
 class Job():
     """
@@ -138,13 +96,26 @@ class Job():
 
     def __init__(self, model):
         self.model = model
-        self.logger = j.logger.get('j.jobcontroller.job.{}'.format(self.model.key))
         self._cancelled = False
         self._action = None
         self._service = None
         self._source = None
         self._future = None
         self.saveService = True
+        self.logger = j.logger.get('j.jobcontroller.job.{}'.format(self.model.key))
+        self._logHandler = JobHandler(self.model)
+        self.logger.addHandler(self._logHandler)
+
+    def __del__(self):
+        self.cleanup()
+
+    def cleanup(self):
+        """
+        clean the logger handler from the job object so it doesn't make the job stays in memory
+        """
+        self.logger.removeHandler(self._logHandler)
+        self._logHandler = None
+        self.logger = None
 
     @property
     def action(self):
@@ -191,14 +162,16 @@ class Job():
         print(logs)
         return logs
 
+
     @property
+
     def method(self):
-        if self.action.key not in j.core.jobcontroller._methods:
+        if self.action.key not in sys.modules:
             loader = importlib.machinery.SourceFileLoader(self.action.key, self.sourceToExecutePath)
-            handle = loader.load_module(self.action.key)
-            method = eval("handle.action")
-            j.core.jobcontroller._methods[self.action.key] = method
-        return j.core.jobcontroller._methods[self.action.key]
+            mod = types.ModuleType(loader.name)
+            loader.exec_module(mod)
+            sys.modules[self.action.key] = mod
+        return sys.modules[self.action.key].action
 
     @property
     def service(self):
@@ -293,12 +266,7 @@ class Job():
         if self.model.dbobj.debug is False:
             self.model.dbobj.debug = self.sourceToExecute.find('ipdb') != -1 or self.sourceToExecute.find('IPython') != -1
 
-        if self.model.dbobj.debug is False:
-            self._future = loop.run_in_executor(None, reditect_stream_wraper, (self.method, self))
-        else:
-            # to debug we don't redirect stdout and stderr so ipdb can work
-            self.logger.info("job {} is exected in debug mode".format(self))
-            self._future = loop.run_in_executor(None, self.method, self)
+        self._future = loop.run_in_executor(None, self.method, self)
 
         # register callback to deal with logs and state of the job after execution
         now = j.data.time.epoch

@@ -111,7 +111,7 @@ async def listTemplates(request, repository):
     templates = list(repo.templates.keys())
     templates = sorted(templates, key=lambda template: template)
 
-    return json(templates, 200)
+    return json([{'name': t} for t in templates], 200)
 
 async def getTemplate(request, template, repository):
     '''
@@ -144,7 +144,7 @@ async def listRuns(request, repository):
         return json({'error':e.message}, 404)
 
     runs = repo.runsList()
-    runs = [run_view(run) for run in runs]
+    runs = [{'key': run.model.key, 'epoch': run.model.dbobj.lastModDate, 'state': str(run.state)} for run in runs]
 
     return json(runs, 200)
 
@@ -156,6 +156,13 @@ async def CreateRun(request, repository):
     using the 'GET /ays/repository/{repository}/aysrun/{aysrun_key}' endpoint
     It is handler for POST /ays/repository/<repository>/aysrun
     '''
+    def cb(future):
+        # TODO: request to callback_url
+        exception = future.exception()
+        if exception is not None:
+            print("error during execution of the run")
+            print(exception)
+
     try:
         repo = get_repo(repository)
     except j.exceptions.NotFound as e:
@@ -168,8 +175,8 @@ async def CreateRun(request, repository):
         run = repo.runCreate()
         run.save()
         if not simulate:
-            # TODO: execute job async
-            pass
+            future = asyncio.ensure_future(run.execute())
+            future.add_done_callback(cb)
 
         return json(run_view(run), 200)
 
@@ -202,6 +209,7 @@ async def executeRun(request, aysrun, repository):
     Execute a specific run
     """
     def cb(future):
+        # TODO: request to callback_url
         exception = future.exception()
         if exception is not None:
             print("error during execution of the run")
@@ -237,11 +245,11 @@ async def listBlueprints(request, repository):
 
     include_archived = j.data.types.bool.fromString(request.args.get('archived', 'True'))
 
-    blueprints = [blueprint_view(blueprint) for blueprint in repo.blueprints]
+    blueprints = [{'name': blueprint.name} for blueprint in repo.blueprints]
 
     if include_archived:
         for blueprint in repo.blueprintsDisabled:
-            blueprints.append(blueprint_view(blueprint))
+            blueprints.append({'name': blueprint.name})
 
     return json(blueprints, 200)
 
@@ -255,7 +263,7 @@ async def createBlueprint(request, repository):
     try:
         Draft4Validator(Blueprint_schema).validate(inputs)
     except jsonschema.ValidationError as e:
-        return text('Bad Request Body', 400)
+        return text('Bad Request Body :%s' % e, 400)
 
     try:
         repo = get_repo(repository)
@@ -444,7 +452,7 @@ async def listServices(request, repository):
 
     services = []
     for s in repo.services:
-        services.append(service_view(s))
+        services.append({'role': s.model.role, 'name': s.name})
 
     services = sorted(services, key=lambda service: service['role'])
 
@@ -462,7 +470,7 @@ async def listServicesByRole(request, role, repository):
 
     services = []
     for s in repo.servicesFind(role=role):
-        services.append(service_view(s))
+        services.append({'role': s.model.role, 'name': s.name})
 
     services = sorted(services, key=lambda service: service['role'])
 
@@ -516,7 +524,7 @@ async def listActors(request, repository):
     except j.exceptions.NotFound as e:
         return json({'error':e.message}, 404)
 
-    actors = [actor_view(actor) for actor in repo.actors.values()]
+    actors = [{'name': actor.model.name} for actor in repo.actors.values()]
 
     return json(actors, 200)
 

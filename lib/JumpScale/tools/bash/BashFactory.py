@@ -50,7 +50,7 @@ class Profile:
         for item in _path:
             if item.strip() == "":
                 continue
-            if item.find("PATH") != -1:
+            if item.find("{PATH}") != -1:
                 continue
             self.addPath(item)
 
@@ -124,7 +124,7 @@ class Profile:
             self.envDelete(key)
 
     def __str__(self):
-        self._env['PATH'] = ':'.join(set(self.paths)) + ":$PATH"
+        self._env['PATH'] = ':'.join(set(self.paths)) + ":${PATH}"
 
         content = StringIO()
         content.write('# environment variables\n')

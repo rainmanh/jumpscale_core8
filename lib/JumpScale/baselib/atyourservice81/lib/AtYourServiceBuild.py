@@ -114,7 +114,7 @@ def build(service, build_func, build_destination='/mnt/building'):
     to_check.extend(service.parents)
     for item in to_check:
         if hasattr(item.model.data, 'builderHost'):
-            os_hostbuidler = service.aysrepo.servicesFind(item.model.data.builderHost, actor='os.*')[0]
+            os_hostbuidler = service.aysrepo.servicesFind(item.model.data.builderHost, actor='os(\..*)?')[0]
             break
     else:
         raise j.exceptions.AYSNotFound("can't find os layer of builder host")

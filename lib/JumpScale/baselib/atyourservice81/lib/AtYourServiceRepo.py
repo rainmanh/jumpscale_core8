@@ -481,7 +481,7 @@ class AtYourServiceRepo():
         """
         # create a scope in which we need to find work
         producerRoles = self._processProducerRoles(producerRoles)
-        scope = set(self.servicesFind(actor="%s.*" % role, name=instance, hasAction=action))
+        scope = set(self.servicesFind(actor=r"%s(\..*)?" % role, name=instance, hasAction=action))
         for service in scope:
             producer_candidates = service.getProducersRecursive(
                 producers=set(), callers=set(), action=action, producerRoles=producerRoles)
@@ -592,7 +592,7 @@ class AtYourServiceRepo():
 
 # ACTIONS
     async def init(self, role="", instance="", hasAction="", includeDisabled=False, data=""):
-        for service in self.servicesFind(name=instance, actor='%s.*' % role, hasAction=hasAction, includeDisabled=includeDisabled):
+        for service in self.servicesFind(name=instance, actor=r'%s(\..*)?' % role, hasAction=hasAction, includeDisabled=includeDisabled):
             self.logger.info('init service: %s' % service)
             await service.init()
 

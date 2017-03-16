@@ -31,10 +31,10 @@ class AtYourServiceFactory:
         self.baseActions = {}
         # self.templateRepos = None
         # self.aysRepos = None
-        self.templateRepos = TemplateRepoCollection()  # actor templates repositories
-        self.aysRepos = AtYourServiceRepoCollection()  # ays repositories
 
     def start(self, loop=None):
+        self.templateRepos = TemplateRepoCollection()  # actor templates repositories
+        self.aysRepos = AtYourServiceRepoCollection()  # ays repositories
         self.loop = loop or asyncio.get_event_loop()
 
     @property

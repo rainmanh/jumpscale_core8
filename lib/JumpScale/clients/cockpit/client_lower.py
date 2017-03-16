@@ -270,7 +270,6 @@ class Client:
         uri = self.url + "/ays/repository/" + repository + "/template/" + template + "/update"
         return self.session.get(uri, headers=headers, params=query_params)
 
-
     def updateTemplates(self, repository, headers=None, query_params=None):
         """
         update all actors in template repo
@@ -290,6 +289,36 @@ class Client:
             self.session.headers.update({"Authorization": self.auth_header})
 
         uri = self.url + "/ays/repository/" + repository + "/template/" + template
+        return self.session.get(uri, headers=headers, params=query_params)
+
+    def listAYSTemplates(self, headers=None, query_params=None):
+        """
+        list all AYS templates on system
+        it is a method for GET /ays/templates
+        """
+        if self.auth_header:
+            self.session.headers.update({"Authorization": self.auth_header})
+        uri = self.url + '/ays/templates'
+        return self.session.get(uri, headers=headers, params=query_params)
+
+    def getAYSTemplate(self, template, headers=None, query_params=None):
+        """
+        get an AYS template
+        it is a method for GET /ays/template/{template}
+        """
+        if self.auth_header:
+            self.session.headers.update({"Authorization": self.auth_header})
+        uri = self.url + '/ays/templates/' + template
+        return self.session.get(uri, headers=headers, params=query_params)
+
+    def listActors(self, repository, headers=None, query_params=None):
+        """
+        list all actors in an ays repo
+        It is method for GET /ays/repository/{repository}/actor
+        """
+        if self.auth_header:
+            self.session.headers.update({"Authorization": self.auth_header})
+        uri = self.url + '/ays/repository/' + repository + '/actor'
         return self.session.get(uri, headers=headers, params=query_params)
 
     def listRuns(self, repository, headers=None, query_params=None):

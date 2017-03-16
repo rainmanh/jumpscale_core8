@@ -168,6 +168,18 @@ class ays_repository_byrepository_template_bytemplateView(HTTPMethodView):
 
 ays_if.add_route(ays_repository_byrepository_template_bytemplateView.as_view(), '/ays/repository/<repository>/template/<template>')
 
+class ays_templates(HTTPMethodView):
+    async def get(self, request):
+        return await ays_api.listAYSTemplates(request)
+
+ays_if.add_route(ays_templates.as_view(), '/ays/templates')
+
+class ays_template(HTTPMethodView):
+    async def get(self, request, template):
+        return await ays_api.getAYSTemplate(request, template)
+
+ays_if.add_route(ays_template.as_view(), '/ays/templates/<template>')
+
 class ays_template_repoView(HTTPMethodView):
 
     async def post(self, request):

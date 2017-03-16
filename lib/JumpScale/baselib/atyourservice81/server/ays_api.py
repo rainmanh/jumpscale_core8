@@ -106,12 +106,10 @@ async def listTemplates(request, repository):
     try:
         repo = get_repo(repository)
     except j.exceptions.NotFound as e:
-        return json({'error':e.message}, 404)
+        return json({'error': e.message}, 404)
+    templates = [template_view(templ) for templ in repo.templates.values()]
+    return json(templates, 200)
 
-    templates = list(repo.templates.keys())
-    templates = sorted(templates, key=lambda template: template)
-
-    return json([{'name': t} for t in templates], 200)
 
 async def getTemplate(request, template, repository):
     '''
@@ -130,6 +128,37 @@ async def getTemplate(request, template, repository):
     tmpl = repo.templates[template]
     template = template_view(tmpl)
 
+    return json(template, 200)
+
+
+async def listAYSTemplates(request):
+    '''
+    list all templates in ays_jumpscale
+    It is hadnler for GET /ays/templates
+    '''
+    if j.atyourservice.aysRepos is None:
+        j.atyourservice.start()
+    try:
+        templates = [template_view(templ) for templ in j.atyourservice.actorTemplates]
+    except j.exceptions.NotFound as e:
+        return json({'error': 'No templates found'}, 404)
+    return json(templates, 200)
+
+
+async def getAYSTemplate(request, template):
+    '''
+    list all templates in ays_jumpscale
+    It is hadnler for GET /ays/templates
+    '''
+    if j.atyourservice.aysRepos is None:
+        j.atyourservice.start()
+    try:
+        for tmpl in j.atyourservice.actorTemplates:
+            if tmpl.name == template:
+                template = template_view(tmpl)
+                break
+    except j.exceptions.NotFound as e:
+        return json({'error': 'No templates found'}, 404)
     return json(template, 200)
 
 
@@ -242,15 +271,12 @@ async def listBlueprints(request, repository):
         repo = get_repo(repository)
     except j.exceptions.NotFound as e:
         return json({'error':e.message}, 404)
-
     include_archived = j.data.types.bool.fromString(request.args.get('archived', 'True'))
-
     blueprints = [{'name': blueprint.name} for blueprint in repo.blueprints]
 
     if include_archived:
         for blueprint in repo.blueprintsDisabled:
             blueprints.append({'name': blueprint.name})
-
     return json(blueprints, 200)
 
 async def createBlueprint(request, repository):

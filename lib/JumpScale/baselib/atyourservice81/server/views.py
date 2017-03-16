@@ -131,7 +131,7 @@ def blueprint_view(bp):
     return {
         'path': bp.path,
         'name': bp.name,
-        'content': j.data.serializer.yaml.loads(bp.content),
+        'content':bp.content,
         'hash': bp.hash,
         'archived': not bp.active,
     }

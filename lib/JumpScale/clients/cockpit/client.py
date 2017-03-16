@@ -319,6 +319,33 @@ class Client:
         self._assert_response(resp)
         return resp.json()
 
+    def listAYSTemplates(self, headers=None, query_params=None):
+        """
+        list all templates from ays_jumpscale
+        It is a method for GET /ays/templates
+        """
+        resp = self._client.listAYSTemplates(headers=headers, query_params=query_params)
+        self._assert_response(resp)
+        return resp.json()
+
+    def getAYSTemplate(self, template, headers=None, query_params=None):
+        """
+        get template from ays_jumpscale
+        It is a method for GET /ays/template/{template}
+        """
+        resp = self._client.getAYSTemplate(template, headers=headers, query_params=query_params)
+        self._assert_response(resp)
+        return resp.json()
+
+    def listActors(self, repository, headers=None, query_params=None):
+        """
+        list all actors in ays repo
+        it is a method for GET /ays/repository/{repository}/actor
+        """
+        resp = self._client.listActors(repository, headers=headers, query_params=query_params)
+        self._assert_response(resp)
+        return resp.json()
+
     def updateTemplate(self, repository, template=None,  headers=None, query_params=None):
         """
         update template in repo

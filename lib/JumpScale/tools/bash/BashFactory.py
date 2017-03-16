@@ -44,6 +44,8 @@ class Profile:
             _path = set(path.split(':'))
         else:
             _path = set()
+        # make sure to add the js bin dir to the path
+        _path.add(self.cuisine.core.dir_paths['BINDIR'])
 
         for item in _path:
             if item.strip() == "":

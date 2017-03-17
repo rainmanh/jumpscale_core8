@@ -36,6 +36,8 @@ class AtYourServiceFactory:
         self.templateRepos = TemplateRepoCollection()  # actor templates repositories
         self.aysRepos = AtYourServiceRepoCollection()  # ays repositories
         self.loop = loop or asyncio.get_event_loop()
+        self.templateRepos = TemplateRepoCollection()  # actor templates repositories
+        self.aysRepos = AtYourServiceRepoCollection()  # ays repositories
 
     @property
     def actorTemplates(self):

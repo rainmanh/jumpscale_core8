@@ -789,6 +789,7 @@ class Service:
         jobobj.dbobj.lastModDate = j.data.time.epoch
         jobobj.args = args
         job = j.core.jobcontroller.newJobFromModel(jobobj)
+        job.service = self
         return job
 
     def _build_actions_chain(self, action, ds=list(), parents=list(), dc=None):

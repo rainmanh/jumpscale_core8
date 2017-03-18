@@ -249,7 +249,7 @@ class AtYourServiceRepo():
             templates[template.name] = template
 
         # load local templates
-        templateRepo = j.atyourservice.templateRepos.load(self.path)
+        templateRepo = j.atyourservice.templateRepos.create(self.path)
         for template in templateRepo.templates:
             # here we want to overrides the global templates with local one. so having
             # duplicate name is normal

@@ -387,7 +387,6 @@ class AtYourServiceRepo():
         return bps
 
     def blueprintExecute(self, path="", content="", role="", instance=""):
-        bp = None
         if path == "" and content == "":
             for bp in self.blueprints:
                 if not bp.is_valid:
@@ -400,7 +399,6 @@ class AtYourServiceRepo():
             if not bp.is_valid:
                 return
             bp.load(role=role, instance=instance)
-
         self.init(role=role, instance=instance)
 
         def to_camel_case(snake_str):

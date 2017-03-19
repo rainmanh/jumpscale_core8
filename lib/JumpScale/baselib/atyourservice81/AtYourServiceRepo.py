@@ -387,6 +387,7 @@ class AtYourServiceRepo():
         return bps
 
     def blueprintExecute(self, path="", content="", role="", instance=""):
+        bp = None
         if path == "" and content == "":
             for bp in self.blueprints:
                 if not bp.is_valid:

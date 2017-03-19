@@ -190,6 +190,8 @@ class Blueprint:
                 channel=event_filter['channel'], action=event_filter['action_name'],
                 command=event_filter['command'], secrets=event_filter['secret'])
             service.saveAll()
+            
+        self.disable()
 
     def _add2models(self, content, nr):
         # make sure we don't process double

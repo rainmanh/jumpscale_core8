@@ -32,7 +32,22 @@ class AtYourServiceFactory:
         # self.templateRepos = None
         # self.aysRepos = None
 
-    def start(self, loop=None):
+    def start(self):
+        """
+        start an ays service on your local platform
+        """
+        self.logger.info("start ays service, will take 5 sec")
+        sname = j.tools.cuisine.local.tmux.getSessions()[0]
+        cmd = "cd /opt/code/github/jumpscale/jumpscale_core8/apps/atyourservice;python3 main.py"
+        j.tools.cuisine.local.tmux.executeInScreen(sname, "ays", cmd, reset=True)
+        rc, out = j.tools.cuisine.local.tmux.executeInScreen(sname, "ays", cmd, reset=True, wait=5)
+        if rc > 0:
+            raise RuntimeError("Cannot start AYS service")
+        self.logger.debug(out)
+        self.logger.info("go to http://127.0.0.1:5000 to see rest api")
+        return rc, out
+
+    def _start(self, loop=None):
         self.templateRepos = TemplateRepoCollection()  # actor templates repositories
         self.aysRepos = AtYourServiceRepoCollection()  # ays repositories
         self.loop = loop or asyncio.get_event_loop()

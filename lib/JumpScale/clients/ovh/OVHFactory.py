@@ -93,7 +93,7 @@ class OVHClient:
                 return self.client.get("/dedicated/server/%s/install/status" % name)
             except Exception as e:
                 if "Server is not being installed or reinstalled at the moment" in str(e):
-                    return None
+                    return "active"
                 else:
                     raise e
         return self.cache.get(key, getData, name=name)
@@ -151,11 +151,11 @@ class OVHClient:
         nrInstalling = 1
         while nrInstalling > 0:
             nrInstalling = 0
-            for item in self.serversList():
+            for item in self.serversList:
                 status = self.serverGetInstallStatus(name=item, reload=True)
                 key = "serverGetDetail_%s" % item  # lets make sure server is out of cache too
                 self.cache.delete(key)
-                if status != None:
+                if status != "active":
                     print(item)
                     print(j.data.serializer.yaml.dumps(status))
                     print("-------------")

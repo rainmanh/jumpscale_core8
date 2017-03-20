@@ -11,7 +11,7 @@ class CuisineJS8(base):
             return
 
         if reset:
-            C="""
+            C = """
             killall mongodb
             killall redis
             killall redis-server
@@ -25,20 +25,22 @@ class CuisineJS8(base):
             """
             self.cuisine.core.run(C)
 
-        if branch!="master":
-            C="""
+        if branch != "master":
+            C = """
             set -ex
+            apt install curl
             cd $TMPDIR
             rm -f install.sh
             export JSBRANCH="$branch"
             curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/install.sh?$RANDOM > install.sh
             bash install.sh
             """
-            C=C.replace("$branch",branch)
+            C = C.replace("$branch", branch)
             self.cuisine.core.run(C)
         else:
-            C="""
+            C = """
             set -ex
+            apt install curl
             cd $TMPDIR
             rm -f install.sh
             curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh?$RANDOM > install.sh
@@ -48,9 +50,7 @@ class CuisineJS8(base):
 
         self.doneSet("install")
 
-
-
-    #should not do this, is otherwise different than the std install
+    # should not do this, is otherwise different than the std install
     # def installDeps(self):
     #
     #     self.cuisine.systemservices.base.install()

@@ -302,9 +302,12 @@ class DevelopToolsFactory:
             for node in self.nodes:
                 if node.port != 0:
 
+                    node.cuisine.core.isJS8Sandbox = False
+
                     if not node.cuisine.core.isJS8Sandbox:
                         # non sandboxed mode, need to sync to \
-                        dest = "root@%s:%s/%s" % (node.addr, node.cuisine.core.dir_paths['CODEDIR'], source.split("code/", 1)[1])
+                        dest = "root@%s:%s/%s" % (node.addr,
+                                                  node.cuisine.core.dir_paths['CODEDIR'], source.split("code/", 1)[1])
                     else:
                         dest = "root@%s:%s/%s" % (node.addr, node.cuisine.core.dir_paths['CODEDIR'], destpart)
 
@@ -316,7 +319,8 @@ class DevelopToolsFactory:
                                              '.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True, rsyncdelete=rsyncdelete)
 
                         source2 = source + "/install/InstallTools.py"
-                        dest = "root@%s:%s/JumpScale/InstallTools.py" % (node.addr, node.cuisine.core.dir_paths['LIBDIR'])
+                        dest = "root@%s:%s/JumpScale/InstallTools.py" % (node.addr,
+                                                                         node.cuisine.core.dir_paths['LIBDIR'])
                         j.sal.fs.copyDirTree(source2, dest, ignoredir=[
                                              '.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
 
@@ -326,7 +330,8 @@ class DevelopToolsFactory:
                                              '.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
 
                     else:
-                        node.cuisine.core.run("mkdir -p %s/%s" % (node.cuisine.core.dir_paths['CODEDIR'], source.split("code/", 1)[1]))
+                        node.cuisine.core.run("mkdir -p %s/%s" %
+                                              (node.cuisine.core.dir_paths['CODEDIR'], source.split("code/", 1)[1]))
                         if node.cuisine.core.isJS8Sandbox:
                             rsyncdelete2 = True
                         else:

@@ -2,9 +2,20 @@ import click
 import logging
 
 from JumpScale import j
-from JumpScale.baselib.atyourservice81.server.app import app as sanic_app
 
-print("needs:\npip3 install sanic==0.3.0")
+try:
+    import jsonschema
+except:
+    j.do.execute("pip3 install jsonschema")
+    import jsonschema
+
+try:
+    from JumpScale.baselib.atyourservice81.server.app import app as sanic_app
+except:
+    print("needs:\npip3 install sanic==0.3.0")
+    j.do.execute("pip3 install sanic")
+    from JumpScale.baselib.atyourservice81.server.app import app as sanic_app
+
 print("to see api:http://localhost:5000/")
 
 # configure asyncio logger
@@ -26,7 +37,7 @@ def main(host, port, debug=False):
         if debug:
             loop.set_debug(True)
         j.atyourservice.debug = debug
-        j.atyourservice.start(loop=loop)
+        j.atyourservice._start(loop=loop)
 
     # start server
     sanic_app.run(debug=debug, host=host, port=port, workers=1, before_start=init_ays)

@@ -5,17 +5,12 @@ import JumpScale.sal.disklayout.mount as mount
 import JumpScale.sal.disklayout.lsblk as lsblk
 
 
-
 _formatters = {
     # specific format command per filesystem.
     'ntfs': lambda name, fstype: 'mkfs.ntfs -f {name}'.format(name=name)
 }
 
 isValidFS = lambda v: v.startswith('ext') or v in ('btrfs', 'ntfs')
-
-_hrd_validators = {
-    'filesystem': isValidFS
-}
 
 
 def _default_formatter(name, fstype):
@@ -271,12 +266,12 @@ class DiskInfo(BlkInfo):
                                                            start=start,
                                                            end=end), showout=False, die=False)
             if err != '' and err.find('The closest location we can manage is') != -1:
-               numbers = j.data.regex.findAll(r'(\d*B)', err)
-               rc, out, err = self._executor.execute(
-               ('parted -s {name} -a optimal unit B ' +
-               'mkpart primary {start} {end}').format(name=self.name,
-               start=start,
-               end=numbers[3]), showout=False)
+                numbers = j.data.regex.findAll(r'(\d*B)', err)
+                rc, out, err = self._executor.execute(
+                    ('parted -s {name} -a optimal unit B ' +
+                     'mkpart primary {start} {end}').format(name=self.name,
+                                                            start=start,
+                                                            end=numbers[3]), showout=False)
         except Exception as e:
             raise FormatError(e)
 
@@ -383,7 +378,7 @@ class PartitionInfo(BlkInfo):
         self.fstype = fstype
         self.mountpoint = mountpoint
         self.label = label
-        self.hrd = None
+        self.config = {}
         self.device = device
         self._invalid = False
 
@@ -395,10 +390,10 @@ class PartitionInfo(BlkInfo):
 
     @property
     def protected(self):
-        if self.hrd is None:
+        if self.config == {}:
             # that's an unmanaged partition, assume protected
             return True
-
+        #TODO: implement
         return bool(self.hrd.get('protected', True))
 
     def _formatter(self, name, fstype):
@@ -425,13 +420,13 @@ class PartitionInfo(BlkInfo):
         for key, val in info.items():
             setattr(self, key.lower(), val)
 
-    def _dumpHRD(self):
+    def _dumpCONFIG(self):
         with mount.Mount(self.name, executor=self._executor) as mnt:
             filepath = j.tools.path.get(mnt.path).joinpath('.disk.hrd')
             filepath.write_text(str(self.hrd))
             filepath.chmod(400)
 
-    def format(self, force=False):
+    def format(self, fstype, force=False):
         """
         Reformat the partition according to hrd
         """
@@ -449,12 +444,10 @@ class PartitionInfo(BlkInfo):
         if self.hrd is None:
             raise PartitionError('No HRD attached to disk')
 
-        fstype = self.hrd.get('filesystem')
         command = self._formatter(self.name, fstype)
         try:
-
             rc, out, err = self._executor.execute(command, showout=False)
-            self._dumpHRD()
+            self._dumpCONFIG()
         except Exception as e:
             raise FormatError(e)
 

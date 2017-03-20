@@ -13,7 +13,7 @@ class Docker:
     def __init__(self):
         self.__jslocation__ = "j.sal.docker"
         self.logger = j.logger.get('j.sal.docker')
-        self._basepath = "/mnt/vmstor/docker"
+        self._basepath = "/storage/docker"
         self._weaveSocket = None
         self._prefix = ""
         self._containers = {}
@@ -25,7 +25,7 @@ class Docker:
             self.base_url = self.weavesocket
         else:
             self.base_url = os.environ['DOCKER_HOST']
-        self.client = docker.Client(base_url=self.base_url, timeout=120)
+        self.client = docker.APIClient(base_url=self.base_url, timeout=120)
 
     def init(self):
 
@@ -499,6 +499,9 @@ class Docker:
             if type(k) == tuple and len(k) == 2:
                 portsdict["%s/%s" % (k[0], k[1])] = v
                 portsdict.pop(k)
+
+        # TODO: *1 docker module no longer working
+
         res = self.client.start(container=id, binds=binds, port_bindings=portsdict, lxc_conf=None,
                                 publish_all_ports=False, links=None, privileged=privileged, dns=nameserver, dns_search=None,
                                 volumes_from=None, network_mode=None)

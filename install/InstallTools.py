@@ -23,12 +23,14 @@ import importlib
 import fcntl
 
 
-#INITIALIZATION OF STD logging
+# INITIALIZATION OF STD logging
 
 import logging
 import logging.handlers
 CONSOLE_FORMAT = '%(cyan)s[%(asctime)s]%(reset)s - %(filename)-20s:%(lineno)-4d:%(name)-30s - %(log_color)s%(levelname)-8s%(reset)s - %(message)s'
 from colorlog import ColoredFormatter
+
+
 class LimitFormater(ColoredFormatter):
 
     def __init__(self, fmt, datefmt, reset, log_colors, secondary_log_colors, style, lenght):
@@ -71,9 +73,12 @@ logger = logging.getLogger("installtools")
 logger.addHandler(ch)
 logger.setLevel(logging.DEBUG)
 
-# CustomTimeoutError from RuntimeError to keep execute interface consistent 
+# CustomTimeoutError from RuntimeError to keep execute interface consistent
+
+
 class TimeoutError(RuntimeError, TimeoutError):
     pass
+
 
 class FileLock():
 
@@ -169,29 +174,26 @@ class SSHMethods():
         if not self.SSHAgentAvailable():
             self._loadSSHAgent()
 
-
-    def SSHKeyLoad(self, path,duration=3600 * 24):
+    def SSHKeyLoad(self, path, duration=3600 * 24):
         """
         @param path is name or full path
         """
         self.SSHAgentCheck()
         if self.SSHAgentCheckKeyIsLoaded(path):
             return
-        self.logger.info("load ssh key:%s"%path)
-        self.chmod(path,0o600)
+        self.logger.info("load ssh key:%s" % path)
+        self.chmod(path, 0o600)
         cmd = "ssh-add -t %s %s " % (duration, path)
         self.executeInteractive(cmd)
 
-    def SSHAgentCheckKeyIsLoaded(self,keyNamePath):
+    def SSHAgentCheckKeyIsLoaded(self, keyNamePath):
         keysloaded = [self.getBaseName(item) for item in self.SSHKeysListFromAgent()]
-        if  self.getBaseName(keyNamePath) in keysloaded:
-            self.logger.info("ssh key:%s loaded"%keyNamePath)
+        if self.getBaseName(keyNamePath) in keysloaded:
+            self.logger.info("ssh key:%s loaded" % keyNamePath)
             return True
         else:
-            self.logger.info("ssh key:%s NOT loaded"%keyNamePath)
+            self.logger.info("ssh key:%s NOT loaded" % keyNamePath)
             return False
-
-
 
     def SSHKeysLoad(self, path=None, duration=3600 * 24, die=False):
         """
@@ -637,7 +639,7 @@ class GitMethods():
         base, provider, account, repo, dest, url = self.getGitRepoArgs(
             url, dest, login, passwd, reset=reset, ssh=ssh, codeDir=codeDir, executor=executor)
 
-        self.logger.info("%s:pull:%s ->%s" % (executor,url, dest))
+        self.logger.info("%s:pull:%s ->%s" % (executor, url, dest))
 
         existsDir = self.exists(dest) if not executor else executor.exists(dest)
 
@@ -851,7 +853,7 @@ class FSMethods():
 
         if executor and not rsync:
             raise RuntimeError("when executor used only rsync supported")
-        if rsync and not self.isMac():
+        if rsync:
             excl = ""
             for item in ignoredir:
                 excl += "--exclude '*%s*/' " % item
@@ -1684,7 +1686,7 @@ class ExecutorMethods():
         return False
 
     def executeBashScript(self, content="", path=None, die=True, remote=None,
-                          sshport=22, showout=True, outputStderr=True, sshkey="", timeout=600,executor=None):
+                          sshport=22, showout=True, outputStderr=True, sshkey="", timeout=600, executor=None):
         """
         @param remote can be ip addr or hostname of remote, if given will execute cmds there
         """
@@ -1712,22 +1714,24 @@ class ExecutorMethods():
                     self.execute('ssh-add %s' % sshkey)
                 sshkey = '-i %s ' % sshkey.replace('!', '\!')
             self.execute("scp %s -oStrictHostKeyChecking=no -P %s %s root@%s:%s " %
-                         (sshkey, sshport, path2, remote, tmppathdest), die=die,executor=executor)
+                         (sshkey, sshport, path2, remote, tmppathdest), die=die, executor=executor)
             rc, res, err = self.execute("ssh %s -oStrictHostKeyChecking=no -A -p %s root@%s 'bash %s'" %
-                                        (sshkey, sshport, remote, tmppathdest), die=die, timeout=timeout,executor=executor)
+                                        (sshkey, sshport, remote, tmppathdest), die=die, timeout=timeout, executor=executor)
         else:
-            rc, res, err = self.execute("bash %s" % path2, die=die, showout=showout, outputStderr=outputStderr, timeout=timeout,executor=executor)
+            rc, res, err = self.execute("bash %s" % path2, die=die, showout=showout,
+                                        outputStderr=outputStderr, timeout=timeout, executor=executor)
         return rc, res, err
 
     def executeCmds(self, cmdstr, showout=True, outputStderr=True, useShell=True,
-                    log=True, cwd=None, timeout=120, captureout=True, die=True,executor=None):
+                    log=True, cwd=None, timeout=120, captureout=True, die=True, executor=None):
         rc_ = []
         out_ = ""
         for cmd in cmdstr.split("\n"):
             if cmd.strip() == "" or cmd[0] == "#":
                 continue
             cmd = cmd.strip()
-            rc, out, err = self.execute(cmd, showout, outputStderr, useShell, log, cwd, timeout, captureout, die,executor=executor)
+            rc, out, err = self.execute(cmd, showout, outputStderr, useShell, log, cwd,
+                                        timeout, captureout, die, executor=executor)
             rc_.append(str(rc))
             out_ += out
 
@@ -1749,8 +1753,8 @@ class ExecutorMethods():
         else:
             return False
 
-    def loadScript(self, path,executor=None):
-        self.logger.info("ectr:%s: load jumpscript: %s" % (executor,path))
+    def loadScript(self, path, executor=None):
+        self.logger.info("ectr:%s: load jumpscript: %s" % (executor, path))
         source = self.readFile(path)
         out, tags = self._preprocess(source)
 
@@ -1780,37 +1784,37 @@ class ExecutorMethods():
         for name, val in list(tags.items()):
             self.actions[name] = eval("self.module.%s" % name)
 
-    def execute(self, command , showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], \
-                        ok=[], captureout=True, die=True, async=False, executor=None):
+    def execute(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[],
+                ok=[], captureout=True, die=True, async=False, executor=None):
         """
         @param errors is array of statements if found then exit as error
         return rc,out,err
         """
 
-        command=self.textstrip(command)
+        command = self.textstrip(command)
 
         if executor:
             return executor.execute(command, die=die, checkok=False, showout=True, timeout=timeout)
 
         if "\n" in command:
-            path=self.getTmpPath("doexecute_%s.bash"%random.randrange(0,10000000))
-            self.logger.info("execbash:\n'''%s\n%s'''\n" % (path,command))
+            path = self.getTmpPath("doexecute_%s.bash" % random.randrange(0, 10000000))
+            self.logger.info("execbash:\n'''%s\n%s'''\n" % (path, command))
             if die:
-                command="set -ex\n%s"%command
-            self.writeFile(path,command+"\n")
-            command="bash %s"%path
+                command = "set -ex\n%s" % command
+            self.writeFile(path, command + "\n")
+            command = "bash %s" % path
         else:
             # self.logger.info("exec:%s" % command)
-            path=None
+            path = None
 
-        os.environ["PYTHONUNBUFFERED"]="1"
+        os.environ["PYTHONUNBUFFERED"] = "1"
         ON_POSIX = 'posix' in sys.builtin_module_names
 
-        popenargs={}
-        if hasattr(subprocess,"_mswindows"):
-            mswindows=subprocess._mswindows
+        popenargs = {}
+        if hasattr(subprocess, "_mswindows"):
+            mswindows = subprocess._mswindows
         else:
-            mswindows=subprocess.mswindows
+            mswindows = subprocess.mswindows
 
         # if not mswindows:
         #     # Reset all signals before calling execlp but after forking. This
@@ -1827,15 +1831,14 @@ class ExecutorMethods():
         #                     pass
         #     popenargs["preexec_fn"]=reset_signals
 
-
-        p=Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX, \
-                    shell=useShell, env=os.environ, universal_newlines=False,cwd=cwd,bufsize=0,**popenargs)
+        p = Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX,
+                  shell=useShell, env=os.environ, universal_newlines=False, cwd=cwd, bufsize=0, **popenargs)
 
         if async:
             return p
 
-
         class StreamReader(threading.Thread):
+
             def __init__(self, stream, queue, flag):
                 super(StreamReader, self).__init__()
                 self.stream = stream
@@ -1857,7 +1860,7 @@ class ExecutorMethods():
         import codecs
 
         serr = os.fdopen(p.stderr.fileno(), 'r', encoding='UTF-8')
-        sout =os.fdopen(p.stdout.fileno(), 'r', encoding='UTF-8')
+        sout = os.fdopen(p.stdout.fileno(), 'r', encoding='UTF-8')
         inp = queue.Queue()
 
         outReader = StreamReader(sout, inp, 'O')
@@ -1886,43 +1889,43 @@ class ExecutorMethods():
                         err_eof = True
                     continue
 
-                if ok!=[]:
+                if ok != []:
                     for item in ok:
-                        if line.find(item)!=-1:
-                            rc=0
+                        if line.find(item) != -1:
+                            rc = 0
                             break
-                if errors!=[]:
+                if errors != []:
                     for item in errors:
-                        if line.find(item)!=-1:
-                            rc=997
+                        if line.find(item) != -1:
+                            rc = 997
                             break
-                    if rc==997 or rc==0:
+                    if rc == 997 or rc == 0:
                         break
 
-                if chan=='O':
+                if chan == 'O':
                     if showout:
                         try:
                             print((line.strip()))
                         except:
                             pass
                     if captureout:
-                        out+=line
-                elif chan=='E':
+                        out += line
+                elif chan == 'E':
                     if outputStderr:
-                        print(("E:%s"%line.strip()))
+                        print(("E:%s" % line.strip()))
                     if captureout:
                         err += line
 
             except queue.Empty:
                 pass
-            if timeout>0:
-                if time.time()>start+timeout:
+            if timeout > 0:
+                if time.time() > start + timeout:
                     print("TIMEOUT")
-                    rc=999
+                    rc = 999
                     p.kill()
                     break
 
-        if path!=None:
+        if path != None:
             self.delete(path)
 
         if rc != 999:
@@ -1934,11 +1937,11 @@ class ExecutorMethods():
 
         if rc == 999 and die:
             raise TimeoutError("\nOUT:\n%s\nSTDERR:\n%s\nERROR: Cannot execute (TIMEOUT):'%s'\nreturncode (%s)" %
-                                   (out, err, command, rc))
+                               (out, err, command, rc))
 
         if rc > 0 and die:
             if err:
-                raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s" % (command,err))
+                raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s" % (command, err))
             else:
                 raise RuntimeError("Could not execute cmd:\n'%s'\nout:\n%s" % (command, out))
 
@@ -2494,7 +2497,6 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
 
         self.logger = logger
 
-
     @property
     def env(self):
         return os.environ
@@ -2652,7 +2654,8 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             if exists("%s/env.sh" % curdir) and exists("%s/js.sh" % (curdir)):
                 env["BASEDIR"] = os.getcwd()
             else:
-                if not self.TYPE.startswith("LINUX") and not self.TYPE.startswith("OSX"):  # ON OSX WE ALSO NEED TO SUPPORT /opt !!!
+                # ON OSX WE ALSO NEED TO SUPPORT /opt !!!
+                if not self.TYPE.startswith("LINUX") and not self.TYPE.startswith("OSX"):
                     env["BASEDIR"] = "%s/opt" % env['HOME']
                 else:
                     env["BASEDIR"] = "/opt"
@@ -2661,7 +2664,8 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             env["JSBASE"] = "%s/jumpscale8" % env["BASEDIR"]
 
         if not "VARDIR" in env:
-            if not self.TYPE.startswith("LINUX") and not self.TYPE.startswith("OSX"):  # ON OSX WE ALSO NEED TO SUPPORT /opt !!!
+            # ON OSX WE ALSO NEED TO SUPPORT /opt !!!
+            if not self.TYPE.startswith("LINUX") and not self.TYPE.startswith("OSX"):
                 env["VARDIR"] = "%s/optvar" % env['HOME']
             else:
                 env["VARDIR"] = "/optvar"
@@ -2765,7 +2769,6 @@ class InstallTools(GitMethods, FSMethods, ExecutorMethods, SSHMethods, UI):
             path = os.environ[item]
             # self.logger.info(path)
             self.createDir(path)
-
 
     def getTimeEpoch(self):
         '''

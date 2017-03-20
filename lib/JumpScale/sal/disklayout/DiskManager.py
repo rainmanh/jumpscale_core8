@@ -3,24 +3,33 @@ import JumpScale.sal.disklayout.mount as mount
 import JumpScale.sal.disklayout.lsblk as lsblk
 import JumpScale.sal.disklayout.disks as disks
 
+
 class DiskManager:
     """
      helps you to gather a lot of information about the disks and partitions.
     """
+
     def __init__(self):
         self.__jslocation__ = "j.sal.disklayout"
         self.disks = []
         self._executor = j.tools.executor.getLocal()
+        # self.cache = j.data.cache.get(
+        #     db=j.servers.kvs.getRedisStore(name="cache",
+        #                                    unixsocket=j.sal.fs.joinPaths(j.dirs.TMPDIR, 'redis.sock')))
+
+    @property
+    def cuisine(self):
+        return self._executor.cuisine
+
+    def _loadconfig(self, path):
+        path = path + '/.partition_config.yaml'
+        if self.cuisine.core.file_exists(path):
+            yaml = self.cuisine.core.file_read(path)
+            return j.data.serializer.yaml.loads(yaml)
+        return {}
 
     def set_executor(self, executor):
         self._executor = executor
-
-    def _loadhrd(self, mount):
-        hrdpath = j.tools.path.get(mount).joinpath('.disk.hrd')
-        if hrdpath.exists():
-            return j.data.hrd.get(hrdpath)
-        else:
-            return None
 
     def _loaddisks(self, blks):
         """
@@ -70,7 +79,6 @@ class DiskManager:
             else:
                 # don't care about outher types.
                 disk = None
-
         return devices
 
     def getDisks(self):
@@ -85,16 +93,14 @@ class DiskManager:
                 if partition.fstype == 'swap' or\
                         not disks.isValidFS(partition.fstype):
                     continue
-
+                config = {}
                 if partition.mountpoint != "" and partition.mountpoint is not None:
                     # partition is already mounted, no need to remount it
-                    hrd = self._loadhrd(partition.mountpoint)
+                    config = self._loadconfig(partition.mountpoint)
                 elif partition.fstype:
                     with mount.Mount(partition.name, options='ro', executor=self._executor) as mnt:
-                        hrd = self._loadhrd(mnt.path)
-
-                partition.hrd = hrd
-
+                        config = self._loadconfig(mnt.path)
+                partition.config = config
                 print("found partition: %s:%s" % (disk, partition))
 
         def findDisk(devices, name):

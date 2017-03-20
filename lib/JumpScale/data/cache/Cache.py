@@ -3,23 +3,24 @@ from JumpScale import j
 
 import time
 
+
 class Cache:
 
     def __init__(self):
         self.__jslocation__ = "j.data.cache"
         self._cache = {}
 
-    def get(self, id="main", db=None, reset=False,expiration=60):
+    def get(self, id="main", db=None, reset=False, expiration=60):
         """
         @param id is a unique id for the cache
         db = when none then will be in memory
         """
-        if db==None:
-            db=j.servers.kvs.getMemoryStore(name=id, namespace="cache")
+        if db == None:
+            db = j.servers.kvs.getMemoryStore(name=id, namespace="cache")
         if id not in self._cache:
-            self._cache[id] = CacheCategory(id=id, db=db,expiration=expiration)
-        if self._cache[id].db.name!=db.name or self._cache[id].db.namespace!=db.namespace :
-            self._cache[id] = CacheCategory(id=id, db=db,expiration=expiration)
+            self._cache[id] = CacheCategory(id=id, db=db, expiration=expiration)
+        if self._cache[id].db.name != db.name or self._cache[id].db.namespace != db.namespace:
+            self._cache[id] = CacheCategory(id=id, db=db, expiration=expiration)
         if reset:
             self.reset(id)
         return self._cache[id]
@@ -56,23 +57,21 @@ class Cache:
                 if not "Cannot get 'somethingElse' from cache" in str(e):
                     raise RuntimeError("error in test. non expected output")
 
-
             print("expiration test")
             time.sleep(2)
 
-            assert c.get("somethingElse",return2) == 2
+            assert c.get("somethingElse", return2) == 2
 
-
-        c = self.get("test",j.servers.kvs.getRedisStore(name='cache', namespace="mycachetest"),expiration=1)
+        c = self.get("test", j.servers.kvs.getRedisStore(name='cache', namespace="mycachetest"), expiration=1)
         testAll(c)
-        c = self.get("test", j.servers.kvs.getMemoryStore(name='cache', namespace="mycachetest"),expiration=1)
+        c = self.get("test", j.servers.kvs.getMemoryStore(name='cache', namespace="mycachetest"), expiration=1)
         testAll(c)
         print("TESTOK")
 
 
 class CacheCategory():
 
-    def __init__(self, id, db,expiration=60):
+    def __init__(self, id, db, expiration=60):
         self.id = id
 
         self.db = db
@@ -82,14 +81,17 @@ class CacheCategory():
 
         self.expiration = expiration
 
-    def set(self, key, value,expire=None):
-        if expire==None:
-            expire=self.expiration
+    def delete(self, key):
+        self.db.delete(key)
+
+    def set(self, key, value, expire=None):
+        if expire == None:
+            expire = self.expiration
         self.db.set(key, value, expire=expire)
 
-    def get(self, key, method=None, refresh=False,expire=None, **kwargs):
+    def get(self, key, method=None, refresh=False, expire=None, **kwargs):
         # check if key exists then return (only when no refresh)
-        res=self.db.get(key)
+        res = self.db.get(key)
         # print("res:%s"%res)
         if refresh or res == None:
             if method == None:
@@ -109,13 +111,12 @@ class CacheCategory():
     def reset(self):
         self.db.destroy()
 
-
     def __str__(self):
-        res={}
+        res = {}
         for key in self.db.keys:
-            val=self.db.get(key)
-            res[key]=val
-        out=j.data.serializer.yaml.dumps(res, default_flow_style=False)
+            val = self.db.get(key)
+            res[key] = val
+        out = j.data.serializer.yaml.dumps(res, default_flow_style=False)
         return out
 
-    __repr__=__str__
+    __repr__ = __str__

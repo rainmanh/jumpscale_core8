@@ -60,9 +60,9 @@ class SyncthingClient:
             brew install wget
             set -ex
             cd $TMPDIR
-            wget https://github.com/syncthing/syncthing/releases/download/v0.11.25/syncthing-macosx-amd64-v0.11.25.tar.gz -O syncthing.tar.gz
+            wget https://github.com/syncthing/syncthing/releases/download/v0.14.24/syncthing-macosx-amd64-v0.14.24.tar.gz -O syncthing.tar.gz
             tar -xf syncthing.tar.gz
-            cd syncthing-macosx-amd64-v0.11.25
+            cd syncthing-macosx-amd64-v0.14.24
             cp syncthing /usr/local/bin/
 
         elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
@@ -73,9 +73,9 @@ class SyncthingClient:
                 apt-get install wget curl git ssh python2.7 python -y
             fi
             cd /tmp
-            wget https://github.com/syncthing/syncthing/releases/download/v0.11.25/syncthing-linux-amd64-v0.11.25.tar.gz -O syncthing.tar.gz
+            wget https://github.com/syncthing/syncthing/releases/download/v0.14.24/syncthing-linux-amd64-v0.14.24.tar.gz -O syncthing.tar.gz
             tar -xf syncthing.tar.gz
-            cd syncthing-linux-amd64-v0.11.25
+            cd syncthing-linux-amd64-v0.14.24
             cp syncthing /usr/local/bin/
 
         elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then

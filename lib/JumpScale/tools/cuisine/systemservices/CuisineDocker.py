@@ -65,7 +65,7 @@ class CuisineDocker(app):
         # change passwd
         dockerCuisineObject.user.passwd("root", j.data.idgenerator.generateGUID())
 
-    def dockerStart(self, name="ubuntu1", image='jumpscale/ubuntu1604_all',
+    def dockerStart(self, name="ubuntu1", image='jumpscale/ubuntu1604',
                     ports='', volumes=None, pubkey=None, weave=False, ssh=True, weavePeer=None):
         """
         will return dockerCuisineObj: is again a cuisine obj on which all kinds of actions can be executed

@@ -40,21 +40,21 @@ the following commands show you the typical order in which you need to execute a
 
 ## Extensive list of all commands
 - [actor](actor)  : Grouf of command about to actors.
-  - [list](actor/list.md) : list all actor that exist in the current AYS repository.
-  - [update](actor/update.md) : Update an actor to a new version.
+    - [list](actor/list.md) : list all actor that exist in the current AYS repository.
+    - [update](actor/update.md) : Update an actor to a new version.
 - [blueprint](blueprint/blueprint.md) executes one or more blueprints, converting them into service instances.
-- [repo](repo) : Group of commands about AYS repositories.
- - [create](repo/create.md) : create a new AYS repository.
- - [destroy](repo/destroy.md) : reset all services & recipe's in current repo (DANGEROUS) all instances will be lost !!!
- - [list](repo/list.md) :  List all known repositories.
+    - [repo](repo) : Group of commands about AYS repositories.
+    - [create](repo/create.md) : create a new AYS repository.
+    - [destroy](repo/destroy.md) : reset all services & recipe's in current repo (DANGEROUS) all instances will be lost !!!
+    - [list](repo/list.md) :  List all known repositories.
 - [run](run) : Group of commands about runs.
- - [create](run/create.md) : creates jobs (runs) for the scheduled actions, and proposes to start the jobs, which then executes the actions.
- - [list](run/list.md) : List all the keys and creation date of the previous runs.
- - [show](run/show.md) : Print the detail of a run.
+    - [create](run/create.md) : creates jobs (runs) for the scheduled actions, and proposes to start the jobs, which then executes the actions.
+    - [list](run/list.md) : List all the keys and creation date of the previous runs.
+    - [show](run/show.md) : Print the detail of a run.
 - [service](service) : Group of commands aobut services.
- - [delete](service/delete.md) : Delete a service and all its children.
- - [list](service/list.md) : List services.
- - [show](service/show.md) : Show information about a service.
- - [state](service/state.md) : Show actions state of a service.
+    - [delete](service/delete.md) : Delete a service and all its children.
+    - [list](service/list.md) : List services.
+    - [show](service/show.md) : Show information about a service.
+    - [state](service/state.md) : Show actions state of a service.
 - [template](template) : Groupf of commands about actor templates
- - [list](template/list): List available template to be used in a blueprint.
+    - [list](template/list): List available template to be used in a blueprint.

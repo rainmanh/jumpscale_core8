@@ -383,7 +383,7 @@ class AtYourServiceRepo():
         """
         results = []
         if (actor == '' or actor is None) and (role != '' and role is not None):
-            actor = "%s.*" % role
+            actor = r'%s(\..*)?' % role
 
         for model in self.db.services.find(name=name, actor=actor, state=state, parent=parent, producer=producer):
 

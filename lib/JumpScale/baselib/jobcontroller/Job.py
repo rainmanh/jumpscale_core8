@@ -13,11 +13,10 @@ import logging
 
 colored_traceback.add_hook(always=True)
 
-def _execute_cb(job, epoch, future):
+def _execute_cb(job, future):
     """
     callback call after a job has finished executing
     job: is the job object
-    epoch: is the epoch when the job started
     future: future that hold the result of the job execution
     """
     if job._cancelled is True:
@@ -31,7 +30,7 @@ def _execute_cb(job, epoch, future):
             service_action_obj = job.service.model.actions[action_name]
         if action_name in job.service.model.actionsRecurring and service_action_obj:
             # if the action is a reccuring action, save last execution time in model
-            service_action_obj.lastRun = epoch
+            service_action_obj.lastRun = j.data.time.epoch
 
     exception = future.exception()
     if exception is not None:
@@ -183,9 +182,12 @@ class Job():
                 except j.exceptions.NotFound:
                     self.logger.warning("job {} tried to access a non existing service {}".format(self,self.model.dbobj.serviceKey ))
                     return None
-                # serviceModel = repo.db.services.get(self.model.dbobj.serviceKey)
-                # self._service = serviceModel.objectGet(repo)
         return self._service
+
+    @service.setter
+    def service(self, value):
+        self._service = value
+        self.model.dbobj.serviceKey = value.model.key
 
     def _processError(self, eco):
 
@@ -269,8 +271,7 @@ class Job():
         self._future = loop.run_in_executor(None, self.method, self)
 
         # register callback to deal with logs and state of the job after execution
-        now = j.data.time.epoch
-        self._future.add_done_callback(functools.partial(_execute_cb, self, now))
+        self._future.add_done_callback(functools.partial(_execute_cb, self))
 
         if self.service is not None and self.model.dbobj.actionName in self.service.model.actions:
             service_action_obj = self.service.model.actions[self.model.dbobj.actionName]

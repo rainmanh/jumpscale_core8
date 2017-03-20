@@ -360,7 +360,7 @@ async def executeBlueprint(request, blueprint, repository):
             bp = item
             break
     else:
-        return json({'error':"No blueprint found with this name '%s'".format(blueprint)}, 404)
+        return json({'error':"No blueprint found with this name '{}'".format(blueprint)}, 404)
 
     try:
         await repo.blueprintExecute(path=bp.path)

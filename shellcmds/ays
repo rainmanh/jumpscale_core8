@@ -236,6 +236,13 @@ def state(role, name):
     """
     Print the state of the selected services. If not role or instances specified, all services from the repository are selected
     """
+    def get_service(role, name):
+        resp = ayscl.api.ays.getServiceByName(role=role, name=name, repository=_current_repo_name())
+        if resp.status_code != HTTPStatus.OK:
+            print("Error while getting service: {}".format(_extract_error(resp)))
+            return
+        return resp.json()
+
     resp = ayscl.api.ays.listServices(_current_repo_name())
     if resp.status_code != HTTPStatus.OK:
         print("Error while listing services: {}".format(_extract_error(resp)))
@@ -250,6 +257,7 @@ def state(role, name):
             continue
 
         print('State of service : %s!%s' % (service['role'], service['name']))
+        service = get_service(service['role'], service['name'])
         for action in service['actions']:
             print("\t%-25s : %s" % (action['name'], action['state']))
 

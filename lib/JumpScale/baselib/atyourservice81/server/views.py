@@ -120,7 +120,6 @@ def actor_view(a):
         if actionName in a.model.actionsRecurring:
             action['recurring'] = {
                 'period': a.model.actionsRecurring[actionName].period,
-                'period': a.model.actionsRecurring[actionName].lastRun,
             }
         actor['actions'].append(action)
 

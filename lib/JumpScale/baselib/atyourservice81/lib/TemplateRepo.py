@@ -74,7 +74,7 @@ class TemplateRepoCollection:
     def _load(self):
         self.logger.info("reload actor templates repos")
         for path in searchActorTemplates(j.dirs.CODEDIR):
-            self.load(path=path)
+            self.create(path=path)
 
         for repo in list(self._template_repos.values()):
             if not j.sal.fs.exists(repo.path):
@@ -87,7 +87,7 @@ class TemplateRepoCollection:
         # todo protect with lock
         return list(self._template_repos.values())
 
-    def load(self, path, is_global=True):
+    def create(self, path, is_global=True):
         """
         path can be any path in a git repo
         will look for the directory with .git and create a TemplateRepo object if it doesn't exist yet

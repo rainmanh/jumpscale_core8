@@ -85,7 +85,7 @@ class CuisineCaddy(app):
             self.start(ssl)
 
     def start(self, ssl):
-        self.cuisine.core("ulimit -n 8192")
+        self.cuisine.core.run("ulimit -n 8192")
         cpath = self.replace("$JSCFGDIR/caddy/caddyfile.conf")
         self.cuisine.core.file_copy("$TEMPLATEDIR/cfg/caddy", "$JSCFGDIR/caddy", recursive=True)
 

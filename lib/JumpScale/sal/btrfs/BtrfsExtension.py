@@ -144,17 +144,25 @@ class BtrfsExtension:
         self.disks
         foundRoot = False
         res = []
+        potentialPartitions = []
         for disk in self.disks:
             found = False
             for partition in disk.partitions:
-                if partition.mountpoint in ["/", "/tmp", "/home"]:
+                if partition.mountpoint in ["/", "/tmp"]:
                     found = True
                     foundRoot = True
+                else:
+                    potentialPartitions.append(partition)
             if found == False:
                 res.append(disk)
         if foundRoot == False:
             raise j.exceptions.Input(
                 message="Did not find root disk, cannot create storage pool for btrfs on all other disks", level=1, source="", tags="", msgpub="")
+
+        # TODO: need to remove potential partitons, make sure they are erased,
+        # TODO: for each disk found which has a partition (/), all remaining
+        # partitions should be erased, then remainder of disk should be created
+        # partition on, this to be given to btrfs
 
         for disk in res:
             if disk.mountpoint == path:

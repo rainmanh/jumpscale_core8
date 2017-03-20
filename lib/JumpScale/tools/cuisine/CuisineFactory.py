@@ -19,13 +19,11 @@ class CuisineBase:
             self.core = cuisine.core
         self._init()
 
-
     @property
     def logger(self):
         if self._logger is None:
             self._logger = j.logger.get(self.classname)
         return self._logger
-
 
     def _init(self):
         pass
@@ -58,7 +56,7 @@ class CuisineBase:
     @property
     def config(self):
         """
-        is dict which is stored on node itself in msgpack format in /tmp/jsexecutor.msgpack
+        is dict which is stored on node itself in msgpack format in /etc/jsexecutor.msgpack
         organized per cuisine module
         """
         if self.classname not in self.executor.config:
@@ -88,9 +86,11 @@ class CuisineBase:
             val2 = None
         if val != val2:
             self.executor.config[self.classname][key] = val
+            self.logger.debug("config set: %s:%s" % (key, val))
             self.executor.configSave()
             return True
         else:
+            self.logger.debug("config not set(was same): %s:%s" % (key, val))
             return False
 
     @property
@@ -110,23 +110,31 @@ class CuisineBase:
 
     def doneSet(self, key):
         if self.executor.readonly:
+            self.logger.debug("info: Canot do doneset:%s because readonly" % key)
             return False
         self.done[key] = True
+        self.executor._config_changed = True
         self.executor.configSave()
         return True
 
-    def doneCheck(self, key):
+    def doneDelete(self, key):
+        if self.executor.readonly:
+            self.logger.debug("info: Canot do doneDelete:%s because readonly" % key)
+            return False
+        self.done[key] = False
+        self.executor._config_changed = True
+        self.executor.configSave()
+        return True
+
+    def doneGet(self, key):
         if self.executor.readonly:
             return False
         if key in self.done:
+            self.logger.debug("donecheck:%s:%s" % (key, self.done[key]))
             return self.done[key]
         else:
+            self.logger.debug("donecheck, not set:%s:False" % (key))
             return False
-
-    def doneGet(self, key):
-        if key not in self.done:
-            return False
-        return True
 
     @property
     def classname(self):
@@ -224,7 +232,7 @@ class JSCuisineFactory:
 
     def resetAll(self):
         """
-        reset cache of cuisine isntances 
+        reset cache of cuisine isntances
         """
         self.cuisines_instance = {}
 

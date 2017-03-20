@@ -47,7 +47,7 @@ class ExecutorBase:
 
         return self._config
 
-    def configGet(self, key, defval=None,set=False):
+    def configGet(self, key, defval=None, set=False):
         """
         """
         if key in self.config:
@@ -61,7 +61,7 @@ class ExecutorBase:
                 raise j.exceptions.Input(message="could not find config key:%s in executor:%s" %
                                          (key, self), level=1, source="", tags="", msgpub="")
 
-    def configSet(self, key, val,save=True):
+    def configSet(self, key, val, save=True):
         """
         @return True if changed
         """
@@ -71,6 +71,7 @@ class ExecutorBase:
             val2 = None
         if val != val2:
             self.config[key] = val
+            # print("config changed")
             self._config_changed = True
             if save:
                 self.configSave()
@@ -82,7 +83,7 @@ class ExecutorBase:
         if self.readonly:
             raise j.exceptions.Input(message="cannot write config to '%s', because is readonly" %
                                      self, level=1, source="", tags="", msgpub="")
-        if self._config_changed==False:
+        if self._config_changed == False:
             return
         data = j.data.serializer.json.dumps(self.config, sort_keys=True, indent=True)
         self.logger.info("config save")
@@ -175,8 +176,7 @@ class ExecutorBase:
         cuisine = self._cuisine or self.cuisine
         return self._cuisine.core.exists(path)
 
-
-    ## interface to implement by child classes
+    # interface to implement by child classes
     def execute(self, cmds, die=True, checkok=None, showout=True, timeout=0, env={}):
         raise NotImplementedError()
 

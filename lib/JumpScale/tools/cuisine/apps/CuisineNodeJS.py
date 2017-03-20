@@ -81,20 +81,20 @@ class CuisineNodeJS(app):
         self.cuisine.bash.profileDefault.addPath(self.cuisine.core.replace("$BASEDIR/node/bin/"))
         self.cuisine.bash.profileDefault.save()
 
-        rc, out, err = self.cuisine.core.run("npm -v")
+        rc, out, err = self.cuisine.core.run("npm -v", profile=True)
 
         assert out == '4.1.2'  # needs to be this version because is part of the package which was downloaded
 
-        rc, initmodulepath, err = self.cuisine.core.run("%s config get init-module" % self.npm)
+        rc, initmodulepath, err = self.cuisine.core.run("npm config get init-module", profile=True)
         self.cuisine.core.file_unlink(initmodulepath)
-        self.cuisine.core.run("%s config set global true -g" % self.npm)
-        self.cuisine.core.run(self.replace("%s config set init-module $BASEDIR/node/.npm-init.js -g" % self.npm))
-        self.cuisine.core.run(self.replace("%s config set init-cache $BASEDIR/node/.npm -g" % self.npm))
-        self.cuisine.core.run("%s config set global true " % self.npm)
-        self.cuisine.core.run(self.replace("%s config set init-module $BASEDIR/node/.npm-init.js " % self.npm))
-        self.cuisine.core.run(self.replace("%s config set init-cache $BASEDIR/node/.npm " % self.npm))
-        self.cuisine.core.run("%s install -g bower" % self.npm, profile=True, shell=True)
+        self.cuisine.core.run("npm config set global true -g", profile=True)
+        self.cuisine.core.run(self.replace("npm config set init-module $BASEDIR/node/.npm-init.js -g"), profile=True)
+        self.cuisine.core.run(self.replace("npm config set init-cache $BASEDIR/node/.npm -g"), profile=True)
+        self.cuisine.core.run("npm config set global true ", profile=True)
+        self.cuisine.core.run(self.replace("npm config set init-module $BASEDIR/node/.npm-init.js "), profile=True)
+        self.cuisine.core.run(self.replace("npm config set init-cache $BASEDIR/node/.npm "), profile=True)
+        self.cuisine.core.run("npm install -g bower", profile=True, shell=True)
 
-        self.cuisine.core.run("%s install npm@latest -g" % self.npm)
+        self.cuisine.core.run("npm install npm@latest -g", profile=True)
 
         self.doneSet("install")

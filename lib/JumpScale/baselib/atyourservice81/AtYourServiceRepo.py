@@ -387,6 +387,7 @@ class AtYourServiceRepo():
         return bps
 
     def blueprintExecute(self, path="", content="", role="", instance=""):
+        bp = None
         if path == "" and content == "":
             for bp in self.blueprints:
                 if not bp.is_valid:
@@ -412,17 +413,18 @@ class AtYourServiceRepo():
             actor_name, instance = sv.model.__str__().split('!')
             service_name = "%s__%s" % (actor_name, instance)
             service_data = j.data.serializer.json.loads(sv.model.dataJSON)
-            for model in bp.models:
-                model_data = model.get(service_name, None)
-                if not model_data:
-                    continue
-                for key, val in model_data.items():
-                    if '_' not in key:
+            if bp is not None:
+                for model in bp.models:
+                    model_data = model.get(service_name, None)
+                    if not model_data:
                         continue
-                    model_data[to_camel_case(key)] = model_data.pop(key)
+                    for key, val in model_data.items():
+                        if '_' not in key:
+                            continue
+                        model_data[to_camel_case(key)] = model_data.pop(key)
 
-                if service_data != model_data:
-                    templates.append(actor_name)
+                    if service_data != model_data:
+                        templates.append(actor_name)
 
         for n in templates:
             template = self.templateGet(name=n)

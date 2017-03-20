@@ -526,11 +526,14 @@ def show(key, logs):
 
 
 @cli.command()
-def start():
+@click.option('--bind', '-b', default='127.0.0.1', help='listening address')
+@click.option('--port', '-p', default=5000, help='listening port')
+@click.option('--debug', default=False, is_flag=True, help='enable debug logging')
+def start(bind, port, debug):
     """
     start an ays service in tmux
     """
-    j.atyourservice.start()
+    j.atyourservice.start(bind=bind, port=port, debug=debug)
 # AYS service related group of commands
 
 

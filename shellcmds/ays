@@ -297,6 +297,8 @@ def delete(role, name, ask):
     print("Services selected for deletion:")
     for service in services:
         service = get_service(role=service['role'], name=service['name'])
+        if service is None:
+            return
 
         print("- {role}!{name}".format(**service))
         if service['children']:

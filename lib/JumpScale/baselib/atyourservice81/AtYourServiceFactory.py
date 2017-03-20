@@ -37,7 +37,10 @@ class AtYourServiceFactory:
         start an ays service on your local platform
         """
         self.logger.info("start ays service, will take 5 sec")
-        sname = j.tools.cuisine.local.tmux.getSessions()[0]
+        try:
+            sname = j.tools.cuisine.local.tmux.getSessions()[0]
+        except:
+            sname = "main"
         cmd = "cd /opt/code/github/jumpscale/jumpscale_core8/apps/atyourservice;python3 main.py --host {host} --port {port}".format(
             host=bind, port=port)
         if debug:
@@ -47,7 +50,7 @@ class AtYourServiceFactory:
         if rc > 0:
             raise RuntimeError("Cannot start AYS service")
         self.logger.debug(out)
-        self.logger.info("go to http://{}:{} to see rest api".format(bind,port))
+        self.logger.info("go to http://{}:{} to see rest api".format(bind, port))
         return rc, out
 
     def _start(self, loop=None):

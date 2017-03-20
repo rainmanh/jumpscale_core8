@@ -95,6 +95,6 @@ class CuisineNodeJS(app):
         self.cuisine.core.run(self.replace("npm config set init-cache $BASEDIR/node/.npm "), profile=True)
         self.cuisine.core.run("npm install -g bower", profile=True, shell=True)
 
-        self.cuisine.core.run("npm install npm@latest -g", profile=True)
+        #self.cuisine.core.run("npm install npm@latest -g", profile=True)
 
         self.doneSet("install")

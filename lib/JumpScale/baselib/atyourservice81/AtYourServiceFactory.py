@@ -29,8 +29,8 @@ class AtYourServiceFactory:
         self.logger = j.logger.get('j.atyourservice')
 
         self.baseActions = {}
-        # self.templateRepos = None
-        # self.aysRepos = None
+        self.templateRepos = None
+        self.aysRepos = None
 
     def start(self):
         """

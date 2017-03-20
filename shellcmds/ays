@@ -51,9 +51,9 @@ def repo():
 
 
 @repo.command()
-@click.option('--path', '-p', default=None, help='path of the new AYS repo you want to create')
+@click.option('--name', '-n', default=None, help='name of the new AYS repo you want to create')
 @click.option('--git', '-g', default=None, help='URL of the git repository to attach to this AYS repository')
-def create(path, git):
+def create(name, git):
     """
     create a new AYS repository
     """
@@ -61,10 +61,10 @@ def create(path, git):
         print("you have to specify an gi repository using --git")
         return
 
-    if path is None:
-        path = j.sal.fs.getcwd()
+    if name is None:
+        name = j.sal.fs.getBaseName(j.sal.fs.getcwd())
 
-    data = j.data.serializer.json.dumps({'name': j.sal.fs.getBaseName(path), 'git_url': git})
+    data = j.data.serializer.json.dumps({'name': name, 'git_url': git})
     resp = ayscl.api.ays.createRepository(data=data)
 
     if resp.status_code == HTTPStatus.CREATED:
@@ -382,6 +382,9 @@ def template():
 
 @template.command()
 def list():
+    """
+    List all actor template availale to be used in a blueprint
+    """
     resp = ayscl.api.ays.listTemplates(repository=_current_repo_name())
     if resp.status_code != HTTPStatus.OK:
         print("error during listing of templates: {}".format(_extract_error(resp)))
@@ -482,6 +485,9 @@ def create(ask, force, debug, profile, follow):
 
 @run.command()
 def list():
+    """
+    List all previous run key sorted by creation date
+    """
     resp = ayscl.api.ays.listRuns(repository=_current_repo_name())
     if resp.status_code != HTTPStatus.OK:
         print("Error during listing of the runs: {}".format(_extract_error(resp)))
@@ -496,6 +502,12 @@ def list():
 @click.option('--key', '-k', default=None, help='key of the run to show')
 @click.option('--logs', '-l', default=False, is_flag=True, help='show logs of the jobs')
 def show(key, logs):
+    """
+    show detail of a run.
+
+    If the --key option is not given, show the detail of the last run.
+    if --logs option is given, also show the logs of each job.
+    """
     if key is None:
         resp = ayscl.api.ays.listRuns(repository=_current_repo_name())
         if resp.status_code != HTTPStatus.OK:
@@ -547,6 +559,54 @@ def blueprint(name):
         else:
             print('error during execution of the blueprint {}: {}'.format(name, _extract_error(resp)))
             return
+
+# AYS repository related group of commands
+@cli.command()
+@click.argument('action')
+@click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
+@click.option('--actor', '-a', help='filter actor by name')
+@click.option('--service', '-s', help='filter service by name')
+def action(action, ask, actor, service):
+    """
+    Shortcut to execute actions blocks
+
+    this command creates a temporary blueprint containing only an action block,
+    execute the blueprint, then delete it
+
+    e.g: ays action install -a node -s main
+    will generate the blueprint
+    actions:\n
+       - action: install\n
+         actor: node\n
+         service: main\n
+    """
+    action_block = {'actions':[{'action': action}]}
+    if actor:
+        action_block['actions'][0]['actor'] = actor
+    if service:
+        action_block['actions'][0]['service'] = service
+
+    name = 'action_tmp_{}'.format(j.data.time.epoch)
+    bp = {
+        'name': name,
+        'content': action_block
+    }
+
+    if ask:
+        print(j.data.serializer.yaml.dumps(action_block))
+        resp = j.tools.console.askYesNo('Do you want to execute this action block ?', True)
+        if resp is False:
+            return
+
+    ayscl.api.ays.createBlueprint(bp, _current_repo_name())
+    resp = ayscl.api.ays.executeBlueprint(data=None,blueprint=name, repository=_current_repo_name())
+    if resp.status_code == HTTPStatus.OK:
+        ayscl.api.ays.deleteBlueprint(blueprint=name, repository=_current_repo_name())
+        print("blueprint {} executed".format(name))
+    else:
+        print('error during execution of the blueprint {}: {}'.format(name, _extract_error(resp)))
+        return
+
 
 if __name__ == '__main__':
     cli()

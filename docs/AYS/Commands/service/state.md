@@ -1,13 +1,14 @@
-# State
+# ays service state
+
 
 ```shell
-Usage: ays state [OPTIONS]
+ays service state [OPTIONS]
 
   Print the state of the selected services. If not role or instances
   specified, all services from the repository are selected
 
 Options:
-  --role TEXT      optional role for ays instances execute an action on
-  --instance TEXT  optional name of instance
+  -r, --role TEXT  optional role of the service
+  -n, --name TEXT  optional name of the service
   --help           Show this message and exit.
 ```

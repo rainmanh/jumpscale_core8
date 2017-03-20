@@ -1,9 +1,8 @@
-# Update
-
-The `update` command is for making sure you are working on most recent data.
+# ays actor upadte
 
 ```shell
-Usage: ays update [OPTIONS]
+ays actor update --help
+Usage: ays actor update [OPTIONS]
 
   Update actor to a new version. Any change detected in the actor will be
   propagated to the services and processChange method will be called all the
@@ -13,3 +12,6 @@ Options:
   -n, --name TEXT  name of the actor to update
   --help           Show this message and exit.
 ```
+
+Example usage:
+`ays actor update -n node.ovc`

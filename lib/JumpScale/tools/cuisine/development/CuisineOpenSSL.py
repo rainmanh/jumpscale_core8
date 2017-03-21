@@ -50,7 +50,7 @@ class CuisineOpenSSL(base):
             return
         self.cuisine.package.ensure('build-essential')
         url = "https://github.com/openssl/openssl.git"
-        cpath = self.cuisine.development.git.pullRepo(url, branch="OpenSSL_1_1_0-stable", reset=reset)
+        cpath = self.cuisine.development.git.pullRepo(url, branch="OpenSSL_1_1_0-stable", reset=reset, ssh=False)
 
         assert cpath.rstrip("/") == self.CODEDIRL.rstrip("/")
 

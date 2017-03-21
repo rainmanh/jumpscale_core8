@@ -191,7 +191,7 @@ class StoreFactory:
         from servers.key_value_store.memory_store import MemoryKeyValueStore
         return MemoryKeyValueStore(name=name, namespace=namespace)
 
-    def getRedisStore(self, name="core", namespace='db', host='localhost', port=6379, unixsocket=None, db=0, password='',
+    def getRedisStore(self, name="core", namespace='db', host='localhost', port=None, unixsocket=None, db=0, password='',
                       serializers=None, masterdb=None, cache=None, changelog=None):
         '''
         Gets a memory key value store.
@@ -205,6 +205,10 @@ class StoreFactory:
         @return: key value store
         @rtype: MemoryKeyValueStore
         '''
+        if not port:
+            port = j.core.db.config_get().get('port', port)
+        if not unixsocket:
+            unixsocket = j.core.db.config_get().get('unixsocket', unixsocket)
         from servers.key_value_store.redis_store import RedisKeyValueStore
         res = RedisKeyValueStore(
             name=name,

@@ -1,4 +1,4 @@
-# ays actor upadte
+# ays actor update
 
 ```shell
 ays actor update --help

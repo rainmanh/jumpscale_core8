@@ -82,8 +82,8 @@ class CuisineNodeJS(app):
         self.cuisine.bash.profileDefault.save()
 
         rc, out, err = self.cuisine.core.run("npm -v", profile=True)
-
-        assert out == '4.1.2'  # needs to be this version because is part of the package which was downloaded
+        if out != '4.1.2':
+            self.cuisine.core.run("npm install npm@4.1.2 -g", profile=True)  # needs to be this version because is part of the package which was downloaded
 
         rc, initmodulepath, err = self.cuisine.core.run("npm config get init-module", profile=True)
         self.cuisine.core.file_unlink(initmodulepath)

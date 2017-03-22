@@ -32,6 +32,14 @@ class ays_repository_byrepositoryView(HTTPMethodView):
 
 ays_if.add_route(ays_repository_byrepositoryView.as_view(), '/ays/repository/<repository>')
 
+class ays_repository_destroy(HTTPMethodView):
+
+    async def post(self, request, repository):
+
+        return await ays_api.destroyRepository(request, repository)
+
+ays_if.add_route(ays_repository_destroy.as_view(), '/ays/repository/<repository>/destroy')
+
 class ays_repository_byrepository_actorView(HTTPMethodView):
 
     async def get(self, request, repository):

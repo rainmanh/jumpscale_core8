@@ -98,6 +98,22 @@ async def deleteRepository(request, repository):
 
     return json({}, 204)
 
+async def destroyRepository(request, repository):
+    '''
+    Delete a repository
+    It is handler for POST /ays/repository/<repository>/destroy
+    '''
+
+    try:
+        repo = get_repo(repository)
+    except j.exceptions.NotFound as e:
+        return json({'error':e.message}, 404)
+
+    repo.destroy()
+
+    return json({}, 204)
+
+
 async def listTemplates(request, repository):
     '''
     list all templates

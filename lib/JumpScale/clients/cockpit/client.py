@@ -126,6 +126,14 @@ class Client:
             repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp, 204)
 
+    def deleteRepository(self, repository, headers=None, query_params=None):
+        """
+        Delete a repository
+        It is method for POST /ays/repository/{repository}/destroy
+        """
+        resp = self._client.deleteRepository(
+            repository=repository, headers=headers, query_params=query_params)
+        self._assert_response(resp, 204)
 
     def simulateAction(self, repository, action, role='', instance='',
                        producer_roles='*', force=False, headers=None, query_params=None):

@@ -97,7 +97,7 @@ def destroy():
 
     make sure to do a commit before you do a distroy, this will give you a chance to roll back.
     """
-    resp = ayscl.api.ays.deleteRepository(repository=_current_repo_name())
+    resp = ayscl.api.ays.destroyRepository(repository=_current_repo_name())
     if resp.status_code == HTTPStatus.NO_CONTENT:
         print("repository destroyed")
     else:
@@ -553,7 +553,7 @@ def blueprint(name):
     if name == '':
         resp = ayscl.api.ays.listBlueprints(_current_repo_name())
         if resp.status_code != HTTPStatus.OK:
-            print("error during listing of blueptins: {}".format(_extract_error(resp)))
+            print("error during listing of blueprints: {}".format(_extract_error(resp)))
             return
 
         blueprints = resp.json()

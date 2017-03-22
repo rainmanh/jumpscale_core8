@@ -346,6 +346,15 @@ class Client:
         self._assert_response(resp)
         return resp.json()
 
+    def getActorByName(self, repository, actorname, headers=None, query_params=None):
+        """
+        list all actors in ays repo
+        it is a method for GET /ays/repository/{repository}/actor/{actorname}
+        """
+        resp = self._client.getActorByName(repository, actorname, headers=headers, query_params=query_params)
+        self._assert_response(resp)
+        return resp.json()
+
     def updateTemplate(self, repository, template=None,  headers=None, query_params=None):
         """
         update template in repo

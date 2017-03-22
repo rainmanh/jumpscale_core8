@@ -616,7 +616,7 @@ class GitMethods():
         return repository_host, repository_type, repository_account, repository_name, dest, repository_url
 
     def pullGitRepo(self, url="", dest=None, login=None, passwd=None, depth=None, ignorelocalchanges=False,
-                    reset=False, branch=None, tag=None, revision=None, ssh="auto", executor=None, codeDir=None):
+                    reset=False, branch=None, tag=None, revision=None, ssh="auto", executor=None, codeDir=None, timeout=600):
         """
         will clone or update repo
         if dest is None then clone underneath: /opt/code/$type/$account/$repo
@@ -670,7 +670,7 @@ class GitMethods():
                 if branch is not None:
                     self.logger.info("reset branch to:%s" % branch)
                     self.execute("cd %s;git fetch; git reset --hard origin/%s" %
-                                 (dest, branch), timeout=600, executor=executor)
+                                 (dest, branch), timeout=timeout, executor=executor)
 
             else:
 
@@ -684,7 +684,7 @@ class GitMethods():
                 else:
                     cmd = "cd %s;git pull origin %s" % (dest, branch)
                 self.logger.info(cmd)
-                self.execute(cmd, timeout=600, executor=executor)
+                self.execute(cmd, timeout=timeout, executor=executor)
         else:
             self.logger.info(("git clone %s -> %s" % (url, dest)))
             extra = ""
@@ -708,17 +708,17 @@ class GitMethods():
             self.logger.info(cmd)
 
             # self.logger.info(str(executor)+" "+cmd)
-            self.execute(cmd, timeout=600, executor=executor)
+            self.execute(cmd, timeout=timeout, executor=executor)
 
         if tag != None:
             self.logger.info("reset tag to:%s" % tag)
             self.execute("cd %s;git checkout tags/%s" %
-                         (dest, tag), timeout=60, executor=executor)
+                         (dest, tag), timeout=timeout, executor=executor)
 
         if revision is not None:
             cmd = "mkdir -p %s;cd %s;git checkout %s" % (dest, dest, revision)
             self.logger.info(cmd)
-            self.execute(cmd, timeout=600, executor=executor)
+            self.execute(cmd, timeout=timeout, executor=executor)
 
         return dest
 

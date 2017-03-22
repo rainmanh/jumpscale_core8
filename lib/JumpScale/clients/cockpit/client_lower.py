@@ -321,6 +321,16 @@ class Client:
         uri = self.url + '/ays/repository/' + repository + '/actor'
         return self.session.get(uri, headers=headers, params=query_params)
 
+    def getActorByName(self, repository, actorname, headers=None, query_params=None):
+        """
+        list all actors in an ays repo
+        It is method for GET /ays/repository/{repository}/actor/{actorname}
+        """
+        if self.auth_header:
+            self.session.headers.update({"Authorization": self.auth_header})
+        uri = self.url + '/ays/repository/' + repository + '/actor/' + actorname
+        return self.session.get(uri, headers=headers, params=query_params)
+
     def listRuns(self, repository, headers=None, query_params=None):
         """
         list all runs of the repository

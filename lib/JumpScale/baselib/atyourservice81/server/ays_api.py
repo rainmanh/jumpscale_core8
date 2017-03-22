@@ -554,22 +554,23 @@ async def listActors(request, repository):
 
     return json(actors, 200)
 
-# async def getActorByName(request, name, repository):
-#     '''
-#     Get an actor by name
-#     It is handler for GET /ays/repository/<repository>/actor/<name>
-#     '''
-#     try:
-#         repo = get_repo(repository)
-#     except j.exceptions.NotFound as e:
-#         return json({'error':e.message}, 404)
-#
-#     try:
-#         actor = repo.actorGet(name=name)
-#     except j.exceptions.NotFound as e:
-#         json({'error':'actor {} not found'.format(name)}, 404)
-#
-#     return json(actor_view(actor), 200)
+
+async def getActorByName(request, name, repository):
+    '''
+    Get an actor by name
+    It is handler for GET /ays/repository/<repository>/actor/<name>
+    '''
+    try:
+        repo = get_repo(repository)
+    except j.exceptions.NotFound as e:
+        return json({'error':e.message}, 404)
+
+    try:
+        actor = repo.actorGet(name=name)
+    except j.exceptions.NotFound as e:
+        json({'error':'actor {} not found'.format(name)}, 404)
+
+    return json(actor_view(actor), 200)
 
 
 async def updateActor(request, name, repository):

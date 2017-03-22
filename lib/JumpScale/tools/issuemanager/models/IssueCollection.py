@@ -32,6 +32,7 @@ class IssueCollection(base):
             state = CharField(index=True, default="new")
             content = TextField(index=False, default="")
             repo = TextField(index=True, default="")
+            isClosed = BooleanField(index=True, default=False)
 
             class Meta:
                 database = j.tools.issuemanager.indexDB
@@ -117,6 +118,11 @@ class IssueCollection(base):
                 field = (getattr(self.index, key))
                 if isinstance(val, list): # get range in list
                     clauses.append(field.between(val[0], val[1]))
+                elif isinstance(field, peewee.BooleanField) or isinstance(val, bool):
+                    if j.data.types.bool.fromString(val):
+                        clauses.append(field)
+                    else:
+                        clauses.append(~field)
                 else:
                     clauses.append(field.contains(val))
 

@@ -126,6 +126,10 @@ def list(role, name):
         print("Installed services:")
         print("-------------------")
         for s in sorted(services, key=lambda service: '{role}!{name}'.format(**service)):
+            if role and s['role'] != role:
+                continue
+            if name and s['name'] != name:
+                continue
             print("%s!%s" % (s['role'], s['name']))
     else:
         print("Error while listing services: {}".format(_extract_error(resp)))

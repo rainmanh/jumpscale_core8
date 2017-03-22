@@ -37,10 +37,6 @@ class DocGenerator:
         if path not in self.gitRepos:
             gc = j.clients.git.get(path)
             self.gitRepos[path] = gc
-            from IPython import embed
-            print("DEBUG NOW 999")
-            embed()
-            raise RuntimeError("stop debug here")
         return self.gitRepos[path]
 
     def installDeps(self):
@@ -56,17 +52,15 @@ class DocGenerator:
         if self._initOK == False:
             j.sal.fs.remove(self._macroCodepath)
         # load the default macro's
-        self.loadMacros(url="https://github.com/Jumpscale/jumpscale_core8/tree/8.2.0/lib/JumpScale/tools/docgenerator/macros")
+        self.loadMacros(url="https://github.com/Jumpscale/docgenerator/tree/master/macros")
 
-    def loadMacros(self, path="", url=""):
-        # if path == "" and url == "":
-            # mydir = j.sal.fs.getDirName(inspect.getfile(self.process))
-            # macrodir = j.sal.fs.joinPaths(mydir, "macros")
-            # return self.loadMacros(macrodir)
+    def loadMacros(self, pathOrUrl=""):
+        """
+        @param pathOrUrl can be existing path or url
+        e.g. https://github.com/Jumpscale/docgenerator/tree/master/examples
+        """
 
-        if path == "":
-            repository_url, gitpath, relativepath = j.clients.git.getContentPathFromURL(url)
-            path = j.sal.fs.joinPaths(gitpath, relativepath)
+        path = j.clients.git.getContentPathFromURLorPath(url)
 
         if path not in self._macroPathsDone:
 
@@ -90,26 +84,36 @@ class DocGenerator:
 
             self._macroPathsDone.append(path)
 
-    def load(self, source=""):
+    def load(self, pathOrUrl=""):
         """
         will look for config.yaml in $source/config.yaml
 
-        @param source is the location where the markdown docs are which need to be processed
+        @param pathOrUrl is the location where the markdown docs are which need to be processed
             if not specified then will look for root of git repo and add docs
             source = $gitrepoRootDir/docs
 
+            this can also be a git url e.g. https://github.com/Jumpscale/docgenerator/tree/master/examples
+
         """
         self.init()
-        if source == "":
-            source = j.sal.fs.getcwd()
-            source = j.clients.git.findGitPath(source)
+        if pathOrUrl == "":
+            path = j.sal.fs.getcwd()
+            path = j.clients.git.findGitPath(source)
+        else:
+            path = j.clients.git.getContentPathFromURLorPath(pathOrUrl)
 
-        for docDir in j.sal.fs.listFilesInDir(source, True, filter=".docgenerator"):
+        for docDir in j.sal.fs.listFilesInDir(path, True, filter=".docgenerator"):
             if docDir not in self._docRootPathsDone:
                 print("found doc dir:%s" % docDir, sep=' ', end='n', file=sys.stdout, flush=False)
                 ds = DocSource(path=docDir)
                 self.docSources[ds.name] = ds
                 self._docRootPathsDone.append(docDir)
+
+    def generateExamples(self):
+        self.load(pathOrUrl="https://github.com/Jumpscale/docgenerator/tree/master/examples")
+        self.load(pathOrUrl="https://github.com/Jumpscale/jumpscale_core8/tree/8.2.0")
+        self.load(pathOrUrl="https://github.com/Jumpscale/jumpscale_portal8/tree/8.2.0")
+        self.generate()
 
     def generate(self):
         if self.docSites == {}:

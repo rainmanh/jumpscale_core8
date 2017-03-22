@@ -7,12 +7,12 @@ class Doc:
     """
     """
 
-    def __init__(self, path, base, docSite):
+    def __init__(self, path, name, docSite):
         self.path = path
-        self.base = base
+        self.name = name
         self.docSite = docSite
 
-    def process(self, path):
+    def process(self):
         content = j.sal.fs.fileGetContents(self, path)
         self.last_content = content
         self.last_path = path
@@ -88,3 +88,8 @@ class Doc:
         j.sal.fs.writeFile(filename=self.last_dest, contents=content)
 
         # j.data.regex.replace(regexFind, regexFindsubsetToReplace, replaceWith, text)
+
+    def __repr__(self):
+        return "doc:%s:%s" % (self.name, self.path)
+
+    __str__ = __repr__

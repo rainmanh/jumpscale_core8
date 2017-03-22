@@ -198,7 +198,7 @@ class GitClient:
     def fetch(self):
         self.repo.git.fetch()
 
-    def commit(self, message='', addremove=True):
+    def commit(self, message='?', addremove=True):
         if addremove:
             self.addRemoveFiles()
         if self.hasModifiedFiles() is False:

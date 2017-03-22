@@ -9,7 +9,7 @@ class DocSource:
     """
 
     def __init__(self, path=""):
-        self.path = path
+        self.path = j.sal.fs.getDirName(path)
 
         gitpath = j.clients.git.findGitPath(path)
 
@@ -18,8 +18,13 @@ class DocSource:
         self.data = {}
         self.docSiteLast = None
         self.docSites = {}
+        self.docs = {}
 
         self.load()
+
+        from IPython import embed
+        embed()
+        raise RuntimeError("stop debug here")
 
     def load(self):
         """
@@ -57,6 +62,7 @@ class DocSource:
 
         def callbackFunctionDir(path, arg):
 
+            # need to do this here because the md's need to be processed in next step
             yamlfile = j.sal.fs.joinPaths(path, "generate.yaml")
             if j.sal.fs.exists(yamlfile):
                 self.docSiteLast = DocSite(yamlfile)
@@ -77,11 +83,13 @@ class DocSource:
                 self.data.update(newdata)
 
         def callbackFunctionFile(path, arg):
+            ext = j.sal.fs.getFileExtension(path)
             base = j.sal.fs.getBaseName(path).lower()
-            base = base[:-3]  # remove extension
-            if base not in self._contentPaths:
-                self.docs[base] = Doc(path, base, docSite=self.docSiteLast)
-                self.docs[base].data = copy.copy(self.data)
+            if ext == "md":
+                base = base[:-3]  # remove extension
+                if base not in self.docs:
+                    self.docs[base] = Doc(path, base, docSite=self.docSiteLast)
+                    self.docs[base].data = copy.copy(self.data)
 
         callbackFunctionDir(self.path, "")  # to make sure we use first data.yaml in root
 

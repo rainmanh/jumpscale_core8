@@ -53,7 +53,7 @@ class GitFactory:
 
         return (repository_host, repository_type, repository_account, repository_name, repository_url, branch, gitpath, path)
 
-    def getContentPathFromURL(self, url):
+    def getContentInfoFromURL(self, url):
         """
         @return (giturl,gitpath,relativepath)
 
@@ -74,6 +74,23 @@ class GitFactory:
                                      rpath, level=1, source="", tags="", msgpub="")
 
         return (repository_url, gitpath, relpath)
+
+    def getContentPathFromURLorPath(self, urlOrPath):
+        """
+        @return path of the content found
+
+        example Input
+        - https://github.com/Jumpscale/NOS/blob/master/specs/NOS_1.0.0.md
+        - https://github.com/Jumpscale/jumpscale_core8/blob/8.1.2/lib/JumpScale/tools/docgenerator/macros/dot.py
+        - https://github.com/Jumpscale/jumpscale_core8/tree/8.2.0/lib/JumpScale/tools/docgenerator/macros
+        - https://github.com/Jumpscale/jumpscale_core8/tree/master/lib/JumpScale/tools/docgenerator/macros
+
+        """
+        if j.sal.fs.exists(urlOrPath, followlinks=True):
+            return urlOrPath
+        repository_url, gitpath, relativepath = j.clients.git.getContentPathFromURL(urlOrPath)
+        path = j.sal.fs.joinPaths(gitpath, relativepath)
+        return path
 
     def get(self, basedir="", check_path=True):
         """

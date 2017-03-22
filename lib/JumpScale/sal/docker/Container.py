@@ -162,7 +162,7 @@ class Container:
 
         if not self.info["NetworkSettings"]["Ports"] is None:
             for key, portsDict in self.info["NetworkSettings"]["Ports"].items():
-                if key.startswith(str(port)):
+                if key.startswith(str(port)) and portsDict is not None:
                     # if "PublicPort" not in port2:
                     #     raise j.exceptions.Input("cannot find publicport for ssh?")
                     portsfound = [int(item['HostPort']) for item in portsDict]

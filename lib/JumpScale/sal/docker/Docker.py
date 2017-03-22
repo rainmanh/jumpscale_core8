@@ -25,7 +25,7 @@ class Docker:
             self.base_url = self.weavesocket
         else:
             self.base_url = os.environ['DOCKER_HOST']
-        self.client = docker.APIClient(base_url=self.base_url, timeout=120)
+        self.client = docker.Client(base_url=self.base_url, timeout=120)
 
     def init(self):
 
@@ -64,7 +64,7 @@ class Docker:
                 # j.sal.process.__execute("eval $(weave env) && echo $DOCKER_HOST",
                 # die=False) echo $DOCKER_HOST", die=False)
                 # FIXME : j.sal.process execute treats eval $(weave en) as a single executable
-                # WILL SET IT TO j.do.execute for now. 
+                # WILL SET IT TO j.do.execute for now.
                 rc, self._weaveSocket, _ = j.do.execute("eval $(weave env)")
                 if rc > 0:
                     self.logger.warning("weave not found, do not forget to start if installed.")
@@ -450,11 +450,13 @@ class Docker:
             self.logger.info(" %-20s %s" % (src1, dest1))
 
         binds = {}
+        binds2 = []
         volskeys = []  # is location in docker
 
         for key, path in list(volsdict.items()):
             # j.sal.fs.createDir(path)  # create the path on hostname
             binds[path] = {"bind": key, "ro": False}
+            binds2.append("%s:%s"%(path, key))
             volskeys.append(key)
 
         for key, path in list(volsdictro.items()):
@@ -480,18 +482,6 @@ class Docker:
             self.logger.info(binds)
 
         hostname = None if self.weaveIsActive else name.replace('_', '-')
-        host_config = self.client.create_host_config(
-            privileged=privileged) if privileged else None
-
-        res = self.client.create_container(image=base, command=cmd, hostname=hostname, user="root",
-                                           detach=detach, stdin_open=False, tty=True, mem_limit=mem, ports=list(portsdict.keys()), environment=None, volumes=volskeys,
-                                           network_disabled=False, name=name, entrypoint=None, cpu_shares=cpu, working_dir=None, domainname=None, memswap_limit=None, host_config=host_config)
-
-        if res["Warnings"] is not None:
-            raise j.exceptions.RuntimeError(
-                "Could not create docker, res:'%s'" % res)
-
-        id = res["Id"]
 
         if self.weaveIsActive:
             nameserver = None
@@ -501,11 +491,22 @@ class Docker:
                 portsdict["%s/%s" % (k[0], k[1])] = v
                 portsdict.pop(k)
 
+        host_config = self.client.create_host_config(**dict(binds=binds2, port_bindings=portsdict, lxc_conf=None,
+                                publish_all_ports=False, links=None, privileged=privileged or {}, dns=nameserver, dns_search=None,
+                                volumes_from=None, network_mode=None))
+        res = self.client.create_container(image=base, command=cmd, hostname=hostname, user="root",
+                                           detach=detach, stdin_open=False, tty=True, mem_limit=mem, ports=list(portsdict.keys()), environment=None, volumes=volskeys,
+                                           network_disabled=False, name=name, entrypoint=None, cpu_shares=cpu, working_dir=None, domainname=None, memswap_limit=None, host_config=host_config)
+        if res["Warnings"] is not None:
+            raise j.exceptions.RuntimeError(
+                "Could not create docker, res:'%s'" % res)
+
+        id = res["Id"]
+
         # TODO: *1 docker module no longer working
 
-        res = self.client.start(container=id, binds=binds, port_bindings=portsdict, lxc_conf=None,
-                                publish_all_ports=False, links=None, privileged=privileged, dns=nameserver, dns_search=None,
-                                volumes_from=None, network_mode=None)
+
+        res = self.client.start(container=id)
 
         container = Container(name, id, self.client, host=self.docker_host)
         self._containers[id] = container

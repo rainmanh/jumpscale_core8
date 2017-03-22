@@ -27,13 +27,15 @@ class GitClient:
             raise j.exceptions.RuntimeError("could not find basepath for .git in %s" % baseDir)
         if check_path:
             if baseDir.find("/code/") == -1:
-                raise j.exceptions.Input("jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
+                raise j.exceptions.Input(
+                    "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
 
             base = baseDir.split("/code/", 1)[1]
 
             if not base.startswith('cockpit'):
                 if base.count("/") != 2:
-                    raise j.exceptions.Input("jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
+                    raise j.exceptions.Input(
+                        "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
                 self.type, self.account, self.name = base.split("/", 2)
             else:
                 self.type, self.account, self.name = 'github', 'cockpit', 'cockpit'
@@ -104,6 +106,7 @@ class GitClient:
             return True
         if res["R"] != []:
             return True
+        return False
 
     def hasModifiedFiles(self):
         cmd = "cd %s;git status --porcelain" % self.BASEDIR
@@ -187,6 +190,9 @@ class GitClient:
             self.repo.index.remove(files)
 
     def pull(self):
+        if self.checkFilesWaitingForCommit():
+            raise j.exceptions.Input(message="Cannot pull:%s, files waiting to commit" %
+                                     self, level=1, source="", tags="", msgpub="")
         self.repo.git.pull()
 
     def fetch(self):

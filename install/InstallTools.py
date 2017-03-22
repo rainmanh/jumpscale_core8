@@ -468,7 +468,8 @@ class GitMethods():
             url (str): the HTTP URL of the Git repository. ex: 'https://github.com/odoo/odoo'
             login (str): authentication login name
             passwd (str): authentication login password
-            ssh = if True will build ssh url, if "auto" will check if there is ssh-agent available & keys are loaded, if yes will use ssh
+            ssh = if True will build ssh url, if "auto" will check if there is ssh-agent available & keys are loaded,
+                if yes will use ssh
 
         Returns:
             (repository_host, repository_type, repository_account, repository_name, repository_url)
@@ -566,7 +567,7 @@ class GitMethods():
         - if it exists, use the branch arg
 
         Returns:
-            (repository_host, repository_type, repository_account, repository_name,branch, login, passwd)
+            (repository_host, repository_type, repository_account, repository_name, dest, repository_url)
 
             - repository_type http or git
 

@@ -13,6 +13,68 @@ class GitFactory:
         self.rewriteGitRepoUrl = j.do.rewriteGitRepoUrl
         self.getGitBranch = j.do.getGitBranch
 
+    def parseUrl(self, url):
+        """
+        @return (repository_host, repository_type, repository_account, repository_name, repository_url,branch,gitpath, relpath)
+
+        example Input
+        - https://github.com/Jumpscale/NOS/blob/master/specs/NOS_1.0.0.md
+        - https://github.com/Jumpscale/jumpscale_core8/blob/8.1.2/lib/JumpScale/tools/docgenerator/macros/dot.py
+        - https://github.com/Jumpscale/jumpscale_core8/tree/8.2.0/lib/JumpScale/tools/docgenerator/macros
+        - https://github.com/Jumpscale/jumpscale_core8/tree/master/lib/JumpScale/tools/docgenerator/macros
+
+        """
+
+        repository_host, repository_type, repository_account, repository_name, repository_url = self.rewriteGitRepoUrl(
+            url)
+
+        if "tree" in repository_url:
+            # means is a directory
+            repository_url, url_end = repository_url.split("tree")
+        elif "blob" in repository_url:
+            # means is a directory
+            repository_url, url_end = repository_url.split("blob")
+        url_end = url_end.strip("/")
+        branch, path = url_end.split("/", 1)
+
+        if path.endswith(".git"):
+            path = path[:-4]
+
+        a, b, c, d, dest, e = self.getGitRepoArgs(url)
+
+        if "tree" in dest:
+            # means is a directory
+            gitpath, ee = dest.split("tree")
+        elif "blob" in repository_url:
+            # means is a directory
+            gitpath, ee = dest.split("blob")
+        else:
+            gitpath = dest
+
+        return (repository_host, repository_type, repository_account, repository_name, repository_url, branch, gitpath, path)
+
+    def getContentPathFromURL(self, url):
+        """
+        @return (giturl,gitpath,relativepath)
+
+        example Input
+        - https://github.com/Jumpscale/NOS/blob/master/specs/NOS_1.0.0.md
+        - https://github.com/Jumpscale/jumpscale_core8/blob/8.1.2/lib/JumpScale/tools/docgenerator/macros/dot.py
+        - https://github.com/Jumpscale/jumpscale_core8/tree/8.2.0/lib/JumpScale/tools/docgenerator/macros
+        - https://github.com/Jumpscale/jumpscale_core8/tree/master/lib/JumpScale/tools/docgenerator/macros
+
+        """
+        repository_host, repository_type, repository_account, repository_name, repository_url, branch, gitpath, relpath = j.clients.git.parseUrl(
+            url)
+        rpath = j.sal.fs.joinPaths(gitpath, relpath)
+        if not j.sal.fs.exists(rpath, followlinks=True):
+            j.clients.git.pullGitRepo(repository_url, branch=branch)
+        if not j.sal.fs.exists(rpath, followlinks=True):
+            raise j.exceptions.Input(message="Did not find path in git:%s" %
+                                     rpath, level=1, source="", tags="", msgpub="")
+
+        return (repository_url, gitpath, relpath)
+
     def get(self, basedir="", check_path=True):
         """
         PLEASE USE SSH, see http://gig.gitbooks.io/jumpscale/content/Howto/how_to_use_git.html for more details

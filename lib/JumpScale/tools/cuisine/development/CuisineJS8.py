@@ -28,7 +28,7 @@ class CuisineJS8(base):
         if branch != "master":
             C = """
             set -ex
-            apt install curl
+            apt install curl -y
             cd $TMPDIR
             rm -f install.sh
             export JSBRANCH="$branch"

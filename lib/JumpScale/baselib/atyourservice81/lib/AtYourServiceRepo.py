@@ -457,6 +457,8 @@ class AtYourServiceRepo():
             bp = Blueprint(self, path=path, content=content)
             # self._blueprints[bp.path] = bp
             if not bp.is_valid:
+                self.logger.warning(
+                    "blueprint %s not executed because it doesn't have a valid format" % bp.path)
                 return
             await bp.load(role=role, instance=instance)
 

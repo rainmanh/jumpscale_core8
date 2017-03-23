@@ -219,9 +219,11 @@ class Blueprint:
     def _validate_yaml(self, content):
         try:
             j.data.serializer.yaml.loads(content)
-            return True
+            return True, "yaml is valid"
         except yaml.YAMLError:
-            raise j.exceptions.Input('Yaml format is not valid for %s please fix this to continue' % self.name)
+            message = 'Yaml format is not valid for %s please fix this to continue' % self.name
+            self.logger.error(message)
+            return False, message
 
     def _validate_format(self, models):
         for model in models:
@@ -229,34 +231,40 @@ class Blueprint:
                 continue
 
             if model and not j.data.types.dict.check(model):
-                self.logger.error("Bad formatted blueprint: %s" % self.path)
-                return False
+                message = "Bad formatted blueprint: %s" % self.path
+                self.logger.error(message)
+                return False, message
 
             for key in model.keys():
 
                 # this two blocks doesn't have the same format as classic service declaration
                 if key in ['actions', 'eventfilters']:
                     if not j.data.types.list.check(model[key]):
-                        self.logger.error("%s should be a list of dictionary: found %s" % (key, type(model[key])))
-                        return False
+                        message = "%s should be a list of dictionary: found %s" % (key, type(model[key]))
+                        self.logger.error(message)
+                        return False, message
                 else:
                     if key.find("__") == -1:
-                        self.logger.error("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
-                        return False
+                        message = "Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key
+                        self.logger.error(message)
+                        return False, message
 
                     aysname, _ = key.split("__", 1)
                     if aysname not in self.aysrepo.templates:
-                        self.logger.error("Service template %s not found. Can't execute this blueprint" % aysname)
-                        return False
+                        message = "Service template %s not found. Can't execute this blueprint" % aysname
+                        self.logger.error(message)
+                        return False, message
 
-        return True
+        return True, 'Blueprint format is valid'
 
     def validate(self):
-        if not self._validate_yaml(self.content):
-            return False
+        valid_yaml, message = self._validate_yaml(self.content)
+        if not valid_yaml:
+            return False, message
 
-        if not self._validate_format(self.models):
-            return False
+        valid_format, message = self._validate_format(self.models)
+        if not valid_format:
+            return False, message
 
         return True
 

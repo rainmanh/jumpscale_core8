@@ -36,7 +36,22 @@ cd ..
 # init the blueprint in ays
 ays blueprint 1_server.yaml
 # make the ays reality & follow progress
-ays run create --follow
+ays run create --follow --ask
+
+```
+
+## how to see logs
+
+```
+ays run show -l
+```
+
+## how to see data from ays
+
+
+```
+#shows service info from all services with role node
+ays service show --role node
 ```
 
 ## to update your actors in a repo
@@ -45,3 +60,13 @@ ays run create --follow
 cd /optvar/cockpit_repos/myrepo
 ays actor update #this will make sure that all templates are used in this repo (so we update the local actors)
 ```
+
+
+## remove services from ays
+
+```
+ays service delete
+```
+it will ask which services to remove
+
+##  

@@ -126,6 +126,7 @@ class Actor():
 
         self._processActionsFile(j.sal.fs.joinPaths(template.path, "actions.py"))
         self._initRecurringActions(template)
+        self._initEvents(template)
 
         # hrd schema to capnp
         if self.model.dbobj.serviceDataSchema != template.schemaCapnpText:
@@ -168,6 +169,20 @@ class Actor():
             action_model = self.model.actions[reccuring_info['action']]
             action_model.period = j.data.types.duration.convertToSeconds(reccuring_info['period'])
             action_model.log = j.data.types.bool.fromString(reccuring_info['log'])
+
+    def _initEvents(self, template):
+        events = self.model.dbobj.init_resizable_list('eventFilters')
+
+        for event in template.eventsConfig:
+            eventFilter = events.add()
+            eventFilter.channel = event['channel']
+            eventFilter.command = event['command']
+            eventFilter.init('actions', len(event['actions']))
+            for i, action in enumerate(event['actions']):
+                eventFilter.actions[i] = action
+
+        events.finish()
+
 
     def _initFlists(self, template):
         flists = self.model.dbobj.init_resizable_list('flists')

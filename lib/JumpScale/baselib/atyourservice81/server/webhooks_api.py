@@ -30,3 +30,24 @@ async def webhooks_github_post(request):
             )
 
     return json({"event executed"}, 200)
+
+
+async def webhooks_events_post(request):
+    '''
+    Endpoint that receives generic events
+    It is handler for POST /webhooks/events
+    '''
+    if request.headers.get('Content-Type') != 'application/json':
+        return json({'error': 'wront content type'}, 400)
+
+    for repo in j.atyourservice.aysRepos.list():
+        for service in repo.services:
+            await service.processEvent(
+                channel='webservice',
+                command=request.json.get('command'),
+                secret=request.json.get('secret'),
+                tags=request.json.get('tags'),
+                payload=request.json.get('payload')
+            )
+
+    return json({}, 200)

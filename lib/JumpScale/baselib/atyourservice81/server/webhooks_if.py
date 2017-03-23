@@ -15,3 +15,11 @@ class webhooks_githubView(HTTPMethodView):
         return await webhooks_api.webhooks_github_post(request)
 
 webhooks_if.add_route(webhooks_githubView.as_view(), '/webhooks/github')
+
+class webhooks_eventsView(HTTPMethodView):
+
+    async def post(self, request):
+
+        return await webhooks_api.webhooks_events_post(request)
+
+webhooks_if.add_route(webhooks_eventsView.as_view(), '/webhooks/events')

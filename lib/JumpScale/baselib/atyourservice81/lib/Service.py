@@ -165,6 +165,13 @@ class Service:
                 period=action.period,
                 log=action.log
             )
+        # events
+        events = self.model.dbobj.init_resizable_list('eventFilters')
+        for event in actor.model.dbobj.eventFilters:
+            eventFilter = events.add()
+            eventFilter.from_dict(event.to_dict())
+        events.finish()
+
         self.model.reSerialize()
         self.actions = ActionsFake(self)
 

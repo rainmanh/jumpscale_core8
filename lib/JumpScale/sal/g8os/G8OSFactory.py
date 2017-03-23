@@ -1,5 +1,6 @@
 from JumpScale.sal.g8os.Node import Node
 
+
 class G8OSFactory(object):
     """Factory for G8OS SAL"""
 

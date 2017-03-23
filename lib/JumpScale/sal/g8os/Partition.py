@@ -1,13 +1,16 @@
-class Partition:
+from JumpScale.sal.g8os.abstracts import Mountable
+
+
+class Partition(Mountable):
     """Partition of a disk in a G8OS"""
 
-    def __init__(self, client, disk, part_info):
+    def __init__(self, disk, part_info):
         """
         part_info: dict returned by client.disk.list()
         """
         # g8os client to talk to the node
-        self._client = client
         self.disk = disk
+        self._client = disk.node.client
         self.name = None
         self.size = None
         self.blocksize = None
@@ -20,6 +23,10 @@ class Partition:
     def filesystems(self):
         self._populate_filesystems()
         return self._filesystems
+
+    @property
+    def devicename(self):
+        return "/dev/{}".format(self.name)
 
     def _load(self, part_info):
         detail = self._client.disk.getinfo(self.disk.name, part_info['name'])
@@ -35,38 +42,12 @@ class Partition:
         all the filesystem present on the disk
         """
         self._filesystems = []
-        for fs in self._client.btrfs.list():
+        for fs in (self._client.btrfs.list() or []):
             for device in fs['devices']:
                 if device['path'] == "/dev/{}".format(self.name):
                     self._filesystems.append(fs)
                     break
 
-    def mount(self, target, options=['defaults']):
-        """
-        @param target: Mount point
-        @param options: Optional mount options
-        """
-        if self.mountpoint == target:
-            return
-
-        self._client.bash('mkdir -p {}'.format(target))
-
-        self._client.disk.mount(
-            source="/dev/{}".format(self.name),
-            target=target,
-            options=options,
-        )
-        self.mountpoint = target
-
-    def umount(self):
-        """
-        Unmount disk
-        """
-        if self.mountpoint:
-            self._client.disk.umount(
-                source="/dev/{}".format(self.name),
-            )
-        self.mountpoint = None
 
     def __str__(self):
         return "Partition <{}>".format(self.name)

@@ -1,6 +1,6 @@
 from JumpScale import j
-from JumpScale.sal.g8os.Disk import Disk
-from JumpScale.sal.g8os.Disk import DiskType
+from JumpScale.sal.g8os.Disk import Disks, DiskType
+from JumpScale.sal.g8os.StoragePool import StoragePools
 
 
 class Node:
@@ -11,42 +11,24 @@ class Node:
         self._client = j.clients.g8core.get(host=addr, port=port, password=password)
         self.addr = addr
         self.port = port
-        self.disks = []
+        self.disks = Disks(self)
+        self.storagepools = StoragePools(self)
 
-        self._load()
+    @property
+    def client(self):
+        return self._client
 
-    def _load(self):
-        """
-        load the attribute of this node from the client
-        """
-        for disk_info in self._client.disk.list()['blockdevices']:
-            self.disks.append(Disk(
-                client=self._client,
-                node=self,
-                disk_info=disk_info
-            ))
-
-    def get_disk(self, name):
-        """
-        return the disk called `name`
-        @param name: name of the disk
-        """
-        for disk in self.disks:
-            if disk.name == name:
-                return disk
-        return None
-
-    def _eligible_fscache_disk(self):
+    def _eligible_fscache_disk(self, disks):
         """
         return the first disk that is eligible to be used as filesystem cahe
         First try to find a SSH disk, otherwise return a HDD
         """
         # Pick up the first ssd
-        for disk in self.disks:
+        for disk in disks:
             if disk.type in [DiskType.ssd, DiskType.nvme]:
                 return disk
         # If no SSD found, pick up the first disk
-        return self.disks[0]
+        return disks[0]
 
     def _mount_fscache(self, partition):
         """
@@ -54,7 +36,7 @@ class Node:
         """
         partition.umount()
 
-         # saving /tmp/ contents
+        # saving /tmp/ contents
         self._client.bash("mkdir -p /tmpbak").get()
         self._client.bash("cp -arv /tmp/* /tmpbak/").get()
 
@@ -65,20 +47,20 @@ class Node:
         self._client.bash("cp -arv /tmpbak/* /tmp/").get()
         self._client.bash("rm -rf /tmpbak").get()
 
-
     def ensure_persistance(self):
         """
         look for a disk not used,
         create a partition and mount it to be used as cache for the g8ufs
         set the label `fs_cache` to the partition
         """
-        if len(self.disks) <= 0:
+        disks = self.disks.list()
+        if len(disks) <= 0:
             # if no disks, we can't do anything
             return
 
         # check if there is already a partition with the fs_cache label
         partition = None
-        for disk in self.disks:
+        for disk in disks:
             for part in disk.partitions:
                 for fs in part.filesystems:
                     if fs['label'] == 'fs_cache':
@@ -87,7 +69,7 @@ class Node:
 
         # create the partition if we don't have one yet
         if partition is None:
-            disk = self._eligible_fscache_disk()
+            disk = self._eligible_fscache_disk(disks)
 
             disk.mktable(table_type='gpt', overwrite=True)
 
@@ -107,7 +89,6 @@ class Node:
         # mount the partition
         self._mount_fscache(partition)
         return partition
-
 
     def __str__(self):
         return "Node <{host}:{port}>".format(

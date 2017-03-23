@@ -1,5 +1,6 @@
 from enum import Enum
 from JumpScale.sal.g8os.Partition import Partition
+from JumpScale.sal.g8os.abstracts import Mountable
 
 
 class DiskType(Enum):
@@ -10,16 +11,45 @@ class DiskType(Enum):
     cdrom = 'cdrom'
 
 
-class Disk:
+class Disks:
+    """Subobject to list disks"""
+    def __init__(self, node):
+        self.node = node
+        self._client = node.client
+
+    def list(self):
+        """
+        List of disks on the node
+        """
+        disks = []
+        for disk_info in self._client.disk.list()['blockdevices']:
+            disks.append(Disk(
+                node=self.node,
+                disk_info=disk_info
+            ))
+        return disks
+
+    def get(self, name):
+        """
+        return the disk called `name`
+        @param name: name of the disk
+        """
+        for disk in self.list():
+            if disk.name == name:
+                return disk
+        return None
+
+
+class Disk(Mountable):
     """Disk in a G8OS"""
 
-    def __init__(self, client, node, disk_info):
+    def __init__(self, node, disk_info):
         """
         disk_info: dict returned by client.disk.list()
         """
         # g8os client to talk to the node
-        self._client = client
         self.node = node
+        self._client = node.client
         self.name = None
         self.size = None
         self.blocksize = None
@@ -31,6 +61,10 @@ class Disk:
         self.partitions = []
 
         self._load(disk_info)
+
+    @property
+    def devicename(self):
+        return "/dev/{}".format(self.name)
 
     @property
     def filesystems(self):
@@ -51,7 +85,6 @@ class Disk:
 
             self.partitions.append(
                 Partition(
-                    client=self._client,
                     disk=self,
                     part_info=partition_info)
             )
@@ -63,7 +96,7 @@ class Disk:
         all the filesystem present on the disk
         """
         self._filesystems = []
-        for fs in self._client.btrfs.list():
+        for fs in (self._client.btrfs.list() or []):
             for device in fs['devices']:
                 if device['path'] == "/dev/{}".format(self.name):
                     self._filesystems.append(fs)
@@ -87,7 +120,7 @@ class Disk:
             else:
                 return DiskType.ssd
 
-    def mktable(self, table_type='gpt',  overwrite=False):
+    def mktable(self, table_type='gpt', overwrite=False):
         """
         create a partition table on the disk
         @param table_type: Partition table type as accepted by parted
@@ -125,39 +158,11 @@ class Disk:
 
         part_info = after[list(name)[0]]
         partition = Partition(
-            client=self._client,
             disk=self,
             part_info=part_info)
         self.partitions.append(partition)
 
         return partition
-
-    def mount(self, target, options=['defaults']):
-        """
-        @param target: Mount point
-        @param options: Optional mount options
-        """
-        if self.mountpoint == target:
-            return
-
-        self._client.bash('mkdir -p {}'.format(target))
-
-        self._client.disk.mount(
-            source="/dev/{}".format(self.name),
-            target=target,
-            options=options,
-        )
-        self.mountpoint = target
-
-    def umount(self):
-        """
-        Unmount disk
-        """
-        if self.mountpoint:
-            self._client.disk.umount(
-                source="/dev/{}".format(self.name),
-            )
-        self.mountpoint = None
 
     def __str__(self):
         return "Disk <{}>".format(self.name)

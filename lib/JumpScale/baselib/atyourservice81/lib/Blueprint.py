@@ -42,7 +42,7 @@ class Blueprint:
             self.name = 'unknown'
             self.content = content
 
-        self.is_valid = self._validate_yaml(self.content)
+        self.is_valid, self.valid_msg = self._validate_yaml(self.content)
 
         if self.is_valid:
             decoded = ordered_load(self.content, yaml.SafeLoader)
@@ -50,7 +50,7 @@ class Blueprint:
                 self.models.append({key:value})
 
             self.hash = j.data.hash.md5_string(self.content)
-            self.is_valid = self._validate_format(self.models)
+            self.is_valid, self.valid_msg = self._validate_format(self.models)
 
     async def load(self, role="", instance=""):
         self.actions = []
@@ -258,15 +258,7 @@ class Blueprint:
         return True, 'Blueprint format is valid'
 
     def validate(self):
-        valid_yaml, message = self._validate_yaml(self.content)
-        if not valid_yaml:
-            return False, message
-
-        valid_format, message = self._validate_format(self.models)
-        if not valid_format:
-            return False, message
-
-        return True
+        return self.is_valid, self.valid_msg
 
     def __str__(self):
         return "%s:%s" % (self.name, self.hash)

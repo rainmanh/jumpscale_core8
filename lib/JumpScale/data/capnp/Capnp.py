@@ -108,6 +108,13 @@ class Capnp:
         return self._cache[schemaId]
 
     def getSchemaFromText(self, schemaInText, name="Schema"):
+        if not schemaInText.strip():
+            schemaInText = """
+@%s;
+struct Schema {
+
+}
+""" % j.data.idgenerator.generateCapnpID()
         schemas = self._getSchemas(schemaInText)
         schema = eval("schemas.%s" % name)
         return schema

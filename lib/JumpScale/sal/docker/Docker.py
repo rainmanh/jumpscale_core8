@@ -491,9 +491,9 @@ class Docker:
                 portsdict["%s/%s" % (k[0], k[1])] = v
                 portsdict.pop(k)
 
-        host_config = self.client.create_host_config(**dict(binds=binds2, port_bindings=portsdict, lxc_conf=None,
-                                publish_all_ports=False, links=None, privileged=privileged or {}, dns=nameserver, dns_search=None,
-                                volumes_from=None, network_mode=None))
+        host_config = self.client.create_host_config(binds=binds2, port_bindings=portsdict, lxc_conf=None,
+                                publish_all_ports=False, links=None, privileged=privileged, dns=nameserver, dns_search=None,
+                                volumes_from=None, network_mode=None)
         res = self.client.create_container(image=base, command=cmd, hostname=hostname, user="root",
                                            detach=detach, stdin_open=False, tty=True, mem_limit=mem, ports=list(portsdict.keys()), environment=None, volumes=volskeys,
                                            network_disabled=False, name=name, entrypoint=None, cpu_shares=cpu, working_dir=None, domainname=None, memswap_limit=None, host_config=host_config)

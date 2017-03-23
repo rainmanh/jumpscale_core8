@@ -52,7 +52,7 @@ class DocGenerator:
         if self._initOK == False:
             j.sal.fs.remove(self._macroCodepath)
         # load the default macro's
-        self.loadMacros(url="https://github.com/Jumpscale/docgenerator/tree/master/macros")
+        self.loadMacros("https://github.com/Jumpscale/docgenerator/tree/master/macros")
 
     def loadMacros(self, pathOrUrl=""):
         """
@@ -60,7 +60,7 @@ class DocGenerator:
         e.g. https://github.com/Jumpscale/docgenerator/tree/master/examples
         """
 
-        path = j.clients.git.getContentPathFromURLorPath(url)
+        path = j.clients.git.getContentPathFromURLorPath(pathOrUrl)
 
         if path not in self._macroPathsDone:
 
@@ -98,16 +98,16 @@ class DocGenerator:
         self.init()
         if pathOrUrl == "":
             path = j.sal.fs.getcwd()
-            path = j.clients.git.findGitPath(source)
+            path = j.clients.git.findGitPath(path)
         else:
             path = j.clients.git.getContentPathFromURLorPath(pathOrUrl)
 
-        for docDir in j.sal.fs.listFilesInDir(path, True, filter=".docgenerator"):
-            if docDir not in self._docRootPathsDone:
+        for docDir in j.sal.fs.listFilesInDir(path, True, filter=".docs"):
+            if docDir not in self.docSources:
                 print("found doc dir:%s" % docDir, sep=' ', end='n', file=sys.stdout, flush=False)
                 ds = DocSource(path=docDir)
-                self.docSources[ds.name] = ds
-                self._docRootPathsDone.append(docDir)
+                self.docSources[path] = ds
+                # self._docRootPathsDone.append(docDir)
 
     def generateExamples(self):
         self.load(pathOrUrl="https://github.com/Jumpscale/docgenerator/tree/master/examples")
@@ -118,8 +118,10 @@ class DocGenerator:
     def generate(self):
         if self.docSites == {}:
             self.load()
-        # for key, ds in self.docSources.items():
-        #     ds.load()
+        for path, ds in self.docSources.items():
+            ds.process()
+        for key, ds in self.docSites.items():
+            ds.write()
 
     def gitUpdate(self):
         if self.docSites == {}:

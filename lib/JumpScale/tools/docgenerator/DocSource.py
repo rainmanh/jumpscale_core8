@@ -22,10 +22,6 @@ class DocSource:
 
         self.load()
 
-        from IPython import embed
-        embed()
-        raise RuntimeError("stop debug here")
-
     def load(self):
         """
         walk in right order over all files which we want to potentially use (include)
@@ -63,14 +59,19 @@ class DocSource:
         def callbackFunctionDir(path, arg):
 
             # need to do this here because the md's need to be processed in next step
-            yamlfile = j.sal.fs.joinPaths(path, "generate.yaml")
+            yamlfile = j.sal.fs.joinPaths(path, "config.yaml")
             if j.sal.fs.exists(yamlfile):
-                self.docSiteLast = DocSite(yamlfile)
+                self.docSiteLast = DocSite(path=path, yamlPath=yamlfile)
                 self.docSites[self.docSiteLast.name] = self.docSiteLast
+                j.tools.docgenerator.docSites[self.docSiteLast.name] = self.docSiteLast
 
             yamlfile = j.sal.fs.joinPaths(path, "data.yaml")
             if j.sal.fs.exists(yamlfile):
                 newdata = j.data.serializer.yaml.load(yamlfile)
+
+                if not j.data.types.dict.check(newdata):
+                    raise j.exceptions.Input(message="cannot process yaml on path:%s, needs to be dict." %
+                                             yamlfile, level=1, source="", tags="", msgpub="")
 
                 # dont know why we do this? something todo probably with mustache and dots?
                 keys = [str(key) for key in newdata.keys()]
@@ -88,11 +89,16 @@ class DocSource:
             if ext == "md":
                 base = base[:-3]  # remove extension
                 if base not in self.docs:
-                    self.docs[base] = Doc(path, base, docSite=self.docSiteLast)
+                    self.docs[base] = Doc(path, base, docSource=self)
                     self.docs[base].data = copy.copy(self.data)
+                    self.docSiteLast.docs[base] = self.docs[base]
 
         callbackFunctionDir(self.path, "")  # to make sure we use first data.yaml in root
 
         j.sal.fs.walker.walkFunctional(self.path, callbackFunctionFile=callbackFunctionFile,
                                        callbackFunctionDir=callbackFunctionDir, arg="",
                                        callbackForMatchDir=callbackForMatchDir, callbackForMatchFile=callbackForMatchFile)
+
+    def process(self):
+        for key, doc in self.docs.items():
+            doc.process()

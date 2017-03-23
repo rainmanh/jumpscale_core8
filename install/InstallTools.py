@@ -625,7 +625,8 @@ class GitMethods():
         @param ssh ==True means will checkout ssh
         @param ssh =="first" means will checkout sss first if that does not work will go to http
         """
-
+        if branch == "":
+            branch = None
         if branch != None and tag != None:
             raise RuntimeError("only branch or tag can be set")
 
@@ -687,6 +688,7 @@ class GitMethods():
                 self.execute(cmd, timeout=timeout, executor=executor)
         else:
             self.logger.info(("git clone %s -> %s" % (url, dest)))
+            # self.createDir(dest)
             extra = ""
             if depth is not None:
                 extra = "--depth=%s" % depth

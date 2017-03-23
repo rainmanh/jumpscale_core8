@@ -7,16 +7,18 @@ class Doc:
     """
     """
 
-    def __init__(self, path, name, docSite):
+    def __init__(self, path, name, docSource):
         self.path = path
         self.name = name
-        self.docSite = docSite
+        self.docSource = docSource
+        self.rpath = j.sal.fs.pathRemoveDirPart(path, self.docSource.path)
+        self.content = None
 
     def process(self):
-        content = j.sal.fs.fileGetContents(self, path)
+        content = j.sal.fs.fileGetContents(self.path)
         self.last_content = content
-        self.last_path = path
-        self.last_dest = j.sal.fs.joinPaths(j.sal.fs.getDirName(path), j.sal.fs.getBaseName(path)[1:])
+        self.last_path = self.path
+        # self.last_dest = j.sal.fs.joinPaths(j.sal.fs.getDirName(path), j.sal.fs.getBaseName(path)[1:])
         # self.last_dest=j.sal.fs.joinPaths(self.root,j.sal.fs.pathRemoveDirPart(path,self.source))
         # j.sal.fs.createDir(j.sal.fs.getDirName(self.last_dest))
 
@@ -85,7 +87,7 @@ class Doc:
 
         content = pystache.render(content, self.data)
 
-        j.sal.fs.writeFile(filename=self.last_dest, contents=content)
+        self.content = content
 
         # j.data.regex.replace(regexFind, regexFindsubsetToReplace, replaceWith, text)
 

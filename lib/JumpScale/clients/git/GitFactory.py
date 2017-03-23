@@ -28,17 +28,27 @@ class GitFactory:
         repository_host, repository_type, repository_account, repository_name, repository_url = self.rewriteGitRepoUrl(
             url)
 
+        url_end = ""
         if "tree" in repository_url:
             # means is a directory
             repository_url, url_end = repository_url.split("tree")
         elif "blob" in repository_url:
             # means is a directory
             repository_url, url_end = repository_url.split("blob")
-        url_end = url_end.strip("/")
-        branch, path = url_end.split("/", 1)
-
-        if path.endswith(".git"):
-            path = path[:-4]
+        if url_end != "":
+            url_end = url_end.strip("/")
+            if url_end.find("/") == -1:
+                path = ""
+                branch = url_end
+                if branch.endswith(".git"):
+                    branch = branch[:-4]
+            else:
+                branch, path = url_end.split("/", 1)
+                if path.endswith(".git"):
+                    path = path[:-4]
+        else:
+            path = ""
+            branch = ""
 
         a, b, c, d, dest, e = self.getGitRepoArgs(url)
 
@@ -88,7 +98,7 @@ class GitFactory:
         """
         if j.sal.fs.exists(urlOrPath, followlinks=True):
             return urlOrPath
-        repository_url, gitpath, relativepath = j.clients.git.getContentPathFromURL(urlOrPath)
+        repository_url, gitpath, relativepath = self.getContentInfoFromURL(urlOrPath)
         path = j.sal.fs.joinPaths(gitpath, relativepath)
         return path
 

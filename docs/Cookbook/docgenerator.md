@@ -19,7 +19,7 @@ optionally call pdf gitbook generator to produce pdf(s)
     - macros
         - each dir called macros is considered to be a macros dir
     - documentation
-        - file ```.docgenerator``` is in the root of such a dir
+        - file ```.docs``` is in the root of such a dir
         - files in here can be definitions, documents, blogs, ...
         - config.yaml defines how to deal with the info in such a directory
     - the directories are remembered together with their git counterparts

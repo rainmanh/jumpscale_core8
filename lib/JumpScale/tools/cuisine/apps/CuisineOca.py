@@ -40,7 +40,7 @@ class CuisineOca(app):
         """.format(rogerthat_url=ROGERTHAT_URL,
                    oca_url=OCA_URL,
                    client_id=client_id,
-                   client_secret=client_id,
+                   client_secret=client_secret,
                    build_path=build_path)
         self._cuisine.core.run(buildscript, die=True)
         return "%s/oca.tar.gz" % build_path

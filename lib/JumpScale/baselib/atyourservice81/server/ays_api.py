@@ -382,6 +382,7 @@ async def executeBlueprint(request, blueprint, repository):
         await repo.blueprintExecute(path=bp.path)
     except Exception as e:
         error_msg = "Error during execution of the blueprint:\n %s" % str(e)
+        j.atyourservice.logger.error(error_msg)
         return json({'error': error_msg}, 500)
 
     return json({'msg':'Blueprint {} executed'.format(blueprint)})

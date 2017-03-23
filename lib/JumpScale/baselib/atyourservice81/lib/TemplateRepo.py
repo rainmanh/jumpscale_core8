@@ -43,7 +43,6 @@ def searchActorTemplates(path, is_global=False):
 
         locations = ["templates", "tests"]
         if not is_global:
-            print ("***********path", path)
             locations.append("actorTemplates")
         if base in locations:
             arg[3] = path
@@ -91,7 +90,7 @@ class TemplateRepoCollection:
         # todo protect with lock
         return list(self._template_repos.values())
 
-    def create(self, path, is_global=True):
+    def create(self, path, is_global=False):
         """
         path can be any path in a git repo
         will look for the directory with .git and create a TemplateRepo object if it doesn't exist yet

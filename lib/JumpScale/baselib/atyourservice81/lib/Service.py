@@ -112,7 +112,7 @@ class Service:
         self = cls(aysrepo=aysrepo)
         self.model = model
         self.aysrepo.db.services.services[self.model.key] = self
-        self.actions = ActionsFake(service)
+        self.actions = ActionsFake(self)
         self._ensure_recurring()
         return self
 

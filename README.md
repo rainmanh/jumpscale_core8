@@ -33,5 +33,5 @@ bash install.sh
 ## how to remove old data
 
 ```
-https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/8.2.0/install/destroy.sh
+curl https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/8.2.0/install/destroy.sh?$RANDOM  | sh
 ```

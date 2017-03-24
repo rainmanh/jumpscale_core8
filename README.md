@@ -30,3 +30,8 @@ export JSBRANCH="8.2.0"
 curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/install.sh?$RANDOM > install.sh
 bash install.sh
 ```
+## how to remove old data
+
+```
+https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/8.2.0/install/destroy.sh
+```

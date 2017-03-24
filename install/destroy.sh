@@ -2,6 +2,13 @@
 rm -rf /opt/jumpscale8
 rm -rf /JS8/opt/jumpscale8
 rm -rf /JS8/optvar/
+rm -rf /optvar/cfg/
+rm -rf /optvar/cfg/docgenerator/
+rm -rf /optvar/docgenerator_internal/
+rm -rf /optvar/log/
+rm -rf /optvar/portal/
+rm -rf /optvar/capnp/
+rm -rf /optvar/build/
 
 source clean.sh
 

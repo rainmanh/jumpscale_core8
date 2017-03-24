@@ -10,8 +10,6 @@ rm -rf /optvar/portal/
 rm -rf /optvar/capnp/
 rm -rf /optvar/build/
 
-source clean.sh
-
 set -ex
 
 rm -rf $CODEDIR/github/jumpscale/ays_jumpscale8/

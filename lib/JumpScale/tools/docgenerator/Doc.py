@@ -1,5 +1,5 @@
 from JumpScale import j
-
+import toml
 import pystache
 
 
@@ -13,6 +13,7 @@ class Doc:
         self.docSource = docSource
         self.rpath = j.sal.fs.pathRemoveDirPart(path, self.docSource.path)
         self.content = None
+        self._processStep1Done = False
 
     def processYamlData(self, dataText):
         try:
@@ -24,19 +25,9 @@ class Doc:
             raise RuntimeError("stop debug here")
         self.data.update(data)
 
-    def process(self):
-        if self.docSource.defaultContent != "":
-            content = self.docSource.defaultContent
-            if content[-1] != "\n":
-                content += "\n"
-        else:
-            content = ""
-        content += j.sal.fs.fileGetContents(self.path)
-        self.last_content = content
-        self.last_path = self.path
-        # self.last_dest = j.sal.fs.joinPaths(j.sal.fs.getDirName(path), j.sal.fs.getBaseName(path)[1:])
-        # self.last_dest=j.sal.fs.joinPaths(self.root,j.sal.fs.pathRemoveDirPart(path,self.source))
-        # j.sal.fs.createDir(j.sal.fs.getDirName(self.last_dest))
+    def processContent(self):
+
+        content = self.content
 
         regex = "\$\{+\w+\(.*\)\}"
         for match in j.data.regex.yieldRegexMatches(regex, content, flags=0):
@@ -77,8 +68,12 @@ class Doc:
                 if line0.startswith("!!!"):
                     methodcode = line0[3:]
                     methodcode = methodcode.rstrip(", )")  # remove end )
-                    # methodcode = methodcode.replace("(", "(self,")
-                    methodcode += ",content=block)"
+                    methodcode = methodcode.replace("(", "(self,")
+                    if not methodcode.strip() == line0[3:].strip():
+                        # means there are parameters
+                        methodcode += ",content=block)"
+                    else:
+                        methodcode += "(content=block)"
                     methodcode = methodcode.replace(",,", ",")
 
                     print("methodcode:'%s'" % methodcode)
@@ -91,6 +86,10 @@ class Doc:
                         try:
                             block = eval(cmd)
                         except Exception as e:
+                            from IPython import embed
+                            print("DEBUG NOW 88")
+                            embed()
+                            raise RuntimeError("stop debug here")
                             raise e
                 else:
                     block = "'''\n%s\n'''\n" % block
@@ -111,10 +110,40 @@ class Doc:
 
         content = out
 
-        content = pystache.render(content, self.data)
+        self.content = pystache.render(content, self.data)
 
+    def process(self):
+        if self.docSource.defaultContent != "":
+            content = self.docSource.defaultContent
+            if content[-1] != "\n":
+                content += "\n"
+        else:
+            content = ""
         self.content = content
+        self.content += j.sal.fs.fileGetContents(self.path)
 
+        for i in range(3):
+            self.processContent()  # dirty hack to do iterative behaviour for processing macro's
+
+    def write(self, docSite):
+
+        C = "+++\n"
+        C += toml.dumps(self.data)
+        C += "\n+++\n\n"
+
+        # C+=
+
+        C += self.content
+
+        dpath = j.sal.fs.joinPaths(docSite.outpath, "src", self.rpath)
+        j.sal.fs.createDir(j.sal.fs.getDirName(dpath))
+        j.sal.fs.writeFile(filename=dpath, contents=C)
+
+        # self.last_content = content
+        # self.last_path = self.path
+        # self.last_dest = j.sal.fs.joinPaths(j.sal.fs.getDirName(path), j.sal.fs.getBaseName(path)[1:])
+        # self.last_dest=j.sal.fs.joinPaths(self.root,j.sal.fs.pathRemoveDirPart(path,self.source))
+        # j.sal.fs.createDir(j.sal.fs.getDirName(self.last_dest))
         # j.data.regex.replace(regexFind, regexFindsubsetToReplace, replaceWith, text)
 
     def __repr__(self):

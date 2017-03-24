@@ -39,6 +39,7 @@ class dependencies():
         peewee
         docker
         toml
+        pystache
         """
         self.do.pip(C, executor=executor)
         self.do.execute("pip3 install https://github.com/tony/libtmux/archive/master.zip --upgrade")

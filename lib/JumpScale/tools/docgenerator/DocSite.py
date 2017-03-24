@@ -67,7 +67,6 @@ class DocSite:
         j.do.copyTree(source, dest, overwriteFiles=True, ignoredir=['.egg-info', '.dist-info'], ignorefiles=[
                       '.egg-info'], rsync=True, recursive=True, rsyncdelete=False)
         for key, doc in self.docs.items():
-            dpath = j.sal.fs.joinPaths(self.outpath, "src", doc.rpath)
-            j.sal.fs.createDir(j.sal.fs.getDirName(dpath))
-            j.sal.fs.writeFile(filename=dpath, contents=doc.content)
+            doc.process()
+            doc.write(docSite=self)
         self.generator.generate(self)

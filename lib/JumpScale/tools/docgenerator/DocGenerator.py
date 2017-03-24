@@ -14,6 +14,7 @@ def loadmodule(name, path):
     mod = imp.load_source(name, path)
     return mod
 
+
 caddyconfig = '''
 localhost:1313
 root $outpath
@@ -47,7 +48,7 @@ class DocGenerator:
         return self.gitRepos[path]
 
     def installDeps(self):
-        if "darwin" in j.core.platformtype.myplatform:
+        if "darwin" in str(j.core.platformtype.myplatform):
             j.do.execute("brew install graphviz")
             j.do.execute("brew install hugo")
             j.do.execute("npm install -g phantomjs")

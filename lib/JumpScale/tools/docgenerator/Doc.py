@@ -14,8 +14,24 @@ class Doc:
         self.rpath = j.sal.fs.pathRemoveDirPart(path, self.docSource.path)
         self.content = None
 
+    def processYamlData(self, dataText):
+        try:
+            data = j.data.serializer.yaml.loads(dataText)
+        except Exception as e:
+            from IPython import embed
+            print("DEBUG NOW yaml load issue in doc")
+            embed()
+            raise RuntimeError("stop debug here")
+        self.data.update(data)
+
     def process(self):
-        content = j.sal.fs.fileGetContents(self.path)
+        if self.docSource.defaultContent != "":
+            content = self.docSource.defaultContent
+            if content[-1] != "\n":
+                content += "\n"
+        else:
+            content = ""
+        content += j.sal.fs.fileGetContents(self.path)
         self.last_content = content
         self.last_path = self.path
         # self.last_dest = j.sal.fs.joinPaths(j.sal.fs.getDirName(path), j.sal.fs.getBaseName(path)[1:])
@@ -36,7 +52,7 @@ class Doc:
                 if line.startswith("#"):
                     self.last_level = len(line.split(" ", 1)[c0].strip())
             try:
-                result = eval("self.macros." + methodcode)
+                result = eval("j.tools.docgenerator.macros." + methodcode)
             except Exception as e:
                 raise e
 
@@ -61,13 +77,23 @@ class Doc:
                 if line0.startswith("!!!"):
                     methodcode = line0[3:]
                     methodcode = methodcode.rstrip(", )")  # remove end )
-                    methodcode = methodcode.replace("(", "(self,")
+                    # methodcode = methodcode.replace("(", "(self,")
                     methodcode += ",content=block)"
                     methodcode = methodcode.replace(",,", ",")
-                    try:
-                        block = eval("self.macros." + methodcode)
-                    except Exception as e:
-                        raise e
+
+                    print("methodcode:'%s'" % methodcode)
+                    if line0[3:].strip().strip(".").strip(",") == "":
+                        self.processYamlData(block)
+                        block = ""
+                    else:
+                        cmd = "j.tools.docgenerator.macros." + methodcode
+                        print(cmd)
+                        try:
+                            block = eval(cmd)
+                        except Exception as e:
+                            raise e
+                else:
+                    block = "'''\n%s\n'''\n" % block
                 out += block
                 block = ""
                 state = "start"

@@ -14,6 +14,11 @@ def loadmodule(name, path):
     mod = imp.load_source(name, path)
     return mod
 
+caddyconfig = '''
+localhost:1313
+root $outpath
+'''
+
 
 class DocGenerator:
     """
@@ -32,6 +37,8 @@ class DocGenerator:
         self.docSites = {}  # location in the outpath per site
         self.outpath = j.sal.fs.joinPaths(j.dirs.VARDIR, "docgenerator")
         self.gitRepos = {}
+        self.webserver = "http://localhost:1313/"
+        self.logger = j.logger.get('docgenerator')
 
     def addGitRepo(self, path):
         if path not in self.gitRepos:
@@ -45,8 +52,34 @@ class DocGenerator:
             j.do.execute("brew install hugo")
             j.do.execute("npm install -g phantomjs")
             j.do.execute("npm install -g mermaid")
+            j.do.execute("brew install caddy")
         else:
             raise RuntimeError("only osx supported for now, please fix")
+
+    def startWebserver(self, generateCaddyFile=False):
+        """
+        start caddy on localhost:1313
+        """
+        if generateCaddyFile:
+            self.generateCaddyFile()
+        dest = "%s/docgenerator/caddyfile" % j.dirs.VARDIR
+        cmd = "ulimit -n 8192;caddy -agree -conf %s" % dest
+        self.logger.info("start caddy service, will take 5 sec")
+        try:
+            sname = j.tools.cuisine.local.tmux.getSessions()[0]
+        except:
+            sname = "main"
+        rc, out = j.tools.cuisine.local.tmux.executeInScreen(sname, "caddy", cmd, reset=True, wait=2)
+        if rc > 0:
+            raise RuntimeError("Cannot start AYS service")
+        self.logger.debug(out)
+        self.logger.info("go to %a" % self.webserver)
+        return rc, out
+
+    def generateCaddyFile(self):
+        out2 = caddyconfig.replace("$outpath", self.outpath)
+        dest = "%s/docgenerator/caddyfile" % j.dirs.VARDIR
+        j.sal.fs.writeFile(filename=dest, contents=out2, append=False)
 
     def init(self):
         if self._initOK == False:
@@ -104,7 +137,7 @@ class DocGenerator:
 
         for docDir in j.sal.fs.listFilesInDir(path, True, filter=".docs"):
             if docDir not in self.docSources:
-                print("found doc dir:%s" % docDir, sep=' ', end='n', file=sys.stdout, flush=False)
+                print("found doc dir:%s" % docDir)
                 ds = DocSource(path=docDir)
                 self.docSources[path] = ds
                 # self._docRootPathsDone.append(docDir)
@@ -122,9 +155,20 @@ class DocGenerator:
             ds.process()
         for key, ds in self.docSites.items():
             ds.write()
+        self.generateCaddyFile()
 
     def gitUpdate(self):
         if self.docSites == {}:
             self.load()
         for gc in self.gitRepos:
             gc.pull()
+
+    def getDoc(self, name, die=True):
+        for key, ds in self.docSources.items():
+            if name in ds.docs:
+                return ds.docs[name]
+        if die:
+            raise j.exceptions.Input(message="Cannot find doc with name:%s" %
+                                     name, level=1, source="", tags="", msgpub="")
+        else:
+            return None

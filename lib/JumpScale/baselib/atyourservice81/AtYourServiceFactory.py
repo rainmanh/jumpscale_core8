@@ -45,7 +45,6 @@ class AtYourServiceFactory:
             host=bind, port=port)
         if debug:
             cmd += ' --debug'
-        j.tools.cuisine.local.tmux.executeInScreen(sname, "ays", cmd, reset=True)
         rc, out = j.tools.cuisine.local.tmux.executeInScreen(sname, "ays", cmd, reset=True, wait=5)
         if rc > 0:
             raise RuntimeError("Cannot start AYS service")

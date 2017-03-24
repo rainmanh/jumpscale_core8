@@ -22,6 +22,18 @@ class DocSource:
 
         self.load()
 
+        self._defaultContent = None
+
+    @property
+    def defaultContent(self):
+        if self._defaultContent == None:
+            path = "%s/default.md" % self.path
+            if j.sal.fs.exists(path, followlinks=True):
+                self._defaultContent = j.sal.fs.fileGetContents(path)
+            else:
+                self._defaultContent = ""
+        return self._defaultContent
+
     def load(self):
         """
         walk in right order over all files which we want to potentially use (include)

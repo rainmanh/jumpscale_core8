@@ -151,6 +151,19 @@ class ActorServiceBaseModel(ModelBaseWithData):
         return recurrings
 
     @property
+    def actionsEvents(self):
+        """
+        return dict
+        key = action name
+        key = eventFilters
+        """
+        events = {}
+        for eventFilter in self.dbobj.eventFilters:
+            for action in eventFilter.actions:
+                events[action] = eventFilter
+        return events
+
+    @property
     def eventFilters(self):
         return list(self.dbobj.eventFilters)
 

@@ -22,11 +22,13 @@ class Disks:
         List of disks on the node
         """
         disks = []
-        for disk_info in self._client.disk.list()['blockdevices']:
-            disks.append(Disk(
-                node=self.node,
-                disk_info=disk_info
-            ))
+        disk_list = self._client.disk.list()
+        if 'blockdevices' in disk_list:
+            for disk_info in self._client.disk.list()['blockdevices']:
+                disks.append(Disk(
+                    node=self.node,
+                    disk_info=disk_info
+                ))
         return disks
 
     def get(self, name):

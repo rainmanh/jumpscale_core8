@@ -8,11 +8,13 @@ class StoragePools:
 
     def list(self):
         storagepools = []
-        for btrfs in self._client.btrfs.list():
-            if btrfs['label'].startswith('sp_'):
-                name = btrfs['label'].split('_', 1)[1]
-                devicenames = [device['path'] for device in sorted(btrfs['devices'], key=lambda dev: dev['dev_id'])]
-                storagepools.append(StoragePool(self, name, devicenames, uuid=btrfs['uuid']))
+        btrfs_list = self._client.btrfs.list()
+        if btrfs_list:
+            for btrfs in self._client.btrfs.list():
+                if btrfs['label'].startswith('sp_'):
+                    name = btrfs['label'].split('_', 1)[1]
+                    devicenames = [device['path'] for device in sorted(btrfs['devices'], key=lambda dev: dev['dev_id'])]
+                    storagepools.append(StoragePool(self, name, devicenames, uuid=btrfs['uuid']))
         return storagepools
 
     def get(self, name):

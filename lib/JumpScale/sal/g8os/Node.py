@@ -30,18 +30,18 @@ class Node:
         # If no SSD found, pick up the first disk
         return disks[0]
 
-    def _mount_fscache(self, partition):
+    def _mount_fscache(self, storagepool):
         """
-        mount the fscache partition and copy the content of the in memmory fs inside
+        mount the fscache storage pool and copy the content of the in memmory fs inside
         """
-        partition.umount()
+        storagepool.umount()
 
         # saving /tmp/ contents
         self._client.bash("mkdir -p /tmpbak").get()
         self._client.bash("cp -arv /tmp/* /tmpbak/").get()
 
         # mount /tmp
-        partition.mount('/tmp')
+        storagepool.mount('/tmp')
 
         # restoring /tmp
         self._client.bash("cp -arv /tmpbak/* /tmp/").get()
@@ -58,37 +58,22 @@ class Node:
             # if no disks, we can't do anything
             return
 
-        # check if there is already a partition with the fs_cache label
-        partition = None
-        for disk in disks:
-            for part in disk.partitions:
-                for fs in part.filesystems:
-                    if fs['label'] == 'fs_cache':
-                        partition = part
-                        break
+        # check if there is already a storage pool with the fs_cache label
+        fscache_sp = None
+        for sp in self.storagepools.list():
+            if sp.name == 'fscache':
+                fscache_sp = sp
 
-        # create the partition if we don't have one yet
-        if partition is None:
+        # create the storage pool if we don't have one yet
+        if fscache_sp is None:
             disk = self._eligible_fscache_disk(disks)
 
+            fscache_sp = self.storagepools.create('fscache', devices=[disk.devicename], metadata_profile='single', data_profile='single')
             disk.mktable(table_type='gpt', overwrite=True)
 
-            if len(disk.partitions) <= 0:
-                partition = disk.mkpart(start=disk.blocksize, end='100%')
-            else:
-                partition = disk.partitions[0]
-
-            if len(partition.filesystems) <= 0:
-                self._client.btrfs.create(
-                    label='fs_cache',
-                    devices=["/dev/{}".format(partition.name)],
-                    metadata_profile='single',
-                    data_profile='single'
-                )
-
-        # mount the partition
-        self._mount_fscache(partition)
-        return partition
+        # mount the storage pool
+        self._mount_fscache(fscache_sp)
+        return fscache_sp
 
     def __str__(self):
         return "Node <{host}:{port}>".format(

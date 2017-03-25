@@ -1,7 +1,7 @@
 class Mountable:
     """
     Abstract implementation for devices that are mountable.
-    Device should have attributes devicename and devicename
+    Device should have attributes devicename and mountpoint
     """
     def mount(self, target, options=['defaults']):
         """
@@ -18,6 +18,7 @@ class Mountable:
             target=target,
             options=options,
         )
+
         self.mountpoint = target
 
     def umount(self):

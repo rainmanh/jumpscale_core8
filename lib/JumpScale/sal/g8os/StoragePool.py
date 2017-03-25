@@ -41,7 +41,7 @@ class StoragePool(Mountable):
         self.data_profile = data_profile
         self.uuid = uuid
         self.status = status
-        self.mountpoint = None
+        self._mountpoint = None
 
     def create(self):
         label = 'sp_{}'.format(self.name)
@@ -50,3 +50,31 @@ class StoragePool(Mountable):
     @property
     def devicename(self):
         return self.devices[0]
+
+    @property
+    def mountpoint(self):
+        return self._client.disk.getinfo(self.devicename[5:])['mountpoint']
+
+    @mountpoint.setter
+    def mountpoint(self, value):
+        self._mountpoint = value
+
+    @property
+    def size(self):
+        total = 0
+        for fs in self._client.btrfs.list():
+            if fs['label'] != 'sp_{}'.format(self.name):
+                continue
+            for device in fs['devices']:
+                total += device['size']
+        return total
+
+    @property
+    def used(self):
+        total = 0
+        for fs in self._client.btrfs.list():
+            if fs['label'] != 'sp_{}'.format(self.name):
+                continue
+            for device in fs['devices']:
+                total += device['used']
+        return total

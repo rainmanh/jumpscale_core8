@@ -7,6 +7,13 @@ class SerializerBase:
         data = self.dumps(obj)
         j.sal.fs.writeFile(filepath, data)
 
-    def load(self, filepath):
-        b = j.sal.fs.fileGetContents(filepath)
-        return self.loads(b)
+    def load(self, path):
+        b = j.sal.fs.readFile(path)
+        try:
+            r = self.loads(b)
+        except Exception as e:
+            error = "error:%s\n" % e
+            error += "\could not parse:\n%s\n" % s
+            error += '\npath:%s\n' % path
+            raise j.exceptions.Input(message=error, level=1, source="", tags="", msgpub="")
+        return r

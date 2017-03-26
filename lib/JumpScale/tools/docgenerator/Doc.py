@@ -1,60 +1,130 @@
 from JumpScale import j
 import toml
 import pystache
+import copy
 
 
 class Doc:
     """
     """
 
-    def __init__(self, path, name, docSource):
+    def __init__(self, path, name, docSite):
         self.path = path
         self.name = name
-        self.docSource = docSource
-        self.rpath = j.sal.fs.pathRemoveDirPart(path, self.docSource.path)
+        self.docSite = docSite
+        self.rpath = j.sal.fs.pathRemoveDirPart(path, self.docSite.path).strip("/")
         self.content = None
-        self._processStep1Done = False
+        self._defContent = ""
+        self.data = {}
+        self.show = True
 
-    def processYamlData(self, dataText):
+        if j.sal.fs.getDirName(self.path).strip("/").split("/")[-1][0] == "_":
+            # means the subdir starts with _
+            self.show = False
+
+    def _processData(self, dataText):
         try:
-            data = j.data.serializer.yaml.loads(dataText)
+            data = j.data.serializer.toml.loads(dataText)
         except Exception as e:
             from IPython import embed
-            print("DEBUG NOW yaml load issue in doc")
+            print("DEBUG NOW toml load issue in doc")
             embed()
             raise RuntimeError("stop debug here")
-        self.data.update(data)
+        self._updateData(data)
+
+    def _updateData(self, data):
+        res = {}
+        for key, val in self.data.items():
+            if key in data:
+                valUpdate = copy.copy(data[key])
+                if j.data.types.list.check(val):
+                    if not j.data.types.list.check(valUpdate):
+                        raise j.exceptions.Input(
+                            message="(%s)\nerror in data structure, list should match list" % self, level=1, source="", tags="", msgpub="")
+                    for item in valUpdate:
+                        if item not in val and item != "":
+                            val.append(item)
+                    self.data[key] = val
+                else:
+                    self.data[key] = valUpdate
+        for key, valUpdate2 in data.items():
+            # check for the keys not in the self.data yet and add them, the others are done above
+            if key not in self.data:
+                self.data[key] = copy.copy(valUpdate2)  # needs to be copy.copy otherwise we rewrite source later
+
+    @property
+    def defaultContent(self):
+        if self._defContent == "":
+            keys = [item for item in self.docSite.defaultContent.keys()]
+            keys.sort(key=len)
+            C = ""
+            for key in keys:
+                key = key.strip("/")
+                if self.rpath.startswith(key):
+                    C2 = self.docSite.defaultContent[key]
+                    if len(C2) > 0 and C2[-1] != "\n":
+                        C2 += "\n"
+                    C += C2
+            self._defContent = C
+        return self._defContent
+
+    def processDefaultData(self):
+        """
+        empty data, go over default data's and update in self.data
+        """
+        self.data = {}
+        keys = [item for item in self.docSite.defaultData.keys()]
+        keys.sort(key=len)
+        for key in keys:
+            key = key.strip("/")
+            if self.rpath.startswith(key):
+                data = self.docSite.defaultData[key]
+                self._updateData(data)
 
     def processContent(self):
-
         content = self.content
 
-        regex = "\$\{+\w+\(.*\)\}"
+        # regex = "\$\{+\w+\(.*\)\}"
+        # for match in j.data.regex.yieldRegexMatches(regex, content, flags=0):
+        #     methodcode = match.founditem.strip("${}")
+        #     methodcode = methodcode.replace("(", "(self,")
+        #
+        #     # find level we are in
+        #     self.last_level = 0
+        #     for line in content.split("\n"):
+        #         if line.find(match.founditem) != -1:
+        #             # we found position where we are working
+        #             break
+        #         if line.startswith("#"):
+        #             self.last_level = len(line.split(" ", 1)[c0].strip())
+        #     try:
+        #         result = eval("j.tools.docgenerator.macros." + methodcode)
+        #     except Exception as e:
+        #         raise e
+        #
+        #     # replace return of function
+        #     content = content.replace(match.founditem, result)
+        #
+        # # lets rewrite our style args to mustache style, so we can use both
+        # regex = "\$\{[a-zA-Z!.]+}"
+        # for match in j.data.regex.yieldRegexMatches(regex, content, flags=0):
+        #     methodcode = match.founditem.strip("${}").replace(".", "_")
+        #     content = content.replace(match.founditem, "{{%s}}" % methodcode)
+
+        ws = j.tools.docgenerator.webserver + self.docSite.name
+
+        regex = "\] *\([a-zA-Z\.\-\_\ ]+\)"  # find all possible images
         for match in j.data.regex.yieldRegexMatches(regex, content, flags=0):
-            methodcode = match.founditem.strip("${}")
-            methodcode = methodcode.replace("(", "(self,")
+            fname = match.founditem.strip("[]").strip("()")
+            fnameFound = self.docSite.getFile(fname, die=True)
+            # if fnameFound==None:
+            #     torepl="ERROR:"
 
-            # find level we are in
-            self.last_level = 0
-            for line in content.split("\n"):
-                if line.find(match.founditem) != -1:
-                    # we found position where we are working
-                    break
-                if line.startswith("#"):
-                    self.last_level = len(line.split(" ", 1)[c0].strip())
-            try:
-                result = eval("j.tools.docgenerator.macros." + methodcode)
-            except Exception as e:
-                raise e
+            content = content.replace(match.founditem, "](/%s/files/%s)" % (self.docSite.name, fnameFound))
 
-            # replace return of function
-            content = content.replace(match.founditem, result)
-
-        # lets rewrite our style args to mustache style, so we can use both
-        regex = "\$\{[a-zA-Z!.]+}"
+        regex = "src *= *\" */?static"
         for match in j.data.regex.yieldRegexMatches(regex, content, flags=0):
-            methodcode = match.founditem.strip("${}").replace(".", "_")
-            content = content.replace(match.founditem, "{{%s}}" % methodcode)
+            content = content.replace(match.founditem, "src = \"/")
 
         # process multi line blocks
         state = "start"
@@ -78,7 +148,7 @@ class Doc:
 
                     print("methodcode:'%s'" % methodcode)
                     if line0[3:].strip().strip(".").strip(",") == "":
-                        self.processYamlData(block)
+                        self._processData(block)
                         block = ""
                     else:
                         cmd = "j.tools.docgenerator.macros." + methodcode
@@ -87,7 +157,7 @@ class Doc:
                             block = eval(cmd)
                         except Exception as e:
                             from IPython import embed
-                            print("DEBUG NOW 88")
+                            print("DEBUG NOW eval macro in doc")
                             embed()
                             raise RuntimeError("stop debug here")
                             raise e
@@ -108,13 +178,15 @@ class Doc:
 
             out += "%s\n" % line
 
-        content = out
+        # self.content = pystache.render(out, self.data)
 
-        self.content = pystache.render(content, self.data)
+        self.content = out
 
     def process(self):
-        if self.docSource.defaultContent != "":
-            content = self.docSource.defaultContent
+        self.processDefaultData()
+
+        if self.defaultContent != "":
+            content = self.defaultContent
             if content[-1] != "\n":
                 content += "\n"
         else:
@@ -127,24 +199,26 @@ class Doc:
 
     def write(self, docSite):
 
-        C = "+++\n"
-        C += toml.dumps(self.data)
-        C += "\n+++\n\n"
+        if self.show:
 
-        # C+=
+            C = "+++\n"
+            C += toml.dumps(self.data)
+            C += "\n+++\n\n"
 
-        C += self.content
+            # C+=
 
-        dpath = j.sal.fs.joinPaths(docSite.outpath, "src", self.rpath)
-        j.sal.fs.createDir(j.sal.fs.getDirName(dpath))
-        j.sal.fs.writeFile(filename=dpath, contents=C)
+            C += self.content
 
-        # self.last_content = content
-        # self.last_path = self.path
-        # self.last_dest = j.sal.fs.joinPaths(j.sal.fs.getDirName(path), j.sal.fs.getBaseName(path)[1:])
-        # self.last_dest=j.sal.fs.joinPaths(self.root,j.sal.fs.pathRemoveDirPart(path,self.source))
-        # j.sal.fs.createDir(j.sal.fs.getDirName(self.last_dest))
-        # j.data.regex.replace(regexFind, regexFindsubsetToReplace, replaceWith, text)
+            dpath = j.sal.fs.joinPaths(docSite.outpath, "content", self.rpath)
+            j.sal.fs.createDir(j.sal.fs.getDirName(dpath))
+            j.sal.fs.writeFile(filename=dpath, contents=C)
+
+            # self.last_content = content
+            # self.last_path = self.path
+            # self.last_dest = j.sal.fs.joinPaths(j.sal.fs.getDirName(path), j.sal.fs.getBaseName(path)[1:])
+            # self.last_dest=j.sal.fs.joinPaths(self.root,j.sal.fs.pathRemoveDirPart(path,self.source))
+            # j.sal.fs.createDir(j.sal.fs.getDirName(self.last_dest))
+            # j.data.regex.replace(regexFind, regexFindsubsetToReplace, replaceWith, text)
 
     def __repr__(self):
         return "doc:%s:%s" % (self.name, self.path)

@@ -48,6 +48,7 @@ class LimitFormater(ColoredFormatter):
             record.pathname = "..." + record.pathname[-self.lenght:]
         return super(LimitFormater, self).format(record)
 
+
 formatter = LimitFormater(
     fmt=CONSOLE_FORMAT,
     datefmt="%a%d %H:%M",
@@ -844,7 +845,7 @@ class FSMethods():
         return os.path.join(*args)
 
     def copyTree(self, source, dest, keepsymlinks=False, deletefirst=False,
-                 overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
+                 overwriteFiles=True, ignoredir=["*.egg-info", "*.dist-info"], ignorefiles=["*.egg-info"], rsync=True,
                  ssh=False, sshport=22, recursive=True, rsyncdelete=False, createdir=False, executor=None):
         """
         if ssh format of source or dest is: remoteuser@remotehost:/remote/dir
@@ -859,9 +860,9 @@ class FSMethods():
         if rsync:
             excl = ""
             for item in ignoredir:
-                excl += "--exclude '*%s*/' " % item
+                excl += "--exclude '%s/' " % item
             for item in ignorefiles:
-                excl += "--exclude '*%s*' " % item
+                excl += "--exclude '%s' " % item
             excl += "--exclude '*.pyc' "
             excl += "--exclude '*.bak' "
             excl += "--exclude '*__pycache__*' "

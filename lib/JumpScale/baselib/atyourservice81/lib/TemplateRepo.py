@@ -90,7 +90,7 @@ class TemplateRepoCollection:
         # todo protect with lock
         return list(self._template_repos.values())
 
-    def create(self, path, is_global=False):
+    def create(self, path, is_global=True):
         """
         path can be any path in a git repo
         will look for the directory with .git and create a TemplateRepo object if it doesn't exist yet

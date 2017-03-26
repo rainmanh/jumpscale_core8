@@ -13,8 +13,8 @@ class StoragePools:
             for btrfs in self._client.btrfs.list():
                 if btrfs['label'].startswith('sp_'):
                     name = btrfs['label'].split('_', 1)[1]
-                    devicenames = [device['path'] for device in sorted(btrfs['devices'], key=lambda dev: dev['dev_id'])]
-                    storagepools.append(StoragePool(self, name, devicenames, uuid=btrfs['uuid']))
+                    devicenames = [device['path'] for device in btrfs['devices']]
+                    storagepools.append(StoragePool(self, name, devicenames))
         return storagepools
 
     def get(self, name):
@@ -24,57 +24,67 @@ class StoragePools:
         raise ValueError("Could not find StoragePool with name {}".format(name))
 
     def create(self, name, devices, metadata_profile, data_profile):
-        pool = StoragePool(self.node, name, devices, metadata_profile, data_profile)
-        pool.create()
+        pool = StoragePool(self.node, name, devices)
+        pool.create(metadata_profile, data_profile)
         return pool
 
 
 class StoragePool(Mountable):
-    def __init__(self, node, name, devices,
-                 metadata_profile=None, data_profile=None,
-                 uuid=None, status=None):
+    def __init__(self, node, name, devices):
         self.node = node
         self._client = node._client
         self.devices = devices
         self.name = name
-        self.metadata_profile = metadata_profile
-        self.data_profile = data_profile
-        self.uuid = uuid
-        self.status = status
         self._mountpoint = None
 
-    def create(self):
+    def create(self, metadata_profile, data_profile):
         label = 'sp_{}'.format(self.name)
-        self._client.btrfs.create(label, self.devices, self.metadata_profile, self.data_profile)
+        self._client.btrfs.create(label, self.devices, metadata_profile, data_profile)
 
     @property
     def devicename(self):
-        return self.devices[0]
+        return 'UUID={}'.format(self.uuid)
 
     @property
     def mountpoint(self):
-        return self._client.disk.getinfo(self.devicename[5:])['mountpoint']
+        for device in self.devices:
+            mountpoint = self._client.disk.getinfo(device[5:]).get('mountpoint')
+            if mountpoint:
+                return mountpoint
 
     @mountpoint.setter
     def mountpoint(self, value):
-        self._mountpoint = value
+        # do not do anything mountpoint is dynamic
+        return
+
+    @property
+    def filesystem(self):
+        for fs in self._client.btrfs.list():
+            if fs['label'] == 'sp_{}'.format(self.name):
+                return fs
+        return None
 
     @property
     def size(self):
         total = 0
-        for fs in self._client.btrfs.list():
-            if fs['label'] != 'sp_{}'.format(self.name):
-                continue
+        fs = self.filesystem
+        if fs:
             for device in fs['devices']:
                 total += device['size']
         return total
 
     @property
+    def uuid(self):
+        fs = self.filesystem
+        if fs:
+            return fs['uuid']
+        return None
+
+    @property
     def used(self):
         total = 0
-        for fs in self._client.btrfs.list():
-            if fs['label'] != 'sp_{}'.format(self.name):
-                continue
+        fs = self.filesystem
+        if fs:
             for device in fs['devices']:
                 total += device['used']
         return total

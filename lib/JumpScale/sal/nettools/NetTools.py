@@ -27,7 +27,7 @@ def parseBlock(block):
 
 
 def getNetworkInfo():
-    exitcode, output, err, _ = j.sal.process.execute("ip a", showout=False)
+    exitcode, output, err = j.sal.process.execute("ip a", showout=False)
     for m in IPBLOCKS.finditer(output):
         block = m.group('block')
         yield parseBlock(block)
@@ -603,6 +603,13 @@ class NetTools:
             return True
         return ipaddress in self.getIpAddresses()
 
+    def isIpInDifferentNetwork(self, ipaddress):
+        for netinfo in self.getNetworkInfo():
+            for ip, cidr in zip(netinfo['ip'], netinfo['cidr']):
+                if ipaddress in netaddr.IPNetwork('{}/{}'.format(ip, cidr)):
+                    return True
+        return False
+
     def getMacAddressForIp(self, ipaddress):
         """Search the MAC address of the given IP address in the ARP table
 
@@ -639,26 +646,22 @@ class NetTools:
                 self.pingMachine(ipaddress, pingtimeout=1)
                 exitcode, output, err = doArp(ipaddress)
 
-            if not noEntry(output) and j.core.platformtype.myplatform.isSolaris():
-                mac = output.split()[3]
-                return self.pm_formatMacAddress(mac)
+            mo = re.search(
+                "(?P<ip>[0-9]+(.[0-9]+){3})\s+(?P<type>[a-z]+)\s+(?P<mac>([a-fA-F0-9]{2}[:|\-]?){6})", output)
+            if mo:
+                return self.pm_formatMacAddress(mo.groupdict()['mac'])
             else:
+                # On Linux the arp will not show local configured ip's in the table.
+                # That's why we try to find the ip with "ip a" and match for the mac there.
+
+                output, stdout, stderr = j.sal.process.run('ip a', stopOnError=False)
+                if exitcode:
+                    raise j.exceptions.RuntimeError(
+                        'Could not get the MAC address for [%s] because "ip" is not found' % s)
                 mo = re.search(
-                    "(?P<ip>[0-9]+(.[0-9]+){3})\s+(?P<type>[a-z]+)\s+(?P<mac>([a-fA-F0-9]{2}[:|\-]?){6})", output)
+                    '\d:\s+\w+:\s+.*\n\s+.+\s+(?P<mac>([a-fA-F0-9]{2}[:|\-]?){6}).+\n\s+inet\s%s[^0-9]+' % ipaddress, stdout, re.MULTILINE)
                 if mo:
                     return self.pm_formatMacAddress(mo.groupdict()['mac'])
-                else:
-                    # On Linux the arp will not show local configured ip's in the table.
-                    # That's why we try to find the ip with "ip a" and match for the mac there.
-
-                    output, stdout, stderr = j.sal.process.run('ip a', stopOnError=False)
-                    if exitcode:
-                        raise j.exceptions.RuntimeError(
-                            'Could not get the MAC address for [%s] because "ip" is not found' % s)
-                    mo = re.search(
-                        '\d:\s+\w+:\s+.*\n\s+.+\s+(?P<mac>([a-fA-F0-9]{2}[:|\-]?){6}).+\n\s+inet\s%s[^0-9]+' % ipaddress, stdout, re.MULTILINE)
-                    if mo:
-                        return self.pm_formatMacAddress(mo.groupdict()['mac'])
             raise j.exceptions.RuntimeError("MAC address for [%s] not found" % ipaddress)
         else:
             raise j.exceptions.RuntimeError("j.sal.nettools.getMacAddressForIp not supported on this platform")

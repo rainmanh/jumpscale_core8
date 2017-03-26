@@ -540,6 +540,10 @@ class AtYourServiceRepo():
             for action, state in service.model.actionsState.items():
                 if action[-1] == '_':
                     continue
+
+                if action in service.model.actionsEvents:
+                    continue
+
                 if state in ['scheduled', 'changed', 'error']:
                     if service not in result:
                         result[service] = list()

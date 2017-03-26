@@ -48,7 +48,6 @@ class Partition(Mountable):
                     self._filesystems.append(fs)
                     break
 
-
     def __str__(self):
         return "Partition <{}>".format(self.name)
 

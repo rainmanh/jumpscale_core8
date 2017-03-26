@@ -1,4 +1,5 @@
 from JumpScale.sal.g8os.abstracts import Mountable
+import os
 
 
 class StoragePools:
@@ -14,7 +15,7 @@ class StoragePools:
                 if btrfs['label'].startswith('sp_'):
                     name = btrfs['label'].split('_', 1)[1]
                     devicenames = [device['path'] for device in btrfs['devices']]
-                    storagepools.append(StoragePool(self, name, devicenames))
+                    storagepools.append(StoragePool(self.node, name, devicenames))
         return storagepools
 
     def get(self, name):
@@ -57,6 +58,30 @@ class StoragePool(Mountable):
         # do not do anything mountpoint is dynamic
         return
 
+    def _get_mountpoint(self):
+        mountpoint = self.mountpoint
+        if not mountpoint:
+            raise RuntimeError("Can not perform subvol action when filesystem is not mounted")
+        return mountpoint
+
+    def list_subvolumes(self):
+        subvolumes = []
+        mountpoint = self._get_mountpoint()
+        for subvolume in self._client.btrfs.subvol_list(mountpoint) or []:
+            subvolumes.append(SubVolume(subvolume['Path'], self))
+        return subvolumes
+
+    def create_subvolume(self, name):
+        mountpoint = self._get_mountpoint()
+        subvolpath = os.path.join(mountpoint, name)
+        self._client.btrfs.subvol_create(subvolpath)
+        return SubVolume(name, self)
+
+    def delete_subvolume(self, name):
+        mountpoint = self._get_mountpoint()
+        subvolpath = os.path.join(mountpoint, name)
+        self._client.btrfs.subvol_delete(subvolpath)
+
     @property
     def filesystem(self):
         for fs in self._client.btrfs.list():
@@ -88,3 +113,33 @@ class StoragePool(Mountable):
             for device in fs['devices']:
                 total += device['used']
         return total
+
+    def __repr__(self):
+        return "StoragePool <{}>".format(self.name)
+
+
+class SubVolume(Mountable):
+    def __init__(self, name, pool):
+        self.name = name
+        self.pool = pool
+        self._client = pool.node.client
+        self.devicename = self.pool.devicename
+
+    def mount(self, target, options=['defaults']):
+        options.append('subvol={}'.format(self.name))
+        return super().mount(target, options)
+
+    @property
+    def mountpoint(self):
+        for mount in self.pool.node.list_mounts():
+            mountopt = 'subvol=/{}'.format(self.name)
+            if mount.device in self.pool.devices and mountopt in mount.options:
+                return mount.mountpoint
+
+    @mountpoint.setter
+    def mountpoint(self, value):
+        # do not do anything mountpoint is dynamic
+        return
+
+    def __repr__(self):
+        return "SubVolume <{}: {!r}>".format(self.name, self.pool)

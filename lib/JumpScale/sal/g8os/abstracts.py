@@ -27,6 +27,6 @@ class Mountable:
         """
         if self.mountpoint:
             self._client.disk.umount(
-                source=self.devicename,
+                source=self.mountpoint,
             )
         self.mountpoint = None

@@ -1,6 +1,12 @@
 from JumpScale import j
 from JumpScale.sal.g8os.Disk import Disks, DiskType
 from JumpScale.sal.g8os.StoragePool import StoragePools
+from io import BytesIO
+from collections import namedtuple
+import re
+
+
+Mount = namedtuple('Mount', ['device', 'mountpoint', 'fstype', 'options', 'dump', 'mpass'])
 
 
 class Node:
@@ -74,6 +80,21 @@ class Node:
         # mount the storage pool
         self._mount_fscache(fscache_sp)
         return fscache_sp
+
+    def list_mounts(self):
+        def unescape(match):
+            # unescape spaces or other chars in /proc/mounts
+            return chr(int(match.group()[1:], 8))
+
+        mounts = BytesIO()
+        self.client.filesystem.download('/proc/mounts', mounts)
+        allmounts = []
+        for mountline in mounts.getvalue().decode('utf8').splitlines():
+            mount = mountline.split()
+            for idx, option in enumerate(mount):
+                mount[idx] = re.sub('\\\\0\d{2}', unescape, option)
+            allmounts.append(Mount(*mount))
+        return allmounts
 
     def __str__(self):
         return "Node <{host}:{port}>".format(

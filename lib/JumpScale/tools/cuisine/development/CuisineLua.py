@@ -20,7 +20,7 @@ class CuisineLua(app):
 
         """
         self.cuisine.core.run(C, profile=True)
-        self.package("luash")
+        self.package("luash", 'http://luarocks.org/dev')
         self.package("luasocket")
         self.package("luasec")
 
@@ -109,5 +109,7 @@ class CuisineLua(app):
         # REQUIRED IN BASH
         # export LUA_PATH=$JSBASE/lib/lua/?.lua;./?.lua;$JSBASE/lib/lua/?/?.lua;$JSBASE/lib/lua/?/init.lua
 
-    def package(self, name):
-        self.cuisine.core.run("luarocks install %s" % name)
+    def package(self, name, server=''):
+        if server:
+            server = '--server=' + server
+        self.cuisine.core.run("luarocks install %s %s" % (server, name))

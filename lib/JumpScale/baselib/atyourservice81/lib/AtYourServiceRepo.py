@@ -251,7 +251,7 @@ class AtYourServiceRepo():
             templates[template.name] = template
 
         # load local templates
-        templateRepo = j.atyourservice.templateRepos.create(self.path)
+        templateRepo = j.atyourservice.templateRepos.create(self.path, is_global=False)
         for template in templateRepo.templates:
             # here we want to overrides the global templates with local one. so having
             # duplicate name is normal
@@ -453,13 +453,15 @@ class AtYourServiceRepo():
                 if not bp.is_valid:
                     self.logger.warning(
                         "blueprint %s not executed because it doesn't have a valid format" % bp.path)
-                    return
+                    raise j.exceptions.Input(bp.valid_msg)
                 await bp.load(role=role, instance=instance)
         else:
             bp = Blueprint(self, path=path, content=content)
             # self._blueprints[bp.path] = bp
             if not bp.is_valid:
-                return
+                self.logger.warning(
+                    "blueprint %s not executed because it doesn't have a valid format" % bp.path)
+                raise j.exceptions.Input(bp.valid_msg)
             await bp.load(role=role, instance=instance)
 
         await self.init(role=role, instance=instance)
@@ -540,6 +542,10 @@ class AtYourServiceRepo():
             for action, state in service.model.actionsState.items():
                 if action[-1] == '_':
                     continue
+
+                if action in service.model.actionsEvents:
+                    continue
+
                 if state in ['scheduled', 'changed', 'error']:
                     if service not in result:
                         result[service] = list()

@@ -26,13 +26,22 @@ class Node:
 
     def _eligible_fscache_disk(self, disks):
         """
-        return the first disk that is eligible to be used as filesystem cahe
+        return the first disk that is eligible to be used as filesystem cache
         First try to find a SSH disk, otherwise return a HDD
         """
         # Pick up the first ssd
-        for disk in disks:
+        usedisks = []
+        for pool in (self._client.btrfs.list() or []):
+            for device in pool['devices']:
+                usedisks.append(device['path'])
+        for disk in disks[::-1]:
+            if disk.devicename in usedisks:
+                disks.remove(disk)
+                continue
             if disk.type in [DiskType.ssd, DiskType.nvme]:
                 return disk
+            elif disk.type == DiskType.cdrom:
+                disks.remove(disk)
         # If no SSD found, pick up the first disk
         return disks[0]
 
@@ -73,9 +82,7 @@ class Node:
         # create the storage pool if we don't have one yet
         if fscache_sp is None:
             disk = self._eligible_fscache_disk(disks)
-
             fscache_sp = self.storagepools.create('fscache', devices=[disk.devicename], metadata_profile='single', data_profile='single')
-            disk.mktable(table_type='gpt', overwrite=True)
 
         # mount the storage pool
         self._mount_fscache(fscache_sp)

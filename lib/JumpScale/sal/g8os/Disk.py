@@ -109,7 +109,7 @@ class Disk(Mountable):
         return the type of the disk
         """
         if disk_info['rota'] == "1":
-            if disk_info['model'].find('CD-ROM') != -1:
+            if disk_info['type'] == 'rom':
                 return DiskType.cdrom
             # assume that if a disk is more than 7TB it's a SMR disk
             elif int(disk_info['size']) > (1024 * 1024 * 1024 * 1024 * 7):

@@ -174,6 +174,8 @@ class AtYourServiceRepo():
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "services"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "recipes"))  # for old time sake
 
+    def delete(self):
+        self.destroy()
         j.atyourservice.aysRepos.delete(self)
 
     def enable_noexec(self):

@@ -282,10 +282,16 @@ class FList(object):
         dbobj.creationTime = int(stat.st_ctime)
         dbobj.size = stat.st_size
 
-        uname = pwd.getpwuid(stat.st_uid).pw_name
-        # uname_id = stat.st_uid
+        uname = str(stat.st_uid)
+        gname = str(stat.st_gid)
 
-        gname = grp.getgrgid(stat.st_gid).gr_name
+        # ignore if the username/groupname is not found on host
+        try:
+            uname = pwd.getpwuid(stat.st_uid).pw_name
+            gname = grp.getgrgid(stat.st_gid).gr_name
+
+        except Exception:
+            pass
 
         aci = self.aciCollection.new()
         aci.dbobj.uname = uname

@@ -24,8 +24,6 @@ def run_action(repo_path, service_key, action_name, args=None):
     job.close()
 
 
-
-
 def job_cleanup():
     jobs = set()
     jc = JobsCollection()
@@ -46,13 +44,20 @@ def do_run(run_key, callback=None):
     at the end of the run or if an error occurs during exection a request is made to callback to
     notify the event (ok/error)
     """
+
     error_msg = None
 
     try:
         run = j.core.jobcontroller.db.runs.get(run_key).objectGet()
         run.execute()
     except Exception as e:
+        # WE TRY TO RE-EXECUTE THE FAILING RUN.
         error_msg = str(e)
+        try:
+            run = j.core.jobcontroller.db.runs.get(run_key).objectGet()
+            run.execute()
+        except Exception as e:
+            error_msg = str(e)
     finally:
         if callback:
             body = {

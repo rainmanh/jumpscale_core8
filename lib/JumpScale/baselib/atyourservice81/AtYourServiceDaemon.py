@@ -18,10 +18,10 @@ def run_action(repo_path, service_key, action_name, args=None):
     service = repo.db.services.get(service_key).objectGet(repo)
 
     job = service.getJob(action_name, args=args)
-    job.execute()
+    p = job.execute()
     service.model.actions[action_name].lastRun = j.data.time.epoch
     service.saveAll()
-    job.close()
+    p.close()
 
 
 def job_cleanup():

@@ -1077,6 +1077,8 @@ class CuisineCore(base):
             env = {}
         if replaceArgs:
             cmd = self.replace(cmd)
+        if profile:
+            shell = True
         self.executor.curpath = self.cd
         # self.logger.info("CMD:'%s'"%cmd)
         if debug:

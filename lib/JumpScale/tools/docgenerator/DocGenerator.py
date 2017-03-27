@@ -67,14 +67,17 @@ class DocGenerator:
         return self.gitRepos[path]
 
     def installDeps(self):
+        j.do.execute("npm install -g phantomjs")
+        j.do.execute("npm install -g mermaid")
+        cuisine = j.tools.cuisine.local
+        cuisine.apps.caddy.build()
         if "darwin" in str(j.core.platformtype.myplatform):
             j.do.execute("brew install graphviz")
             j.do.execute("brew install hugo")
-            j.do.execute("npm install -g phantomjs")
-            j.do.execute("npm install -g mermaid")
-            j.do.execute("brew install caddy")
-        else:
-            raise RuntimeError("only osx supported for now, please fix")
+            #j.do.execute("brew install caddy")
+        elif "ubuntu" in str(j.core.platformtype.myplatform):
+            j.do.execute('apt-get install graphviz')
+            j.do.execute('apt-get install hugo')
 
     def startWebserver(self, generateCaddyFile=False):
         """

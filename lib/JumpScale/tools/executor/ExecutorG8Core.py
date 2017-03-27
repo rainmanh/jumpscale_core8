@@ -3,8 +3,8 @@ from ExecutorBase import ExecutorBase
 try:
     import g8core
 except:
-    print("cannot find g8core")
-
+    logger = j.logger.get("g8core")
+    logger.error("cannot find g8core")
 
 class ExecutorG8Core(ExecutorBase):
     """Executor that talks with a g8os/core0 node"""

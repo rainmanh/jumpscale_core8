@@ -95,14 +95,27 @@ def destroy():
     reset all services & recipe's in current repo (DANGEROUS)
     all instances will be lost !!!
 
-    make sure to do a commit before you do a distroy, this will give you a chance to roll back.
+    make sure to do a commit before you do a destroy, this will give you a chance to roll back.
     """
-    resp = ayscl.api.ays.deleteRepository(repository=_current_repo_name())
+    resp = ayscl.api.ays.destroyRepository(repository=_current_repo_name())
     if resp.status_code == HTTPStatus.NO_CONTENT:
         print("repository destroyed")
     else:
         print("Error while destroying repository: {}".format(_extract_error(resp)))
 
+@repo.command()
+def delete():
+    """
+    Delete EVERY THING in the Repo (DANGEROUS)
+    all INSTANCES and BLUEPRINTS will be lost !!!
+
+    make sure to do a commit before you do a delete, this will give you a chance to roll back.
+    """
+    resp = ayscl.api.ays.deleteRepository(repository=_current_repo_name())
+    if resp.status_code == HTTPStatus.NO_CONTENT:
+        print("repository deleted")
+    else:
+        print("Error while deleting repository: {}".format(_extract_error(resp)))
 
 # AYS service related group of commands
 @cli.group()
@@ -126,6 +139,10 @@ def list(role, name):
         print("Installed services:")
         print("-------------------")
         for s in sorted(services, key=lambda service: '{role}!{name}'.format(**service)):
+            if role and s['role'] != role:
+                continue
+            if name and s['name'] != name:
+                continue
             print("%s!%s" % (s['role'], s['name']))
     else:
         print("Error while listing services: {}".format(_extract_error(resp)))
@@ -549,7 +566,7 @@ def blueprint(name):
     if name == '':
         resp = ayscl.api.ays.listBlueprints(_current_repo_name())
         if resp.status_code != HTTPStatus.OK:
-            print("error during listing of blueptins: {}".format(_extract_error(resp)))
+            print("error during listing of blueprints: {}".format(_extract_error(resp)))
             return
 
         blueprints = resp.json()

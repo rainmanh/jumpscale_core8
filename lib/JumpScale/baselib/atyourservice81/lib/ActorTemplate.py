@@ -112,11 +112,15 @@ class ActorTemplate():
 
     @property
     def parentConfig(self):
-        return self.configDict.get("links", {}).get("parent", {})
+        result = self.configDict.get("links", {})
+        result = result[0].get('parent', {}) if isinstance(result, list) else result.get('parent', {})
+        return result
 
     @property
     def consumptionConfig(self):
-        return self.configDict.get("links", {}).get("consume", {})
+        result = self.configDict.get("links", {})
+        result = result[0].get('consume', {}) if isinstance(result, list) else result.get('consume', {})
+        return result
 
     @property
     def flists(self):

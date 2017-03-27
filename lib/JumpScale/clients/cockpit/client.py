@@ -126,6 +126,14 @@ class Client:
             repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp, 204)
 
+    def deleteRepository(self, repository, headers=None, query_params=None):
+        """
+        Delete a repository
+        It is method for POST /ays/repository/{repository}/destroy
+        """
+        resp = self._client.deleteRepository(
+            repository=repository, headers=headers, query_params=query_params)
+        self._assert_response(resp, 204)
 
     def simulateAction(self, repository, action, role='', instance='',
                        producer_roles='*', force=False, headers=None, query_params=None):
@@ -343,6 +351,15 @@ class Client:
         it is a method for GET /ays/repository/{repository}/actor
         """
         resp = self._client.listActors(repository, headers=headers, query_params=query_params)
+        self._assert_response(resp)
+        return resp.json()
+
+    def getActorByName(self, repository, actorname, headers=None, query_params=None):
+        """
+        list all actors in ays repo
+        it is a method for GET /ays/repository/{repository}/actor/{actorname}
+        """
+        resp = self._client.getActorByName(repository, actorname, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 

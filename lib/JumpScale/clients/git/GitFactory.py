@@ -28,17 +28,27 @@ class GitFactory:
         repository_host, repository_type, repository_account, repository_name, repository_url = self.rewriteGitRepoUrl(
             url)
 
+        url_end = ""
         if "tree" in repository_url:
             # means is a directory
             repository_url, url_end = repository_url.split("tree")
         elif "blob" in repository_url:
             # means is a directory
             repository_url, url_end = repository_url.split("blob")
-        url_end = url_end.strip("/")
-        branch, path = url_end.split("/", 1)
-
-        if path.endswith(".git"):
-            path = path[:-4]
+        if url_end != "":
+            url_end = url_end.strip("/")
+            if url_end.find("/") == -1:
+                path = ""
+                branch = url_end
+                if branch.endswith(".git"):
+                    branch = branch[:-4]
+            else:
+                branch, path = url_end.split("/", 1)
+                if path.endswith(".git"):
+                    path = path[:-4]
+        else:
+            path = ""
+            branch = ""
 
         a, b, c, d, dest, e = self.getGitRepoArgs(url)
 
@@ -75,9 +85,33 @@ class GitFactory:
 
         return (repository_url, gitpath, relpath)
 
-    def getContentPathFromURLorPath(self, urlOrPath):
+    def pullGitRepoSubPath(self, urlOrPath):
         """
         @return path of the content found
+
+        will find the right branch & will do a pull
+
+        example Input
+        - https://github.com/Jumpscale/NOS/blob/master/specs/NOS_1.0.0.md
+        - https://github.com/Jumpscale/jumpscale_core8/blob/8.1.2/lib/JumpScale/tools/docgenerator/macros/dot.py
+        - https://github.com/Jumpscale/jumpscale_core8/tree/8.2.0/lib/JumpScale/tools/docgenerator/macros
+        - https://github.com/Jumpscale/jumpscale_core8/tree/master/lib/JumpScale/tools/docgenerator/macros
+
+        """
+        if not j.sal.fs.exists(urlOrPath, followlinks=True):
+            repository_url, gitpath, relativepath = self.getContentInfoFromURL(urlOrPath)
+        else:
+            repository_host, repository_type, repository_account, repository_name, repository_url, branch, gitpath, relativepath = j.clients.git.parseUrl(
+                urlOrPath)
+            j.clients.git.pullGitRepo(repository_url, branch=branch)  # to make sure we pull the info
+
+        path = j.sal.fs.joinPaths(gitpath, relativepath)
+        return path
+
+    def getContentPathFromURLorPath(self, urlOrPath):
+        """
+
+        @return path of the content found, will also do a pull to make sure git repo is up to date
 
         example Input
         - https://github.com/Jumpscale/NOS/blob/master/specs/NOS_1.0.0.md
@@ -87,8 +121,9 @@ class GitFactory:
 
         """
         if j.sal.fs.exists(urlOrPath, followlinks=True):
+
             return urlOrPath
-        repository_url, gitpath, relativepath = j.clients.git.getContentPathFromURL(urlOrPath)
+        repository_url, gitpath, relativepath = self.getContentInfoFromURL(urlOrPath)
         path = j.sal.fs.joinPaths(gitpath, relativepath)
         return path
 

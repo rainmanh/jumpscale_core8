@@ -648,3 +648,16 @@ types:
           description: event saved
           body:
             application/json:
+  /events:
+    post:
+      description: Endpoint that receives generic events
+      body:
+        application/json:
+          type: object
+          properties:
+            command: string
+            tags: string[]
+            payload: object
+      responses:
+        200:
+          description: event received succesfully

@@ -11,7 +11,7 @@ Please check our [GitBook](https://gig.gitbooks.io/jumpscale-core8/content/) for
 - [branches](branches.md)
 - [version & roadmap info](../master/releases.md)
 
-## how to install from master
+## how to install from master (THIS IS NOT 8.2.0, DO NOT USE)
 
 ```
 cd $TMPDIR
@@ -26,7 +26,12 @@ bash install.sh
 ```
 cd $TMPDIR
 rm -f install.sh
-export JSBRANCH="8.2.0_ays_noHrd"
+export JSBRANCH="8.2.0"
 curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/install.sh?$RANDOM > install.sh
 bash install.sh
+```
+## how to remove old data
+
+```
+curl https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/8.2.0/install/destroy.sh?$RANDOM  | sh
 ```

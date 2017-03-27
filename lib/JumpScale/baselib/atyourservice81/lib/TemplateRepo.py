@@ -3,7 +3,7 @@ from JumpScale.baselib.atyourservice81.lib.ActorTemplate import ActorTemplate
 import asyncio
 
 
-def searchActorTemplates(path):
+def searchActorTemplates(path, is_global=False):
     """
     walk function that look recursively into 'path' after actor templates directories
     @returns: list of paths of directories containing actor tempaltes
@@ -41,7 +41,10 @@ def searchActorTemplates(path):
                 arg[2] = ""
                 # because means that ays repo is no longer our parent
 
-        if base in ["templates", "actorTemplates"]:
+        locations = ["templates", "tests"]
+        if not is_global:
+            locations.append("actorTemplates")
+        if base in locations:
             arg[3] = path
         elif arg[3] != "":
             if not path.startswith(arg[3]):
@@ -73,7 +76,7 @@ class TemplateRepoCollection:
 
     def _load(self):
         self.logger.info("reload actor templates repos")
-        for path in searchActorTemplates(j.dirs.CODEDIR):
+        for path in searchActorTemplates(j.dirs.CODEDIR, is_global=True):
             self.create(path=path)
 
         for repo in list(self._template_repos.values()):
@@ -202,7 +205,7 @@ class TemplateRepo():
         load the actor template in memory
         """
         self.logger.info("reload actor templates from {}".format(self.path))
-        for path in searchActorTemplates(self.path):
+        for path in searchActorTemplates(self.path, is_global=self.is_global):
             if not j.sal.fs.exists(path=path):
                 raise j.exceptions.NotFound("Cannot find path for ays templates:%s" % path)
 

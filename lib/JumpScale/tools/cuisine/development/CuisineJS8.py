@@ -28,7 +28,7 @@ class CuisineJS8(base):
         if branch != "master":
             C = """
             set -ex
-            apt install curl
+            apt install curl -y
             cd $TMPDIR
             rm -f install.sh
             export JSBRANCH="$branch"
@@ -40,7 +40,7 @@ class CuisineJS8(base):
         else:
             C = """
             set -ex
-            apt install curl
+            apt install curl -y
             cd $TMPDIR
             rm -f install.sh
             curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh?$RANDOM > install.sh

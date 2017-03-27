@@ -39,6 +39,14 @@ class AysService:
         uri = self.client.base_url + "/ays/repository/"+repository
         return self.client.session.delete(uri, headers=headers, params=query_params)
 
+    def destroyRepository(self, repository, headers=None, query_params=None):
+        """
+        Delete a repository
+        It is method for post /ays/repository/{repository}/destroy
+        """
+        uri = self.client.base_url + "/ays/repository/"+repository+"/destroy"
+        return self.client.session.post(uri, headers=headers, params=query_params)
+
 
     def listActors(self, repository, headers=None, query_params=None):
         """

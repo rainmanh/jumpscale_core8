@@ -41,11 +41,10 @@ class AtYourServiceFactory:
             sname = j.tools.cuisine.local.tmux.getSessions()[0]
         except:
             sname = "main"
-        cmd = "cd /opt/code/github/jumpscale/jumpscale_core8/apps/atyourservice;python3 main.py --host {host} --port {port}".format(
+        cmd = "cd /opt/code/github/jumpscale/jumpscale_core8/apps/atyourservice;jspython main.py --host {host} --port {port}".format(
             host=bind, port=port)
         if debug:
             cmd += ' --debug'
-        j.tools.cuisine.local.tmux.executeInScreen(sname, "ays", cmd, reset=True)
         rc, out = j.tools.cuisine.local.tmux.executeInScreen(sname, "ays", cmd, reset=True, wait=5)
         if rc > 0:
             raise RuntimeError("Cannot start AYS service")

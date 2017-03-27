@@ -92,6 +92,10 @@ def build(service, build_func, build_destination='/mnt/building'):
 
     # make sure the building destinatin exists
     cuisine = os.executor.cuisine
+    executordict = '$VARDIR/jsexecutor.json'
+    if cuisine.core.file_exists(executordict):
+        cuisine.core.run('rm %s' % executordict)
+    cuisine.core.configReset()
     cuisine.core.dir_ensure(build_destination)
 
     # do the actual building

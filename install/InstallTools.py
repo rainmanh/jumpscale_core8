@@ -48,6 +48,7 @@ class LimitFormater(ColoredFormatter):
             record.pathname = "..." + record.pathname[-self.lenght:]
         return super(LimitFormater, self).format(record)
 
+
 formatter = LimitFormater(
     fmt=CONSOLE_FORMAT,
     datefmt="%a%d %H:%M",
@@ -616,7 +617,7 @@ class GitMethods():
         return repository_host, repository_type, repository_account, repository_name, dest, repository_url
 
     def pullGitRepo(self, url="", dest=None, login=None, passwd=None, depth=None, ignorelocalchanges=False,
-                    reset=False, branch=None, tag=None, revision=None, ssh="auto", executor=None, codeDir=None):
+                    reset=False, branch=None, tag=None, revision=None, ssh="auto", executor=None, codeDir=None, timeout=600):
         """
         will clone or update repo
         if dest is None then clone underneath: /opt/code/$type/$account/$repo
@@ -625,7 +626,8 @@ class GitMethods():
         @param ssh ==True means will checkout ssh
         @param ssh =="first" means will checkout sss first if that does not work will go to http
         """
-
+        if branch == "":
+            branch = None
         if branch != None and tag != None:
             raise RuntimeError("only branch or tag can be set")
 
@@ -670,7 +672,7 @@ class GitMethods():
                 if branch is not None:
                     self.logger.info("reset branch to:%s" % branch)
                     self.execute("cd %s;git fetch; git reset --hard origin/%s" %
-                                 (dest, branch), timeout=600, executor=executor)
+                                 (dest, branch), timeout=timeout, executor=executor)
 
             else:
 
@@ -684,9 +686,10 @@ class GitMethods():
                 else:
                     cmd = "cd %s;git pull origin %s" % (dest, branch)
                 self.logger.info(cmd)
-                self.execute(cmd, timeout=600, executor=executor)
+                self.execute(cmd, timeout=timeout, executor=executor)
         else:
             self.logger.info(("git clone %s -> %s" % (url, dest)))
+            # self.createDir(dest)
             extra = ""
             if depth is not None:
                 extra = "--depth=%s" % depth
@@ -708,17 +711,17 @@ class GitMethods():
             self.logger.info(cmd)
 
             # self.logger.info(str(executor)+" "+cmd)
-            self.execute(cmd, timeout=600, executor=executor)
+            self.execute(cmd, timeout=timeout, executor=executor)
 
         if tag != None:
             self.logger.info("reset tag to:%s" % tag)
             self.execute("cd %s;git checkout tags/%s" %
-                         (dest, tag), timeout=60, executor=executor)
+                         (dest, tag), timeout=timeout, executor=executor)
 
         if revision is not None:
             cmd = "mkdir -p %s;cd %s;git checkout %s" % (dest, dest, revision)
             self.logger.info(cmd)
-            self.execute(cmd, timeout=600, executor=executor)
+            self.execute(cmd, timeout=timeout, executor=executor)
 
         return dest
 
@@ -842,7 +845,7 @@ class FSMethods():
         return os.path.join(*args)
 
     def copyTree(self, source, dest, keepsymlinks=False, deletefirst=False,
-                 overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
+                 overwriteFiles=True, ignoredir=["*.egg-info", "*.dist-info"], ignorefiles=["*.egg-info"], rsync=True,
                  ssh=False, sshport=22, recursive=True, rsyncdelete=False, createdir=False, executor=None):
         """
         if ssh format of source or dest is: remoteuser@remotehost:/remote/dir
@@ -857,9 +860,9 @@ class FSMethods():
         if rsync:
             excl = ""
             for item in ignoredir:
-                excl += "--exclude '*%s*/' " % item
+                excl += "--exclude '%s/' " % item
             for item in ignorefiles:
-                excl += "--exclude '*%s*' " % item
+                excl += "--exclude '%s' " % item
             excl += "--exclude '*.pyc' "
             excl += "--exclude '*.bak' "
             excl += "--exclude '*__pycache__*' "

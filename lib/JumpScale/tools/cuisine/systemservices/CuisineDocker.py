@@ -99,15 +99,18 @@ class CuisineDocker(app):
         self.cuisine.core.run(cmd, profile=True)
         cmd = "jsdocker list --name {name} --parsable".format(name=name)
         _, out, _ = self.cuisine.core.run(cmd, profile=True)
+        #FIXME: cannot find g8core is included to the output
+        #out = out.replace("cannot find g8core\n","")
+
         info = j.data.serializer.json.loads(out)
 
         port = info[0]["port"]
-        _, out, _ = self.cuisine.core.run("docker inspect ahah | grep \"IPAddress\"|  cut -d '\"' -f 4 ")
-        host = out.splitlines()[0]
-
+        #host = info[0]["host"]
+        _, out, _ = self.cuisine.core.run("docker inspect {name} | grep \"IPAddress\"|  cut -d '\"' -f 4 ".format(name=name))
+        host = out
         dockerexecutor = Cuisinedockerobj(name, host, "22", self.cuisine)
         cuisinedockerobj = j.tools.cuisine.get(dockerexecutor)
-
+  
         # NEED TO MAKE SURE WE CAN GET ACCESS TO THIS DOCKER WITHOUT OPENING PORTS; we know can using docker exec
         # ON DOCKER HOST (which is current cuisine)
 
@@ -126,8 +129,9 @@ class Cuisinedockerobj:
         self.name = name
         self.login = "root"
         self.cuisineDockerHost = cuisineDockerHost
-        self.cuisine = None
-
+        self._cuisine = None
+        self.CURDIR = "/root" #required by CuisineFactory
+        self.env = {}  #required by cuisineFactory
     def execute(self, cmds, die=True, checkok=None, async=False, showout=True, timeout=0, env={}):
         return self.cuisineDockerHost.core.run("docker exec %s bash -c '%s'" % (self.name, cmds.replace("'", "'\"'\"'")),
                                                die=die, checkok=checkok, showout=showout, env=env)
@@ -136,9 +140,9 @@ class Cuisinedockerobj:
 
     @property
     def cuisine(self):
-        if not self.cuisine:
-            return j.tools.cuisine.get(self)
-        return self.cuisine
+        if not self._cuisine:
+            self._cuisine = j.tools.cuisine.get(self)
+        return self._cuisine
 
 
 # def archBuild(self):

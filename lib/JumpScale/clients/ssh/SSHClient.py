@@ -154,7 +154,7 @@ class SSHClient:
                     "Unexpected error in socket connection for ssh. Aborting connection and try again.")
                 self.logger.error(e)
                 self._client.close()
-                self.reset()
+                #self.reset()
                 time.sleep(1)
                 continue
 
@@ -169,10 +169,9 @@ class SSHClient:
 
     @property
     def client(self):
-        with self._lock:
-            if self._client is None:
-                self._connect()
-            return self._client
+        if self._client is None:
+            self._connect()
+        return self._client
 
     def reset(self):
         with self._lock:

@@ -98,6 +98,22 @@ async def deleteRepository(request, repository):
 
     return json({}, 204)
 
+async def destroyRepository(request, repository):
+    '''
+    Delete a repository
+    It is handler for POST /ays/repository/<repository>/destroy
+    '''
+
+    try:
+        repo = get_repo(repository)
+    except j.exceptions.NotFound as e:
+        return json({'error':e.message}, 404)
+
+    repo.destroy()
+
+    return json({}, 204)
+
+
 async def listTemplates(request, repository):
     '''
     list all templates
@@ -365,8 +381,8 @@ async def executeBlueprint(request, blueprint, repository):
     try:
         await repo.blueprintExecute(path=bp.path)
     except Exception as e:
-        raise e
         error_msg = "Error during execution of the blueprint:\n %s" % str(e)
+        j.atyourservice.logger.error(error_msg)
         return json({'error': error_msg}, 500)
 
     return json({'msg':'Blueprint {} executed'.format(blueprint)})
@@ -554,22 +570,23 @@ async def listActors(request, repository):
 
     return json(actors, 200)
 
-# async def getActorByName(request, name, repository):
-#     '''
-#     Get an actor by name
-#     It is handler for GET /ays/repository/<repository>/actor/<name>
-#     '''
-#     try:
-#         repo = get_repo(repository)
-#     except j.exceptions.NotFound as e:
-#         return json({'error':e.message}, 404)
-#
-#     try:
-#         actor = repo.actorGet(name=name)
-#     except j.exceptions.NotFound as e:
-#         json({'error':'actor {} not found'.format(name)}, 404)
-#
-#     return json(actor_view(actor), 200)
+
+async def getActorByName(request, name, repository):
+    '''
+    Get an actor by name
+    It is handler for GET /ays/repository/<repository>/actor/<name>
+    '''
+    try:
+        repo = get_repo(repository)
+    except j.exceptions.NotFound as e:
+        return json({'error':e.message}, 404)
+
+    try:
+        actor = repo.actorGet(name=name)
+    except j.exceptions.NotFound as e:
+        json({'error':'actor {} not found'.format(name)}, 404)
+
+    return json(actor_view(actor), 200)
 
 
 async def updateActor(request, name, repository):

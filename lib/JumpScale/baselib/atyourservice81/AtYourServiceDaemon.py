@@ -18,10 +18,12 @@ def run_action(repo_path, service_key, action_name, args=None):
     service = repo.db.services.get(service_key).objectGet(repo)
 
     job = service.getJob(action_name, args=args)
-    job.executeInProcess()
-
+    job.execute()
     service.model.actions[action_name].lastRun = j.data.time.epoch
     service.saveAll()
+    job.close()
+
+
 
 
 def job_cleanup():
@@ -94,12 +96,6 @@ class Server:
         self._running = True
 
         while self._running:
-            try:
-                job_cleanup()
-            except Exception as e:
-                self.logger.error("error while cleaning jobs : %s" % str(e))
-                continue
-
             payload = self._command_queue.queueGet('command', timeout=2)
             if payload is None:
                 # timeout without receiving command
@@ -224,6 +220,11 @@ class RecurringLoop(Thread):
         self._running = True
 
         while self.is_alive() and self._running:
+            try:
+                job_cleanup()
+            except Exception as e:
+                self.logger.error("error while cleaning jobs : %s" % str(e))
+                continue
             repos = j.atyourservice.reposList()
             for repo in repos:
                 self.logger.debug('inspect %s for recurring actions' % repo)

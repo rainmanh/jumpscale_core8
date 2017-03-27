@@ -406,7 +406,7 @@ class ProcessManagerFactory:
             p = self.processes[key]
             status = p.sync()
 
-            if (status == "error" and error) or status == "success":
+            if (status in ['exception', 'error'] and error) or status == "success":
                 p.close()
                 self.processes.pop(p.name)
                 cleared += 1
@@ -435,7 +435,7 @@ class ProcessManagerFactory:
             self.log.info('Remaining processes after clear')
         for key in remaining:
             status = self.processes[key].sync()
-            self.log.info('Remaining: process %s : %s' % (key, status))
+            self.log.info('Remaining: process %s : %s : %s : %s %s %s ' % (key, status, str(self.pid), self.name, str(self.method), str(self.args)))
         return cleared
 
 

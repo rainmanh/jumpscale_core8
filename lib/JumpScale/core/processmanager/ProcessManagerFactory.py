@@ -1,5 +1,4 @@
 from JumpScale import j
-
 import os
 import sys
 import time
@@ -8,7 +7,6 @@ import fcntl
 import copy
 from io import StringIO
 # don't do logging, slows down
-
 import multiprocessing
 import datetime
 """
@@ -51,6 +49,15 @@ The stdout and stderr variable contains the full buffer:
     print(p.stdout)        # contains the full stdout since process start
 
 """
+import signal
+
+def onchildexit_handler(*args):
+    if 'self' in args[1].f_locals:
+        self = args[1].f_locals['self']
+        #print("Now WAITING ON DEAD pid: ", self.pid)
+        s.waitpid(self.pid, 0)
+
+signal.signal(signal.SIGCHLD, onchildexit_handler)
 
 class StdDuplicate(object):
     def __init__(self, original):
@@ -183,7 +190,7 @@ class Process():
             raise RuntimeError("Failed to fork()")
 
         res = None
-
+        raisederror = False
         if pid == 0:
             # Child -- do the copy, print log to pipe and exit
             try:
@@ -201,13 +208,13 @@ class Process():
                 eco = j.errorconditionhandler.processPythonExceptionObject(e)
 
                 self._setException(eco.toJson())
-                self._clean()
-                os._exit(1)
-
             finally:
                 self._setSuccess(res)
                 self._clean()
-                os._exit(0)
+                if raisederror:
+                    os._exit(1)
+                else:
+                    os._exit(0)
 
             # should never arrive here
             self._setPanic()
@@ -297,7 +304,7 @@ class Process():
             pass
 
     def __repr__(self):
-        out = "Process name: %s, status: %s, return: %s" % (self.name, self.state, self.value)
+        out = "Process name: %s, status: %s, return: %s, pid: %s" % (self.name, self.state, self.value, self.pid)
 
         if self.state != "running":
             out += "\n== Stdout ==\n%s" % self.stdout

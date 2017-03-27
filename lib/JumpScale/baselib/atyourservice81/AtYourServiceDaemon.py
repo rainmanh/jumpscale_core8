@@ -21,7 +21,6 @@ def run_action(repo_path, service_key, action_name, args=None):
     p = job.execute()
     service.model.actions[action_name].lastRun = j.data.time.epoch
     service.saveAll()
-    p.close()
 
 
 def job_cleanup():

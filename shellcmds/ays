@@ -103,6 +103,20 @@ def destroy():
     else:
         print("Error while destroying repository: {}".format(_extract_error(resp)))
 
+@repo.command()
+def delete():
+    """
+    Delete EVERY THING in the Repo (DANGEROUS)
+    all INSTANCES and BLUEPRINTS will be lost !!!
+
+    make sure to do a commit before you do a delete, this will give you a chance to roll back.
+    """
+    resp = ayscl.api.ays.deleteRepository(repository=_current_repo_name())
+    if resp.status_code == HTTPStatus.NO_CONTENT:
+        print("repository deleted")
+    else:
+        print("Error while deleting repository: {}".format(_extract_error(resp)))
+
 
 # AYS service related group of commands
 @cli.group()

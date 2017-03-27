@@ -45,6 +45,15 @@ class AtYourServiceRepoCollection:
 
         self._loop.call_later(60, self._load)
 
+    def loadRepo(self, path):
+        if path not in self._repos:
+            self.logger.debug("Loading AYS repo {}".format(path))
+            try:
+                repo = AtYourServiceRepo(path)
+                self._repos[repo.path] = repo
+            except Exception as e:
+                self.logger.error('can not load repo at {}: {}'.format(path, str(e)))
+
     def _searchAysRepos(self, path):
         """
         walk over path recursively to look for AYS repository
@@ -159,7 +168,7 @@ class AtYourServiceRepo():
 
                 s = Service.init_from_fs(aysrepo=self, path=service_path)
 
-    def destroy(self):
+    def delete(self):
         # removing related actors, services , runs, jobs and the model itslef.
         self.db.actors.destroy()
         self.db.services.destroy()
@@ -173,10 +182,11 @@ class AtYourServiceRepo():
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "actors"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "services"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "recipes"))  # for old time sake
-
-    def delete(self):
-        self.destroy()
         j.atyourservice.aysRepos.delete(self)
+
+    def destroy(self):
+        self.delete()
+        j.atyourservice.aysRepos.loadRepo(self.path)
 
     def enable_noexec(self):
         """

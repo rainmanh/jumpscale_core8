@@ -92,7 +92,7 @@ async def deleteRepository(request, repository):
     except j.exceptions.NotFound as e:
         return json({'error':e.message}, 404)
 
-    repo.destroy()
+    repo.delete()
     if j.sal.fs.exists(repo.path):
         j.sal.fs.removeDirTree(repo.path)
 

@@ -67,17 +67,17 @@ class DocGenerator:
         return self.gitRepos[path]
 
     def installDeps(self):
-        j.do.execute("npm install -g phantomjs")
-        j.do.execute("npm install -g mermaid")
         cuisine = j.tools.cuisine.local
+        cuisine.apps.nodejs.install()
+        cuisine.core.run("npm install -g phantomjs", profile=True)
+        cuisine.core.run("npm install -g mermaid", profile=True)
         cuisine.apps.caddy.build()
         if "darwin" in str(j.core.platformtype.myplatform):
-            j.do.execute("brew install graphviz")
-            j.do.execute("brew install hugo")
-            #j.do.execute("brew install caddy")
+            cuisine.core.run("brew install graphviz")
+            cuisine.core.run("brew install hugo")
         elif "ubuntu" in str(j.core.platformtype.myplatform):
-            j.do.execute('apt-get install graphviz')
-            j.do.execute('apt-get install hugo')
+            cuisine.core.run('apt-get install graphviz')
+            cuisine.core.run('apt-get install hugo')
 
     def startWebserver(self, generateCaddyFile=False):
         """

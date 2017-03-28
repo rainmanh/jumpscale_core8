@@ -220,3 +220,14 @@ class DocGenerator:
                                      name, level=1, source="", tags="", msgpub="")
         else:
             return None
+
+    def getDocSite(self, name, die=True):
+        name = name.lower()
+        for key, ds in self.docSites.items():
+            if ds.name == name:
+                return ds
+        if die:
+            raise j.exceptions.Input(message="Cannot find docsite with name:%s" %
+                                     name, level=1, source="", tags="", msgpub="")
+        else:
+            return None

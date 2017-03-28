@@ -238,3 +238,13 @@ class DocSite:
             raise j.exceptions.Input(message="Did not find file:%s in %s" %
                                      (name, self), level=1, source="", tags="", msgpub="")
         return None
+
+    def getDoc(self, name, die=True):
+        name = name.lower()
+        if name in self.docs:
+            return self.docs[name]
+        if die:
+            raise j.exceptions.Input(message="Cannot find doc with name:%s" %
+                                     name, level=1, source="", tags="", msgpub="")
+        else:
+            return None

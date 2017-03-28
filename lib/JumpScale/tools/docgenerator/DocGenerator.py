@@ -67,14 +67,20 @@ class DocGenerator:
         return self.gitRepos[path]
 
     def installDeps(self):
+        cuisine = j.tools.cuisine.local
+        try:
+            cuisine.core.run("npm -v", profile=True)
+        except:
+            cuisine.apps.nodejs.install()
+        cuisine.core.run("npm install -g phantomjs", profile=True)
+        cuisine.core.run("npm install -g mermaid", profile=True)
+        cuisine.apps.caddy.build()
         if "darwin" in str(j.core.platformtype.myplatform):
-            j.do.execute("brew install graphviz")
-            j.do.execute("brew install hugo")
-            j.do.execute("npm install -g phantomjs")
-            j.do.execute("npm install -g mermaid")
-            j.do.execute("brew install caddy")
-        else:
-            raise RuntimeError("only osx supported for now, please fix")
+            cuisine.core.run("brew install graphviz")
+            cuisine.core.run("brew install hugo")
+        elif "ubuntu" in str(j.core.platformtype.myplatform):
+            cuisine.package.install('graphviz')
+            cuisine.package.install('hugo')
 
     def startWebserver(self, generateCaddyFile=False):
         """

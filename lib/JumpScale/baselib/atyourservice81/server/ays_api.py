@@ -323,7 +323,7 @@ async def createBlueprint(request, repository):
     bp_path = j.sal.fs.joinPaths(repo.path, 'blueprints', new_name)
     try:
         j.sal.fs.writeFile(bp_path, j.data.serializer.yaml.dumps(content))
-        blueprint = repo.blueprintGet(bp_path)
+        blueprint = repo.blueprintGet(new_name)
     except Exception as e:
         print(str(e))
         if j.sal.fs.exists(bp_path):

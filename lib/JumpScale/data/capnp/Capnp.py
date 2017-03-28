@@ -126,6 +126,17 @@ struct Schema {
         content = j.sal.fs.fileGetContents(path)
         return self.getSchemaFromText(schemaInText=content, name=name)
 
+    def _ensure_dict(self, args):
+        """
+        make sure the argument schema are of the type dict
+        capnp doesn't handle building a message with OrderedDict properly
+        """
+        if isinstance(args, OrderedDict):
+            args = dict(args)
+            for k, v in args.items():
+                args[k] = self._ensure_dict(v)
+        return args
+
     def getObj(self, schemaInText, name="Schema", args={}, binaryData=None):
 
         # . are removed from . to Uppercase
@@ -142,6 +153,7 @@ struct Schema {
             obj = schema.from_bytes_packed(binaryData).as_builder()
         else:
             try:
+                args = self._ensure_dict(args)
                 obj = schema.new_message(**args)
             except Exception as e:
                 if str(e).find("has no such member") != -1:

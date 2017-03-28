@@ -36,7 +36,7 @@ cd ..
 # init the blueprint in ays
 ays blueprint 1_server.yaml
 # make the ays reality & follow progress
-ays run create --follow --ask
+ays run create --follow
 
 ```
 

@@ -15,3 +15,11 @@ Options:
 
 Example usage:
 `ays actor update -n node.ovc`
+
+```toml
+!!!
+title = "AYS Actor Update"
+tags= ["ays"]
+date = "2017-03-02"
+categories= ["ays_cmd"]
+```

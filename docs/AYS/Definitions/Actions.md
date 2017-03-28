@@ -80,4 +80,13 @@ def uninstall(job):
     if service.name not in space.machines:
         return
     machine = space.machines[service.name]
-    machine.delete()```
+    machine.delete()
+```
+
+```toml
+!!!
+title = "AYS Actions"
+date = "2017-03-02"
+tags= ["ays","def"]
+categories= ["ays_def"]
+```

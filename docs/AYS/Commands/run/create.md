@@ -16,3 +16,11 @@ Options:
   -f, --follow  follow run execution
   --help        Show this message and exit.
 ```
+
+```toml
+!!!
+title = "AYS Run Create"
+tags= ["ays"]
+date = "2017-03-02"
+categories= ["ays_cmd"]
+```

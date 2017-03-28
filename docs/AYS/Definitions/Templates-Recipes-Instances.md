@@ -30,3 +30,12 @@ A _service_ is a deployed unique instance of an _actor_.
 For example a Docker application running on a host node is an service instance of an actor template for that Docker application, for which there is a version-controlled actor specific to that environment.
 
 Read the section about the [Life cycle of an service instance](AtYourServiceLifecycle.html) for more details.
+
+
+```toml
+!!!
+title = "AYS Template Recipe"
+tags= ["ays","def"]
+date = "2017-03-02"
+categories= ["ays_def"]
+```

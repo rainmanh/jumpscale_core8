@@ -11,3 +11,12 @@ For example in `node.ssh (1.0)`:
 - The version is `1.0`
 
 Roles are used to define categories of actors.
+
+
+```toml
+!!!
+title = "AYS Role Version"
+tags= ["ays","def"]
+date = "2017-03-02"
+categories= ["ays_def"]
+```

@@ -30,7 +30,13 @@ class DocSite:
         self.defaultData = {}  # key is relative path in docsite where default content found
 
         self._processData(self.path + "/config")
-        self.config = copy.copy(self.defaultData[""])
+        self.config = copy.copy(self.defaultData[""])  # is shortcut to get the config data in
+
+        self.name = self.config["name"].strip().lower()
+
+        # in caddy config specify the baseurl
+        ws = "%s%s/" % (j.tools.docgenerator.webserver, self.name)
+        self.config["baseurl"] = ws
 
         # need to empty again, because was used in config
         self.defaultData = {}  # key is relative path in docsite where default content found
@@ -60,8 +66,6 @@ class DocSite:
         self.generatorPath = j.sal.fs.joinPaths(self.templatePath, "generator.py")
 
         self.templateThemePath = "%s/themes/%s" % (self.templatePath, self.config["theme"])
-
-        self.name = self.config["name"].strip().lower()
 
         # lets make sure its the outpath at this time and not the potentially changing one
         self.outpath = j.sal.fs.joinPaths(copy.copy(j.tools.docgenerator.outpath), self.name)
@@ -101,6 +105,14 @@ class DocSite:
         rdirpath = j.sal.fs.pathRemoveDirPart(fulldirpath, self.path)
         rdirpath = rdirpath.strip("/").strip().strip("/")
         self.defaultData[rdirpath] = data
+
+    @property
+    def url(self):
+        return "%s/%s" % (j.tools.docgenerator.webserver, self.name)
+
+    @property
+    def sitepath(self):
+        return "/%s/" % (self.name)
 
     def load(self):
         """
@@ -169,6 +181,12 @@ class DocSite:
         j.sal.fs.walker.walkFunctional(self.path, callbackFunctionFile=callbackFunctionFile,
                                        callbackFunctionDir=callbackFunctionDir, arg="",
                                        callbackForMatchDir=callbackForMatchDir, callbackForMatchFile=callbackForMatchFile)
+
+    def addFile(self, path):
+        if not j.sal.fs.exists(path, followlinks=True):
+            raise j.exceptions.Input(message="Cannot find path:%s" % path, level=1, source="", tags="", msgpub="")
+        base = j.sal.fs.getBaseName(path).lower()
+        self.files[base] = path
 
     def copyFiles(self, destination="static/files"):
         dpath = j.sal.fs.joinPaths(self.outpath, destination)

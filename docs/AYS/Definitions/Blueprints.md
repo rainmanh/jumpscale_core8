@@ -20,3 +20,11 @@ myapp_test:
 ```
 
 The above example is about the `test` application using two instances of the `Redis`.
+
+```toml
+!!!
+title = "AYS Blueprints"
+tags= ["ays","def"]
+date = "2017-03-02"
+categories= ["ays_def"]
+```

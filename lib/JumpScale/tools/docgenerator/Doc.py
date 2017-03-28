@@ -81,6 +81,13 @@ class Doc:
                 data = self.docSite.defaultData[key]
                 self._updateData(data)
 
+    @property
+    def url(self):
+        rpath = j.sal.fs.pathRemoveDirPart(self.path, self.docSite.path)
+        rpath = rpath[:-3]
+        rpath += '/'
+        return "%s%s" % (self.docSite.sitepath, rpath)
+
     def processContent(self):
         content = self.content
 
@@ -113,14 +120,24 @@ class Doc:
 
         ws = j.tools.docgenerator.webserver + self.docSite.name
 
-        regex = "\] *\([a-zA-Z\.\-\_\ ]+\)"  # find all possible images
+        regex = "\] *\([a-zA-Z0-9\.\-\_\ \/]+\)"  # find all possible images
         for match in j.data.regex.yieldRegexMatches(regex, content, flags=0):
+            # print("##:%s" % match)
             fname = match.founditem.strip("[]").strip("()")
-            fnameFound = self.docSite.getFile(fname, die=True)
-            # if fnameFound==None:
-            #     torepl="ERROR:"
-
-            content = content.replace(match.founditem, "](/%s/files/%s)" % (self.docSite.name, fnameFound))
+            if match.founditem.find("/") != -1:
+                fname = fname.split("/")[1]
+            if j.sal.fs.getFileExtension(fname).lower() in ["png", "jpg", "jpeg", "mov", "mp4"]:
+                fnameFound = self.docSite.getFile(fname, die=True)
+                # if fnameFound==None:
+                #     torepl="ERROR:"
+                content = content.replace(match.founditem, "](/%s/files/%s)" % (self.docSite.name, fnameFound))
+            elif j.sal.fs.getFileExtension(fname).lower() in ["md"]:
+                shortname = fname.lower()[:-3]
+                if shortname not in self.docSite.docs:
+                    raise j.exceptions.Input(message="Could not find link '%s' in %s" %
+                                             (fname, self), level=1, source="", tags="", msgpub="")
+                thisdoc = self.docSite.docs[shortname]
+                content = content.replace(match.founditem, "](%s)" % (thisdoc.url))
 
         regex = "src *= *\" */?static"
         for match in j.data.regex.yieldRegexMatches(regex, content, flags=0):
@@ -130,25 +147,26 @@ class Doc:
         state = "start"
         block = ""
         out = ""
+        codeblocks = []
         for line in content.split("\n"):
             if state == "blockstart" and (line.startswith("```") or line.startswith("'''")):
                 # end of block
                 line0 = block.split("\n")[0]
-                block = "\n".join(block.split("\n")[1:])
+                block2 = "\n".join(block.split("\n")[1:])
                 if line0.startswith("!!!"):
                     methodcode = line0[3:]
                     methodcode = methodcode.rstrip(", )")  # remove end )
                     methodcode = methodcode.replace("(", "(self,")
                     if not methodcode.strip() == line0[3:].strip():
                         # means there are parameters
-                        methodcode += ",content=block)"
+                        methodcode += ",content=block2)"
                     else:
-                        methodcode += "(content=block)"
+                        methodcode += "(content=block2)"
                     methodcode = methodcode.replace(",,", ",")
 
-                    print("methodcode:'%s'" % methodcode)
+                    # print("methodcode:'%s'" % methodcode)
                     if line0[3:].strip().strip(".").strip(",") == "":
-                        self._processData(block)
+                        self._processData(block2)
                         block = ""
                     else:
                         cmd = "j.tools.docgenerator.macros." + methodcode
@@ -162,7 +180,9 @@ class Doc:
                             raise RuntimeError("stop debug here")
                             raise e
                 else:
-                    block = "'''\n%s\n'''\n" % block
+                    codeblocks.append(block)
+                    block = "***[%s]***\n" % (len(codeblocks) - 1)
+
                 out += block
                 block = ""
                 state = "start"
@@ -178,7 +198,14 @@ class Doc:
 
             out += "%s\n" % line
 
-        # self.content = pystache.render(out, self.data)
+        out = out.replace("{{%", "[[%")
+        out = out.replace("}}%", "]]%")
+        out = pystache.render(out, self.data)
+        out = out.replace("[[%", "{{%")
+        out = out.replace("]]%", "}}%")
+
+        for x in range(len(codeblocks)):
+            out = out.replace("***[%s]***\n" % x, "```\n%s\n```\n" % codeblocks[x])
 
         self.content = out
 
@@ -195,7 +222,7 @@ class Doc:
         self.content += j.sal.fs.fileGetContents(self.path)
 
         for i in range(3):
-            self.processContent()  # dirty hack to do iterative behaviour for processing macro's
+            self.processContent()  # dirty hack to do iterative behaviour for processing macro's. but is ok
 
     def write(self, docSite):
 

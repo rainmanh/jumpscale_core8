@@ -12,3 +12,11 @@ Options:
   --ask            ask confirmation before delete services
   --help           Show this message and exit.
 ```
+
+```toml
+!!!
+title = "AYS Command Service Delete"
+tags= ["ays"]
+date = "2017-03-02"
+categories= ["ays_cmd"]
+```

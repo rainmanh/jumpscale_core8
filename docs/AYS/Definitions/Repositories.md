@@ -11,3 +11,12 @@ These are the two types of repositories used by AYS:
 - **AYS Repos** are Git repositories containing actually deployed instances
 
   - See [AYS repo](../FileDetails/AYS-repo.md) for more details
+
+
+  ```toml
+  !!!
+  title = "AYS Repo"
+  tags= ["ays","def"]
+  date = "2017-03-02"
+  categories= ["ays_def"]
+  ```

@@ -17,3 +17,11 @@ Example usage :
 $ ays repo create -n test -g http://github.com/user/ays_repo
 AYS repository created at /optvar/cockpit_repos/test
 ```
+
+```toml
+!!!
+title = "AYS Repo Create"
+tags= ["ays"]
+date = "2017-03-02"
+categories= ["ays_cmd"]
+```

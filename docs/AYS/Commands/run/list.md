@@ -8,3 +8,11 @@ ays run list [OPTIONS]
 Options:
   --help  Show this message and exit.
 ```
+
+```toml
+!!!
+title = "AYS Run List"
+tags= ["ays"]
+date = "2017-03-02"
+categories= ["ays_cmd"]
+```

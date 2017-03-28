@@ -35,3 +35,12 @@ The process that takes places is:
   - After this action the AYS directory is up to date with all required configuration information
 
   - Information outside can be used to get info in service data, e.g. stats info from Reality DB
+
+
+  ```toml
+  !!!
+  title = "AYS Command Blueprint"
+  tags= ["ays"]
+  date = "2017-03-02"
+  categories= ["ays_cmd"]
+  ```

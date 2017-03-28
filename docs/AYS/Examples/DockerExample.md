@@ -40,32 +40,40 @@ node.physical__ovh4:
 os.ssh.ubuntu__ovh4:
   ssh.addr: '1.1.1.1'
   ssh.port: 22
-  ssh.key: 'ovh_install' 
+  ssh.key: 'ovh_install'
   node: 'ovh4'
   aysfs: False
 
 node.docker__master:
-  ssh.key: 'ovh_install' 
+  ssh.key: 'ovh_install'
   image: 'ubuntu 15.04'
   ports:
     - 80
   os: 'ovh4'
 
 os.ssh.ubuntu__docker_master:
-  ssh.key: 'ovh_install' 
+  ssh.key: 'ovh_install'
   node: 'master'
   g8os_fs: False
 
 node.docker__client:
-  ssh.key: 'ovh_install' 
+  ssh.key: 'ovh_install'
   image: 'ubuntu 15.04'
   ports:
     - 80
   os: 'ovh4'
 
 os.ssh.ubuntu__docker_client:
-  ssh.key: 'ovh_install' 
+  ssh.key: 'ovh_install'
   node: 'client'
   g8os_fs: False
   agent: true
+```
+
+```toml
+!!!
+title = "AYS Docker Example"
+tags= ["ays"]
+date = "2017-03-02"
+categories= ["ays_example"]
 ```

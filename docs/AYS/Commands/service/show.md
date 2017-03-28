@@ -10,3 +10,11 @@ Options:
   -n, --name TEXT
   --help           Show this message and exit.
   ```
+
+  ```toml
+  !!!
+  title = "AYS Service Show"
+  tags= ["ays"]
+  date = "2017-03-02"
+  categories= ["ays_cmd"]
+  ```

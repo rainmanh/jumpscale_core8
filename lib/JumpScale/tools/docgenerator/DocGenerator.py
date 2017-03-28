@@ -58,6 +58,7 @@ class DocGenerator:
         self.webserver = "http://localhost:1313/"
         self.ws = self.webserver.replace("http://", "").replace("https://", "").replace("/", "")
         self.logger = j.logger.get('docgenerator')
+        self._loaded = []
 
     def addGitRepo(self, path):
         if path not in self.gitRepos:
@@ -90,7 +91,7 @@ class DocGenerator:
             sname = j.tools.cuisine.local.tmux.getSessions()[0]
         except:
             sname = "main"
-        rc, out = j.tools.cuisine.local.tmux.executeInScreen(sname, "caddy", cmd, reset=True, wait=2)
+        rc, out = j.tools.cuisine.local.tmux.executeInScreen(sname, "caddy", cmd, reset=True, wait=1)
         if rc > 0:
             raise RuntimeError("Cannot start AYS service")
         self.logger.debug(out)
@@ -118,8 +119,12 @@ class DocGenerator:
     def init(self):
         if self._initOK == False:
             j.sal.fs.remove(self._macroCodepath)
-        # load the default macro's
-        self.loadMacros("https://github.com/Jumpscale/docgenerator/tree/master/macros")
+            # load the default macro's
+            self.loadMacros("https://github.com/Jumpscale/docgenerator/tree/master/macros")
+            self._initOK = True
+        if self.webserver[-1] != "/":
+            self.webserver += "/"
+        self.ws = self.webserver.replace("http://", "").replace("https://", "").replace("/", "")
 
     def loadMacros(self, pathOrUrl=""):
         """
@@ -162,6 +167,9 @@ class DocGenerator:
             this can also be a git url e.g. https://github.com/Jumpscale/docgenerator/tree/master/examples
 
         """
+        if pathOrUrl in self._loaded:
+            return
+        self._loaded.append(pathOrUrl)
         self.init()
         if pathOrUrl == "":
             path = j.sal.fs.getcwd()
@@ -173,20 +181,18 @@ class DocGenerator:
             if docDir not in self.docSites:
                 print("found doc dir:%s" % docDir)
                 ds = DocSite(path=docDir)
-                self.docSites[path] = ds
-                # self._docRootPathsDone.append(docDir)
+                self.docSites[docDir] = ds
 
     def generateExamples(self, start=True):
         self.load(pathOrUrl="https://github.com/Jumpscale/docgenerator/tree/master/examples")
-        self.load(pathOrUrl="https://github.com/Jumpscale/jumpscale_core8/tree/8.2.0")
-        self.load(pathOrUrl="https://github.com/Jumpscale/jumpscale_portal8/tree/8.2.0")
+        # self.load(pathOrUrl="https://github.com/Jumpscale/jumpscale_core8/tree/8.2.0")
+        # self.load(pathOrUrl="https://github.com/Jumpscale/jumpscale_portal8/tree/8.2.0")
         self.generate(start=start)
 
     def generate(self, start=True):
         if self.docSites == {}:
             self.load()
         for path, ds in self.docSites.items():
-            ds.process()
             ds.write()
         self.generateCaddyFile()
         if start:

@@ -11,3 +11,12 @@ The parent/child relationship defines the location in the AYS repo directory str
 Child services also inherit their parent's executor defined in `getExecutor` by default.
 
 See the section [Parent/Child](../FileDetails/Parent-Child.md) for more information on this topic.
+
+
+```toml
+!!!
+title = "AYS Parent Children"
+tags= ["ays","def"]
+date = "2017-03-02"
+categories= ["ays_def"]
+```

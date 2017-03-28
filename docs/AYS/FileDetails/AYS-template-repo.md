@@ -35,7 +35,7 @@ Each AYS actor template has following files:
   - Contains information about how services interact with each other through:
 
     - Parenting, for more details see the section [Parents & Children](Definitions/Parents-Children.md)
-    - Consumption, for more details see the section [Producers & Consumers](Definitions/Products-Consumers.md)
+    - Consumption, for more details see the section [Producers & Consumers](Definitions/Producers-Consumers.md)
 
   - Has parameter definitions used to configure the service
 

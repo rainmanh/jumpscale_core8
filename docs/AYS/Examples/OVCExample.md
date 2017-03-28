@@ -45,3 +45,11 @@ node.ovc__vm:
 os.ssh.ubuntu__os:
     node: vm
 ```
+
+```toml
+!!!
+title = "AYS OVC Example"
+tags= ["ays"]
+date = "2017-03-02"
+categories= ["ays_example"]
+```

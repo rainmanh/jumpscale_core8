@@ -11,6 +11,10 @@ Please check our [GitBook](https://gig.gitbooks.io/jumpscale-core8/content/) for
 - [branches](branches.md)
 - [version & roadmap info](../master/releases.md)
 
+## dependencies
+Python 3.6.1
+Git
+
 ## how to install from master (THIS IS NOT 8.2.0, DO NOT USE). 
 Should be executed under root.
 

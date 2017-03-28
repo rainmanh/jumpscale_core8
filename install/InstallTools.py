@@ -2419,6 +2419,7 @@ class Installer():
                     self.do.execute(cmd)
 
         self.do.dependencies.all()
+        self.do.dependencies.flist()
 
     def gitConfig(self, name, email):
         if name == "":

@@ -50,6 +50,10 @@ class dependencies():
         """
         self.do.pip(C, executor=executor)
 
+    def flist(self, executor=None):
+        self.do.execute("apt-get install -y librocksdb-dev libhiredis-dev libbz2-dev", executor=executor)
+        self.do.pip("pyrocksdb peewee g8storclient", executor=executor)
+
     # OBSOLETE
     # """
     # all

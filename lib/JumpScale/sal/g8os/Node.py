@@ -62,7 +62,7 @@ class Node:
         self._client.bash("cp -arv /tmpbak/* /tmp/").get()
         self._client.bash("rm -rf /tmpbak").get()
 
-    def ensure_persistance(self):
+    def ensure_persistance(self, name='fscache'):
         """
         look for a disk not used,
         create a partition and mount it to be used as cache for the g8ufs
@@ -76,13 +76,13 @@ class Node:
         # check if there is already a storage pool with the fs_cache label
         fscache_sp = None
         for sp in self.storagepools.list():
-            if sp.name == 'fscache':
+            if sp.name == name:
                 fscache_sp = sp
 
         # create the storage pool if we don't have one yet
         if fscache_sp is None:
             disk = self._eligible_fscache_disk(disks)
-            fscache_sp = self.storagepools.create('fscache', devices=[disk.devicename], metadata_profile='single', data_profile='single')
+            fscache_sp = self.storagepools.create(name, devices=[disk.devicename], metadata_profile='single', data_profile='single')
 
         # mount the storage pool
         self._mount_fscache(fscache_sp)

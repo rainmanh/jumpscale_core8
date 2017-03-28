@@ -29,6 +29,21 @@ class StoragePools:
         pool.create(metadata_profile, data_profile)
         return pool
 
+    def destroy(self, name, zero=True):
+        """
+        param name: name of storagepool to delete
+        param zero: write zeros (nulls) to the first 500MB of each disk in this storagepool
+        """
+        try:
+            pool = self.get(name)
+        except ValueError:
+            return True
+        if pool.mountpoint:
+            pool.umount()
+        if zero:
+            for device in pool.devices:
+                self._client.system('dd if=/dev/zero bs=1M count=500 of={}'.format(device))
+
 
 class StoragePool(Mountable):
     def __init__(self, node, name, devices):
@@ -53,6 +68,16 @@ class StoragePool(Mountable):
             if mountpoint:
                 return mountpoint
 
+    def device_add(self, *devices):
+        self._client.btrfs.device_add(self._get_mountpoint(), *devices)
+
+    def device_remove(self, *devices):
+        self._client.btrfs.device_remove(self._get_mountpoint(), *devices)
+
+    @property
+    def fsinfo(self):
+        return self._client.btrfs.info(self.mountpoint)
+
     @mountpoint.setter
     def mountpoint(self, value):
         # do not do anything mountpoint is dynamic
@@ -61,7 +86,7 @@ class StoragePool(Mountable):
     def _get_mountpoint(self):
         mountpoint = self.mountpoint
         if not mountpoint:
-            raise RuntimeError("Can not perform subvol action when filesystem is not mounted")
+            raise RuntimeError("Can not perform action when filesystem is not mounted")
         return mountpoint
 
     def list_subvolumes(self):

@@ -79,8 +79,8 @@ class DocGenerator:
             cuisine.core.run("brew install graphviz")
             cuisine.core.run("brew install hugo")
         elif "ubuntu" in str(j.core.platformtype.myplatform):
-            cuisine.core.run('apt-get install graphviz')
-            cuisine.core.run('apt-get install hugo')
+            cuisine.package.install('graphviz')
+            cuisine.package.install('hugo')
 
     def startWebserver(self, generateCaddyFile=False):
         """

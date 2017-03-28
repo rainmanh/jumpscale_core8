@@ -27,20 +27,8 @@ class CuisineCaddy(app):
         features = ",".join(self.features)
         self.cuisine.core.dir_ensure('$JSBASEDIR/tmp')
         # ANDROID_ROOT is exported in order to run the  installation script correctly
-        cmd = "export PREFIX=$JSBASEDIR && export ANDROID_ROOT=/opt && curl https://getcaddy.com/ | bash -s %s" % features
+        cmd = "export PREFIX=$JSBASEDIR && export ANDROID_ROOT=NOT_USED && curl https://getcaddy.com/ | bash -s %s" % features
         self.cuisine.core.run(cmd)
-        # if self.core.isMac:
-        #     caddy_url = 'https://github.com/mholt/caddy/releases/download/v0.9.5/caddy_darwin_amd64.zip'
-        #     dest = j.sal.fs.joinPaths(self.BUILDDIR_, 'caddy_darwin_amd64.zip')
-        #     self.cuisine.core.file_download(caddy_url, dest, minsizekb=4)
-        #     self.cuisine.core.run(
-        #         'cd {builddir}; unzip  -u {builddir}/caddy_{os}_amd64.zip'.format(builddir=self.BUILDDIR_, os='darwin'))
-        # else:
-        #     caddy_url = 'https://github.com/mholt/caddy/releases/download/v0.9.5/caddy_linux_amd64.tar.gz'
-        #     dest = j.sal.fs.joinPaths(self.BUILDDIR_, 'caddy_linux_amd64.tar.gz')
-        #     self.cuisine.core.file_download(caddy_url, dest, minsizekb=4)
-        #     self.cuisine.core.run(
-        #         'cd {builddir}; tar xvf {builddir}/caddy_{os}_amd64.tar.gz'.format(builddir=self.BUILDDIR_, os='linux'))
         if install:
             self.install(ssl, start, dns, reset, wwwrootdir)
 
@@ -56,10 +44,6 @@ class CuisineCaddy(app):
         if self.doneGet('install') and reset is False and self.isInstalled():
             return
 
-        # os = 'darwin' if self.core.isMac else 'linux'
-        #
-        # self.cuisine.core.file_copy(
-        #     '{builddir}/caddy_{os}_amd64'.format(builddir=self.BUILDDIR_, os=os), '$BINDIR/caddy')
         self.cuisine.bash.profileDefault.addPath(self.cuisine.core.dir_paths['BINDIR'])
         self.cuisine.bash.profileDefault.save()
         addr = ':8000'

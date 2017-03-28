@@ -54,8 +54,9 @@ import signal
 def onchildexit_handler(*args):
     if 'self' in args[1].f_locals:
         self = args[1].f_locals['self']
-        #print("Now WAITING ON DEAD pid: ", self.pid)
-        os.waitpid(self.pid, 0)
+        if hasattr(self, 'pid'):
+            #print("Now WAITING ON DEAD pid: ", self.pid)
+            os.waitpid(self.pid, 0)
 
 signal.signal(signal.SIGCHLD, onchildexit_handler)
 

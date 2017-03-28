@@ -68,7 +68,10 @@ class DocGenerator:
 
     def installDeps(self):
         cuisine = j.tools.cuisine.local
-        cuisine.apps.nodejs.install()
+        try:
+            cuisine.core.run("npm -v", profile=True)
+        except:
+            cuisine.apps.nodejs.install()
         cuisine.core.run("npm install -g phantomjs", profile=True)
         cuisine.core.run("npm install -g mermaid", profile=True)
         cuisine.apps.caddy.build()

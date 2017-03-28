@@ -189,6 +189,12 @@ class DocGenerator:
         # self.load(pathOrUrl="https://github.com/Jumpscale/jumpscale_portal8/tree/8.2.0")
         self.generate(start=start)
 
+    def generateJSDoc(self, start=True):
+        self.load(pathOrUrl="https://github.com/Jumpscale/docgenerator/tree/master/examples")
+        self.load(pathOrUrl="https://github.com/Jumpscale/jumpscale_core8/tree/8.2.0")
+        self.load(pathOrUrl="https://github.com/Jumpscale/jumpscale_portal8/tree/8.2.0")
+        self.generate(start=start)
+
     def generate(self, start=True):
         if self.docSites == {}:
             self.load()

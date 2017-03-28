@@ -6,7 +6,7 @@ depends = ["https://github.com/Jumpscale/jumpscale_core8/tree/8.2.0/docs",
         "https://github.com/Jumpscale/ays_jumpscale8/tree/8.2.0"]
 
 languageCode = "en-us"
-title = "Definitions Demo"
+title = "Jumpscale Documentation"
 theme = "hugo_theme_beg"
 preserveTaxonomyNames = true
 paginate = 50
@@ -73,20 +73,14 @@ googleAnalytics = ""
 # Set up your menu items in the navigation bar
 # You can use identifier to prepend a font awesome icon to your text
 [[menu.main]]
-    name = "Blog"
-    url = "/blog/"
-    identifier = "fa fa-newspaper-o"
+    name = "Categories"
+    url = "/categories/"
     weight = 1
 
 [[menu.main]]
-    name = "Categories"
-    url = "/categories/"
+    name = "Home"
+    url = "{{webserver}}"
     weight = 2
-
-[[menu.main]]
-    name = "About"
-    url = "/about/"
-    weight = 3
 
 # Insert your username and the icon will apear on the page as long as
 # socialAppearAtTop or socialAppearAtBottom is set to true in the params area

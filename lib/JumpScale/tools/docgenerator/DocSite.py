@@ -6,6 +6,7 @@ import imp
 import sys
 import inspect
 import copy
+import pystache
 
 
 def loadmodule(name, path):
@@ -27,10 +28,12 @@ class DocSite:
         self.git = j.tools.docgenerator.addGitRepo(gitpath)
 
         self.defaultContent = {}  # key is relative path in docsite where default content found
-        self.defaultData = {}  # key is relative path in docsite where default content found
 
-        self._processData(self.path + "/config")
-        self.config = copy.copy(self.defaultData[""])  # is shortcut to get the config data in
+        data = {}
+        data["webserver"] = j.tools.docgenerator.webserver
+        c = j.sal.fs.fileGetContents(self.path + "config.toml")
+        c2 = pystache.render(c, data)
+        self.config = j.data.serializer.toml.loads(c2)
 
         self.name = self.config["name"].strip().lower()
 

@@ -1,11 +1,11 @@
 from JumpScale import j
 import signal
 import time
-from multiprocessing.pool import ThreadPool as Pool
-#from multiprocessing.pool import Pool as Pool
+from multiprocessing import Pool
 from threading import Thread
 from JumpScale.baselib.jobcontroller.models.JobsCollections import JobsCollection
 import requests
+
 
 def run_action(repo_path, service_key, action_name, args=None):
     """

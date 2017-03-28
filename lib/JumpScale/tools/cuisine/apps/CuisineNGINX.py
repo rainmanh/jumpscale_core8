@@ -205,6 +205,7 @@ class CuisineNGINX(app):
     def start(self, name="nginx", nodaemon=True, nginxconfpath=None):
         nginxbinpath = '$BUILDDIR/nginx/sbin'
         # COPY BINARIES TO BINDIR
+        self.cuisine.core.dir_ensure('$BINDIR')
         self.cuisine.core.run("cp $BUILDDIR/nginx/sbin/* $BINDIR/")
 
         if nginxconfpath is None:

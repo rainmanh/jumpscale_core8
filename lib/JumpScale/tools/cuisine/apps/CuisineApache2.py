@@ -95,7 +95,7 @@ class CuisineApache2(app):
             if line:
                 mod = "#"+line
                 conffile = conffile.replace(line, mod)
-        sitesdirconf = self._cuisine.core.args_replace("\nInclude $JSCFGDIR/apache2/sites-enabled/*")
+        sitesdirconf = self._cuisine.core.replace("\nInclude $JSCFGDIR/apache2/sites-enabled/*")
         conffile += sitesdirconf
         conffile += "\nAddType application/x-httpd-php .php"
 

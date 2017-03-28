@@ -268,7 +268,7 @@ class CuisineOwnCloud(app):
             basicnginxconf = self._cuisine.apps.nginx.get_basic_nginx_conf()
             basicnginxconf = basicnginxconf.replace(
                 "include $JSAPPSDIR/nginx/etc/sites-enabled/*;", "include $JSCFGDIR/nginx/etc/sites-enabled/*;")
-            basicnginxconf = self.cuisine.core.args_replace(basicnginxconf)
+            basicnginxconf = self.cuisine.core.replace(basicnginxconf)
             C = """
             chown -R www-data:www-data $JSAPPSDIR/owncloud $cfgDir/nginx
             chmod 777 -R $JSAPPSDIR/owncloud/config

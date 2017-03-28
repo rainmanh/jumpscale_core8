@@ -29,7 +29,7 @@ class CuisinePHP(app):
         pkgs = "libxml2-dev libpng-dev libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev re2c bison bzip2 build-essential libaprutil1-dev libapr1-dev openssl pkg-config libssl-dev libsslcommon2-dev file"
         list(map(self._cuisine.package.ensure, pkgs.split(sep=" ")))
 
-        compileconfig['with_apxs2'] = self._cuisine.core.args_replace("$appDir/apache2/bin/apxs")
+        compileconfig['with_apxs2'] = self._cuisine.core.replace("$appDir/apache2/bin/apxs")
         buildconfig = deepcopy(compileconfig)
         buildconfig.update(config)  # should be defaultconfig.update(config) instead of overriding the explicit ones.
 

@@ -9,7 +9,8 @@ Usage: ays run create [OPTIONS]
   repository.
 
 Options:
-  --ask         ask before confirmation before executing
+  -y, --yes, --asume-yes  Automatic yes to prompts. Assume "yes" as answer to
+                        all prompts and run non-interactively
   --force       force execution even if no change
   --debug       enable debug in jobs
   --profile     enable profiling of the jobs

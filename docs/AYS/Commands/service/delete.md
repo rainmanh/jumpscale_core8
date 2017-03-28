@@ -9,7 +9,8 @@ ays service delete [OPTIONS]
 Options:
   -r, --role TEXT  optional role for the service you want to delete
   -n, --name TEXT  optional name of the service
-  --ask            ask confirmation before delete services
+  -y, --yes, --asume-yes  Automatic yes to prompts. Assume "yes" as answer to
+                          all prompts and run non-interactively
   --help           Show this message and exit.
 ```
 

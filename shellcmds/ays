@@ -283,8 +283,8 @@ def state(role, name):
 @service.command()
 @click.option('--role', '-r', default="", help='optional role for the service you want to delete')
 @click.option('--name', '-n', default="", help='optional name of the service')
-@click.option('--ask', default=True, is_flag=True, help='ask confirmation before delete services')
-def delete(role, name, ask):
+@click.option('--yes','-y','--asume-yes',default=False, is_flag=True,  help='Automatic yes to prompts. Assume "yes" as answer to all prompts and run non-interactively')
+def delete(role, name, asume_yes):
     """
     Delete a service and all its children
     Be carefull with this action, there is no come back once a service is deleted.
@@ -327,7 +327,7 @@ def delete(role, name, ask):
             else:
                 print("   None")
 
-    if ask:
+    if not asume_yes:
         resp = j.tools.console.askYesNo('\nAre you sure you want to delete ?')
         if resp is False:
             return
@@ -448,12 +448,12 @@ def _print_run(run, logs=False):
 
 
 @run.command()
-@click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
+@click.option('--yes','-y','--asume-yes',default=False, is_flag=True,  help='Automatic yes to prompts. Assume "yes" as answer to all prompts and run non-interactively')
 @click.option('--force', default=False, is_flag=True, help='force execution even if no change')
 @click.option('--debug', default=False, is_flag=True, help='enable debug in jobs')
 @click.option('--profile', default=False, is_flag=True, help='enable profiling of the jobs')
 @click.option('--follow', '-f', is_flag=True, help='follow run execution')
-def create(ask, force, debug, profile, follow):
+def create(asume_yes, force, debug, profile, follow):
     """
     Look for all action with a state 'schedule', 'changed' or 'error' and create a run.
     A run is an collection of actions that will be run on the repository.
@@ -471,7 +471,7 @@ def create(ask, force, debug, profile, follow):
 
     _print_run(run)
 
-    if ask:
+    if not asume_yes:
         resp = j.tools.console.askYesNo('Do you want to execute this run ?', True)
         if resp is False:
             return
@@ -586,10 +586,10 @@ def blueprint(name):
 # AYS repository related group of commands
 @cli.command()
 @click.argument('action')
-@click.option('--ask', default=True, is_flag=True, help='ask before confirmation before executing')
+@click.option('--yes','-y','--asume-yes',default=False, is_flag=True,  help='Automatic yes to prompts. Assume "yes" as answer to all prompts and run non-interactively')
 @click.option('--actor', '-a', help='filter actor by name')
 @click.option('--service', '-s', help='filter service by name')
-def action(action, ask, actor, service):
+def action(action, asume_yes, actor, service):
     """
     Shortcut to execute actions blocks
 
@@ -615,7 +615,7 @@ def action(action, ask, actor, service):
         'content': action_block
     }
 
-    if ask:
+    if not asume_yes:
         print(j.data.serializer.yaml.dumps(action_block))
         resp = j.tools.console.askYesNo('Do you want to execute this action block ?', True)
         if resp is False:

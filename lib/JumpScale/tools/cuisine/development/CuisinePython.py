@@ -7,7 +7,7 @@ class CuisinePython(base):
 
     def _init(self):
         self.BUILDDIRL = self.core.replace("$BUILDDIR/python3/")
-        self.CODEDIRL = self.core.replace("$CODEDIR/mercurial/cpython/")
+        self.CODEDIRL = self.core.replace("$CODEDIR/github/python/cpython/")
 
     def reset(self):
         base.reset(self)
@@ -39,9 +39,8 @@ class CuisinePython(base):
                 self.doneSet("xcode_install")
 
         if not self.doneGet("compile") or reset:
-            self.cuisine.development.mercurial.pullRepo("https://hg.python.org/cpython", reset=reset)
-            self.cuisine.core.run("set -ex;cd %s;hg update 3.6" % self.CODEDIRL)
-
+            cpath = self.cuisine.development.git.pullRepo('https://github.com/python/cpython', branch="3.6", reset=reset)
+            assert cpath.rstrip("/") == self.CODEDIRL.rstrip("/")
             if self.core.isMac:  # TODO: *2 cant we do something similar for linux?
 
                 C = """
@@ -146,7 +145,6 @@ class CuisinePython(base):
                                    recursive=True, rsyncdelete=False, createdir=True)
 
         self.cuisine.core.file_copy("%s/pyconfig.h" % self.CODEDIRL, "%s/include/python/pyconfig.h" % self.BUILDDIRL)
-
         C = """
 
         export JSBASE=`pwd`
@@ -167,7 +165,7 @@ class CuisinePython(base):
         if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
                 hash -r 2>/dev/null
         fi
-        """
+        """.format(JSBASE=j.dirs.JSBASEDIR)
 
         self.cuisine.core.file_write("%s/env.sh" % self.BUILDDIRL, C, replaceArgs=True)
 
@@ -285,31 +283,25 @@ class CuisinePython(base):
             # cannot use cuisine functionality because would not be sandboxed
             if not self.doneGet("pip3_%s" % item) or reset:
                 C = "set -ex;cd $BUILDDIRL;source env.sh;pip3 install --trusted-host pypi.python.org %s" % item
-                self.cuisine.core.run(self.replace(C))
+                self.cuisine.core.run(self.replace(C), shell=True)
                 self.doneSet("pip3_%s" % item)
 
     def install(self):
-        if self.cuisine.platformtype.osname == "debian":
-            C = """
-            libpython3.5-dev
-            python3.5-dev
-            """
-        elif self.cuisine.platformtype.osname == 'ubuntu' and self.cuisine.platformtype.osversion == '16.04':
-            C = """
-            libpython3.5-dev
-            python3.5-dev
-            """
-        else:
-            C = """
-            python3
-            # postgresql
-            # libpython3.4-dev
-            # python3.4-dev
-            libpython3.5-dev
-            python3.5-dev
-            """
-        self.cuisine.package.multiInstall(C)
+        if not self.doneGet("build"):
+            self.build()
+        self.cuisine.core.dir_ensure(j.dirs.JSBASEDIR)
+        self.cuisine.core.dir_ensure(j.dirs.JSBASEDIR+"/bin")
+        self.cuisine.core.dir_ensure(j.dirs.JSBASEDIR+"/lib")
+        command = """
+        cp -r {python_build}/bin/* {JSBASE}/bin
+        cp -r {python_build}/lib/* {JSBASE}/lib
+        cp -r {python_build}/include {JSBASE}/include
+        cp -r {python_build}/plib    {JSBASE}/plib
+        cp {python_build}/env.sh {JSBASE}/env.sh
+        cp {python_build}/_sysconfigdata_m_linux_x86_64-linux-gnu.py {JSBASE}
+        """.format(python_build=self.BUILDDIRL, JSBASE=j.dirs.JSBASEDIR)
 
+        self.cuisine.core.run(command)
         C = """
         autoconf
         libffi-dev

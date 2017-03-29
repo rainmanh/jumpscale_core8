@@ -210,7 +210,6 @@ class Process():
 
                 self._setException(eco.toJson())
             finally:
-                self._setSuccess(res)
                 self._clean()
                 if raisederror:
                     os._exit(1)

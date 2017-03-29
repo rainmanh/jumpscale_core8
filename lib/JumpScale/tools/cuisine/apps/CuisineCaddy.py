@@ -7,24 +7,26 @@ app = j.tools.cuisine._getBaseAppClass()
 class CuisineCaddy(app):
 
     NAME = "caddy"
+    defaultfeatures = ['filemanager', 'cors']
 
     def _init(self):
         self.BUILDDIR_ = self.replace("$BUILDDIR/caddy")
         self.CODEDIR_ = self.replace("$CODEDIR/github/mholt/caddy")
-        self.features = ['filemanager']
 
     def reset(self):
         app.reset(self)
         self._init()
 
-    def build(self, ssl=False, start=True, dns=None, reset=False, wwwrootdir=None, install=True):
+    def build(self, ssl=False, start=True, dns=None, reset=False, wwwrootdir=None, install=True, features=defaultfeatures):
         """
         Get/Build the binaries of caddy itself.
+        :param features: is used to specify the required features in the installation. Currently the default installation
+        will add the following features: filemanager, cors
         """
         if self.doneGet('build') and reset is False:
             return
 
-        features = ",".join(self.features)
+        features = ",".join(features)
         self.cuisine.core.dir_ensure('$JSBASEDIR/tmp')
         # ANDROID_ROOT is exported in order to run the  installation script correctly
         cmd = "export PREFIX=$JSBASEDIR && export ANDROID_ROOT=NOT_USED && curl https://getcaddy.com/ | bash -s %s" % features

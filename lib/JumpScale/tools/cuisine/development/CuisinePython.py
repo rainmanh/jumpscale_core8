@@ -27,6 +27,7 @@ class CuisinePython(base):
             return
 
         self.cuisine.development.openssl.build()
+        self.cuisine.development.libffi.build()
         self.cuisine.package.install('zlib1g-dev')
         if self.cuisine.core.isMac:
             if not self.doneGet("xcode_install"):
@@ -47,7 +48,7 @@ class CuisinePython(base):
                 set -ex
                 cd $CODEDIRL
 
-                export LIBRARY_PATH="$openssldir/lib"
+                export LIBRARY_PATH="$openssldir/lib:$libffidir/lib"
                 export CPPPATH="$openssldir/include"
                 export CPATH="$openssldir/include"
                 export PATH=$openssldir/lib:/$openssldir/bin:/usr/local/bin:/usr/bin:/bin
@@ -66,6 +67,7 @@ class CuisinePython(base):
                 """
 
                 C = C.replace("$openssldir", self.cuisine.development.openssl.BUILDDIRL)
+                C = C.replace("$libffidir", self.cuisine.development.libffi.BUILDDIRL)
                 C = self.replace(C)
 
                 self.cuisine.core.file_write("%s/mycompile_all.sh" % self.CODEDIRL, C)
@@ -272,6 +274,7 @@ class CuisinePython(base):
         uvloop
         gevent
         """
+        self.cuisine.package.multiInstall(['libffi-dev', 'libssl-dev'])
         self.pip(C, reset=reset)
         self.sandbox(deps=False)
 

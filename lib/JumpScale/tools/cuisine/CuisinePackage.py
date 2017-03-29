@@ -95,7 +95,7 @@ class CuisinePackage(base):
             # ignore
             for unsupported in ["libpython3.5-dev", "libffi-dev", "build-essential", "libpq-dev", "libsqlite3-dev"]:
                 if unsupported in package:
-                    return
+                    package = 'devel'
 
             cmd = "pacman -S %s  --noconfirm" % package
 

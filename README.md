@@ -13,9 +13,6 @@ Please check our [GitBook](https://gig.gitbooks.io/jumpscale-core8/content/) for
 
 ## Installation instructions Ubuntu 16.04
 
-## supported environemnts:
-* Ubuntu 16.04
-
 ## dependencies
 Should be executed under root.
 ```

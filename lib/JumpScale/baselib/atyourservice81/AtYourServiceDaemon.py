@@ -18,7 +18,7 @@ def run_action(repo_path, service_key, action_name, args=None):
     service = repo.db.services.get(service_key).objectGet(repo)
 
     job = service.getJob(action_name, args=args)
-    p = job.execute()
+    p = job.executeInProcess()
     service.model.actions[action_name].lastRun = j.data.time.epoch
     service.saveAll()
 

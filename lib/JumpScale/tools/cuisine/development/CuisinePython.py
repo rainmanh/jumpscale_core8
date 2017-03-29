@@ -224,6 +224,7 @@ class CuisinePython(base):
         linkpath = "%s/lib/JumpScale" % self.cuisine.core.dir_paths["JSBASEDIR"]
         C = "ln -s %s %s/lib/JumpScale" % (linkpath, self.BUILDDIRL)
         if not self.cuisine.core.file_exists("%s/lib/JumpScale" % self.BUILDDIRL):
+            self.core.run('rm -rf %s/lib/JumpScale' % self.BUILDDIRL)
             self.cuisine.core.run(C)
 
         # # now create packaged dir

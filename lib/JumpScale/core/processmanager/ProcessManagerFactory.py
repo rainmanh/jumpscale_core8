@@ -204,6 +204,7 @@ class Process():
                 # j.core.processmanager.clearCaches()
                 self._state = "running"
                 res = self.method(**self.args)
+                self._setSuccess(res)
 
             except Exception as e:
                 eco = j.errorconditionhandler.processPythonExceptionObject(e)

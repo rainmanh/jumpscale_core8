@@ -68,7 +68,7 @@ class AtYourServiceFactory:
     @property
     def config(self):
         if self._config is None:
-            cfg = j.application.config.jumpscale['ays']
+            cfg = j.application.config.jumpscale.get('ays')
             if not cfg:
                 cfg = {}
             if 'redis' not in cfg:

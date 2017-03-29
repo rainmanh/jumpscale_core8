@@ -5,6 +5,7 @@ from JumpScale.baselib.atyourservice81.server.ays_if import ays_if
 from JumpScale.baselib.atyourservice81.server.webhooks_if import webhooks_if
 
 app = Sanic(__name__)
+
 app.blueprint(ays_if)
 app.blueprint(webhooks_if)
 

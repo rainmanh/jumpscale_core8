@@ -68,26 +68,37 @@ types:
       hash: '45d4dbd44a0a3c3c8cf62acdab8e0850'
       archived: true
 
+  BlueprintListing:
+    properties:
+      name: string
+
   ServicePointer:
     properties:
       role: string
       name: string
 
+  ActionRecurring:
+    properties:
+      period:
+        type: integer
+        description: recurring period in second
+      last_run:
+        type: integer
+        description: timestamp of last execution
   Action:
     properties:
       name: string
       code: string
       state:
         enum: [ new, changed, ok, scheduled, disabled, error,running ]
-      recurring:
-        type: object
-        properties:
-          period:
-            type: integer
-            description: recurring period in second
-          last_run:
-            type: integer
-            description: timestamp of last execution
+      recurring: ActionRecurring
+
+  Event:
+    properties:
+      actions: string[]
+      command: string
+      channel: string
+      tags: string[]
 
   Service:
     properties:
@@ -105,15 +116,7 @@ types:
       producers: ServicePointer[]
       consumers: ServicePointer[]
       children: ServicePointer[]
-      events:
-        type: array
-        items:
-          type: object
-          properties:
-            actions: string[]
-            command: string
-            channel: string
-            tags: string[]
+      events: Event[]
     example:
         key: "6b756dc89h9efe5187f2dddcf74b3e80"
         name: "main"
@@ -153,11 +156,6 @@ types:
             tags:
               - "type:red"
 
-  RecurringAction:
-    properties:
-      action: string
-      log: boolean
-      period: string
 
   Actor:
     properties:
@@ -168,31 +166,24 @@ types:
         type: string
         description: capnp schema
 
+  TemplateRecurringAction:
+    properties:
+      action: string
+      log: boolean
+      period: string
+
+  TemplateLink:
+    properties:
+      auto: boolean
+      min: integer
+      max: integer
+      role: string
+      argname: string
+
   TemplateConfig:
     properties:
-      links:
-        type: array
-        items:
-          type: object
-          properties:
-            consume:
-              type: array
-              items:
-                type: object
-                properties:
-                  auto: boolean
-                  min: integer
-                  max: integer
-                  role: string
-                  argname: string
-            parent:
-              type: object
-              properties:
-                auto: boolean
-                role: string
-                argname: string
-                optional: boolean
-      recurring: RecurringAction[]
+      links: TemplateLink[]
+      recurring: TemplateRecurringAction[]
 
   Template:
     properties:
@@ -202,6 +193,10 @@ types:
       schema: string
       path: string
       config: TemplateConfig
+
+  TemplateListing:
+    properties:
+      name: string
 
   TemplateRepo:
     properties:
@@ -239,6 +234,19 @@ types:
        steps: AYSStep[]
        key: string
 
+  AYSRunListing:
+    properties:
+      key:
+        type: string
+        description: list of run ids
+      epoch: integer
+      state:
+        enum: [new, running, ok, error ]
+
+  NameListing:
+    properties:
+      name: string
+
   Error:
     properties:
       code: integer
@@ -249,7 +257,7 @@ types:
 
 
 /ays:
-  # securedBy: [ itsyouonline ]
+  securedBy: [ itsyouonline : { scopes: [ "user:memberof:organization" ] }]
   /template_repo:
     post:
       displayName: addTemplateRepo
@@ -337,12 +345,12 @@ types:
             200:
               body:
                 application/json:
-                  type: string[]
+                  type: BlueprintListing[]
                   description: list of blueprint name
                   example:
-                    - 1_credentials.yaml
-                    - 2_nodes.yaml
-                    - 3_application.yaml
+                    - name: 1_credentials.yaml
+                    - name: 2_nodes.yaml
+                    - name: 3_application.yaml
         post:
           displayName: createBlueprint
           description: Create a new blueprint
@@ -517,11 +525,10 @@ types:
               200:
                 body:
                   application/json:
-                    type: string[]
-                    description: list of actor name
+                    type: NameListing[]
                     example:
-                      - node.ovc
-                      - node.g8os
+                      - name: node.ovc
+                      - name: node.g8os
           /{actor_name}:
             uriParameters:
                 actor_name:
@@ -560,11 +567,10 @@ types:
             200:
               body:
                 application/json:
-                  type: string[]
-                  description: list of template name
+                  type: TemplateListing[]
                   example:
-                    - node.ovc
-                    - node.g8os
+                    - name: node.ovc
+                    - name: node.g8os
         /{template_name}:
           uriParameters:
             template_name:
@@ -589,11 +595,14 @@ types:
               200:
                 body:
                   application/json:
-                    type: string[]
-                    description: list of run ids
+                    type: AYSRunListing[]
                     example:
-                      - f2e76f49dbf4b578062ce9cd7e4626dc
-                      - afd41db33cedd3258d0af342ebf68126
+                      - key: f2e76f49dbf4b578062ce9cd7e4626dc
+                        epoch: 1489396563
+                        state: new
+                      - key: afd41db33cedd3258d0af342ebf68126
+                        epoch: 1489396553
+                        state: ok
         post:
             displayName: CreateRun
             description: |
@@ -639,3 +648,16 @@ types:
           description: event saved
           body:
             application/json:
+  /events:
+    post:
+      description: Endpoint that receives generic events
+      body:
+        application/json:
+          type: object
+          properties:
+            command: string
+            tags: string[]
+            payload: object
+      responses:
+        200:
+          description: event received succesfully

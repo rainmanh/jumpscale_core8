@@ -1,9 +1,11 @@
+from JumpScale import j
+
 from functools import wraps
 from asyncio import get_event_loop
 
-from sanic.response import text
+from sanic.response import text, json
 
-from jose import jwt
+from jose import jwt, exceptions
 
 oauth2_server_pub_key = """"""
 
@@ -11,63 +13,78 @@ token_prefix = 'Bearer '
 
 class oauth2_itsyouonline:
     def __init__(self, scopes=None, audience= None):
-        
+
         self.described_by = "headers"
         self.field = "Authorization"
-        
+
         self.allowed_scopes = scopes
         if audience is None:
             self.audience = ''
         else:
             self.audience = ",".join(audience)
+        self.cfg = j.application.config.jumpscale.get('ays') or {}
 
     def __call__(self, f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             if not self.check_token(args[1]):
-            	return text("", 401)
-            
+                return text("", 401)
+
             return f(*args, **kwargs)
-        
+
         return decorated_function
 
     async def check_token(self, request):
-    	# check provided token
-    	token = self.get_token(request)
+        if not self.cfg.get('production', False):
+            return 200, ''
+        # check provided token
+        authorization = request.cookies.get(
+        'jwt',
+        request.headers.get(
+            'Authorization',
+            None
+        ))
 
-    	if len(token) == 0:
-    		return False
+        if authorization is None:
+            j.atyourservice.logger.error('No JWT token')
+            return 401, 'No JWT token'
 
-    	if not await self.check_jwt_scopes(token):
-    		return False
+        msg = ""
+        ss = authorization.split(' ', 1)
+        if len(ss) != 2:
+            msg = "Unauthorized"
+        else:
+            type, token = ss[0], ss[1]
+            if type.lower() == 'bearer':
+                try:
+                    headers = jwt.get_unverified_header(token)
+                    payload = jwt.decode(
+                        token,
+                        self.cfg['oauth'].get('jwt_key'),
+                        algorithms=[headers['alg']],
+                        audience=self.cfg['oauth']['organization'],
+                        issuer='itsyouonline')
+                    # case JWT is for an organization
+                    if 'globalid' in payload and payload['globalid'] == self.cfg['oauth'].get('organization'):
+                        return 200, ''
 
-    	return True
+                    # case JWT is for a user
+                    if 'scope' in payload and 'user:memberof:%s' % self.cfg[
+                            'oauth'].get('organization') in payload['scope']:
+                        return 200, ''
 
-    async def check_jwt_scopes(self, token):
-    	if len(oauth2_server_pub_key) == 0:
-    		return True
+                    msg = 'Unauthorized'
+                except exceptions.ExpiredSignatureError as e:
+                    msg = 'Your JWT has expired'
 
-    	#scopes = jwt.decode(token, oauth2_server_pub_key, audience=self.audience)["scope"]
-    	scopes = (await get_event_loop().run_in_executor(None, jwt.decode, token, oauth2_server_pub_key, None, None, self.audience))['scope']
-    	
-    	if len(self.allowed_scopes) == 0:
-    		return True
+                except exceptions.JOSEError as e:
+                    msg = 'JWT Error: %s' % str(e)
 
-    	for allowed in self.allowed_scopes:
-    		for s in scopes:
-    			if s == allowed:
-    				return True
+                except Exception as e:
+                    msg = 'Unexpected error : %s' % str(e)
 
-    	return False
+            else:
+                msg = 'Your JWT is invalid'
 
-    def get_token(self, request):
-    	if self.described_by == 'headers':
-    		header = request.headers.get(self.field, '')
-    		if header.startswith(token_prefix):
-    			return header[len(token_prefix):]
-    		else:
-    			return ''
-    	elif self.described_by == 'queryParameters':
-    		return request.args.get("access_token", "")
-    	else:
-    		return ''
+        j.atyourservice.logger.error(msg)
+        return 401, msg

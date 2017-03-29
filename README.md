@@ -12,8 +12,14 @@ Please check our [GitBook](https://gig.gitbooks.io/jumpscale-core8/content/) for
 - [version & roadmap info](../master/releases.md)
 
 ## dependencies
-* Python 3.6.1
-* Git
+Should be executed under root.
+```
+# pyevn & python 3.6.1
+curl -L https://raw.githubusercontent.com/pyenv/pyenv-installer/master/bin/pyenv-installer | bash
+pyenv install 3.6.1
+pyenv shell 3.6.1
+
+```
 
 ## how to install from master (THIS IS NOT 8.2.0, DO NOT USE). 
 Should be executed under root.

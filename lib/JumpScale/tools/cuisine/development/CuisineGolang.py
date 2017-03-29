@@ -79,6 +79,9 @@ class CuisineGolang(app):
         self.doneSet("install")
 
     def goraml(self):
+        """
+        Install (using go get) goraml and go-bindata.
+        """
         C = '''
         go get -u github.com/Jumpscale/go-raml
         set -ex
@@ -89,7 +92,7 @@ class CuisineGolang(app):
         cd $GOPATH/src/github.com/Jumpscale/go-raml
         sh build.sh
         '''
-        self.cuisine.core.run(C, profile=True)
+        self.cuisine.core.execute_bash(C, profile=True)
 
     def glide(self):
         """

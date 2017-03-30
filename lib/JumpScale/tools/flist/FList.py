@@ -161,6 +161,18 @@ class FList(object):
             llinks = []
             sspecials = []
 
+            for rawdir in dirs:
+                pathAbsolute = os.path.join(dirpathAbsolute, rawdir)
+                stat = os.stat(pathAbsolute, follow_symlinks=False)
+
+                if not S_ISLNK(stat.st_mode):
+                    continue
+
+                destlink = os.readlink(pathAbsolute)
+                llinks.append((rawdir, stat, destlink))
+
+                print("[+] dirlnk: -- /%s -> %s" % (rawdir, destlink))
+
             for fname in files:
                 relPathWithName = os.path.join(dirRelPath, fname)
                 pathAbsolute = os.path.join(self.rootpath, relPathWithName)

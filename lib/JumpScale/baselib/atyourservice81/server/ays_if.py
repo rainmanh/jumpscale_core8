@@ -7,265 +7,161 @@ from JumpScale.baselib.atyourservice81.server.oauth2_itsyouonline import oauth2_
 
 ays_if = Blueprint('ays_if')
 
+
+async def auth(request, func):
+    code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+    if code != 200:
+        return text(msg, code)
+    return await func
+
 class ays_repositoryView(HTTPMethodView):
 
     async def get(self, request):
 
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
-        return await ays_api.listRepositories(request)
+        return await auth(request, ays_api.listRepositories(request))
 
     async def post(self, request):
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
 
-        return await ays_api.createRepository(request)
+        return await auth(request, ays_api.createRepository(request))
 
 ays_if.add_route(ays_repositoryView.as_view(), '/ays/repository')
 
-class ays_repository_byrepository_nameView(HTTPMethodView):
+class ays_repository_byrepositoryView(HTTPMethodView):
 
-    async def get(self, request, repository_name):
+    async def get(self, request, repository):
+        return await auth(request, ays_api.getRepository(request, repository))
 
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
+    async def delete(self, request, repository):
+        return await auth(request, ays_api.deleteRepository(request, repository))
 
+ays_if.add_route(ays_repository_byrepositoryView.as_view(), '/ays/repository/<repository>')
 
-        return await ays_api.getRepository(request, repository_name)
+class ays_repository_byrepository_actorView(HTTPMethodView):
 
-    async def delete(self, request, repository_name):
+    async def get(self, request, repository):
+        return await auth(request, ays_api.listActors(request, repository))
 
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
+ays_if.add_route(ays_repository_byrepository_actorView.as_view(), '/ays/repository/<repository>/actor')
 
-        return await ays_api.deleteRepository(request, repository_name)
+class ays_repository_byrepository_actor_byactorView(HTTPMethodView):
 
-ays_if.add_route(ays_repository_byrepository_nameView.as_view(), '/ays/repository/<repository_name>')
+    async def get(self, request, actor, repository):
+        return await auth(request, ays_api.getActorByName(request, actor, repository))
 
-class ays_repository_byrepository_name_actorView(HTTPMethodView):
+    async def put(self, request, actor, repository):
+        return await auth(request, ays_api.updateActor(request, actor, repository))
 
-    async def get(self, request, repository_name):
+ays_if.add_route(ays_repository_byrepository_actor_byactorView.as_view(), '/ays/repository/<repository>/actor/<actor>')
 
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
+class ays_repository_byrepository_aysrunView(HTTPMethodView):
 
-        return await ays_api.listActors(request, repository_name)
+    async def get(self, request, repository):
+        return await auth(request, ays_api.listRuns(request, repository))
 
-ays_if.add_route(ays_repository_byrepository_name_actorView.as_view(), '/ays/repository/<repository_name>/actor')
+    async def post(self, request, repository):
+        return await auth(request, ays_api.createRun(request, repository))
 
-class ays_repository_byrepository_name_actor_byactor_nameView(HTTPMethodView):
+ays_if.add_route(ays_repository_byrepository_aysrunView.as_view(), '/ays/repository/<repository>/aysrun')
 
-    async def get(self, request, actor_name, repository_name):
+class ays_repository_byrepository_aysrun_byrunidView(HTTPMethodView):
 
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
+    async def get(self, request, runid, repository):
+        return await auth(request, ays_api.getRun(request, runid, repository))
 
-        return await ays_api.getActorByName(request, actor_name, repository_name)
+    async def post(self, request, runid, repository):
+        return await auth(request, ays_api.executeRun(request, runid, repository))
 
-    async def put(self, request, actor_name, repository_name):
+ays_if.add_route(ays_repository_byrepository_aysrun_byrunidView.as_view(), '/ays/repository/<repository>/aysrun/<runid>')
 
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
+class ays_repository_byrepository_blueprintView(HTTPMethodView):
 
-        return await ays_api.updateActor(request, actor_name, repository_name)
+    async def get(self, request, repository):
+        return await auth(request, ays_api.listBlueprints(request, repository))
 
-ays_if.add_route(ays_repository_byrepository_name_actor_byactor_nameView.as_view(), '/ays/repository/<repository_name>/actor/<actor_name>')
+    async def post(self, request, repository):
+        return await auth(request, ays_api.createBlueprint(request, repository))
 
-class ays_repository_byrepository_name_aysrunView(HTTPMethodView):
+ays_if.add_route(ays_repository_byrepository_blueprintView.as_view(), '/ays/repository/<repository>/blueprint')
 
-    async def get(self, request, repository_name):
+class ays_repository_byrepository_blueprint_byblueprintView(HTTPMethodView):
 
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
+    async def get(self, request, blueprint, repository):
+        return await auth(request, ays_api.getBlueprint(request, blueprint, repository))
 
-        return await ays_api.listRuns(request, repository_name)
+    async def post(self, request, blueprint, repository):
+        return await auth(request, ays_api.executeBlueprint(request, blueprint, repository))
 
-    async def post(self, request, repository_name):
+    async def put(self, request, blueprint, repository):
+        return await auth(request, ays_api.updateBlueprint(request, blueprint, repository))
 
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
+    async def delete(self, request, blueprint, repository):
+        return await auth(request, ays_api.deleteBlueprint(request, blueprint, repository))
 
-        return await ays_api.CreateRun(request, repository_name)
+ays_if.add_route(ays_repository_byrepository_blueprint_byblueprintView.as_view(), '/ays/repository/<repository>/blueprint/<blueprint>')
 
-ays_if.add_route(ays_repository_byrepository_name_aysrunView.as_view(), '/ays/repository/<repository_name>/aysrun')
+class ays_repository_byrepository_blueprint_byblueprint_archiveView(HTTPMethodView):
 
-class ays_repository_byrepository_name_aysrun_byrunidView(HTTPMethodView):
+    async def put(self, request, blueprint, repository):
+        return await auth(request, ays_api.archiveBlueprint(request, blueprint, repository))
 
-    async def get(self, request, runid, repository_name):
+ays_if.add_route(ays_repository_byrepository_blueprint_byblueprint_archiveView.as_view(), '/ays/repository/<repository>/blueprint/<blueprint>/archive')
 
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
+class ays_repository_byrepository_blueprint_byblueprint_restoreView(HTTPMethodView):
 
-        return await ays_api.getRun(request, runid, repository_name)
+    async def put(self, request, blueprint, repository):
+        return await auth(request, ays_api.restoreBlueprint(request, blueprint, repository))
 
-ays_if.add_route(ays_repository_byrepository_name_aysrun_byrunidView.as_view(), '/ays/repository/<repository_name>/aysrun/<runid>')
+ays_if.add_route(ays_repository_byrepository_blueprint_byblueprint_restoreView.as_view(), '/ays/repository/<repository>/blueprint/<blueprint>/restore')
 
-class ays_repository_byrepository_name_blueprintView(HTTPMethodView):
+class ays_repository_byrepository_destroyView(HTTPMethodView):
 
-    async def get(self, request, repository_name):
+    async def post(self, request, repository):
+        return await auth(request, ays_api.destroyRepository(request, repository))
 
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
+ays_if.add_route(ays_repository_byrepository_destroyView.as_view(), '/ays/repository/<repository>/destroy')
 
-        return await ays_api.listBlueprints(request, repository_name)
+class ays_repository_byrepository_serviceView(HTTPMethodView):
 
-    async def post(self, request, repository_name):
+    async def get(self, request, repository):
+        return await auth(request, ays_api.listServices(request, repository))
 
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
+ays_if.add_route(ays_repository_byrepository_serviceView.as_view(), '/ays/repository/<repository>/service')
 
-        return await ays_api.createBlueprint(request, repository_name)
+class ays_repository_byrepository_service_byroleView(HTTPMethodView):
 
-ays_if.add_route(ays_repository_byrepository_name_blueprintView.as_view(), '/ays/repository/<repository_name>/blueprint')
+    async def get(self, request, role, repository):
+        return await auth(request, ays_api.listServicesByRole(request, role, repository))
 
-class ays_repository_byrepository_name_blueprint_byblueprint_nameView(HTTPMethodView):
+ays_if.add_route(ays_repository_byrepository_service_byroleView.as_view(), '/ays/repository/<repository>/service/<role>')
 
-    async def get(self, request, blueprint_name, repository_name):
+class ays_repository_byrepository_service_byrole_bynameView(HTTPMethodView):
 
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
+    async def get(self, request, name, role, repository):
+        return await auth(request, ays_api.getServiceByName(request, name, role, repository))
 
-        return await ays_api.getBlueprint(request, blueprint_name, repository_name)
+    async def delete(self, request, name, role, repository):
+        return await auth(request, ays_api.deleteServiceByName(request, name, role, repository))
 
-    async def post(self, request, blueprint_name, repository_name):
+ays_if.add_route(ays_repository_byrepository_service_byrole_bynameView.as_view(), '/ays/repository/<repository>/service/<role>/<name>')
 
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
+class ays_repository_byrepository_templateView(HTTPMethodView):
 
-        return await ays_api.executeBlueprint(request, blueprint_name, repository_name)
+    async def get(self, request, repository):
+        return await auth(request, ays_api.listTemplates(request, repository))
 
-    async def put(self, request, blueprint_name, repository_name):
+ays_if.add_route(ays_repository_byrepository_templateView.as_view(), '/ays/repository/<repository>/template')
 
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
+class ays_repository_byrepository_template_bynameView(HTTPMethodView):
 
-        return await ays_api.updateBlueprint(request, blueprint_name, repository_name)
+    async def get(self, request, name, repository):
+        return await auth(request, ays_api.getTemplate(request, name, repository))
 
-    async def delete(self, request, blueprint_name, repository_name):
-
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
-
-        return await ays_api.deleteBlueprint(request, blueprint_name, repository_name)
-
-ays_if.add_route(ays_repository_byrepository_name_blueprint_byblueprint_nameView.as_view(), '/ays/repository/<repository_name>/blueprint/<blueprint_name>')
-
-class ays_repository_byrepository_name_blueprint_byblueprint_name_archiveView(HTTPMethodView):
-
-    async def put(self, request, blueprint_name, repository_name):
-
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
-
-        return await ays_api.archiveBlueprint(request, blueprint_name, repository_name)
-
-ays_if.add_route(ays_repository_byrepository_name_blueprint_byblueprint_name_archiveView.as_view(), '/ays/repository/<repository_name>/blueprint/<blueprint_name>/archive')
-
-class ays_repository_byrepository_name_blueprint_byblueprint_name_restoreView(HTTPMethodView):
-
-    async def put(self, request, blueprint_name, repository_name):
-
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
-
-        return await ays_api.restoreBlueprint(request, blueprint_name, repository_name)
-
-ays_if.add_route(ays_repository_byrepository_name_blueprint_byblueprint_name_restoreView.as_view(), '/ays/repository/<repository_name>/blueprint/<blueprint_name>/restore')
-
-class ays_repository_byrepository_name_serviceView(HTTPMethodView):
-
-    async def get(self, request, repository_name):
-
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
-
-        return await ays_api.listServices(request, repository_name)
-
-ays_if.add_route(ays_repository_byrepository_name_serviceView.as_view(), '/ays/repository/<repository_name>/service')
-
-class ays_repository_byrepository_name_service_byservice_roleView(HTTPMethodView):
-
-    async def get(self, request, service_role, repository_name):
-
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
-
-        return await ays_api.listServicesByRole(request, service_role, repository_name)
-
-ays_if.add_route(ays_repository_byrepository_name_service_byservice_roleView.as_view(), '/ays/repository/<repository_name>/service/<service_role>')
-
-class ays_repository_byrepository_name_service_byservice_role_byservice_nameView(HTTPMethodView):
-
-    async def get(self, request, service_name, service_role, repository_name):
-
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
-
-        return await ays_api.getServiceByName(request, service_name, service_role, repository_name)
-
-    async def delete(self, request, service_name, service_role, repository_name):
-
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
-
-        return await ays_api.deleteServiceByName(request, service_name, service_role, repository_name)
-
-ays_if.add_route(ays_repository_byrepository_name_service_byservice_role_byservice_nameView.as_view(), '/ays/repository/<repository_name>/service/<service_role>/<service_name>')
-
-class ays_repository_byrepository_name_templateView(HTTPMethodView):
-
-    async def get(self, request, repository_name):
-
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
-
-        return await ays_api.listTemplates(request, repository_name)
-
-ays_if.add_route(ays_repository_byrepository_name_templateView.as_view(), '/ays/repository/<repository_name>/template')
-
-class ays_repository_byrepository_name_template_bytemplate_nameView(HTTPMethodView):
-
-    async def get(self, request, template_name, repository_name):
-
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
-
-        return await ays_api.getTemplate(request, template_name, repository_name)
-
-ays_if.add_route(ays_repository_byrepository_name_template_bytemplate_nameView.as_view(), '/ays/repository/<repository_name>/template/<template_name>')
+ays_if.add_route(ays_repository_byrepository_template_bynameView.as_view(), '/ays/repository/<repository>/template/<name>')
 
 class ays_template_repoView(HTTPMethodView):
 
     async def post(self, request):
 
-        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        if code != 200:
-            return text(msg, code)
-
-        return await ays_api.addTemplateRepo(request)
+        return await auth(request, ays_api.addTemplateRepo(request))
 
 ays_if.add_route(ays_template_repoView.as_view(), '/ays/template_repo')

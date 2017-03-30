@@ -97,7 +97,7 @@ def destroy():
 
     make sure to do a commit before you do a distroy, this will give you a chance to roll back.
     """
-    resp = ayscl.api.ays.destroyRepository(repository=_current_repo_name())
+    resp = ayscl.api.ays.destroyRepository(data=None, repository=_current_repo_name())
     if resp.status_code == HTTPStatus.NO_CONTENT:
         print("repository destroyed")
     else:
@@ -476,7 +476,7 @@ def create(asume_yes, force, debug, profile, follow):
         if resp is False:
             return
 
-    resp = ayscl.api.ays.executeRun(data=None, aysrun=run['key'], repository=_current_repo_name())
+    resp = ayscl.api.ays.executeRun(data=None, runid=run['key'], repository=_current_repo_name())
     if resp.status_code != HTTPStatus.OK:
         print("error during execution of the run: {}".format(_extract_error(resp)))
         return
@@ -485,7 +485,7 @@ def create(asume_yes, force, debug, profile, follow):
     if follow:
         running = True
         while running:
-            resp = ayscl.api.ays.getRun(aysrun=run['key'], repository=_current_repo_name())
+            resp = ayscl.api.ays.getRun(runid=run['key'], repository=_current_repo_name())
             if resp.status_code != HTTPStatus.OK:
                 print("Error during retreive of the run {}: {}".format(key, _extract_error(resp)))
                 return
@@ -537,7 +537,7 @@ def show(key, logs):
         runs = sorted(runs, key=lambda x: x['epoch'])
         key = runs[-1]['key']
 
-    resp = ayscl.api.ays.getRun(aysrun=key, repository=_current_repo_name())
+    resp = ayscl.api.ays.getRun(runid=key, repository=_current_repo_name())
     if resp.status_code != HTTPStatus.OK:
         print("Error during retreive of the run {}: {}".format(key, _extract_error(resp)))
         return

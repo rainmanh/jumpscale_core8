@@ -27,8 +27,7 @@ class oauth2_itsyouonline:
     def __call__(self, f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if not self.check_token(args[1]):
-                return text("", 401)
+            self.check_token(args[1])
 
             return f(*args, **kwargs)
 

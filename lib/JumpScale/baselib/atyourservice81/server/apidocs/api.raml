@@ -217,7 +217,7 @@ types:
     properties:
       key: string
       action_name: string
-      actor_name: string
+      actor: string
       service_key: string
       service_name: string
       state: string
@@ -303,9 +303,9 @@ types:
           body:
             application/json:
               type: Error
-    /{repository_name}:
+    /{repository}:
       uriParameters:
-        repository_name:
+        repository:
           type: string
       get:
         displayName: getRepository
@@ -332,6 +332,18 @@ types:
             body:
               application/json:
                 type: Error
+      /destroy:
+        post:
+            displayName: destroyRepository
+            description: destroy repo without deleting it from FS
+            responses:
+                204:
+                    description: Repository destroyed
+                404:
+                    description: Repository not found
+                    body:
+                      application/json:
+                        type: Error
       /blueprint:
         get:
           displayName: listBlueprints
@@ -374,9 +386,9 @@ types:
               body:
                 application/json:
                   type: Error
-        /{blueprint_name}:
+        /{blueprint}:
           uriParameters:
-            blueprint_name:
+            blueprint:
               type: string
           get:
             displayName: getBlueprint
@@ -472,9 +484,9 @@ types:
                       name: storage1
                     - role: node
                       name: storage2
-        /{service_role}:
+        /{role}:
           uriParameters:
-            service_role:
+            role:
               type: string
           get:
             displayName: listServicesByRole
@@ -489,9 +501,9 @@ types:
                         name: storage1
                       - role: node
                         name: storage2
-          /{service_name}:
+          /{name}:
             uriParameters:
-              service_name:
+              name:
                 type: string
             get:
               displayName: getServiceByName
@@ -529,9 +541,9 @@ types:
                     example:
                       - name: node.ovc
                       - name: node.g8os
-          /{actor_name}:
+          /{actor}:
             uriParameters:
-                actor_name:
+                actor:
                   type: string
             get:
               displayName: getActorByName
@@ -571,9 +583,9 @@ types:
                   example:
                     - name: node.ovc
                     - name: node.g8os
-        /{template_name}:
+        /{name}:
           uriParameters:
-            template_name:
+            name:
               type: string
           get:
                 displayName: getTemplate
@@ -604,7 +616,7 @@ types:
                         epoch: 1489396553
                         state: ok
         post:
-            displayName: CreateRun
+            displayName: createRun
             description: |
               Create a run based on all the action scheduled. This call returns an AYSRun object describing what is going to hapen on the repository.
               This is an asyncronous call. To be notify of the status of the run when then execution is finised or when an error occurs, you need to specify a callback url.
@@ -638,6 +650,19 @@ types:
                 body:
                   application/json:
                     type: Error
+          post:
+            displayName: executeRun
+            description: execute an aysrun
+            responses:
+              200:
+                  body:
+                    application/json:
+                      type: AYSRun
+              404:
+                body:
+                  application/json:
+                    type: Error
+
 
 /webhooks:
   /github:

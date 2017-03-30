@@ -193,7 +193,7 @@ async def listRuns(request, repository):
 
     return json(runs, 200)
 
-async def CreateRun(request, repository):
+async def createRun(request, repository):
     '''
     Create a run based on all the action scheduled. This call returns an AYSRun object describing what is going to hapen on the repository.
     This is an asyncronous call. To be notify of the status of the run when then execution is finised or when an error occurs, you need to specify a callback url.

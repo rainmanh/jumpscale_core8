@@ -1,7 +1,7 @@
 import requests
 
-from .ays_service import  AysService
-from .webhooks_service import  WebhooksService
+from .ays_service import  AysService 
+from .webhooks_service import  WebhooksService 
 
 
 class Client:
@@ -9,10 +9,10 @@ class Client:
         self.base_url = base_uri
         self.session = requests.Session()
         self.session.headers.update({"Content-Type": "application/json"})
-
+        
         self.ays = AysService(self)
         self.webhooks = WebhooksService(self)
-
+    
     def set_auth_header(self, val):
         ''' set authorization header value'''
         self.session.headers.update({"Authorization":val})

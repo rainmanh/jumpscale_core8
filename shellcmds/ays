@@ -25,7 +25,7 @@ def _extract_error(resp):
     if isinstance(resp, HTTPError):
         if resp.response.headers['Content-type'] == 'application/json':
             content = resp.response.json()
-            return content.get('error', resp.text)
+            return content.get('error', resp.response.text)
         return resp.response.text
     raise resp
 
@@ -395,7 +395,7 @@ def update(name):
 
     for name in names:
         try:
-            resp = ayscl.api.ays.updateActor(data='', name=name, repository=_current_repo_name())
+            resp = ayscl.api.ays.updateActor(data='', actor=name, repository=_current_repo_name())
             print("actor {} updated".format(name))
         except Exception as e:
             print("error during update of actor {}: {}".format(name, _extract_error(e)))

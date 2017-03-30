@@ -17,11 +17,9 @@ async def auth(request, func):
 class ays_repositoryView(HTTPMethodView):
 
     async def get(self, request):
-
         return await auth(request, ays_api.listRepositories(request))
 
     async def post(self, request):
-
         return await auth(request, ays_api.createRepository(request))
 
 ays_if.add_route(ays_repositoryView.as_view(), '/ays/repository')
@@ -161,7 +159,6 @@ ays_if.add_route(ays_repository_byrepository_template_bynameView.as_view(), '/ay
 class ays_template_repoView(HTTPMethodView):
 
     async def post(self, request):
-
         return await auth(request, ays_api.addTemplateRepo(request))
 
 ays_if.add_route(ays_template_repoView.as_view(), '/ays/template_repo')

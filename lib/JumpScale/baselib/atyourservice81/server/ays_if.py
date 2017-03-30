@@ -115,7 +115,6 @@ class ays_repository_byrepository_name_blueprintView(HTTPMethodView):
     async def get(self, request, repository_name):
 
         code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
-        import ipdb; ipdb.set_trace()
         if code != 200:
             return text(msg, code)
 

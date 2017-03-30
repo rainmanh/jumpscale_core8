@@ -193,6 +193,7 @@ class FileSystem:
         for snap in self.list():
             if snap.name == name:
                 return snap
+        raise ValueError("Could not find snapshot {}".format(name))
 
     def list(self):
         """

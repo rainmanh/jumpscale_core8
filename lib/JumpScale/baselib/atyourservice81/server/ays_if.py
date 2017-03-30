@@ -17,7 +17,7 @@ class ays_repositoryView(HTTPMethodView):
         return await ays_api.listRepositories(request)
 
     async def post(self, request):
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -29,16 +29,16 @@ class ays_repository_byrepository_nameView(HTTPMethodView):
 
     async def get(self, request, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
-            
+
 
         return await ays_api.getRepository(request, repository_name)
 
     async def delete(self, request, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -50,7 +50,7 @@ class ays_repository_byrepository_name_actorView(HTTPMethodView):
 
     async def get(self, request, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -62,7 +62,7 @@ class ays_repository_byrepository_name_actor_byactor_nameView(HTTPMethodView):
 
     async def get(self, request, actor_name, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -70,7 +70,7 @@ class ays_repository_byrepository_name_actor_byactor_nameView(HTTPMethodView):
 
     async def put(self, request, actor_name, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -82,7 +82,7 @@ class ays_repository_byrepository_name_aysrunView(HTTPMethodView):
 
     async def get(self, request, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -90,7 +90,7 @@ class ays_repository_byrepository_name_aysrunView(HTTPMethodView):
 
     async def post(self, request, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -102,7 +102,7 @@ class ays_repository_byrepository_name_aysrun_byrunidView(HTTPMethodView):
 
     async def get(self, request, runid, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -114,7 +114,7 @@ class ays_repository_byrepository_name_blueprintView(HTTPMethodView):
 
     async def get(self, request, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         import ipdb; ipdb.set_trace()
         if code != 200:
             return text(msg, code)
@@ -123,7 +123,7 @@ class ays_repository_byrepository_name_blueprintView(HTTPMethodView):
 
     async def post(self, request, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -135,7 +135,7 @@ class ays_repository_byrepository_name_blueprint_byblueprint_nameView(HTTPMethod
 
     async def get(self, request, blueprint_name, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -143,7 +143,7 @@ class ays_repository_byrepository_name_blueprint_byblueprint_nameView(HTTPMethod
 
     async def post(self, request, blueprint_name, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -151,7 +151,7 @@ class ays_repository_byrepository_name_blueprint_byblueprint_nameView(HTTPMethod
 
     async def put(self, request, blueprint_name, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -159,7 +159,7 @@ class ays_repository_byrepository_name_blueprint_byblueprint_nameView(HTTPMethod
 
     async def delete(self, request, blueprint_name, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -171,7 +171,7 @@ class ays_repository_byrepository_name_blueprint_byblueprint_name_archiveView(HT
 
     async def put(self, request, blueprint_name, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -183,7 +183,7 @@ class ays_repository_byrepository_name_blueprint_byblueprint_name_restoreView(HT
 
     async def put(self, request, blueprint_name, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -195,7 +195,7 @@ class ays_repository_byrepository_name_serviceView(HTTPMethodView):
 
     async def get(self, request, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -207,7 +207,7 @@ class ays_repository_byrepository_name_service_byservice_roleView(HTTPMethodView
 
     async def get(self, request, service_role, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -219,7 +219,7 @@ class ays_repository_byrepository_name_service_byservice_role_byservice_nameView
 
     async def get(self, request, service_name, service_role, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -227,7 +227,7 @@ class ays_repository_byrepository_name_service_byservice_role_byservice_nameView
 
     async def delete(self, request, service_name, service_role, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -239,7 +239,7 @@ class ays_repository_byrepository_name_templateView(HTTPMethodView):
 
     async def get(self, request, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -251,7 +251,7 @@ class ays_repository_byrepository_name_template_bytemplate_nameView(HTTPMethodVi
 
     async def get(self, request, template_name, repository_name):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 
@@ -263,7 +263,7 @@ class ays_template_repoView(HTTPMethodView):
 
     async def post(self, request):
 
-        msg, code = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
+        code, msg = await oauth2_itsyouonline(["user:memberof:organization"]).check_token(request)
         if code != 200:
             return text(msg, code)
 

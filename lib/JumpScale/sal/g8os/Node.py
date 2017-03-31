@@ -50,17 +50,8 @@ class Node:
         mount the fscache storage pool and copy the content of the in memmory fs inside
         """
         storagepool.umount()
-
-        # saving /tmp/ contents
-        self._client.bash("mkdir -p /tmpbak").get()
-        self._client.bash("cp -arv /tmp/* /tmpbak/").get()
-
-        # mount /tmp
-        storagepool.mount('/tmp')
-
-        # restoring /tmp
-        self._client.bash("cp -arv /tmpbak/* /tmp/").get()
-        self._client.bash("rm -rf /tmpbak").get()
+        storagepool.mount('/var/cache/containers')
+        self.client.system('rm -fr /var/cache/containers/*')
 
     def ensure_persistance(self, name='fscache'):
         """

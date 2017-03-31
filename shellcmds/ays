@@ -169,7 +169,6 @@ def show(role, name):
 
     try:
         resp = ayscl.api.ays.listServices(_current_repo_name())
-        return
     except Exception as e:
         print("Error while listing services: {}".format(_extract_error(e)))
         return

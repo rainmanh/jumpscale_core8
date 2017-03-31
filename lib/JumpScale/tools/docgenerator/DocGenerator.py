@@ -59,6 +59,7 @@ class DocGenerator:
         self.ws = self.webserver.replace("http://", "").replace("https://", "").replace("/", "")
         self.logger = j.logger.get('docgenerator')
         self._loaded = []
+        self._macrosLoaded = []
 
     def addGitRepo(self, path):
         if path not in self.gitRepos:
@@ -152,14 +153,16 @@ class DocGenerator:
 
             for path0 in j.sal.fs.listFilesInDir(path, recursive=True, filter="*.py", followSymlinks=True):
                 newdata = j.sal.fs.fileGetContents(path0)
-                code += "%s\n\n%s" % (code, newdata)
+                md5 = j.data.hash.md5_string(newdata)
+                if not md5 in self._macrosLoaded:
+                    code += newdata
+                    self._macrosLoaded.append(md5)
 
             code = code.replace("from JumpScale import j", "")
             code = "from JumpScale import j\n\n" + code
 
             j.sal.fs.writeFile(self._macroCodepath, code)
             self.macros = loadmodule("macros", self._macroCodepath)
-
             self._macroPathsDone.append(path)
 
     def load(self, pathOrUrl=""):
@@ -201,7 +204,9 @@ class DocGenerator:
         self.load(pathOrUrl="https://github.com/Jumpscale/jumpscale_portal8/tree/8.2.0")
         self.generate(start=start)
 
-    def generate(self, start=True):
+    def generate(self, url=None, start=True):
+        if url != None:
+            self.load(pathOrUrl=url)
         if self.docSites == {}:
             self.load()
         for path, ds in self.docSites.items():

@@ -72,6 +72,7 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     dist=`grep DISTRIB_ID /etc/*-release | awk -F '=' '{print $2}'`
     if [ "$dist" == "Ubuntu" ]; then
         echo "found ubuntu"
+        apt-get install git
         apt-get install mc curl git ssh python3.5 -y
         apt-get install python3-pip -y
         apt-get install libssl-dev -y

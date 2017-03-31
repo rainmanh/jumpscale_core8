@@ -11,9 +11,26 @@ Please check our [GitBook](https://gig.gitbooks.io/jumpscale-core8/content/) for
 - [branches](branches.md)
 - [version & roadmap info](../master/releases.md)
 
+## Installation instructions Ubuntu 16.04
+
 ## dependencies
-* Python 3.6.1
-* Git
+Should be executed under root.
+```
+# pyevn & python 3.6.1
+apt-get update
+apt-get upgrade
+apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev \
+libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev xz-utils
+curl -L https://raw.githubusercontent.com/pyenv/pyenv-installer/master/bin/pyenv-installer | bash
+echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bash_profile
+echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bash_profile
+echo 'eval "$(pyenv init -)"' >> ~/.bash_profile
+logout
+#connect again
+pyenv install 3.6.1
+pyenv shell 3.6.1
+
+```
 
 ## how to install from master (THIS IS NOT 8.2.0, DO NOT USE). 
 Should be executed under root.

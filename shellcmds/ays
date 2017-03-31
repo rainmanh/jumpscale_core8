@@ -8,7 +8,7 @@ import os
 import io
 import time
 import click
-from http import HTTPStatus
+from requests.exceptions import HTTPError
 
 os.environ['LC_ALL'] = 'C.UTF-8'
 os.environ['LANG'] = 'C.UTF-8'
@@ -22,10 +22,12 @@ def _current_repo_name():
 
 
 def _extract_error(resp):
-    if resp.headers['Content-type'] == 'application/json':
-        content = resp.json()
-        return content.get('error', resp.text)
-    return resp.text
+    if isinstance(resp, HTTPError):
+        if resp.response.headers['Content-type'] == 'application/json':
+            content = resp.response.json()
+            return content.get('error', resp.response.text)
+        return resp.response.text
+    raise resp
 
 
 def print_date(epoch):
@@ -65,12 +67,12 @@ def create(name, git):
         name = j.sal.fs.getBaseName(j.sal.fs.getcwd())
 
     data = j.data.serializer.json.dumps({'name': name, 'git_url': git})
-    resp = ayscl.api.ays.createRepository(data=data)
 
-    if resp.status_code == HTTPStatus.CREATED:
+    try:
+        resp = ayscl.api.ays.createRepository(data=data)
         print("AYS repository created at {}".format(resp.json()['path']))
-    else:
-        print("Error during creation of the repository: {}".format(_extract_error(resp)))
+    except Exception as e:
+        print("Error during creation of the repository: {}".format(_extract_error(e)))
 
 
 @repo.command()
@@ -80,13 +82,13 @@ def list():
     """
     print("AYS Repositories: ")
 
-    resp = ayscl.api.ays.listRepositories()
-    if resp.status_code == HTTPStatus.OK:
+    try:
+        resp = ayscl.api.ays.listRepositories()
         repos = resp.json()
         for repo in sorted(repos, key=lambda r: r['name']):
             print(repo['path'])
-    else:
-        print("Error during listing of the repositories: {}".format(_extract_error(resp)))
+    except Exception as e:
+        print("Error during listing of the repositories: {}".format(_extract_error(e)))
 
 
 @repo.command()
@@ -97,11 +99,11 @@ def destroy():
 
     make sure to do a commit before you do a distroy, this will give you a chance to roll back.
     """
-    resp = ayscl.api.ays.destroyRepository(repository=_current_repo_name())
-    if resp.status_code == HTTPStatus.NO_CONTENT:
+    try:
+        resp = ayscl.api.ays.destroyRepository(data=None, repository=_current_repo_name())
         print("repository destroyed")
-    else:
-        print("Error while destroying repository: {}".format(_extract_error(resp)))
+    except Exception as e:
+        print("Error while destroying repository: {}".format(_extract_error(e)))
 
 @repo.command()
 def delete():
@@ -111,11 +113,11 @@ def delete():
 
     make sure to do a commit before you do a delete, this will give you a chance to roll back.
     """
-    resp = ayscl.api.ays.deleteRepository(repository=_current_repo_name())
-    if resp.status_code == HTTPStatus.NO_CONTENT:
+    try:
+        resp = ayscl.api.ays.deleteRepository(repository=_current_repo_name())
         print("repository deleted")
-    else:
-        print("Error while deleting repository: {}".format(_extract_error(resp)))
+    except Exception as e:
+        print("Error while deleting repository: {}".format(_extract_error(e)))
 
 
 # AYS service related group of commands
@@ -134,8 +136,8 @@ def list(role, name):
     """
     The list command lists all service instances with specific role and instance name.
     """
-    resp = ayscl.api.ays.listServices(_current_repo_name())
-    if resp.status_code == HTTPStatus.OK:
+    try:
+        resp = ayscl.api.ays.listServices(_current_repo_name())
         services = resp.json()
         print("Installed services:")
         print("-------------------")
@@ -145,8 +147,8 @@ def list(role, name):
             if name and s['name'] != name:
                 continue
             print("%s!%s" % (s['role'], s['name']))
-    else:
-        print("Error while listing services: {}".format(_extract_error(resp)))
+    except Exception as e:
+        print("Error while listing services: {}".format(_extract_error(e)))
 
 
 @service.command()
@@ -158,15 +160,18 @@ def show(role, name):
     show information about a service
     '''
     def get_service(role, name):
-        resp = ayscl.api.ays.getServiceByName(role=role, name=name, repository=_current_repo_name())
-        if resp.status_code != HTTPStatus.OK:
-            print("Error while getting service: {}".format(_extract_error(resp)))
+        try:
+            resp = ayscl.api.ays.getServiceByName(role=role, name=name, repository=_current_repo_name())
+            return resp.json()
+        except Exception as e:
+            print("Error while getting service: {}".format(_extract_error(e)))
             return
-        return resp.json()
 
-    resp = ayscl.api.ays.listServices(_current_repo_name())
-    if resp.status_code != HTTPStatus.OK:
-        print("Error while listing services: {}".format(_extract_error(resp)))
+    try:
+        resp = ayscl.api.ays.listServices(_current_repo_name())
+        return
+    except Exception as e:
+        print("Error while listing services: {}".format(_extract_error(e)))
         return
 
     services = resp.json()
@@ -255,15 +260,17 @@ def state(role, name):
     Print the state of the selected services. If not role or instances specified, all services from the repository are selected
     """
     def get_service(role, name):
-        resp = ayscl.api.ays.getServiceByName(role=role, name=name, repository=_current_repo_name())
-        if resp.status_code != HTTPStatus.OK:
-            print("Error while getting service: {}".format(_extract_error(resp)))
+        try:
+            resp = ayscl.api.ays.getServiceByName(role=role, name=name, repository=_current_repo_name())
+            return resp.json()
+        except Exception as e:
+            print("Error while getting service: {}".format(_extract_error(e)))
             return
-        return resp.json()
 
-    resp = ayscl.api.ays.listServices(_current_repo_name())
-    if resp.status_code != HTTPStatus.OK:
-        print("Error while listing services: {}".format(_extract_error(resp)))
+    try:
+        resp = ayscl.api.ays.listServices(_current_repo_name())
+    except Exception as e:
+        print("Error while listing services: {}".format(_extract_error(e)))
         return
 
     services = resp.json()
@@ -291,15 +298,17 @@ def delete(role, name, asume_yes):
     """
 
     def get_service(role, name):
-        resp = ayscl.api.ays.getServiceByName(role=role, name=name, repository=_current_repo_name())
-        if resp.status_code != HTTPStatus.OK:
-            print("Error while getting service: {}".format(_extract_error(resp)))
+        try:
+            resp = ayscl.api.ays.getServiceByName(role=role, name=name, repository=_current_repo_name())
+            return resp.json()
+        except Exception as e:
+            print("Error while getting service: {}".format(_extract_error(e)))
             return
-        return resp.json()
 
-    resp = ayscl.api.ays.listServices(_current_repo_name())
-    if resp.status_code != HTTPStatus.OK:
-        print("Error while listing services: {}".format(_extract_error(resp)))
+    try:
+        resp = ayscl.api.ays.listServices(_current_repo_name())
+    except Exception as e:
+        print("Error while listing services: {}".format(_extract_error(e)))
         return
 
     filterd = []
@@ -335,11 +344,11 @@ def delete(role, name, asume_yes):
     for service in services:
         resp = ayscl.api.ays.deleteServiceByName(name=service['name'], role=service[
                                                  'role'], repository=_current_repo_name())
-        if resp.status_code == HTTPStatus.NO_CONTENT:
+        try:
             print('service {role}!{name} deleted'.format(**service))
-        else:
+        except Exception as e:
             print("error during deletion of service {role}!{name}: {error}".format(
-                **service, error=_extract_error(resp)))
+                **service, error=_extract_error(e)))
 
 
 @cli.group()
@@ -354,15 +363,15 @@ def list():
     """
     list all actor of the repository
     """
-    resp = ayscl.api.ays.listActors(repository=_current_repo_name())
-    if resp.status_code == HTTPStatus.OK:
+    try:
+        resp = ayscl.api.ays.listActors(repository=_current_repo_name())
         print("Installed actors:")
         print("-------------------")
 
         for actor in sorted(resp.json(), key=lambda x: x['name']):
             print("{name}".format(**actor))
-    else:
-        print("error during listing of actors: {}".format(_extract_error(resp)))
+    except Exception as e:
+        print("error during listing of actors: {}".format(_extract_error(e)))
 
 
 @actor.command()
@@ -375,21 +384,21 @@ def update(name):
     """
     names = []
     if name is None:
-        resp = ayscl.api.ays.listActors(repository=_current_repo_name())
-        if resp.status_code == HTTPStatus.OK:
+        try:
+            resp = ayscl.api.ays.listActors(repository=_current_repo_name())
             names = [a['name'] for a in resp.json()]
-        else:
-            print("error during listing of actors: {}".format(_extract_error(resp)))
+        except Exception as e:
+            print("error during listing of actors: {}".format(_extract_error(e)))
             return
     else:
         names = [name]
 
     for name in names:
-        resp = ayscl.api.ays.updateActor(data='', name=name, repository=_current_repo_name())
-        if resp.status_code == HTTPStatus.OK:
+        try:
+            resp = ayscl.api.ays.updateActor(data='', actor=name, repository=_current_repo_name())
             print("actor {} updated".format(name))
-        else:
-            print("error during update of actor {}: {}".format(name, _extract_error(resp)))
+        except Exception as e:
+            print("error during update of actor {}: {}".format(name, _extract_error(e)))
             return
 
 
@@ -405,9 +414,10 @@ def list():
     """
     List all actor template availale to be used in a blueprint
     """
-    resp = ayscl.api.ays.listTemplates(repository=_current_repo_name())
-    if resp.status_code != HTTPStatus.OK:
-        print("error during listing of templates: {}".format(_extract_error(resp)))
+    try:
+        resp = ayscl.api.ays.listTemplates(repository=_current_repo_name())
+    except Exception as e:
+        print("error during listing of templates: {}".format(_extract_error(e)))
         return
 
     for template in sorted(resp.json(),  key=lambda x: x['name']):
@@ -459,9 +469,10 @@ def create(asume_yes, force, debug, profile, follow):
     A run is an collection of actions that will be run on the repository.
     """
     print("Creation of the run...")
-    resp = ayscl.api.ays.createRun(data=None, repository=_current_repo_name(), query_params={'simulate': True})
-    if resp.status_code != HTTPStatus.OK:
-        print("Error during creation of the run: {}".format(_extract_error(resp)))
+    try:
+        resp = ayscl.api.ays.createRun(data=None, repository=_current_repo_name(), query_params={'simulate': True})
+    except Exception as e:
+        print("Error during creation of the run: {}".format(_extract_error(e)))
         return
 
     run = resp.json()
@@ -476,18 +487,20 @@ def create(asume_yes, force, debug, profile, follow):
         if resp is False:
             return
 
-    resp = ayscl.api.ays.executeRun(data=None, aysrun=run['key'], repository=_current_repo_name())
-    if resp.status_code != HTTPStatus.OK:
-        print("error during execution of the run: {}".format(_extract_error(resp)))
+    try:
+        resp = ayscl.api.ays.executeRun(data=None, runid=run['key'], repository=_current_repo_name())
+    except Exception as e:
+        print("error during execution of the run: {}".format(_extract_error(e)))
         return
 
     print("execution of the run started: {}".format(run['key']))
     if follow:
         running = True
         while running:
-            resp = ayscl.api.ays.getRun(aysrun=run['key'], repository=_current_repo_name())
-            if resp.status_code != HTTPStatus.OK:
-                print("Error during retreive of the run {}: {}".format(key, _extract_error(resp)))
+            try:
+                resp = ayscl.api.ays.getRun(runid=run['key'], repository=_current_repo_name())
+            except Exception as e:
+                print("Error during retreive of the run {}: {}".format(key, _extract_error(e)))
                 return
 
             run = resp.json()
@@ -508,9 +521,10 @@ def list():
     """
     List all previous run key sorted by creation date
     """
-    resp = ayscl.api.ays.listRuns(repository=_current_repo_name())
-    if resp.status_code != HTTPStatus.OK:
-        print("Error during listing of the runs: {}".format(_extract_error(resp)))
+    try:
+        resp = ayscl.api.ays.listRuns(repository=_current_repo_name())
+    except Exception as e:
+        print("Error during listing of the runs: {}".format(_extract_error(e)))
         return
     runs = resp.json()
     runs = sorted(runs, key=lambda x: x['epoch'])
@@ -529,17 +543,19 @@ def show(key, logs):
     if --logs option is given, also show the logs of each job.
     """
     if key is None:
-        resp = ayscl.api.ays.listRuns(repository=_current_repo_name())
-        if resp.status_code != HTTPStatus.OK:
-            print("Error during listing of the runs: {}".format(_extract_error(resp)))
+        try:
+            resp = ayscl.api.ays.listRuns(repository=_current_repo_name())
+        except Exception as e:
+            print("Error during listing of the runs: {}".format(_extract_error(e)))
             return
         runs = resp.json()
         runs = sorted(runs, key=lambda x: x['epoch'])
         key = runs[-1]['key']
 
-    resp = ayscl.api.ays.getRun(aysrun=key, repository=_current_repo_name())
-    if resp.status_code != HTTPStatus.OK:
-        print("Error during retreive of the run {}: {}".format(key, _extract_error(resp)))
+    try:
+        resp = ayscl.api.ays.getRun(runid=key, repository=_current_repo_name())
+    except Exception as e:
+        print("Error during retreive of the run {}: {}".format(key, _extract_error(e)))
         return
 
     _print_run(resp.json(), logs=logs)
@@ -565,9 +581,10 @@ def blueprint(name):
     if name is empty    then all blueprints found in $aysdir/blueprints will be processed
     """
     if name == '':
-        resp = ayscl.api.ays.listBlueprints(_current_repo_name())
-        if resp.status_code != HTTPStatus.OK:
-            print("error during listing of blueprints: {}".format(_extract_error(resp)))
+        try:
+            resp = ayscl.api.ays.listBlueprints(_current_repo_name())
+        except Exception as e:
+            print("error during listing of blueprints: {}".format(_extract_error(e)))
             return
 
         blueprints = resp.json()
@@ -576,11 +593,11 @@ def blueprint(name):
         names = [name]
 
     for name in sorted(names):
-        resp = ayscl.api.ays.executeBlueprint(data=None, blueprint=name, repository=_current_repo_name())
-        if resp.status_code == HTTPStatus.OK:
+        try:
+            resp = ayscl.api.ays.executeBlueprint(data=None, blueprint=name, repository=_current_repo_name())
             print("blueprint {} executed".format(name))
-        else:
-            print('error during execution of the blueprint {}: {}'.format(name, _extract_error(resp)))
+        except Exception as e:
+            print('error during execution of the blueprint {}: {}'.format(name, _extract_error(e)))
             return
 
 # AYS repository related group of commands
@@ -621,13 +638,13 @@ def action(action, asume_yes, actor, service):
         if resp is False:
             return
 
-    ayscl.api.ays.createBlueprint(bp, _current_repo_name())
-    resp = ayscl.api.ays.executeBlueprint(data=None,blueprint=name, repository=_current_repo_name())
-    if resp.status_code == HTTPStatus.OK:
+    try:
+        ayscl.api.ays.createBlueprint(bp, _current_repo_name())
+        resp = ayscl.api.ays.executeBlueprint(data=None, blueprint=name, repository=_current_repo_name())
         ayscl.api.ays.deleteBlueprint(blueprint=name, repository=_current_repo_name())
         print("blueprint {} executed".format(name))
-    else:
-        print('error during execution of the blueprint {}: {}'.format(name, _extract_error(resp)))
+    except Exception as e:
+        print('error during execution of the blueprint {}: {}'.format(name, _extract_error(e)))
         return
 
 

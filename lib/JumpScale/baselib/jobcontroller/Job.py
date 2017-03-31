@@ -1,4 +1,5 @@
 from JumpScale import j
+from JumpScale.baselib.jobcontroller.SourceLoader import SourceLoader
 from JumpScale.core.errorhandling.ErrorConditionObject import ErrorConditionObject
 import importlib
 import types
@@ -98,9 +99,9 @@ class Job():
         self._cancelled = False
         self._action = None
         self._service = None
-        self._source = None
         self._future = None
         self.saveService = True
+        self._sourceLoader = None
         self.logger = j.logger.get('j.jobcontroller.job.{}'.format(self.model.key))
         self._logHandler = JobHandler(self.model)
         self.logger.addHandler(self._logHandler)
@@ -122,33 +123,6 @@ class Job():
             self._action = j.core.jobcontroller.db.actions.get(self.model.dbobj.actionKey)
         return self._action
 
-    @property
-    def sourceToExecute(self):
-        if self._source is None:
-            s = """
-            $imports
-            from JumpScale import j
-
-            def action($args):
-            $source
-            """
-            s = j.data.text.strip(s)
-            s = s.replace("$imports", '\n'.join(self.action.imports))
-            code = self.action.dbobj.code
-            code = j.data.text.indent(code, 4)
-
-            s = s.replace("$source", code)
-            s = s.replace("$args", self.action.argsText)
-            self._source = s
-        return self._source
-
-    @property
-    def sourceToExecutePath(self):
-        path = j.sal.fs.joinPaths(j.dirs.TMPDIR, "actions", self.action.dbobj.actorName, self.action.dbobj.name + ".py")
-        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.TMPDIR, "actions", self.action.dbobj.actorName))
-        j.sal.fs.writeFile(path, self.sourceToExecute)
-        return path
-
     def printLogs(self):
         logs = list()
         for log in self.model.dbobj.logs:
@@ -161,16 +135,17 @@ class Job():
         print(logs)
         return logs
 
+    @property
+    def sourceLoader(self):
+        if self._sourceLoader is None:
+            if self._service is None:
+                raise j.exceptions.RuntimeError("can't dynamicly load action code, no service present in job object")
+            self._sourceLoader = SourceLoader(self._service)
+        return self._sourceLoader
 
     @property
-
     def method(self):
-        if self.action.key not in sys.modules:
-            loader = importlib.machinery.SourceFileLoader(self.action.key, self.sourceToExecutePath)
-            mod = types.ModuleType(loader.name)
-            loader.exec_module(mod)
-            sys.modules[self.action.key] = mod
-        return sys.modules[self.action.key].action
+        return self.sourceLoader.get_method(self.model.dbobj.actionName)
 
     @property
     def service(self):
@@ -264,10 +239,11 @@ class Job():
         ex: result, stdout, stderr = await job.execute()
         """
         # for now use default ThreadPoolExecutor
-        loop = asyncio.get_event_loop()
         if self.model.dbobj.debug is False:
-            self.model.dbobj.debug = self.sourceToExecute.find('ipdb') != -1 or self.sourceToExecute.find('IPython') != -1
+            self.model.dbobj.debug = self.sourceLoader.source.find('ipdb') != -1 or \
+                                     self.sourceLoader.source.find('IPython') != -1
 
+        loop = asyncio.get_event_loop()
         self._future = loop.run_in_executor(None, self.method, self)
 
         # register callback to deal with logs and state of the job after execution

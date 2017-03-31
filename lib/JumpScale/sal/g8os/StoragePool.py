@@ -25,24 +25,10 @@ class StoragePools:
         raise ValueError("Could not find StoragePool with name {}".format(name))
 
     def create(self, name, devices, metadata_profile, data_profile):
+        label = 'sp_{}'.format(self.name)
+        self._client.btrfs.create(label, self.devices, metadata_profile, data_profile)
         pool = StoragePool(self.node, name, devices)
-        pool.create(metadata_profile, data_profile)
         return pool
-
-    def destroy(self, name, zero=True):
-        """
-        param name: name of storagepool to delete
-        param zero: write zeros (nulls) to the first 500MB of each disk in this storagepool
-        """
-        try:
-            pool = self.get(name)
-        except ValueError:
-            return True
-        if pool.mountpoint:
-            pool.umount()
-        if zero:
-            for device in pool.devices:
-                self._client.system('dd if=/dev/zero bs=1M count=500 of={}'.format(device))
 
 
 class StoragePool(Mountable):
@@ -53,13 +39,26 @@ class StoragePool(Mountable):
         self.name = name
         self._mountpoint = None
 
-    def create(self, metadata_profile, data_profile):
-        label = 'sp_{}'.format(self.name)
-        self._client.btrfs.create(label, self.devices, metadata_profile, data_profile)
-
     @property
     def devicename(self):
         return 'UUID={}'.format(self.uuid)
+
+    def mount(self, target=None):
+        if target is None:
+            target = os.path.join('/mnt/storagepools/{}'.format(self.name))
+        return super().mount(target)
+
+    def delete(self, zero=True):
+        """
+        Destroy storage pool
+        param name: name of storagepool to delete
+        param zero: write zeros (nulls) to the first 500MB of each disk in this storagepool
+        """
+        if self.mountpoint:
+            self.umount()
+        if zero:
+            for device in self.devices:
+                self._client.system('dd if=/dev/zero bs=1M count=500 of={}'.format(device))
 
     @property
     def mountpoint(self):
@@ -89,35 +88,61 @@ class StoragePool(Mountable):
             raise RuntimeError("Can not perform action when filesystem is not mounted")
         return mountpoint
 
-    def list_subvolumes(self):
-        subvolumes = []
-        mountpoint = self._get_mountpoint()
-        for subvolume in self._client.btrfs.subvol_list(mountpoint) or []:
-            subvolumes.append(SubVolume(subvolume['Path'], self))
-        return subvolumes
-
-    def create_subvolume(self, name):
-        mountpoint = self._get_mountpoint()
-        subvolpath = os.path.join(mountpoint, name)
-        self._client.btrfs.subvol_create(subvolpath)
-        return SubVolume(name, self)
-
-    def delete_subvolume(self, name):
-        mountpoint = self._get_mountpoint()
-        subvolpath = os.path.join(mountpoint, name)
-        self._client.btrfs.subvol_delete(subvolpath)
-
     @property
-    def filesystem(self):
+    def info(self):
         for fs in self._client.btrfs.list():
             if fs['label'] == 'sp_{}'.format(self.name):
                 return fs
         return None
 
+    def raw_list(self):
+        mountpoint = self._get_mountpoint()
+        return self._client.btrfs.subvol_list(mountpoint) or []
+
+    def list(self):
+        subvolumes = []
+        for subvol in self.raw_list():
+            path = subvol['Path']
+            type_, _, name = path.partition('/')
+            if type_ == 'filesystems':
+                subvolumes.append(FileSystem(name, self))
+        return subvolumes
+
+    def get(self, name):
+        """
+        Get Filesystem
+        """
+        for filesystem in self.list():
+            if filesystem.name == name:
+                return filesystem
+        raise ValueError("Could not find filesystem with name {}".format(name))
+
+    def exists(self, name):
+        """
+        Check if filesystem with name exists
+        """
+        for subvolume in self.list():
+            if subvolume.name == name:
+                return True
+        return False
+
+    def create(self, name, quota=None):
+        """
+        Create filesystem
+        """
+        mountpoint = self._get_mountpoint()
+        fspath = os.path.join(mountpoint, 'filesystems')
+        self._client.filesystem.mkdir(fspath)
+        subvolpath = os.path.join(fspath, name)
+        self._client.btrfs.subvol_create(subvolpath)
+        if quota:
+            pass
+        return FileSystem(name, self)
+
     @property
     def size(self):
         total = 0
-        fs = self.filesystem
+        fs = self.info
         if fs:
             for device in fs['devices']:
                 total += device['size']
@@ -125,7 +150,7 @@ class StoragePool(Mountable):
 
     @property
     def uuid(self):
-        fs = self.filesystem
+        fs = self.info
         if fs:
             return fs['uuid']
         return None
@@ -133,7 +158,7 @@ class StoragePool(Mountable):
     @property
     def used(self):
         total = 0
-        fs = self.filesystem
+        fs = self.info
         if fs:
             for device in fs['devices']:
                 total += device['used']
@@ -143,28 +168,78 @@ class StoragePool(Mountable):
         return "StoragePool <{}>".format(self.name)
 
 
-class SubVolume(Mountable):
+class FileSystem:
     def __init__(self, name, pool):
         self.name = name
         self.pool = pool
         self._client = pool.node.client
-        self.devicename = self.pool.devicename
+        self.path = os.path.join(self.pool.mountpoint, 'filesystems', name)
+        self.snapshotspath = os.path.join(self.pool.mountpoint, 'snapshots', self.name)
 
-    def mount(self, target, options=['defaults']):
-        options.append('subvol={}'.format(self.name))
-        return super().mount(target, options)
+    def delete(self, includesnapshots=True):
+        """
+        Delete filesystem
+        """
+        self._client.btrfs.subvol_delete(self.path)
+        if includesnapshots:
+            for snapshot in self.list():
+                snapshot.delete()
+            self._client.filesystem.remove(self.snapshotspath)
 
-    @property
-    def mountpoint(self):
-        for mount in self.pool.node.list_mounts():
-            mountopt = 'subvol=/{}'.format(self.name)
-            if mount.device in self.pool.devices and mountopt in mount.options:
-                return mount.mountpoint
+    def get(self, name):
+        """
+        Get snapshot
+        """
+        for snap in self.list():
+            if snap.name == name:
+                return snap
+        raise ValueError("Could not find snapshot {}".format(name))
 
-    @mountpoint.setter
-    def mountpoint(self, value):
-        # do not do anything mountpoint is dynamic
-        return
+    def list(self):
+        """
+        List snapshots
+        """
+        snapshots = []
+        if self._client.filesystem.exists(self.snapshotspath):
+            for fileentry in self._client.filesystem.list(self.snapshotspath):
+                if fileentry['is_dir']:
+                    snapshots.append(Snapshot(fileentry['name'], self))
+        return snapshots
+
+    def exists(self, name):
+        """
+        Check if a snapshot exists
+        """
+        return name in self.list()
+
+    def create(self, name):
+        """
+        Create snapshot
+        """
+        snapshot = Snapshot(name, self)
+        if self.exists(name):
+            raise RuntimeError("Snapshot path {} exists.")
+        self._client.filesystem.mkdir(self.snapshotspath)
+        self._client.btrfs.subvol_snapshot(self.path, snapshot.path)
+        return snapshot
 
     def __repr__(self):
-        return "SubVolume <{}: {!r}>".format(self.name, self.pool)
+        return "FileSystem <{}: {!r}>".format(self.name, self.pool)
+
+
+class Snapshot:
+    def __init__(self, name, filesystem):
+        self.filesystem = filesystem
+        self._client = filesystem.pool.node.client
+        self.name = name
+        self.path = os.path.join(self.filesystem.snapshotspath, name)
+
+    def rollback(self):
+        self.filesystem.delete(False)
+        self._client.btrfs.subvol_snapshot(self.path, self.filesystem.path)
+
+    def delete(self):
+        self._client.btrfs.subvol_delete(self.path)
+
+    def __repr__(self):
+        return "Snapshot <{}: {!r}>".format(self.name, self.filesystem)

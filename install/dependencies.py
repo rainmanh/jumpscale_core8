@@ -40,9 +40,11 @@ class dependencies():
         docker
         toml
         pystache
+        python-jose
         """
         self.do.pip(C, executor=executor)
         self.do.execute("pip3 install https://github.com/tony/libtmux/archive/master.zip --upgrade")
+        #self.do.execute("apt-get install -y python-colorlog")
 
     def portal(self, executor=None):
         C = """

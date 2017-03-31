@@ -669,7 +669,7 @@ class Service:
         if action[-1] == "_":
             return self.executeActionService(action)
         else:
-            return self.executeActionJob(action, args)
+            return await self.executeActionJob(action, args)
 
     def executeActionService(self, action, args={}):
         # execute an action in process without creating a job

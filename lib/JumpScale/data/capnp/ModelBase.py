@@ -315,8 +315,6 @@ class ModelBaseCollection:
 
         self._init()
 
-        self.logger.debug("initted.")
-
     def _init(self):
         pass
 

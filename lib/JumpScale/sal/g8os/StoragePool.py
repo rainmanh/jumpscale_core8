@@ -25,8 +25,8 @@ class StoragePools:
         raise ValueError("Could not find StoragePool with name {}".format(name))
 
     def create(self, name, devices, metadata_profile, data_profile):
-        label = 'sp_{}'.format(self.name)
-        self._client.btrfs.create(label, self.devices, metadata_profile, data_profile)
+        label = 'sp_{}'.format(name)
+        self._client.btrfs.create(label, devices, metadata_profile, data_profile)
         pool = StoragePool(self.node, name, devices)
         return pool
 

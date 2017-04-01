@@ -26,7 +26,7 @@ class DocSite:
         gitpath = j.clients.git.findGitPath(path)
 
         self.git = j.tools.docgenerator.addGitRepo(gitpath)
-
+        self.defs = {}
         self.defaultContent = {}  # key is relative path in docsite where default content found
 
         data = {}
@@ -125,6 +125,7 @@ class DocSite:
         if duplicate only the first found will be used
 
         """
+        j.sal.fs.remove(self.path + "errors.md")
         path = self.path
         if not j.sal.fs.exists(path=path):
             raise j.exceptions.NotFound("Cannot find source path in load:'%s'" % path)
@@ -132,6 +133,9 @@ class DocSite:
         def callbackForMatchDir(path, arg):
             base = j.sal.fs.getBaseName(path)
             if base.startswith("."):
+                return False
+
+            if base.startswith("_"):
                 return False
 
             # check if we find a macro dir, if so load
@@ -152,6 +156,13 @@ class DocSite:
             #     return False
             if ext == "md" and base[:-3] in ["summary", "default"]:
                 return False
+
+            if base.startswith("_"):
+                return False
+
+            if base[:-3].lower() in ["readme"]:
+                return False
+
             return True
 
         def callbackFunctionDir(path, arg):
@@ -166,18 +177,18 @@ class DocSite:
 
         def callbackFunctionFile(path, arg):
             ext = j.sal.fs.getFileExtension(path)
-            base = j.sal.fs.getBaseName(path).lower()
+            base = j.sal.fs.getBaseName(path)
             if ext == "md":
                 base = base[:-3]  # remove extension
                 if base not in self.docs:
-                    self.docs[base] = Doc(path, base, docSite=self)
+                    self.docs[base.lower()] = Doc(path, base, docSite=self)
                     # self.docSiteLast.docs[base] = self.docs[base]
             else:
                 if ext in ["png", "jpg", "jpeg", "pdf", "docx", "doc", "xlsx", "xls", "ppt", "pptx", "gig", "mp4"]:
                     if base in self.files:
                         raise j.exceptions.Input(message="duplication file in %s,%s" %
                                                  (self, path), level=1, source="", tags="", msgpub="")
-                    self.files[base] = path
+                    self.files[base.lower()] = path
 
         callbackFunctionDir(self.path, "")  # to make sure we use first data.yaml in root
 
@@ -210,6 +221,18 @@ class DocSite:
             self._generator = loadmodule(self.name, self.generatorPath)
         return self._generator
 
+    def raiseError(self, errormsg, doc=None):
+        if doc != None:
+            errormsg2 = "## ERROR: %s\n\n- in doc: %s\n\n%s\n" % (j.data.time.getLocalTimeHR(), doc, errormsg)
+            j.sal.fs.writeFile(filename=self.path + "errors.md", contents=errormsg2, append=True)
+            print(errormsg2)
+            doc.errors.append(errormsg)
+        else:
+            from IPython import embed
+            print("DEBUG NOW raise error")
+            embed()
+            raise RuntimeError("stop debug here")
+
     def write(self):
         j.sal.fs.removeDirTree(self.outpath)
         dest = j.sal.fs.joinPaths(self.outpath, "content")
@@ -220,7 +243,23 @@ class DocSite:
 
         for key, doc in self.docs.items():
             doc.process()
-            doc.write(docSite=self)
+
+        # find the defs, also process the aliases
+        for key, doc in self.docs.items():
+            if "tags" in doc.data:
+                tags = doc.data["tags"]
+                if "def" in tags:
+                    name = doc.name.lower().replace("_", "").replace("-", "").replace(" ", "")
+                    self.defs[name] = doc
+                    if "alias" in doc.data:
+                        for alias in doc.data["alias"]:
+                            name = alias.lower().replace("_", "").replace("-", "").replace(" ", "")
+                            self.defs[name] = doc
+
+        for key, doc in self.docs.items():
+            doc.processDefs()
+            doc.write()
+
         self.generator.generate(self)
 
         if j.sal.fs.exists(j.sal.fs.joinPaths(self.path, "static"), followlinks=True):
@@ -247,4 +286,8 @@ class DocSite:
             raise j.exceptions.Input(message="Cannot find doc with name:%s" %
                                      name, level=1, source="", tags="", msgpub="")
         else:
+            from IPython import embed
+            print("DEBUG NOW uy")
+            embed()
+            raise RuntimeError("stop debug here")
             return None

@@ -8,7 +8,7 @@ from datetime import datetime
 import itertools
 
 
-## please note you need to use ModelBase1 for now.
+# please note you need to use ModelBase1 for now.
 def githubtimetoint(t):
     #parsed = datetime.strptime(t, "%Y-%m-%d %I:%M:%S")
     return j.data.time.any2epoch(t)
@@ -50,6 +50,7 @@ def fetchall_from_many_paginated_lists(*paginated_lists):
         els.extend(fetchall_from_paginated_list(p))
     return els
 
+
 class GitHubFactory:
 
     def __init__(self):
@@ -85,7 +86,7 @@ class GitHubClient:
         self.orgCollection = j.tools.issuemanager.getOrgCollectionFromDB()
         self.issueCollection = j.tools.issuemanager.getIssueCollectionFromDB()
         self.repoCollection = j.tools.issuemanager.getRepoCollectionFromDB()
-
+        self.logger = j.logger.get('j.clients.github')
 
     # def getRepo(self, fullname):
     #     """
@@ -114,14 +115,15 @@ class GitHubClient:
                 self.users[githubObj.login] = user
             return self.users[githubObj.login]
 
-
-    def _getUsersFromGithubOrg(self, git_host_name, org):
+    def getUsersFromGithubOrg(self, org):
         """
         populates user models from github organization.
 
         @param org str: organization name.
 
         """
+        self.logger.info("get users from github org:%s" % org)
+        git_host_name = "github"
         org = self.api.get_organization(org)
         members_pagedlist = org.get_members()
 
@@ -129,7 +131,8 @@ class GitHubClient:
 
         for user in members:
             url = "https://github.com/%s" % user.login
-            user_model = self.userCollection.getFromGitHostID(git_host_name=git_host_name, git_host_id=user.id, git_host_url=url)
+            user_model = self.userCollection.getFromGitHostID(
+                git_host_name=git_host_name, git_host_id=user.id, git_host_url=url)
             if user_model.dbobj.name != user.login:
                 user_model.dbobj.name = user.login
                 user_model.changed = True
@@ -150,14 +153,14 @@ class GitHubClient:
 
             self.users[user.login] = user_model.key
 
-
     # FIX ALL NR_FIELDS TO USE totalCount attr
-    def _getOrganizationFromGithub(self, git_host_name, orgname):
+    def _getOrganizationFromGithub(self, orgname):
         """
         populate organization model from Github organization name.
 
         @param orgname str: organization name.
         """
+        git_host_name = "github"
         if not self.users:
             self._getUsersFromGithubOrg(git_host_name, orgname)
 
@@ -168,7 +171,8 @@ class GitHubClient:
         orgid = org.id
 
         url = 'https://github.com/%s' % orgname
-        org_model = self.orgCollection.getFromGitHostID(git_host_name=git_host_name, git_host_id=org.id, git_host_url=url)
+        org_model = self.orgCollection.getFromGitHostID(
+            git_host_name=git_host_name, git_host_id=org.id, git_host_url=url)
 
         # org_model.dbobj.repos = reposids
 
@@ -182,7 +186,7 @@ class GitHubClient:
         #  nr of milestones => set of all milestones in all repos?
         # nrmilestones = len(milestones)
 
-        description = orgname # FIXME: how to get a description of an org? orgname used instead.
+        description = orgname  # FIXME: how to get a description of an org? orgname used instead.
 
         members = fetchall_from_paginated_list(org.get_members())
         nrmembers = len(members)
@@ -208,33 +212,39 @@ class GitHubClient:
         org_model.dbobj.description = org.raw_data['description'] or ''
         org_model.save()
 
-    def getUsersFromGithubOrgs(self, git_host_name, *orgs):
+    def getUsersFromGithubOrgs(self, *orgs):
         """
         Populates user models from a list of github organizations.
 
         @param orgs list: list of organizations names.
 
         """
-        # list(map(self._getUsersFromGithubOrg, orgs))
-        self.pool.starmap(self._getUsersFromGithubOrg, zip(itertools.repeat(git_host_name), orgs))
+        git_host_name = "github"
+        for org in orgs:
+            self.getUsersFromGithubOrg(org)
+        # self.pool.starmap(self.getUsersFromGithubOrg, zip(orgs))
+        from IPython import embed
+        print("DEBUG NOW oi")
+        embed()
+        raise RuntimeError("stop debug here")
 
-    def getOrgsFromGithub(self, git_host_name, *orgs):
+    def getOrgsFromGithub(self, *orgs):
         """
         Populates organization models from github organizations names list.
 
         @param orgs list: list of organizations names.
         """
+        git_host_name = "github"
         self.pool.starmap(self._getOrganizationFromGithub, zip(itertools.repeat(git_host_name), orgs))
 
-
-    def getIssuesFromGithubRepo(self, git_host_name, repo):
+    def getIssuesFromGithubRepo(self, repo):
         """
         Populates issues models from github repo.
 
         @param repo str: github repository name.
 
         """
-
+        git_host_name = "github"
         if not self.repos:
             self.getReposFromGithubOrgs(git_host_name)
 
@@ -248,12 +258,14 @@ class GitHubClient:
             """
 
             url = 'https://github.com/%s/issues/%s' % (issue.repository.full_name, issue.number)
-            issue_model = self.issueCollection.getFromGitHostID(git_host_name=git_host_name, git_host_id=issue.id, git_host_url=url)
+            issue_model = self.issueCollection.getFromGitHostID(
+                git_host_name=git_host_name, git_host_id=issue.id, git_host_url=url)
             issue_model.dbobj.assignees = [self.users[user.login] for user in issue.assignees]
 
             # our view has pre-aggregrated the comments, need to do some minimal parsing now
             comments = fetchall_from_paginated_list(issue.get_comments())
-            # comments.sort(key=lambda comment:comment.id)  # will make sure its sorted on comment_id (prob required for right order of comments)
+            # comments.sort(key=lambda comment:comment.id)  # will make sure its
+            # sorted on comment_id (prob required for right order of comments)
             if comments != []:
                 for comment in comments:
                     issue_model.commentSet(comment.body, owner=self.users.get(comment.user.login))
@@ -273,43 +285,45 @@ class GitHubClient:
         pool = Pool(50)
         pool.map(process_issue_from_github, issues)
 
-
-    def getIssuesFromGithubOrganization(self, git_host_name, org):
+    def getIssuesFromGithubOrganization(self, org):
         """
         Populates all issues from github organization org
 
         @param org str: organization name.
         """
+        git_host_name = "github"
         org = self.api.get_organization(org)
         repos = fetchall_from_paginated_list(org.get_repos())
         repos = [rep.full_name for rep in repos]
         self.pool.starmap(self.getIssuesFromGithubRepo, zip(itertools.repeat(git_host_name), repos))
 
-    def getIssuesFromGithubOrganizations(self, git_host_name, *orgs):
+    def getIssuesFromGithubOrganizations(self, *orgs):
         """
         Populates all issues from github organizations list orgs.
 
         @param orgs list[str]: list of organizations names.
         """
+        git_host_name = "github"
         self.pool.starmap(self.getIssuesFromGithubOrganization, zip(itertools.repeat(git_host_name), orgs))
 
-    def getReposFromGithubOrgs(self, git_host_name, *orgs):
+    def getReposFromGithubOrgs(self, *orgs):
         """
         Populate repos models from list of organizations names.
 
         @param orgs list[str]: list of organizations names.
 
         """
+        git_host_name = "github"
         self.pool.starmap(self.getReposFromGithubOrg, zip(itertools.repeat(git_host_name), orgs))
 
-    def getReposFromGithubOrg(self, git_host_name, org):
+    def getReposFromGithubOrg(self, org):
         """
         Populates repos from organization.
 
         @param org str: organization names.
 
         """
-
+        git_host_name = "github"
         org = self.api.get_organization(org)
         repos = fetchall_from_paginated_list(org.get_repos())
 
@@ -324,7 +338,8 @@ class GitHubClient:
             issues = fetchall_from_paginated_list(repo.get_issues())
 
             url = 'https://github.com/%s' % repo.full_name
-            repo_model = self.repoCollection.getFromGitHostID(git_host_name=git_host_name, git_host_id=repo.id, git_host_url=url)
+            repo_model = self.repoCollection.getFromGitHostID(
+                git_host_name=git_host_name, git_host_id=repo.id, git_host_url=url)
 
             repo_model.dbobj.name = repo.name
             repo_model.dbobj.description = repo.description or ''
@@ -366,7 +381,6 @@ class GitHubClient:
     #         member_scheme = j.data.capnp.getMemoryObj(repo_model._capnp_schema.Member, userKey=str(member.id), access=0)
     #         repo_model.dbobj.members.append(member_scheme)
 
-
         # repo_model.dbobj.milestones = []
         # for milestone in milestones:
         #     nrclosedissues = milestone.closed_issues
@@ -395,8 +409,8 @@ class GitHubClient:
         # repo_model.dbobj.inGithub = True
         # repo_model.save()
 
-    def syncAllFromGithub(self, git_host_name, *orgs):
-        self.getUsersFromGithubOrgs(git_host_name, *orgs)
-        self.getOrgsFromGithub(git_host_name, *orgs)
-        self.getReposFromGithubOrgs(git_host_name, *orgs)
-        self.getIssuesFromGithubOrganizations(git_host_name, *orgs)
+    def syncAllFromGithub(self, *orgs):
+        self.getUsersFromGithubOrgs(*orgs)
+        self.getOrgsFromGithub(*orgs)
+        self.getReposFromGithubOrgs(*orgs)
+        self.getIssuesFromGithubOrganizations(*orgs)

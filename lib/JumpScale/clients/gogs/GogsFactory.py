@@ -1,6 +1,7 @@
 from GogsClient import GogsClient
 from JumpScale import j
 import psycopg2
+import sys
 
 
 class GogsFactory:
@@ -174,8 +175,12 @@ class GogsFactory:
         is dict, key is $userid data is ()
         """
         if self._users_table == {}:
-            for user in self.model.User:
-                self._users_table[user.id] = user
+            try:
+                for user in self.model.User:
+                    print("user:%s" % user.name)
+                    self._users_table[user.id] = user
+            except Exception as e:
+                print("WARNING: could download user:%s" % user.name, sep=' ', end='n', file=sys.stdout, flush=False)
         return self._users_table
 
     @property
@@ -184,9 +189,15 @@ class GogsFactory:
         is dict, key is $issueid_userid data is (repoid,milestoneid,is_read,is_assigned,is_mentioned,is_poster,is_closed)
         """
         if self._issue_user_table == {}:
-            for item in self.model.Issue:
-                self._issue_user_table.setdefault(item.id, [])
-                self._issue_user_table[item.id].append(item)
+            try:
+                for item in self.model.Issue:
+                    self.logger.info("process issue_userp:%s" % item.name)
+                    self._issue_user_table.setdefault(item.id, [])
+                    self._issue_user_table[item.id].append(item)
+            except Exception as e:
+                self.logger.error("ERROR: could download issue_user:%s" % item.name)
+                sys.exit(1)
+
         return self._issue_user_table
 
     @property
@@ -340,7 +351,8 @@ class GogsFactory:
 
             # get organization from git_host_id
             url = "https://docs.greenitglobe.com/%s" % orgName
-            org_model = self.orgCollection.getFromGitHostID(git_host_name=git_host_name, git_host_id=org.org_userid, git_host_url=url)
+            org_model = self.orgCollection.getFromGitHostID(
+                git_host_name=git_host_name, git_host_id=org.org_userid, git_host_url=url)
 
             members = [self.userId2userKey[int(item.strip())]
                        for item in org.org_member_userids.split(",")]
@@ -379,7 +391,8 @@ class GogsFactory:
         for id, repo in self.repos_table.items():
 
             url = "https://docs.greenitglobe.com/%s/%s" % (self.userId2userKey[repo.owner], repo.name)
-            repo_model = self.repoCollection.getFromGitHostID(git_host_name=git_host_name, git_host_id=id, git_host_url=url)
+            repo_model = self.repoCollection.getFromGitHostID(
+                git_host_name=git_host_name, git_host_id=id, git_host_url=url)
 
             repo_model.dbobj.name = repo.name
             repo_model.dbobj.description = repo.description
@@ -404,7 +417,8 @@ class GogsFactory:
 
         for id, user in self.users_table.items():
             url = "https://docs.greenitglobe.com/%s" % user.name
-            user_model = self.userCollection.getFromGitHostID(git_host_name=git_host_name, git_host_id=user.id, git_host_url=url)
+            user_model = self.userCollection.getFromGitHostID(
+                git_host_name=git_host_name, git_host_id=user.id, git_host_url=url)
             if user_model.dbobj.name != user.name:
                 user_model.dbobj.name = user.name
                 user_model.changed = True
@@ -442,10 +456,12 @@ class GogsFactory:
         @param name is name of gogs instance
         @id is id in gogs
         """
-        model.logger.debug("gitHostRefSet: git_host_name='%s' git_host_id='%s' git_host_url='%s'" % (git_host_name, git_host_id, git_host_url))
+        model.logger.debug("gitHostRefSet: git_host_name='%s' git_host_id='%s' git_host_url='%s'" %
+                           (git_host_name, git_host_id, git_host_url))
         ref = self._gitHostRefGet(model, git_host_name, git_host_url)
         if ref == None:
-            model.addSubItem("gitHostRefs", data=model.collection.list_gitHostRefs_constructor(id=git_host_id, name=git_host_name, url=git_host_url))
+            model.addSubItem("gitHostRefs", data=model.collection.list_gitHostRefs_constructor(
+                id=git_host_id, name=git_host_name, url=git_host_url))
             key = model.collection._index.lookupSet("githost_%s" % git_host_name, git_host_id, model.key)
             model.save()
         else:
@@ -466,13 +482,15 @@ class GogsFactory:
         """
         @param git_host_name is the name of the gogs instance
         """
-        modelCollection.logger.debug("gitHostRefSet: git_host_name='%s' git_host_id='%s' git_host_url='%s'" % (git_host_name, git_host_id, git_host_url))
+        modelCollection.logger.debug("gitHostRefSet: git_host_name='%s' git_host_id='%s' git_host_url='%s'" % (
+            git_host_name, git_host_id, git_host_url))
         key = modelCollection._index.lookupGet("githost_%s" % git_host_name, git_host_id)
         if key == None:
-            modelCollection.logger.debug("gogs id not found, create new")
+            modelCollection.logger.debug("githost id not found, create new")
             if createNew:
                 modelActive = modelCollection.new()
-                self._gitHostRefSet(model=modelActive, git_host_name=git_host_name, git_host_id=git_host_id, git_host_url=git_host_url)
+                self._gitHostRefSet(model=modelActive, git_host_name=git_host_name,
+                                    git_host_id=git_host_id, git_host_url=git_host_url)
             else:
                 raise j.exceptions.Input(message="cannot find object  %s from git_host_id:%s" %
                                          (modelCollection.objType, git_host_id), level=1, source="", tags="", msgpub="")

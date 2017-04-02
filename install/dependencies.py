@@ -9,7 +9,7 @@ class dependencies():
         uvloop
         redis
         paramiko
-        watchdog
+        #watchdog
         gitpython
         click
         pymux

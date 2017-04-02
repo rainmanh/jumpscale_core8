@@ -14,6 +14,13 @@ TemplateRepo_schema = JSON.load(open(j.sal.fs.joinPaths(j.sal.fs.getParent(__fil
 
 AYS_REPO_DIR = '/optvar/cockpit_repos'
 
+async def reload(request):
+    try:
+        j.atyourservice.reset()
+        return json({})
+    except Exception as e:
+        return json({'error': e.message}, 500)
+
 async def addTemplateRepo(request):
     '''
     add a new actor template repository

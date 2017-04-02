@@ -258,6 +258,14 @@ types:
 
 /ays:
   securedBy: [ itsyouonline : { scopes: [ "user:memberof:organization" ] }]
+  /reload:
+      post:
+        displayName: reload
+        description: reload AYS
+        responses:
+          200:
+            description: "AYS reloaded"
+
   /template_repo:
     post:
       displayName: addTemplateRepo

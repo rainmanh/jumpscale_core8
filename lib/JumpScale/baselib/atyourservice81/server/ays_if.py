@@ -14,6 +14,12 @@ async def auth(request, func):
         return text(msg, code)
     return await func
 
+class ays_reloadView(HTTPMethodView):
+    async def post(self, request):
+        return await auth(request, ays_api.reload(request))
+
+ays_if.add_route(ays_reloadView.as_view(), '/ays/reload')
+
 class ays_repositoryView(HTTPMethodView):
 
     async def get(self, request):

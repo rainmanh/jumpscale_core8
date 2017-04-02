@@ -208,6 +208,10 @@ class AtYourServiceFactory:
 
     def reset(self):
         self._domains = []
+        self.baseActions = {}
+        self.templateRepos = None
+        self.aysRepos = None
+        self._start(loop=self.loop)
 
     def getAYSTester(self, name="fake_IT_env"):
         self._init()

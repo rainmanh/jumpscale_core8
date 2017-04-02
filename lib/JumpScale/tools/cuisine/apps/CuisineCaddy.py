@@ -82,8 +82,7 @@ class CuisineCaddy(app):
         if start:
             self.start(ssl)
 
-    def start(self, ssl):
-        self.cuisine.core.run("ulimit -n 8192")
+    def start(self, ssl, agree=True, cfg_path='', email='info@greenitglobe.com'):
         cpath = self.replace("$JSCFGDIR/caddy/caddyfile.conf")
         self.cuisine.core.file_copy("$TEMPLATEDIR/cfg/caddy", "$JSCFGDIR/caddy", recursive=True)
 
@@ -117,7 +116,12 @@ class CuisineCaddy(app):
                 self.cuisine.systemservices.ufw.allowIncoming(22)
 
         cmd = self.cuisine.bash.cmdGetPath("caddy")
-        self.cuisine.processmanager.ensure("caddy", '%s -conf=%s -email=info@greenitglobe.com' % (cmd, cpath))
+        if cfg_path:
+            cpath = cfg_path
+        if agree:
+            self.cuisine.processmanager.ensure("caddy", 'ulimit -n 8192; %s -agree -conf=%s -email=%s' % (cmd, cpath, email))
+        else:
+            self.cuisine.processmanager.ensure("caddy", 'ulimit -n 8192; %s -conf=%s -email=%s' % (cmd, cpath, email))
 
     def stop(self):
         self.cuisine.processmanager.stop("caddy")

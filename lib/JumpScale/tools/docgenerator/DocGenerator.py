@@ -94,18 +94,8 @@ class DocGenerator:
         dest = "%s/docgenerator/caddyfile" % j.dirs.VARDIR
         if not j.sal.fs.exists(dest, followlinks=True):
             self.generateCaddyFile()
-        cmd = "ulimit -n 8192;caddy -agree -conf %s" % dest
-        self.logger.info("start caddy service, will take 5 sec")
-        try:
-            sname = j.tools.cuisine.local.tmux.getSessions()[0]
-        except:
-            sname = "main"
-        rc, out = j.tools.cuisine.local.tmux.executeInScreen(sname, "caddy", cmd, reset=True, wait=1)
-        if rc > 0:
-            raise RuntimeError("Cannot start AYS service")
-        self.logger.debug(out)
+        j.tools.cuisine.local.apps.caddy.start(ssl=False, agree=True, cfg_path=dest)
         self.logger.info("go to %a" % self.webserver)
-        return rc, out
 
     def generateCaddyFile(self):
         dest = "%s/docgenerator/caddyfile" % j.dirs.VARDIR

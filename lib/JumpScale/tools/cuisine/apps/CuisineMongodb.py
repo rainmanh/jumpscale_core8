@@ -54,13 +54,12 @@ class CuisineMongodb(app):
         raise RuntimeError("not implemented")
 
     def start(self, reset=False):
-        if (not reset and self.doneGet("start")) or self.isStarted():
+        if self.isStarted() and not reset:
             return
         self.cuisine.core.dir_ensure('$VARDIR/data/mongodb')
         cmd = "$BINDIR/mongod --dbpath '$VARDIR/data/mongodb'"
         self.cuisine.process.kill("mongod")
         self.cuisine.processmanager.ensure(name="mongod", cmd=cmd, env={}, path="", autostart=True)
-        self.doneSet("start")
 
     def stop(self):
         self.cuisine.processmanager.stop("mongod")

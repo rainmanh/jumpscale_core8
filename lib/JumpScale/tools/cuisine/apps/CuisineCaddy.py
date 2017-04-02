@@ -1,5 +1,5 @@
 from JumpScale import j
-import sys
+
 
 app = j.tools.cuisine._getBaseAppClass()
 
@@ -23,20 +23,18 @@ class CuisineCaddy(app):
         :param features: is used to specify the required features in the installation. Currently the default installation
         will add the following features: filemanager, cors
         """
-        self.cuisine.development.golang.install()
         if self.doneGet('build') and reset is False:
             return
 
-        if sys.platform.startswith("darwin"):
-            cmd = "go get -v github.com/mholt/caddy/caddy"
-            self.cuisine.core.run(cmd)
+        features = ",".join(features)
+        if self.core.isMac:
+            caddy_url = 'https://caddyserver.com/download/build?os=darwin&arch=amd64&features=%s' % features
+            dest = '$TMPDIR/caddy_darwin_amd64_custom.zip'
         else:
-            features = ",".join(features)
-            self.cuisine.core.dir_ensure('$JSBASEDIR/tmp')
-            # ANDROID_ROOT is exported in order to run the  installation script correctly
-            cmd = "set -ex;export PREFIX=$JSBASEDIR ; export ANDROID_ROOT=NOT_USED ; curl curl https://getcaddy.com | bash > $TMPDIR/caddy.sh; cd $TMPDIR ; bash caddy.sh -s %s" % features
-            # print(cmd)
-            res = self.cuisine.core.run(cmd)
+            caddy_url = 'https://caddyserver.com/download/build?os=linux&arch=amd64&features=%s' % features
+            dest = '$TMPDIR/caddy_linux_amd64_custom.tar.gz'
+        self.cuisine.core.file_download(caddy_url, dest)
+        self.cuisine.core.run('cd $TMPDIR && tar xvf %s' % dest)
         if install:
             self.install(ssl, start, dns, reset, wwwrootdir)
 
@@ -52,6 +50,8 @@ class CuisineCaddy(app):
         if self.doneGet('install') and reset is False and self.isInstalled():
             return
 
+        self.cuisine.core.file_copy(
+            '$TMPDIR/caddy', '$BINDIR/caddy')
         self.cuisine.bash.profileDefault.addPath(self.cuisine.core.dir_paths['BINDIR'])
         self.cuisine.bash.profileDefault.save()
         addr = ':8000'

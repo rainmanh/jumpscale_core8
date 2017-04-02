@@ -891,7 +891,8 @@ class FSMethods():
                     # self.createDir(self.getParent(dest))
                     dest = dest.split(':')[1] if ':' in dest else dest
             else:
-                executor.cuisine.package.ensure('rsync')
+                if not sys.platform.startswith("darwin"):
+                    executor.cuisine.package.ensure('rsync')
                 if executor.cuisine.core.dir_exists(source):
                     if dest[-1] != "/":
                         dest += "/"
@@ -2411,6 +2412,7 @@ class Installer():
         if sys.platform.startswith('win'):
             raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
         elif sys.platform.startswith('darwin'):
+            self.do.execute("sudo chflags nohidden /opt")
             cmds = "tmux psutils libtiff libjpeg jpeg webp little-cms2"
             for item in cmds.split(" "):
                 if item.strip() != "":
@@ -2419,7 +2421,7 @@ class Installer():
                     self.do.execute(cmd)
 
         self.do.dependencies.all()
-        if  not sys.platform.startswith('darwin') or  sys.platform.startswith('win'):
+        if not sys.platform.startswith('darwin') or sys.platform.startswith('win'):
             self.do.dependencies.flist()
 
     def gitConfig(self, name, email):

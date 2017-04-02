@@ -40,7 +40,7 @@ class CuisineGolang(app):
 
     def isInstalled(self):
         rc, out, err = self.cuisine.core.run("go version", die=False, showout=False, profile=True)
-        if rc > 0 or "1.7.4" not in out:
+        if rc > 0 or "1.8" not in out:
             return False
         if self.doneGet("install") == False:
             return False
@@ -50,14 +50,15 @@ class CuisineGolang(app):
         if reset is False and self.isInstalled():
             return
         if self.cuisine.core.isMac:
-            downl = "https://storage.googleapis.com/golang/go1.7.4.darwin-amd64.tar.gz"
+
+            downl = "https://storage.googleapis.com/golang/go1.8.darwin-amd64.tar.gz"
         elif "ubuntu" in self.cuisine.platformtype.platformtypes:
-            downl = "https://storage.googleapis.com/golang/go1.7.4.linux-amd64.tar.gz"
+            downl = "https://storage.googleapis.com/golang/go1.8.linux-amd64.tar.gz"
         else:
             raise j.exceptions.RuntimeError("platform not supported")
+        self.cuisine.core.run(cmd=self.replace("rm -rf $GOROOTDIR"), die=True)
         self.cuisine.core.dir_ensure(self.GOROOTDIR)
         self.cuisine.core.dir_ensure(self.GOPATHDIR)
-        self.cuisine.core.run(cmd="rm -rf $self.GOROOTDIR", die=False)
 
         profile = self.cuisine.bash.profileDefault
         profile.envSet("GOROOT", self.GOROOTDIR)
@@ -75,6 +76,7 @@ class CuisineGolang(app):
 
         self.get("github.com/tools/godep")
         self.goraml()
+        self.glide()
 
         self.doneSet("install")
 

@@ -1,5 +1,5 @@
 from JumpScale import j
-
+import sys
 
 app = j.tools.cuisine._getBaseAppClass()
 
@@ -23,14 +23,20 @@ class CuisineCaddy(app):
         :param features: is used to specify the required features in the installation. Currently the default installation
         will add the following features: filemanager, cors
         """
+        self.cuisine.development.golang.install()
         if self.doneGet('build') and reset is False:
             return
 
-        features = ",".join(features)
-        self.cuisine.core.dir_ensure('$JSBASEDIR/tmp')
-        # ANDROID_ROOT is exported in order to run the  installation script correctly
-        cmd = "export PREFIX=$JSBASEDIR && export ANDROID_ROOT=NOT_USED && curl https://getcaddy.com/ | bash -s %s" % features
-        self.cuisine.core.run(cmd)
+        if sys.platform.startswith("darwin"):
+            cmd = "go get -v github.com/mholt/caddy/caddy"
+            self.cuisine.core.run(cmd)
+        else:
+            features = ",".join(features)
+            self.cuisine.core.dir_ensure('$JSBASEDIR/tmp')
+            # ANDROID_ROOT is exported in order to run the  installation script correctly
+            cmd = "set -ex;export PREFIX=$JSBASEDIR ; export ANDROID_ROOT=NOT_USED ; curl curl https://getcaddy.com | bash > $TMPDIR/caddy.sh; cd $TMPDIR ; bash caddy.sh -s %s" % features
+            # print(cmd)
+            res = self.cuisine.core.run(cmd)
         if install:
             self.install(ssl, start, dns, reset, wwwrootdir)
 

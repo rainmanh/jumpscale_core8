@@ -49,16 +49,6 @@ The stdout and stderr variable contains the full buffer:
     print(p.stdout)        # contains the full stdout since process start
 
 """
-import signal
-
-def onchildexit_handler(*args):
-    if 'self' in args[1].f_locals:
-        self = args[1].f_locals['self']
-        if hasattr(self, 'pid'):
-            #print("Now WAITING ON DEAD pid: ", self.pid)
-            os.waitpid(self.pid, 0)
-
-signal.signal(signal.SIGCHLD, onchildexit_handler)
 
 class StdDuplicate(object):
     def __init__(self, original):

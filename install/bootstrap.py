@@ -45,11 +45,6 @@ do = InstallTools.do
 
 # FROM now on there is a do. variable which has many features, please investigate
 
-
-# ALREADY DONE IN INSTALLJS
-# print("prepare system for jumpscale8")
-# do.installer.prepare()
-
 print("install jumpscale8")
 do.installer.prepare()
 do.installer.installJS()

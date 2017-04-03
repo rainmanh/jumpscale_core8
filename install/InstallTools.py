@@ -2234,7 +2234,7 @@ class Installer():
             fi
         }
 
-        if [[ "$JSBASE" == "$BASEDIR" ]]; then
+        if [[ "$JSBASE" == "$BASEDIR" && "$PYTHONPATH" =~ .*jumpscale8.* ]]; then
            return 0
         fi
 

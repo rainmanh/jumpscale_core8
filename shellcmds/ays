@@ -48,7 +48,7 @@ def reload():
     Reload AYS objects in memory
     """
     try:
-        ayscl.api.ays.reload()
+        ayscl.api.ays.reload(data=None)
         print ("AYS reloaded")
     except Exception as e:
         print("Error during reload: {}".format(_extract_error(e)))

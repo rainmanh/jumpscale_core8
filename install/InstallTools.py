@@ -2053,9 +2053,7 @@ class Installer():
             self.gitConfig(FULLNAME, EMAIL)
 
         self.debug = True
-
-        self.prepare()
-
+        
         self.do.executeInteractive("mkdir -p %s/.ssh/" % os.environ["HOME"])
         self.do.executeInteractive("ssh-keyscan github.com 2> /dev/null  >> {0}/.ssh/known_hosts; ssh-keyscan git.aydo.com 2> /dev/null >> {0}/.ssh/known_hosts".format(
             os.environ["HOME"]))

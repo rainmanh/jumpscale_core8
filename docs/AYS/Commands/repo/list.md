@@ -1,7 +1,7 @@
-# Repo_list
+# Repo list
 
 ```
-Usage: ays repo_list [OPTIONS]
+Usage: ays repo list [OPTIONS]
 
   List all known repositories
 

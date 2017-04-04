@@ -7,7 +7,7 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisineAtYourService(base):
 
-    def configure(self, production=False, client_secret=None, client_id=None, organization=None, redirect_address=None):
+    def configure(self, production=False, client_secret='', client_id='', organization='', redirect_address=''):
         C = """
         production: {}
         oauth:

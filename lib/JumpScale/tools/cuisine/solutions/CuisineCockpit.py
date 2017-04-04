@@ -6,10 +6,17 @@ base = j.tools.cuisine._getBaseClass()
 class CuisineCockpit(base):
 
     def install(self, start=True, branch="8.2.0", reset=False, ip="localhost", production=False,
-                           client_id=None, ays_secret=None, portal_secret=None, organization=None):
+                           client_id='', ays_secret='', portal_secret='', organization=''):
         """
         This will install the all the component of the cockpit in one command.
         (mongodb, portal, atyourservice)
+
+        production: cockpit mode (atyourservice and portal in development mode if False)
+
+        client_id: oauth client id
+        ays_secret: client secret of ays
+        portal_secret: client secret of portal
+        organization: oauth organization
 
         Make sure that you don't have uncommitted code in any code repository cause this method will discard them !!!
         """

@@ -13,7 +13,7 @@ class CuisinePortal(base):
         self.main_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'main')
         self.cfg_path = j.sal.fs.joinPaths(self.main_portal_dir, 'config.hrd')
 
-    def configure(self, mongodbip="127.0.0.1", mongoport=27017, production=True, client_id=None, client_secret=None, organization=None, redirect_address=None):
+    def configure(self, mongodbip="127.0.0.1", mongoport=27017, production=True, client_id='', client_secret='', organization='', redirect_address=''):
 
         # go from template dir which go the file above
         content = self.cuisine.core.file_read('$TEMPLATEDIR/cfg/portal/config.yaml')

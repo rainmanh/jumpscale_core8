@@ -3,6 +3,7 @@ from sanic.views import HTTPMethodView
 from sanic.response import text
 import JumpScale.baselib.atyourservice81.server.ays_api as ays_api
 
+
 from JumpScale.baselib.atyourservice81.server.oauth2_itsyouonline import oauth2_itsyouonline
 
 ays_if = Blueprint('ays_if')
@@ -15,6 +16,7 @@ async def auth(request, func):
     return await func
 
 class ays_reloadView(HTTPMethodView):
+
     async def post(self, request):
         return await auth(request, ays_api.reload(request))
 
@@ -168,3 +170,17 @@ class ays_template_repoView(HTTPMethodView):
         return await auth(request, ays_api.addTemplateRepo(request))
 
 ays_if.add_route(ays_template_repoView.as_view(), '/ays/template_repo')
+
+class ays_templatesView(HTTPMethodView):
+
+    async def get(self, request):
+        return await auth(request, ays_api.listAYSTemplates(request))
+
+ays_if.add_route(ays_templatesView.as_view(), '/ays/templates')
+
+class ays_templates_bynameView(HTTPMethodView):
+
+    async def get(self, request, name):
+        return await auth(request, ays_api.getAYSTemplate(request, name))
+
+ays_if.add_route(ays_templates_bynameView.as_view(), '/ays/templates/<name>')

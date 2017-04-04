@@ -279,6 +279,34 @@ types:
           body:
             application/json:
               type: TemplateRepo
+  /templates:
+    get:
+      displayName: listAYSTemplates
+      description: list all AYS templates
+      responses:
+        200:
+          body:
+            application/json:
+              type: TemplateListing[]
+              example:
+                - name: node.ovc
+                - name: node.g8os
+    /{name}:
+      uriParameters:
+        name:
+          type: string
+      get:
+        displayName: getAYSTemplate
+        description: get an AYS template
+        responses:
+          200:
+            body:
+              application/json:
+                type: Template
+          404:
+            body:
+              application/json:
+                type: Error
   /repository:
     get:
       displayName: listRepositories

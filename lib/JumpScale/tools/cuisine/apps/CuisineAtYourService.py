@@ -7,16 +7,16 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisineAtYourService(base):
 
-    def configure(self, client_secret, client_id, organization, redirect_uri):
+    def configure(self, production=False, client_secret=None, client_id=None, organization=None, redirect_address=None):
         C = """
-        production: True
+        production: {}
         oauth:
            jwt_key: "-----BEGIN PUBLIC KEY-----\\nMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAES5X8XrfKdx9gYayFITc89wad4usrk0n2\\n7MjiGYvqalizeSWTHEpnd7oea9IQ8T5oJjMVH5cc0H5tFSKilFFeh//wngxIyny6\\n6+Vq5t5B0V0Ehy01+2ceEon2Y0XDkIKv\\n-----END PUBLIC KEY-----\\n"
            client_secret: "{}"
-           redirect_uri: "{}"
+           redirect_uri: "http://{}/api/oauth/callback"
            client_id: "{}"
            organization: "{}"
-        """.format(client_secret, redirect_uri, client_id, organization)
+        """.format(production, client_secret, redirect_address, client_id, organization)
         self.core.file_write("$JSCFGDIR/ays.yaml", C)
 
 
@@ -32,12 +32,12 @@ class CuisineAtYourService(base):
 
         # link apidocs and index.html
         self.cuisine.core.file_link(
-            j.sal.fs.joinPaths('$CODEDIR', 'github/jumpscale/jumpscale_core8/apps/atyourservice/server/apidocs'),
+            j.sal.fs.joinPaths('$CODEDIR', 'github/jumpscale/jumpscale_core8/apps/atyourservice/apidocs'),
             j.sal.fs.joinPaths(base_dir,'apidocs')
         )
 
         self.cuisine.core.file_link(
-            j.sal.fs.joinPaths('$CODEDIR', 'github/jumpscale/jumpscale_core8/apps/atyourservice/server/index.html'),
+            j.sal.fs.joinPaths('$CODEDIR', 'github/jumpscale/jumpscale_core8/apps/atyourservice/index.html'),
             j.sal.fs.joinPaths(base_dir,'index.html')
         )
 
@@ -47,7 +47,7 @@ class CuisineAtYourService(base):
         )
 
     def start(self, host='localhost', port=5000):
-        cmd = 'jspython $JSAPPSDIR/atyourservice/main.py -h {host} -p {port}'.format(host=host, port=port)
+        cmd = 'cd $JSAPPSDIR/atyourservice; jspython main.py -h {host} -p {port}'.format(host=host, port=port)
         self.cuisine.processmanager.ensure(name='atyourservice', cmd=cmd)
 
     def stop(self):

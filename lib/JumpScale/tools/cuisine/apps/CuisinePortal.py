@@ -13,31 +13,33 @@ class CuisinePortal(base):
         self.main_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'main')
         self.cfg_path = j.sal.fs.joinPaths(self.main_portal_dir, 'config.hrd')
 
-    def configure(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1",
-                  influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, production=True):
+    def configure(self, mongodbip="127.0.0.1", mongoport=27017, production=True, client_id=None, client_secret=None, organization=None, redirect_address=None):
 
         # go from template dir which go the file above
-        content = self.cuisine.core.file_read('$TEMPLATEDIR/cfg/portal/config.hrd')
+        content = self.cuisine.core.file_read('$TEMPLATEDIR/cfg/portal/config.yaml')
 
-        hrd = j.data.hrd.get(content=content, prefixWithName=False)
+        cfg = j.data.serializer.yaml.loads(content)
+        cfg['production'] = production
 
+        if production:
+            cfg['oauth.client_id'] = client_id
+            cfg['oauth.client_scope'] = 'user:email:main,user:memberof:%s' % client_id
+            cfg['oauth.client_secret'] = client_secret
+            cfg['oauth.force_oauth_instance'] = 'itsyou.online'
+            cfg['oauth.default_groups'] = ['admin', 'user']
+            cfg['oauth.organization'] = organization
+            cfg['oauth.redirect_url'] = 'http://%s/restmachine/system/oauth/authorize' % redirect_address
         # ITS ALREADY THE DEFAULT IN THE CONFIG DIR
-        # hrd.set('param.cfg.appdir', j.sal.fs.joinPaths(self.portal_dir, 'portalbase'))
+        # cfg['param.cfg.appdir'] = j.sal.fs.joinPaths(self.portal_dir, 'portalbase')
 
-        hrd.set('param.mongoengine.connection', {'host': mongodbip, 'port': mongoport})
-        hrd.set('param.cfg.influx', {'host': influxip, 'port': influxport})
-        hrd.set('param.cfg.grafana', {'host': grafanaip, 'port': grafanaport})
-        hrd.set('param.cfg.production', production)
 
-        if "darwin" in self.cuisine.platformtype.osname:
-            hrd.set('param.cfg.port', '8200')
-
-        self.cuisine.core.file_write(self.configPath, str(hrd))
+        cfg['mongoengine.connection'] = {'host': mongodbip, 'port': mongoport}
+        self.cuisine.core.file_write(self.configPath, j.data.serializer.yaml.dumps(cfg))
 
     @property
     def configPath(self):
-        return j.sal.fs.joinPaths(self.cuisine.core.dir_paths['VARDIR'],
-                                  'cfg', "portals", "main", "config.hrd")
+        return j.sal.fs.joinPaths(self.cuisine.core.dir_paths['JSCFGDIR'],
+                                  "portals", "main", "config.yaml")
 
     def install(self, start=True, branch='8.2.0', reset=False):
         """
@@ -245,11 +247,11 @@ class CuisinePortal(base):
         self.cuisine.core.file_ensure('%s/base/home/home.md' % self.main_portal_dir)
 
         self.cuisine.core.dir_ensure('$TEMPLATEDIR/cfg/portal')
-        self.cuisine.core.file_copy(j.sal.fs.joinPaths(CODE_DIR, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'),
-                                    '$TEMPLATEDIR/cfg/portal/config.hrd')
+        self.cuisine.core.file_copy(j.sal.fs.joinPaths(CODE_DIR, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.yaml'),
+                                    '$TEMPLATEDIR/cfg/portal/config.yaml')
         self.cuisine.core.dir_ensure("$JSCFGDIR/portals/main/")
-        self.cuisine.core.file_copy(j.sal.fs.joinPaths(CODE_DIR, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'),
-                                    "$JSCFGDIR/portals/main/config.hrd")
+        self.cuisine.core.file_copy(j.sal.fs.joinPaths(CODE_DIR, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.yaml'),
+                                    "$JSCFGDIR/portals/main/config.yaml")
         # copy portal_start.py
         self.cuisine.core.file_copy(j.sal.fs.joinPaths(CODE_DIR, 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'),
                                     self.main_portal_dir)

@@ -389,7 +389,7 @@ async def executeBlueprint(request, blueprint, repository):
         await repo.blueprintExecute(path=bp.path)
     except Exception as e:
         error_msg = "Error during execution of the blueprint:\n %s" % str(e)
-        j.atyourservice.logger.error(error_msg)
+        j.atyourservice.logger.exception(error_msg)
         return json({'error': error_msg}, 500)
 
     return json({'msg':'Blueprint {} executed'.format(blueprint)})
@@ -517,8 +517,10 @@ async def listServicesByRole(request, role, repository):
     except j.exceptions.NotFound as e:
         return json({'error':e.message}, 404)
 
+    parent = request.args.get('parent', '')
+
     services = []
-    for s in repo.servicesFind(role=role):
+    for s in repo.servicesFind(role=role, parent=parent):
         services.append({'role': s.model.role, 'name': s.name})
 
     services = sorted(services, key=lambda service: service['role'])

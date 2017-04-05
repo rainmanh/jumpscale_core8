@@ -527,6 +527,11 @@ types:
           get:
             displayName: listServicesByRole
             description: List all services of role 'role' in the repository
+            queryParameters:
+              parent:
+                description: Only list service that have this parent
+                type:        string
+                required:    false
             responses:
               200:
                 body:

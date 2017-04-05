@@ -88,7 +88,8 @@ class Service:
                 name=action.name,
                 key=action.actionKey,
                 period=action.period,
-                log=action.log
+                log=action.log,
+                isJob=action.isJob
             )
         # events
         events = self.model.dbobj.init_resizable_list('eventFilters')

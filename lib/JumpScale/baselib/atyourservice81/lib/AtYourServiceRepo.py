@@ -549,14 +549,14 @@ class AtYourServiceRepo():
         """
         result = {}
         for service in self.services:
-            for action, state in service.model.actionsState.items():
-                if action[-1] == '_':
+            for action, obj in service.model.actions.items():
+                if not obj.isJob:
                     continue
 
                 if action in service.model.actionsEvents:
                     continue
 
-                if state in ['scheduled', 'changed', 'error']:
+                if str(obj.state) in ['scheduled', 'changed', 'error']:
                     if service not in result:
                         result[service] = list()
                     action_chain = list()

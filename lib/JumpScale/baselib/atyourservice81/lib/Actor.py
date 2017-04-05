@@ -368,7 +368,7 @@ class Actor():
         else:
             ac = j.core.jobcontroller.db.actions.get(key=ac.key)
 
-        self.model.actionAdd(name=actionName, key=ac.key)
+        self.model.actionAdd(name=actionName, key=ac.key, isJob=('job' in amMethodArgs))
 
     def _check_change(self, actionObj):
         """

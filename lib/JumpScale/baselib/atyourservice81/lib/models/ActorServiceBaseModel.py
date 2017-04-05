@@ -38,7 +38,7 @@ class ActorServiceBaseModel(ModelBaseWithData):
                                                           auto=bool(auto), optional=bool(optional), argname=argname)
         self.addSubItem("producers", msg)
 
-    def actionAdd(self, name, key="", period=0, log=True):
+    def actionAdd(self, name, key="", period=0, log=True, isJob=True):
         """
         creates and add an action code model to the actor/service
         """
@@ -63,7 +63,8 @@ class ActorServiceBaseModel(ModelBaseWithData):
                 actionKey=key,
                 state='new',
                 period=period,
-                log=log)
+                log=log,
+                isJob=isJob)
             self.changed = True
             self.addSubItem('actions', action_obj)
 

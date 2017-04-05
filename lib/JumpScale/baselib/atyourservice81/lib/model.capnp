@@ -1,4 +1,4 @@
-@0x93c1ac9f09464fd9;
+@0x90526dc388b795f8;
 
 # common struct
 enum ActionState {
@@ -48,6 +48,7 @@ struct Actor {
     period @2 :UInt32; #use j.data.time.getSecondsInHR( to show HR
     log @3 :Bool;
     state @4 :ActionState;
+    isJob @5 :Bool;
   }
 
   eventFilters @6 :List(EventFilter);
@@ -156,6 +157,7 @@ struct Service {
     log @3 :Bool;
     lastRun @4: UInt32;
     period @5 :UInt32;#use j.data.time.getSecondsInHR( to show HR
+    isJob @6 :Bool;
   }
 
   #list of filter statements, when match call service.executeActionService("processEvent",event)

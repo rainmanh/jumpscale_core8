@@ -527,6 +527,15 @@ class AtYourServiceRepo():
             return j.core.jobcontroller.db.runs.get(runkey)
         raise j.exceptions.NotFound('No run with key %s found' % runkey)
 
+    def runDelete(self, runkey):
+        """
+        Delete Run by id
+        """
+        if j.core.jobcontroller.db.runs.exists(runkey):
+            run = j.core.jobcontroller.db.runs.get(runkey)
+            return run.delete()
+        raise j.exceptions.NotFound('No run with key %s found' % runkey)
+
     def runsList(self):
         """
         list Runs on repo

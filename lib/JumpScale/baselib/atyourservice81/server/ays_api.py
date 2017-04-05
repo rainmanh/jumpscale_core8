@@ -256,6 +256,22 @@ async def getRun(request, aysrun, repository):
     aysrun = aysrun_model.objectGet()
     return json(run_view(aysrun), 200)
 
+async def deleteRun(request, aysrun, repository):
+    '''
+    Delete an aysrun
+    It is handler for DELETE /ays/repository/<repository>/aysrun/<aysrun>
+    '''
+    try:
+        repo = get_repo(repository)
+    except j.exceptions.NotFound as e:
+        return json({'error':e.message}, 404)
+
+    try:
+        aysrun_model = repo.runDelete(aysrun)
+    except j.exceptions.NotFound as e:
+        return json({'error':e.message}, 404)
+
+
 async def executeRun(request, aysrun, repository):
     """
     Execute a specific run
@@ -356,9 +372,9 @@ async def getBlueprint(request, blueprint, repository):
         repo = get_repo(repository)
     except j.exceptions.NotFound as e:
         return json({'error':e.message}, 404)
+
     bp = None
-    blueprints = repo.blueprints + repo.blueprintsDisabled
-    for item in blueprints:
+    for item in repo.blueprints:
         if item.name == blueprint:
             bp = item
             break

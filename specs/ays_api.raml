@@ -703,6 +703,18 @@ types:
                 body:
                   application/json:
                     type: Error
+          delete:
+              displayName: deleteRun
+              description: delete a run
+              responses:
+                  204:
+                    description: Run removed
+                  404:
+                    description: Run not found
+                    body:
+                      application/json:
+                        type: Error
+
 
 
 /webhooks:

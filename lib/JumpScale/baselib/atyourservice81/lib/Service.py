@@ -156,7 +156,7 @@ class Service:
                     service="%s!%s" % (self.model.role, self.model.dbobj.name)))
 
         if errors:
-            msg = "The arguments passed to the service contains the following errors: \n" + "\n".join(errors)
+            msg = "The arguments passed to the service %s|%s contains the following errors: \n" % (self.model.role, self.model.dbobj.name) + "\n".join(errors)
             msg += '\nDataSchema : {}'.format(self.model.dbobj.dataSchema)
             raise j.exceptions.Input(msg)
 

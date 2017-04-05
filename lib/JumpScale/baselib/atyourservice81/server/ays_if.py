@@ -77,6 +77,9 @@ class ays_repository_byrepository_aysrun_byrunidView(HTTPMethodView):
     async def post(self, request, runid, repository):
         return await auth(request, ays_api.executeRun(request, runid, repository))
 
+    async def delete(self, request, runid, repository):
+       return await auth(request, ays_api.deleteRun(request, runid, repository))
+
 ays_if.add_route(ays_repository_byrepository_aysrun_byrunidView.as_view(), '/ays/repository/<repository>/aysrun/<runid>')
 
 class ays_repository_byrepository_blueprintView(HTTPMethodView):

@@ -13,15 +13,6 @@ class AysService:
         return self.client.post(uri, data, headers=headers, params=query_params)
 
 
-    def createRepository(self, data, headers=None, query_params=None):
-        """
-        create a new repository
-        It is method for POST /ays/repository
-        """
-        uri = self.client.base_url + "/ays/repository"
-        return self.client.post(uri, data, headers=headers, params=query_params)
-
-
     def listRepositories(self, headers=None, query_params=None):
         """
         list all repositorys
@@ -31,13 +22,13 @@ class AysService:
         return self.client.get(uri, headers=headers, params=query_params)
 
 
-    def getRepository(self, repository, headers=None, query_params=None):
+    def createRepository(self, data, headers=None, query_params=None):
         """
-        Get information of a repository
-        It is method for GET /ays/repository/{repository}
+        create a new repository
+        It is method for POST /ays/repository
         """
-        uri = self.client.base_url + "/ays/repository/"+repository
-        return self.client.get(uri, headers=headers, params=query_params)
+        uri = self.client.base_url + "/ays/repository"
+        return self.client.post(uri, data, headers=headers, params=query_params)
 
 
     def deleteRepository(self, repository, headers=None, query_params=None):
@@ -49,12 +40,30 @@ class AysService:
         return self.client.session.delete(uri, headers=headers, params=query_params)
 
 
+    def getRepository(self, repository, headers=None, query_params=None):
+        """
+        Get information of a repository
+        It is method for GET /ays/repository/{repository}
+        """
+        uri = self.client.base_url + "/ays/repository/"+repository
+        return self.client.get(uri, headers=headers, params=query_params)
+
+
     def listActors(self, repository, headers=None, query_params=None):
         """
         list all actors in the repository
         It is method for GET /ays/repository/{repository}/actor
         """
         uri = self.client.base_url + "/ays/repository/"+repository+"/actor"
+        return self.client.get(uri, headers=headers, params=query_params)
+
+
+    def getActorByName(self, actor, repository, headers=None, query_params=None):
+        """
+        Get an actor by name
+        It is method for GET /ays/repository/{repository}/actor/{actor}
+        """
+        uri = self.client.base_url + "/ays/repository/"+repository+"/actor/"+actor
         return self.client.get(uri, headers=headers, params=query_params)
 
 
@@ -67,12 +76,12 @@ class AysService:
         return self.client.put(uri, data, headers=headers, params=query_params)
 
 
-    def getActorByName(self, actor, repository, headers=None, query_params=None):
+    def listRuns(self, repository, headers=None, query_params=None):
         """
-        Get an actor by name
-        It is method for GET /ays/repository/{repository}/actor/{actor}
+        list all runs of the repository
+        It is method for GET /ays/repository/{repository}/aysrun
         """
-        uri = self.client.base_url + "/ays/repository/"+repository+"/actor/"+actor
+        uri = self.client.base_url + "/ays/repository/"+repository+"/aysrun"
         return self.client.get(uri, headers=headers, params=query_params)
 
 
@@ -88,12 +97,21 @@ class AysService:
         return self.client.post(uri, data, headers=headers, params=query_params)
 
 
-    def listRuns(self, repository, headers=None, query_params=None):
+    def deleteRun(self, runid, repository, headers=None, query_params=None):
         """
-        list all runs of the repository
-        It is method for GET /ays/repository/{repository}/aysrun
+        delete a run
+        It is method for DELETE /ays/repository/{repository}/aysrun/{runid}
         """
-        uri = self.client.base_url + "/ays/repository/"+repository+"/aysrun"
+        uri = self.client.base_url + "/ays/repository/"+repository+"/aysrun/"+runid
+        return self.client.session.delete(uri, headers=headers, params=query_params)
+
+
+    def getRun(self, runid, repository, headers=None, query_params=None):
+        """
+        Get an aysrun
+        It is method for GET /ays/repository/{repository}/aysrun/{runid}
+        """
+        uri = self.client.base_url + "/ays/repository/"+repository+"/aysrun/"+runid
         return self.client.get(uri, headers=headers, params=query_params)
 
 
@@ -106,24 +124,6 @@ class AysService:
         return self.client.post(uri, data, headers=headers, params=query_params)
 
 
-    def getRun(self, runid, repository, headers=None, query_params=None):
-        """
-        Get an aysrun
-        It is method for GET /ays/repository/{repository}/aysrun/{runid}
-        """
-        uri = self.client.base_url + "/ays/repository/"+repository+"/aysrun/"+runid
-        return self.client.get(uri, headers=headers, params=query_params)
-
-
-    def listBlueprints(self, repository, headers=None, query_params=None):
-        """
-        List all blueprint
-        It is method for GET /ays/repository/{repository}/blueprint
-        """
-        uri = self.client.base_url + "/ays/repository/"+repository+"/blueprint"
-        return self.client.get(uri, headers=headers, params=query_params)
-
-
     def createBlueprint(self, data, repository, headers=None, query_params=None):
         """
         Create a new blueprint
@@ -133,22 +133,13 @@ class AysService:
         return self.client.post(uri, data, headers=headers, params=query_params)
 
 
-    def executeBlueprint(self, data, blueprint, repository, headers=None, query_params=None):
+    def listBlueprints(self, repository, headers=None, query_params=None):
         """
-        Execute the blueprint
-        It is method for POST /ays/repository/{repository}/blueprint/{blueprint}
+        List all blueprint
+        It is method for GET /ays/repository/{repository}/blueprint
         """
-        uri = self.client.base_url + "/ays/repository/"+repository+"/blueprint/"+blueprint
-        return self.client.post(uri, data, headers=headers, params=query_params)
-
-
-    def updateBlueprint(self, data, blueprint, repository, headers=None, query_params=None):
-        """
-        Update existing blueprint
-        It is method for PUT /ays/repository/{repository}/blueprint/{blueprint}
-        """
-        uri = self.client.base_url + "/ays/repository/"+repository+"/blueprint/"+blueprint
-        return self.client.put(uri, data, headers=headers, params=query_params)
+        uri = self.client.base_url + "/ays/repository/"+repository+"/blueprint"
+        return self.client.get(uri, headers=headers, params=query_params)
 
 
     def deleteBlueprint(self, blueprint, repository, headers=None, query_params=None):
@@ -167,6 +158,24 @@ class AysService:
         """
         uri = self.client.base_url + "/ays/repository/"+repository+"/blueprint/"+blueprint
         return self.client.get(uri, headers=headers, params=query_params)
+
+
+    def executeBlueprint(self, data, blueprint, repository, headers=None, query_params=None):
+        """
+        Execute the blueprint
+        It is method for POST /ays/repository/{repository}/blueprint/{blueprint}
+        """
+        uri = self.client.base_url + "/ays/repository/"+repository+"/blueprint/"+blueprint
+        return self.client.post(uri, data, headers=headers, params=query_params)
+
+
+    def updateBlueprint(self, data, blueprint, repository, headers=None, query_params=None):
+        """
+        Update existing blueprint
+        It is method for PUT /ays/repository/{repository}/blueprint/{blueprint}
+        """
+        uri = self.client.base_url + "/ays/repository/"+repository+"/blueprint/"+blueprint
+        return self.client.put(uri, data, headers=headers, params=query_params)
 
 
     def archiveBlueprint(self, data, blueprint, repository, headers=None, query_params=None):

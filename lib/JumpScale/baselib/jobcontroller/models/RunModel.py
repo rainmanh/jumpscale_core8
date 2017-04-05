@@ -17,7 +17,7 @@ class RunModel(ModelBase):
         if matched_idx:
             #  if the key exists first pop it and add the correct one
             item = matched_idx[0]
-            self.collection._index.redisclient.hdel(self.collection._index._indexkey, item[0])
+            self.collection._index.index_remove(item[0])
         self.collection._index.index({ind: self.key})
 
     def stepNew(self):

@@ -33,7 +33,7 @@ def create_graphs(repo, all_nodes):
                 node = all_nodes[name]
                 nodes.add(node)
 
-                if action in ['stop', 'uninstall']:
+                if action in ['stop', 'uninstall', 'delete', 'destroy']:
                     addConsumerEdges(node, action, all_nodes, nodes)
                 else:
                     addEdges(node, action, all_nodes, nodes)

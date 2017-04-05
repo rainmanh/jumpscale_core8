@@ -102,6 +102,41 @@ class ServiceModel(ActorServiceBaseModel):
             if consumer.key == service.model.key:
                 self.deleteSubItem('consumers', i)
 
+    def changeParent(self, new_parent):
+        """
+        Change the parent sevice to new_parent
+        """
+        service = self.objectGet(self._aysrepo)
+
+        if service.parent == new_parent:
+            return
+
+        # remove old parent from the producers list.
+        service.model.producerRemove(service.parent)
+        # remove ourself from the consumers list of the old parent
+        service.parent.model.consumerRemove(service)
+
+        # relink to the new parent
+        service.model.producerAdd(
+            actorName=new_parent.model.dbobj.actorName,
+            serviceName=new_parent.model.dbobj.name,
+            key=new_parent.model.key)
+
+        new_parent.model.consumerAdd(
+            actorName=service.model.dbobj.actorName,
+            serviceName=service.model.dbobj.name,
+            key=service.model.key)
+
+        service.model.dbobj.parent.actorName = new_parent.model.dbobj.actorName
+        service.model.dbobj.parent.key = new_parent.model.key
+        service.model.dbobj.parent.serviceName = new_parent.name
+
+        service.model.reSerialize()
+        service.parent.model.reSerialize()
+        new_parent.model.reSerialize()
+
+        self.save()
+
 # events
 
     def eventFilterSet(self, command, actions, channel="", tags="", secrets=""):

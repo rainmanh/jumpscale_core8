@@ -394,7 +394,8 @@ async def executeBlueprint(request, blueprint, repository):
         return json({'error':e.message}, 404)
 
     bp = None
-    for item in repo.blueprints:
+    blueprints = repo.blueprints + repo.blueprintsDisabled
+    for item in blueprints:
         if item.name == blueprint:
             bp = item
             break

@@ -504,7 +504,6 @@ async def restoreBlueprint(request, blueprint, repository):
 
     return json({'msg':'Blueprint %s restored' % blueprint}, 200)
 
-
 async def listServices(request, repository):
     '''
     List all services in the repository
@@ -515,14 +514,9 @@ async def listServices(request, repository):
     except j.exceptions.NotFound as e:
         return json({'error':e.message}, 404)
 
-    services = []
-    detailed = j.data.text.getBool(request.args.get('detailed', False))
+    services = list()
     for s in repo.services:
-        data = {'role': s.model.role, 'name': s.name}
-        if detailed:
-            data.update(s.model.dictFiltered)
-        services.append(data)
-
+         services.append({'role': s.model.role, 'name': s.name})
     services = sorted(services, key=lambda service: service['role'])
 
     return json(services, 200)
@@ -538,18 +532,20 @@ async def listServicesByRole(request, role, repository):
         return json({'error':e.message}, 404)
 
     parent = request.args.get('parent', '')
-    detailed = j.data.text.getBool(request.args.get('detailed', False))
+    fields = request.args.get('fields', '')
 
-    services = []
+    fields = [field.strip() for field in fields.split(',') if field.strip()]
+    result = list()
+
     for s in repo.servicesFind(role=role, parent=parent):
-        data = {'role': s.model.role, 'name': s.name}
-        if detailed:
-            data.update(s.model.dictFiltered)
-        services.append(data)
-
-    services = sorted(services, key=lambda service: service['role'])
-
-    return json(services, 200)
+        data = {'role': s.model.role, 'name': s.model.name, 'data':dict()}
+        for field in fields:
+            if not hasattr(s.model.data, field):
+                return json('No such field "{}" in service "{}" data'.format(field, s), 400)
+            data['data'][field] = getattr(s.model.data, field)
+        result.append(data)
+    result = sorted(result, key=lambda service: service['role'])
+    return json(result, 200)
 
 async def getServiceByName(request, name, role, repository):
     '''

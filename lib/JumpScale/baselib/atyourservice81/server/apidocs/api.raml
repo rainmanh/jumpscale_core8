@@ -510,11 +510,6 @@ types:
         get:
           displayName: listServices
           description: List all services in the repository
-          queryParameters:
-            detailed:
-              description: list all service details
-              type:        boolean
-              required:    false
           responses:
             200:
               body:
@@ -537,9 +532,9 @@ types:
                 description: Only list service that have this parent
                 type:        string
                 required:    false
-              detailed:
-                description: list all service details
-                type:        boolean
+              fields:
+                description: comma-seperated list of fields to be included in the response
+                type:        string
                 required:    false
 
             responses:

@@ -1,5 +1,5 @@
 # Installing the JumpScale Docker Container
-
+The following instructions will install jumpscale from master. If you want to install from a branch click [here](js_docker_development.md)
 The JumpScale Docker container is available on [Docker Hub](https://hub.docker.com/): [jumpscale/ubuntu1604_js_development](https://hub.docker.com/r/jumpscale/ubuntu1604_js_development/).
 
 First make sure you have a Docker machine (host) available, see the Docker documentation for help: https://docs.docker.com/machine/get-started/

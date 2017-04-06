@@ -15,17 +15,16 @@ class SerializerYAML(SerializerBase):
     def loads(self, s):
         # out=cStringIO.StringIO(s)
         try:
-            r = yaml.load(s)
+            return yaml.load(s)
         except Exception as e:
             error = "error:%s\n" % e
             error += "\nyaml could not parse:\n%s\n" % s
-            j.exceptions.Input(message=error, level=1, source="", tags="", msgpub="")
-        return r
+            raise j.exceptions.Input(message=error, level=1, source="", tags="", msgpub="")
 
     def load(self, path):
-        s = j.sal.fs.readFile(path)
         try:
-            r = yaml.load(s)
+            s = j.sal.fs.readFile(path)
+            return yaml.load(s)
         except Exception as e:
             error = "error:%s\n" % e
             error += "\nyaml could not parse:\n%s\n" % s

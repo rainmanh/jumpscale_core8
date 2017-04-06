@@ -134,6 +134,10 @@ class Blueprint:
                             raise j.exceptions.Input(
                                 "Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
                         actorname, bpinstance = key.split("__", 1)
+                        if ":" in bpinstance:
+                            raise j.exceptions.Input("service names ({}) cannot contain colons (:)".format(bpinstance))
+                        if ":" in actorname:
+                            raise j.exceptions.Input("actor names ({}) cannot contain colons (:)".format(actorname))
 
                         if instance != "" and bpinstance != instance:
                             self.logger.info(

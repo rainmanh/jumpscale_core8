@@ -1,6 +1,6 @@
 # Installing the JumpScale On Docker Container for a branch
 
-The Ubuntu Docker container is available on [Docker Hub](https://hub.docker.com/): [jumpscale/ubuntu1604_js_development](https://hub.docker.com/r/jumpscale/ubuntu1604).
+The Ubuntu Docker container is available on [Docker Hub](https://hub.docker.com/): [jumpscale/ubuntu1604](https://hub.docker.com/r/jumpscale/ubuntu1604).
 
 First make sure you have a Docker Installed on your machine
 

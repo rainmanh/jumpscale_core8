@@ -181,6 +181,14 @@ class StoreFactory:
     #             name, namespace=namespace, baseDir=baseDir, serializers=serializers, cache=cache, masterdb=masterdb, changelog=changelog)
     #     return self._cache[name]
     #
+    def getFileStore(self, name="core", namespace='db', baseDir='/tmp', serializers=[]):
+        from servers.key_value_store.file_store import FileKeyValueStore
+        return FileKeyValueStore(name=name, namespace=namespace, baseDir=baseDir, serializers=serializers)
+
+    def getPickleDBStore(self, name="core", namespace='db', baseDir='/tmp', serializers=[]):
+        from servers.key_value_store.pickledb_store import PickleDBStore
+        return PickleDBStore(name=name, namespace=namespace, baseDir=baseDir, serializers=serializers)
+
     def getMemoryStore(self, name="core", namespace=None, changelog=None):
         '''
         Gets a memory key value store.

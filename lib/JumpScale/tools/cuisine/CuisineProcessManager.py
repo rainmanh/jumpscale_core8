@@ -9,7 +9,7 @@ base = j.tools.cuisine._getBaseClass()
 class ProcessManagerBase(base):
 
     def __init__(self, executor, cuisine):
-        self.startupfile = "%s/startup.sh" % j.dirs.BINDIR
+        self.startupfile = "%s/startup.sh" % j.dirs.VARDIR
         self.executor = executor
         self._cuisine = cuisine
         self._logger = j.logger.get('j.cuisine.processmanager')
@@ -307,6 +307,7 @@ class CuisineTmuxec(ProcessManagerBase):
             tmux detach -s {session}
             """
             start_command = command_template.format(session='main', window=name, command=cmd)
+            import ipdb; ipdb.set_trace()
             self._cuisine.core.file_ensure(self.startupfile)
             content = self._cuisine.core.file_read(self.startupfile)
             if "tmux send-keys '{command}' c-m".format(command=cmd) not in content:

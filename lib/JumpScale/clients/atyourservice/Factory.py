@@ -7,8 +7,8 @@ class Factory:
     def __init__(self):
         self.__jslocation__ = "j.clients.atyourservice"
 
-    def get(self):
-        return Client()
+    def get(self, base_uri="http://localhost:5000"):
+        return Client(base_uri=base_uri)
 
     # def getFromConfig(self, config_path=None):
     #     if not config_path:

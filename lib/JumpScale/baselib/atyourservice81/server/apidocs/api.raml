@@ -510,6 +510,11 @@ types:
         get:
           displayName: listServices
           description: List all services in the repository
+          queryParameters:
+            detailed:
+              description: list all service details
+              type:        boolean
+              required:    false
           responses:
             200:
               body:
@@ -527,6 +532,16 @@ types:
           get:
             displayName: listServicesByRole
             description: List all services of role 'role' in the repository
+            queryParameters:
+              parent:
+                description: Only list service that have this parent
+                type:        string
+                required:    false
+              detailed:
+                description: list all service details
+                type:        boolean
+                required:    false
+
             responses:
               200:
                 body:

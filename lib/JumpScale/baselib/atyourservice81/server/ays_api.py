@@ -516,8 +516,12 @@ async def listServices(request, repository):
         return json({'error':e.message}, 404)
 
     services = []
+    detailed = j.data.text.getBool(request.args.get('detailed', False))
     for s in repo.services:
-        services.append({'role': s.model.role, 'name': s.name})
+        data = {'role': s.model.role, 'name': s.name}
+        if detailed:
+            data.update(s.model.dictFiltered)
+        services.append(data)
 
     services = sorted(services, key=lambda service: service['role'])
 
@@ -534,10 +538,14 @@ async def listServicesByRole(request, role, repository):
         return json({'error':e.message}, 404)
 
     parent = request.args.get('parent', '')
+    detailed = j.data.text.getBool(request.args.get('detailed', False))
 
     services = []
     for s in repo.servicesFind(role=role, parent=parent):
-        services.append({'role': s.model.role, 'name': s.name})
+        data = {'role': s.model.role, 'name': s.name}
+        if detailed:
+            data.update(s.model.dictFiltered)
+        services.append(data)
 
     services = sorted(services, key=lambda service: service['role'])
 

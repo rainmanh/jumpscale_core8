@@ -620,7 +620,8 @@ def blueprint(name):
 @click.option('--yes','-y','--assume-yes',default=False, is_flag=True,  help='Automatic yes to prompts. Assume "yes" as answer to all prompts and run non-interactively')
 @click.option('--actor', '-a', help='filter actor by name')
 @click.option('--service', '-s', help='filter service by name')
-def action(action, assume_yes, actor, service):
+@click.option('--force', '-f', default=False, is_flag=True, help='force action')
+def action(action, assume_yes, actor, service, force):
     """
     Shortcut to execute actions blocks
 
@@ -639,6 +640,7 @@ def action(action, assume_yes, actor, service):
         action_block['actions'][0]['actor'] = actor
     if service:
         action_block['actions'][0]['service'] = service
+    action_block['actions'][0]['force'] = force
 
     name = 'action_tmp_{}'.format(j.data.time.epoch)
     bp = {

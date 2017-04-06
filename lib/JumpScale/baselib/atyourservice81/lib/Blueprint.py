@@ -73,6 +73,7 @@ class Blueprint:
                             recurring0 = ""
                         else:
                             recurring0 = actionModel["recurring"]
+                        force0 = actionModel.get('force', False)
 
                         if "action" not in actionModel:
                             raise j.exceptions.Input(message="need to specify action.",
@@ -87,6 +88,7 @@ class Blueprint:
                                 'actor': actor0,
                                 'action_name': actionName,
                                 'recurring_period': recurring0,
+                                'force': force0,
                             })
 
                 elif "eventfilters" in model:
@@ -165,7 +167,7 @@ class Blueprint:
         # first we had to make sure all services do exist, then we can add these properties
         for action_info in self.actions:
             for service in self.aysrepo.servicesFind(name=action_info['service'],actor=action_info['actor']):
-                service.scheduleAction(action_info['action_name'], period=action_info['recurring_period'])
+                service.scheduleAction(action_info['action_name'], period=action_info['recurring_period'], force=action_info['force'])
                 service.saveAll()
 
         for event_filter in self.eventFilters:

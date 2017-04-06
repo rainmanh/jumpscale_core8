@@ -77,6 +77,12 @@ types:
       role: string
       name: string
 
+  ServiceData:
+    properties:
+      role: string
+      name: string
+      data: object
+
   ActionRecurring:
     properties:
       period:
@@ -541,12 +547,14 @@ types:
               200:
                 body:
                   application/json:
-                    type: ServicePointer[]
+                    type: ServiceData[]
                     example:
                       - role: node
                         name: storage1
+                        data: {ip: 127.0.0.1}
                       - role: node
                         name: storage2
+                        data: {ip: 127.0.0.2}
           /{name}:
             uriParameters:
               name:

@@ -6,6 +6,7 @@ import jsonschema
 from jsonschema import Draft4Validator
 from JumpScale.baselib.atyourservice81.server.views import *
 import asyncio
+import capnp
 
 
 Blueprint_schema = JSON.load(open(j.sal.fs.joinPaths(j.sal.fs.getParent(__file__),'schema/Blueprint_schema.json')))
@@ -522,6 +523,22 @@ async def listServices(request, repository):
 
     return json(services, 200)
 
+def _sanitize(value):
+    if isinstance(value, (list, capnp.lib.capnp._DynamicListBuilder)):
+        result = list()
+        for item in value:
+            result.append(_sanitize(item))
+        return result
+    elif isinstance(value, (dict, capnp.lib.capnp._DynamicStructBuilder)):
+        result = dict()
+        for key, val in value:
+            result[key] = _sanitize(val)
+        return result
+    elif isinstance(value, capnp.lib.capnp._DynamicEnum):
+        return str(value)
+    else:
+        return value
+
 async def listServicesByRole(request, role, repository):
     '''
     List all services of role 'role' in the repository
@@ -543,7 +560,7 @@ async def listServicesByRole(request, role, repository):
         for field in fields:
             if not hasattr(s.model.data, field):
                 return json('No such field "{}" in service "{}" data'.format(field, s), 400)
-            data['data'][field] = getattr(s.model.data, field)
+            data['data'][field] = _sanitize(getattr(s.model.data, field))
         result.append(data)
     result = sorted(result, key=lambda service: service['role'])
     return json(result, 200)

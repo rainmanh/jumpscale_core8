@@ -171,3 +171,6 @@ class Disk(Mountable):
 
     def __repr__(self):
         return str(self)
+
+    def __eq__(self, other):
+        return self.devicename == other.devicename

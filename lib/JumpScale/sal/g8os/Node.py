@@ -20,6 +20,14 @@ class Node:
         self.disks = Disks(self)
         self.storagepools = StoragePools(self)
 
+    @classmethod
+    def from_ays(cls, service):
+        return cls(
+            addr=service.model.data.redisAddr,
+            port=service.model.data.redisPort,
+            password=service.model.data.redisPassword
+        )
+
     @property
     def client(self):
         return self._client
@@ -49,9 +57,12 @@ class Node:
         """
         mount the fscache storage pool and copy the content of the in memmory fs inside
         """
-        storagepool.umount()
-        storagepool.mount('/var/cache/containers')
-        self.client.system('rm -fr /var/cache/containers/*')
+        if storagepool.mountpoint != '/var/cache/containers':
+            storagepool.umount()
+
+        if not storagepool.mountpoint:
+            storagepool.mount('/var/cache/containers')
+            self.client.system('rm -fr /var/cache/containers/*')
 
     def ensure_persistance(self, name='fscache'):
         """
@@ -69,6 +80,7 @@ class Node:
         for sp in self.storagepools.list():
             if sp.name == name:
                 fscache_sp = sp
+                break
 
         # create the storage pool if we don't have one yet
         if fscache_sp is None:

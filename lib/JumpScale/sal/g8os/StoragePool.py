@@ -1,4 +1,5 @@
 from JumpScale.sal.g8os.abstracts import Mountable
+from JumpScale.sal.g8os.abstracts import AYSable
 import os
 
 
@@ -24,9 +25,9 @@ class StoragePools:
                 return pool
         raise ValueError("Could not find StoragePool with name {}".format(name))
 
-    def create(self, name, devices, metadata_profile, data_profile):
+    def create(self, name, devices, metadata_profile, data_profile, overwrite=False):
         label = 'sp_{}'.format(name)
-        self._client.btrfs.create(label, devices, metadata_profile, data_profile)
+        self._client.btrfs.create(label, devices, metadata_profile, data_profile, overwrite=overwrite)
         pool = StoragePool(self.node, name, devices)
         return pool
 
@@ -38,6 +39,7 @@ class StoragePool(Mountable):
         self.devices = devices
         self.name = name
         self._mountpoint = None
+        self._ays = None
 
     @property
     def devicename(self):
@@ -164,6 +166,13 @@ class StoragePool(Mountable):
                 total += device['used']
         return total
 
+    @property
+    def ays(self):
+        if self._ays is None:
+            from JumpScale.sal.g8os.atyourservice.StoragePool import StoragePoolAys
+            self._ays = StoragePoolAys(self)
+        return self._ays
+
     def __repr__(self):
         return "StoragePool <{}>".format(self.name)
 
@@ -175,6 +184,7 @@ class FileSystem:
         self._client = pool.node.client
         self.path = os.path.join(self.pool.mountpoint, 'filesystems', name)
         self.snapshotspath = os.path.join(self.pool.mountpoint, 'snapshots', self.name)
+        self._ays = None
 
     def delete(self, includesnapshots=True):
         """
@@ -222,6 +232,13 @@ class FileSystem:
         self._client.filesystem.mkdir(self.snapshotspath)
         self._client.btrfs.subvol_snapshot(self.path, snapshot.path)
         return snapshot
+
+    @property
+    def ays(self):
+        if self._ays is None:
+            from JumpScale.sal.g8os.atyourservice.StoragePool import FileSystemAys
+            self._ays = FileSystemAys(self)
+        return self._ays
 
     def __repr__(self):
         return "FileSystem <{}: {!r}>".format(self.name, self.pool)

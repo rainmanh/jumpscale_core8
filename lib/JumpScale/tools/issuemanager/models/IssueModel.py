@@ -1,6 +1,6 @@
 
 from JumpScale import j
-import html
+# import html
 
 base = j.data.capnp.getModelBaseClass()
 

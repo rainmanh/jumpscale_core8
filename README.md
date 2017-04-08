@@ -12,7 +12,7 @@ Please check our [GitBook](https://gig.gitbooks.io/jumpscale-core8/content/) for
 - [version & roadmap info](../master/releases.md)
 
 
-## how to install from master (THIS IS NOT 8.2.0, DO NOT USE). 
+## how to install from master (THIS IS NOT 8.2.0, DO NOT USE).
 Should be executed under root.
 
 ```
@@ -23,7 +23,7 @@ bash install.sh
 ```
 
 
-## how to install from a branch. 
+## how to install from a branch.
 Should be executed under root.
 
 ```
@@ -33,6 +33,8 @@ export JSBRANCH="8.2.0"
 curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/install.sh?$RANDOM > install.sh
 bash install.sh
 ```
+- remark: if on OSX the install fails, please make sure brew has been properly installed, also try to do ```brew install gcc```
+
 ## how to remove old data
 
 ```

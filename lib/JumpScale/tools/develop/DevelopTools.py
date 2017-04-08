@@ -1,6 +1,9 @@
 from JumpScale import j
-from watchdog.events import FileSystemEventHandler
-from watchdog.observers import Observer
+try:
+    from watchdog.events import FileSystemEventHandler
+    from watchdog.observers import Observer
+except:
+    print("WARNING: watchdog not installed properly, will resync every 30 sec only.")
 import time
 # import os
 # import sys
@@ -170,9 +173,7 @@ class DevelopToolsFactory:
     def help(self):
         H = """
         js 'j.tools.develop.init("ovh4,ovh3:2222")'
-        js 'j.tools.develop.jumpscale8(rw=True)' #will install overlay sandbox wich can be editted
-        js 'j.tools.develop.jumpscale8develop()'
-        js 'j.tools.develop.syncCode(ask=True,monitor=False,rsyncdelete=False,reset=False)'
+        js 'j.tools.develop.syncCode(monitor=False,rsyncdelete=True,reset=False,repos=["ays_jumpscale8","jumpscale_core8"])'
 
         if you now go onto e.g. ovh4 you will see on /opt/... all changes reflected which you make locally
 
@@ -180,19 +181,15 @@ class DevelopToolsFactory:
         ```
         Make a selection please:
            1: /Users/despiegk/opt/code/github/jumpscale/ays_jumpscale8
-           2: /Users/despiegk/opt/code/github/jumpscale/dockers
-           3: /Users/despiegk/opt/code/github/jumpscale/docs8
-           4: /Users/despiegk/opt/code/github/jumpscale/gig_it_ays
-           5: /Users/despiegk/opt/code/github/jumpscale/jumpscale_core8
-           6: /Users/despiegk/opt/code/github/jumpscale/play7
-           7: /Users/despiegk/opt/code/github/jumpscale/play8
+           2: /Users/despiegk/opt/code/github/jumpscale/jumpscale_core8
+           3: /Users/despiegk/opt/code/github/jumpscale/play7
+           4: /Users/despiegk/opt/code/github/jumpscale/play8
 
-        Select Nr, use comma separation if more e.g. "1,4", * is all, 0 is None: 2,5
+        Select Nr, use comma separation if more e.g. "1,4", * is all, 0 is None: 1,2
 
         rsync  -rlptgo --partial --exclude '*.egg-info*/' --exclude '*.dist-info*/' --exclude '*__pycache__*/' --exclude '*.git*/' --exclude '*.egg-info*' --exclude '*.pyc' --exclude '*.bak' --exclude '*__pycache__*'  -e 'ssh -o StrictHostKeyChecking=no -p 22' '/Users/despiegk/opt/code/github/jumpscale/dockers/' 'root@ovh4:/opt/code/dockers/'
         ... some more rsync commands
 
-        monitor:/Users/despiegk/opt/code/github/jumpscale/dockers
         monitor:/Users/despiegk/opt/code/github/jumpscale/jumpscale_core8
 
         #if you change a file:
@@ -271,7 +268,7 @@ class DevelopToolsFactory:
         j.actions.reset()
         self.init()
 
-    def syncCode(self, ask=False, monitor=False, rsyncdelete=True, reset=False):
+    def syncCode(self, ask=False, monitor=False, rsyncdelete=True, reset=False, repos=[]):
         """
         sync all code to the remote destinations
 
@@ -279,6 +276,10 @@ class DevelopToolsFactory:
         @param ask=True means ask which repo's to sync (will get remembered in redis)
 
         """
+        from IPython import embed
+        print("DEBUG NOW 8787")
+        embed()
+        raise RuntimeError("stop debug here")
         if ask or j.core.db.get("debug.codepaths") is None:
             path = j.dirs.CODEDIR + "/github/jumpscale"
             if j.sal.fs.exists(path):

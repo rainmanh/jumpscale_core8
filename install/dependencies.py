@@ -9,7 +9,7 @@ class dependencies():
         uvloop
         redis
         paramiko
-        #watchdog
+        watchdog
         gitpython
         click
         pymux
@@ -41,7 +41,7 @@ class dependencies():
         toml
         pystache
         python-jose
-        
+
         """
         self.do.pip(C, executor=executor)
         self.do.execute("pip3 install https://github.com/tony/libtmux/archive/master.zip --upgrade")
@@ -53,7 +53,7 @@ class dependencies():
         """
         self.do.pip(C, executor=executor)
 
-    def flist(self, executor=None):        
+    def flist(self, executor=None):
         self.do.execute("apt-get install -y librocksdb-dev libhiredis-dev libbz2-dev", executor=executor)
         self.do.pip("pyrocksdb g8storclient", executor=executor)
 

@@ -32,10 +32,22 @@ class CuisineNodeJS(app):
             self.logger.info("bower install %s" % name)
             self.cuisine.core.run("cd %s;bower --allow-root install  %s" % (self._bowerDir, name), profile=True)
 
+    def isInstalled(self):
+        rc, out, err = self.cuisine.core.run(" npm version", die=False, showout=False, profile=True)
+        from IPython import embed
+        print("DEBUG NOW 8787")
+        embed()
+        raise RuntimeError("stop debug here")
+        if rc > 0 or "1.8" not in out:
+            return False
+        if self.doneGet("install") == False:
+            return False
+        return True
+
     def install(self, reset=False):
         """
         """
-        if not reset and self.doneGet("install"):
+        if if self.isInstalled and not reset and self.doneGet("install"):
             return
 
         self.cuisine.core.file_unlink("$BINDIR/node")
@@ -83,7 +95,8 @@ class CuisineNodeJS(app):
 
         rc, out, err = self.cuisine.core.run("npm -v", profile=True)
         if out != '4.1.2':
-            self.cuisine.core.run("npm install npm@4.1.2 -g", profile=True)  # needs to be this version because is part of the package which was downloaded
+            # needs to be this version because is part of the package which was downloaded
+            self.cuisine.core.run("npm install npm@4.1.2 -g", profile=True)
 
         rc, initmodulepath, err = self.cuisine.core.run("npm config get init-module", profile=True)
         self.cuisine.core.file_unlink(initmodulepath)

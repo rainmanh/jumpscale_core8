@@ -17,3 +17,10 @@
     - [Security](Security.md)
     - [Stats](Stats.md)
     - [Tutorial](Tutorial.md)
+
+```
+!!!
+title = "Home"
+date = "2017-04-08"
+tags = []
+```

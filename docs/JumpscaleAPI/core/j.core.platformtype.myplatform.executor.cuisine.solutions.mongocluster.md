@@ -38,3 +38,24 @@ you can find more info here https://docs.mongodb.com/manual/tutorial/deploy-shar
 
 ```
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.solutions.mongocluster"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.solutions.mongocluster"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.solutions.mongocluster"
+date = "2017-04-08"
+tags = []
+```

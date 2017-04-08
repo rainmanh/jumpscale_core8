@@ -20,3 +20,10 @@ ipdb>
 ```
 
 Another useful feature of AYS is that it can auto detect when some debugging are present in the code. If `ipdb` or `IPython` is found somewhere in the code then debug mode is enabled automatically.
+
+```
+!!!
+title = "Debuging"
+date = "2017-04-08"
+tags = []
+```

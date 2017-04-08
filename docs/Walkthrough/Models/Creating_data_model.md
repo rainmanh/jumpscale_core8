@@ -137,3 +137,10 @@ class OrgModel(base):
          return self.get(key)
  
  ``` 
+
+```
+!!!
+title = "Creating Data Model"
+date = "2017-04-08"
+tags = []
+```

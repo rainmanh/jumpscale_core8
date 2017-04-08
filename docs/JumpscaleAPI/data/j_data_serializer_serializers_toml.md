@@ -13,3 +13,24 @@
 
 #### loads(*s*) 
 
+
+```
+!!!
+title = "J Data Serializer Serializers Toml"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Serializer Serializers Toml"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Serializer Serializers Toml"
+date = "2017-04-08"
+tags = []
+```

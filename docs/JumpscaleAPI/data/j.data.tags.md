@@ -28,3 +28,24 @@ and not to build the script manually to skip reserved letters.
 
 ```
 
+
+```
+!!!
+title = "J.data.tags"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.tags"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.tags"
+date = "2017-04-08"
+tags = []
+```

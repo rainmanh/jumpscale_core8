@@ -13,3 +13,10 @@ For more information check the [G8 Cockpit GitBook](https://gig.gitbooks.io/cock
 ## OpenvCloud
 
 [OpenvCloud Operator's Guide](https://www.gitbook.com/book/gig/ovcdoc_public/details)
+
+```
+!!!
+title = "JumpScaleSolutions"
+date = "2017-04-08"
+tags = []
+```

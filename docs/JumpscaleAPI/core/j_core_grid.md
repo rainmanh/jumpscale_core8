@@ -17,3 +17,24 @@
 
 #### isGridMasterLocal() 
 
+
+```
+!!!
+title = "J Core Grid"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Grid"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Grid"
+date = "2017-04-08"
+tags = []
+```

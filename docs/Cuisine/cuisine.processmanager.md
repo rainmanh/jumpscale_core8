@@ -31,3 +31,10 @@ Tmux is the default process manager. The process manager module uses it in case 
 Tmux doesn't keep track of the services, and that is why the process manager module stores service information in a hash map in Redis called `processcmds`.
 
 Starting a service is done by simply opening a window in tmux with the name of the service and starting the service in it. And stopping a service is done by closing the window with that name.
+
+```
+!!!
+title = "Cuisine.processmanager"
+date = "2017-04-08"
+tags = []
+```

@@ -13,3 +13,24 @@
 
 #### loads(*b*) 
 
+
+```
+!!!
+title = "J.data.serializer.base64"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.serializer.base64"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.serializer.base64"
+date = "2017-04-08"
+tags = []
+```

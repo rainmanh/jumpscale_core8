@@ -22,3 +22,24 @@ Install pre-commit hook to run autopep8
 
 ```
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Development Pep8"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Development Pep8"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Development Pep8"
+date = "2017-04-08"
+tags = []
+```

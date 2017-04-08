@@ -81,3 +81,10 @@ services/
 
 6 directories, 12 files
 ```
+
+```
+!!!
+title = "Parent Child"
+date = "2017-04-08"
+tags = []
+```

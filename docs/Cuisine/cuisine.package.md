@@ -13,3 +13,10 @@ Examples of methods inside `package`:
 - **start**: starts the service of the package
 - **update**: updates a certain package
 - **upgrade**: upgrades system, passing distupgrade=True will make a distribution upgrade
+
+```
+!!!
+title = "Cuisine.package"
+date = "2017-04-08"
+tags = []
+```

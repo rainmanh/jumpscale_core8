@@ -23,3 +23,24 @@ read local hostnames & transfer them to current cuisine
 
 ```
 
+
+```
+!!!
+title = "J.tools.cuisine.local.core.ns"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.core.ns"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.core.ns"
+date = "2017-04-08"
+tags = []
+```

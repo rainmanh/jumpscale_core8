@@ -12,3 +12,24 @@ baseurl: str, url of the etcd for skydns e.g: https://dns1.aydo.com/etcd
 
 ```
 
+
+```
+!!!
+title = "J Clients Skydns"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Clients Skydns"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Clients Skydns"
+date = "2017-04-08"
+tags = []
+```

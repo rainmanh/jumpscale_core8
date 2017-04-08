@@ -82,3 +82,10 @@ partition.format()
 partition.setAutoMount(options='defaults', _dump=0, _pass=0)
 partition.unsetAutoMount()
 ```
+
+```
+!!!
+title = "Disklayout"
+date = "2017-04-08"
+tags = []
+```

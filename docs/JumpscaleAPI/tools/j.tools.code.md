@@ -74,3 +74,24 @@ not needed chars
 
 ```
 
+
+```
+!!!
+title = "J.tools.code"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.code"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.code"
+date = "2017-04-08"
+tags = []
+```

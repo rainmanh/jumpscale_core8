@@ -63,3 +63,10 @@ domain.save()
 # OR
 domain_manager.del_record("gig.com", "cname", "grid", full=True)
 ```
+
+```
+!!!
+title = "Geodns"
+date = "2017-04-08"
+tags = ["howto"]
+```

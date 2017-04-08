@@ -7,3 +7,24 @@
 
 #### install(*pubkey*) 
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Examples Examplemongocluster"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Examples Examplemongocluster"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Examples Examplemongocluster"
+date = "2017-04-08"
+tags = []
+```

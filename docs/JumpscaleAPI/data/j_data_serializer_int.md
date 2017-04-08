@@ -9,3 +9,24 @@
 
 #### loads(*s*) 
 
+
+```
+!!!
+title = "J Data Serializer Int"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Serializer Int"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Serializer Int"
+date = "2017-04-08"
+tags = []
+```

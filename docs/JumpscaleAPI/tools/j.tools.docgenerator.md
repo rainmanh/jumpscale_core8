@@ -25,3 +25,24 @@ will look for config.yaml in $source/config.yaml
 
 ```
 
+
+```
+!!!
+title = "J.tools.docgenerator"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.docgenerator"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.docgenerator"
+date = "2017-04-08"
+tags = []
+```

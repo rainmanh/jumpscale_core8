@@ -22,3 +22,24 @@ if path=="" then start from current path
 
 ```
 
+
+```
+!!!
+title = "J Tools Markdown"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Markdown"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Markdown"
+date = "2017-04-08"
+tags = []
+```

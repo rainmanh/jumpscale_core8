@@ -5,3 +5,10 @@ AYS File Locations & Details
 - [service.hrd](service.hrd.md)
 - [Parent/Child](Parent-Child.md)
 - [HRD Configuration Files](HRD.md)
+
+```
+!!!
+title = "FilesDetails"
+date = "2017-04-08"
+tags = []
+```

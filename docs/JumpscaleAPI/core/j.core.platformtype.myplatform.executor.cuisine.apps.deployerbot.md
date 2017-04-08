@@ -61,3 +61,24 @@ see https://github.com/Jumpscale/jscockpit/blob/master/deploy_bot/README.md for 
 
 ```
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.apps.deployerbot"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.apps.deployerbot"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.apps.deployerbot"
+date = "2017-04-08"
+tags = []
+```

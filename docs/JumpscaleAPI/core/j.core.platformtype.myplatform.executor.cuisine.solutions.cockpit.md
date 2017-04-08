@@ -26,3 +26,24 @@ bot_token: telegram token for cockpit bot
 
 ```
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.solutions.cockpit"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.solutions.cockpit"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.solutions.cockpit"
+date = "2017-04-08"
+tags = []
+```

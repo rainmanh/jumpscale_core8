@@ -11,3 +11,24 @@
 
 #### jumpscale_installed(*die*) 
 
+
+```
+!!!
+title = "J Tools Cuisine Local Development Js8"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Cuisine Local Development Js8"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Cuisine Local Development Js8"
+date = "2017-04-08"
+tags = []
+```

@@ -9,3 +9,24 @@
 
 #### removeClient(*name*) 
 
+
+```
+!!!
+title = "J.sal.nfs"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.nfs"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.nfs"
+date = "2017-04-08"
+tags = []
+```

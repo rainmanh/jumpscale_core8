@@ -15,3 +15,24 @@
 
 #### set(*id, val*) 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.cache"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.cache"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.cache"
+date = "2017-04-08"
+tags = []
+```

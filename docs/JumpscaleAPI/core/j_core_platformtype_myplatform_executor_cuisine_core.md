@@ -369,3 +369,24 @@ upload happens using rsync
 
 #### upload_from_local(*local, remote*) 
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Core"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Core"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Core"
+date = "2017-04-08"
+tags = []
+```

@@ -11,3 +11,24 @@
 
 #### init() 
 
+
+```
+!!!
+title = "J.tools.golang"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.golang"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.golang"
+date = "2017-04-08"
+tags = []
+```

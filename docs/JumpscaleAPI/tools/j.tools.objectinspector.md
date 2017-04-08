@@ -51,3 +51,24 @@ Writes the documentation on a specified path.
 
 ```
 
+
+```
+!!!
+title = "J.tools.objectinspector"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.objectinspector"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.objectinspector"
+date = "2017-04-08"
+tags = []
+```

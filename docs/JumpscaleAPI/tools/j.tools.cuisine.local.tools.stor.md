@@ -40,3 +40,24 @@ Remove a complete storagespace and all it's content
 
 #### start() 
 
+
+```
+!!!
+title = "J.tools.cuisine.local.tools.stor"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.tools.stor"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.tools.stor"
+date = "2017-04-08"
+tags = []
+```

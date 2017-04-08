@@ -78,3 +78,24 @@ names of running & stopped machines
 
 #### stop(*name*) 
 
+
+```
+!!!
+title = "J.sal.lxc"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.lxc"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.lxc"
+date = "2017-04-08"
+tags = []
+```

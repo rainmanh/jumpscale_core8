@@ -76,3 +76,10 @@ Each AYS actor template has following files:
       ```
 
 - **actions.py** defines the behavior of the service (optional)
+
+```
+!!!
+title = "AYS Template Repo"
+date = "2017-04-08"
+tags = []
+```

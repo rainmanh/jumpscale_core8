@@ -9,3 +9,24 @@
 
 #### getIssueClass() 
 
+
+```
+!!!
+title = "J.clients.github"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.clients.github"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.clients.github"
+date = "2017-04-08"
+tags = []
+```

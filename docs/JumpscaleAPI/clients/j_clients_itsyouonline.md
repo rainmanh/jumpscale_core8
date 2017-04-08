@@ -7,3 +7,24 @@
 
 #### get() 
 
+
+```
+!!!
+title = "J Clients Itsyouonline"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Clients Itsyouonline"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Clients Itsyouonline"
+date = "2017-04-08"
+tags = []
+```

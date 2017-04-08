@@ -19,3 +19,24 @@
 
 #### generate_method(*info, level*) 
 
+
+```
+!!!
+title = "J.tools.js8stub"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.js8stub"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.js8stub"
+date = "2017-04-08"
+tags = []
+```

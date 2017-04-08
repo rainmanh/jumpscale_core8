@@ -56,3 +56,10 @@ depends:
     - https://github.com/Jumpscale/jscockpit
     - https://github.com/Jumpscale/ays_jumpscale8/tree/8.2.0
 ```
+
+```
+!!!
+title = "Docgenerator"
+date = "2017-04-08"
+tags = []
+```

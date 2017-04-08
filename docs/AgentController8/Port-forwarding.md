@@ -45,3 +45,10 @@ client.tunnel_close(1, 1, 2222, '1.2', '127.0.0.1', 22)
 > Tunnels can be only listed on the `opener` side. doing a client.tunnel_list(1, 2) will not return anything. Unless tunnels were opened on `agent 1.2`
 
 > Hubble supports dynamic port allocation, if `local` were set to `0` it will pick a free port automatically for you. In this case, to close the opened tunnel the `tunnel_close` must take the actually opened port number.
+
+```
+!!!
+title = "Port Forwarding"
+date = "2017-04-08"
+tags = []
+```

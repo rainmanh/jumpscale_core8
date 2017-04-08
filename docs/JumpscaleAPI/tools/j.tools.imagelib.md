@@ -25,3 +25,24 @@ is a shortcut to resize to widht 1600 typical ok for high quality web usage
 
 #### resizeFullDir2subdir1024(*path*) 
 
+
+```
+!!!
+title = "J.tools.imagelib"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.imagelib"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.imagelib"
+date = "2017-04-08"
+tags = []
+```

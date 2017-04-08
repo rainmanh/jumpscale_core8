@@ -32,3 +32,24 @@ used to change the value to a predefined standard for this type
 
 #### toString(*value*) 
 
+
+```
+!!!
+title = "J Data Types Float"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Types Float"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Types Float"
+date = "2017-04-08"
+tags = []
+```

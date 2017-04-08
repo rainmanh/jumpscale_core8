@@ -65,3 +65,24 @@ application?server:ApplicationServer
 
 #### synonymsPrint() 
 
+
+```
+!!!
+title = "J.tools.code.wordreplacer"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.code.wordreplacer"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.code.wordreplacer"
+date = "2017-04-08"
+tags = []
+```

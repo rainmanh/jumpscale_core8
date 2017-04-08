@@ -106,3 +106,10 @@ fswalker.walk('.',callbackFunctions,args,
 - fswalker.lastPath
 
 Returns a string representation of the last object. Empty string if none found.
+
+```
+!!!
+title = "How To Use Walker"
+date = "2017-04-08"
+tags = ["howto"]
+```

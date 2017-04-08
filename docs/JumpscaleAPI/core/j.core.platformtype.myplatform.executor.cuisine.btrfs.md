@@ -78,3 +78,24 @@ filter e.g. /docker/
 
 ```
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.btrfs"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.btrfs"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.btrfs"
+date = "2017-04-08"
+tags = []
+```

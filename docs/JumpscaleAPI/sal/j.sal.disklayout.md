@@ -16,3 +16,24 @@ Get list of all available disks on machine
 
 ```
 
+
+```
+!!!
+title = "J.sal.disklayout"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.disklayout"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.disklayout"
+date = "2017-04-08"
+tags = []
+```

@@ -38,3 +38,24 @@ you can find more info here https://docs.mongodb.com/manual/tutorial/deploy-shar
 
 ```
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Solutions Mongocluster"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Solutions Mongocluster"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Solutions Mongocluster"
+date = "2017-04-08"
+tags = []
+```

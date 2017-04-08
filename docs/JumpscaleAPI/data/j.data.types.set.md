@@ -19,3 +19,24 @@ Check whether provided value is a set
 
 #### get_default() 
 
+
+```
+!!!
+title = "J.data.types.set"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.types.set"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.types.set"
+date = "2017-04-08"
+tags = []
+```

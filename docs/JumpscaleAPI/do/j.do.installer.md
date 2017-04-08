@@ -42,3 +42,24 @@ IMPORTANT: if env var's are set they get priority
 
 #### writeenv(*basedir='', insystem, CODEDIR='', vardir='', die=True, SANDBOX*) 
 
+
+```
+!!!
+title = "J.do.installer"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.do.installer"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.do.installer"
+date = "2017-04-08"
+tags = []
+```

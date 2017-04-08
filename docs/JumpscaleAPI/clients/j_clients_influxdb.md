@@ -22,3 +22,24 @@ temperature,machine=unit42,type=assembly external=25,internal=37 1434059627
 
 ```
 
+
+```
+!!!
+title = "J Clients Influxdb"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Clients Influxdb"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Clients Influxdb"
+date = "2017-04-08"
+tags = []
+```

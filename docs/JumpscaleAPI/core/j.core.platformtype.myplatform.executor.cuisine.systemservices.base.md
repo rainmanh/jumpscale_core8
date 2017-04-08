@@ -11,3 +11,24 @@ the base for any install
 
 #### install() 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.systemservices.base"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.systemservices.base"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.systemservices.base"
+date = "2017-04-08"
+tags = []
+```

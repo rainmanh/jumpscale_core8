@@ -45,3 +45,24 @@ find disks which are mounted
 
 #### partitionsUnmount_Ext4Data() 
 
+
+```
+!!!
+title = "J.sal.diskmanager"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.diskmanager"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.diskmanager"
+date = "2017-04-08"
+tags = []
+```

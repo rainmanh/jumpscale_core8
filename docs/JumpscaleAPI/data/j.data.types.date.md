@@ -41,3 +41,24 @@ return string from a string (is basically no more than a check)
 
 #### toString(*v*) 
 
+
+```
+!!!
+title = "J.data.types.date"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.types.date"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.types.date"
+date = "2017-04-08"
+tags = []
+```

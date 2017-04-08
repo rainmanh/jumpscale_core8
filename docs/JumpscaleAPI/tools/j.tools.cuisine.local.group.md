@@ -71,3 +71,24 @@ Ensure that a given user is a member of a given group.
 
 ```
 
+
+```
+!!!
+title = "J.tools.cuisine.local.group"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.group"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.group"
+date = "2017-04-08"
+tags = []
+```

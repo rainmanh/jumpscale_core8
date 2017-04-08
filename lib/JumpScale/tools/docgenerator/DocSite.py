@@ -135,8 +135,8 @@ class DocSite:
             if base.startswith("."):
                 return False
 
-            if base.startswith("_"):
-                return False
+            # if base.startswith("_"):
+            #     return False
 
             # check if we find a macro dir, if so load
             if base == "macros":
@@ -286,8 +286,4 @@ class DocSite:
             raise j.exceptions.Input(message="Cannot find doc with name:%s" %
                                      name, level=1, source="", tags="", msgpub="")
         else:
-            from IPython import embed
-            print("DEBUG NOW uy")
-            embed()
-            raise RuntimeError("stop debug here")
             return None

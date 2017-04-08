@@ -32,3 +32,24 @@ Removes a dhcp-host entry from dnsmasq.conf file
 
 #### setConfigPath(*config_path*) 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.apps.dnsmasq"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.apps.dnsmasq"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.apps.dnsmasq"
+date = "2017-04-08"
+tags = []
+```

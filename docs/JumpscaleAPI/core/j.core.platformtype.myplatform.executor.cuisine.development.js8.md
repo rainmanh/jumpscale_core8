@@ -11,3 +11,24 @@
 
 #### jumpscale_installed(*die*) 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.development.js8"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.development.js8"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.development.js8"
+date = "2017-04-08"
+tags = []
+```

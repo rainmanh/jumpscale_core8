@@ -51,3 +51,24 @@ will look for $ENVIRONNAME 's and replace them in text
 
 #### write() 
 
+
+```
+!!!
+title = "J Tools Bash"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Bash"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Bash"
+date = "2017-04-08"
+tags = []
+```

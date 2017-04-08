@@ -27,3 +27,24 @@ it will return the list of all processes that start with the given
 
 #### tcpport_check(*port, prefix=''*) 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.process"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.process"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.process"
+date = "2017-04-08"
+tags = []
+```

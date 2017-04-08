@@ -33,3 +33,10 @@ cl=j.clients.ssh.get(addr='remote', login='root', port=22, timeout=10)
 ```
 
 The ssh-agent will know which agents to use and also remember passphrases of the keys so we don't have to provide them in code.
+
+```
+!!!
+title = "SSHBasics"
+date = "2017-04-08"
+tags = ["howto"]
+```

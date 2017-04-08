@@ -24,3 +24,10 @@ Following 4 directories are relevant in an AYS repo:
   - Here the actual expanded services instances live
   - An `instance.hrd` file has all the info as required to make a deployment reality (install)
   - An `state.md` file which is the file which has all info related with states and results of the executing actions
+
+```
+!!!
+title = "AYS Repo"
+date = "2017-04-08"
+tags = []
+```

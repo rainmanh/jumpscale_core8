@@ -374,3 +374,24 @@ upload happens using rsync
 
 #### upload_from_local(*local, remote*) 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.core"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.core"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.core"
+date = "2017-04-08"
+tags = []
+```

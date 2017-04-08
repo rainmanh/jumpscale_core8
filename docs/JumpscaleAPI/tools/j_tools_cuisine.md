@@ -45,3 +45,24 @@ reset remove the cuisine instance passed in argument from the cache.
 
 ```
 
+
+```
+!!!
+title = "J Tools Cuisine"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Cuisine"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Cuisine"
+date = "2017-04-08"
+tags = []
+```

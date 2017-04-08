@@ -80,3 +80,10 @@ statsdb.interval = 60
 interval is every how many sec aggregation is being done
 
 can all be left empty, or file does not have to exist
+
+```
+!!!
+title = "Jumpscaleconfigfiles"
+date = "2017-04-08"
+tags = []
+```

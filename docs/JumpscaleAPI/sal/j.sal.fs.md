@@ -844,3 +844,24 @@ Write a object to a file(pickle format)
 
 ```
 
+
+```
+!!!
+title = "J.sal.fs"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.fs"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.fs"
+date = "2017-04-08"
+tags = []
+```

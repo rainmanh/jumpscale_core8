@@ -64,3 +64,24 @@ user.
 
 #### unauthorizeAll() 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.ssh"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.ssh"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.ssh"
+date = "2017-04-08"
+tags = []
+```

@@ -13,3 +13,24 @@ e.g. j.tools.cache.get(j.servers.kvs.getRedisStore(namespace="cache"))
 
 ```
 
+
+```
+!!!
+title = "J.tools.cache"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cache"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cache"
+date = "2017-04-08"
+tags = []
+```

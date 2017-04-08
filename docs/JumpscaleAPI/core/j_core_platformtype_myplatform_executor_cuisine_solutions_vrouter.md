@@ -47,3 +47,24 @@ if not specified then will look for wireless interface which is used in accesspo
 
 #### runSolution() 
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Solutions Vrouter"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Solutions Vrouter"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Solutions Vrouter"
+date = "2017-04-08"
+tags = []
+```

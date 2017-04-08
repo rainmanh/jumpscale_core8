@@ -45,3 +45,10 @@ kvm1.cuisine.core.sudomode=True
 kvm2.cuisine.core.sudomode=True
 
 ```
+
+```
+!!!
+title = "Cuisine.kvm"
+date = "2017-04-08"
+tags = []
+```

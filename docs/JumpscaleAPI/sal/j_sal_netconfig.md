@@ -117,3 +117,24 @@ resolvconf will be disabled
 
 #### proxy_enable() 
 
+
+```
+!!!
+title = "J Sal Netconfig"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Sal Netconfig"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Sal Netconfig"
+date = "2017-04-08"
+tags = []
+```

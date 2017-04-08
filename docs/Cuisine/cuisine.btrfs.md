@@ -21,3 +21,10 @@ cuisine.btrfs.getSpaceUsageDataFree()
   ```python
   cuisine.btrfs.subvolumeExists('/')
   ```
+
+```
+!!!
+title = "Cuisine.btrfs"
+date = "2017-04-08"
+tags = []
+```

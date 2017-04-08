@@ -15,28 +15,39 @@ def loadmodule(name, path):
     return mod
 
 
-caddyconfig = '''
+if not sys.platform.startswith("darwin"):
+    caddyconfig = '''
 
-$ws/ {
-    root $outpath
-    browse
-}
-
-$ws/fm/ {
-    filemanager / {
-        show           $outpath
-        allow_new      true
-        allow_edit     true
-        allow_commands true
-        allow_command  git
-        allow_command  svn
-        allow_command  hg
-        allow_command  ls
-        block          dotfiles
+    $ws/ {
+        root $outpath
+        browse
     }
-}
 
-'''
+    $ws/fm/ {
+        filemanager / {
+            show           $outpath
+            allow_new      true
+            allow_edit     true
+            allow_commands true
+            allow_command  git
+            allow_command  svn
+            allow_command  hg
+            allow_command  ls
+            block          dotfiles
+        }
+    }
+    '''
+else:
+    caddyconfig = '''
+
+    $ws/ {
+        root $outpath
+        browse
+    }
+
+    '''
+
+caddyconfig = j.data.text.strip(caddyconfig)
 
 
 class DocGenerator:

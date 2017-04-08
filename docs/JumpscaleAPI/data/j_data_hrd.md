@@ -20,3 +20,24 @@
 
 #### getSchema(*path, content=''*) 
 
+
+```
+!!!
+title = "J Data Hrd"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Hrd"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Hrd"
+date = "2017-04-08"
+tags = []
+```

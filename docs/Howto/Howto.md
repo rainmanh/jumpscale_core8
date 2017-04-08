@@ -15,3 +15,10 @@
 - [Use FS Walker](how_to_use_walker.md)
 - [Add a New SAL](how_to_add_a_new_SAL.md)
 - [Write a cuisine module](how_to_write_cuisine_module.md)
+
+```
+!!!
+title = "Howto"
+date = "2017-04-08"
+tags = ["howto"]
+```

@@ -234,3 +234,10 @@ In [17]: fs.chmod("file1", 0o777)
 In [18]: ls -al file1
 -rwxrwxrwx 1 root root 20 Jun  9 09:26 file1*
 ```
+
+```
+!!!
+title = "FS"
+date = "2017-04-08"
+tags = []
+```

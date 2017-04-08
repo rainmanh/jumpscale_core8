@@ -9,3 +9,24 @@
 
 #### install() 
 
+
+```
+!!!
+title = "J.tools.cuisine.local.apps.hadoop"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.apps.hadoop"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.apps.hadoop"
+date = "2017-04-08"
+tags = []
+```

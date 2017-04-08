@@ -25,3 +25,24 @@ Check whether provided value is a list
 
 #### toString(*v, ttype='str'*) 
 
+
+```
+!!!
+title = "J Data Types List"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Types List"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Types List"
+date = "2017-04-08"
+tags = []
+```

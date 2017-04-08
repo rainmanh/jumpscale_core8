@@ -7,3 +7,24 @@
 
 #### get(*host, login, password*) 
 
+
+```
+!!!
+title = "J Sal Ciscoswitch"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Sal Ciscoswitch"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Sal Ciscoswitch"
+date = "2017-04-08"
+tags = []
+```

@@ -27,3 +27,24 @@ default dest = '%s/bin/'%j.dirs.JSBASEDIR
 
 #### sandbox_python3() 
 
+
+```
+!!!
+title = "J Tools Sandboxer"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Sandboxer"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Sandboxer"
+date = "2017-04-08"
+tags = []
+```

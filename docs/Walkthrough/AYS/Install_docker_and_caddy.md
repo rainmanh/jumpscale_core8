@@ -110,3 +110,10 @@ after executing these commands we should have this structure
     └── vdcfarm!vdcfarm1
 
 ```
+
+```
+!!!
+title = "Install Docker And Caddy"
+date = "2017-04-08"
+tags = []
+```

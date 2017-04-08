@@ -13,3 +13,24 @@ regexexamples which find lines
 
 #### findDeflines() 
 
+
+```
+!!!
+title = "J Data Regex Templates Lines"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Regex Templates Lines"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Regex Templates Lines"
+date = "2017-04-08"
+tags = []
+```

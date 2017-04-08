@@ -24,3 +24,24 @@ c.systemservices.openvswitch.install()
 
 #### vnicQOS(***kwargs*) 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.systemservices.openvswitch"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.systemservices.openvswitch"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.systemservices.openvswitch"
+date = "2017-04-08"
+tags = []
+```

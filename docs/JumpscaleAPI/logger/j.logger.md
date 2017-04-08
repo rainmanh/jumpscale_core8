@@ -32,3 +32,24 @@ in library module always pass __name__ as argument.
 
 #### set_quiet(*quiet*) 
 
+
+```
+!!!
+title = "J.logger"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.logger"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.logger"
+date = "2017-04-08"
+tags = []
+```

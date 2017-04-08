@@ -21,3 +21,10 @@ cuisine.group.create('admin')
   ```python
   cuisine.group.ensure('admin')
   ```
+
+```
+!!!
+title = "Cuisine.group"
+date = "2017-04-08"
+tags = []
+```

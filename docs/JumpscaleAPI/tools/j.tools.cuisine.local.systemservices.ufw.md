@@ -15,3 +15,24 @@
 
 #### ufw_enable() 
 
+
+```
+!!!
+title = "J.tools.cuisine.local.systemservices.ufw"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.systemservices.ufw"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.systemservices.ufw"
+date = "2017-04-08"
+tags = []
+```

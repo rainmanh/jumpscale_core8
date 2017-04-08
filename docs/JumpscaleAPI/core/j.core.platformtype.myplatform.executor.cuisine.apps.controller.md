@@ -36,3 +36,24 @@ e.g: [':80', '127.0.0.1:888']
 
 ```
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.apps.controller"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.apps.controller"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.apps.controller"
+date = "2017-04-08"
+tags = []
+```

@@ -7,3 +7,24 @@
 
 #### install() 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.development.python"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.development.python"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.development.python"
+date = "2017-04-08"
+tags = []
+```

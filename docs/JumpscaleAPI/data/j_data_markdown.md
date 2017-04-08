@@ -19,3 +19,24 @@ returns a tool which allows easy creation of a markdown document
 
 ```
 
+
+```
+!!!
+title = "J Data Markdown"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Markdown"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Markdown"
+date = "2017-04-08"
+tags = []
+```

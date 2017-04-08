@@ -15,3 +15,24 @@
 
 #### set(*key, value*) 
 
+
+```
+!!!
+title = "J Tools Cuisine Local Bash Profile"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Cuisine Local Bash Profile"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Cuisine Local Bash Profile"
+date = "2017-04-08"
+tags = []
+```

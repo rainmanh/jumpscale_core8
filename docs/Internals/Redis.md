@@ -20,3 +20,10 @@ Redis is an open source (BSD licensed), in-memory data structure store, used as 
 - First port 9999 will be checked, if available that client will be loaded
 - Then default Redis port 6379 will be checked and loaded if found
 - Otherwise j.core.db=None
+
+```
+!!!
+title = "Redis"
+date = "2017-04-08"
+tags = []
+```

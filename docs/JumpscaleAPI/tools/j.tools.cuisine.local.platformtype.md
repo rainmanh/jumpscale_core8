@@ -70,3 +70,24 @@ Checks whether Xen support is enabled
 
 ```
 
+
+```
+!!!
+title = "J.tools.cuisine.local.platformtype"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.platformtype"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.platformtype"
+date = "2017-04-08"
+tags = []
+```

@@ -26,3 +26,10 @@ tmux.executeInScreen('s1', 'w1', 'ping 8.8.8.8')
 tmux.executeInScreen('s1', 'w2', 'python3 -m http.server')
 tmux.killSession('s1')
 ```
+
+```
+!!!
+title = "Cuisine.tmux"
+date = "2017-04-08"
+tags = []
+```

@@ -350,3 +350,10 @@ Out[5]:
 ```
 
 Next you will want to check the walkthrough documentation on [Installing Caddy using Cuisine](../Cuisine/install_caddy_on_docker.md) which builds on this walkthrough.
+
+```
+!!!
+title = "Docker"
+date = "2017-04-08"
+tags = []
+```

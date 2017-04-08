@@ -53,3 +53,24 @@ The "package" argument, defines the name of the package that will be upgraded.
 
 ```
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Development Pip"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Development Pip"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Development Pip"
+date = "2017-04-08"
+tags = []
+```

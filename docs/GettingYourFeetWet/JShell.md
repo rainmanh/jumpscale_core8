@@ -9,3 +9,10 @@ Everything after `js` will be evaluated in the JumpScale interactive shell sessi
 ```python
 js 'j.do._loadSSHAgent()'
 ```
+
+```
+!!!
+title = "JShell"
+date = "2017-04-08"
+tags = []
+```

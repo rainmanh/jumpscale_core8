@@ -19,3 +19,10 @@ ays
 ```
 
 It provides a full featured application/service management toolset for install, configuring and controlling any service based on an [AYS service template](../AYS/Definitions/2-Templates-Recipes-Instances.md). To get full understanding use check the [AYS documentation](../AYS/AYS-introduction.md) type the following at the command line:
+
+```
+!!!
+title = "AYS"
+date = "2017-04-08"
+tags = []
+```

@@ -31,3 +31,24 @@ You can ovveride it to use another way for checking
 
 #### start(*addr*) 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.systemservices.aydostor"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.systemservices.aydostor"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.systemservices.aydostor"
+date = "2017-04-08"
+tags = []
+```

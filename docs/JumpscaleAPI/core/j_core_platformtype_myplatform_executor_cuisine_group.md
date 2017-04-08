@@ -71,3 +71,24 @@ Ensure that a given user is a member of a given group.
 
 ```
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Group"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Group"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Group"
+date = "2017-04-08"
+tags = []
+```

@@ -101,3 +101,24 @@ the errorcondition is then also processed e.g. send to local logserver and/or st
 
 #### toolStripNonAsciFromText(*text*) 
 
+
+```
+!!!
+title = "J.errorconditionhandler"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.errorconditionhandler"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.errorconditionhandler"
+date = "2017-04-08"
+tags = []
+```

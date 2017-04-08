@@ -23,3 +23,24 @@ read local hostnames & transfer them to current cuisine
 
 ```
 
+
+```
+!!!
+title = "J Tools Cuisine Local Core Ns"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Cuisine Local Core Ns"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Cuisine Local Core Ns"
+date = "2017-04-08"
+tags = []
+```

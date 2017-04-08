@@ -36,3 +36,24 @@ core will consume the avialable syncthing port and will cause a problem
 
 ```
 
+
+```
+!!!
+title = "J.tools.cuisine.local.systemservices.g8oscore"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.systemservices.g8oscore"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.systemservices.g8oscore"
+date = "2017-04-08"
+tags = []
+```

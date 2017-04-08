@@ -63,3 +63,10 @@ In a typical environment, multiple layers of caching are available.
 To speed up the downloading of the files, some 'grid caches' can exists. These are used the same way as the stores, but they are populated by the G8OS FS as it downloads files and located in the local network of the OpenvCloud nodes.
 
 The G8OS FS will always first look into its local cache for the binary files. If can't find them, it will look into the 'grid caches', and if not found there it will download them from a store.
+
+```
+!!!
+title = "G8OS FS"
+date = "2017-04-08"
+tags = []
+```

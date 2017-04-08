@@ -30,3 +30,24 @@ Return if the argument object is an instance of Params
 
 ```
 
+
+```
+!!!
+title = "J.data.params"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.params"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.params"
+date = "2017-04-08"
+tags = []
+```

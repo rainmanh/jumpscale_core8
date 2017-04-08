@@ -67,3 +67,10 @@ When using command `execute` or any of the external extensions the agent defines
 - restart
 - get_msgs
 - del_msgs
+
+```
+!!!
+title = "Command Syntax"
+date = "2017-04-08"
+tags = []
+```

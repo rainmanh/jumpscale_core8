@@ -6,3 +6,10 @@
 ```
 j.tools.cuisine.local.apps.ipfs.install()
 ```
+
+```
+!!!
+title = "Ipfs"
+date = "2017-04-08"
+tags = []
+```

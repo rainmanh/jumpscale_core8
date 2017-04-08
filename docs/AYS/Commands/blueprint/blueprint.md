@@ -44,3 +44,10 @@ The process that takes places is:
   date = "2017-03-02"
   categories= ["ays_cmd"]
   ```
+
+```
+!!!
+title = "Blueprint"
+date = "2017-04-08"
+tags = []
+```

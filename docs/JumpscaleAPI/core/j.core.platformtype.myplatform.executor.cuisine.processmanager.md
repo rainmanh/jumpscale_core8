@@ -37,3 +37,24 @@ it if necessary and also create it
 
 #### stop(*name*) 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.processmanager"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.processmanager"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.processmanager"
+date = "2017-04-08"
+tags = []
+```

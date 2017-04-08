@@ -65,3 +65,24 @@ name is name of method
 
 #### setState(*state='INIT'*) 
 
+
+```
+!!!
+title = "J Actions"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Actions"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Actions"
+date = "2017-04-08"
+tags = []
+```

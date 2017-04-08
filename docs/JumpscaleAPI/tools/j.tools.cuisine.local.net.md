@@ -53,3 +53,24 @@ will set interface file, if network access goes away then will restore previous 
 
 ```
 
+
+```
+!!!
+title = "J.tools.cuisine.local.net"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.net"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.net"
+date = "2017-04-08"
+tags = []
+```

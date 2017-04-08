@@ -23,3 +23,24 @@ num_files = len(d.files())
 
 ```
 
+
+```
+!!!
+title = "J.tools.path"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.path"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.path"
+date = "2017-04-08"
+tags = []
+```

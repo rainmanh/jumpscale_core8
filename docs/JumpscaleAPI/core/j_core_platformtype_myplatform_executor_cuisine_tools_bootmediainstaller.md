@@ -62,3 +62,24 @@ example: hwplatform = rpi_2b, orangepi_plus,amd64
 
 ```
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Tools Bootmediainstaller"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Tools Bootmediainstaller"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Tools Bootmediainstaller"
+date = "2017-04-08"
+tags = []
+```

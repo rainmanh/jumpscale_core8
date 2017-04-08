@@ -49,3 +49,10 @@ cuisine.apps.caddy.install()
 ```
 
 Now you have Caddy running on the Docker container created through JumpScale.
+
+```
+!!!
+title = "Install Caddy On Docker"
+date = "2017-04-08"
+tags = []
+```

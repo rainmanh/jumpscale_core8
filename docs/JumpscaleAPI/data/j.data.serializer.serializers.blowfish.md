@@ -16,3 +16,24 @@
 
 #### loads(*s, encrkey*) 
 
+
+```
+!!!
+title = "J.data.serializer.serializers.blowfish"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.serializer.serializers.blowfish"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.serializer.serializers.blowfish"
+date = "2017-04-08"
+tags = []
+```

@@ -7,3 +7,24 @@
 
 #### install(*pubkey*) 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.examples.examplemongocluster"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.examples.examplemongocluster"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.examples.examplemongocluster"
+date = "2017-04-08"
+tags = []
+```

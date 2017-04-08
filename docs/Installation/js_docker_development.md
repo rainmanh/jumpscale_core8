@@ -24,3 +24,10 @@ export JSBRANCH="8.2.0"
 curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$JSBRANCH/install/install.sh?$RANDOM > install.sh
 bash install.sh
 ```
+
+```
+!!!
+title = "Js Docker Development"
+date = "2017-04-08"
+tags = []
+```

@@ -13,3 +13,24 @@
 
 #### getSession(*name, reset, attach, firstWindow=''*) 
 
+
+```
+!!!
+title = "J.sal.tmux"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.tmux"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.tmux"
+date = "2017-04-08"
+tags = []
+```

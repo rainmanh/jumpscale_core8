@@ -11,3 +11,24 @@
 
 #### jumpscale_installed(*die*) 
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Development Js8"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Development Js8"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Development Js8"
+date = "2017-04-08"
+tags = []
+```

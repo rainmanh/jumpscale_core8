@@ -20,3 +20,10 @@ Complete walkthrough (maybe rethink the name)
 * [Creating a data model](/Models/Creating_data_model.md)
 * [Migrating data from gogs database into redis](/Models/Migrating_data_from_gogs.md)
 
+
+```
+!!!
+title = "Walkthrough"
+date = "2017-04-08"
+tags = []
+```

@@ -42,3 +42,10 @@ Examples for methods in `core`:
   ```python
   cuisine.arg_replace('$BINDIR/python -c "print(1)"')
   ```
+
+```
+!!!
+title = "Cuisine.core"
+date = "2017-04-08"
+tags = []
+```

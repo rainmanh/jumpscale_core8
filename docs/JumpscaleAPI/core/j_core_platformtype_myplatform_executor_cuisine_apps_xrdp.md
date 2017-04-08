@@ -24,3 +24,24 @@ You can ovveride it to use another way for checking
 
 ```
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Apps Xrdp"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Apps Xrdp"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Apps Xrdp"
+date = "2017-04-08"
+tags = []
+```

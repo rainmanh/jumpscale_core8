@@ -56,3 +56,10 @@ It gives a link to the actor template used to install.
 The code editor gives a handy way to edit/configure the service instance.
 
 You can also perform actions on the service instances through the action links to start/stop/restart the services.
+
+```
+!!!
+title = "AYS Portal"
+date = "2017-04-08"
+tags = []
+```

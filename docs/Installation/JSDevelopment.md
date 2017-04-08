@@ -130,3 +130,10 @@ rm -f install.sh
 curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh
 bash install.sh
 ```
+
+```
+!!!
+title = "JSDevelopment"
+date = "2017-04-08"
+tags = []
+```

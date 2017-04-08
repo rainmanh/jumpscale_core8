@@ -34,3 +34,24 @@ used to change the value to a predefined standard for this type
 
 #### toString(*value*) 
 
+
+```
+!!!
+title = "J.data.types.ipport"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.types.ipport"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.types.ipport"
+date = "2017-04-08"
+tags = []
+```

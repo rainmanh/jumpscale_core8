@@ -53,3 +53,9 @@ To use it run:
     collection = j.tools.issuemanager.getOrgCollectionFromDB()
     collection.find(repo=12)
     ```
+```
+!!!
+title = "Migrating Data From Gogs"
+date = "2017-04-08"
+tags = []
+```

@@ -70,3 +70,10 @@ Imagine you have some service instances already deployed and a new version of th
 
   - Add these new field and their value to the blueprint.
   - execute `ays blueprint`. This command will walk over the blueprints and update the `instance.hrd` accordingly. If there is some new fields they will be added to the `instance.hrd` of your instances.
+
+```
+!!!
+title = "Service Lifecycle"
+date = "2017-04-08"
+tags = []
+```

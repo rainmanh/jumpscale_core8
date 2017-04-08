@@ -33,3 +33,10 @@ Docstring:
 import JumpScale.baselib.mailclient
 j.clients.email.send("kristof@incubaid.com","kristof@incubaid.com","test","test")
 ```
+
+```
+!!!
+title = "How To Send Mail"
+date = "2017-04-08"
+tags = ["howto"]
+```

@@ -18,3 +18,10 @@ Examples for methods in `bash`:
   ```python
   cuisine.environGet('HOME')
   ```
+
+```
+!!!
+title = "Cuisine.bash"
+date = "2017-04-08"
+tags = []
+```

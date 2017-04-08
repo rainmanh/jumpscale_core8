@@ -231,3 +231,24 @@ process string so it can be used in a path on windows or linux
 
 #### wrap(*txt, length=80*) 
 
+
+```
+!!!
+title = "J Data Text"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Text"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Text"
+date = "2017-04-08"
+tags = []
+```

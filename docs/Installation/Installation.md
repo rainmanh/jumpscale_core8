@@ -4,3 +4,10 @@
 - [Installation for Development Purposes](JSDevelopment.md)
 - [More Details about the Installation Process](JSInstaller.md)
 - [Installing the JumpScale Docker Container](JSDocker.md)
+
+```
+!!!
+title = "Installation"
+date = "2017-04-08"
+tags = []
+```

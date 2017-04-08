@@ -28,3 +28,10 @@ ByteProcessor.undisperse
 - compress/decompess: blosc compression (ultra fast,+ 250MB/sec)
 - hashTiger... : ultra reliable hashing (faster than MD5 & longer keys)
 - disperse/undiserpse: erasure coding (uses zfec: <https://pypi.python.org/pypi/zfec>)
+
+```
+!!!
+title = "How To Use ByteProcessor"
+date = "2017-04-08"
+tags = ["howto"]
+```

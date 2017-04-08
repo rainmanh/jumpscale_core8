@@ -95,3 +95,24 @@ test: /foo/bar/file4
 
 ```
 
+
+```
+!!!
+title = "J.sal.fswalker"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.fswalker"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.fswalker"
+date = "2017-04-08"
+tags = []
+```

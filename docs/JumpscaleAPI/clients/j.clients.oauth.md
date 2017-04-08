@@ -9,3 +9,24 @@
 
 #### get(*addr='', accesstokenaddr='', id='', secret='', scope='', redirect_url='', user_info_url='', logout_url='', instance='github'*) 
 
+
+```
+!!!
+title = "J.clients.oauth"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.clients.oauth"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.clients.oauth"
+date = "2017-04-08"
+tags = []
+```

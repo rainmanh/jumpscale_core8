@@ -58,3 +58,10 @@ j.sal.ubuntu
   j.sal.ubuntu.version_get()
   ('xenial', 'Ubuntu 16.04 LTS', 'ubuntu', '16.04')
 ```
+
+```
+!!!
+title = "Ubuntu"
+date = "2017-04-08"
+tags = []
+```

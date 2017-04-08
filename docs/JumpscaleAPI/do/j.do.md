@@ -460,3 +460,24 @@ dest is where the link will be created pointing to src
 
 #### writeFile(*path, content, strip=True*) 
 
+
+```
+!!!
+title = "J.do"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.do"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.do"
+date = "2017-04-08"
+tags = []
+```

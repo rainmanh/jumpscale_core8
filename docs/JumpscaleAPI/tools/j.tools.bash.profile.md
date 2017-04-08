@@ -15,3 +15,24 @@
 
 #### set(*key, value*) 
 
+
+```
+!!!
+title = "J.tools.bash.profile"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.bash.profile"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.bash.profile"
+date = "2017-04-08"
+tags = []
+```

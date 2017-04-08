@@ -207,3 +207,24 @@ when typing, char per char will be returned
 
 #### transformDictToMessage(*dictionary, withStar, indent*) 
 
+
+```
+!!!
+title = "J Tools Console"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Console"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Console"
+date = "2017-04-08"
+tags = []
+```

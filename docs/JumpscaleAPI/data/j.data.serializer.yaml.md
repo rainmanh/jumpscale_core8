@@ -13,3 +13,24 @@
 
 #### loads(*s*) 
 
+
+```
+!!!
+title = "J.data.serializer.yaml"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.serializer.yaml"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.serializer.yaml"
+date = "2017-04-08"
+tags = []
+```

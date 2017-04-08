@@ -53,3 +53,24 @@ The "package" argument, defines the name of the package that will be upgraded.
 
 ```
 
+
+```
+!!!
+title = "J.tools.cuisine.local.development.pip"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.development.pip"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.development.pip"
+date = "2017-04-08"
+tags = []
+```

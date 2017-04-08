@@ -51,3 +51,24 @@ for j in cache:   # iterate (in LRU order)
 
 #### getRWCache(*nrItemsReadCache, nrItemsWriteCache=50, maxTimeWriteCache=2000, writermethod*) 
 
+
+```
+!!!
+title = "J Tools Cachelru"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Cachelru"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Cachelru"
+date = "2017-04-08"
+tags = []
+```

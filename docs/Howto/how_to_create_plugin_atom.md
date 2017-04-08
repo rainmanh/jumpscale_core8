@@ -94,3 +94,10 @@ module.exports = Execjs =
         setTimeout (@modalPanel.hide.bind(@modalPanel)), 2000
 
 ```
+
+```
+!!!
+title = "How To Create Plugin Atom"
+date = "2017-04-08"
+tags = ["howto"]
+```

@@ -20,3 +20,10 @@ cuisine.net.getNetRange(device)
   ```python
   cuisine.net.ips
   ```
+
+```
+!!!
+title = "Cuisine.net"
+date = "2017-04-08"
+tags = []
+```

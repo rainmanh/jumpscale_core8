@@ -9,3 +9,24 @@
 
 #### execute(*cmds, die=True, checkok, async, showout=True, timeout, env*) 
 
+
+```
+!!!
+title = "J Sal Docker DockerExecObj"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Sal Docker DockerExecObj"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Sal Docker DockerExecObj"
+date = "2017-04-08"
+tags = []
+```

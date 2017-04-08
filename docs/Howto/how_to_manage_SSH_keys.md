@@ -35,3 +35,10 @@ You only will need to do this once on a system. Once done the `.bashrc` file wil
 Remark: if this is the first time then your current session does not have access to ssh keys yet, go into a new terminal to see the results & start using ssh
 
 If you want to read more about key management see [tips & tricks about ssh keys & agents (e.g. how to create your keys)](../SSHSystemManagement/SSHKeysAgent.md)
+
+```
+!!!
+title = "How To Manage SSH Keys"
+date = "2017-04-08"
+tags = ["howto"]
+```

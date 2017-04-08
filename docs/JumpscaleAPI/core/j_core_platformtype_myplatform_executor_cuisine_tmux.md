@@ -57,3 +57,24 @@ will return rc,out
 
 #### windowExists(*session, name, user*) 
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Tmux"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Tmux"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Tmux"
+date = "2017-04-08"
+tags = []
+```

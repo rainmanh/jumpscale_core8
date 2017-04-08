@@ -9,3 +9,24 @@
 
 #### getSchema(*name, schemaInText*) 
 
+
+```
+!!!
+title = "J.data.capnp"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.capnp"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.capnp"
+date = "2017-04-08"
+tags = []
+```

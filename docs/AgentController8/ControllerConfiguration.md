@@ -143,3 +143,10 @@ Instructs the controller how to intercept `commands` and `results`. If the secti
 #### [jumpscripts] section
 
 Another python extension to monitor the jumpscripts directly and auto adjust the scheduling of repeated tasks if the jumpscripts `period` tags has been modified.
+
+```
+!!!
+title = "ControllerConfiguration"
+date = "2017-04-08"
+tags = []
+```

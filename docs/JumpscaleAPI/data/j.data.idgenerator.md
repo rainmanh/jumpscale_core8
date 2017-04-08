@@ -50,3 +50,24 @@ remembers previously given id's
 
 ```
 
+
+```
+!!!
+title = "J.data.idgenerator"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.idgenerator"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.idgenerator"
+date = "2017-04-08"
+tags = []
+```

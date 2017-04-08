@@ -184,3 +184,10 @@ Running the command
 ```python
 cmd = client.cmd(1, 1, 'execute_js_py', j.clients.agentcontroller.getRunArgs(name='test.py'))
 ```
+
+```
+!!!
+title = "Tutorial"
+date = "2017-04-08"
+tags = []
+```

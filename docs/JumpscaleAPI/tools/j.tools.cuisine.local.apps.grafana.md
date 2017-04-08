@@ -21,3 +21,24 @@ You can ovveride it to use another way for checking
 
 #### start(*influx_addr='127.0.0.1', influx_port=8086, port=3000*) 
 
+
+```
+!!!
+title = "J.tools.cuisine.local.apps.grafana"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.apps.grafana"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.apps.grafana"
+date = "2017-04-08"
+tags = []
+```

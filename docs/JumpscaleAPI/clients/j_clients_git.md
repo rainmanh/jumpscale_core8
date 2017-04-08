@@ -27,3 +27,24 @@ PLEASE USE SSH, see http://gig.gitbooks.io/jumpscale/content/Howto/how_to_use_gi
 
 ```
 
+
+```
+!!!
+title = "J Clients Git"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Clients Git"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Clients Git"
+date = "2017-04-08"
+tags = []
+```

@@ -31,3 +31,10 @@ git clone git@github.com:Jumpscale/jumpscale_core8.git
 
 The nice thing is you will not have to use login/passwd when doing code mgmt as long as you have your keys filled in.
 DO NOT checkout code using http, always use ssh
+
+```
+!!!
+title = "How To Use Git Manually"
+date = "2017-04-08"
+tags = ["howto"]
+```

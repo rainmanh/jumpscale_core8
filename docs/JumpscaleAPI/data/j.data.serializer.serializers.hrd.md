@@ -13,3 +13,24 @@
 
 #### loads(*data*) 
 
+
+```
+!!!
+title = "J.data.serializer.serializers.hrd"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.serializer.serializers.hrd"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.serializer.serializers.hrd"
+date = "2017-04-08"
+tags = []
+```

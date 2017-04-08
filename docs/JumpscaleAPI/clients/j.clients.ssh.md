@@ -41,3 +41,24 @@ If key_filename is passed, it will override look_for_keys and allow_agent and tr
 
 #### reset() 
 
+
+```
+!!!
+title = "J.clients.ssh"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.clients.ssh"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.clients.ssh"
+date = "2017-04-08"
+tags = []
+```

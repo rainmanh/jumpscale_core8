@@ -51,3 +51,24 @@ will look for $ENVIRONNAME 's and replace them in text
 
 #### write() 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.bash"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.bash"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.bash"
+date = "2017-04-08"
+tags = []
+```

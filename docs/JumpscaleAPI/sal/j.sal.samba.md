@@ -33,3 +33,24 @@
 
 #### revokeaccess(*username, sharename, sharepath, readonly=True*) 
 
+
+```
+!!!
+title = "J.sal.samba"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.samba"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.samba"
+date = "2017-04-08"
+tags = []
+```

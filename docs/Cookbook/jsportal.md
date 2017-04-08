@@ -25,3 +25,10 @@ j.tools.cuisine.local.solutions.cockpit.install(True,"8.1.0")
 ## configure ays in portal
 
 -
+
+```
+!!!
+title = "Jsportal"
+date = "2017-04-08"
+tags = []
+```

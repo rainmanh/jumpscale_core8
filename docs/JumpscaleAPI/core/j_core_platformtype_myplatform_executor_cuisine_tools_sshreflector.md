@@ -36,3 +36,24 @@ js 'c=j.tools.cuisine.get("stor1:9022");c.installer.sshreflector.server'
 
 ```
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Tools Sshreflector"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Tools Sshreflector"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Tools Sshreflector"
+date = "2017-04-08"
+tags = []
+```

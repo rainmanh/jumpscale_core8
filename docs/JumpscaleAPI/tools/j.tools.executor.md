@@ -45,3 +45,24 @@ reset remove the executor passed in argument from the cache.
 
 ```
 
+
+```
+!!!
+title = "J.tools.executor"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.executor"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.executor"
+date = "2017-04-08"
+tags = []
+```

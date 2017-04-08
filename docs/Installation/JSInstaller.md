@@ -105,3 +105,10 @@ Here is a list of the dependencies:
  - python package [**crontab**](https://pypi.python.org/pypi/python-crontab)
  - python package [**beautifulsoup4**](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
  - python package [**lxml**](http://lxml.de/)
+
+```
+!!!
+title = "JSInstaller"
+date = "2017-04-08"
+tags = []
+```

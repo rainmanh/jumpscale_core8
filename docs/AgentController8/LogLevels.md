@@ -17,3 +17,10 @@ following loglevels are used
 - 22: result message, toml
 - 23: result message, hrd
 - 30: job, json (full result of a job)
+
+```
+!!!
+title = "LogLevels"
+date = "2017-04-08"
+tags = []
+```

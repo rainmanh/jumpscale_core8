@@ -23,3 +23,24 @@ do=j.tools.performancetrace.profile('test0b()', globals=globals())
 
 ```
 
+
+```
+!!!
+title = "J.tools.performancetrace"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.performancetrace"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.performancetrace"
+date = "2017-04-08"
+tags = []
+```

@@ -24,3 +24,24 @@ installs privoxy
 
 #### start() 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.solutions.proxyclassic"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.solutions.proxyclassic"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.solutions.proxyclassic"
+date = "2017-04-08"
+tags = []
+```

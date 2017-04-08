@@ -39,3 +39,24 @@ passwd : if not None, change the admin password to passwd after start
 
 #### stop() 
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Apps Portal"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Apps Portal"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Apps Portal"
+date = "2017-04-08"
+tags = []
+```

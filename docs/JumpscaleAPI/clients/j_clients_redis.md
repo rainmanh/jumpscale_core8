@@ -31,3 +31,24 @@ slave example: (192.168.10.10,8888,asecret)   (ip,port,secret)
 
 #### isRunning(*name='', ip_address='localhost', port=6379, path='$BINDIR'*) 
 
+
+```
+!!!
+title = "J Clients Redis"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Clients Redis"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Clients Redis"
+date = "2017-04-08"
+tags = []
+```

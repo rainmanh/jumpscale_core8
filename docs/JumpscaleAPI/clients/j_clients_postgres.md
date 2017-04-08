@@ -15,3 +15,24 @@
 
 #### getClient(*ipaddr='localhost', port=5432, login='postgres', passwd='rooter', dbname='template'*) 
 
+
+```
+!!!
+title = "J Clients Postgres"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Clients Postgres"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Clients Postgres"
+date = "2017-04-08"
+tags = []
+```

@@ -9,3 +9,24 @@
 
 #### install(*root='/storage/ftpserver', config='', port=2121*) 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.apps.pyftpserver"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.apps.pyftpserver"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.apps.pyftpserver"
+date = "2017-04-08"
+tags = []
+```

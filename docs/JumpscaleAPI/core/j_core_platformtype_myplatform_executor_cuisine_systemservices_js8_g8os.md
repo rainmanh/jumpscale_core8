@@ -21,3 +21,24 @@ install jumpscale, will be done as sandbox
 
 #### jumpscale_installed(*die*) 
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Systemservices Js8 G8os"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Systemservices Js8 G8os"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Systemservices Js8 G8os"
+date = "2017-04-08"
+tags = []
+```

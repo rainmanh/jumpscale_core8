@@ -142,3 +142,24 @@ Move a file
 
 #### writeFile(*url, content*) 
 
+
+```
+!!!
+title = "J.sal.cloudfs"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.cloudfs"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.cloudfs"
+date = "2017-04-08"
+tags = []
+```

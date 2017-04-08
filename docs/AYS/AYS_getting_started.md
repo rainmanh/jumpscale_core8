@@ -70,3 +70,10 @@ ays service delete
 it will ask which services to remove
 
 ##  
+
+```
+!!!
+title = "AYS Getting Started"
+date = "2017-04-08"
+tags = []
+```

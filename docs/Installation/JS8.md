@@ -63,3 +63,10 @@ This command asks the AYS filesystem to reload the metadata file. Use it if you 
 ### update
 
 Downloads the latest version of **JumpScale.flist** from https://stor.jumpscale.org/storx/static/js8_opt.flist, puts it at `/etc/ays/local/jumpscale.flist`, and then triggers a reload.
+
+```
+!!!
+title = "JS8"
+date = "2017-04-08"
+tags = []
+```

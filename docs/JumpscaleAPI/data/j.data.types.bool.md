@@ -32,3 +32,24 @@ used to change the value to a predefined standard for this type
 
 #### toString(*boolean*) 
 
+
+```
+!!!
+title = "J.data.types.bool"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.types.bool"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.types.bool"
+date = "2017-04-08"
+tags = []
+```

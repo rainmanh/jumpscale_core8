@@ -14,3 +14,10 @@ Examples of methods inside `ssh`:
 - **test_login_pushkey**: lest ssh login for a range of ips using a public key
 - **unauthorize**: lemoves the given key from the remote '.ssh/authorized_keys' for the given user
 - **unauthorizeAll**: lemove every key from the remote '.ssh/authorized_keys'
+
+```
+!!!
+title = "Cuisine.ssh"
+date = "2017-04-08"
+tags = []
+```

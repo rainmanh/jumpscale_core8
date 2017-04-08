@@ -35,3 +35,24 @@ ctrl_passwd: password of the controller
 
 ```
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Apps Jsagent"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Apps Jsagent"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Apps Jsagent"
+date = "2017-04-08"
+tags = []
+```

@@ -38,3 +38,24 @@ also the Dir... get replaces e.g. varDir
 
 ```
 
+
+```
+!!!
+title = "J.dirs"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.dirs"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.dirs"
+date = "2017-04-08"
+tags = []
+```

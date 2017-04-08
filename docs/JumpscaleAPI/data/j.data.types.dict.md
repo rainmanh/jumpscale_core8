@@ -28,3 +28,24 @@ return string from a dict
 
 #### toString(*v*) 
 
+
+```
+!!!
+title = "J.data.types.dict"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.types.dict"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.types.dict"
+date = "2017-04-08"
+tags = []
+```

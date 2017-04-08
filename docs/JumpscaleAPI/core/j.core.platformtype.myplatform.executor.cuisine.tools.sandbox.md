@@ -14,3 +14,24 @@ TODO: specify what comes in /out
 
 ```
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.tools.sandbox"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.tools.sandbox"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.tools.sandbox"
+date = "2017-04-08"
+tags = []
+```

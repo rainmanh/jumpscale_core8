@@ -7,3 +7,24 @@
 
 #### getClient(*base_uri, jwt, verify_ssl=True*) 
 
+
+```
+!!!
+title = "J Clients Cockpit"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Clients Cockpit"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Clients Cockpit"
+date = "2017-04-08"
+tags = []
+```

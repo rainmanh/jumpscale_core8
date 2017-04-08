@@ -24,3 +24,24 @@ installs privoxy
 
 #### start() 
 
+
+```
+!!!
+title = "J.tools.cuisine.local.solutions.proxyclassic"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.solutions.proxyclassic"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.solutions.proxyclassic"
+date = "2017-04-08"
+tags = []
+```

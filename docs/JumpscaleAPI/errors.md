@@ -65,3 +65,10 @@ _register() missing 1 required positional argument: 'classname'
 
 _register() missing 1 required positional argument: 'classname'
 
+
+```
+!!!
+title = "Errors"
+date = "2017-04-08"
+tags = []
+```

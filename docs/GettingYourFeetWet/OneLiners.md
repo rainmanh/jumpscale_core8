@@ -207,3 +207,10 @@ def tidy(self, path=""):
             j.sal.fs.writeFile(filename=item, contents=out, append=False)
 
 ```
+
+```
+!!!
+title = "OneLiners"
+date = "2017-04-08"
+tags = []
+```

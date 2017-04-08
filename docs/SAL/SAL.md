@@ -17,3 +17,10 @@ As part of JumpScale 8 following SALs are included:
 There are many more SALs, for Windows, Unix, SSL, SSL Signing, TLS, NGINX and QEMU images.
 
 The full list of all SALs can be found in the [JumpScale API](../JumpscaleAPI/SUMMARY.md) section.
+
+```
+!!!
+title = "SAL"
+date = "2017-04-08"
+tags = []
+```

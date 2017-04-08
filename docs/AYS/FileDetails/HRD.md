@@ -128,3 +128,10 @@ j.application.config.applyOnDir(adir,additionalArgs={"whoami","kds"})
 ```
 
 would replace \$(whoami) with kds additional to what found in hrd's
+
+```
+!!!
+title = "HRD"
+date = "2017-04-08"
+tags = []
+```

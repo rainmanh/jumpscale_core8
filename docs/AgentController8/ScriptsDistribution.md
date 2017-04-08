@@ -36,3 +36,10 @@ then in a js shell do
 legacy = j.clients.ac.getLegacyClient()
 legacy.executeJumpscript(...)
 ```
+
+```
+!!!
+title = "ScriptsDistribution"
+date = "2017-04-08"
+tags = []
+```

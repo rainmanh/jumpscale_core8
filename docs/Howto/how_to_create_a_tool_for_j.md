@@ -65,3 +65,10 @@ Out[8]: 'Konnichwa'
 In [9]: h.manytimes(3)
 Out[9]: 'Konnichwa Konnichwa Konnichwa !!!'
 ```
+
+```
+!!!
+title = "How To Create A Tool For J"
+date = "2017-04-08"
+tags = ["howto"]
+```

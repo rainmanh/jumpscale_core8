@@ -116,3 +116,24 @@ known ids" raring, linuxmint
 
 #### whoami() 
 
+
+```
+!!!
+title = "J Sal Ubuntu"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Sal Ubuntu"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Sal Ubuntu"
+date = "2017-04-08"
+tags = []
+```

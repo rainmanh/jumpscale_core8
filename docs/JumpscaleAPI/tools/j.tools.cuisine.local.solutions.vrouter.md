@@ -47,3 +47,24 @@ if not specified then will look for wireless interface which is used in accesspo
 
 #### runSolution() 
 
+
+```
+!!!
+title = "J.tools.cuisine.local.solutions.vrouter"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.solutions.vrouter"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.solutions.vrouter"
+date = "2017-04-08"
+tags = []
+```

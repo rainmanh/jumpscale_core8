@@ -69,3 +69,10 @@ In [2]: j.sal.hello.message('hello')
 In [3]: j.sal.hello.manytimes(3)
 Out[3]: 'hello hello hello !!!'
 ```
+
+```
+!!!
+title = "How To Add A New SAL"
+date = "2017-04-08"
+tags = ["howto"]
+```

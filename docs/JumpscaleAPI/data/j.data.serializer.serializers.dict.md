@@ -9,3 +9,24 @@
 
 #### loads(*s*) 
 
+
+```
+!!!
+title = "J.data.serializer.serializers.dict"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.serializer.serializers.dict"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.serializer.serializers.dict"
+date = "2017-04-08"
+tags = []
+```

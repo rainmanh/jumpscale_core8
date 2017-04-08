@@ -58,3 +58,24 @@ create an empty disk we can attachl
 
 #### vpoolDestroy(*name*) 
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Systemservices Kvm"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Systemservices Kvm"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Systemservices Kvm"
+date = "2017-04-08"
+tags = []
+```

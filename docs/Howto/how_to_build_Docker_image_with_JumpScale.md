@@ -106,3 +106,10 @@ Note that `jsdocker` will auto map container ssh port to a free local port (9022
 ```bash
 ssh -p 9022 root@localhost
 ```
+
+```
+!!!
+title = "How To Build Docker Image With JumpScale"
+date = "2017-04-08"
+tags = ["howto"]
+```

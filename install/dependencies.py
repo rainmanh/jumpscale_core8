@@ -9,7 +9,7 @@ class dependencies():
         uvloop
         redis
         paramiko
-        watchdog
+        #watchdog
         gitpython
         click
         pymux
@@ -40,8 +40,9 @@ class dependencies():
         docker
         toml
         pystache
+        httplib2
         python-jose
-
+        python-dateutil
         """
         self.do.pip(C, executor=executor)
         self.do.execute("pip3 install https://github.com/tony/libtmux/archive/master.zip --upgrade")

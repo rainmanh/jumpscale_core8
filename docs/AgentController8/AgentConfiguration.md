@@ -234,3 +234,10 @@ Startup specify tasks that the agent must execute once on agent boot. For exampl
 Tells the agent to run a task with id `intialize_something`. This task cmd is `do_something` with the runargs `startup.intialize_something.args`
 
 > The output of this task will be discarded and never reported to the AC since it was initialized by the agent itself, but you still can query the task log using the job ID (`intialize_something` in this case).
+
+```
+!!!
+title = "AgentConfiguration"
+date = "2017-04-08"
+tags = []
+```

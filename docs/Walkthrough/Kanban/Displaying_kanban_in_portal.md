@@ -30,3 +30,10 @@ It will also accpet some regex arguments in the string params such as title and 
 Finally this will be the outcome:
 
 ![Image of Kanban](kanbanexample.png)
+
+```
+!!!
+title = "Displaying Kanban In Portal"
+date = "2017-04-08"
+tags = []
+```

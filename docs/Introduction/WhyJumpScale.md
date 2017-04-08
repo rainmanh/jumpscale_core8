@@ -8,3 +8,10 @@
 - A full life cycle management system for applications and services
 - Management of grid of thousands remote nodes
 - A port forwarding system to allow secure access to all your services
+
+```
+!!!
+title = "WhyJumpScale"
+date = "2017-04-08"
+tags = []
+```

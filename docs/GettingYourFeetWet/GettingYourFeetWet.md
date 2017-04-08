@@ -20,3 +20,10 @@ JumpScale has an extensive library of tools which help you tackle any problem cl
 
   - [AYS](AYS.md)  
     "At Your Service" or AYS, a service configuration and deployment tool built for cloud environments.
+
+```
+!!!
+title = "GettingYourFeetWet"
+date = "2017-04-08"
+tags = []
+```

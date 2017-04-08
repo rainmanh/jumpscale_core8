@@ -36,3 +36,24 @@ You can ovveride it to use another way for checking
 
 #### ubuntuBuild(*push*) 
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Systemservices Docker"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Systemservices Docker"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Systemservices Docker"
+date = "2017-04-08"
+tags = []
+```

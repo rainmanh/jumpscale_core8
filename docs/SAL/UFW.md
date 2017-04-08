@@ -53,3 +53,10 @@ The `commit`method must be called to apply all pending changes to the firwall:
 ```python
 j.sal.ufw.commit()
 ```
+
+```
+!!!
+title = "UFW"
+date = "2017-04-08"
+tags = []
+```

@@ -37,3 +37,10 @@ cuisine = j.tools.cuisine.get(executor)
   ```
 
 For more information on Cuisine check the [Cuisine documentation](../../Cuisine/Cuisine.md).
+
+```
+!!!
+title = "Cuisine"
+date = "2017-04-08"
+tags = []
+```

@@ -70,3 +70,24 @@ type is one of following
 
 ```
 
+
+```
+!!!
+title = "J.data.types"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.types"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.types"
+date = "2017-04-08"
+tags = []
+```

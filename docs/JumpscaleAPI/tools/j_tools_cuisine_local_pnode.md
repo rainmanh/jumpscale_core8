@@ -66,3 +66,24 @@ install g8os on $rootsize GB root partition
 
 ```
 
+
+```
+!!!
+title = "J Tools Cuisine Local Pnode"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Cuisine Local Pnode"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Cuisine Local Pnode"
+date = "2017-04-08"
+tags = []
+```

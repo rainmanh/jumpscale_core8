@@ -35,3 +35,24 @@ Open an existing INI file
 
 ```
 
+
+```
+!!!
+title = "J Tools Inifile"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Inifile"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Inifile"
+date = "2017-04-08"
+tags = []
+```

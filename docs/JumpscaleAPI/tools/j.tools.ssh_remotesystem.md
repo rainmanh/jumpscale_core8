@@ -20,3 +20,24 @@ Creates a connection object to a remote system via ssh.
 
 ```
 
+
+```
+!!!
+title = "J.tools.ssh Remotesystem"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.ssh Remotesystem"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.ssh Remotesystem"
+date = "2017-04-08"
+tags = []
+```

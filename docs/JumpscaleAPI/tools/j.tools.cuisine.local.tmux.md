@@ -57,3 +57,24 @@ will return rc,out
 
 #### windowExists(*session, name, user*) 
 
+
+```
+!!!
+title = "J.tools.cuisine.local.tmux"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.tmux"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.cuisine.local.tmux"
+date = "2017-04-08"
+tags = []
+```

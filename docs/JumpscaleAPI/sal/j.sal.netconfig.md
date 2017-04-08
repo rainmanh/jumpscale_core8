@@ -84,3 +84,24 @@ resolvconf will be disabled
 
 #### proxy_enable() 
 
+
+```
+!!!
+title = "J.sal.netconfig"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.netconfig"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.sal.netconfig"
+date = "2017-04-08"
+tags = []
+```

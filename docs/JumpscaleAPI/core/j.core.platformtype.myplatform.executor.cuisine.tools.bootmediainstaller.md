@@ -62,3 +62,24 @@ example: hwplatform = rpi_2b, orangepi_plus,amd64
 
 ```
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.tools.bootmediainstaller"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.tools.bootmediainstaller"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.tools.bootmediainstaller"
+date = "2017-04-08"
+tags = []
+```

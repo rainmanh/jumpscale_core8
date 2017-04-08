@@ -29,3 +29,10 @@ In this new version we simplify the action file to be a python file where we sim
 This brings two things, first it force the person that write the action code to thing about the action in an atomic piece of work.
 Since now the actions can be executed in parallel they can't share state, so having them in separated method instead of in a class help to write clean and self-contained code.
 Secondly in the future we could distribute the execution of these action over multiple servers. So once again having self-contains function makes it easier to distribute.
+
+```
+!!!
+title = "Whatsnew 8.1"
+date = "2017-04-08"
+tags = []
+```

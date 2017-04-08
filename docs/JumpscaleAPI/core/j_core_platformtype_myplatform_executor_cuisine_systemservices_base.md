@@ -11,3 +11,24 @@ the base for any install
 
 #### install() 
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Systemservices Base"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Systemservices Base"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Systemservices Base"
+date = "2017-04-08"
+tags = []
+```

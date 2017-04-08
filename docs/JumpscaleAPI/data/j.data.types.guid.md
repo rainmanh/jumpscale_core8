@@ -40,3 +40,24 @@ return string from a string (is basically no more than a check)
 
 ```
 
+
+```
+!!!
+title = "J.data.types.guid"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.types.guid"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.data.types.guid"
+date = "2017-04-08"
+tags = []
+```

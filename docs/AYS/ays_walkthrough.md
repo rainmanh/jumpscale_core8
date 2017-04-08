@@ -87,3 +87,10 @@ The command `ays run` execute the functions specified in the blueprints files. I
 `ays blueprint` deletes all services instances as well as all scheduled actions in the repo.  
 
 To reload the blueprint files, first use `ays destroy` followed by `ays blueprint`. To provide a backup of the created instances you can use `ays commit` which commit the changes to the repo.
+
+```
+!!!
+title = "Ays Walkthrough"
+date = "2017-04-08"
+tags = []
+```

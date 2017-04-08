@@ -82,3 +82,10 @@ retval  rv
 ```
 
 More info about ipdb \<<https://github.com/gotcha/ipdb>>
+
+```
+!!!
+title = "How To Use The Shell And Debug"
+date = "2017-04-08"
+tags = ["howto"]
+```

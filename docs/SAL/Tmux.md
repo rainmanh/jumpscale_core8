@@ -68,3 +68,10 @@ j.sal.tmux.executeInScreen(sessionname, screenname, cmd, wait, cwd, env, user, t
   ```python
   j.sal.tmux.attachSession(sessionname, windowname=None, user=None)
   ```
+
+```
+!!!
+title = "Tmux"
+date = "2017-04-08"
+tags = []
+```

@@ -187,3 +187,24 @@ Calculate %(alg)s hash of input string
 
 ```
 
+
+```
+!!!
+title = "J Data Hash"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Hash"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Hash"
+date = "2017-04-08"
+tags = []
+```

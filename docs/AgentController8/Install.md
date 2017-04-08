@@ -38,3 +38,10 @@ this should return something like
  u'virtualization_role': u'',
  u'virtualization_system': u''}
 ```
+
+```
+!!!
+title = "Install"
+date = "2017-04-08"
+tags = []
+```

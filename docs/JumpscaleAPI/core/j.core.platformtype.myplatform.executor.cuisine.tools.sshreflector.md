@@ -36,3 +36,24 @@ js 'c=j.tools.cuisine.get("stor1:9022");c.installer.sshreflector.server'
 
 ```
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.tools.sshreflector"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.tools.sshreflector"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.tools.sshreflector"
+date = "2017-04-08"
+tags = []
+```

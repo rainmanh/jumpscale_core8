@@ -96,3 +96,10 @@ if __name__ == '__main__':
     port = info['NetworkSettings']['Ports']['22/tcp'][0]['HostPort']
     print "SSH port of docker is: %s" % port
 ```
+
+```
+!!!
+title = "How To Use Docker"
+date = "2017-04-08"
+tags = ["howto"]
+```

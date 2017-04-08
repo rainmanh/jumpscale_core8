@@ -6,3 +6,10 @@ It has been replaced by yaml for actor template Configuration and capnp for sche
 
 ## AsyncIO
 We have replaced to usage of Multiprocessing with asyncio.
+
+```
+!!!
+title = "Whatsnew 8.2"
+date = "2017-04-08"
+tags = []
+```

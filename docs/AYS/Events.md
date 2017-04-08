@@ -118,3 +118,10 @@ eventfilters:
     action: on_new_msg_sent
 
 ```
+
+```
+!!!
+title = "Events"
+date = "2017-04-08"
+tags = []
+```

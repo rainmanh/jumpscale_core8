@@ -29,3 +29,24 @@ if gitlaburl is empty then
 
 #### getAccountnameReponameFromUrl(*url*) 
 
+
+```
+!!!
+title = "J.clients.gitlab"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.clients.gitlab"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.clients.gitlab"
+date = "2017-04-08"
+tags = []
+```

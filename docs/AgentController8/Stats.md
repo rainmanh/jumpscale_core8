@@ -90,3 +90,10 @@ Interval = 60 # seconds
 According to the configuration snippet, Stats aggregator will aggregate/flush stats messages every 60 seconds. This means to graph real-time graphs for certain statistics, values can be drawn directly from `influxdb`.
 
 > Note that, Aggregation/flushing interval can be set explicitly by the command itself, in that case the interval value will be overridden for that command. Note: An optimum `Interval` of 300 seconds (5min) is recommended.
+
+```
+!!!
+title = "Stats"
+date = "2017-04-08"
+tags = []
+```

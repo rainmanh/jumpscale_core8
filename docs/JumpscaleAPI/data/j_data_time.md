@@ -163,3 +163,24 @@ Get epoch timestamp (number of seconds passed since January 1, 1970)
 
 #### pythonDateTime2HRDateTime(*pythonDateTime, local=True*) 
 
+
+```
+!!!
+title = "J Data Time"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Time"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Time"
+date = "2017-04-08"
+tags = []
+```

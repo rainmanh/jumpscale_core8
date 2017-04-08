@@ -93,3 +93,10 @@ STATUS: account reponame                  branch added:modified:deleted   insync
 ============================================================================================================================
 jumpscale       jumpscale_portal          unstable   a1  :m0  :d0         reposync:N          lrev:401       rrev:406
 ```
+
+```
+!!!
+title = "How To Use Git Automated"
+date = "2017-04-08"
+tags = ["howto"]
+```

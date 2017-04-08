@@ -7,3 +7,24 @@
 
 #### get() 
 
+
+```
+!!!
+title = "J Sal Hostsfile"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Sal Hostsfile"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Sal Hostsfile"
+date = "2017-04-08"
+tags = []
+```

@@ -22,3 +22,24 @@
 
 #### loadSpecFromStr(*spec*) 
 
+
+```
+!!!
+title = "J Tools SwaggerGen"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools SwaggerGen"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools SwaggerGen"
+date = "2017-04-08"
+tags = []
+```

@@ -61,3 +61,24 @@ see https://github.com/Jumpscale/jscockpit/blob/master/deploy_bot/README.md for 
 
 ```
 
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Apps Deployerbot"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Apps Deployerbot"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Core Platformtype Myplatform Executor Cuisine Apps Deployerbot"
+date = "2017-04-08"
+tags = []
+```

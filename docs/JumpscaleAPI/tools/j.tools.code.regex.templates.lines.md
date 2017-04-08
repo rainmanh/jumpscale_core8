@@ -13,3 +13,24 @@ regexexamples which find lines
 
 #### findDeflines() 
 
+
+```
+!!!
+title = "J.tools.code.regex.templates.lines"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.code.regex.templates.lines"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.tools.code.regex.templates.lines"
+date = "2017-04-08"
+tags = []
+```

@@ -85,3 +85,10 @@ Dangerous do not do this, use sudo -s from normal user account""
 sed -i -e '/.*PermitRootLogin.*/ s/.*/PermitRootLogin yes/' /etc/ssh/sshd_config
 /etc/init.d/ssh restart
 ```
+
+```
+!!!
+title = "SSHKeysAgent"
+date = "2017-04-08"
+tags = []
+```

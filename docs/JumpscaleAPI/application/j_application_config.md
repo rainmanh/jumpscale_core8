@@ -111,3 +111,24 @@ each value represents a dict
 
 #### set(*key, val, persistent=True*) 
 
+
+```
+!!!
+title = "J Application Config"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Application Config"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Application Config"
+date = "2017-04-08"
+tags = []
+```

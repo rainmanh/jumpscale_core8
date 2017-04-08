@@ -24,3 +24,24 @@ You can ovveride it to use another way for checking
 
 #### start(*name='mongod'*) 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.apps.mongodb"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.apps.mongodb"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.apps.mongodb"
+date = "2017-04-08"
+tags = []
+```

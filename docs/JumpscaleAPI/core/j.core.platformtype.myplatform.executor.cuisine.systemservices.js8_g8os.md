@@ -21,3 +21,24 @@ install jumpscale, will be done as sandbox
 
 #### jumpscale_installed(*die*) 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.systemservices.js8 G8os"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.systemservices.js8 G8os"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.systemservices.js8 G8os"
+date = "2017-04-08"
+tags = []
+```

@@ -43,3 +43,10 @@ Create a new one specifying the port mapping:
 ```
 docker run --rm -i -t -p 2022:22 --name="js" jumpscale/ubuntu1604_js_development /sbin/my_init -- bash -l
 ```
+
+```
+!!!
+title = "JSDocker"
+date = "2017-04-08"
+tags = []
+```

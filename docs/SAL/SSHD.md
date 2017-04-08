@@ -95,3 +95,10 @@ sshd.erase()
 ```python
 sshd.disableNonKeyAccess()
 ```
+
+```
+!!!
+title = "SSHD"
+date = "2017-04-08"
+tags = []
+```

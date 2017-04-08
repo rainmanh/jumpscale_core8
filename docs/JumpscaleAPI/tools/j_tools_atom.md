@@ -50,3 +50,24 @@ Adds Jumpscale snippets to your atom snippets file.
 
 ```
 
+
+```
+!!!
+title = "J Tools Atom"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Atom"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Tools Atom"
+date = "2017-04-08"
+tags = []
+```

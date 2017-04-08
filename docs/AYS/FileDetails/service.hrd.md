@@ -52,3 +52,10 @@ events.telegram.respond_telegram =
 ```
 
 ## Build instructions
+
+```
+!!!
+title = "Service.hrd"
+date = "2017-04-08"
+tags = []
+```

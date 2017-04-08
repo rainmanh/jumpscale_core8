@@ -98,3 +98,10 @@ class CuisineExample(CuisineApp):
         """
         pass
 ```
+
+```
+!!!
+title = "How To Write Cuisine Module"
+date = "2017-04-08"
+tags = ["howto"]
+```

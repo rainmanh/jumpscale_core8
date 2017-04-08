@@ -36,7 +36,8 @@ how to use:  j.data.idgenerator.generateIncrID("agent")
 ```
 
 #### generatePasswd(*x, al='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`\{|\}~ 	
-'*) 
+
+'*) 
 
 #### generateRandomInt(*fromInt, toInt*) 
 
@@ -55,3 +56,24 @@ remembers previously given id's
 
 ```
 
+
+```
+!!!
+title = "J Data Idgenerator"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Idgenerator"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J Data Idgenerator"
+date = "2017-04-08"
+tags = []
+```

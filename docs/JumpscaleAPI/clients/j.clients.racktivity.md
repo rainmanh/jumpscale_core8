@@ -7,3 +7,24 @@
 
 #### getEnergySwitch(*username, password, hostname, port, rtf, moduleinfo*) 
 
+
+```
+!!!
+title = "J.clients.racktivity"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.clients.racktivity"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.clients.racktivity"
+date = "2017-04-08"
+tags = []
+```

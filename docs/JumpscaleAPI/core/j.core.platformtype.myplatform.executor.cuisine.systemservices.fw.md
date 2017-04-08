@@ -22,3 +22,24 @@ as alternative on ufw
 
 #### show() 
 
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.systemservices.fw"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.systemservices.fw"
+date = "2017-04-08"
+tags = []
+```
+
+```
+!!!
+title = "J.core.platformtype.myplatform.executor.cuisine.systemservices.fw"
+date = "2017-04-08"
+tags = []
+```

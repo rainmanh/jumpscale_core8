@@ -2,6 +2,7 @@ from JumpScale import j
 import io
 import time
 
+
 class ARDB:
     """ardb server"""
 
@@ -15,7 +16,26 @@ class ARDB:
         self.bind = bind
         self.data_dir = data_dir
         self.master = None
-        self._ays =None
+        self._ays = None
+
+    @classmethod
+    def from_ays(cls, service):
+        from JumpScale.sal.g8os.Container import Container
+
+        container = Container.from_ays(service.parent)
+        if service.model.data.master != '':
+            master_service = service.aysrepo.serviceGet('ardb', service.model.data.master)
+            master = ARDB.from_ays(master_service)
+        else:
+            master = None
+
+        return cls(
+            name=service.name,
+            container=container,
+            bind=service.model.data.bind,
+            data_dir=service.model.data.homeDir,
+            master=master,
+        )
 
     def _configure(self):
         buff = io.BytesIO()
@@ -35,10 +55,9 @@ class ARDB:
         # upload new config
         self.container.client.filesystem.upload('/etc/ardb.conf.used', io.BytesIO(initial_bytes=content.encode()))
 
-    def start(self,timeout=30):
-        running, _ = self._container.is_running()
-        if not running:
-            self._container.start()
+    def start(self, timeout=30):
+        if not self.container.is_running():
+            self.container.start()
 
         self._configure()
 
@@ -56,24 +75,25 @@ class ARDB:
             raise RuntimeError("storage server {} didn't started")
 
     def stop(self, timeout=30):
-        running, _ = self._container.is_running()
-        if not running:
+        if not self.container.is_running():
             return
 
         is_running, process = self.is_running()
-        if is_running:
-            self.container.client.process.kill(process['cmd']['id'])
+        if not is_running:
+            return
 
-            # wait for ardb to stop
-            start = time.time()
-            end = start + timeout
+        self.container.client.process.kill(process['cmd']['id'])
+
+        # wait for ardb to stop
+        start = time.time()
+        end = start + timeout
+        is_running, _ = self.is_running()
+        while is_running and time.time() < end:
+            time.sleep(1)
             is_running, _ = self.is_running()
-            while is_running and time.time() < end:
-                time.sleep(1)
-                is_running, _ = self.is_running()
 
-            if is_running:
-                raise RuntimeError("storage server {} didn't stopped")
+        if is_running:
+            raise RuntimeError("storage server {} didn't stopped")
 
     def is_running(self):
         try:

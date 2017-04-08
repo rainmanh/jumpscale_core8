@@ -29,7 +29,7 @@ class Container:
     def from_ays(cls, service):
         from JumpScale.sal.g8os.Node import Node
         node = Node.from_ays(service.parent)
-        return cls(
+        container = cls(
             name=service.name,
             node=node,
             # filesystems = service.model.data. TODO
@@ -40,6 +40,10 @@ class Container:
             host_network=service.model.data.hostNetworking,
             storage=service.model.data.storage
         )
+        if service.model.data.id != 0:
+            container.id = service.model.data.id
+
+        return container
 
     @property
     def client(self):

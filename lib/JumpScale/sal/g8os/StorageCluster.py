@@ -2,6 +2,7 @@ from JumpScale import j
 from JumpScale.sal.g8os.Disk import DiskType
 from JumpScale.sal.g8os.Container import Container
 from JumpScale.sal.g8os.ARDB import ARDB
+from JumpScale.sal.g8os.Node import Node
 import io
 import time
 
@@ -20,9 +21,15 @@ class StorageCluster:
         self.filesystems = []
         self.storage_servers = []
         self.disk_type = None
-        self.nr_server = None
         self.has_slave = None
         self._ays = None
+
+    @property
+    def nr_server(self):
+        """
+        Number of storage server part of this cluster
+        """
+        return len(self.storage_servers)
 
     def create(self, nodes, disk_type, nr_server, has_slave=True):
         """
@@ -35,14 +42,16 @@ class StorageCluster:
         if disk_type not in DiskType.__members__.keys():
             raise TypeError("disk_type should be on of {}".format(', '.join(DiskType.__members__.keys())))
         self.disk_type = disk_type
-        self.nr_server = nr_server
         self.has_slave = has_slave
 
         for disk in self._find_available_disks():
             self.filesystems.append(self._prepare_disk(disk))
 
-        for i, fs in enumerate(self.filesystems):
-            self.storage_servers.append(StorageServer(cluster=self, filesystem=fs, name="{}_{}".format(self.name, i)))
+        nr_filesystems = len(self.filesystems)
+        for i in range(nr_server):
+            fs = self.filesystems[i % (nr_filesystems-1)]
+            bind = "0.0.0.0:{}".format(2000 + i)
+            self.storage_servers.append(StorageServer(cluster=self, filesystem=fs, name="{}_{}".format(self.name, i), bind=bind))
 
     def _find_available_disks(self):
         """
@@ -89,6 +98,21 @@ class StorageCluster:
 
         return fs
 
+    def start(self):
+        for server in self.storage_servers:
+            server.start()
+
+    def stop(self):
+        for server in self.storage_servers:
+            server.stop()
+
+    def is_running(self):
+        # TODO: Improve this, what about part of server running and part stopped
+        for server in self.storage_servers:
+            if not server.is_running():
+                return False
+        return True
+
     @property
     def ays(self):
         if self._ays is None:
@@ -103,7 +127,7 @@ class StorageCluster:
 class StorageServer:
     """ardb servers"""
 
-    def __init__(self, cluster, filesystem, name, master=None):
+    def __init__(self, cluster, filesystem, name, bind='0.0.0.0:16739', master=None):
         """
         @param: node on which to deploy the server
         @param: dict defining which filesystem to use as data backend
@@ -124,7 +148,8 @@ class StorageServer:
         self.ardb = ARDB(
             name=name,
             container=self.container,
-            data_dir='/mnt/data',
+            bind=bind,
+            data_dir='/mnt/data/{}'.format(name),
             master=self.master
         )
 
@@ -132,8 +157,7 @@ class StorageServer:
     def node(self):
         return self.filesystem.pool.node
 
-    def _find_port(self):
-        start_port = 2000
+    def _find_port(self, start_port=2000):
         while True:
             if j.sal.nettools.tcpPortConnectionTest(self.node.addr, start_port, timeout=2):
                 start_port += 1
@@ -144,7 +168,8 @@ class StorageServer:
         if self.container.id is None:
             self.container.start()
 
-        self.ardb.bind = '0.0.0.0:{}'.format(self._find_port())
+        _, port = self.ardb.bind.split(":")
+        self.ardb.bind = '0.0.0.0:{}'.format(self._find_port(port))
         self.ardb.start()
 
     def stop(self, timeout=30):
@@ -152,7 +177,6 @@ class StorageServer:
         self.container.stop()
 
     def is_running(self):
-        if not self.container.is_running():
-            return (False, None)
-
-        return self.ardb.is_running()
+        container = self.container.is_running()
+        ardb, _ = self.ardb.is_running()
+        return (container and ardb)

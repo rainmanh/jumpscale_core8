@@ -114,3 +114,11 @@ class Node:
 
     def __repr__(self):
         return str(self)
+
+    def __eq__(self, other):
+        a = "{}:{}".format(self.addr, self.port)
+        b = "{}:{}".format(other.addr, other.port)
+        return a == b
+
+    def __hash__(self):
+        return hash((self.addr, self.port))

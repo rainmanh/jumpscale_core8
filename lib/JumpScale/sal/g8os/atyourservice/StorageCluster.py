@@ -1,3 +1,4 @@
+from JumpScale import j
 from JumpScale.sal.g8os.abstracts import AYSable
 from JumpScale.sal.g8os.StorageCluster import StorageCluster
 
@@ -62,6 +63,7 @@ class StorageClusterAys(AYSable):
 
         return cluster_service
 
+
 def clean_dict(d):
     for k in list(d.keys()):
         if d[k] is None:
@@ -74,6 +76,17 @@ class ContainerAYS(AYSable):
     def __init__(self, storageserver):
         self._obj = storageserver
         self.actor = 'container'
+
+    def get(self, aysrepo):
+        """
+        get the AYS service
+        """
+        try:
+            service = aysrepo.serviceGet(role=self.role, instance=self.name)
+            service.model.data.id = self._obj.id or 0
+            return service
+        except j.exceptions.NotFound:
+            raise ValueError("Could not find {} with name {}".format(self.role, self.name))
 
     def create(self, aysrepo):
         actor = aysrepo.actorGet(self.actor)
@@ -88,8 +101,9 @@ class ContainerAYS(AYSable):
             'storage': self._obj.storage,
             'id': self._obj.id,
         }
-
-        return actor.serviceCreate(instance=self._obj.name, args=clean_dict(args))
+        service = actor.serviceCreate(instance=self._obj.name, args=clean_dict(args))
+        service.model.data.id = self._obj.id or 0
+        return service
 
 
 class ARDBAys(AYSable):
@@ -97,6 +111,17 @@ class ARDBAys(AYSable):
     def __init__(self, storageserver):
         self._obj = storageserver
         self.actor = 'ardb'
+
+    def get(self, aysrepo):
+        """
+        get the AYS service
+        """
+        try:
+            service = aysrepo.serviceGet(role=self.role, instance=self.name)
+            service.model.data.bind = self._obj.bind or ''
+            return service
+        except j.exceptions.NotFound:
+            raise ValueError("Could not find {} with name {}".format(self.role, self.name))
 
     def create(self, aysrepo):
         actor = aysrepo.actorGet(self.actor)
@@ -106,4 +131,6 @@ class ARDBAys(AYSable):
             'master': self._obj.master,
             'container': self._obj.name,
         }
-        return actor.serviceCreate(instance=self._obj.name, args=clean_dict(args))
+        service = actor.serviceCreate(instance=self._obj.name, args=clean_dict(args))
+        service.model.data.bind = self._obj.bind
+        return service

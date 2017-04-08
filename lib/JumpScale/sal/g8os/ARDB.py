@@ -13,7 +13,7 @@ class ARDB:
         self.master = master
         self.container = container
         self.bind = bind
-        self.data_dir= data_dir
+        self.data_dir = data_dir
         self.master = None
         self._ays =None
 
@@ -27,7 +27,6 @@ class ARDB:
         content = content.replace('0.0.0.0:16379', self.bind)
 
         if self.master is not None:
-            content = content.replace('#slaveof 127.0.0.1:6379', 'slaveof {}'.format(self.master.bind))
             content = content.replace('#slaveof 127.0.0.1:6379', 'slaveof {}'.format(self.master.bind))
 
         # make sure home directory exists
@@ -75,8 +74,6 @@ class ARDB:
 
             if is_running:
                 raise RuntimeError("storage server {} didn't stopped")
-
-            self.node.client.container.terminate(self.container.id)
 
     def is_running(self):
         try:

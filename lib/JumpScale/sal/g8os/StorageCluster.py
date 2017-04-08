@@ -140,65 +140,16 @@ class StorageServer:
                 continue
             return start_port
 
-    def _configure(self):
-        self.ardb.bind = '0.0.0.0:{}'.format(self._find_port())
-
-        buff = io.BytesIO()
-        self.container.client.filesystem.download('/etc/ardb.conf', buff)
-        content = buff.getvalue().decode()
-
-        # update config
-        content = content.replace('0.0.0.0:16379', self.ardb.bind)
-
-        if self.master is not None:
-            content = content.replace('#slaveof 127.0.0.1:6379', 'slaveof {}'.format(self.master.ardb.bind))
-
-        # make sure home directory exists
-        self.container.client.filesystem.mkdir("/mnt/data")
-
-        # upload new config
-        self.container.client.filesystem.upload('/etc/ardb.conf.used', io.BytesIO(initial_bytes=content.encode()))
-
     def start(self,timeout=30):
         if self.container.id is None:
             self.container.start()
 
-        self._configure()
-
-        self.container.client.system('/bin/ardb-server /etc/ardb.conf.used')
-
-        # wait for ardb to start
-        start = time.time()
-        end = start + timeout
-        is_running, _ = self.ardb.is_running()
-        while not is_running and time.time() < end:
-            time.sleep(1)
-            is_running, _ = self.ardb.is_running()
-
-        if not is_running:
-            raise RuntimeError("storage server {} didn't started")
+        self.ardb.bind = '0.0.0.0:{}'.format(self._find_port())
+        self.ardb.start()
 
     def stop(self, timeout=30):
-        if self.container.id is None:
-            return
-
-        is_running, process = self.is_running()
-        if is_running:
-            self.container.client.process.kill(process['cmd']['id'])
-
-            # wait for ardb to stop
-            start = time.time()
-            end = start + timeout
-            is_running, _ = self.is_running()
-            while is_running and time.time() < end:
-                time.sleep(1)
-                is_running, _ = self.is_running()
-
-            if is_running:
-                raise RuntimeError("storage server {} didn't stopped")
-
-            self.node.client.container.terminate(self.container.id)
-            self.container.id = None
+        self.ardb.stop()
+        self.container.stop()
 
     def is_running(self):
         if not self.container.is_running():

@@ -62,7 +62,7 @@ class Node:
 
         if not storagepool.mountpoint:
             storagepool.mount('/var/cache/containers')
-            self.client.system('rm -fr /var/cache/containers/*')
+            self.client.bash('rm -fr /var/cache/containers/*')
 
     def ensure_persistance(self, name='fscache'):
         """

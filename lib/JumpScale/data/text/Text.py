@@ -4,6 +4,7 @@ import re
 import os
 import textwrap
 import unicodedata
+import math
 matchquote = re.compile(r'\'[^\']*\'')
 matchlist = re.compile(r'\[[^\']*\]')
 re_nondigit = re.compile(r'\D')
@@ -61,6 +62,25 @@ class Text:
             sys.stdout.write(code2)
         else:
             print(code)
+
+    def strToVersionInt(self, versionStr, minDigits=3):
+        """
+        convert 3.2.1 to 3002001
+        convert 3 to 3000000
+        """
+        if "." in versionStr:
+            splitted = versionStr.split(".")
+        else:
+            splitted = versionStr.split(",")
+        while len(splitted) < minDigits:
+            splitted.append("0")
+        y = 0
+        splitted.reverse()
+        x = 0
+        for item in splitted:
+            y += int(math.pow(1000, x)) * int(splitted[x])
+            x += 1
+        return y
 
     def toStr(self, value, codec='utf-8'):
         if isinstance(value, bytes):

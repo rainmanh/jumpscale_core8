@@ -67,12 +67,11 @@ class DocGenerator:
             self.gitRepos[path] = gc
         return self.gitRepos[path]
 
-    def installDeps(self):
+    def installDeps(self, reset=False):
+        if int(j.core.db.get("docgenerator:installed")) == 1 and reset == False:
+            return
         cuisine = j.tools.cuisine.local
-        try:
-            cuisine.core.run("npm -v", profile=True)
-        except:
-            cuisine.apps.nodejs.install()
+        cuisine.apps.nodejs.install()
         cuisine.core.run("sudo npm install -g phantomjs-prebuilt", profile=True)
         cuisine.core.run("sudo npm install -g mermaid", profile=True)
         cuisine.apps.caddy.build()
@@ -84,6 +83,7 @@ class DocGenerator:
             cuisine.package.install('hugo')
         j.tools.cuisine.local.development.golang.install()
         j.tools.cuisine.local.apps.caddy.build()
+        j.core.db.set("docgenerator:installed", 1)
 
     def startWebserver(self, generateCaddyFile=False):
         """
@@ -117,6 +117,7 @@ class DocGenerator:
 
     def init(self):
         if self._initOK == False:
+            self.installDeps()
             j.sal.fs.remove(self._macroCodepath)
             # load the default macro's
             self.loadMacros("https://github.com/Jumpscale/docgenerator/tree/master/macros")

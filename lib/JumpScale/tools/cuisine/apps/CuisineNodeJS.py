@@ -33,13 +33,19 @@ class CuisineNodeJS(app):
             self.cuisine.core.run("cd %s;bower --allow-root install  %s" % (self._bowerDir, name), profile=True)
 
     def isInstalled(self):
-        rc, out, err = self.cuisine.core.run(" npm version", die=False, showout=False, profile=True)
-        from IPython import embed
-        print("DEBUG NOW 8787")
-        embed()
-        raise RuntimeError("stop debug here")
-        if rc > 0 or "1.8" not in out:
+        rc, out, err = self.cuisine.core.run("npm version", die=False, showout=False, profile=True)
+        if rc > 0:
             return False
+        installedDict = j.data.serializer.yaml.loads(out)
+        if "npm" not in installedDict or "node" not in installedDict:
+            return False
+        if j.data.text.strToVersionInt(installedDict["npm"]) < 4000000:
+            self.logger.info("npm too low version, need to install.")
+            return False
+        if j.data.text.strToVersionInt(installedDict["node"]) < 7000000:
+            self.logger.info("node too low version, need to install.")
+            return False
+
         if self.doneGet("install") == False:
             return False
         return True
@@ -47,7 +53,7 @@ class CuisineNodeJS(app):
     def install(self, reset=False):
         """
         """
-        if if self.isInstalled and not reset and self.doneGet("install"):
+        if self.isInstalled() and not reset:
             return
 
         self.cuisine.core.file_unlink("$BINDIR/node")

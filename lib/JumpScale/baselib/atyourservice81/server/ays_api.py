@@ -375,8 +375,9 @@ async def getBlueprint(request, blueprint, repository):
         return json({'error':e.message}, 404)
 
     bp = None
-    for item in repo.blueprints:
-        if item.name == blueprint:
+    blueprints = repo.blueprints + repo.blueprintsDisabled
+    for item in blueprints:
+        if blueprint == item.name:
             bp = item
             break
     else:

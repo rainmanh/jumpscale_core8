@@ -45,7 +45,7 @@ class Blueprint:
         self.is_valid, self.valid_msg = self._validate_yaml(self.content)
 
         if self.is_valid:
-            decoded = ordered_load(self.content, yaml.SafeLoader)
+            decoded = ordered_load(self.content, yaml.SafeLoader) or {}
             for key, value in decoded.items():
                 self.models.append({key:value})
 

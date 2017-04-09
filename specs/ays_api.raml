@@ -56,15 +56,13 @@ types:
   Blueprint:
     properties:
       name: string
-      content: object
+      content: string
       archived: boolean
       hash: string
       path: string
     example:
       name: "cockpit.yaml"
-      content:
-        service__main:
-          description: "a service"
+      content: ''
       path: "/opt/code/cockpit/repo/blueprints/my_blueprints.ayml"
       hash: '45d4dbd44a0a3c3c8cf62acdab8e0850'
       archived: true

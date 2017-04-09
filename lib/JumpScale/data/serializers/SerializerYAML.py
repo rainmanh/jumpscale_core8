@@ -2,7 +2,7 @@ import yaml
 # import cStringIO
 
 from SerializerBase import *
-
+from collections import OrderedDict
 
 class SerializerYAML(SerializerBase):
 
@@ -31,6 +31,22 @@ class SerializerYAML(SerializerBase):
             error += '\npath:%s\n' % path
             raise j.exceptions.Input(message=error, level=1, source="", tags="", msgpub="")
         return r
+
+
+    def ordered_load(self, stream, Loader=yaml.Loader, object_pairs_hook=OrderedDict):
+        """
+        load a yaml stream and keep the order
+        """
+        class OrderedLoader(Loader):
+            pass
+        def construct_mapping(loader, node):
+            loader.flatten_mapping(node)
+            return object_pairs_hook(loader.construct_pairs(node))
+        OrderedLoader.add_constructor(
+            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+            construct_mapping)
+        return yaml.load(stream, OrderedLoader)
+
 
 # from JumpScale import j
 

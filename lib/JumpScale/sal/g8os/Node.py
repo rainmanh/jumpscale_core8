@@ -50,6 +50,8 @@ class Node:
                 return disk
             elif disk.type == DiskType.cdrom:
                 disks.remove(disk)
+            if len(disk.partitions) > 0:
+                disks.remove(disk)
         # If no SSD found, pick up the first disk
         return disks[0]
 

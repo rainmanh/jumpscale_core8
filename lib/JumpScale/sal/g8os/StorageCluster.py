@@ -66,7 +66,11 @@ class StorageCluster:
         usedisks = []
         for node in self.nodes:
             for disk in node.disks.list():
+                # skip devices which have filesystems with other labels
                 if len(disk.filesystems) > 0 and not disk.filesystems[0]['label'].startswith(cluster_name):
+                    usedisks.append(disk)
+                # skip devices which have partitions
+                if len(disk.partitions) > 0:
                     usedisks.append(disk)
 
         for disk in available_disks:

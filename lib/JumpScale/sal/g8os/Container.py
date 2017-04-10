@@ -6,7 +6,7 @@ import time
 class Container:
     """G8SO Container"""
 
-    def __init__(self, name, node, flist, hostname=None, filesystems={}, zerotier=None, host_network=False, ports={}, storage='ardb://hub.gig.tech:16379'):
+    def __init__(self, name, node, flist, hostname=None, filesystems={}, nics=[], host_network=False, ports={}, storage='ardb://hub.gig.tech:16379'):
         """
         TODO: write doc string
         filesystems: dict {filesystemObj: target}
@@ -16,7 +16,7 @@ class Container:
         self.filesystems = filesystems
         self.hostname = hostname
         self.flist = flist
-        self.zerotier = zerotier
+        self.nics = nics
         self.ports = ports
         self.host_network = host_network
         self.storage = storage
@@ -35,7 +35,7 @@ class Container:
             # filesystems = service.model.data. TODO
             hostname=service.model.data.hostname,
             flist=service.model.data.flist,
-            zerotier=service.model.data.zerotier,
+            # nics=, TODO
             # ports = service.model.data.port. TODO
             host_network=service.model.data.hostNetworking,
             storage=service.model.data.storage
@@ -60,7 +60,7 @@ class Container:
             root_url=self.flist,
             mount=mounts,
             host_network=self.host_network,
-            zerotier=self.zerotier,
+            # nics=, TODO
             bridge=None,
             port=self.ports,
             hostname=self.hostname,
@@ -68,12 +68,12 @@ class Container:
         )
         self._client = self.node.client.container.client(self.id)
 
-    def start(self, timeout=30):
-        if self.id is None:
+    def start(self):
+        if not self.is_running():
             self._create_container()
 
-    def stop(self, timeout=30):
-        if self.id is None:
+    def stop(self):
+        if not self.is_running():
             return
 
         self.node.client.container.terminate(self.id)

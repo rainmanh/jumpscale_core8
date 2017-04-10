@@ -47,8 +47,8 @@ class ARDB:
         content = content.replace('0.0.0.0:16379', self.bind)
 
         if self.master is not None:
-            _, port = self.master.ardb.bind.split(":")
-            content = content.replace('#slaveof 127.0.0.1:6379', 'slaveof {}:{}'.format(self.master.node.addr, port))
+            _, port = self.master.bind.split(":")
+            content = content.replace('#slaveof 127.0.0.1:6379', 'slaveof {}:{}'.format(self.master.container.node.addr, port))
 
         # make sure home directory exists
         self.container.client.filesystem.mkdir(self.data_dir)
@@ -59,6 +59,10 @@ class ARDB:
     def start(self, timeout=30):
         if not self.container.is_running():
             self.container.start()
+
+        running, _ = self.is_running()
+        if running:
+            return
 
         self._configure()
 

@@ -86,7 +86,7 @@ class StorageCluster:
                 bind = "0.0.0.0:{}".format(port)
                 port = port + 1
                 slave_server = StorageServer(cluster=self)
-                slave_server.create(filesystem=fs, name="{}_{}".format(self.name, i), bind=bind, master=storage_server)
+                slave_server.create(filesystem=fs, name="{}_{}".format(self.name, (nr_server+i)), bind=bind, master=storage_server)
                 self.storage_servers.append(slave_server)
 
     def _find_available_disks(self):
@@ -140,8 +140,6 @@ class StorageCluster:
 
     def start(self):
         for server in self.storage_servers:
-            if server.master is not None:
-                server.master.start()
             server.start()
 
     def stop(self):
@@ -154,6 +152,25 @@ class StorageCluster:
             if not server.is_running():
                 return False
         return True
+
+    def health(self):
+        """
+        Return a view of the state all storage server running in this cluster
+        example :
+        {
+        'cluster1_1': {'ardb': True, 'container': True, 'slaveof': None},
+        'cluster1_2': {'ardb': True, 'container': True, 'slaveof': None},
+        }
+        """
+        health = {}
+        for server in self.storage_servers:
+            running, _ = server.ardb.is_running()
+            health[server.name] = {
+                'ardb': running,
+                'container': server.container.is_running(),
+                'slaveof': server.master.name if server.master else None,
+            }
+        return health
 
     @property
     def ays(self):
@@ -170,16 +187,13 @@ class StorageServer:
     """ardb servers"""
 
     def __init__(self, cluster):
-        """
-        @param: node on which to deploy the server
-        @param: dict defining which filesystem to use as data backend
-        @name: string, name of this storage server
-        """
         self.cluster = cluster
         self.container = None
         self.ardb = None
+        self.master = None
 
     def create(self, filesystem, name, bind='0.0.0.0:16739', master=None):
+        self.master = master
         self.container = Container(
             name=name,
             node=filesystem.pool.node,
@@ -193,7 +207,7 @@ class StorageServer:
             container=self.container,
             bind=bind,
             data_dir='/mnt/data/{}'.format(name),
-            master=master
+            master=master.ardb if master else None
         )
 
     @classmethod
@@ -203,6 +217,10 @@ class StorageServer:
         storage_server = cls(None)
         storage_server.container = container
         storage_server.ardb = ardb
+        if ardb.master:
+            storage_server.master = cls(None)
+            storage_server.master.container = ardb.master.container
+            storage_server.master.ardb = ardb.master
         return storage_server
 
     @property
@@ -217,12 +235,6 @@ class StorageServer:
             return self.container.node
         return None
 
-    @property
-    def master(self):
-        if self.ardb:
-            return self.ardb.master
-        return None
-
     def _find_port(self, start_port=2000):
         while True:
             if j.sal.nettools.tcpPortConnectionTest(self.node.addr, start_port, timeout=2):
@@ -231,15 +243,18 @@ class StorageServer:
             return start_port
 
     def start(self, timeout=30):
-        if self.container.id is None:
+        if self.master:
+            self.master.start()
+
+        if not self.container.is_running():
             self.container.start()
 
         _, port = self.ardb.bind.split(":")
         self.ardb.bind = '0.0.0.0:{}'.format(self._find_port(port))
-        self.ardb.start()
+        self.ardb.start(timeout=timeout)
 
     def stop(self, timeout=30):
-        self.ardb.stop()
+        self.ardb.stop(timeout=timeout)
         self.container.stop()
 
     def is_running(self):

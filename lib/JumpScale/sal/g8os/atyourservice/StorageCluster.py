@@ -126,10 +126,10 @@ class ARDBAys(AYSable):
     def create(self, aysrepo):
         actor = aysrepo.actorGet(self.actor)
         args = {
-            'homeDir': "/mnt/data",
+            'homeDir': self._obj.data_dir,
             'bind': self._obj.bind,
-            'master': self._obj.master.name,
-            'container': self._obj.name,
+            'master': self._obj.master.name if self._obj.master else '',
+            'container': self._obj.container.name,
         }
         service = actor.serviceCreate(instance=self._obj.name, args=clean_dict(args))
         service.model.data.bind = self._obj.bind

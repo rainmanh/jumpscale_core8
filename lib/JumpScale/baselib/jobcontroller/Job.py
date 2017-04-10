@@ -11,6 +11,7 @@ import sys
 import asyncio
 import functools
 import logging
+import traceback
 
 colored_traceback.add_hook(always=True)
 
@@ -41,8 +42,8 @@ def _execute_cb(job, future):
             service_action_obj.state = 'error'
         if job.service:
             job.service.model.dbobj.state = 'error'
-        eco = j.errorconditionhandler.processPythonExceptionObject(exception)
-        job._processError(eco)
+        tb_lines = [ line.rstrip('\n') for line in traceback.format_exception(exception.__class__, exception,  exception.__traceback__)]
+        job.logger.error('\n'.join(tb_lines))
     else:
         job.state = 'ok'
         job.model.dbobj.state = 'ok'

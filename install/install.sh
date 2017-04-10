@@ -62,6 +62,7 @@ function alpine_install {
     apk add libexecinfo-dev
     apk add linux-headers
     apk add redis
+    apk add tmux
 }
 
 function pip_install {

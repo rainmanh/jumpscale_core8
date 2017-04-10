@@ -32,6 +32,10 @@ class PlatformTypes:
         self._platformParents["unix32"] = ["unix"]
         self._platformParents["unix64"] = ["unix"]
         self._platformParents["alpine"] = ["linux64"]
+        self._platformParents["alpine64"] = ["linux64"]
+        self._platformParents["alpine64"] = ["alpine"]
+        self._platformParents["alpine32"] = ["linux32"]
+        self._platformParents["alpine32"] = ["alpine"]
         self._platformParents["ubuntu"] = ["linux"]
         self._platformParents["ubuntu64"] = ["ubuntu", "linux64"]
         self._platformParents["ubuntu32"] = ["ubuntu", "linux32"]
@@ -226,7 +230,6 @@ class PlatformType:
 
     def isUbuntu(self):
         return self.has_parent("ubuntu")
-
 
     def isGeneric(self):
         '''Checks whether the platform is generic (they all should)'''

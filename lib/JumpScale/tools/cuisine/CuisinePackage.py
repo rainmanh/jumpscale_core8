@@ -36,6 +36,9 @@ class CuisinePackage(base):
                 if type(package) in (list, tuple):
                     package = " ".join(package)
                 return self._apt_get(' upgrade ' + package)
+        elif self.cuisine.core.isAlpine:
+            self.core.run("apk update")
+            self.core.run("apk upgrade")
         else:
             raise j.exceptions.RuntimeError("could not install:%s, platform not supported" % package)
 
@@ -47,6 +50,8 @@ class CuisinePackage(base):
         if self._cuisine.core.isUbuntu:
             with FileLock(LOCK_NAME, locktimeout=LOCK_TIMEOUT):
                 self.cuisine.core.run("apt-get update")
+        elif self.cuisine.core.isAlpine:
+            self.core.run("apk update")
         elif self.cuisine.core.isMac:
             location = self.cuisine.core.command_location("brew")
             # self.cuisine.core.run("sudo chown root %s" % location)
@@ -69,6 +74,9 @@ class CuisinePackage(base):
             self.cuisine.core.run("pacman -Syu --noconfirm;pacman -Sc --noconfirm")
         elif self.cuisine.core.isMac:
             self.cuisine.core.run("brew upgrade")
+        elif self.cuisine.core.isAlpine:
+            self.core.run("apk update")
+            self.core.run("apk upgrade")
         elif self.cuisine.core.isCygwin:
             return  # no such functionality in apt-cyg
         else:
@@ -87,6 +95,9 @@ class CuisinePackage(base):
                 cmd += ' --allow-unauthenticated '
 
             cmd += package
+
+        elif self.cuisine.core.isAlpine:
+            cmd = "apk add %s " % package
 
         elif self.cuisine.core.isArch:
             if package.startswith("python3"):

@@ -1337,6 +1337,10 @@ class CuisineCore(base):
         return "linux" in self.cuisine.platformtype.platformtypes
 
     @property
+    def isAlpine(self):
+        return "alpine" in self.cuisine.platformtype.platformtypes
+
+    @property
     def isArch(self):
         return "arch" in self.cuisine.platformtype.platformtypes
 

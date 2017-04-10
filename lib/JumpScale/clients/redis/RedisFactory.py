@@ -131,13 +131,15 @@ class RedisFactory:
             os.system(cmd)
             cmd = "sysctl vm.overcommit_memory=1"
             os.system(cmd)
-            redis_bin = '%s/bin/redis-server' % j.dirs.JSBASEDIR
-            if 'redis-server' not in os.listdir(path='%s/bin/' % j.dirs.JSBASEDIR):
-                url = "https://stor.jumpscale.org/public/redis-server"
-                j.tools.cuisine.local.core.file_download(url, to=redis_bin, overwrite=False, retry=3)
+            # redis_bin = '%s/bin/redis-server' % j.dirs.JSBASEDIR
+            # if 'redis-server' not in os.listdir(path='%s/bin/' % j.dirs.JSBASEDIR):
+            #     url = "https://stor.jumpscale.org/public/redis-server"
+            #     j.tools.cuisine.local.core.file_download(url, to=redis_bin, overwrite=False, retry=3)
             # import subprocess
-            os.sync()
-            j.sal.fs.chmod(redis_bin, 0o550)
+            # os.sync()
+            # j.sal.fs.chmod(redis_bin, 0o550)
+            j.tools.cuisine.local.package.install("redis")
+            redis_bin = "redis-server"
             cmd = "%s  --port 0 --unixsocket %s/redis.sock --maxmemory 100000000" % (redis_bin, tmpdir)
             print("start redis in background (linux)")
             j.tools.cuisine.local.processmanager.ensure('redis_js', cmd)

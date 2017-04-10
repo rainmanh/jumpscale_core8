@@ -1,23 +1,18 @@
-from JumpScale import j
-import io
-import time
-
-
 class Container:
     """G8SO Container"""
 
-    def __init__(self, name, node, flist, hostname=None, filesystems={}, nics=[], host_network=False, ports={}, storage='ardb://hub.gig.tech:16379'):
+    def __init__(self, name, node, flist, hostname=None, filesystems=None, nics=None, host_network=False, ports=None, storage='ardb://hub.gig.tech:16379'):
         """
         TODO: write doc string
         filesystems: dict {filesystemObj: target}
         """
         self.name = name
         self.node = node
-        self.filesystems = filesystems
+        self.filesystems = filesystems or {}
         self.hostname = hostname
         self.flist = flist
-        self.nics = nics
-        self.ports = ports
+        self.ports = ports or {}
+        self.nics = nics or []
         self.host_network = host_network
         self.storage = storage
         self.id = None
@@ -29,14 +24,20 @@ class Container:
     def from_ays(cls, service):
         from JumpScale.sal.g8os.Node import Node
         node = Node.from_ays(service.parent)
+        ports = {}
+        for portmap in service.model.data.ports:
+            source, dest = portmap.split(':')
+            ports[int(source)] = int(dest)
+        nics = [nic.to_dict() for nic in service.model.data.nics]
+
         container = cls(
             name=service.name,
             node=node,
             # filesystems = service.model.data. TODO
+            nics=nics,
             hostname=service.model.data.hostname,
             flist=service.model.data.flist,
-            # nics=, TODO
-            # ports = service.model.data.port. TODO
+            ports=ports,
             host_network=service.model.data.hostNetworking,
             storage=service.model.data.storage
         )
@@ -60,8 +61,7 @@ class Container:
             root_url=self.flist,
             mount=mounts,
             host_network=self.host_network,
-            # nics=, TODO
-            bridge=None,
+            nics=self.nics,
             port=self.ports,
             hostname=self.hostname,
             storage=self.storage,

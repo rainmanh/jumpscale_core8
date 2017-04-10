@@ -10,11 +10,10 @@ import time
 class StorageCluster:
     """StorageCluster is a cluster of ardb servers"""
 
-    def __init__(self, label, aysrepo=None):
+    def __init__(self, label):
         """
         @param label: string repsenting the name of the storage cluster
         """
-        self.aysrepo = aysrepo
         self.label = label
         self.name = label
         self.nodes = []
@@ -23,6 +22,20 @@ class StorageCluster:
         self.disk_type = None
         self.has_slave = None
         self._ays = None
+
+    @classmethod
+    def from_ays(cls, service):
+        cluster = cls(label=service.name)
+        cluster.disk_type = str(service.model.data.diskType)
+        cluster.has_slave = service.model.data.hasSlave
+
+        for ardb_service in service.producers.get('ardb', []):
+            storages_server = StorageServer.from_ays(ardb_service)
+            cluster.storage_servers.append(storages_server)
+            if storages_server.node not in cluster.nodes:
+                cluster.nodes.append(storages_server.node)
+
+        return cluster
 
     @property
     def nr_server(self):
@@ -48,10 +61,33 @@ class StorageCluster:
             self.filesystems.append(self._prepare_disk(disk))
 
         nr_filesystems = len(self.filesystems)
+
+        def get_filesystem(i, exclude_node=None):
+            fs = self.filesystems[i % (nr_filesystems - 1)]
+            while exclude_node is not None and fs.pool.node == exclude_node:
+                i += 1
+                fs = self.filesystems[i % (nr_filesystems - 1)]
+            return fs
+
+
+        port = 2000
         for i in range(nr_server):
-            fs = self.filesystems[i % (nr_filesystems-1)]
-            bind = "0.0.0.0:{}".format(2000 + i)
-            self.storage_servers.append(StorageServer(cluster=self, filesystem=fs, name="{}_{}".format(self.name, i), bind=bind))
+            fs = get_filesystem(i)
+            bind = "0.0.0.0:{}".format(port)
+            port = port + 1
+            storage_server = StorageServer(cluster=self)
+            storage_server.create(filesystem=fs, name="{}_{}".format(self.name, i), bind=bind)
+            self.storage_servers.append(storage_server)
+
+        if has_slave:
+            for i  in range(nr_server):
+                storage_server = self.storage_servers[i]
+                fs = get_filesystem(i, storage_server.node)
+                bind = "0.0.0.0:{}".format(port)
+                port = port + 1
+                slave_server = StorageServer(cluster=self)
+                slave_server.create(filesystem=fs, name="{}_{}".format(self.name, i), bind=bind, master=storage_server)
+                self.storage_servers.append(slave_server)
 
     def _find_available_disks(self):
         """
@@ -104,6 +140,8 @@ class StorageCluster:
 
     def start(self):
         for server in self.storage_servers:
+            if server.master is not None:
+                server.master.start()
             server.start()
 
     def stop(self):
@@ -131,21 +169,22 @@ class StorageCluster:
 class StorageServer:
     """ardb servers"""
 
-    def __init__(self, cluster, filesystem, name, bind='0.0.0.0:16739', master=None):
+    def __init__(self, cluster):
         """
         @param: node on which to deploy the server
         @param: dict defining which filesystem to use as data backend
         @name: string, name of this storage server
         """
         self.cluster = cluster
-        self.filesystem = filesystem
-        self.name = name
-        self.master = master
+        self.container = None
+        self.ardb = None
+
+    def create(self, filesystem, name, bind='0.0.0.0:16739', master=None):
         self.container = Container(
             name=name,
             node=filesystem.pool.node,
             flist="https://hub.gig.tech/gig-official-apps/ardb-rocksdb.flist",
-            filesystems={filesystem:'/mnt/data'},
+            filesystems={filesystem: '/mnt/data'},
             host_network=True,
             storage='ardb://hub.gig.tech:16379'
         )
@@ -154,12 +193,35 @@ class StorageServer:
             container=self.container,
             bind=bind,
             data_dir='/mnt/data/{}'.format(name),
-            master=self.master
+            master=master
         )
+
+    @classmethod
+    def from_ays(cls, ardb_services):
+        ardb = ARDB.from_ays(ardb_services)
+        container = Container.from_ays(ardb_services.parent)
+        storage_server = cls(None)
+        storage_server.container = container
+        storage_server.ardb = ardb
+        return storage_server
+
+    @property
+    def name(self):
+        if self.ardb:
+            return self.ardb.name
+        return None
 
     @property
     def node(self):
-        return self.filesystem.pool.node
+        if self.container:
+            return self.container.node
+        return None
+
+    @property
+    def master(self):
+        if self.ardb:
+            return self.ardb.master
+        return None
 
     def _find_port(self, start_port=2000):
         while True:
@@ -168,7 +230,7 @@ class StorageServer:
                 continue
             return start_port
 
-    def start(self,timeout=30):
+    def start(self, timeout=30):
         if self.container.id is None:
             self.container.start()
 

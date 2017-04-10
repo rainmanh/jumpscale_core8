@@ -15,7 +15,7 @@ class ARDB:
         self.container = container
         self.bind = bind
         self.data_dir = data_dir
-        self.master = None
+        self.master = master
         self._ays = None
 
     @classmethod
@@ -47,7 +47,8 @@ class ARDB:
         content = content.replace('0.0.0.0:16379', self.bind)
 
         if self.master is not None:
-            content = content.replace('#slaveof 127.0.0.1:6379', 'slaveof {}'.format(self.master.bind))
+            _, port = self.master.ardb.bind.split(":")
+            content = content.replace('#slaveof 127.0.0.1:6379', 'slaveof {}:{}'.format(self.master.node.addr, port))
 
         # make sure home directory exists
         self.container.client.filesystem.mkdir(self.data_dir)

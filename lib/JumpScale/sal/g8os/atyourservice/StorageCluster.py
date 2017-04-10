@@ -128,7 +128,7 @@ class ARDBAys(AYSable):
         args = {
             'homeDir': "/mnt/data",
             'bind': self._obj.bind,
-            'master': self._obj.master,
+            'master': self._obj.master.name,
             'container': self._obj.name,
         }
         service = actor.serviceCreate(instance=self._obj.name, args=clean_dict(args))

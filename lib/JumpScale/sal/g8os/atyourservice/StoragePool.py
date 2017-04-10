@@ -51,5 +51,5 @@ if __name__ == '__main__':
     repo = j.atyourservice.aysRepos.get('/opt/code/cockpit_repos/grid')
     node1 = j.sal.g8os.get_node('172.20.0.91')
     node2 = j.sal.g8os.get_node('172.20.0.92')
-    cluster = j.sal.g8os.create_storagecluster('cluster1',[node1,node2],'hdd',8,False)
+    cluster = j.sal.g8os.create_storagecluster('cluster1',[node1,node2],'hdd', 8, True)
     from IPython import embed;embed()

@@ -11,19 +11,17 @@ class CuisineJS8(base):
             return
 
         if reset:
+            self.cuisine.package.ensure('psmisc')
+            for process in ['mongodb', 'redis', 'redis-server', 'ardb-server', 'tmux']:
+                self.cuisine.core.run('killall %s' % process, die=False)
             C = """
-            killall mongodb
-            killall redis
-            killall redis-server
-            killall ardb-server
-            killall tmux
             rm -f $TMPDIR/jsexecutor*
             rm -f $TMPDIR/jsinstall*
             rm -rf $TMPDIR/actions*
             set -ex
             rm -rf /opt/*
             """
-            self.cuisine.core.run(C)
+            self.cuisine.core.run(C, die=False)
 
         if branch != "master":
             C = """

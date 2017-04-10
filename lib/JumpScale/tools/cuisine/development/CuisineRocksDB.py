@@ -19,10 +19,13 @@ class CuisineRocksDB(base):
         self.cuisine.core.dir_ensure(self.BUILDDIRL)
 
         # install deps
+        self.cuisine.package.mdupdate()
+        self.cuisine.package.install('build-essential')
         self.cuisine.package.install('libsnappy-dev')
         self.cuisine.package.install('zlib1g-dev')
         self.cuisine.package.install('libbz2-dev')
         self.cuisine.package.install('libzstd-dev')
+        self.cuisine.package.install('librocksdb-dev')
 
         # set env variables
         profile = self.cuisine.bash.profileDefault
@@ -49,7 +52,7 @@ class CuisineRocksDB(base):
         self.cuisine.core.run('cd $TMPDIR/rocksdb-%s && cp -a librocksdb.so* %s' % (self.ROCKSDB_VERSION,
                                                                                     self.BUILDDIRL))
         self.cuisine.core.run('cd $TMPDIR/rocksdb-%s && cp -a librocksdb.so* /usr/lib' % self.ROCKSDB_VERSION)
-        self.cuisine.development.golang.get('github.com/tecbot/gorocksdb')
+        # self.cuisine.development.golang.get('github.com/tecbot/gorocksdb', tags=['embed'])
 
         self.doneSet("build")
 
@@ -57,7 +60,9 @@ class CuisineRocksDB(base):
             self.install()
 
     def install(self):
-        # install required packages to run. 
+        # install required packages to run.
         self.cuisine.package.install("libhiredis-dev")
         self.cuisine.package.install("libbz2-dev")
+        self.cuisine.package.install('python3-dev')
+        self.cuisine.development.pip.ensure()
         self.cuisine.development.pip.multiInstall(['pyrocksdb', 'peewee'])

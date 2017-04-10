@@ -29,7 +29,7 @@ class CuisinePHP(app):
         pkgs = "libxml2-dev libpng-dev libcurl4-openssl-dev libzip-dev zlibc zlib1g zlib1g-dev libmysqld-dev libmysqlclient-dev re2c bison bzip2 build-essential libaprutil1-dev libapr1-dev openssl pkg-config libssl-dev libsslcommon2-dev file"
         list(map(self._cuisine.package.ensure, pkgs.split(sep=" ")))
 
-        compileconfig['with_apxs2'] = self._cuisine.core.replace("$appDir/apache2/bin/apxs")
+        compileconfig['with_apxs2'] = self.cuisine.core.replace("$JSAPPSDIR/apache2/bin/apxs")
         buildconfig = deepcopy(compileconfig)
         buildconfig.update(config)  # should be defaultconfig.update(config) instead of overriding the explicit ones.
 
@@ -47,13 +47,14 @@ class CuisinePHP(app):
                 args_string += " --{k}={v}".format(k=k, v=v)
         C = """
         set -x
-        rm -f $TMPDIR/php-7.0.11.tar.bz*
-        cd $TMPDIR && [ ! -f $TMPDIR/php-7.0.11.tar.bz2 ] && wget http://be2.php.net/distributions/php-7.0.11.tar.bz2
-        cd $TMPDIR && tar xvjf $TMPDIR/php-7.0.11.tar.bz2
-        mv $TMPDIR/php-7.0.11/ $TMPDIR/php
+        rm -f $TMPDIR/php-7.0.17.tar.bz*
+        cd $TMPDIR && [ ! -f $TMPDIR/php-7.0.17.tar.bz2 ] && wget http://be2.php.net/distributions/php-7.0.17.tar.bz2
+        cd $TMPDIR && tar xvjf $TMPDIR/php-7.0.17.tar.bz2
+        mv $TMPDIR/php-7.0.17/ $TMPDIR/php
 
-        """.format(args_string=args_string)
+        """
 
+        C = self.replace(C)
         self.cuisine.core.run(C)
 
         C = """cd $TMPDIR/php && ./configure {args_string}""".format(args_string=args_string)

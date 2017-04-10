@@ -16,7 +16,7 @@ class CuisineS3Server(app):
         self.cuisine.package.install('build-essential')
         self.cuisine.package.install('python2.7')
 
-        path = self.cuisine.development.git.pullRepo('https://github.com/scality/S3.git')
+        path = self.cuisine.development.git.pullRepo('https://github.com/scality/S3.git', ssh=False)
         profile = self.cuisine.bash.profileDefault
         profile.addPath(self.cuisine.core.dir_paths['BINDIR'])
         profile.save()

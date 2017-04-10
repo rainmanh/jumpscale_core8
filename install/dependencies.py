@@ -19,7 +19,7 @@ class dependencies():
         requests
         netaddr
         ipython
-        #cython        
+        #cython
         path.py
         colored-traceback
         pudb
@@ -42,11 +42,31 @@ class dependencies():
         httplib2
         python-jose
         python-dateutil
-        #pycapnp
         """
         self.do.pip(C, executor=executor)
         self.do.execute("pip3 install https://github.com/tony/libtmux/archive/master.zip --upgrade")
         #self.do.execute("apt-get install -y python-colorlog")
+        self.capnp(executor=executor)
+
+    def capnp(self, executor=None):
+        C = '''
+        set -ex
+        cd /tmp
+        curl -O https://capnproto.org/capnproto-c++-0.5.3.tar.gz
+        rm -rf capnproto-c++-0.5.3
+        tar zxf capnproto-c++-0.5.3.tar.gz
+        cd capnproto-c++-0.5.3
+        sed -i /'define KJ_HAS_BACKTRACE'/d src/kj/exception.c++
+        ./configure
+        make -j6 check
+        sudo make install
+        cd ..
+        rm -rf capnproto-c++-0.5.3
+        rm -f capnproto-c++-*
+        '''
+        if self.do.isAlpine():
+            self.do.executeBashScript(C, executor=executor)
+        self.do.pip("pycapnp", executor=executor)
 
     def portal(self, executor=None):
         C = """

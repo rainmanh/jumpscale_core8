@@ -61,6 +61,7 @@ function alpine_install {
     apk add openssl-dev
     apk add libexecinfo-dev
     apk add linux-headers
+    apk add redis
 }
 
 function pip_install {

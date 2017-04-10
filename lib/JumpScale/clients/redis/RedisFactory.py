@@ -108,7 +108,7 @@ class RedisFactory:
         """
         if j.tools.cuisine.local.core.isMac:
             if not j.do.checkInstalled("redis-server"):
-                j.do.execute("brew unlink redis",die=False)
+                j.do.execute("brew unlink redis", die=False)
                 j.do.execute("brew install redis;brew link redis")
             if not j.do.checkInstalled("redis-server"):
                 raise RuntimeError("Cannot find redis-server even after install")

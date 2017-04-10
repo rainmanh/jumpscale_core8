@@ -636,6 +636,12 @@ class GitMethods():
                 return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
                                         reset, branch, tag=tag, revision=revision, ssh=True, executor=executor)
             except Exception as e:
+                base, provider, account, repo, dest, url = self.getGitRepoArgs(
+                    url, dest, login, passwd, reset=reset, ssh=False, codeDir=codeDir, executor=executor)
+                checkdir = "%s/.git" % (dest)
+                existsGit = self.exists(checkdir) if not executor else executor.exists(checkdir)
+                if existsGit:
+                    self.delete(existsGit)
                 return self.pullGitRepo(url, dest, login, passwd, depth, ignorelocalchanges,
                                         reset, branch, tag=tag, revision=revision, ssh=False, executor=executor)
 

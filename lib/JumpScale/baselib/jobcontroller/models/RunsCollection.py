@@ -6,7 +6,6 @@ from JumpScale.baselib.jobcontroller import model_job_capnp as ModelCapnp
 from JumpScale.data.capnp.ModelBase import ModelBaseCollection
 
 
-
 class RunsCollection(ModelBaseCollection):
     """
     This class represent a collection of Runs
@@ -66,20 +65,27 @@ class RunsCollection(ModelBaseCollection):
         return res
 
     def delete(self, state="", repo="", fromEpoch=0, toEpoch=9999999999999):
+        '''
+        Delete a run
+        :param state: state of the run to be deleted
+        :param repo: repo path
+        :param fromEpoch: runs in this period will be deleted
+        :param toEpoch: runs in this period will be deleted
+        '''
         for key in self._list_keys(state, fromEpoch, toEpoch):
             if repo:
                 model = self.get(key)
 
-                if model.dbobj.repo != repo.model.key:
+                if model.dbobj.repo != repo:
                     continue
                 idx = str(model.dbobj.state) + ':' + str(model.dbobj.lastModDate)
                 self._index.index_remove(keys=idx)
                 self._db.delete(key=key)
-                # for job in model.jobs .. job. remove job
+                # Remove jobs in the run
+
                 for step in model.dbobj.steps:
                     for job in step.jobs:
-                        j.core.jobcontroller.db.jobs._db.delete(job.key)
-
+                        j.core.jobcontroller.db.jobs.delete(job.actorName, job.serviceName, job.actionName, step.state.__str__(), job.serviceKey)
 
     def destroy(self):
         self._db.destroy()

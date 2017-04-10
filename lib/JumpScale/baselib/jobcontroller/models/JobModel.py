@@ -15,6 +15,10 @@ class JobModel(ModelBase):
 
     def index(self):
         # put indexes in db as specified
+        res = self.collection._index.list("%s:%s:%s:.*:%s:.*" % (self.dbobj.actorName, self.dbobj.serviceName,
+                                          self.dbobj.actionName, self.dbobj.serviceKey), returnIndex=True)
+        for matched in res:
+            self.collection._index.index_remove(matched[0])
         ind = "%s:%s:%s:%s:%s:%s" % (self.dbobj.actorName, self.dbobj.serviceName,
                                      self.dbobj.actionName, self.dbobj.state, self.dbobj.serviceKey, self.dbobj.lastModDate)
         self.collection._index.index({ind: self.key})

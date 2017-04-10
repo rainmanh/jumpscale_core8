@@ -1,7 +1,7 @@
 import click
 import logging
-
 from JumpScale import j
+import asyncio
 
 try:
     import jsonschema
@@ -31,6 +31,21 @@ asyncio_logger.setLevel(logging.DEBUG)
 @click.option('--port', '-p', default=5000, help='listening port')
 @click.option('--debug', default=False, is_flag=True, help='enable debug logging')
 def main(host, port, debug=False):
+    async def cleanup(sanic, loop):
+        while True:
+            sleep = 60
+            runs = j.core.jobcontroller.db.runs.find()
+            limit = int(j.data.time.getEpochAgo("-2h"))
+            for run in runs:
+                if run.dbobj.state in ['error', 'ok']:
+                    j.core.jobcontroller.db.runs.delete(state=run.dbobj.state, repo=run.dbobj.repo, toEpoch=limit)
+            jobs = j.core.jobcontroller.db.jobs.find()
+            for job in jobs:
+                if job.state in ['error', 'ok']:
+                    j.core.jobcontroller.db.jobs.delete(actor=job.dbobj.actorName, service=job.dbobj.serviceName,
+                                                        action=job.dbobj.actionName, state=job.state,
+                                                        serviceKey=job.dbobj.serviceKey, toEpoch=limit)
+            await asyncio.sleep(sleep)
 
     # load the app
     async def init_ays(sanic, loop):
@@ -40,7 +55,8 @@ def main(host, port, debug=False):
         j.atyourservice._start(loop=loop)
 
     # start server
-    sanic_app.run(debug=debug, host=host, port=port, workers=1, before_start=init_ays)
+    sanic_app.run(debug=debug, host=host, port=port, workers=1, before_start=init_ays, after_start=cleanup)
+
 
 if __name__ == '__main__':
     main()

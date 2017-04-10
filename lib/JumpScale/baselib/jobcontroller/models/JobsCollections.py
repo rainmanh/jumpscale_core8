@@ -77,6 +77,20 @@ class JobsCollection(ModelBaseCollection):
                                      job.dbobj.actionName, job.dbobj.state, job.dbobj.serviceKey, job.dbobj.lastModDate)
             return ind
 
+    def delete(self, actor="", service="", action="", state="", serviceKey="", fromEpoch=0, toEpoch=9999999999999):
+        '''
+        Delete a job
+        :param actor: actor name
+        :param service: service name
+        :param action: action name
+        :param state: state of the job to be deleted
+        :param serviceKey: key identifying the service
+        :param fromEpoch: runs in this period will be deleted
+        :param toEpoch: runs in this period will be deleted
+        '''
+        for index, key in self.list(actor, service, action, state, serviceKey, fromEpoch, toEpoch, True):
+            self._index.index_remove(keys=index)
+            self._db.delete(key=key)
     def destroy(self):
         self._db.destroy()
         self._index.destroy()

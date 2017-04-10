@@ -19,8 +19,7 @@ class dependencies():
         requests
         netaddr
         ipython
-        cython
-        pycapnp
+        #cython        
         path.py
         colored-traceback
         pudb
@@ -43,6 +42,7 @@ class dependencies():
         httplib2
         python-jose
         python-dateutil
+        #pycapnp
         """
         self.do.pip(C, executor=executor)
         self.do.execute("pip3 install https://github.com/tony/libtmux/archive/master.zip --upgrade")

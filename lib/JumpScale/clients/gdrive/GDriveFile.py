@@ -60,7 +60,7 @@ class GDriveFile():
 
         try:
             self.__dict__.update(j.data.serializer.json.loads(json))
-            return
+
         except:
             j.clients.gdrive.logger.warning("description was wrong format, was not json, lets re-write")
             self.changed = True
@@ -75,10 +75,12 @@ class GDriveFile():
 
         if "<" in name and ">" in name:
             self.sid = name.split("<", 1)[1].split(">", 1)[0]
-            self.name = name.split("<", 1)[0].strip()
         else:
             self.sid = j.data.idgenerator.generateXCharID(4)
-            self.name = name
+        self.name = name.split("<", 1)[0].strip()
+
+        if self.sid.replace(".", "").strip() == "":
+            self.sid = j.data.idgenerator.generateXCharID(4)
 
         modtime = self.gmd.get('modifiedTime')
         if modtime != None:
@@ -132,7 +134,8 @@ class GDriveFile():
 
     def saveMetadata(self):
         if self.changed:
-            j.clients.gdrive.files.update(fileId=self.id, body={"description": self.json}).execute()
+            name2 = "%s <%s>" % (self.name, self.sid)
+            j.clients.gdrive.files.update(fileId=self.id, body={"description": self.json, "name": name2}).execute()
             self.changed = False
 
     def exportPDF(self, path=""):

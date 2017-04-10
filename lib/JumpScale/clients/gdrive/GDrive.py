@@ -36,13 +36,19 @@ class GDriveFactory:
         if not j.sal.fs.exists(self.secretsFilePath, followlinks=True):
             self.secretsFilePath = os.path.expanduser('~') + '/.gdrive_client_secrets.json'
 
-        self.credentials = self._getCredentials()
+        self._credentials = None
         http = self.credentials.authorize(httplib2.Http())
         self.drive = discovery.build('drive', 'v3', http=http)
         self.files = self.drive.files()
         j.sal.fs.createDir('/tmp/gdrive/')
 
-    def _getCredentials(self):
+    @property
+    def credentials(self):
+        if self._credentials == None:
+            self.initClientSecret()
+        return self._credentials
+
+    def initClientSecret(self, path='client_secrets.json'):
         """Gets valid user credentials from storage.
 
         If nothing has been stored, or if the stored credentials are invalid,
@@ -51,14 +57,17 @@ class GDriveFactory:
         Returns:
             Credentials, the obtained credential.
         """
+        if not j.sal.fs.exists(path, followlinks=True):
+            raise j.exceptions.Input(message="Could not find google secrets file in %s, please dwonload" %
+                                     path, level=1, source="", tags="", msgpub="")
         store = Storage(self.secretsFilePath)
-        credentials = store.get()
-        if not credentials or credentials.invalid:
-            flow = client.flow_from_clientsecrets(self.secretsFilePath, SCOPES)
+        self._credentials = store.get()
+        if not j.sal.fs.exists(self.secretsFilePath) or not self._credentials or self._credentials.invalid:
+            flow = client.flow_from_clientsecrets(path, SCOPES)
             flow.user_agent = APPLICATION_NAME
-            credentials = tools.run(flow, store)
+            self._credentials = tools.run_flow(flow, store)
+            # credentials = tools.run(flow, store)
             self.logger.info('Storing credentials to ' + self.secretsFilePath)
-        return credentials
 
     def fileExport(self, file_id, path=""):
         """
@@ -100,19 +109,19 @@ class GDriveFactory:
             q = "name contains '<' AND name contains '>' "
             response = self.files.list(q=q,
                                        spaces='drive',
-                                       fields='nextPageToken, files(id, name, description, modifiedTime,version)',
+                                       fields='nextPageToken, files(id, name, description, modifiedTime,version,parents,starred,webContentLink,webViewLink)',
                                        pageToken=page_token).execute()
-
-            from IPython import embed
-            print("DEBUG NOW 87")
-            embed()
-            raise RuntimeError("stop debug here")
 
             for file in response.get('files', []):
                 # Process file & put metadata in file
                 self.logger.info('Found gdrive file: %s (%s)' % (file.get('name'), file.get('id')))
 
-                md = GDriveFile(id=file.get('id'), json=file.get('description'))
+                from IPython import embed
+                print("DEBUG NOW 87")
+                embed()
+                raise RuntimeError("stop debug here")
+
+                md = GDriveFile(gmd=file)
                 print(md.json)
 
                 # CHECK THAT FILE HAS BEEN MODIFIED

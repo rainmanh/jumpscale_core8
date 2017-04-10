@@ -1685,6 +1685,9 @@ class ExecutorMethods():
             return True
         return False
 
+    def isAlpine(self):
+        return self.exists("/etc/alpine-release")
+
     def isWindows(self):
         if sys.platform.startswith("win") == 1:
             return True
@@ -2419,7 +2422,7 @@ class Installer():
                     self.do.execute(cmd)
 
         self.do.dependencies.all()
-        if not sys.platform.startswith('darwin') or sys.platform.startswith('win'):
+        if not self.do.isAlpine() and not sys.platform.startswith('darwin') or sys.platform.startswith('win'):
             self.do.dependencies.flist()
 
     def gitConfig(self, name, email):

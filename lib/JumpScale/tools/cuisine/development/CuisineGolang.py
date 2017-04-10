@@ -51,9 +51,9 @@ class CuisineGolang(app):
             return
         if self.cuisine.core.isMac:
 
-            downl = "https://storage.googleapis.com/golang/go1.8.darwin-amd64.tar.gz"
+            downl = "https://storage.googleapis.com/golang/go1.8.1.darwin-amd64.tar.gz"
         elif "ubuntu" in self.cuisine.platformtype.platformtypes:
-            downl = "https://storage.googleapis.com/golang/go1.8.linux-amd64.tar.gz"
+            downl = "https://storage.googleapis.com/golang/go1.8.1.linux-amd64.tar.gz"
         else:
             raise j.exceptions.RuntimeError("platform not supported")
         self.cuisine.core.run(cmd=self.replace("rm -rf $GOROOTDIR"), die=True)

@@ -7,26 +7,59 @@ class CuisineLua(app):
 
     NAME = "tarantool"
 
-    def installLua51(self):
+    # def installLua51(self):
+    #
+    #     self.cuisine.package.install("lua5.1")
+    #     self.cuisine.package.install("luarocks")
+    #
+    #     url = "https://raw.githubusercontent.com/zserge/luash/master/sh.lua"
+    #
+    #     C = """
+    #     curl https://raw.githubusercontent.com/slembcke/debugger.lua/master/debugger.lua > /usr/local/share/lua/5.1/debugger.lua
+    #     curl -L https://github.com/luvit/lit/raw/master/get-lit.sh | sh
+    #
+    #     """
+    #     self.cuisine.core.run(C, profile=True)
+    #     self.package("luash", 'http://luarocks.org/dev')
+    #     self.package("luasocket")
+    #     self.package("luasec")
 
-        self.cuisine.package.install("lua5.1")
-        self.cuisine.package.install("luarocks")
-
-        url = "https://raw.githubusercontent.com/zserge/luash/master/sh.lua"
-
+    def reset(self):
         C = """
-        curl https://raw.githubusercontent.com/slembcke/debugger.lua/master/debugger.lua > /usr/local/share/lua/5.1/debugger.lua
-        curl -L https://github.com/luvit/lit/raw/master/get-lit.sh | sh
-
+        brew uninstall lua
+        brew uninstall luajit
         """
-        self.cuisine.core.run(C, profile=True)
-        self.package("luash", 'http://luarocks.org/dev')
-        self.package("luasocket")
-        self.package("luasec")
+
+    def isInstalled(self):
+        rc, out, err = self.cuisine.core.run("tarantool -V", die=False, showout=False, profile=True)
+        if rc > 0 or "Tarantool 1.7" not in out:
+            return False
+        if self.doneGet("install") == False:
+            return False
+        return True
+
+    def tdb(self):
+        from IPython import embed
+        print("DEBUG NOW tdb")
+        embed()
+        raise RuntimeError("stop debug here")
 
     def installLuaTarantool(self, reset=False):
         if reset is False and self.isInstalled():
             return
+
+        from IPython import embed
+        print("DEBUG NOW luainstall")
+        embed()
+        raise RuntimeError("stop debug here")
+
+        C = """
+        rm -rf '/usr/local/bin/lua'
+        brew unlink tarantool
+        brew install tarantool --HEAD
+        brew install lua
+        brew link --overwrite lua
+        """
 
         C = """
         set -ex

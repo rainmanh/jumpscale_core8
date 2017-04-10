@@ -45,6 +45,24 @@ function osx_install {
     sudo chown -R $USER /opt
 }
 
+function alpine_install {
+    apk add git
+    apk add curl
+    apk add wget
+    apk add python3
+    apk add python3-dev
+    apk add gcc
+    apk add make
+    apk add alpine-sdk
+    apk add snappy-dev
+    apk add py3-cffi
+    apk add libffi
+    apk add libffi-dev
+    apk add openssl-dev
+    apk add libexecinfo-dev
+    apk add linux-headers
+}
+
 function pip_install {
     cd $TMPDIR
     rm -rf get-pip.py
@@ -63,6 +81,8 @@ if [ "$(uname)" == "Darwin" ]; then
     export LANG=C; export LC_ALL=C
     osx_install
 
+elif [ -e /etc/alpine-release ]; then
+    alpine_install
 
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     # export LC_ALL='C.UTF-8'

@@ -11,7 +11,8 @@ else:
     branch = "master"
 
 if not "TMPDIR" in os.environ:
-    raise RuntimeError("TMPDIR should be there")
+    os.environ["TMPDIR"] = "/tmp"
+    # raise RuntimeError("TMPDIR should be there")
 
 tmpdir = os.environ["TMPDIR"]
 

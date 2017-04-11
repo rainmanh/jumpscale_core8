@@ -204,15 +204,15 @@ class ErrorConditionObject(BaseException):
     def __str__(self):
         self.printTraceback()
         # self._toAscii()
-        content = "\n\n***ERROR***\n"
-        if self.type != "UNKNOWN":
-            content += "  type/level: %s/%s\n" % (self.type, self.level)
+        # content = "\n\n***ERROR***\n"
+        # if self.type != "UNKNOWN":
+        #     content += "  type/level: %s/%s\n" % (self.type, self.level)
         # if self.tags!="":
         #     content+="tags: %s\n" % self.tags
-        content += "%s\n" % self.errormessage
-        if self.errormessagePub != "" and self.errormessagePub is not None:
-            content += "errorpub:\n%s\n\n" % self.errormessagePub
-        return content
+        # content += "%s\n" % self.errormessage
+        # if self.errormessagePub != "" and self.errormessagePub is not None:
+        #     content += "errorpub:\n%s\n\n" % self.errormessagePub
+        return self.errormessage
 
     __repr__ = __str__
 

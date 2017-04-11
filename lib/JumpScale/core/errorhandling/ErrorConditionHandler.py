@@ -310,9 +310,9 @@ class ErrorConditionHandler:
 
         self.inException = False
 
-        if eco.traceback != "":
-            print("\n**** TRACEBACK ***")
-            eco.printTraceback()
+        # if eco.traceback != "":
+        #     print("\n**** TRACEBACK ***")
+        #     eco.printTraceback()
         print(eco)
         sys.exit(1)
 

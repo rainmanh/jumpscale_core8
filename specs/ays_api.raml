@@ -40,6 +40,7 @@ securitySchemes:
         - "company:contracts:read"
         - "contract:read"
         - "contract:participant"
+        - "contract:participant"
 
 types:
   Repository:
@@ -214,8 +215,8 @@ types:
   Log:
     properties:
       category: string
-      epoch: string
-      level: string
+      epoch: integer
+      level: integer
       log: string
       tags: string
 

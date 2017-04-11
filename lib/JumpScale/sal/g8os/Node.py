@@ -87,7 +87,7 @@ class Node:
         # create the storage pool if we don't have one yet
         if fscache_sp is None:
             disk = self._eligible_fscache_disk(disks)
-            fscache_sp = self.storagepools.create(name, devices=[disk.devicename], metadata_profile='single', data_profile='single')
+            fscache_sp = self.storagepools.create(name, devices=[disk.devicename], metadata_profile='single', data_profile='single', overwrite=True)
 
         # mount the storage pool
         self._mount_fscache(fscache_sp)

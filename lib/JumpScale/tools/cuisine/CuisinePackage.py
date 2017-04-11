@@ -97,8 +97,6 @@ class CuisinePackage(base):
             cmd += package
 
         elif self.cuisine.core.isAlpine:
-            if package == "redis-server":
-                package = "redis"
             cmd = "apk add %s " % package
 
         elif self.cuisine.core.isArch:

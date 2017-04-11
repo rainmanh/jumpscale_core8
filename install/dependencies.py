@@ -19,7 +19,6 @@ class dependencies():
         requests
         netaddr
         ipython
-        #cython
         path.py
         colored-traceback
         pudb
@@ -66,7 +65,7 @@ class dependencies():
         '''
         if self.do.isAlpine():
             self.do.executeBashScript(C, executor=executor)
-        self.do.pip("pycapnp", executor=executor)
+        self.do.pip(["cython", "pycapnp"], executor=executor)
 
     def portal(self, executor=None):
         C = """

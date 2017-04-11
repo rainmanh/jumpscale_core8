@@ -138,7 +138,10 @@ class RedisFactory:
             # import subprocess
             # os.sync()
             # j.sal.fs.chmod(redis_bin, 0o550)
-            j.tools.cuisine.local.package.install("redis-server")
+            if j.tools.cuisine.local.core.isAlpine:
+                j.tools.cuisine.local.package.install("redis")
+            else:
+                j.tools.cuisine.local.package.install("redis-server")
             redis_bin = "redis-server"
             cmd = "%s  --port 0 --unixsocket %s/redis.sock --maxmemory 100000000" % (redis_bin, tmpdir)
             print("start redis in background (linux)")

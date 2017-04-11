@@ -635,21 +635,24 @@ def action(action, assume_yes, actor, service, force):
          actor: node\n
          service: main\n
     """
-    action_block = {'actions':[{'action': action}]}
+    action_block = """
+actions:
+  - action: {}
+    force: {}
+""".format(action, force)
     if actor:
-        action_block['actions'][0]['actor'] = actor
+        action_block += "    actor:%s\n" % actor
     if service:
-        action_block['actions'][0]['service'] = service
-    action_block['actions'][0]['force'] = force
+        action_block += "    service:%s\n" % service
 
     name = 'action_tmp_{}'.format(j.data.time.epoch)
     bp = {
         'name': name,
-        'content': action_block
+        'content': action_block,
     }
 
     if not assume_yes:
-        print(j.data.serializer.yaml.dumps(action_block))
+        print(action_block)
         resp = j.tools.console.askYesNo('Do you want to execute this action block ?', True)
         if resp is False:
             return

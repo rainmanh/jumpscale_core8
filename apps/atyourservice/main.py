@@ -41,7 +41,10 @@ def main(host, port, debug=False):
                     j.core.jobcontroller.db.runs.delete(state=run.dbobj.state, repo=run.dbobj.repo, toEpoch=limit)
             jobs = j.core.jobcontroller.db.jobs.find()
             for job in jobs:
-                if job.state in ['error', 'ok']:
+                if job is None:
+                    continue
+
+                elif job.state in ['error', 'ok']:
                     j.core.jobcontroller.db.jobs.delete(actor=job.dbobj.actorName, service=job.dbobj.serviceName,
                                                         action=job.dbobj.actionName, state=job.state,
                                                         serviceKey=job.dbobj.serviceKey, toEpoch=limit)

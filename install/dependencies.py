@@ -65,7 +65,8 @@ class dependencies():
         '''
         if self.do.isAlpine():
             self.do.executeBashScript(C, executor=executor)
-        self.do.pip(["cython", "pycapnp"], executor=executor)
+        self.do.pip("cython", executor=executor)
+        self.do.pip("pycapnp"], executor=executor)
 
     def portal(self, executor=None):
         C = """

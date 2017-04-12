@@ -6,7 +6,7 @@
 			"type": "boolean"
 		},
 		"content": {
-			"type": "string"
+			"type": "object"
 		},
 		"hash": {
 			"type": "string"

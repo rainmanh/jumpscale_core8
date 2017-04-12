@@ -338,6 +338,7 @@ async def createBlueprint(request, repository):
 
     new_name = inputs['name']
     content = inputs['content']
+
     names = [bp.name for bp in repo.blueprints]
     if new_name in names:
         return json({'error':"Blueprint with the name %s' already exists" % new_name}, 409)
@@ -345,7 +346,7 @@ async def createBlueprint(request, repository):
 
     bp_path = j.sal.fs.joinPaths(repo.path, 'blueprints', new_name)
     try:
-        j.sal.fs.writeFile(bp_path, content)
+        j.sal.fs.writeFile(bp_path, j.data.serializer.yaml.dumps(content))
         blueprint = repo.blueprintGet(new_name)
     except Exception as e:
         print(str(e))

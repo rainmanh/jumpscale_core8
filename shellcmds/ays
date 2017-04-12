@@ -641,9 +641,9 @@ actions:
     force: {}
 """.format(action, force)
     if actor:
-        action_block += "    actor:%s\n" % actor
+        action_block += "    actor: %s\n" % actor
     if service:
-        action_block += "    service:%s\n" % service
+        action_block += "    service: %s\n" % service
 
     name = 'action_tmp_{}'.format(j.data.time.epoch)
     bp = {

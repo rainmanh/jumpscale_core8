@@ -1,7 +1,7 @@
 class Container:
     """G8SO Container"""
 
-    def __init__(self, name, node, flist, hostname=None, filesystems=None, nics=None, host_network=False, ports=None, storage='ardb://hub.gig.tech:16379'):
+    def __init__(self, name, node, flist, hostname=None, filesystems=None, nics=None, host_network=False, ports=None, storage=None):
         """
         TODO: write doc string
         filesystems: dict {filesystemObj: target}

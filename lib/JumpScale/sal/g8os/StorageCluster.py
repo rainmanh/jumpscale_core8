@@ -200,7 +200,6 @@ class StorageServer:
             flist="https://hub.gig.tech/gig-official-apps/ardb-rocksdb.flist",
             filesystems={filesystem: '/mnt/data'},
             host_network=True,
-            storage='ardb://hub.gig.tech:16379'
         )
         self.ardb = ARDB(
             name=name,

@@ -77,7 +77,7 @@ class ARDB:
             is_running, _ = self.is_running()
 
         if not is_running:
-            raise RuntimeError("storage server {} didn't started")
+            raise RuntimeError("storage server {} didn't started".format(self.name))
 
     def stop(self, timeout=30):
         if not self.container.is_running():
@@ -102,7 +102,7 @@ class ARDB:
 
     def is_running(self):
         try:
-            for process in self.container.client.process.list():
+            for process in self.container.client.job.list():
                 if 'name' in process['cmd']['arguments'] and process['cmd']['arguments']['name'] == '/bin/ardb-server':
                     return (True, process)
             return (False, None)

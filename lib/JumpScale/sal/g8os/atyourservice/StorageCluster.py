@@ -58,9 +58,12 @@ class StorageClusterAys(AYSable):
         }
         cluster_service = actor.serviceCreate(instance=self._obj.name, args=args)
 
-        for service in producers:
+        ardbs = cluster_service.model.data.init('ardbs', len(producers))
+        for index, service in enumerate(producers):
             cluster_service.consume(service)
+            ardbs[index] = service.Name
 
+        cluster_service.saveAll()
         return cluster_service
 
 

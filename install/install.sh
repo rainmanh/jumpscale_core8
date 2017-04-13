@@ -16,7 +16,7 @@ rm -rf /optvar/cfg/jumpscale/
 rm -f $TMPDIR/jumpscale_done.yaml
 rm -rf $TMPDIR/jsexecutor.json
 rm -f $TMPDIR/done
-
+ssh-keyscan github.com >> /root/.ssh/known_hosts
 cd $TMPDIR
 function clean_system {
     set +ex

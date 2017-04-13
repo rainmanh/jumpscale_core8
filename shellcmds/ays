@@ -346,7 +346,7 @@ def delete(role, name, assume_yes):
                 print("   None")
 
     if not assume_yes:
-        resp = j.tools.console.askYesNo('\nAre you sure you want to delete ?')
+        resp = j.tools.console.askYesNo('\nAre you sure you want to delete ?', default=True)
         if resp is False:
             return
 

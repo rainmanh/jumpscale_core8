@@ -171,14 +171,13 @@ class AtYourServiceRepo():
     def delete(self):
         # removing related actors, services , runs, jobs and the model itslef.
         self.db.actors.destroy()
-        self.db.services.destroy()
-
         for run in self.runsList():
             run.delete()
 
         for job in self.jobsList():
             job.delete()
 
+        self.db.services.destroy()
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "actors"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "services"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "recipes"))  # for old time sake

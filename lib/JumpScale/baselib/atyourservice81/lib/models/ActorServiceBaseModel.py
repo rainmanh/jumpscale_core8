@@ -38,7 +38,11 @@ class ActorServiceBaseModel(ModelBaseWithData):
                                                           auto=bool(auto), optional=bool(optional), argname=argname)
         self.addSubItem("producers", msg)
 
-    def actionAdd(self, name, key="", period=0, log=True, isJob=True):
+    def timeoutAdd(self, actionname, timeout):
+        o = self.collection.capnp_schema.Timeout.new_message(actionName=actionname, timeout=timeout)
+        self.addSubItem('timeouts', o)
+
+    def actionAdd(self, name, key="", period=0, log=True, isJob=True, timeout=3000):
         """
         creates and add an action code model to the actor/service
         """
@@ -58,13 +62,16 @@ class ActorServiceBaseModel(ModelBaseWithData):
             if key == "":
                 raise j.exceptions.Input(message="key cannot be empty when adding action:%s to %s" %
                                          (name, self), level=1, source="", tags="", msgpub="")
+
             action_obj = self.collection.capnp_schema.Action.new_message(
                 name=name,
                 actionKey=key,
                 state='new',
                 period=period,
                 log=log,
-                isJob=isJob)
+                isJob=isJob,
+                timeout=timeout)
+
             self.changed = True
             self.addSubItem('actions', action_obj)
 

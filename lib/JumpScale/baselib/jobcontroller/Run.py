@@ -30,17 +30,6 @@ class RunStep:
     def services(self):
         return [job.service for job in self.jobs]
 
-    # def addJob(self, job):
-    #     job.model.dbobj.runKey = self.run.model.key
-    #     job.save()
-
-        # jobobj = self.run.model.jobNew(xstep=self.dbobj)
-        # jobobj.actionName = job.model.dbobj.actionName
-        # jobobj.actorName = job.model.dbobj.actorName
-        # jobobj.key = job.model.key
-        # jobobj.serviceName = job.model.dbobj.serviceName
-        # jobobj.serviceKey = job.model.dbobj.serviceKey
-
     @property
     def jobs(self):
         res = []
@@ -64,17 +53,27 @@ class RunStep:
         job.save()
 
     async def execute(self):
+
+        async def enhanced_waiter(future, timeout, job):
+            try:
+                await asyncio.wait_for(future, timeout)
+            except asyncio.TimeoutError as e:
+                job.state = 'error'
+                self.logger.error(e)
+
         futures = []
         for job in self.jobs:
+            action_name = job.model.dbobj.actionName
+            service = job.service
+            action_timeout = service.model.actions[action_name].timeout
             self.logger.info('execute %s' % job)
             # don't actually execute anything
             if job.service.aysrepo.no_exec is True:
                 self._fake_exec(job)
             else:
-                futures.append(job.execute())
+                future = asyncio.ensure_future(enhanced_waiter(job.execute(), action_timeout, job))
+                futures.append(future)
 
-        # TODO: implement timout in the asyncio.wait
-        self.logger.debug("wait for all jobs to complete")
         done, pending = await asyncio.wait(futures)
         if len(pending) != 0:
             for future in pending:

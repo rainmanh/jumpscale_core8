@@ -126,6 +126,7 @@ class Actor():
 
         self._processActionsFile(j.sal.fs.joinPaths(template.path, "actions.py"))
         self._initRecurringActions(template)
+        self._initTimeouts(template)
         self._initEvents(template)
 
         # hrd schema to capnp
@@ -162,6 +163,16 @@ class Actor():
                 auto=bool(consume_info['auto']),
                 argname=consume_info.get('argname', consume_info['role'])
             )
+
+    def _initTimeouts(self, template):
+        for timeout_info in template.timeoutsConfig:
+            for actionname, timeout in timeout_info.items():
+                timeoutasint = j.data.types.duration.convertToSeconds(timeout)
+                action_model = self.model.actions[actionname]
+                action_model.timeout = timeoutasint
+                ac = j.core.jobcontroller.db.actions.get(key=action_model.actionKey)
+                ac.timeout = timeoutasint
+                ac.save()
 
     def _initRecurringActions(self, template):
         for reccuring_info in template.recurringConfig:
@@ -361,7 +372,6 @@ class Actor():
         ac.dbobj.args = amMethodArgs
         ac.dbobj.lastModDate = j.data.time.epoch
         ac.dbobj.origin = "actoraction:%s:%s" % (self.model.dbobj.name, actionName)
-
         if not j.core.jobcontroller.db.actions.exists(ac.key):
             # will save in DB
             ac.save()

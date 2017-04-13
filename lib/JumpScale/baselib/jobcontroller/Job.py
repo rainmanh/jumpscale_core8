@@ -33,17 +33,34 @@ def _execute_cb(job, future):
         if action_name in job.service.model.actionsRecurring and service_action_obj:
             # if the action is a reccuring action, save last execution time in model
             service_action_obj.lastRun = j.data.time.epoch
+    exception = None
+    futurecancelled = False
+    try:
+        exception = future.exception()
+    except:  # CancelledError
+        futurecancelled = True
+        job.logger.info("****Future was cancelled")
+        job.state = 'error'
+        job.model.dbobj.state = 'error'
+        job.save()
 
-    exception = future.exception()
-    if exception is not None:
+    job.logger.info(">>>>future exception {} ".format(str(exception)))
+
+    if exception is not None or futurecancelled:
         job.state = 'error'
         job.model.dbobj.state = 'error'
         if service_action_obj:
             service_action_obj.state = 'error'
         if job.service:
             job.service.model.dbobj.state = 'error'
-        tb_lines = [ line.rstrip('\n') for line in traceback.format_exception(exception.__class__, exception,  exception.__traceback__)]
-        job.logger.error('\n'.join(tb_lines))
+
+        ex = exception if exception is not None else TimeoutError()
+        eco = j.errorconditionhandler.processPythonExceptionObject(ex)
+        job._processError(eco)
+
+        if exception:
+            tb_lines = [line.rstrip('\n') for line in traceback.format_exception(exception.__class__, exception, exception.__traceback__)]
+            job.logger.error('\n'.join(tb_lines))
     else:
         job.state = 'ok'
         job.model.dbobj.state = 'ok'
@@ -246,7 +263,6 @@ class Job():
 
         loop = asyncio.get_event_loop()
         self._future = loop.run_in_executor(None, self.method, self)
-
         # register callback to deal with logs and state of the job after execution
         self._future.add_done_callback(functools.partial(_execute_cb, self))
 
@@ -255,6 +271,7 @@ class Job():
             service_action_obj.state = 'running'
 
         self.model.dbobj.state = 'running'
+
         self.save()
         return self._future
 

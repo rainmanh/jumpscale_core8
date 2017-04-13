@@ -1,0 +1,6 @@
+simpleactor__tservice:
+
+actions:
+   - action: 'install'
+   - action: 'firstac'
+   - action: 'secondact'

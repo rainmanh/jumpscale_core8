@@ -84,13 +84,17 @@ class Service:
 
         # actions
         for action in actor.model.dbobj.actions:
+            actimeout = action.timeout  # default is 3000 in the actor.
+
             self.model.actionAdd(
                 name=action.name,
                 key=action.actionKey,
                 period=action.period,
                 log=action.log,
-                isJob=action.isJob
+                isJob=action.isJob,
+                timeout=actimeout
             )
+
         # events
         events = self.model.dbobj.init_resizable_list('eventFilters')
         for event in actor.model.dbobj.eventFilters:

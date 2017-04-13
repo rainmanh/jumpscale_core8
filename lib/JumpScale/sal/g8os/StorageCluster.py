@@ -128,7 +128,7 @@ class StorageCluster:
                 if len(disk.partitions) > 0:
                     usedisks.append(disk)
 
-        for disk in available_disks:
+        for disk in available_disks[:]:
             if disk in usedisks:
                 available_disks.remove(disk)
                 continue

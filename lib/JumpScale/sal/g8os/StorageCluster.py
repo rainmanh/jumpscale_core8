@@ -56,6 +56,8 @@ class StorageCluster:
             raise TypeError("disk_type should be on of {}".format(', '.join(DiskType.__members__.keys())))
         self.disk_type = disk_type
         self.has_slave = has_slave
+        if len(nodes) < 2 and has_slave:
+            raise RuntimeError("can't deploy storage cluster with slaves if deployed on less then two nodes")
 
         for disk in self._find_available_disks():
             self.filesystems.append(self._prepare_disk(disk))
@@ -69,14 +71,14 @@ class StorageCluster:
                 fs = self.filesystems[i % (nr_filesystems - 1)]
             return fs
 
-
+        # deploy data storage server
         port = 2000
         for i in range(nr_server):
             fs = get_filesystem(i)
             bind = "0.0.0.0:{}".format(port)
             port = port + 1
             storage_server = StorageServer(cluster=self)
-            storage_server.create(filesystem=fs, name="{}_{}".format(self.name, i), bind=bind)
+            storage_server.create(filesystem=fs, name="{}_data_{}".format(self.name, i), bind=bind)
             self.storage_servers.append(storage_server)
 
         if has_slave:
@@ -86,8 +88,25 @@ class StorageCluster:
                 bind = "0.0.0.0:{}".format(port)
                 port = port + 1
                 slave_server = StorageServer(cluster=self)
-                slave_server.create(filesystem=fs, name="{}_{}".format(self.name, (nr_server+i)), bind=bind, master=storage_server)
+                slave_server.create(filesystem=fs, name="{}_data_{}".format(self.name, (nr_server + i)), bind=bind, master=storage_server)
                 self.storage_servers.append(slave_server)
+
+
+        # deploy metadata storage server
+        fs = get_filesystem(0)
+        bind = "0.0.0.0:{}".format(port)
+        port = port + 1
+        metadata_storage_server = StorageServer(cluster=self)
+        metadata_storage_server.create(filesystem=fs, name="{}_metadata_0".format(self.name), bind=bind)
+        self.storage_servers.append(metadata_storage_server)
+
+        if has_slave:
+            fs = get_filesystem(i, metadata_storage_server.node)
+            bind = "0.0.0.0:{}".format(port)
+            port = port + 1
+            slave_server = StorageServer(cluster=self)
+            slave_server.create(filesystem=fs, name="{}_metadata_1".format(self.name), bind=bind, master=metadata_storage_server)
+            self.storage_servers.append(slave_server)
 
     def _find_available_disks(self):
         """

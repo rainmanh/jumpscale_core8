@@ -56,6 +56,8 @@ class RunStep:
 
         async def enhanced_waiter(future, timeout, job):
             try:
+                if timeout == 0:
+                    timeout = 3000
                 await asyncio.wait_for(future, timeout)
             except asyncio.TimeoutError as e:
                 job.state = 'error'

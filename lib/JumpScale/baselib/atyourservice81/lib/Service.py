@@ -84,7 +84,7 @@ class Service:
 
         # actions
         for action in actor.model.dbobj.actions:
-            actimeout = action.timeout  # default is 3000 in the actor.
+            actimeout = action.timeout
 
             self.model.actionAdd(
                 name=action.name,

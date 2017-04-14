@@ -564,7 +564,7 @@ class AtYourServiceRepo():
                 if action in service.model.actionsEvents:
                     continue
 
-                if str(obj.state) in ['scheduled', 'changed', 'error']:
+                if str(obj.state) in ['scheduled', 'error']:
                     if service not in result:
                         result[service] = list()
                     action_chain = list()

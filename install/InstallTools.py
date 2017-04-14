@@ -1,7 +1,5 @@
 import sys
 import random
-import asyncio
-import selectors
 import threading
 import queue
 
@@ -10,14 +8,12 @@ from urllib.request import urlopen
 import os
 import tarfile
 import shutil
-import tempfile
 import platform
 import subprocess
 import time
 import fnmatch
 from subprocess import Popen
 import re
-import inspect
 import yaml
 import importlib
 import fcntl

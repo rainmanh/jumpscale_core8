@@ -12,6 +12,3 @@ actions:
    - action: 'install'
    - action: 'test'
      actor: "test_auto_behavior"
-
-   - action: 'test'
-     actor: "test_auto_behavior"

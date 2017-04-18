@@ -22,10 +22,15 @@ class StoragePoolAys(AYSable):
 
     @property
     def _node_name(self):
-        for nic in self._obj.node.client.info.nic():
-            for addr in nic['addrs']:
-                if addr['addr'].split('/')[0] == self._obj.node.addr:
-                    return nic['hardwareaddr'].replace(':', '')
+        def is_valid_nic(nic):
+            for exclude in ['zt', 'core', 'kvm', 'lo']:
+                if nic['name'].startswith(exclude):
+                    return False
+            return True
+
+        for nic in filter(is_valid_nic, self._obj.node.client.info.nic()):
+            if len(nic['addrs']) > 0 and nic['addrs'][0]['addr'] != '':
+                return nic['hardwareaddr'].replace(':', '')
         raise AttributeError("name not find for node {}".format(self._obj.node))
 
 

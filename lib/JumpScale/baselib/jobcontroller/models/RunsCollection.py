@@ -74,18 +74,19 @@ class RunsCollection(ModelBaseCollection):
         '''
         for key in self._list_keys(state, fromEpoch, toEpoch):
             if repo:
-                model = self.get(key)
+                if self.exists(key):
+                    model = self.get(key)
 
-                if model.dbobj.repo != repo:
-                    continue
-                idx = str(model.dbobj.state) + ':' + str(model.dbobj.lastModDate)
-                self._index.index_remove(keys=idx)
+                    if model.dbobj.repo != repo:
+                        continue
+                    idx = str(model.dbobj.state) + ':' + str(model.dbobj.lastModDate)
+                    self._index.index_remove(keys=idx)
+                    # Remove jobs in the run
+
+                    for step in model.dbobj.steps:
+                        for job in step.jobs:
+                            j.core.jobcontroller.db.jobs.delete(job.actorName, job.serviceName, job.actionName, step.state.__str__(), job.serviceKey)
                 self._db.delete(key=key)
-                # Remove jobs in the run
-
-                for step in model.dbobj.steps:
-                    for job in step.jobs:
-                        j.core.jobcontroller.db.jobs.delete(job.actorName, job.serviceName, job.actionName, step.state.__str__(), job.serviceKey)
 
     def destroy(self):
         self._db.destroy()

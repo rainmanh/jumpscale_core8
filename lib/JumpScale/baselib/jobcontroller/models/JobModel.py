@@ -144,6 +144,9 @@ class JobModel(ModelBase):
     def delete(self):
         # delete actual model object
         if self.collection._db.exists(self.key):
+            index = "%s:%s:%s:%s:%s:%s" % (self.dbobj.actorName, self.dbobj.serviceName,
+                                         self.dbobj.actionName, self.dbobj.state, self.dbobj.serviceKey, self.dbobj.lastModDate)
+            self.collection._index.index_remove(keys=index)
             self.collection._db.delete(self.key)
 
 

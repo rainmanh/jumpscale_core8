@@ -19,7 +19,8 @@ class StorageClusterAys(AYSable):
 
     def create(self, aysrepo):
         # create all producers
-        producers = []
+        filesystems = []
+        ardbs = []
 
         for fs in self._obj.filesystems:
             try:
@@ -32,7 +33,7 @@ class StorageClusterAys(AYSable):
             except ValueError:
                 fs_service = fs.ays.create(aysrepo)
             fs_service.consume(pool_service)
-            producers.append(fs_service)
+            filesystems.append(fs_service)
 
         for server in self._obj.storage_servers:
             try:
@@ -45,7 +46,7 @@ class StorageClusterAys(AYSable):
             except ValueError:
                 ardb_services = server.ardb.ays.create(aysrepo)
             ardb_services.consume(container_service)
-            producers.append(ardb_services)
+            ardbs.append(ardb_services)
 
         actor = aysrepo.actorGet(self.actor)
         args = {
@@ -58,9 +59,18 @@ class StorageClusterAys(AYSable):
         }
         cluster_service = actor.serviceCreate(instance=self._obj.name, args=args)
 
-        for service in producers:
-            cluster_service.consume(service)
+        cluster_service.model.data.init('ardbs', len(ardbs))
+        cluster_service.model.data.init('filesystems', len(filesystems))
 
+        for index, service in enumerate(filesystems):
+            cluster_service.consume(service)
+            cluster_service.model.data.filesystems[index] = service.name
+
+        for index, service in enumerate(ardbs):
+            cluster_service.consume(service)
+            cluster_service.model.data.ardbs[index] = service.name
+
+        cluster_service.saveAll()
         return cluster_service
 
 

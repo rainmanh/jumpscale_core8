@@ -117,6 +117,10 @@ class ActorTemplate():
         return result
 
     @property
+    def timeoutsConfig(self):
+        return self.configDict.get("timeouts", {})
+
+    @property
     def consumptionConfig(self):
         result = self.configDict.get("links", {})
         result = result[0].get('consume', {}) if isinstance(result, list) else result.get('consume', {})

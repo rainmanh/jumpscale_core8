@@ -297,8 +297,8 @@ class CuisinePython(base):
         self.cuisine.core.dir_ensure(j.dirs.JSBASEDIR+"/bin")
         self.cuisine.core.dir_ensure(j.dirs.JSBASEDIR+"/lib")
         command = """
-        cp -r {python_build}/bin/* {JSBASE}/bin
-        cp -r {python_build}/lib/* {JSBASE}/lib
+        rsync -ldr --ignore-existing {python_build}/bin/* {JSBASE}/bin
+        rsync -ldr --ignore-existing {python_build}/lib/* {JSBASE}/lib
         cp -r {python_build}/include {JSBASE}/include
         cp -r {python_build}/plib    {JSBASE}/plib
         cp {python_build}/env.sh {JSBASE}/env.sh

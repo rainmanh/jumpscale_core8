@@ -79,6 +79,7 @@ class ActorModel(ActorServiceBaseModel):
                                                         auto=bool(auto), optional=bool(optional), argname=argname)
         self.addSubItem('producers', o)
 
+
     @property
     def dictFiltered(self):
         ddict = self.dbobj.to_dict()

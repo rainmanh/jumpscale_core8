@@ -57,7 +57,7 @@ class Blueprint:
                             recurring0 = ""
                         else:
                             recurring0 = actionModel["recurring"]
-                        force0 = actionModel.get('force', False)
+                        force0 = bool(actionModel.get('force', False))
 
                         if "action" not in actionModel:
                             raise j.exceptions.Input(message="need to specify action.",

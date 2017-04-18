@@ -393,7 +393,7 @@ class CuisineCore(base):
                 else:
                     user = ""
 
-                cmd = "curl -L '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (
+                cmd = "curl -L '%s' -o '%s' %s %s --connect-timeout 30 --retry %s --retry-max-time %s" % (
                     url, to, user, minsp, retry, timeout)
                 if self.file_exists(to):
                     cmd += " -C -"
@@ -402,7 +402,7 @@ class CuisineCore(base):
                 rc, out, err = self.run(cmd, die=False, timeout=processtimeout)
                 if rc == 33:  # resume is not support try again withouth resume
                     self.file_unlink(to)
-                    cmd = "curl -L '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (
+                    cmd = "curl -L '%s' -o '%s' %s %s --connect-timeout 30 --retry %s --retry-max-time %s" % (
                         url, to, user, minsp, retry, timeout)
                     rc, out, err = self.run(cmd, die=False, timeout=processtimeout)
                 fsize = self.file_size(to)

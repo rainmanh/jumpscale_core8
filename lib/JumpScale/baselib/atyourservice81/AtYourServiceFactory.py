@@ -31,6 +31,7 @@ class AtYourServiceFactory:
         self.baseActions = {}
         self.templateRepos = None
         self.aysRepos = None
+        self._cleanupHandle = None
 
     def start(self, bind='127.0.0.1', port=5000, debug=False):
         """
@@ -52,10 +53,30 @@ class AtYourServiceFactory:
         self.logger.info("go to http://{}:{} to see rest api".format(bind, port))
         return rc, out
 
+    def cleanup(self):
+        sleep = 60
+        runs = j.core.jobcontroller.db.runs.find()
+        limit = int(j.data.time.getEpochAgo("-2h"))
+        for run in runs:
+            if run.dbobj.state in ['error', 'ok']:
+                j.core.jobcontroller.db.runs.delete(state=run.dbobj.state, repo=run.dbobj.repo, toEpoch=limit)
+        jobs = j.core.jobcontroller.db.jobs.find()
+        for job in jobs:
+            if job is None:
+                continue
+
+            elif job.state in ['error', 'ok']:
+                j.core.jobcontroller.db.jobs.delete(actor=job.dbobj.actorName, service=job.dbobj.serviceName,
+                                                    action=job.dbobj.actionName, state=job.state,
+                                                    serviceKey=job.dbobj.serviceKey, toEpoch=limit)
+        self._cleanupHandle = self.loop.call_later(sleep, self.cleanup)
+
     def _start(self, loop=None):
         self.loop = loop or asyncio.get_event_loop()
         self.templateRepos = TemplateRepoCollection()  # actor templates repositories
         self.aysRepos = AtYourServiceRepoCollection()  # ays repositories
+        if not self._cleanupHandle:
+            self._cleanupHandle = self.loop.call_soon(self.cleanup)
 
     @property
     def actorTemplates(self):

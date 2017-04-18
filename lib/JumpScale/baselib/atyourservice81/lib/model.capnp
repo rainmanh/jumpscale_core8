@@ -49,6 +49,7 @@ struct Actor {
     log @3 :Bool;
     state @4 :ActionState;
     isJob @5 :Bool;
+    timeout @6 :UInt32;
   }
 
   eventFilters @6 :List(EventFilter);
@@ -119,7 +120,6 @@ struct Actor {
     #path in repo
     path @1 :Text;
   }
-
 }
 
 struct Service {
@@ -158,6 +158,8 @@ struct Service {
     lastRun @4: UInt32;
     period @5 :UInt32;#use j.data.time.getSecondsInHR( to show HR
     isJob @6 :Bool;
+    timeout @7 :UInt32;
+
   }
 
   #list of filter statements, when match call service.executeActionService("processEvent",event)
@@ -213,5 +215,4 @@ struct Service {
     #path in repo
     path @1 :Text;
   }
-
 }

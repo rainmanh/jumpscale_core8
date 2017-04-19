@@ -2,7 +2,6 @@ from JumpScale.sal.g8os.abstracts import Mountable
 from JumpScale.sal.g8os.abstracts import AYSable
 import os
 
-
 class StoragePools:
     def __init__(self, node):
         self.node = node
@@ -71,9 +70,13 @@ class StoragePool(Mountable):
 
     def device_add(self, *devices):
         self._client.btrfs.device_add(self._get_mountpoint(), *devices)
+        self.devices.extend(devices)
 
     def device_remove(self, *devices):
         self._client.btrfs.device_remove(self._get_mountpoint(), *devices)
+        for device in devices:
+            if device in self.devices:
+                self.devices.remove(device)
 
     @property
     def fsinfo(self):

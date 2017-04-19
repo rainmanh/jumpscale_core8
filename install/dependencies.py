@@ -32,7 +32,7 @@ class dependencies():
         asyncssh
         autopep8
         pytoml
-        sanic
+        sanic==0.3.0
         jsonschema
         peewee
         docker

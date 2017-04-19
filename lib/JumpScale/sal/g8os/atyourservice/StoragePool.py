@@ -1,7 +1,5 @@
 from JumpScale.sal.g8os.abstracts import AYSable
-from JumpScale.sal.g8os.StoragePool import StoragePool
-from JumpScale.sal.g8os.StoragePool import FileSystem
-from JumpScale.sal.g8os.StoragePool import Snapshot
+from JumpScale import j
 
 
 class StoragePoolAys(AYSable):
@@ -11,14 +9,28 @@ class StoragePoolAys(AYSable):
         self.actor = 'storagepool'
 
     def create(self, aysrepo):
-        actor = aysrepo.actorGet(self.actor)
-        args = {
-            'metadataProfile': self._obj.fsinfo['metadata']['profile'],
-            'dataProfile': self._obj.fsinfo['data']['profile'],
-            'devices': self._obj.devices,
-            'node': self._node_name,
-        }
-        return actor.serviceCreate(instance=self._obj.name, args=args)
+        try:
+            service = aysrepo.serviceGet(role='storagepool', instance=self._obj.name)
+        except j.exceptions.NotFound:
+            service = None
+
+        if service is None:
+            # create new service
+            actor = aysrepo.actorGet(self.actor)
+            args = {
+                'metadataProfile': self._obj.fsinfo['metadata']['profile'],
+                'dataProfile': self._obj.fsinfo['data']['profile'],
+                'devices': self._obj.devices,
+                'node': self._node_name,
+            }
+            service = actor.serviceCreate(instance=self._obj.name, args=args)
+        else:
+            # update model on exists service
+            service.model.data.init('devices', len(self._obj.devices))
+            for i, device in enumerate(self._obj.devices):
+                service.model.data.devices[i] = device
+
+        return service
 
     @property
     def _node_name(self):

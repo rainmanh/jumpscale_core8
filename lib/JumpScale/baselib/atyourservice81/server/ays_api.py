@@ -531,7 +531,7 @@ def _sanitize(value):
         return result
     elif isinstance(value, (dict, capnp.lib.capnp._DynamicStructBuilder)):
         result = dict()
-        for key, val in value:
+        for key, val in value.to_dict().items():
             result[key] = _sanitize(val)
         return result
     elif isinstance(value, capnp.lib.capnp._DynamicEnum):

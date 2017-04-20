@@ -15,6 +15,7 @@ class Partition(Mountable):
         self.size = None
         self.blocksize = None
         self.mountpoint = None
+        self.uuid = None
         self._filesystems = []
 
         self._load(part_info)
@@ -34,6 +35,7 @@ class Partition(Mountable):
         self.size = int(part_info['size'])
         self.blocksize = detail['blocksize']
         self.mountpoint = part_info['mountpoint']
+        self.uuid = part_info['partuuid']
 
     def _populate_filesystems(self):
         """

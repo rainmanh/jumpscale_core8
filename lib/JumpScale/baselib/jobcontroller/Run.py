@@ -1,106 +1,13 @@
+import colored_traceback
+from JumpScale.baselib.jobcontroller.RunStep import RunStep
 from JumpScale import j
 
-import asyncio
-import time
-import pygments.lexers
-from pygments.formatters import get_formatter_by_name
-import colored_traceback
 colored_traceback.add_hook(always=True)
-
-
-class RunStep:
-
-    def __init__(self, run, nr, dbobj):
-        """
-        """
-        self.run = run
-        self.dbobj = dbobj
-        self.dbobj.number = nr
-        self.logger = j.atyourservice.logger
-
-    @property
-    def state(self):
-        return self.dbobj.state.__str__()
-
-    @state.setter
-    def state(self, state):
-        self.dbobj.state = state
-
-    @property
-    def services(self):
-        return [job.service for job in self.jobs]
-
-    @property
-    def jobs(self):
-        res = []
-        for obj in self.dbobj.jobs:
-            job_model = j.core.jobcontroller.db.jobs.get(obj.key)
-            if job_model:
-                res.append(job_model.objectGet())
-            else:
-                j.logger.log('No job found with key [%s]' % obj.key)
-        return res
-
-    def _fake_exec(self, job):
-        job.model.dbobj.state = 'ok'
-        action_name = job.model.dbobj.actionName
-        # if the action is a reccuring action, save last execution time in model
-        if action_name in job.service.model.actionsRecurring:
-            job.service.model.actionsRecurring[action_name].lastRun = j.data.time.epoch
-
-        service_action_obj = job.service.model.actions[action_name]
-        service_action_obj.state = 'ok'
-        job.save()
-
-    async def execute(self):
-
-        async def enhanced_waiter(future, timeout, job):
-            try:
-                if timeout == 0:
-                    timeout = 3000
-                await asyncio.wait_for(future, timeout)
-            except asyncio.TimeoutError as e:
-                job.state = 'error'
-                self.logger.error(e)
-
-        futures = []
-        for job in self.jobs:
-            action_name = job.model.dbobj.actionName
-            service = job.service
-            action_timeout = service.model.actions[action_name].timeout
-            self.logger.info('execute %s' % job)
-            # don't actually execute anything
-            if job.service.aysrepo.no_exec is True:
-                self._fake_exec(job)
-            else:
-                future = asyncio.ensure_future(enhanced_waiter(job.execute(), action_timeout, job))
-                futures.append(future)
-
-        done, pending = await asyncio.wait(futures)
-        if len(pending) != 0:
-            for future in pending:
-                future.cancel()
-            raise j.exceptions.RuntimeError('not all job done')
-
-        states = [job.model.state for job in self.jobs]
-        self.state = 'error' if 'error' in states else 'ok'
-        self.logger.info("runstep {}: {}".format(self.dbobj.number, self.state))
-
-    def __repr__(self):
-        out = "step:%s (%s)\n" % (self.dbobj.number, self.state)
-        for job in self.jobs:
-            out += "- %-25s %-25s ! %-15s (%s)\n" % \
-                (job.model.dbobj.actorName, job.model.dbobj.serviceName, job.model.dbobj.actionName, job.model.dbobj.state)
-        return out
-
-    __str__ = __repr__
 
 
 class Run:
 
     def __init__(self, model):
-        """
-        """
         self.lastnr = 0
         self.logger = j.atyourservice.logger
         self.model = model
@@ -174,7 +81,6 @@ class Run:
             orphan = self.model.dbobj.steps.disown(i)
             ordered.append(orphan)
 
-        count = len(ordered)
         for i, step in enumerate(reversed(ordered)):
             self.model.dbobj.steps.adopt(i, step)
             self.model.dbobj.steps[i].number = i + 1
@@ -187,7 +93,8 @@ class Run:
     async def execute(self):
         """
         Execute executes all the steps contained in this run
-        if a step finishes with an error state. print the error of all jobs in the step that has error states then raise any
+        if a step finishes with an error state.
+        print the error of all jobs in the step that has error states then raise any
         exeception to stop execution
         """
         self.state = 'running'

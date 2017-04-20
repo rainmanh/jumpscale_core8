@@ -4,13 +4,15 @@ from JumpScale.baselib.atyourservice81.lib.Service import Service
 from JumpScale.baselib.atyourservice81.lib.Blueprint import Blueprint
 from JumpScale.baselib.atyourservice81.lib.models.ActorsCollection import ActorsCollection
 from JumpScale.baselib.atyourservice81.lib.models.ServicesCollection import ServicesCollection
-from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import build_nodes, create_graphs, get_task_batches, create_job
+from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import build_nodes
+from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import create_graphs
+from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import get_task_batches
+from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import create_job
 import asyncio
+from collections import namedtuple
 
 import colored_traceback
 colored_traceback.add_hook(always=True)
-from collections import namedtuple
-
 
 
 class AtYourServiceRepoCollection:
@@ -24,7 +26,7 @@ class AtYourServiceRepoCollection:
     def _load(self):
         self.logger.info("reload AYS repos")
         # search repo on the filesystem
-        for dir_path in [ j.dirs.VARDIR, j.dirs.CODEDIR]:
+        for dir_path in [j.dirs.VARDIR, j.dirs.CODEDIR]:
             self.logger.debug("search ays repo in {}".format(dir_path))
             for path in self._searchAysRepos(dir_path):
                 if path not in self._repos:
@@ -102,7 +104,7 @@ class AtYourServiceRepoCollection:
                 'cd {path};git remote add origin {url}'.format(path=path, url=git_url))
         j.sal.nettools.download(
             'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
-        name = j.sal.fs.getBaseName(path)
+
         # TODO lock
         self._repos[path] = AtYourServiceRepo(path=path)
         print("AYS Repo created at %s" % path)
@@ -126,6 +128,7 @@ class AtYourServiceRepoCollection:
     def delete(self, repo):
         if repo.path in self._repos:
             del self._repos[repo.path]
+
 
 VALID_ACTION_STATE = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
@@ -166,7 +169,7 @@ class AtYourServiceRepo():
                 if j.sal.fs.getBaseName(service_path).startswith('flist-'):
                     continue
 
-                s = Service.init_from_fs(aysrepo=self, path=service_path)
+                Service.init_from_fs(aysrepo=self, path=service_path)
 
     def delete(self):
         # removing related actors, services , runs, jobs and the model itslef.
@@ -313,7 +316,7 @@ class AtYourServiceRepo():
         Return service indentifier by role and instance or key
         throw error if service is not found or if more than one service is found
         """
-        if key is None and  (role.strip() == "" or instance.strip() == ""):
+        if key is None and (role.strip() == "" or instance.strip() == ""):
             raise j.exceptions.Input("role and instance cannot be empty.")
 
         if key is not None:
@@ -322,12 +325,11 @@ class AtYourServiceRepo():
             except KeyError:
                 raise j.exceptions.NotFound('cant find service with key %s' % key)
 
-
         models = self.db.services.find(actor="%s.*" % role, name=instance)
         if len(models) == 1:
             return models[0].objectGet(self)
 
-        if len(models) <=0 and die:
+        if len(models) <= 0 and die:
             raise j.exceptions.NotFound(message="Cannot find service %s:%s" %
                                         (role, instance), level=1, source="", tags="", msgpub="")
         return None

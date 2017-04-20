@@ -40,8 +40,8 @@ class RunScheduler:
         self.logger.info("{} stopped".format(self))
 
     async def stop(self, timeout=30):
-        self.logger.info("{} stopping...".format(self))
         self.is_running = False
+        self.logger.info("{} stopping...".format(self))
         try:
             await asyncio.wait_for(self.queue.join(), timeout=timeout, loop=self._loop)
         except asyncio.TimeoutError:
@@ -51,6 +51,9 @@ class RunScheduler:
         """
         add a run to the queue of run to be executed
         """
+        if not self.is_running:
+            raise j.exceptions.RuntimeError("Trying to add a run to a stopped run scheduler ({})".format(self))
+
         self.logger.debug("add run {} to {}".format(run.model.key, self))
         await self.queue.put((NORMAL_RUN_PRIORITY, run))
 

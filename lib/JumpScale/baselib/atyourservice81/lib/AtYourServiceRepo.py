@@ -8,6 +8,7 @@ from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import buil
 from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import create_graphs
 from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import get_task_batches
 from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import create_job
+from JumpScale.baselib.atyourservice81.lib.RunScheduler import RunScheduler
 import asyncio
 from collections import namedtuple
 
@@ -145,6 +146,8 @@ class AtYourServiceRepo():
         self._db = None
         self.no_exec = False
         self._loop = asyncio.get_event_loop()
+        self.run_scheduler = RunScheduler(self)
+        self._run_scheduler_task = asyncio.ensure_future(self.run_scheduler.start())
         j.atyourservice._loadActionBase()
 
         self._load_services()
@@ -171,7 +174,20 @@ class AtYourServiceRepo():
 
                 Service.init_from_fs(aysrepo=self, path=service_path)
 
-    def delete(self):
+    async def delete(self):
+
+        # stop run scheduler, wait for 30 sec
+        await self.run_scheduler.stop(timeout=30)
+        if self._run_scheduler_task:
+            self._run_scheduler_task.cancel()
+            try:
+                # we wait here to make sure to give the time to the task to cancel itself.
+                await self._run_scheduler_task
+            except asyncio.CancelledError:
+                #  it should pass here, the canceld future should raise this exception
+                pass
+        self.run_scheduler = None
+
         # removing related actors, services , runs, jobs and the model itslef.
         self.db.actors.destroy()
         for run in self.runsList():
@@ -186,8 +202,8 @@ class AtYourServiceRepo():
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "recipes"))  # for old time sake
         j.atyourservice.aysRepos.delete(self)
 
-    def destroy(self):
-        self.delete()
+    async def destroy(self):
+        await self.delete()
         j.atyourservice.aysRepos.loadRepo(self.path)
 
     def enable_noexec(self):

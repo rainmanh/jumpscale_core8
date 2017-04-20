@@ -44,8 +44,6 @@ def _execute_cb(job, future):
         job.model.dbobj.state = 'error'
         job.save()
 
-    job.logger.info(">>>>future exception {} ".format(str(exception)))
-
     if exception is not None or futurecancelled:
         job.state = 'error'
         job.model.dbobj.state = 'error'

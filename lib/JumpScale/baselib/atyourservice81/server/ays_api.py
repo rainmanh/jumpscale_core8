@@ -1,13 +1,18 @@
 import json as JSON
-
-from JumpScale import j
 from sanic.response import json, text
 import jsonschema
 from jsonschema import Draft4Validator
-from JumpScale.baselib.atyourservice81.server.views import *
 import asyncio
 import capnp
 
+from JumpScale.baselib.atyourservice81.server.views import service_view
+from JumpScale.baselib.atyourservice81.server.views import run_view
+from JumpScale.baselib.atyourservice81.server.views import actor_view
+from JumpScale.baselib.atyourservice81.server.views import blueprint_view
+from JumpScale.baselib.atyourservice81.server.views import template_view
+from JumpScale.baselib.atyourservice81.server.views import repository_view
+
+from JumpScale import j
 
 Blueprint_schema = JSON.load(open(j.sal.fs.joinPaths(j.sal.fs.getParent(__file__),'schema/Blueprint_schema.json')))
 Repository_schema = JSON.load(open(j.sal.fs.joinPaths(j.sal.fs.getParent(__file__),'schema/Repository_schema.json')))
@@ -100,7 +105,7 @@ async def deleteRepository(request, repository):
     except j.exceptions.NotFound as e:
         return json({'error':e.message}, 404)
 
-    repo.delete()
+    await repo.delete()
     if j.sal.fs.exists(repo.path):
         j.sal.fs.removeDirTree(repo.path)
 
@@ -117,7 +122,7 @@ async def destroyRepository(request, repository):
     except j.exceptions.NotFound as e:
         return json({'error':e.message}, 404)
 
-    repo.destroy()
+    await repo.destroy()
 
     return json({}, 204)
 
@@ -268,39 +273,33 @@ async def deleteRun(request, aysrun, repository):
         return json({'error':e.message}, 404)
 
     try:
-        aysrun_model = repo.runDelete(aysrun)
+        repo.runDelete(aysrun)
     except j.exceptions.NotFound as e:
-        return json({'error':e.message}, 404)
+        return json({'error': e.message}, 404)
 
 
 async def executeRun(request, aysrun, repository):
     """
     Execute a specific run
     """
-    def cb(future):
-        # TODO: request to callback_url
-        exception = future.exception()
-        if exception is not None:
-            print("error during execution of the run")
-            print(exception)
-
     try:
         repo = get_repo(repository)
     except j.exceptions.NotFound as e:
-        return json({'error':e.message}, 404)
+        return json({'error': e.message}, 404)
 
     try:
         aysrun_model = repo.runGet(aysrun)
         aysrun = aysrun_model.objectGet()
-        future = asyncio.ensure_future(aysrun.execute())
-        future.add_done_callback(cb)
+        await repo.run_scheduler.add(aysrun)
 
     except j.exceptions.NotFound as e:
-        return json({'error':e.message}, 404)
+        return json({'error': e.message}, 404)
+
     except Exception as e:
-        return json({'error':str(e)}, 500)
+        return json({'error': str(e)}, 500)
 
     return json(run_view(aysrun), 200)
+
 
 async def listBlueprints(request, repository):
     '''

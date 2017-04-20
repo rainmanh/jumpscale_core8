@@ -19,7 +19,7 @@ class StoragePoolAys(AYSable):
             info = self._obj.node.client.disk.getinfo(device[5:8], device[5:9])
             device_map.append({
                 'device': device,
-                'partUUID': info['partuuid'],
+                'partUUID': info['partuuid'] or '',
             })
 
         if service is None:

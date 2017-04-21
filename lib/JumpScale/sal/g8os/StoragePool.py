@@ -1,6 +1,23 @@
 from JumpScale.sal.g8os.abstracts import Mountable
-from JumpScale.sal.g8os.abstracts import AYSable
 import os
+
+
+def _prepare_device(node, devicename):
+    ss = devicename.split('/')
+    if len(ss) < 3:
+        return RuntimeError("bad device name: {}".format(devicename))
+    name = ss[2]
+
+    disk = node.disks.get(name)
+    if disk is None:
+        raise ValueError("device {} not found".format(name))
+
+    if disk.partition_table is None:
+        disk.mktable(table_type='gpt')
+    if len(disk.partitions) <= 0:
+        disk.mkpart('1m', '100%')
+    return disk.partitions[0]
+
 
 class StoragePools:
     def __init__(self, node):
@@ -26,8 +43,14 @@ class StoragePools:
 
     def create(self, name, devices, metadata_profile, data_profile, overwrite=False):
         label = 'sp_{}'.format(name)
-        self._client.btrfs.create(label, devices, metadata_profile, data_profile, overwrite=overwrite)
-        pool = StoragePool(self.node, name, devices)
+
+        device_names = []
+        for device in devices:
+            part = _prepare_device(self.node, device)
+            device_names.append(part.devicename)
+
+        self._client.btrfs.create(label, device_names, metadata_profile, data_profile, overwrite=overwrite)
+        pool = StoragePool(self.node, name, device_names)
         return pool
 
 
@@ -64,13 +87,30 @@ class StoragePool(Mountable):
     @property
     def mountpoint(self):
         for device in self.devices:
-            mountpoint = self._client.disk.getinfo(device[5:]).get('mountpoint')
+            mountpoint = self._client.disk.getinfo(device[5:8], device[5:9]).get('mountpoint')
             if mountpoint:
                 return mountpoint
 
+    def is_device_used(self, device):
+        """
+        check if the device passed as argument is already part of this storagepool
+        @param device: str e.g: /dev/sda
+        """
+        for d in self.devices:
+            if d.startswith(device):
+                return True
+        return False
+
     def device_add(self, *devices):
-        self._client.btrfs.device_add(self._get_mountpoint(), *devices)
-        self.devices.extend(devices)
+        to_add = []
+        for device in devices:
+            if self.is_device_used(device):
+                continue
+            part = _prepare_device(self.node, device)
+            to_add.append(part.devicename)
+
+        self._client.btrfs.device_add(self._get_mountpoint(), *to_add)
+        self.devices.extend(to_add)
 
     def device_remove(self, *devices):
         self._client.btrfs.device_remove(self._get_mountpoint(), *devices)

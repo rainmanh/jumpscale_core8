@@ -14,21 +14,32 @@ class StoragePoolAys(AYSable):
         except j.exceptions.NotFound:
             service = None
 
+        device_map = []
+        for device in self._obj.devices:
+            info = self._obj.node.client.disk.getinfo(device[5:8], device[5:9])
+            device_map.append({
+                'device': device,
+                'partUUID': info['partuuid'] or '',
+            })
+
         if service is None:
             # create new service
             actor = aysrepo.actorGet(self.actor)
+
             args = {
                 'metadataProfile': self._obj.fsinfo['metadata']['profile'],
                 'dataProfile': self._obj.fsinfo['data']['profile'],
-                'devices': self._obj.devices,
+                'devices': device_map,
                 'node': self._node_name,
             }
             service = actor.serviceCreate(instance=self._obj.name, args=args)
         else:
             # update model on exists service
-            service.model.data.init('devices', len(self._obj.devices))
-            for i, device in enumerate(self._obj.devices):
+            service.model.data.init('devices', len(device_map))
+            for i, device in enumerate(device_map):
                 service.model.data.devices[i] = device
+
+            service.saveAll()
 
         return service
 

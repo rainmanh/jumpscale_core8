@@ -4,13 +4,16 @@ from JumpScale.baselib.atyourservice81.lib.Service import Service
 from JumpScale.baselib.atyourservice81.lib.Blueprint import Blueprint
 from JumpScale.baselib.atyourservice81.lib.models.ActorsCollection import ActorsCollection
 from JumpScale.baselib.atyourservice81.lib.models.ServicesCollection import ServicesCollection
-from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import build_nodes, create_graphs, get_task_batches, create_job
+from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import build_nodes
+from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import create_graphs
+from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import get_task_batches
+from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import create_job
+from JumpScale.baselib.atyourservice81.lib.RunScheduler import RunScheduler
 import asyncio
+from collections import namedtuple
 
 import colored_traceback
 colored_traceback.add_hook(always=True)
-from collections import namedtuple
-
 
 
 class AtYourServiceRepoCollection:
@@ -24,7 +27,7 @@ class AtYourServiceRepoCollection:
     def _load(self):
         self.logger.info("reload AYS repos")
         # search repo on the filesystem
-        for dir_path in [ j.dirs.VARDIR, j.dirs.CODEDIR]:
+        for dir_path in [j.dirs.VARDIR, j.dirs.CODEDIR]:
             self.logger.debug("search ays repo in {}".format(dir_path))
             for path in self._searchAysRepos(dir_path):
                 if path not in self._repos:
@@ -102,7 +105,7 @@ class AtYourServiceRepoCollection:
                 'cd {path};git remote add origin {url}'.format(path=path, url=git_url))
         j.sal.nettools.download(
             'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
-        name = j.sal.fs.getBaseName(path)
+
         # TODO lock
         self._repos[path] = AtYourServiceRepo(path=path)
         print("AYS Repo created at %s" % path)
@@ -127,6 +130,7 @@ class AtYourServiceRepoCollection:
         if repo.path in self._repos:
             del self._repos[repo.path]
 
+
 VALID_ACTION_STATE = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 DBTuple = namedtuple("DB", ['actors', 'services'])
@@ -142,6 +146,8 @@ class AtYourServiceRepo():
         self._db = None
         self.no_exec = False
         self._loop = asyncio.get_event_loop()
+        self.run_scheduler = RunScheduler(self)
+        self._run_scheduler_task = asyncio.ensure_future(self.run_scheduler.start())
         j.atyourservice._loadActionBase()
 
         self._load_services()
@@ -166,9 +172,22 @@ class AtYourServiceRepo():
                 if j.sal.fs.getBaseName(service_path).startswith('flist-'):
                     continue
 
-                s = Service.init_from_fs(aysrepo=self, path=service_path)
+                Service.init_from_fs(aysrepo=self, path=service_path)
 
-    def delete(self):
+    async def delete(self):
+
+        # stop run scheduler, wait for 30 sec
+        await self.run_scheduler.stop(timeout=30)
+        if self._run_scheduler_task:
+            self._run_scheduler_task.cancel()
+            try:
+                # we wait here to make sure to give the time to the task to cancel itself.
+                await self._run_scheduler_task
+            except asyncio.CancelledError:
+                #  it should pass here, the canceld future should raise this exception
+                pass
+        self.run_scheduler = None
+
         # removing related actors, services , runs, jobs and the model itslef.
         self.db.actors.destroy()
         for run in self.runsList():
@@ -183,8 +202,8 @@ class AtYourServiceRepo():
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "recipes"))  # for old time sake
         j.atyourservice.aysRepos.delete(self)
 
-    def destroy(self):
-        self.delete()
+    async def destroy(self):
+        await self.delete()
         j.atyourservice.aysRepos.loadRepo(self.path)
 
     def enable_noexec(self):
@@ -313,7 +332,7 @@ class AtYourServiceRepo():
         Return service indentifier by role and instance or key
         throw error if service is not found or if more than one service is found
         """
-        if key is None and  (role.strip() == "" or instance.strip() == ""):
+        if key is None and (role.strip() == "" or instance.strip() == ""):
             raise j.exceptions.Input("role and instance cannot be empty.")
 
         if key is not None:
@@ -322,12 +341,11 @@ class AtYourServiceRepo():
             except KeyError:
                 raise j.exceptions.NotFound('cant find service with key %s' % key)
 
-
         models = self.db.services.find(actor="%s.*" % role, name=instance)
         if len(models) == 1:
             return models[0].objectGet(self)
 
-        if len(models) <=0 and die:
+        if len(models) <= 0 and die:
             raise j.exceptions.NotFound(message="Cannot find service %s:%s" %
                                         (role, instance), level=1, source="", tags="", msgpub="")
         return None

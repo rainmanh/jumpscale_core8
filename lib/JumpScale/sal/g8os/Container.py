@@ -1,3 +1,5 @@
+import json
+
 class Container:
     """G8SO Container"""
 
@@ -65,12 +67,12 @@ class Container:
             self._client = self.node.client.container.client(self.id)
         return self._client
 
-    def _create_container(self):
+    def _create_container(self, timeout=60):
         mounts = {}
         for fs, target in self.filesystems.items():
             mounts[fs.path] = target
 
-        self.id = self.node.client.container.create(
+        job = self.node.client.container.create(
             root_url=self.flist,
             mount=mounts,
             host_network=self.host_network,
@@ -79,6 +81,11 @@ class Container:
             hostname=self.hostname,
             storage=self.storage,
         )
+
+        result = job.get(timeout)
+        if result.state != 'SUCCESS':
+            raise RuntimeError('failed to create container %s' % result.data)
+        self.id = json.loads(result.data)
         self._client = self.node.client.container.client(self.id)
 
     def start(self):

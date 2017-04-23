@@ -393,8 +393,7 @@ async def executeBlueprint(request, blueprint, repository):
     except j.exceptions.NotFound as e:
         return json({'error':e.message}, 404)
 
-    bp = None
-    blueprints = repo.blueprints + repo.blueprintsDisabled
+    blueprints = repo.blueprints
     for item in blueprints:
         if item.name == blueprint:
             bp = item

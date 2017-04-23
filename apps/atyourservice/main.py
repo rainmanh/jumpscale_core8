@@ -13,7 +13,7 @@ try:
     from JumpScale.baselib.atyourservice81.server.app import app as sanic_app
 except:
     print("needs:\npip3 install sanic==0.3.0")
-    j.do.execute("pip3 install sanic")
+    j.do.execute("pip3 install sanic==0.3.0")
     from JumpScale.baselib.atyourservice81.server.app import app as sanic_app
 
 print("to see api:http://localhost:5000/")

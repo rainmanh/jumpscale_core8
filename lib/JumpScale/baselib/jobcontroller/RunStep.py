@@ -57,7 +57,7 @@ class RunStep:
                 job.state = 'error'
                 self.logger.error(e)
 
-        futures = []
+        coros = []
         for job in self.jobs:
             action_name = job.model.dbobj.actionName
             service = job.service
@@ -67,15 +67,10 @@ class RunStep:
             if job.service.aysrepo.no_exec is True:
                 self._fake_exec(job)
             else:
-                future = asyncio.ensure_future(enhanced_waiter(job.execute(), action_timeout, job))
-                futures.append(future)
+                coro = enhanced_waiter(job.execute(), action_timeout, job)
+                coros.append(coro)
 
-        done, pending = await asyncio.wait(futures)
-        if len(pending) != 0:
-            for future in pending:
-                future.cancel()
-            raise j.exceptions.RuntimeError('not all job done')
-
+        await asyncio.gather(*coros, return_exceptions=True)
         states = [job.model.state for job in self.jobs]
         self.state = 'error' if 'error' in states else 'ok'
         self.logger.info("runstep {}: {}".format(self.dbobj.number, self.state))

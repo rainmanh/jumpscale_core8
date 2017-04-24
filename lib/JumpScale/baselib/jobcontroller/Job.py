@@ -1,19 +1,17 @@
 from JumpScale import j
 from JumpScale.baselib.jobcontroller.SourceLoader import SourceLoader
 from JumpScale.core.errorhandling.ErrorConditionObject import ErrorConditionObject
-import importlib
-import types
 import colored_traceback
 import pygments.lexers
 import cProfile
 from contextlib import contextmanager
-import sys
 import asyncio
 import functools
 import logging
 import traceback
 
 colored_traceback.add_hook(always=True)
+
 
 def _execute_cb(job, future):
     """
@@ -30,9 +28,8 @@ def _execute_cb(job, future):
         action_name = job.model.dbobj.actionName
         if action_name in job.service.model.actions:
             service_action_obj = job.service.model.actions[action_name]
-        if action_name in job.service.model.actionsRecurring and service_action_obj:
-            # if the action is a reccuring action, save last execution time in model
             service_action_obj.lastRun = j.data.time.epoch
+
     exception = None
     futurecancelled = False
     try:
@@ -49,6 +46,7 @@ def _execute_cb(job, future):
         job.model.dbobj.state = 'error'
         if service_action_obj:
             service_action_obj.state = 'error'
+            service_action_obj.errorNr += 1
         if job.service:
             job.service.model.dbobj.state = 'error'
 

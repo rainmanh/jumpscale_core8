@@ -12,6 +12,7 @@ class DiskType(Enum):
 
 
 class Disks:
+
     """Subobject to list disks"""
     def __init__(self, node):
         self.node = node
@@ -61,7 +62,6 @@ class Disk(Mountable):
         self._filesystems = []
         self.type = None
         self.partitions = []
-        self.state = None
 
         self._load(disk_info)
 
@@ -75,17 +75,16 @@ class Disk(Mountable):
         return self._filesystems
 
     def _load(self, disk_info):
-        self.state = disk_info['state']
-        detail = self._client.disk.getinfo(disk_info['name']) if self.state else None
         self.name = disk_info['name']
+        detail = self._client.disk.getinfo(self.name)
         self.size = int(disk_info['size'])
-        self.blocksize = detail['blocksize'] if detail else None
-        if detail and detail['table'] != 'unknown':
+        self.blocksize = detail['blocksize']
+        if detail['table'] != 'unknown':
             self.partition_table = detail['table']
         self.mountpoint = disk_info['mountpoint']
         self.model = disk_info['model']
         self.type = self._disk_type(disk_info)
-        for partition_info in disk_info.get('children', []):
+        for partition_info in disk_info.get('children', []) or []:
             self.partitions.append(
                 Partition(
                     disk=self,

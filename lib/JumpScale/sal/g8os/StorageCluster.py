@@ -109,37 +109,31 @@ class StorageCluster:
         return a list of disk that are not used by storage pool
         or has a different type as the one required for this cluster
         """
-        available_disks = []
-        for node in self.nodes:
-            available_disks.extend(node.disks.list())
-
         cluster_name = 'sp_cluster_{}'.format(self.label)
-        usedisks = []
+        available_disks = []
+
+        def check_partition(disk):
+            for partition in disk.partitions:
+                for filesystem in partition.filesystems:
+                    if filesystem['label'].startswith(cluster_name):
+                        return True
+
         for node in self.nodes:
             for disk in node.disks.list():
+                # skip disks of wrong type
+                if disk.type.name != self.disk_type:
+                    continue
                 # skip devices which have filesystems on the device
                 if len(disk.filesystems) > 0:
-                    usedisks.append(disk)
+                    continue
 
                 # skip devices which have partitions
-                labelfound = False
-                for partition in disk.partitions:
-                    for filesystem in partition.filesystems:
-                        if filesystem['label'].startswith(cluster_name):
-                            labelfound = True
-                            break
-                    if labelfound:
-                        break
-                if not labelfound:
-                    usedisks.append(disk)
+                if len(disk.partitions) == 0:
+                    available_disks.append(disk)
+                else:
+                    if check_partition(disk):
+                        available_disks.append(disk)
 
-        for disk in available_disks[:]:
-            if disk in usedisks:
-                available_disks.remove(disk)
-                continue
-            if disk.type.name != self.disk_type:
-                available_disks.remove(disk)
-                continue
         return available_disks
 
     def _prepare_disk(self, disk):

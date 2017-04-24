@@ -407,7 +407,7 @@ class CuisineCore(base):
                 else:
                     user = ""
 
-                cmd = "curl -L '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (
+                cmd = "curl -L '%s' -o '%s' %s %s --connect-timeout 10 --retry %s --retry-max-time %s" % (
                     url, to, user, minsp, retry, timeout)
                 if self.file_exists(to):
                     cmd += " -C -"
@@ -416,7 +416,7 @@ class CuisineCore(base):
                 rc, out, err = self.run(cmd, die=False)
                 if rc == 33:  # resume is not support try again withouth resume
                     self.file_unlink(to)
-                    cmd = "curl -L '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (
+                    cmd = "curl -L '%s' -o '%s' %s %s --connect-timeout 10 --retry %s --retry-max-time %s" % (
                         url, to, user, minsp, retry, timeout)
                     rc, out, err = self.run(cmd, die=False)
                 if rc > 0:

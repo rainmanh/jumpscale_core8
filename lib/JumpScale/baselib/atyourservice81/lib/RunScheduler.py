@@ -17,6 +17,7 @@ class RunScheduler:
     def __init__(self, repo):
         self.logger = j.logger.get("j.ays.RunScheduler")
         self.repo = repo
+        self._loop = repo._loop
         self.queue = asyncio.PriorityQueue(maxsize=0)
         self.is_running = False
 

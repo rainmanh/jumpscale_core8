@@ -10,6 +10,8 @@ from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import get_
 from JumpScale.baselib.atyourservice81.lib.AtYourServiceDependencies import create_job
 from JumpScale.baselib.atyourservice81.lib.RunScheduler import RunScheduler
 from JumpScale.baselib.atyourservice81.lib.ErrorRunGenerator import ErrorRunGenerator
+
+
 import asyncio
 from collections import namedtuple
 
@@ -190,7 +192,7 @@ class AtYourServiceRepo():
         await self._error_run_generator.stop()
         if self._error_run_generator_task:
             self._error_run_generator_task.cancel()
-
+        
         # removing related actors, services , runs, jobs and the model itslef.
         self.db.actors.destroy()
         for run in self.runsList():

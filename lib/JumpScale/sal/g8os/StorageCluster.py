@@ -2,9 +2,6 @@ from JumpScale import j
 from JumpScale.sal.g8os.Disk import DiskType
 from JumpScale.sal.g8os.Container import Container
 from JumpScale.sal.g8os.ARDB import ARDB
-from JumpScale.sal.g8os.Node import Node
-import io
-import time
 
 
 class StorageCluster:
@@ -82,7 +79,7 @@ class StorageCluster:
             self.storage_servers.append(storage_server)
 
         if has_slave:
-            for i  in range(nr_server):
+            for i in range(nr_server):
                 storage_server = self.storage_servers[i]
                 fs = get_filesystem(i, storage_server.node)
                 bind = "0.0.0.0:{}".format(port)
@@ -90,7 +87,6 @@ class StorageCluster:
                 slave_server = StorageServer(cluster=self)
                 slave_server.create(filesystem=fs, name="{}_data_{}".format(self.name, (nr_server + i)), bind=bind, master=storage_server)
                 self.storage_servers.append(slave_server)
-
 
         # deploy metadata storage server
         fs = get_filesystem(0)
@@ -121,11 +117,20 @@ class StorageCluster:
         usedisks = []
         for node in self.nodes:
             for disk in node.disks.list():
-                # skip devices which have filesystems with other labels
-                if len(disk.filesystems) > 0 and not disk.filesystems[0]['label'].startswith(cluster_name):
+                # skip devices which have filesystems on the device
+                if len(disk.filesystems) > 0:
                     usedisks.append(disk)
+
                 # skip devices which have partitions
-                if len(disk.partitions) > 0:
+                labelfound = False
+                for partition in disk.partitions:
+                    for filesystem in partition.filesystems:
+                        if filesystem['label'].startswith(cluster_name):
+                            labelfound = True
+                            break
+                    if labelfound:
+                        break
+                if not labelfound:
                     usedisks.append(disk)
 
         for disk in available_disks[:]:

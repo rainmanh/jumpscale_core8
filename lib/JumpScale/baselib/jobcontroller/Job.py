@@ -31,23 +31,18 @@ def _execute_cb(job, future):
             service_action_obj.lastRun = j.data.time.epoch
 
     exception = None
-    futurecancelled = False
     try:
         exception = future.exception()
-    except:  # CancelledError
-        futurecancelled = True
-        job.logger.info("****Future was cancelled")
-        job.state = 'error'
-        job.model.dbobj.state = 'error'
-        job.save()
+    except asyncio.CancelledError as err:
+        exception = err
+        job.logger.error("{} has been cancelled".format(job))
 
-    if exception is not None or futurecancelled:
+    if exception is not None:
         job.state = 'error'
         job.model.dbobj.state = 'error'
         if service_action_obj:
             service_action_obj.state = 'error'
             service_action_obj.errorNr += 1
-        if job.service:
             job.service.model.dbobj.state = 'error'
 
         ex = exception if exception is not None else TimeoutError()

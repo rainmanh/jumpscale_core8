@@ -45,34 +45,45 @@ class RunStep:
         service_action_obj = job.service.model.actions[action_name]
         service_action_obj.state = 'ok'
         job.save()
+        # return valid done future, same as if job finished properly
+        future = asyncio.Future()
+        future.set_result(None)
+        return future
 
     async def execute(self):
 
-        async def enhanced_waiter(future, timeout, job):
-            try:
-                if timeout == 0:
-                    timeout = 3000
-                await asyncio.wait_for(future, timeout)
-            except asyncio.TimeoutError as e:
-                job.state = 'error'
-                self.logger.error(e)
-
         coros = []
+        jobs = []
         for job in self.jobs:
+
             action_name = job.model.dbobj.actionName
             service = job.service
             action_timeout = service.model.actions[action_name].timeout
-            self.logger.info('execute %s' % job)
-            # don't actually execute anything
-            if job.service.aysrepo.no_exec is True:
-                self._fake_exec(job)
-            else:
-                coro = enhanced_waiter(job.execute(), action_timeout, job)
-                coros.append(coro)
+            if action_timeout == 0:
+                action_timeout = 3000
 
-        await asyncio.gather(*coros, return_exceptions=True)
-        states = [job.model.state for job in self.jobs]
-        self.state = 'error' if 'error' in states else 'ok'
+            self.logger.info('execute %s' % job)
+
+            if job.service.aysrepo.no_exec is True:
+                # don't actually execute anything
+                coros.append(self._fake_exec(job))
+            else:
+                coros.append(asyncio.wait_for(job.execute(), action_timeout))
+            jobs.append(job)
+
+        results = await asyncio.gather(*coros, return_exceptions=True)
+        for i in range(len(results)):
+            result = results[i]
+            job = jobs[i]
+            repo = job.service.aysrepo if job.service else None
+
+            if isinstance(result, Exception):
+                self.state = 'error'
+                # if the job failed, try to reschedule it
+                # the run scheduler holds the logic of retry delay, we just need to give him the job
+                if repo:
+                    await repo.run_scheduler.retry(job)
+
         self.logger.info("runstep {}: {}".format(self.dbobj.number, self.state))
 
     def __repr__(self):

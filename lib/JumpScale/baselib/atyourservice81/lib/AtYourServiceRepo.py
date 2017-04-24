@@ -151,9 +151,6 @@ class AtYourServiceRepo():
         self.run_scheduler = RunScheduler(self)
         self._run_scheduler_task = self._loop.create_task(self.run_scheduler.start())
 
-        self._error_run_generator = ErrorRunGenerator(self)
-        self._error_run_generator_task = self._loop.create_task(self._error_run_generator.start())
-
         j.atyourservice._loadActionBase()
 
         self._load_services()
@@ -186,10 +183,6 @@ class AtYourServiceRepo():
         await self.run_scheduler.stop(timeout=30)
         if self._run_scheduler_task:
             self._run_scheduler_task.cancel()
-
-        await self._error_run_generator.stop()
-        if self._error_run_generator_task:
-            self._error_run_generator_task.cancel()
 
         # removing related actors, services , runs, jobs and the model itslef.
         self.db.actors.destroy()
@@ -591,6 +584,9 @@ class AtYourServiceRepo():
                 # this allow to never schedule something that is not possible to execute at the moment
                 # if this branc of the dependency tree is in error state, we skip it until
                 # the automatic error runs fixes it.
+
+                # FIXME: This should be done against producers not parent
+                # we should also apply the logic of action dependencies
                 if service.parent and \
                    action in service.parent.model.actions and \
                    service.parent.model.actions[action].state == 'error':
@@ -603,6 +599,7 @@ class AtYourServiceRepo():
                     service._build_actions_chain(action, ds=action_chain)
                     action_chain.reverse()
                     result[service].append(action_chain)
+
         return result
 
     def runCreate(self, to_execute, debug=False, profile=False):

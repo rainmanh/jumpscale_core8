@@ -4,6 +4,15 @@ from JumpScale import j
 NORMAL_RUN_PRIORITY = 1
 ERROR_RUN_PRIORITY = 10
 
+RETRY_DELAY = {
+    1: 10,  # 30sec
+    2: 60,  # 1min
+    3: 300,  # 5min
+    4: 600,  # 10min
+    5: 1800,  # 30min
+    6: 1800,  # 30min
+}  # total: 1h 16min 30sec
+
 
 class RunScheduler:
     """
@@ -35,7 +44,7 @@ class RunScheduler:
                 await run.execute()
             except:
                 # exception is handle in the job directly,
-                # cath here to not interrupt the loop
+                # catch here to not interrupt the loop
                 pass
             finally:
                 self.queue.task_done()
@@ -60,6 +69,32 @@ class RunScheduler:
 
         self.logger.debug("add run {} to {}".format(run.model.key, self))
         await self.queue.put((prio, run))
+
+    async def retry(self, job):
+        """
+        TODO
+        """
+        action_name = job.model.dbobj.actionName
+        action = job.service.model.actions[action_name]
+
+        if action.state != 'error':
+            self.logger.info("no need to retry action {}, state not error".format(action))
+            return
+
+        if list(RETRY_DELAY.keys())[-1] < action.errorNr:
+            self.logger.info("action {} reached max retry, not rescheduling again.".format(action))
+            return
+
+        delay = RETRY_DELAY[action.errorNr]
+        # make sure we don't reschedule with a delay smaller then the timeout of the job
+        if action.timeout > 0:
+            delay + action.timeout
+        self.logger.info("reschedule {} in {}sec".format(job, delay))
+        await asyncio.sleep(delay)
+
+        run = self.repo.runCreate({job.service: [[action_name]]})
+        self.logger.debug("add error run {} to {}".format(run.model.key, self))
+        await self.repo.run_scheduler.add(run, ERROR_RUN_PRIORITY)
 
     def __repr__(self):
         return "RunScheduler<{}>".format(self.repo.name)

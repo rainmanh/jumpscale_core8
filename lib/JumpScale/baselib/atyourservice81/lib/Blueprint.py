@@ -1,5 +1,6 @@
 from JumpScale import j
 import yaml
+import re
 
 class Blueprint:
     """
@@ -243,7 +244,8 @@ class Blueprint:
                         message = "Service template %s not found. Can't execute this blueprint" % aysname
                         self.logger.error(message)
                         return False, message
-                    if not instance.isalnum():
+
+                    if not re.sub("[-_.]", "", instance).isalnum():
                         message = "Service instance name should be digits or alphanumeric. you passed [%s]" % instance
                         return False, message
 

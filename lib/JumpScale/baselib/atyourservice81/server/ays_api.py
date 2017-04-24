@@ -15,6 +15,8 @@ from JumpScale.baselib.atyourservice81.server.views import repository_view
 from JumpScale import j
 logger = j.logger.get('j.ays.sanic')
 
+logger = j.logger.get('j.ays.sanic')
+
 Blueprint_schema = JSON.load(open(j.sal.fs.joinPaths(j.sal.fs.getParent(__file__),'schema/Blueprint_schema.json')))
 Repository_schema = JSON.load(open(j.sal.fs.joinPaths(j.sal.fs.getParent(__file__),'schema/Repository_schema.json')))
 TemplateRepo_schema = JSON.load(open(j.sal.fs.joinPaths(j.sal.fs.getParent(__file__),'schema/TemplateRepo_schema.json')))

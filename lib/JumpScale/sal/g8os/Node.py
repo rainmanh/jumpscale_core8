@@ -46,7 +46,7 @@ class Node:
                 continue
             if disk.type in [DiskType.ssd, DiskType.nvme]:
                 return disk
-            elif disk.type == DiskType.cdrom or disk.state is None:
+            elif disk.type == DiskType.cdrom:
                 disks.remove(disk)
             if len(disk.partitions) > 0:
                 disks.remove(disk)

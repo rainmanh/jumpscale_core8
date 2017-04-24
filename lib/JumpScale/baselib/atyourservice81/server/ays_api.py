@@ -2,7 +2,6 @@ import json as JSON
 from sanic.response import json, text
 import jsonschema
 from jsonschema import Draft4Validator
-import asyncio
 import capnp
 
 from JumpScale.baselib.atyourservice81.server.views import service_view
@@ -11,11 +10,10 @@ from JumpScale.baselib.atyourservice81.server.views import actor_view
 from JumpScale.baselib.atyourservice81.server.views import blueprint_view
 from JumpScale.baselib.atyourservice81.server.views import template_view
 from JumpScale.baselib.atyourservice81.server.views import repository_view
-
 from JumpScale import j
-logger = j.logger.get('j.ays.sanic')
 
 logger = j.logger.get('j.ays.sanic')
+
 
 Blueprint_schema = JSON.load(open(j.sal.fs.joinPaths(j.sal.fs.getParent(__file__),'schema/Blueprint_schema.json')))
 Repository_schema = JSON.load(open(j.sal.fs.joinPaths(j.sal.fs.getParent(__file__),'schema/Repository_schema.json')))
